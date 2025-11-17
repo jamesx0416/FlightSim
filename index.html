@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Three.js Hybrid Globe — Optimized</title>
+  <style>
+    html,body,#renderCanvas {
+      width:100%;height:100%;
+      margin:0;padding:0;
+      overflow:hidden; background:#000;
+    }
+    #ui {
+      position:absolute; left:10px; top:10px;
+      z-index:20; color:#fff; font-family:monospace;
+    }
+    #ui button{ padding:6px 8px; margin-right:6px }
+  </style>
+  <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js"></script>
+</head>
+<body>
+<canvas id="renderCanvas"></canvas>
+<div id="ui">
+  <button id="zoomOut">-</button>
+  <button id="zoomIn">+</button>
+  <button id="pauseToggle">Pause Loading</button>
+  <span id="info"></span>
+</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
