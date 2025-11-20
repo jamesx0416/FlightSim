@@ -29,6 +29,7 @@ const tileFragmentShader = `
   uniform sampler2D uTexture;
   uniform sampler2D uNewTexture;
   uniform float uMix;
+  uniform float uOpacity;
   uniform int uHasNew;
   varying vec2 vUv;
 
@@ -40,6 +41,7 @@ const tileFragmentShader = `
     } else {
       gl_FragColor = tex1;
     }
+    gl_FragColor.a *= uOpacity;
   }
 `;
 
@@ -151,11 +153,15 @@ export class TileManager {
                 uTexture: { value: texture },
                 uNewTexture: { value: null },
                 uMix: { value: 0.0 },
+                uOpacity: { value: 1.0 },
                 uHasNew: { value: 0 }
             },
             vertexShader: tileVertexShader,
             fragmentShader: tileFragmentShader,
-            side: THREE.FrontSide
+            side: THREE.FrontSide,
+            transparent: true,
+            depthWrite: false, // Important for layering
+            depthTest: true
         });
 
         const mesh = new THREE.Mesh(geometry, material);
@@ -314,79 +320,103 @@ export class TileManager {
         }
     }
 
-    async updateVisibleTiles(currentTileZoom, cameraParams) {
+    async updateVisibleTiles(fractionalZoom, cameraParams) {
         if (this.loadingPaused) return;
 
-        const z = currentTileZoom;
+        const lowerZoom = Math.floor(fractionalZoom);
+        const upperZoom = Math.ceil(fractionalZoom);
+        const mix = fractionalZoom - lowerZoom;
+
+        // Determine which zoom levels we need to render
+        const activeZooms = [];
+        activeZooms.push({ z: lowerZoom, opacity: 1.0 });
+
+        if (upperZoom > lowerZoom && mix > 0.001) {
+            // We are transitioning.
+            // Lower zoom stays at opacity 1.0 (background)
+            // Upper zoom fades in (opacity = mix)
+            activeZooms.push({ z: upperZoom, opacity: mix });
+        }
+
         const baseZoom = 4;
-        const n = Math.pow(2, z);
 
-        const camNorm = this.camera.position.clone().normalize();
-        const desired = [];
-
-        if (z > baseZoom) {
+        // Hide base tiles if our lowest active zoom is higher than base
+        if (lowerZoom > baseZoom) {
             this.setBaseTilesVisibility(false);
         } else {
             this.setBaseTilesVisibility(true);
         }
 
-        let xMin = 0, xMax = n - 1;
-        let yMin = 0, yMax = n - 1;
+        const camNorm = this.camera.position.clone().normalize();
+        const desired = [];
 
-        if (z > 6 && cameraParams) {
-            const { phi, theta, radius } = cameraParams;
-            const camLat = 90 - (phi * 180) / Math.PI;
-            let camLon = 180 - (theta * 180) / Math.PI;
-            while (camLon > 180) camLon -= 360;
-            while (camLon < -180) camLon += 360;
+        // Helper to gather tiles for a specific zoom level
+        const gatherTiles = (z, opacity) => {
+            const n = Math.pow(2, z);
+            let xMin = 0, xMax = n - 1;
+            let yMin = 0, yMax = n - 1;
 
-            const safeRadius = Math.max(RADIUS + 0.001, radius);
-            const alphaRad = Math.acos(RADIUS / safeRadius);
-            const alphaDeg = (alphaRad * 180) / Math.PI;
+            if (z > 6 && cameraParams) {
+                const { phi, theta, radius } = cameraParams;
+                const camLat = 90 - (phi * 180) / Math.PI;
+                let camLon = 180 - (theta * 180) / Math.PI;
+                while (camLon > 180) camLon -= 360;
+                while (camLon < -180) camLon += 360;
 
-            const buffer = 1.5;
-            const latSpan = alphaDeg * buffer;
+                const safeRadius = Math.max(RADIUS + 0.001, radius);
+                const alphaRad = Math.acos(RADIUS / safeRadius);
+                const alphaDeg = (alphaRad * 180) / Math.PI;
 
-            if (Math.abs(camLat) + latSpan > 85) {
-                yMin = Math.max(0, latToTileY(Math.min(85, camLat + latSpan), z));
-                yMax = Math.min(n - 1, latToTileY(Math.max(-85, camLat - latSpan), z));
-            } else {
-                const latMin = camLat - latSpan;
-                const latMax = camLat + latSpan;
-                const maxAbsLat = Math.max(Math.abs(latMin), Math.abs(latMax));
-                const cosLat = Math.cos((maxAbsLat * Math.PI) / 180);
-                const lonSpan = latSpan / Math.max(0.1, cosLat);
+                const buffer = 1.5;
+                const latSpan = alphaDeg * buffer;
 
-                const lonMin = camLon - lonSpan;
-                const lonMax = camLon + lonSpan;
+                if (Math.abs(camLat) + latSpan > 85) {
+                    yMin = Math.max(0, latToTileY(Math.min(85, camLat + latSpan), z));
+                    yMax = Math.min(n - 1, latToTileY(Math.max(-85, camLat - latSpan), z));
+                } else {
+                    const latMin = camLat - latSpan;
+                    const latMax = camLat + latSpan;
+                    const maxAbsLat = Math.max(Math.abs(latMin), Math.abs(latMax));
+                    const cosLat = Math.cos((maxAbsLat * Math.PI) / 180);
+                    const lonSpan = latSpan / Math.max(0.1, cosLat);
 
-                yMin = Math.max(0, latToTileY(latMax, z));
-                yMax = Math.min(n - 1, latToTileY(latMin, z));
+                    const lonMin = camLon - lonSpan;
+                    const lonMax = camLon + lonSpan;
 
-                xMin = lonToTileX(lonMin, z);
-                xMax = lonToTileX(lonMax, z);
-            }
-        }
+                    yMin = Math.max(0, latToTileY(latMax, z));
+                    yMax = Math.min(n - 1, latToTileY(latMin, z));
 
-        for (let y = yMin; y <= yMax; y++) {
-            for (let xRaw = xMin; xRaw <= xMax; xRaw++) {
-                const x = ((xRaw % n) + n) % n;
-
-                if (z > baseZoom) {
-                    if (!this.tileIsVisible(z, x, y)) continue;
+                    xMin = lonToTileX(lonMin, z);
+                    xMax = lonToTileX(lonMax, z);
                 }
-
-                const key = `${z}/${x}/${y}`;
-                const center = patchCenterVector(z, x, y).multiplyScalar(RADIUS);
-                const dist = center.distanceTo(this.camera.position);
-                const dot = patchCenterVector(z, x, y).dot(camNorm);
-                desired.push({ z, x, y, key, dot, dist });
             }
+
+            for (let y = yMin; y <= yMax; y++) {
+                for (let xRaw = xMin; xRaw <= xMax; xRaw++) {
+                    const x = ((xRaw % n) + n) % n;
+
+                    if (z > baseZoom) {
+                        if (!this.tileIsVisible(z, x, y)) continue;
+                    }
+
+                    const key = `${z}/${x}/${y}`;
+                    const center = patchCenterVector(z, x, y).multiplyScalar(RADIUS);
+                    const dist = center.distanceTo(this.camera.position);
+                    const dot = patchCenterVector(z, x, y).dot(camNorm);
+                    desired.push({ z, x, y, key, dot, dist, opacity });
+                }
+            }
+        };
+
+        // Gather for all active zooms
+        for (const level of activeZooms) {
+            gatherTiles(level.z, level.opacity);
         }
 
         desired.sort((a, b) => b.dot - a.dot);
         const newKeys = new Set(desired.map((t) => t.key));
 
+        // Cleanup old tiles
         for (const key of [...this.visibleTilesSet]) {
             const parts = key.split("/").map(Number);
             const tileZ = parts[0];
@@ -397,17 +427,32 @@ export class TileManager {
             }
         }
 
+        // Create/Update new tiles
         for (const tile of desired) {
             if (this.tileMeshCache.has(tile.key)) {
                 const mesh = this.tileMeshCache.get(tile.key);
                 mesh.visible = true;
+                mesh.renderOrder = tile.z; // Ensure higher zoom draws on top
+
+                // Update opacity
+                const rec = this.tileMaterialCache.get(tile.key);
+                if (rec && rec.material) {
+                    rec.material.uniforms.uOpacity.value = tile.opacity;
+                }
+
                 this.visibleTilesSet.add(tile.key);
 
                 if (!this.tileImageCache.has(tile.key)) {
                     this.loadAndApplyTile(tile.z, tile.x, tile.y);
                 }
             } else {
-                this.pendingTileCreation.push({ z: tile.z, x: tile.x, y: tile.y, key: tile.key });
+                this.pendingTileCreation.push({
+                    z: tile.z,
+                    x: tile.x,
+                    y: tile.y,
+                    key: tile.key,
+                    opacity: tile.opacity
+                });
             }
         }
     }
@@ -422,6 +467,13 @@ export class TileManager {
             if (!this.tileMeshCache.has(req.key)) {
                 const mesh = this.createTileMesh(req.z, req.x, req.y);
                 mesh.visible = true;
+                mesh.renderOrder = req.z;
+
+                const rec = this.tileMaterialCache.get(req.key);
+                if (rec && rec.material) {
+                    rec.material.uniforms.uOpacity.value = req.opacity !== undefined ? req.opacity : 1.0;
+                }
+
                 this.visibleTilesSet.add(req.key);
 
                 if (!this.tileImageCache.has(req.key)) {

@@ -3,7 +3,8 @@ import {
   RADIUS,
   MAX_ZOOM,
   MIN_ZOOM,
-  STARTING_RADIUS
+  STARTING_RADIUS,
+  UPDATE_INTERVAL
 } from "./Constants.js";
 import { TileManager } from "./TileManager.js";
 import { Controls } from "./Controls.js";
@@ -32,20 +33,41 @@ const camera = new THREE.PerspectiveCamera(
 
 // State
 let currentTileZoom = 4;
+let lastUpdate = 0;
 
 // Managers
 const tileManager = new TileManager(scene, camera);
 
 // Zoom update logic
-function updateZoomLevel(radius) {
-  const altitude = Math.max(0.001, radius - RADIUS);
-  const rawZoom = -1.2 * Math.log(altitude) + 9;
-  const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.floor(rawZoom)));
+function getZoomFromAltitude(altitude) {
+  // altitude is in units (1 unit = 100km)
+  // Further adjusted formula for much earlier detail
+  // Formula: zoom = -1.4 * log2(altitude) + 11.0
+  // 
+  // Mapping:
+  // 1000km (10.0) -> ~6.4
+  // 100km (1.0)   -> 11.0
+  // 10km (0.1)    -> ~15.6 (Clamped to 15)
 
-  if (newZoom !== currentTileZoom) {
-    currentTileZoom = newZoom;
+  // Prevent log(0)
+  const safeAlt = Math.max(0.000001, altitude);
+
+  const rawZoom = -1.4 * Math.log2(safeAlt) + 11.0;
+
+  return rawZoom;
+}
+
+function updateZoomLevel(radius) {
+  const altitude = Math.max(0.00001, radius - RADIUS);
+  const fractionalZoom = getZoomFromAltitude(altitude);
+
+  // Clamp to supported range
+  const clampedZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, fractionalZoom));
+
+  if (Math.abs(clampedZoom - currentTileZoom) > 0.01) {
+    currentTileZoom = clampedZoom;
     // Clear pending queue when zoom changes significantly
-    tileManager.pendingTileCreation.length = 0;
+    // tileManager.pendingTileCreation.length = 0; // Keep queue for smoothness?
   }
 
   updateInfoDisplay(currentTileZoom);
@@ -100,7 +122,10 @@ window.addEventListener("resize", () => {
     controls.updateCamera();
 
     // Continuous update
-    tileManager.updateVisibleTiles(currentTileZoom, controls.getCameraParams());
+    if (timestamp - lastUpdate > UPDATE_INTERVAL) {
+      tileManager.updateVisibleTiles(currentTileZoom, controls.getCameraParams());
+      lastUpdate = timestamp;
+    }
     tileManager.processTileQueue();
     tileManager.updateFadingTiles();
 
