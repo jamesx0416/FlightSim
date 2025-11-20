@@ -415,12 +415,56 @@ export class TileManager {
 
         desired.sort((a, b) => b.dot - a.dot);
         const newKeys = new Set(desired.map((t) => t.key));
+        const tilesToKeep = new Set(newKeys);
+        let needBaseTiles = false;
+
+        // Fallback logic: if a desired tile is not ready, keep its parent visible
+        for (const tile of desired) {
+            if (!this.tileMeshCache.has(tile.key)) {
+                // Tile needs creation. Check if we have a visible parent to keep.
+                let pZ = tile.z - 1;
+                let pX = Math.floor(tile.x / 2);
+                let pY = Math.floor(tile.y / 2);
+
+                while (pZ >= baseZoom) {
+                    const parentKey = `${pZ}/${pX}/${pY}`;
+                    if (this.visibleTilesSet.has(parentKey)) {
+                        tilesToKeep.add(parentKey);
+                        if (pZ === baseZoom) {
+                            needBaseTiles = true;
+                        }
+                        break; // Found the immediate visible parent, keep it
+                    }
+                    pZ--;
+                    pX = Math.floor(pX / 2);
+                    pY = Math.floor(pY / 2);
+                }
+
+                // If we didn't find a visible parent in visibleTilesSet, 
+                // check if we need base tiles (implicit fallback)
+                if (pZ < baseZoom) {
+                    needBaseTiles = true;
+                }
+            }
+        }
+
+        // Re-evaluate base visibility based on fallback needs
+        if (lowerZoom > baseZoom && !needBaseTiles) {
+            this.setBaseTilesVisibility(false);
+        } else {
+            this.setBaseTilesVisibility(true);
+        }
 
         // Cleanup old tiles
         for (const key of [...this.visibleTilesSet]) {
             const parts = key.split("/").map(Number);
             const tileZ = parts[0];
-            if (tileZ > baseZoom && !newKeys.has(key)) {
+            // Only delete if not in tilesToKeep
+            // And ensure we don't delete base tiles if we decided to keep them visible via setBaseTilesVisibility
+            // (But setBaseTilesVisibility only toggles visibility property, doesn't remove from set. 
+            //  Here we remove from set if it's a high-res tile that is no longer needed)
+
+            if (tileZ > baseZoom && !tilesToKeep.has(key)) {
                 this.visibleTilesSet.delete(key);
                 const mesh = this.tileMeshCache.get(key);
                 if (mesh) mesh.visible = false;
