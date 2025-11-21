@@ -410,6 +410,7 @@ export class TileManager {
 
         // Gather for all active zooms
         for (const level of activeZooms) {
+            if (level.z < 4) continue; // Skip tiles lower than base zoom 4 (handled by Globe.gl)
             gatherTiles(level.z, level.opacity);
         }
 

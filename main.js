@@ -1,4 +1,5 @@
 import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js";
+import ThreeGlobe from "https://esm.sh/three-globe";
 import {
   RADIUS,
   MAX_ZOOM,
@@ -8,6 +9,7 @@ import {
 } from "./Constants.js";
 import { TileManager } from "./TileManager.js";
 import { Controls } from "./Controls.js";
+import { FlatPlaneManager } from "./FlatPlaneManager.js";
 
 const canvas = document.getElementById("renderCanvas");
 
@@ -27,9 +29,23 @@ const camera = new THREE.PerspectiveCamera(
 
 // Lights
 {
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x000000, 0.9);
-  scene.add(hemi);
+  const ambientLight = new THREE.AmbientLight(0xbbbbbb);
+  scene.add(ambientLight);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  directionalLight.position.set(1, 1, 1);
+  scene.add(directionalLight);
 }
+
+// Globe.gl setup
+const Globe = new ThreeGlobe()
+  .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+  .showAtmosphere(false)
+  .atmosphereAltitude(0);
+
+// ThreeGlobe default radius is 100. Scale to match our RADIUS, but slightly smaller to avoid z-fighting.
+Globe.scale.setScalar((RADIUS * 0.99) / 100);
+
+scene.add(Globe);
 
 // State
 let currentTileZoom = 4;
@@ -37,6 +53,7 @@ let lastUpdate = 0;
 
 // Managers
 const tileManager = new TileManager(scene, camera);
+const flatPlaneManager = new FlatPlaneManager(scene);
 
 // Zoom update logic
 function getZoomFromAltitude(altitude) {
@@ -110,7 +127,7 @@ window.addEventListener("resize", () => {
 
 // Init sequence
 (async function init() {
-  await tileManager.loadBaseZoomTiles();
+  // await tileManager.loadBaseZoomTiles(); // Disabled in favor of Globe.gl base
   await tileManager.updateVisibleTiles(currentTileZoom, controls.getCameraParams());
 
   // Initial zoom check
@@ -126,6 +143,31 @@ window.addEventListener("resize", () => {
       tileManager.updateVisibleTiles(currentTileZoom, controls.getCameraParams());
       lastUpdate = timestamp;
     }
+
+    // Mode switching logic
+    const FLAT_THRESHOLD = 12;
+    const isFlatMode = currentTileZoom > FLAT_THRESHOLD;
+
+    if (isFlatMode) {
+      Globe.visible = false;
+      tileManager.visibleTilesSet.forEach(key => {
+        const mesh = tileManager.tileMeshCache.get(key);
+        if (mesh) mesh.visible = false;
+      });
+      flatPlaneManager.update(true, controls.getCameraParams());
+    } else {
+      Globe.visible = true;
+      // TileManager manages its own visibility in updateVisibleTiles, 
+      // but we forced them hidden above, so updateVisibleTiles will restore them next frame?
+      // Actually updateVisibleTiles sets .visible = true.
+      // So we just need to ensure FlatPlane is hidden.
+      flatPlaneManager.update(false, controls.getCameraParams());
+
+      // We might need to force tile visibility restore if we just switched back
+      // But updateVisibleTiles runs every UPDATE_INTERVAL.
+      // For smoothness, we should probably let tileManager handle it.
+    }
+
     tileManager.processTileQueue();
     tileManager.updateFadingTiles();
 
