@@ -16,32 +16,7 @@ import {
     esriTileURL
 } from "./Utils.js";
 
-// Shader for cross-fading
-const tileVertexShader = `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
 
-const tileFragmentShader = `
-  uniform sampler2D uTexture;
-  uniform sampler2D uNewTexture;
-  uniform float uMix;
-  uniform int uHasNew;
-  varying vec2 vUv;
-
-  void main() {
-    vec4 tex1 = texture2D(uTexture, vUv);
-    if (uHasNew == 1) {
-      vec4 tex2 = texture2D(uNewTexture, vUv);
-      gl_FragColor = mix(tex1, tex2, uMix);
-    } else {
-      gl_FragColor = tex1;
-    }
-  }
-`;
 
 export class TileManager {
     constructor(scene, camera) {
@@ -52,7 +27,7 @@ export class TileManager {
         this.tileMeshCache = new Map();     // key -> THREE.Mesh
         this.tileMaterialCache = new Map(); // key -> { material, texture, canvas, ... }
         this.visibleTilesSet = new Set();   // keys currently enabled
-        this.fadingTiles = new Set();       // Tiles currently cross-fading
+        this.visibleTilesSet = new Set();   // keys currently enabled
 
         this.currentLoads = 0;
         this.loadingPaused = false;
@@ -144,17 +119,11 @@ export class TileManager {
         texture.minFilter = THREE.LinearMipmapLinearFilter;
         texture.magFilter = THREE.LinearFilter;
         texture.generateMipmaps = true;
+        texture.colorSpace = THREE.SRGBColorSpace;
 
-        // Shader Material for cross-fading
-        const material = new THREE.ShaderMaterial({
-            uniforms: {
-                uTexture: { value: texture },
-                uNewTexture: { value: null },
-                uMix: { value: 0.0 },
-                uHasNew: { value: 0 }
-            },
-            vertexShader: tileVertexShader,
-            fragmentShader: tileFragmentShader,
+        // Standard material
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
             side: THREE.FrontSide
         });
 
@@ -254,14 +223,12 @@ export class TileManager {
         newTexture.minFilter = THREE.LinearMipmapLinearFilter;
         newTexture.magFilter = THREE.LinearFilter;
         newTexture.generateMipmaps = true;
+        newTexture.colorSpace = THREE.SRGBColorSpace;
 
-        // Start cross-fade
+        // Direct swap
         const { material } = rec;
-        material.uniforms.uNewTexture.value = newTexture;
-        material.uniforms.uHasNew.value = 1;
-        material.uniforms.uMix.value = 0.0;
-
-        this.fadingTiles.add(key);
+        material.map = newTexture;
+        material.needsUpdate = true;
     }
 
     // Visibility checks
@@ -450,28 +417,5 @@ export class TileManager {
         }
     }
 
-    updateFadingTiles() {
-        // Process fading tiles
-        const FADE_SPEED = 0.05;
-        for (const key of this.fadingTiles) {
-            const rec = this.tileMaterialCache.get(key);
-            if (!rec) {
-                this.fadingTiles.delete(key);
-                continue;
-            }
 
-            const { material } = rec;
-            if (material.uniforms.uHasNew.value === 1) {
-                material.uniforms.uMix.value += FADE_SPEED;
-                if (material.uniforms.uMix.value >= 1.0) {
-                    material.uniforms.uMix.value = 1.0;
-                    // Swap textures
-                    material.uniforms.uTexture.value = material.uniforms.uNewTexture.value;
-                    material.uniforms.uNewTexture.value = null;
-                    material.uniforms.uHasNew.value = 0;
-                    this.fadingTiles.delete(key);
-                }
-            }
-        }
-    }
 }

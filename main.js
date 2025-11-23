@@ -102,7 +102,7 @@ window.addEventListener("resize", () => {
     // Continuous update
     tileManager.updateVisibleTiles(currentTileZoom, controls.getCameraParams());
     tileManager.processTileQueue();
-    tileManager.updateFadingTiles();
+
 
     updateInfoDisplay(currentTileZoom);
 
