@@ -7,17 +7,17 @@ export class LODManager {
         // These thresholds determine when to switch to the next lower zoom level.
         // Distance is from camera to tile center.
         this.lodThresholds = {
-            15: 20,
-            14: 50,
-            13: 100,
-            12: 200,
-            11: 400,
-            10: 800,
-            9: 1500,
-            8: 2500,
+            15: 30,
+            14: 60,
+            13: 120,
+            12: 250,
+            11: 500,
+            10: 1000,
+            9: 1800,
+            8: 2800,
             7: 4000,
-            6: 6000,
-            5: 8000,
+            6: 5500,
+            5: 7500,
             4: Infinity
         };
     }
@@ -44,7 +44,19 @@ export class LODManager {
         // Therefore 1 unit = 100 km
         const distanceKm = distance * 100;
 
-        const desired = this.getDesiredZoom(distanceKm);
+        // Grazing Angle Falloff
+        // Calculate dot product between View Vector and Tile Normal
+        const tileNormal = patchCenterVector(z, x, y); // Already normalized
+        const viewVector = center.clone().sub(cameraPosition).normalize();
+        const dot = Math.abs(viewVector.dot(tileNormal));
+
+        // Effective Distance Calculation
+        // If looking straight down (dot ~ 1.0), effective distance = actual distance
+        // If looking at horizon (dot ~ 0.0), effective distance increases significantly
+        // We clamp dot to 0.2 to prevent infinity, meaning at horizon distance is 5x
+        const effectiveDistanceKm = distanceKm / Math.max(0.2, dot);
+
+        const desired = this.getDesiredZoom(effectiveDistanceKm);
         return z < desired;
     }
 }

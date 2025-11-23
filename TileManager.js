@@ -23,7 +23,11 @@ export class TileManager {
         this.camera = camera;
 
         this.lodManager = new LODManager();
-        this.tileCache = new TileCache(1000); // Increased capacity
+        this.tileCache = new TileCache(5000, (mesh) => {
+            if (mesh) {
+                this.scene.remove(mesh);
+            }
+        });
 
         this.currentLoads = 0;
         this.loadingPaused = false;
@@ -49,20 +53,30 @@ export class TileManager {
 
         // Safety: Limit total tiles to prevent infinite recursion/hangs
         this.tilesProcessed = 0;
-        this.MAX_TILES_PER_FRAME = 2000;
+        this.MAX_TILES_PER_FRAME = 5000; // Increased limit
 
         // We can optimize this by only checking base tiles in frustum, 
         // but for now iterating all base tiles (16x16=256) is fast enough.
+        let traversalComplete = true;
         for (let x = 0; x < n; x++) {
             for (let y = 0; y < n; y++) {
                 this.processTile(baseZoom, x, y, desiredTiles);
-                if (this.tilesProcessed > this.MAX_TILES_PER_FRAME) break;
+                if (this.tilesProcessed > this.MAX_TILES_PER_FRAME) {
+                    traversalComplete = false;
+                    break;
+                }
             }
-            if (this.tilesProcessed > this.MAX_TILES_PER_FRAME) break;
+            if (!traversalComplete) break;
         }
 
         // 2. Reconcile with active scene
-        this.reconcileTiles(desiredTiles);
+        // CRITICAL: Only reconcile if we completed the traversal.
+        // Otherwise we might wipe out the whole scene because desiredTiles is incomplete.
+        if (traversalComplete) {
+            this.reconcileTiles(desiredTiles);
+        } else {
+            console.warn("Tile limit reached, skipping update to prevent black tiles.");
+        }
 
         // 3. Process load queue
         this.processLoadQueue();

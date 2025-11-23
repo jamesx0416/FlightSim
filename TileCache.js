@@ -1,8 +1,9 @@
 import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js";
 
 export class TileCache {
-    constructor(capacity = 500) {
+    constructor(capacity = 500, onEvict = null) {
         this.capacity = capacity;
+        this.onEvict = onEvict;
         this.map = new Map(); // key -> { tile, lastUsed }
         this.head = null; // MRU
         this.tail = null; // LRU
@@ -63,6 +64,11 @@ export class TileCache {
         const node = this.tail;
         this.removeNode(node);
         this.map.delete(node.key);
+
+        // Notify caller to remove from scene
+        if (this.onEvict) {
+            this.onEvict(node.value);
+        }
 
         // Dispose resources if applicable
         if (node.value) {
