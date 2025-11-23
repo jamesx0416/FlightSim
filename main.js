@@ -30,30 +30,12 @@ const camera = new THREE.PerspectiveCamera(
   scene.add(hemi);
 }
 
-// State
-let currentTileZoom = 4;
-
 // Managers
 const tileManager = new TileManager(scene, camera);
 
-// Zoom update logic
-function updateZoomLevel(radius) {
-  const altitude = Math.max(0.001, radius - RADIUS);
-  const rawZoom = -1.2 * Math.log(altitude) + 9;
-  const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.floor(rawZoom)));
-
-  if (newZoom !== currentTileZoom) {
-    currentTileZoom = newZoom;
-    // Clear pending queue when zoom changes significantly
-    tileManager.pendingTileCreation.length = 0;
-  }
-
-  updateInfoDisplay(currentTileZoom);
-}
-
 // Controls
 const controls = new Controls(camera, canvas, () => {
-  updateZoomLevel(controls.radius);
+  // Callback if needed
 });
 
 // UI wiring for Pause
@@ -67,16 +49,6 @@ if (pauseToggleBtn) {
   };
 }
 
-// Update info UI
-function updateInfoDisplay(z) {
-  const infoElement = document.getElementById("info");
-  if (!infoElement) return;
-
-  infoElement.textContent =
-    `tile zoom ${z}, visible ${tileManager.visibleTilesSet.size}, ` +
-    `cached ${tileManager.tileImageCache.size}, concurrent ${tileManager.currentLoads}`;
-}
-
 // Resize handling
 window.addEventListener("resize", () => {
   const w = window.innerWidth;
@@ -88,26 +60,51 @@ window.addEventListener("resize", () => {
 
 // Init sequence
 (async function init() {
-  await tileManager.loadBaseZoomTiles();
-  await tileManager.updateVisibleTiles(currentTileZoom, controls.getCameraParams());
 
-  // Initial zoom check
-  updateZoomLevel(controls.radius);
+  let lastTime = performance.now();
+  let frameCount = 0;
+  let fps = 0;
+  let lastFpsTime = lastTime;
 
   function animate(timestamp) {
     requestAnimationFrame(animate);
 
+    // FPS Calculation
+    const now = performance.now();
+    frameCount++;
+    if (now - lastFpsTime >= 1000) {
+      fps = frameCount;
+      frameCount = 0;
+      lastFpsTime = now;
+    }
+
     controls.updateCamera();
 
     // Continuous update
-    tileManager.updateVisibleTiles(currentTileZoom, controls.getCameraParams());
-    tileManager.processTileQueue();
+    tileManager.update();
 
+    // Calculate current zoom based on altitude
+    const altitude = Math.max(0.001, controls.radius - RADIUS);
+    const altitudeKm = altitude * 100; // Convert to km
+    const currentZoom = tileManager.lodManager.getDesiredZoom(altitudeKm);
 
-    updateInfoDisplay(currentTileZoom);
+    updateInfoDisplay(fps, currentZoom);
 
     renderer.render(scene, camera);
   }
 
   animate();
 })();
+
+// Update info UI
+function updateInfoDisplay(fps, zoom) {
+  const infoElement = document.getElementById("info");
+  if (!infoElement) return;
+
+  infoElement.textContent =
+    `FPS: ${fps} | Zoom: ${zoom} | ` +
+    `Active: ${tileManager.activeTiles.size} | ` +
+    `Cached: ${tileManager.tileCache.size()} | ` +
+    `Loading: ${tileManager.currentLoads} | ` +
+    `Queue: ${tileManager.loadQueue.length}`;
+}
