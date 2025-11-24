@@ -57,7 +57,7 @@ export class LODManager {
         // Dampen the effect at high zoom levels (close to ground)
         // At zoom 15, we want less penalty for grazing angles because the horizon is close
         const grazingFactor = z > 10 ? 0.5 : 1.0;
-        const adjustedDot = Math.max(0.2, dot * grazingFactor + (1 - grazingFactor));
+        const adjustedDot = Math.max(0.5, dot * grazingFactor + (1 - grazingFactor));
 
         const effectiveDistanceKm = distanceKm / adjustedDot;
 

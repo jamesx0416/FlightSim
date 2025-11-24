@@ -380,17 +380,18 @@ export class TileManager {
         projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
         frustum.setFromProjectionMatrix(projScreenMatrix);
 
-        if (!frustum.containsPoint(center)) {
-            const distance = center.distanceTo(this.camera.position);
-            // Allow some buffer for tiles just off-screen
-            // Allow some buffer for tiles just off-screen
-            // Smoothly interpolate buffer based on zoom level
-            // Zoom 4: 2.0x (Wide buffer for global view)
-            // Zoom 12+: 0.2x (Tight buffer for local view)
-            const t = Math.max(0, Math.min(1, (z - 4) / (12 - 4)));
-            const marginFactor = (1 - t) * 2.0 + t * 0.2;
+        // Better Frustum Check: intersectsSphere
+        // This correctly accounts for tile size and provides a scalable buffer.
+        // We expand the sphere by a factor (e.g. 1.5) to create the "just off-screen" buffer.
+        const bufferFactor = 1.5;
+        const sphere = new THREE.Sphere(center, tileRadius * bufferFactor);
 
-            if (distance > tileRadius + RADIUS * marginFactor) {
+        if (!frustum.intersectsSphere(sphere)) {
+            // If the expanded sphere is not in the frustum, cull it.
+            // But we might want to keep tiles VERY close to camera even if "behind" (to avoid clipping when rotating fast)
+            // So we keep the simple distance check but make it very tight (e.g. 2x tile radius)
+            const dist = center.distanceTo(this.camera.position);
+            if (dist > tileRadius * 2.0) {
                 return false;
             }
         }
