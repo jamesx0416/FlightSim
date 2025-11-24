@@ -38,11 +38,31 @@ export class TileManager {
 
         // Track currently rendered tiles to avoid flickering
         this.activeTiles = new Set();
+
+        // Reusable objects for render loop
+        this.frustum = new THREE.Frustum();
+        this.projScreenMatrix = new THREE.Matrix4();
+        this._center = new THREE.Vector3();
+        this._sphere = new THREE.Sphere();
+        this._cameraDir = new THREE.Vector3();
+        this._tileCenterNorm = new THREE.Vector3();
+
+        // Throttling
+        this.frameCount = 0;
+        this.lastSortFrame = 0;
+        this.lastCameraPosition = new THREE.Vector3();
+        this.cameraMovementThreshold = 1.0; // Units of movement before re-sorting
     }
 
     // Main update loop called from animation frame
     update() {
         if (this.loadingPaused) return;
+
+        this.frameCount++;
+
+        // Update Frustum once per frame
+        this.projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
+        this.frustum.setFromProjectionMatrix(this.projScreenMatrix);
 
         // 1. Determine which tiles should be visible
         const desiredTiles = new Map(); // key -> { z, x, y, dist }
@@ -53,7 +73,7 @@ export class TileManager {
 
         // Safety: Limit total tiles to prevent infinite recursion/hangs
         this.tilesProcessed = 0;
-        this.MAX_TILES_PER_FRAME = 5000; // Increased limit
+        this.MAX_TILES_PER_FRAME = 20000; // Significantly increased to handle high-zoom horizon views
 
         // We can optimize this by only checking base tiles in frustum, 
         // but for now iterating all base tiles (16x16=256) is fast enough.
@@ -93,24 +113,19 @@ export class TileManager {
         // 2. LOD Check
         let shouldSplit = this.lodManager.shouldSplit(z, x, y, this.camera.position);
 
-        // Progressive Loading: Enforce checkpoints
-        // Don't split further until the current level is loaded.
-        // We skip every other level (step = 2) to speed up the dive while maintaining visuals.
+        // Progressive Loading: Ensure we have SOME tile to show before diving deeper
+        // Instead of blocking at every even level, we only block if there's NO ancestor loaded
+        // This prevents getting stuck at intermediate levels while still ensuring visual continuity
         if (shouldSplit) {
-            const PROGRESSIVE_STEP = 2;
-            if (z % PROGRESSIVE_STEP === 0) {
-                const key = `${z}/${x}/${y}`;
-                // We need to check the cache directly. 
-                // Note: We don't use this.tileCache.get(key) because it promotes the tile (LRU side effect),
-                // which is fine, but we strictly want to know if it's *loaded*.
-                const mesh = this.tileCache.get(key);
+            const key = `${z}/${x}/${y}`;
+            const mesh = this.tileCache.get(key);
 
-                // If the tile isn't in memory OR isn't fully loaded yet, stop splitting.
-                // This forces us to render THIS tile and queue it for loading.
-                if (!mesh || !mesh.userData.loaded) {
-                    shouldSplit = false;
-                }
+            // Only block split if THIS specific tile exists but isn't loaded yet
+            // This ensures we render something while the texture loads
+            if (mesh && !mesh.userData.loaded) {
+                shouldSplit = false;
             }
+            // Otherwise allow split - even if this tile doesn't exist, parent inheritance will show something
         }
 
         if (shouldSplit) {
@@ -157,6 +172,13 @@ export class TileManager {
 
                     // Queue texture load
                     this.queueLoad(data.z, data.x, data.y, data.dist);
+                } else {
+                    // Mesh exists in cache (revived)
+                    // CRITICAL FIX: If it's not loaded and not currently loading, we MUST re-queue it.
+                    // Otherwise it stays in "unloaded" state forever if it was previously dropped from queue.
+                    if (!mesh.userData.loaded && !mesh.userData.loading) {
+                        this.queueLoad(data.z, data.x, data.y, data.dist);
+                    }
                 }
 
                 mesh.visible = true;
@@ -167,6 +189,10 @@ export class TileManager {
 
     queueLoad(z, x, y, dist) {
         const key = `${z}/${x}/${y}`;
+        const mesh = this.tileCache.get(key);
+        if (mesh) {
+            mesh.userData.loading = true;
+        }
         // Priority: smaller distance = higher priority
         this.loadQueue.push({
             key,
@@ -180,32 +206,51 @@ export class TileManager {
         if (this.loadQueue.length === 0) return;
 
         // Recalculate priorities based on current camera position
-        // This fixes the "stale priority" issue where tiles queued long ago (when close)
-        // retain high priority even after moving away.
+        // Smart throttling: only update when camera moves significantly OR every 30 frames
         const cameraPos = this.camera.position;
-        for (const req of this.loadQueue) {
-            const center = patchCenterVector(req.z, req.x, req.y).multiplyScalar(RADIUS);
-            const dist = center.distanceTo(cameraPos);
-            req.priority = -dist; // Closer = Higher Priority
+        const cameraMoved = cameraPos.distanceTo(this.lastCameraPosition) > this.cameraMovementThreshold;
+        const longTimeSinceUpdate = this.frameCount - this.lastSortFrame > 30;
+
+        if (cameraMoved || longTimeSinceUpdate) {
+            for (const req of this.loadQueue) {
+                patchCenterVector(req.z, req.x, req.y, this._center).multiplyScalar(RADIUS);
+                const dist = this._center.distanceTo(cameraPos);
+                // Priority: zoom level weighted distance (higher zoom = higher priority)
+                // Formula: -dist / (z + 1) means closer tiles AND higher zoom get priority
+                req.priority = -dist / (req.z + 1);
+            }
+            // Sort by priority (highest first)
+            this.loadQueue.sort((a, b) => b.priority - a.priority);
+            this.lastSortFrame = this.frameCount;
+            this.lastCameraPosition.copy(cameraPos);
         }
 
-        // Sort by priority (closest first)
-        this.loadQueue.sort((a, b) => b.priority - a.priority);
-
         let loads = 0;
-        // Increased load limit to prevent stalls
-        const MAX_LOADS = 6;
+        // Dynamic load limit based on camera altitude/zoom
+        const altitude = this.camera.position.length() - RADIUS;
+        const altitudeKm = altitude * 100;
+        const currentZoom = this.lodManager.getDesiredZoom(altitudeKm);
+        // Increase load limit for higher zoom levels where more tiles are needed
+        const MAX_LOADS = currentZoom >= 12 ? 15 : currentZoom >= 10 ? 10 : 6;
 
         // We only start new loads if we are under the global limit
         while (this.currentLoads < LOAD_LIMIT && loads < MAX_LOADS && this.loadQueue.length > 0) {
             const req = this.loadQueue.shift();
 
             // Check if tile is still needed (might have been culled while waiting)
-            if (!this.activeTiles.has(req.key)) continue;
+            if (!this.activeTiles.has(req.key)) {
+                // Reset loading flag so it can be queued again if it becomes visible later
+                const mesh = this.tileCache.get(req.key);
+                if (mesh) mesh.userData.loading = false;
+                continue;
+            }
 
             // Check if already loaded (might be in cache from previous session)
             const mesh = this.tileCache.get(req.key);
-            if (mesh && mesh.userData.loaded) continue;
+            if (mesh && mesh.userData.loaded) {
+                mesh.userData.loading = false; // Ensure loading flag is cleared if already loaded
+                continue;
+            }
 
             this.loadAndApplyTile(req.z, req.x, req.y);
             loads++;
@@ -295,7 +340,7 @@ export class TileManager {
 
         const mesh = new THREE.Mesh(geometry, material);
         mesh.visible = false;
-        mesh.userData = { loaded: false }; // Track if real image is loaded
+        mesh.userData = { loaded: false, loading: false }; // Track if real image is loaded
 
         this.scene.add(mesh);
         return mesh;
@@ -356,11 +401,14 @@ export class TileManager {
         const img = await this.loadTileImage(z, x, y);
         this.currentLoads--;
 
-        if (!img) return;
-
-        // Re-fetch mesh from cache (it might have been evicted while loading!)
+        // Fetch mesh
         const mesh = this.tileCache.get(key);
-        if (!mesh) return; // Tile was evicted, discard result
+        if (!mesh) return; // Tile was evicted
+
+        // Always clear loading flag when done (success or fail)
+        mesh.userData.loading = false;
+
+        if (!img) return;
 
         // Update texture
         const texture = mesh.material.map;
@@ -370,36 +418,31 @@ export class TileManager {
     }
 
     tileIsVisible(z, x, y) {
-        const center = patchCenterVector(z, x, y).multiplyScalar(RADIUS);
+        patchCenterVector(z, x, y, this._center).multiplyScalar(RADIUS);
         const tileRadius = (RADIUS * Math.PI) / Math.pow(2, z);
-
-        // Simple frustum check
-        // Note: camera matrices should be updated by main loop before calling update()
-        const frustum = new THREE.Frustum();
-        const projScreenMatrix = new THREE.Matrix4();
-        projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
-        frustum.setFromProjectionMatrix(projScreenMatrix);
 
         // Better Frustum Check: intersectsSphere
         // This correctly accounts for tile size and provides a scalable buffer.
-        // We expand the sphere by a factor (e.g. 1.5) to create the "just off-screen" buffer.
-        const bufferFactor = 1.5;
-        const sphere = new THREE.Sphere(center, tileRadius * bufferFactor);
+        // We expand the sphere by a factor (e.g. 1.2) to create the "just off-screen" buffer.
+        // Reduced from 1.5 to 1.2 to cull more aggressively and save traversal budget
+        const bufferFactor = 1.2;
+        this._sphere.center.copy(this._center);
+        this._sphere.radius = tileRadius * bufferFactor;
 
-        if (!frustum.intersectsSphere(sphere)) {
+        if (!this.frustum.intersectsSphere(this._sphere)) {
             // If the expanded sphere is not in the frustum, cull it.
             // But we might want to keep tiles VERY close to camera even if "behind" (to avoid clipping when rotating fast)
             // So we keep the simple distance check but make it very tight (e.g. 2x tile radius)
-            const dist = center.distanceTo(this.camera.position);
+            const dist = this._center.distanceTo(this.camera.position);
             if (dist > tileRadius * 2.0) {
                 return false;
             }
         }
 
         // Back-face culling
-        const cameraDir = this.camera.position.clone().normalize();
-        const tileCenterNorm = patchCenterVector(z, x, y);
-        const dot = cameraDir.dot(tileCenterNorm);
+        this._cameraDir.copy(this.camera.position).normalize();
+        patchCenterVector(z, x, y, this._tileCenterNorm);
+        const dot = this._cameraDir.dot(this._tileCenterNorm);
         return dot > -0.2; // Allow slightly back-facing tiles for horizon correctness
     }
 

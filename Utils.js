@@ -13,23 +13,24 @@ export const tileYToLat = (y, z) => {
     return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
 };
 
-export function lonLatToVector3(lon, lat, radius = RADIUS, offset = 1) {
+export function lonLatToVector3(lon, lat, radius = RADIUS, offset = 1, target = new THREE.Vector3()) {
     const latR = (lat * Math.PI) / 180;
     const lonR = (lon * Math.PI) / 180;
     const cosLat = Math.cos(latR);
 
     // Flip X to correct horizontal orientation relative to original Babylon implementation
-    return new THREE.Vector3(
+    target.set(
         -radius * cosLat * Math.cos(lonR) * offset,
         radius * Math.sin(latR) * offset,
         radius * cosLat * Math.sin(lonR) * offset
     );
+    return target;
 }
 
-export function patchCenterVector(z, x, y) {
+export function patchCenterVector(z, x, y, target = new THREE.Vector3()) {
     const lon = (tileXToLon(x, z) + tileXToLon(x + 1, z)) / 2;
     const lat = (tileYToLat(y, z) + tileYToLat(y + 1, z)) / 2;
-    return lonLatToVector3(lon, lat, 1).normalize();
+    return lonLatToVector3(lon, lat, 1, 1, target).normalize();
 }
 
 // Inverse helpers for tile selection
