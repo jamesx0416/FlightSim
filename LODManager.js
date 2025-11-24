@@ -53,8 +53,13 @@ export class LODManager {
         // Effective Distance Calculation
         // If looking straight down (dot ~ 1.0), effective distance = actual distance
         // If looking at horizon (dot ~ 0.0), effective distance increases significantly
-        // We clamp dot to 0.2 to prevent infinity, meaning at horizon distance is 5x
-        const effectiveDistanceKm = distanceKm / Math.max(0.2, dot);
+
+        // Dampen the effect at high zoom levels (close to ground)
+        // At zoom 15, we want less penalty for grazing angles because the horizon is close
+        const grazingFactor = z > 10 ? 0.5 : 1.0;
+        const adjustedDot = Math.max(0.2, dot * grazingFactor + (1 - grazingFactor));
+
+        const effectiveDistanceKm = distanceKm / adjustedDot;
 
         const desired = this.getDesiredZoom(effectiveDistanceKm);
         return z < desired;

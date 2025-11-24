@@ -159,12 +159,25 @@ export class TileManager {
     processLoadQueue() {
         if (this.loadQueue.length === 0) return;
 
+        // Recalculate priorities based on current camera position
+        // This fixes the "stale priority" issue where tiles queued long ago (when close)
+        // retain high priority even after moving away.
+        const cameraPos = this.camera.position;
+        for (const req of this.loadQueue) {
+            const center = patchCenterVector(req.z, req.x, req.y).multiplyScalar(RADIUS);
+            const dist = center.distanceTo(cameraPos);
+            req.priority = -dist; // Closer = Higher Priority
+        }
+
         // Sort by priority (closest first)
         this.loadQueue.sort((a, b) => b.priority - a.priority);
 
         let loads = 0;
+        // Increased load limit to prevent stalls
+        const MAX_LOADS = 6;
+
         // We only start new loads if we are under the global limit
-        while (this.currentLoads < LOAD_LIMIT && loads < this.MAX_LOADS_PER_FRAME && this.loadQueue.length > 0) {
+        while (this.currentLoads < LOAD_LIMIT && loads < MAX_LOADS && this.loadQueue.length > 0) {
             const req = this.loadQueue.shift();
 
             // Check if tile is still needed (might have been culled while waiting)
@@ -350,8 +363,14 @@ export class TileManager {
         if (!frustum.containsPoint(center)) {
             const distance = center.distanceTo(this.camera.position);
             // Allow some buffer for tiles just off-screen
-            // Increased buffer to prevent popping
-            if (distance > tileRadius + RADIUS * 2.0) {
+            // Allow some buffer for tiles just off-screen
+            // Smoothly interpolate buffer based on zoom level
+            // Zoom 4: 2.0x (Wide buffer for global view)
+            // Zoom 12+: 0.2x (Tight buffer for local view)
+            const t = Math.max(0, Math.min(1, (z - 4) / (12 - 4)));
+            const marginFactor = (1 - t) * 2.0 + t * 0.2;
+
+            if (distance > tileRadius + RADIUS * marginFactor) {
                 return false;
             }
         }
