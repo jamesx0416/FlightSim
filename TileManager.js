@@ -91,7 +91,27 @@ export class TileManager {
         if (!this.tileIsVisible(z, x, y)) return;
 
         // 2. LOD Check
-        const shouldSplit = this.lodManager.shouldSplit(z, x, y, this.camera.position);
+        let shouldSplit = this.lodManager.shouldSplit(z, x, y, this.camera.position);
+
+        // Progressive Loading: Enforce checkpoints
+        // Don't split further until the current level is loaded.
+        // We skip every other level (step = 2) to speed up the dive while maintaining visuals.
+        if (shouldSplit) {
+            const PROGRESSIVE_STEP = 2;
+            if (z % PROGRESSIVE_STEP === 0) {
+                const key = `${z}/${x}/${y}`;
+                // We need to check the cache directly. 
+                // Note: We don't use this.tileCache.get(key) because it promotes the tile (LRU side effect),
+                // which is fine, but we strictly want to know if it's *loaded*.
+                const mesh = this.tileCache.get(key);
+
+                // If the tile isn't in memory OR isn't fully loaded yet, stop splitting.
+                // This forces us to render THIS tile and queue it for loading.
+                if (!mesh || !mesh.userData.loaded) {
+                    shouldSplit = false;
+                }
+            }
+        }
 
         if (shouldSplit) {
             // Split into 4 children
