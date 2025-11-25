@@ -239,88 +239,123 @@ export class TileManager {
         }
     }
 
-    // Create tile mesh (Three.js equivalent of Babylon version)
-    createTileMesh(z, x, y, baseGrid = GRID_SIZE) {
-        // Dynamic grid resolution based on zoom
-        const grid = Math.max(8, Math.floor(baseGrid * (z / MAX_ZOOM)));
+    // Initialize shared geometry if not exists
+    getSharedGeometry() {
+        if (!this.sharedGeometry) {
+            // 64x64 segments is a good balance for sphere curvature
+            this.sharedGeometry = new THREE.PlaneGeometry(1, 1, 64, 64);
+            // Rotate to face Z (standard for our projection)
+            // Actually, PlaneGeometry is X-Y by default.
+        }
+        return this.sharedGeometry;
+    }
+
+    createTileMesh(z, x, y) {
+        const geometry = this.getSharedGeometry();
 
         const lonMin = tileXToLon(x, z);
         const lonMax = tileXToLon(x + 1, z);
         const latMax = tileYToLat(y, z);
         const latMin = tileYToLat(y + 1, z);
 
-        const positions = [];
-        const normals = [];
-        const uvs = [];
-        const indices = [];
-        const rowVerts = grid + 1;
+        // Custom Shader Material
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+                u_texture: { value: null }, // Will be set later
+                u_minLon: { value: lonMin },
+                u_maxLon: { value: lonMax },
+                u_minLat: { value: latMin }, // Bottom
+                u_maxLat: { value: latMax }, // Top
+                u_radius: { value: RADIUS }
+            },
+            vertexShader: `
+                uniform float u_minLon;
+                uniform float u_maxLon;
+                uniform float u_minLat;
+                uniform float u_maxLat;
+                uniform float u_radius;
 
-        // No UV inset - it causes visible seams when tiles at different zoom levels are adjacent
-        for (let j = 0; j <= grid; j++) {
-            const v = j / grid;
-            const lat = latMax + (latMin - latMax) * v;
-            for (let i = 0; i <= grid; i++) {
-                const u = i / grid;
-                const lon = lonMin + (lonMax - lonMin) * u;
+                varying vec2 vUv;
 
-                const pos = lonLatToVector3(lon, lat, RADIUS, 1);
-                positions.push(pos.x, pos.y, pos.z);
+                const float PI = 3.14159265359;
 
-                const n = pos.clone().normalize();
-                normals.push(n.x, n.y, n.z);
+                void main() {
+                    vUv = uv;
 
-                // UVs match the geometry exactly (no inset)
-                uvs.push(u, 1 - v);
-            }
-        }
+                    // Interpolate Lat/Lon based on UV
+                    // uv.x goes 0->1 (minLon -> maxLon)
+                    // uv.y goes 0->1 (minLat -> maxLat) - Check orientation!
+                    // Usually texture Y is 0 at bottom, 1 at top.
+                    // LatMin is bottom, LatMax is top.
+                    
+                    float lon = mix(u_minLon, u_maxLon, uv.x);
+                    float lat = mix(u_minLat, u_maxLat, uv.y);
 
-        for (let j = 0; j < grid; j++) {
-            for (let i = 0; i < grid; i++) {
-                const a = j * rowVerts + i;
-                const b = a + 1;
-                const c = a + rowVerts;
-                const d = c + 1;
-                indices.push(a, c, b, b, c, d);
-            }
-        }
+                    // Convert to Radians
+                    float latRad = radians(lat);
+                    float lonRad = radians(lon);
 
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-        geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-        geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-        geometry.setIndex(indices);
-        geometry.computeBoundingSphere();
+                    // Spherical Projection (matches Utils.js)
+                    // x = -r * cos(lat) * cos(lon)
+                    // y = r * sin(lat)
+                    // z = r * cos(lat) * sin(lon)
+                    
+                    float cosLat = cos(latRad);
+                    float sinLat = sin(latRad);
+                    float cosLon = cos(lonRad);
+                    float sinLon = sin(lonRad);
 
-        // Base material + dynamic texture via canvas
+                    vec3 pos = vec3(
+                        -u_radius * cosLat * cosLon,
+                        u_radius * sinLat,
+                        u_radius * cosLat * sinLon
+                    );
+
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D u_texture;
+                varying vec2 vUv;
+
+                void main() {
+                    vec4 color = texture2D(u_texture, vUv);
+                    gl_FragColor = color;
+                }
+            `,
+            side: THREE.FrontSide,
+            wireframe: false
+        });
+
+        // Create a temporary canvas texture so we don't crash
         const canvasTex = document.createElement("canvas");
         canvasTex.width = TEXTURE_SIZE;
         canvasTex.height = TEXTURE_SIZE;
         const ctx = canvasTex.getContext("2d");
-
-        // Initialize with black/placeholder
         ctx.fillStyle = "#111";
         ctx.fillRect(0, 0, TEXTURE_SIZE, TEXTURE_SIZE);
 
-        // Try to inherit from parent
+        // Inherit from parent
         this.inheritFromParentTile(z, x, y, canvasTex);
 
         const texture = new THREE.CanvasTexture(canvasTex);
-        texture.wrapS = THREE.ClampToEdgeWrapping;
-        texture.wrapT = THREE.ClampToEdgeWrapping;
-        texture.minFilter = THREE.LinearMipmapLinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.generateMipmaps = true;
         texture.colorSpace = THREE.SRGBColorSpace;
 
-        const material = new THREE.MeshBasicMaterial({
-            map: texture,
-            side: THREE.FrontSide
-        });
+        // Assign texture to uniform
+        material.uniforms.u_texture.value = texture;
+        // Also set .map for compatibility with inheritFromParentTile logic which checks material.map
+        material.map = texture;
 
         const mesh = new THREE.Mesh(geometry, material);
         mesh.visible = false;
         const key = `${z}/${x}/${y}`;
-        mesh.userData = { loaded: false, loading: false, key: key }; // Track if real image is loaded
+        mesh.userData = { loaded: false, loading: false, key: key };
+
+        // Important: Frustum culling might fail if the bounding sphere of the flat plane 
+        // doesn't match the curved surface.
+        // We should manually set the bounding sphere or disable culling for the mesh 
+        // (we do our own culling anyway).
+        mesh.frustumCulled = false;
 
         this.scene.add(mesh);
         return mesh;
