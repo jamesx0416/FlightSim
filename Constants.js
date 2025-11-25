@@ -1,5 +1,5 @@
 export const RADIUS = 63.71;
-export const MAX_ZOOM = 15;
+export const MAX_ZOOM = 19;
 export const MIN_ZOOM = 4;
 export const LOAD_LIMIT = 20;        // Max concurrent tile loads
 export const UPDATE_INTERVAL = 100; // ms between visibility updates

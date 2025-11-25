@@ -24,9 +24,29 @@ export class TileManager {
         this.camera = camera;
 
         this.lodManager = new LODManager();
+
+        // Web Worker for LOD calculations
+        this.worker = new Worker("LODWorker.js", { type: "module" });
+        this.workerBusy = false;
+        this.worker.onmessage = (e) => {
+            if (e.data.type === 'result') {
+                this.workerBusy = false;
+                // Convert plain objects back to Map for reconcileTiles
+                const desiredTiles = new Map();
+                for (const t of e.data.desiredTiles) {
+                    desiredTiles.set(t.key, t);
+                }
+                this.reconcileTiles(desiredTiles);
+            }
+        };
+
         this.tileCache = new TileCache(5000, (mesh) => {
             if (mesh) {
                 this.scene.remove(mesh);
+                // Notify worker that this tile is gone
+                if (mesh.userData.key) {
+                    this.worker.postMessage({ type: 'tileEvicted', key: mesh.userData.key });
+                }
             }
         });
 
@@ -59,45 +79,26 @@ export class TileManager {
 
         this.frameCount++;
 
-        // Update Frustum once per frame
+        // Update Frustum once per frame (still useful for other things)
         this.projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
         this.frustum.setFromProjectionMatrix(this.projScreenMatrix);
 
-        // 1. Determine which tiles should be visible
-        const desiredTiles = new Map(); // key -> { z, x, y, dist }
+        // Offload traversal to worker
+        if (!this.workerBusy) {
+            this.workerBusy = true;
+            this.camera.getWorldDirection(this._cameraDir);
 
-        // Start from base zoom level (4)
-        const baseZoom = 4;
-        const n = Math.pow(2, baseZoom);
+            // Serialize Frustum Planes
+            const planes = this.frustum.planes.map(p => [p.normal.x, p.normal.y, p.normal.z, p.constant]);
 
-        // Safety: Limit total tiles to prevent infinite recursion/hangs
-        this.tilesProcessed = 0;
-        this.MAX_TILES_PER_FRAME = 20000; // Significantly increased to handle high-zoom horizon views
-
-        // We can optimize this by only checking base tiles in frustum, 
-        // but for now iterating all base tiles (16x16=256) is fast enough.
-        let traversalComplete = true;
-        for (let x = 0; x < n; x++) {
-            for (let y = 0; y < n; y++) {
-                this.processTile(baseZoom, x, y, desiredTiles);
-                if (this.tilesProcessed > this.MAX_TILES_PER_FRAME) {
-                    traversalComplete = false;
-                    break;
-                }
-            }
-            if (!traversalComplete) break;
+            this.worker.postMessage({
+                type: 'update',
+                cameraPosition: this.camera.position,
+                cameraDirection: this._cameraDir,
+                frustumPlanes: planes
+            });
         }
 
-        // 2. Reconcile with active scene
-        // CRITICAL: Only reconcile if we completed the traversal.
-        // Otherwise we might wipe out the whole scene because desiredTiles is incomplete.
-        if (traversalComplete) {
-            this.reconcileTiles(desiredTiles);
-        } else {
-            console.warn("Tile limit reached, skipping update to prevent black tiles.");
-        }
-
-        // 3. Process load queue
         // 3. Process loading (Stateless)
         this.updateLoading();
     }
@@ -254,9 +255,7 @@ export class TileManager {
         const indices = [];
         const rowVerts = grid + 1;
 
-        // Slightly inset UVs at higher zooms to avoid edge bleeding between tiles.
-        const uvInset = z >= 5 ? (0.5 / TEXTURE_SIZE) : 0.0;
-
+        // No UV inset - it causes visible seams when tiles at different zoom levels are adjacent
         for (let j = 0; j <= grid; j++) {
             const v = j / grid;
             const lat = latMax + (latMin - latMax) * v;
@@ -270,9 +269,8 @@ export class TileManager {
                 const n = pos.clone().normalize();
                 normals.push(n.x, n.y, n.z);
 
-                const uu = uvInset ? THREE.MathUtils.lerp(uvInset, 1 - uvInset, u) : u;
-                const vv = uvInset ? THREE.MathUtils.lerp(uvInset, 1 - uvInset, 1 - v) : 1 - v;
-                uvs.push(uu, vv);
+                // UVs match the geometry exactly (no inset)
+                uvs.push(u, 1 - v);
             }
         }
 
@@ -321,7 +319,8 @@ export class TileManager {
 
         const mesh = new THREE.Mesh(geometry, material);
         mesh.visible = false;
-        mesh.userData = { loaded: false, loading: false }; // Track if real image is loaded
+        const key = `${z}/${x}/${y}`;
+        mesh.userData = { loaded: false, loading: false, key: key }; // Track if real image is loaded
 
         this.scene.add(mesh);
         return mesh;
@@ -339,11 +338,12 @@ export class TileManager {
 
             if (parentMesh && parentMesh.userData.loaded && parentMesh.material.map.image) {
                 // Found a parent with a loaded image
-                const parentImage = parentMesh.material.map.image; // This is likely the HTMLImageElement or Canvas
+                const parentImage = parentMesh.material.map.image;
 
                 const scale = Math.pow(2, z - pZ);
                 const tileSize = TEXTURE_SIZE;
 
+                // Calculate which quadrant of the parent this child represents
                 const offsetX = x - pX * scale;
                 const offsetY = y - pY * scale;
 
@@ -353,9 +353,19 @@ export class TileManager {
                 const sy = offsetY * sHeight;
 
                 const ctx = childCanvas.getContext("2d");
-                // Draw from parent source
-                // Note: parentImage might be a CanvasTexture's image (canvas) or a loaded Image
-                ctx.drawImage(parentImage, sx, sy, sWidth, sHeight, 0, 0, tileSize, tileSize);
+
+                // Disable image smoothing for pixel-perfect inheritance
+                ctx.imageSmoothingEnabled = false;
+
+                try {
+                    // Draw from parent source - works with Image, Canvas, or ImageBitmap
+                    ctx.drawImage(parentImage, sx, sy, sWidth, sHeight, 0, 0, tileSize, tileSize);
+                } catch (e) {
+                    console.warn("Failed to inherit from parent tile", e);
+                }
+
+                // Re-enable smoothing for future operations
+                ctx.imageSmoothingEnabled = true;
                 return;
             }
 
@@ -366,13 +376,17 @@ export class TileManager {
     }
 
     async loadTileImage(z, x, y) {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.onload = () => resolve(img);
-            img.onerror = () => resolve(null);
-            img.src = esriTileURL(z, y, x);
-        });
+        const url = esriTileURL(z, y, x);
+        try {
+            const response = await fetch(url, { mode: 'cors' });
+            if (!response.ok) return null;
+            const blob = await response.blob();
+            // createImageBitmap decodes the image off the main thread!
+            return await createImageBitmap(blob);
+        } catch (e) {
+            // console.warn("Failed to load tile", z, x, y);
+            return null;
+        }
     }
 
     async loadAndApplyTile(z, x, y) {
@@ -393,9 +407,25 @@ export class TileManager {
 
         // Update texture
         const texture = mesh.material.map;
-        texture.image = img; // Replace canvas with actual image
+
+        // For ImageBitmap, we need to update the canvas
+        if (texture.image instanceof HTMLCanvasElement) {
+            const canvas = texture.image;
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            ctx.imageSmoothingEnabled = true;
+        } else {
+            // Fallback: direct image replacement
+            texture.image = img;
+        }
+
         texture.needsUpdate = true;
         mesh.userData.loaded = true;
+
+        // Notify worker
+        this.worker.postMessage({ type: 'tileLoaded', key: key });
     }
 
     tileIsVisible(z, x, y) {
