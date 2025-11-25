@@ -2,6 +2,7 @@ import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/
 import {
     RADIUS,
     MAX_ZOOM,
+    MIN_ZOOM,
     GRID_SIZE,
     TEXTURE_SIZE,
     LOAD_LIMIT
@@ -32,9 +33,7 @@ export class TileManager {
         this.currentLoads = 0;
         this.loadingPaused = false;
 
-        // Priority Queue for loading: Array of { priority, action }
-        this.loadQueue = [];
-        this.MAX_LOADS_PER_FRAME = 2; // Process a few loads per frame
+
 
         // Track currently rendered tiles to avoid flickering
         this.activeTiles = new Set();
@@ -99,7 +98,8 @@ export class TileManager {
         }
 
         // 3. Process load queue
-        this.processLoadQueue();
+        // 3. Process loading (Stateless)
+        this.updateLoading();
     }
 
     // Recursive Quadtree traversal
@@ -114,18 +114,12 @@ export class TileManager {
         let shouldSplit = this.lodManager.shouldSplit(z, x, y, this.camera.position);
 
         // Progressive Loading: Ensure we have SOME tile to show before diving deeper
-        // Instead of blocking at every even level, we only block if there's NO ancestor loaded
-        // This prevents getting stuck at intermediate levels while still ensuring visual continuity
+        // If we don't have a loaded ancestor, we shouldn't split, because the children will be black.
+        // We force the system to stop here and load this tile (or a parent) first.
         if (shouldSplit) {
-            const key = `${z}/${x}/${y}`;
-            const mesh = this.tileCache.get(key);
-
-            // Only block split if THIS specific tile exists but isn't loaded yet
-            // This ensures we render something while the texture loads
-            if (mesh && !mesh.userData.loaded) {
+            if (!this.isVisuallyReady(z, x, y)) {
                 shouldSplit = false;
             }
-            // Otherwise allow split - even if this tile doesn't exist, parent inheritance will show something
         }
 
         if (shouldSplit) {
@@ -145,6 +139,16 @@ export class TileManager {
             const dist = center.distanceTo(this.camera.position);
             desiredTiles.set(key, { z, x, y, dist, key });
         }
+    }
+
+    // Check if this tile is loaded and ready to display
+    // Strict check: Only return true if THIS specific tile is loaded.
+    // This forces the traversal to stop at the first unloaded layer, ensuring we load
+    // layer 4, then 5, then 6... sequentially (Progressive Loading).
+    isVisuallyReady(z, x, y) {
+        const key = `${z}/${x}/${y}`;
+        const mesh = this.tileCache.get(key);
+        return mesh && mesh.userData.loaded;
     }
 
     reconcileTiles(desiredTiles) {
@@ -170,15 +174,9 @@ export class TileManager {
                     mesh = this.createTileMesh(data.z, data.x, data.y);
                     this.tileCache.add(key, mesh);
 
-                    // Queue texture load
-                    this.queueLoad(data.z, data.x, data.y, data.dist);
-                } else {
                     // Mesh exists in cache (revived)
-                    // CRITICAL FIX: If it's not loaded and not currently loading, we MUST re-queue it.
-                    // Otherwise it stays in "unloaded" state forever if it was previously dropped from queue.
-                    if (!mesh.userData.loaded && !mesh.userData.loading) {
-                        this.queueLoad(data.z, data.x, data.y, data.dist);
-                    }
+                    // No need to queue explicitly, updateLoading will pick it up if !loaded
+
                 }
 
                 mesh.visible = true;
@@ -187,73 +185,56 @@ export class TileManager {
         }
     }
 
-    queueLoad(z, x, y, dist) {
-        const key = `${z}/${x}/${y}`;
-        const mesh = this.tileCache.get(key);
-        if (mesh) {
-            mesh.userData.loading = true;
-        }
-        // Priority: smaller distance = higher priority
-        this.loadQueue.push({
-            key,
-            z, x, y,
-            dist,
-            priority: -dist
-        });
-    }
+    updateLoading() {
+        if (this.currentLoads >= LOAD_LIMIT) return;
 
-    processLoadQueue() {
-        if (this.loadQueue.length === 0) return;
-
-        // Recalculate priorities based on current camera position
-        // Smart throttling: only update when camera moves significantly OR every 30 frames
+        // Find candidates
+        const candidates = [];
+        this.camera.getWorldDirection(this._cameraDir);
         const cameraPos = this.camera.position;
-        const cameraMoved = cameraPos.distanceTo(this.lastCameraPosition) > this.cameraMovementThreshold;
-        const longTimeSinceUpdate = this.frameCount - this.lastSortFrame > 30;
 
-        if (cameraMoved || longTimeSinceUpdate) {
-            for (const req of this.loadQueue) {
-                patchCenterVector(req.z, req.x, req.y, this._center).multiplyScalar(RADIUS);
+        for (const key of this.activeTiles) {
+            const mesh = this.tileCache.get(key);
+            if (!mesh) continue;
+
+            // If not loaded and not currently loading, it's a candidate
+            if (!mesh.userData.loaded && !mesh.userData.loading) {
+                // Calculate Priority
+                // 1. Zoom Level (Lower Z = Higher Priority)
+                // 2. Center Bias
+                // 3. Distance
+
+                // Extract Z from key (format "z/x/y")
+                const parts = key.split('/');
+                const z = parseInt(parts[0]);
+                const x = parseInt(parts[1]);
+                const y = parseInt(parts[2]);
+
+                patchCenterVector(z, x, y, this._center).multiplyScalar(RADIUS);
                 const dist = this._center.distanceTo(cameraPos);
-                // Priority: zoom level weighted distance (higher zoom = higher priority)
-                // Formula: -dist / (z + 1) means closer tiles AND higher zoom get priority
-                req.priority = -dist / (req.z + 1);
+
+                this._tileCenterNorm.copy(this._center).sub(cameraPos).normalize();
+                const dot = this._cameraDir.dot(this._tileCenterNorm);
+
+                const zoomScore = (MAX_ZOOM - z) * 10000;
+                const centerScore = Math.max(0, dot) * 5000;
+                const priority = zoomScore + centerScore - dist;
+
+                candidates.push({ key, z, x, y, priority });
             }
-            // Sort by priority (highest first)
-            this.loadQueue.sort((a, b) => b.priority - a.priority);
-            this.lastSortFrame = this.frameCount;
-            this.lastCameraPosition.copy(cameraPos);
         }
 
-        let loads = 0;
-        // Dynamic load limit based on camera altitude/zoom
-        const altitude = this.camera.position.length() - RADIUS;
-        const altitudeKm = altitude * 100;
-        const currentZoom = this.lodManager.getDesiredZoom(altitudeKm);
-        // Increase load limit for higher zoom levels where more tiles are needed
-        const MAX_LOADS = currentZoom >= 12 ? 15 : currentZoom >= 10 ? 10 : 6;
+        // Sort by priority (highest first)
+        candidates.sort((a, b) => b.priority - a.priority);
 
-        // We only start new loads if we are under the global limit
-        while (this.currentLoads < LOAD_LIMIT && loads < MAX_LOADS && this.loadQueue.length > 0) {
-            const req = this.loadQueue.shift();
-
-            // Check if tile is still needed (might have been culled while waiting)
-            if (!this.activeTiles.has(req.key)) {
-                // Reset loading flag so it can be queued again if it becomes visible later
-                const mesh = this.tileCache.get(req.key);
-                if (mesh) mesh.userData.loading = false;
-                continue;
-            }
-
-            // Check if already loaded (might be in cache from previous session)
+        // Fill available slots
+        while (this.currentLoads < LOAD_LIMIT && candidates.length > 0) {
+            const req = candidates.shift();
             const mesh = this.tileCache.get(req.key);
-            if (mesh && mesh.userData.loaded) {
-                mesh.userData.loading = false; // Ensure loading flag is cleared if already loaded
-                continue;
+            if (mesh) {
+                mesh.userData.loading = true;
+                this.loadAndApplyTile(req.z, req.x, req.y);
             }
-
-            this.loadAndApplyTile(req.z, req.x, req.y);
-            loads++;
         }
     }
 

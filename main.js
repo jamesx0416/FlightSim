@@ -106,5 +106,5 @@ function updateInfoDisplay(fps, zoom) {
     `Active: ${tileManager.activeTiles.size} | ` +
     `Cached: ${tileManager.tileCache.size()} | ` +
     `Loading: ${tileManager.currentLoads} | ` +
-    `Queue: ${tileManager.loadQueue.length}`;
+    `Loading: ${tileManager.currentLoads}`;
 }
