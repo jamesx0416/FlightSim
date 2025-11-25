@@ -321,6 +321,7 @@ export class TileManager {
                 void main() {
                     vec4 color = texture2D(u_texture, vUv);
                     gl_FragColor = color;
+                    #include <colorspace_fragment>
                 }
             `,
             side: THREE.FrontSide,
