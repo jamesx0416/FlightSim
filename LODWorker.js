@@ -82,7 +82,7 @@ let frustumPlanes = [];
 function isTileVisible(z, x, y) {
     patchCenterVector(z, x, y, _center).multiplyScalar(RADIUS);
     const tileRadius = (RADIUS * Math.PI) / Math.pow(2, z);
-    const bufferFactor = 1.2;
+    const bufferFactor = 1.11;
     const radius = tileRadius * bufferFactor;
 
     // Check against all 6 planes
@@ -97,6 +97,52 @@ function isTileVisible(z, x, y) {
             return false;
         }
     }
+
+    // Back-face culling
+    // _center is currently scaled by RADIUS. We need the normalized direction.
+    // _tileNormal is available as a temporary vector.
+    _tileNormal.copy(_center).normalize();
+
+    // Camera direction (normalized position)
+    // We can reuse _viewVector for this temporary calculation or just use cameraPosition
+    // Note: cameraPosition is not normalized.
+    // Let's use _viewVector to store normalized camera pos to avoid allocating new objects
+    _viewVector.copy(cameraPosition).normalize();
+
+    const dot = _viewVector.dot(_tileNormal);
+
+    // Horizon Culling
+    // 1. Calculate distance to center (camera is at cameraPosition)
+    const distToCenter = cameraPosition.length();
+
+    // If we are inside the earth (or very close), show everything to be safe
+    if (distToCenter <= RADIUS) return true;
+
+    // 2. Calculate the horizon angle
+    // cos(theta) = R / D
+    const horizonCos = RADIUS / distToCenter;
+    const horizonAngle = Math.acos(horizonCos);
+
+    // 3. Tile angular size (buffer)
+    // A tile at zoom z spans 360 / 2^z degrees.
+    // In radians: 2 * PI / 2^z
+    const tileAngularSize = (2 * Math.PI) / Math.pow(2, z);
+
+    // 4. Calculate max visible angle
+    // We want to see tiles up to horizon + buffer
+    // We use a generous buffer (1.5x tile size) to ensure we don't cull tiles straddling the horizon
+    const maxVisibleAngle = horizonAngle + (tileAngularSize * 1.5);
+
+    // 5. Calculate dot product threshold
+    // dot = cos(angle_between_camera_and_tile)
+    // We want angle < maxVisibleAngle
+    // Since cos is decreasing in [0, PI], this means dot > cos(maxVisibleAngle)
+    const minAllowedDot = Math.cos(maxVisibleAngle);
+
+    if (dot < minAllowedDot) {
+        return false;
+    }
+
     return true;
 }
 
