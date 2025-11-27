@@ -6,6 +6,4 @@ export const UPDATE_INTERVAL = 100;
 export const GRID_SIZE = 48;
 export const TEXTURE_SIZE = 256;
 export const STARTING_RADIUS = RADIUS * 2;
-export const CULLING_BUFFER = 1.11;
-export const HORIZONTAL_BUFFER_LOOSE = 0.8;
-export const HORIZONTAL_BUFFER_TIGHT = 0.5;
+export const CULLING_BUFFER = 1.2;

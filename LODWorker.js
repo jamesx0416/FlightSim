@@ -1,4 +1,4 @@
-import { RADIUS, MAX_ZOOM, MIN_ZOOM, CULLING_BUFFER, HORIZONTAL_BUFFER_LOOSE, HORIZONTAL_BUFFER_TIGHT } from "./Constants.js";
+import { RADIUS, MAX_ZOOM, MIN_ZOOM, CULLING_BUFFER } from "./Constants.js";
 import { patchCenterVector } from "./Utils.js";
 
 // Minimal vector class to avoid Three.js dependency in worker if possible, 
@@ -94,17 +94,6 @@ function isTileVisible(z, x, y) {
         // 2,3: Bottom, Top (Vertical) - Use CULLING_BUFFER
         // 4,5: Far, Near (Depth) - Use CULLING_BUFFER
         let bufferFactor = CULLING_BUFFER;
-
-        if (i < 2) {
-            // Horizontal planes
-            // Dynamic buffer based on zoom
-            // z=8 needs more buffer than z=9 to avoid holes
-            if (z < 9) {
-                bufferFactor = HORIZONTAL_BUFFER_LOOSE;
-            } else {
-                bufferFactor = HORIZONTAL_BUFFER_TIGHT;
-            }
-        }
 
         const radius = tileRadius * bufferFactor;
 
