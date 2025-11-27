@@ -1,9 +1,31 @@
 import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js";
 import { RADIUS } from "./Constants.js";
 
-// Esri imagery endpoint
-export const esriTileURL = (z, y, x) =>
-    `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+// Tile Sources
+// Change TILE_SOURCE to switch between different imagery providers
+// Options: 'esri', 'eox', 'maptiler'
+const TILE_SOURCE = 'eox';
+
+// MapTiler API key (get free key at https://www.maptiler.com/cloud/)
+const MAPTILER_API_KEY = 'YOUR_API_KEY_HERE';
+
+const TILE_SOURCES = {
+    // Esri World Imagery - Good global coverage, updated regularly
+    esri: (z, y, x) =>
+        `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+
+    // EOX Sentinel-2 Cloudless 2020 - Beautiful cloud-free imagery
+    // Note: Uses WebMercator (3857), may have slight distortion at poles
+    eox: (z, y, x) =>
+        `https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2020_3857/default/g/${z}/${y}/${x}.jpg`,
+
+    // MapTiler Satellite - High quality, requires API key
+    maptiler: (z, y, x) =>
+        `https://api.maptiler.com/tiles/satellite-v2/${z}/${x}/${y}.jpg?key=${MAPTILER_API_KEY}`,
+};
+
+// Export the selected tile source (keeping name for compatibility)
+export const esriTileURL = TILE_SOURCES[TILE_SOURCE];
 
 // Tile helpers (same math as Babylon version)
 export const tileXToLon = (x, z) => (x / Math.pow(2, z)) * 360 - 180;
