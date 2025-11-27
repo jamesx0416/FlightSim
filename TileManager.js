@@ -5,7 +5,8 @@ import {
     MIN_ZOOM,
     GRID_SIZE,
     TEXTURE_SIZE,
-    LOAD_LIMIT
+    LOAD_LIMIT,
+    CULLING_BUFFER
 } from "./Constants.js";
 import {
     tileXToLon,
@@ -472,7 +473,7 @@ export class TileManager {
         // This correctly accounts for tile size and provides a scalable buffer.
         // We expand the sphere by a factor (e.g. 1.2) to create the "just off-screen" buffer.
         // Reduced from 1.5 to 1.2 to cull more aggressively and save traversal budget
-        const bufferFactor = 1.2;
+        const bufferFactor = CULLING_BUFFER;
         this._sphere.center.copy(this._center);
         this._sphere.radius = tileRadius * bufferFactor;
 

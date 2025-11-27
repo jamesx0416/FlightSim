@@ -1,4 +1,4 @@
-import { RADIUS, MAX_ZOOM, MIN_ZOOM } from "./Constants.js";
+import { RADIUS, MAX_ZOOM, MIN_ZOOM, CULLING_BUFFER, HORIZONTAL_BUFFER_LOOSE, HORIZONTAL_BUFFER_TIGHT } from "./Constants.js";
 import { patchCenterVector } from "./Utils.js";
 
 // Minimal vector class to avoid Three.js dependency in worker if possible, 
@@ -82,15 +82,31 @@ let frustumPlanes = [];
 function isTileVisible(z, x, y) {
     patchCenterVector(z, x, y, _center).multiplyScalar(RADIUS);
     const tileRadius = (RADIUS * Math.PI) / Math.pow(2, z);
-    const bufferFactor = 1.11;
-    const radius = tileRadius * bufferFactor;
-
     // Check against all 6 planes
     for (let i = 0; i < 6; i++) {
         const plane = frustumPlanes[i];
         // Plane equation: Ax + By + Cz + D = 0
         // Distance from center to plane = dot(N, center) + constant
         const dist = plane[0] * _center.x + plane[1] * _center.y + plane[2] * _center.z + plane[3];
+
+        // Axis-specific buffer
+        // 0,1: Right, Left (Horizontal)
+        // 2,3: Bottom, Top (Vertical) - Use CULLING_BUFFER
+        // 4,5: Far, Near (Depth) - Use CULLING_BUFFER
+        let bufferFactor = CULLING_BUFFER;
+
+        if (i < 2) {
+            // Horizontal planes
+            // Dynamic buffer based on zoom
+            // z=8 needs more buffer than z=9 to avoid holes
+            if (z < 9) {
+                bufferFactor = HORIZONTAL_BUFFER_LOOSE;
+            } else {
+                bufferFactor = HORIZONTAL_BUFFER_TIGHT;
+            }
+        }
+
+        const radius = tileRadius * bufferFactor;
 
         // If distance < -radius, sphere is completely behind plane (culled)
         if (dist < -radius) {
