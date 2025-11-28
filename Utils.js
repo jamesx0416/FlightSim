@@ -4,7 +4,7 @@ import { RADIUS } from "./Constants.js";
 // Tile Sources
 // Change TILE_SOURCE to switch between different imagery providers
 // Options: 'esri', 'eox', 'maptiler'
-const TILE_SOURCE = 'eox';
+const TILE_SOURCE = 'esri';
 
 // MapTiler API key (get free key at https://www.maptiler.com/cloud/)
 const MAPTILER_API_KEY = 'YOUR_API_KEY_HERE';
