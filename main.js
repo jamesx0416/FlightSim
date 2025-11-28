@@ -6,7 +6,9 @@ import {
   STARTING_RADIUS
 } from "./Constants.js";
 import { TileManager } from "./TileManager.js";
+import { Tiles3DManager } from "./Tiles3DManager.js";
 import { Controls } from "./Controls.js";
+import { KEYS } from "./Keys.js";
 
 const canvas = document.getElementById("renderCanvas");
 
@@ -32,6 +34,22 @@ const camera = new THREE.PerspectiveCamera(
 
 // Managers
 const tileManager = new TileManager(scene, camera);
+const tiles3DManager = new Tiles3DManager(scene, camera, renderer);
+
+// Example: Load Google Photorealistic 3D Tiles
+if (KEYS.GOOGLE_MAPS !== 'YOUR_GOOGLE_MAPS_KEY_HERE') {
+  tiles3DManager.loadTileset(`https://tile.googleapis.com/v1/3dtiles/root.json?key=${KEYS.GOOGLE_MAPS}`);
+  tiles3DManager.setTransform(40.689, -74.044, 0); // Statue of Liberty
+}
+
+// Example: Load Cesium Ion asset (Requires Cesium Ion Access Token)
+if (KEYS.CESIUM_ION !== 'YOUR_CESIUM_TOKEN_HERE') {
+  tiles3DManager.loadCesiumIonAsset(96188, KEYS.CESIUM_ION); // OSM Buildings (Global)
+}
+// Note: Global tilesets like OSM Buildings don't need setTransform - they're already in correct world coordinates
+
+// For LOCAL tilesets only (like Google Photorealistic in a specific city):
+// tiles3DManager.setTransform(40.689, -74.044, 0); // Position at Statue of Liberty
 
 // Controls
 const controls = new Controls(camera, canvas, () => {
@@ -82,6 +100,7 @@ window.addEventListener("resize", () => {
 
     // Continuous update
     tileManager.update();
+    tiles3DManager.update();
 
     // Calculate current zoom based on altitude
     const altitude = Math.max(0.001, controls.radius - RADIUS);
