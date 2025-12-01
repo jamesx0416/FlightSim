@@ -1,13 +1,8 @@
 import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js";
-import { RADIUS } from "./Constants.js";
+import { RADIUS, TILE_SOURCE } from "./Constants.js";
+import { KEYS } from "./Keys.js";
 
-// Tile Sources
-// Change TILE_SOURCE to switch between different imagery providers
-// Options: 'esri', 'eox', 'maptiler'
-const TILE_SOURCE = 'esri';
 
-// MapTiler API key (get free key at https://www.maptiler.com/cloud/)
-const MAPTILER_API_KEY = 'YOUR_API_KEY_HERE';
 
 const TILE_SOURCES = {
     // Esri World Imagery - Good global coverage, updated regularly
@@ -21,7 +16,7 @@ const TILE_SOURCES = {
 
     // MapTiler Satellite - High quality, requires API key
     maptiler: (z, y, x) =>
-        `https://api.maptiler.com/tiles/satellite-v2/${z}/${x}/${y}.jpg?key=${MAPTILER_API_KEY}`,
+        `https://api.maptiler.com/tiles/satellite-v2/${z}/${x}/${y}.jpg?key=${KEYS.MAPTILER}`,
 };
 
 // Export the selected tile source (keeping name for compatibility)
