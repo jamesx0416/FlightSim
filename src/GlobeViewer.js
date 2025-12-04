@@ -13,8 +13,6 @@ export class GlobeViewer {
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 100, 50000000);
-        // Position camera to see the globe
-        // Earth radius ~6378km. Start at 20000km out.
         this.camera.position.set(0, 0, 20000000);
 
         // Renderer
@@ -29,7 +27,7 @@ export class GlobeViewer {
         this.controls.dampingFactor = 0.05;
         this.controls.minDistance = 6378137 + 100; // Surface + 100m
         this.controls.maxDistance = 50000000;
-        this.controls.enablePan = false; // Panning a globe is tricky with OrbitControls, usually rotate is better
+        this.controls.enablePan = false;
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -61,11 +59,6 @@ export class GlobeViewer {
         });
 
         this.globe = new THREE.Mesh(geometry, material);
-
-        // Rotate to match ECEF (Z-up) if needed, but standard Three.js is Y-up.
-        // If we rotate the Tileset to match Three.js (Y-up), we keep globe as is.
-        // Standard Earth texture is usually equirectangular.
-        // Let's assume standard Y-up for now.
 
         this.scene.add(this.globe);
     }

@@ -1,5 +1,4 @@
 // src/TileCache.js
-import * as THREE from 'three';
 
 export class TileCache {
     constructor(maxSize = 100) {
