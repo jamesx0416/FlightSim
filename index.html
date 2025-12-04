@@ -1,48 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <title>Three.js Hybrid Globe — Optimized</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Earth Demo - Google 3D Tiles</title>
   <style>
-    html,
-    body,
-    #renderCanvas {
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+      font-family: sans-serif;
+    }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    #ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      background: #000;
+      pointer-events: none;
     }
 
-    #ui {
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      z-index: 20;
-      color: #fff;
-      font-family: monospace;
-    }
-
-    #ui button {
-      padding: 6px 8px;
-      margin-right: 6px
+    .pointer-events-auto {
+      pointer-events: auto;
     }
   </style>
-  <script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js"></script>
+  <!-- Import Map for CDN dependencies -->
+  <script type="importmap">
+        {
+            "imports": {
+                "three": "https://esm.sh/three@0.160.0",
+                "three/addons/": "https://esm.sh/three@0.160.0/examples/jsm/",
+                "three/examples/jsm/": "https://esm.sh/three@0.160.0/examples/jsm/",
+                "three/examples/jsm/loaders/DRACOLoader.js": "https://esm.sh/three@0.160.0/examples/jsm/loaders/DRACOLoader.js",
+                "3d-tiles-renderer": "https://esm.sh/3d-tiles-renderer@0.3.28?external=three"
+            }
+        }
+    </script>
 </head>
 
 <body>
-  <canvas id="renderCanvas"></canvas>
-  <div id="ui">
-    <button id="zoomOut">-</button>
-    <button id="zoomIn">+</button>
-    <button id="pauseToggle">Pause Loading</button>
-    <span id="info"></span>
-  </div>
+  <div id="canvas-container"></div>
+  <div id="ui-layer"></div>
 
-  <script type="module" src="main.js"></script>
+  <!-- Main Entry Point -->
+  <script type="module" src="./main.js"></script>
 </body>
 
 </html>
