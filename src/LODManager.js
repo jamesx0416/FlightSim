@@ -1,5 +1,4 @@
 // src/LODManager.js
-import * as THREE from 'three';
 import { CONFIG } from '../config.js';
 
 export class LODManager {
@@ -24,7 +23,6 @@ export class LODManager {
         this.currentAltitude = dist - this.globeRadius;
 
         // Simple logic: Show tiles if we are close enough to the surface
-        // In a real app, we'd check if the camera is looking at the tileset bounding box too.
         if (this.currentAltitude < this.maxAltitudeForTiles && this.currentAltitude > 10) {
             this.shouldShowTiles = true;
         } else {
