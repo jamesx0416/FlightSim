@@ -1,63 +1,124 @@
-import { GlobeViewer } from './src/GlobeViewer.js';
-import { Tiles3DLoader } from './src/Tiles3DLoader.js';
-import { LODManager } from './src/LODManager.js';
-import { DebugOverlay } from './src/DebugOverlay.js';
-import { CONFIG } from './config.js';
+import * as THREE from "three";
+import {
+  RADIUS,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  STARTING_RADIUS
+} from "./Constants.js";
+import { TileManager } from "./TileManager.js";
+import { Tiles3DManager } from "./Tiles3DManager.js";
+import { Controls } from "./Controls.js";
+import { KEYS } from "./Keys.js";
 
-async function main() {
-  // 1. Init UI
-  const debugOverlay = new DebugOverlay('ui-layer');
-  debugOverlay.update({ message: 'Initializing...' });
+const canvas = document.getElementById("renderCanvas");
 
-  // 2. Init Globe
-  const viewer = new GlobeViewer('canvas-container');
+// Three.js core setup
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
+renderer.setPixelRatio(window.devicePixelRatio || 1);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 1);
 
-  // 3. Init 3D Tiles Loader
-  const tilesLoader = new Tiles3DLoader(viewer.scene, viewer.camera, debugOverlay);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+  45,
+  window.innerWidth / window.innerHeight,
+  100, // Near plane: 100m (to avoid z-fighting at high alt, we can adjust dynamic near plane later if needed)
+  RADIUS * 10
+);
 
-  // 4. Init LOD Manager
-  const lodManager = new LODManager(viewer.camera, viewer.scene);
+// Lights
+{
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x000000, 0.9);
+  scene.add(hemi);
+}
 
-  // 5. Start Google Session
-  if (CONFIG.GOOGLE_API_KEY || CONFIG.CESIUM_ION_TOKEN) {
-    await tilesLoader.init();
+// Managers
+const tileManager = new TileManager(scene, camera);
+const tiles3DManager = new Tiles3DManager(scene, camera, renderer);
 
-    // Hide base globe if tiles loaded successfully
-    if (tilesLoader.isInitialized) {
-      viewer.setBaseGlobeVisible(false);
-    }
-
-    debugOverlay.update({ message: 'Ready' });
-  } else {
-    console.warn("No API Keys found!");
-    debugOverlay.logError("No API Key. Showing base globe only.");
+// Example: Load Google Photorealistic 3D Tiles
+// Initialize 3D Tiles
+(async () => {
+  await tiles3DManager.init(KEYS.GOOGLE_MAPS, KEYS.CESIUM_ION);
+  if (tiles3DManager.isInitialized) {
+    console.log("3D Tiles loaded, hiding 2D globe.");
+    tileManager.setVisible(false);
   }
+})();
 
-  // 6. Animation Loop
-  function animate() {
+// Controls
+const controls = new Controls(camera, canvas, () => {
+  // Callback if needed
+});
+
+// UI wiring for Pause
+const pauseToggleBtn = document.getElementById("pauseToggle");
+if (pauseToggleBtn) {
+  pauseToggleBtn.onclick = () => {
+    tileManager.loadingPaused = !tileManager.loadingPaused;
+    pauseToggleBtn.textContent = tileManager.loadingPaused
+      ? "Resume Loading"
+      : "Pause Loading";
+  };
+}
+
+// Resize handling
+window.addEventListener("resize", () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+// Init sequence
+(async function init() {
+
+  let lastTime = performance.now();
+  let frameCount = 0;
+  let fps = 0;
+  let lastFpsTime = lastTime;
+
+  function animate(timestamp) {
     requestAnimationFrame(animate);
 
-    // Update LOD logic
-    const lodState = lodManager.update();
-
-    // Update Tiles
-    if (tilesLoader.isInitialized) {
-      tilesLoader.update();
+    // FPS Calculation
+    const now = performance.now();
+    frameCount++;
+    if (now - lastFpsTime >= 1000) {
+      fps = frameCount;
+      frameCount = 0;
+      lastFpsTime = now;
     }
 
-    // Render Scene
-    viewer.render();
+    controls.updateCamera();
 
-    // Update Debug
-    debugOverlay.update({
-      altitude: lodState.altitude
-    });
+    // Continuous update
+    tileManager.update();
+    tiles3DManager.update();
+
+    // Calculate current zoom based on altitude
+    const altitude = Math.max(0.001, controls.radius - RADIUS);
+    const altitudeKm = altitude * 100; // Convert to km
+    const currentZoom = tileManager.lodManager.getDesiredZoom(altitudeKm);
+
+    updateInfoDisplay(fps, currentZoom);
+
+    renderer.render(scene, camera);
   }
 
   animate();
-}
+})();
 
-main().catch(err => {
-  console.error("=== MAIN ERROR ===", err);
-  console.error(err.stack);
-});
+// Update info UI
+function updateInfoDisplay(fps, zoom) {
+  const infoElement = document.getElementById("info");
+  if (!infoElement) return;
+
+  infoElement.textContent =
+    `FPS: ${fps} | Zoom: ${zoom} | ` +
+    `Active: ${tileManager.activeTiles.size} | ` +
+    `Cached: ${tileManager.tileCache.size()} | ` +
+    `Loading: ${tileManager.currentLoads} | ` +
+    `Loading: ${tileManager.currentLoads}`;
+}
