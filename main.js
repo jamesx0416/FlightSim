@@ -1,11 +1,6 @@
 import * as THREE from "three";
-import {
-  RADIUS,
-  MAX_ZOOM,
-  MIN_ZOOM,
-  STARTING_RADIUS
-} from "./Constants.js";
-import { TileManager } from "./TileManager.js";
+import { RADIUS } from "./Constants.js";
+import { TileManager } from "./2d/TileManager.js";
 import { Tiles3DManager } from "./Tiles3DManager.js";
 import { Controls } from "./Controls.js";
 import { KEYS } from "./Keys.js";
@@ -74,7 +69,7 @@ window.addEventListener("resize", () => {
 // Init sequence
 (async function init() {
 
-  let lastTime = performance.now();
+
   let frameCount = 0;
   let fps = 0;
   let lastFpsTime = lastTime;
