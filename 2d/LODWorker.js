@@ -1,4 +1,4 @@
-import { RADIUS, MAX_ZOOM, MIN_ZOOM, CULLING_BUFFER } from "./Constants.js";
+import { RADIUS, MAX_ZOOM, MIN_ZOOM, CULLING_BUFFER } from "../Constants.js";
 import { patchCenterVector } from "./Utils.js";
 
 // Minimal vector class to avoid Three.js dependency in worker if possible, 

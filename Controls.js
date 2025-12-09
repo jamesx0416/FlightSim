@@ -111,11 +111,5 @@ export class Controls {
         this.camera.lookAt(this.target);
     }
 
-    getCameraParams() {
-        return {
-            phi: this.phi,
-            theta: this.theta,
-            radius: this.radius
-        };
-    }
+
 }

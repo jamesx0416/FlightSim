@@ -7,7 +7,7 @@ import {
     TEXTURE_SIZE,
     LOAD_LIMIT,
     CULLING_BUFFER
-} from "./Constants.js";
+} from "../Constants.js";
 import {
     tileXToLon,
     tileYToLat,
@@ -27,7 +27,7 @@ export class TileManager {
         this.lodManager = new LODManager();
 
         // Web Worker for LOD calculations
-        this.worker = new Worker("LODWorker.js", { type: "module" });
+        this.worker = new Worker("2d/LODWorker.js", { type: "module" });
         this.workerBusy = false;
         this.worker.onmessage = (e) => {
             if (e.data.type === 'result') {

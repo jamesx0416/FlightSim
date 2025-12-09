@@ -3,7 +3,6 @@ import { TilesRenderer } from "3d-tiles-renderer";
 import { GLTFLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js?external=three";
 import { DRACOLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/DRACOLoader.js?external=three";
 import { RADIUS } from "./Constants.js";
-import { lonLatToVector3 } from "./Utils.js";
 
 export class Tiles3DManager {
     constructor(scene, camera, renderer) {
@@ -161,21 +160,7 @@ export class Tiles3DManager {
         this.isInitialized = true;
     }
 
-    setTransform(lat, lon, alt, scale = 1.0) {
-        // For Google 3D Tiles (Global), we usually don't need this if we are rendering the whole globe.
-        // But if we want to position a local tileset, we use this.
-        // Keeping it for compatibility.
-        if (!this.tilesRenderer) return;
 
-        const position = new THREE.Vector3();
-        lonLatToVector3(lon, lat, RADIUS + alt, 1, position);
-        const up = position.clone().normalize();
-
-        this.group.position.copy(position);
-        this.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), up);
-        this.group.scale.setScalar(scale);
-        this.group.updateMatrixWorld(true);
-    }
 
     update() {
         if (this.tilesRenderer) {

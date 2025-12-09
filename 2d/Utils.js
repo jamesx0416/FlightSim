@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { RADIUS, TILE_SOURCE } from "./Constants.js";
-import { KEYS } from "./Keys.js";
+import { RADIUS, TILE_SOURCE } from "../Constants.js";
+import { KEYS } from "../Keys.js";
 
 
 

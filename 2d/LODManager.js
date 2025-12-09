@@ -1,5 +1,5 @@
 import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js";
-import { MAX_ZOOM, MIN_ZOOM, RADIUS } from "./Constants.js";
+import { MAX_ZOOM, MIN_ZOOM, RADIUS } from "../Constants.js";
 import { patchCenterVector } from "./Utils.js";
 
 export class LODManager {
