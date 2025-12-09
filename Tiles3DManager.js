@@ -183,18 +183,6 @@ export class Tiles3DManager {
             this.tilesRenderer.setResolutionFromRenderer(this.camera, this.webglRenderer);
             this.tilesRenderer.update();
 
-            // DEBUG: Log stats every 60 frames
-            if (!this.frameCount) this.frameCount = 0;
-            this.frameCount++;
-            if (this.frameCount % 60 === 0) {
-                console.log("Tiles3D Stats:", {
-                    visible: this.tilesRenderer.visibleTiles.length,
-                    downloading: this.tilesRenderer.stats.downloading,
-                    downloaded: this.tilesRenderer.stats.downloaded,
-                    errorTarget: this.tilesRenderer.errorTarget,
-                    scale: this.group.scale.x
-                });
-            }
         }
     }
 
