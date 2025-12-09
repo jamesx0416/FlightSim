@@ -16,6 +16,7 @@ export class Tiles3DManager {
         this.isInitialized = false;
         this.activeSession = null;
         this.rootUrl = null;
+        this.loadingPaused = false;
     }
 
     async init(apiKey, cesiumToken) {
@@ -166,8 +167,11 @@ export class Tiles3DManager {
         if (this.tilesRenderer) {
             this.tilesRenderer.setCamera(this.camera);
             this.tilesRenderer.setResolutionFromRenderer(this.camera, this.webglRenderer);
-            this.tilesRenderer.update();
 
+            // Only update tile loading if not paused
+            if (!this.loadingPaused) {
+                this.tilesRenderer.update();
+            }
         }
     }
 

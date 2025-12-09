@@ -3,7 +3,6 @@ import {
     RADIUS,
     MAX_ZOOM,
     MIN_ZOOM,
-    GRID_SIZE,
     TEXTURE_SIZE,
     LOAD_LIMIT,
     CULLING_BUFFER
