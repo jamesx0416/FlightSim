@@ -50,10 +50,18 @@ const controls = new Controls(camera, canvas, () => {
 const pauseToggleBtn = document.getElementById("pauseToggle");
 if (pauseToggleBtn) {
   pauseToggleBtn.onclick = () => {
-    tileManager.loadingPaused = !tileManager.loadingPaused;
-    pauseToggleBtn.textContent = tileManager.loadingPaused
-      ? "Resume Loading"
-      : "Pause Loading";
+    // Toggle both managers (whichever is active will respond)
+    if (tiles3DManager.isInitialized) {
+      tiles3DManager.loadingPaused = !tiles3DManager.loadingPaused;
+      pauseToggleBtn.textContent = tiles3DManager.loadingPaused
+        ? "Resume Loading"
+        : "Pause Loading";
+    } else {
+      tileManager.loadingPaused = !tileManager.loadingPaused;
+      pauseToggleBtn.textContent = tileManager.loadingPaused
+        ? "Resume Loading"
+        : "Pause Loading";
+    }
   };
 }
 
@@ -69,10 +77,9 @@ window.addEventListener("resize", () => {
 // Init sequence
 (async function init() {
 
-
   let frameCount = 0;
   let fps = 0;
-  let lastFpsTime = lastTime;
+  let lastFpsTime = performance.now();
 
   function animate(timestamp) {
     requestAnimationFrame(animate);
