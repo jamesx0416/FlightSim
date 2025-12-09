@@ -115,10 +115,45 @@ function updateInfoDisplay(fps, zoom) {
   const infoElement = document.getElementById("info");
   if (!infoElement) return;
 
+  let activeCount = 0;
+  let cachedCount = 0;
+  let loadingCount = 0;
+
+  if (tiles3DManager.isInitialized && tiles3DManager.tilesRenderer) {
+    // 3D Mode Stats
+    const visibleTiles = tiles3DManager.tilesRenderer.visibleTiles;
+
+    let count = 0;
+    if (visibleTiles) {
+      if (typeof visibleTiles.length === 'number') {
+        count = visibleTiles.length;
+      } else if (typeof visibleTiles.size === 'number') {
+        count = visibleTiles.size;
+      }
+    }
+    activeCount = count;
+
+    loadingCount = (tiles3DManager.tilesRenderer.stats && tiles3DManager.tilesRenderer.stats.downloading) || 0;
+
+    // Cache stats
+    const renderer = tiles3DManager.tilesRenderer;
+    if (renderer.lruCache && renderer.lruCache.itemList) {
+      cachedCount = renderer.lruCache.itemList.length || 0;
+    } else if (renderer.lruCache && typeof renderer.lruCache.size === 'number') {
+      cachedCount = renderer.lruCache.size;
+    } else {
+      cachedCount = (renderer.stats && renderer.stats.downloaded) || 0;
+    }
+  } else {
+    // 2D Mode Stats
+    activeCount = tileManager.activeTiles.size;
+    cachedCount = tileManager.tileCache.size();
+    loadingCount = tileManager.currentLoads;
+  }
+
   infoElement.textContent =
     `FPS: ${fps} | Zoom: ${zoom} | ` +
-    `Active: ${tileManager.activeTiles.size} | ` +
-    `Cached: ${tileManager.tileCache.size()} | ` +
-    `Loading: ${tileManager.currentLoads} | ` +
-    `Loading: ${tileManager.currentLoads}`;
+    `Active: ${activeCount} | ` +
+    `Cached: ${cachedCount} | ` +
+    `Loading: ${loadingCount}`;
 }
