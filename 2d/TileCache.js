@@ -1,10 +1,32 @@
+/**
+ * LRU (Least Recently Used) cache for tile meshes.
+ * 
+ * Automatically evicts the least recently used tiles when capacity is exceeded,
+ * properly disposing of Three.js resources (geometry, materials, textures).
+ * 
+ * @example
+ * const cache = new TileCache(500, (mesh) => scene.remove(mesh));
+ * cache.add("4/5/6", tileMesh);
+ * const mesh = cache.get("4/5/6");
+ */
 export class TileCache {
+    /**
+     * Creates a new LRU tile cache.
+     * 
+     * @param {number} [capacity=500] - Maximum number of tiles to cache
+     * @param {Function|null} [onEvict=null] - Callback when a tile is evicted
+     */
     constructor(capacity = 500, onEvict = null) {
+        /** @type {number} Maximum cache capacity */
         this.capacity = capacity;
+        /** @type {Function|null} Eviction callback */
         this.onEvict = onEvict;
-        this.map = new Map(); // key -> { tile, lastUsed }
-        this.head = null; // MRU
-        this.tail = null; // LRU
+        /** @type {Map} Key to node mapping */
+        this.map = new Map();
+        /** @type {Object|null} Most recently used node */
+        this.head = null;
+        /** @type {Object|null} Least recently used node */
+        this.tail = null;
     }
 
     get(key) {

@@ -1,12 +1,43 @@
 import * as THREE from "three";
-import { RADIUS, STARTING_RADIUS } from "./Constants.js";
+import {
+    RADIUS,
+    STARTING_RADIUS,
+    ZOOM_SPEED_BUTTON,
+    ZOOM_SPEED_WHEEL,
+    MIN_ALTITUDE,
+    MAX_ALTITUDE_FACTOR
+} from "./Constants.js";
 
+/**
+ * Orbital camera controls for navigating around the globe.
+ * 
+ * Supports:
+ * - Mouse drag for latitude/longitude rotation
+ * - Mouse wheel for altitude zoom
+ * - Button controls for zoom in/out
+ * 
+ * The camera orbits around the Earth's center (origin) using spherical coordinates.
+ * 
+ * @example
+ * const controls = new Controls(camera, canvas, () => console.log('Zoom changed'));
+ * // In animation loop:
+ * controls.updateCamera();
+ */
 export class Controls {
+    /**
+     * Creates orbital camera controls.
+     * 
+     * @param {THREE.PerspectiveCamera} camera - The camera to control
+     * @param {HTMLCanvasElement} canvas - The canvas element for mouse events
+     * @param {Function} onZoomChange - Callback invoked when zoom/radius changes
+     */
     constructor(camera, canvas, onZoomChange) {
         this.camera = camera;
         this.canvas = canvas;
-        this.onZoomChange = onZoomChange; // Callback when zoom/radius changes
+        /** @type {Function} Callback when zoom/radius changes */
+        this.onZoomChange = onZoomChange;
 
+        /** @type {boolean} Whether a drag operation is in progress */
         this.isDragging = false;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
@@ -15,9 +46,13 @@ export class Controls {
         this.initialPhi = Math.PI / 2.4;
         this.initialTheta = Math.PI / 2;
 
+        /** @type {number} Horizontal angle (longitude) in radians */
         this.theta = this.initialTheta;
+        /** @type {number} Vertical angle (latitude) in radians */
         this.phi = this.initialPhi;
+        /** @type {number} Distance from Earth center */
         this.radius = STARTING_RADIUS;
+        /** @type {THREE.Vector3} Point the camera looks at (Earth center) */
         this.target = new THREE.Vector3(0, 0, 0);
 
         // Initialize camera
@@ -32,16 +67,14 @@ export class Controls {
 
         if (zoomInBtn) {
             zoomInBtn.onclick = () => {
-                const ZOOM_SPEED = 0.2;
-                this.radius = Math.max(RADIUS + 100, this.radius * (1 - ZOOM_SPEED));
+                this.radius = Math.max(RADIUS + MIN_ALTITUDE, this.radius * (1 - ZOOM_SPEED_BUTTON));
                 this.onZoomChange();
             };
         }
 
         if (zoomOutBtn) {
             zoomOutBtn.onclick = () => {
-                const ZOOM_SPEED = 0.2;
-                this.radius = Math.min(RADIUS * 5, this.radius * (1 + ZOOM_SPEED));
+                this.radius = Math.min(RADIUS * (1 + MAX_ALTITUDE_FACTOR), this.radius * (1 + ZOOM_SPEED_BUTTON));
                 this.onZoomChange();
             };
         }
@@ -84,15 +117,12 @@ export class Controls {
             (e) => {
                 e.preventDefault();
                 const delta = e.deltaY;
-                const ZOOM_SPEED = 0.001;
 
                 let altitude = this.radius - RADIUS;
-                const factor = 1 + delta * ZOOM_SPEED;
+                const factor = 1 + delta * ZOOM_SPEED_WHEEL;
                 altitude *= factor;
 
-                const MIN_ALT = 100;
-                const MAX_ALT = RADIUS * 4;
-                altitude = Math.max(MIN_ALT, Math.min(MAX_ALT, altitude));
+                altitude = Math.max(MIN_ALTITUDE, Math.min(RADIUS * MAX_ALTITUDE_FACTOR, altitude));
 
                 this.radius = RADIUS + altitude;
                 this.onZoomChange();
