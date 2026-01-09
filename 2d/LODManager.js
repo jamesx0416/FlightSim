@@ -1,26 +1,27 @@
-import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.180.0/three.module.min.js";
+import * as THREE from "three";
 import { MAX_ZOOM, MIN_ZOOM, RADIUS } from "../Constants.js";
 import { patchCenterVector } from "./Utils.js";
+import { LOD_THRESHOLDS, GRAZING_ANGLE_THRESHOLD, MIN_GRAZING_DOT } from "./LODConfig.js";
 
+/**
+ * Manages Level of Detail (LOD) calculations for 2D tile rendering.
+ * 
+ * Determines when tiles should be split into higher-resolution children
+ * based on camera distance and viewing angle. Uses grazing angle compensation
+ * to provide less detail for tiles viewed at steep angles (near horizon).
+ * 
+ * @example
+ * const lod = new LODManager();
+ * const zoom = lod.getDesiredZoom(distanceKm);
+ * const shouldSplit = lod.shouldSplit(z, x, y, cameraPosition);
+ */
 export class LODManager {
+    /**
+     * Creates a new LODManager instance.
+     */
     constructor() {
-        // Configuration for LOD distances (in km, relative to Earth radius)
-        // These thresholds determine when to switch to the next lower zoom level.
-        // Distance is from camera to tile center.
-        this.lodThresholds = {
-            15: 25,    // Reduced for lower quality
-            14: 50,
-            13: 100,
-            12: 200,
-            11: 400,
-            10: 800,
-            9: 1500,
-            8: 2500,
-            7: 4000,
-            6: 6000,
-            5: 8000,   // Kept as is ("Level 5 is fine")
-            4: Infinity
-        };
+        /** @type {Object} Distance thresholds (km) for each zoom level */
+        this.lodThresholds = LOD_THRESHOLDS;
 
         // Reusable vectors to avoid GC
         this._center = new THREE.Vector3();
@@ -65,10 +66,9 @@ export class LODManager {
         // If looking at horizon (dot ~ 0.0), effective distance increases significantly
 
         // Dampen the effect at high zoom levels (close to ground)
-        // User requested to remove grazing angle effect for level 10+
         let adjustedDot = 1.0;
-        if (z < 10) {
-            adjustedDot = Math.max(0.5, dot);
+        if (z < GRAZING_ANGLE_THRESHOLD) {
+            adjustedDot = Math.max(MIN_GRAZING_DOT, dot);
         }
 
         const effectiveDistanceKm = distanceKm / adjustedDot;

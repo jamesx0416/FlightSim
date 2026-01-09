@@ -1,5 +1,6 @@
 import { RADIUS, MAX_ZOOM, MIN_ZOOM, CULLING_BUFFER } from "../Constants.js";
 import { patchCenterVector } from "./Utils.js";
+import { LOD_THRESHOLDS, GRAZING_ANGLE_THRESHOLD, MIN_GRAZING_DOT } from "./LODConfig.js";
 
 // Minimal vector class to avoid Three.js dependency in worker if possible, 
 // but since we use modules we can import Three.js if needed. 
@@ -32,12 +33,6 @@ let loadedTiles = new Set(); // Set of "z/x/y" strings
 let loadQueue = [];
 let activeTiles = new Set();
 
-// Configuration
-const LOD_THRESHOLDS = {
-    15: 25, 14: 50, 13: 100, 12: 200, 11: 400, 10: 800,
-    9: 1500, 8: 2500, 7: 4000, 6: 6000, 5: 8000, 4: Infinity
-};
-
 // Utils
 const _center = new Vector3();
 const _tileNormal = new Vector3();
@@ -63,7 +58,7 @@ function shouldSplit(z, x, y) {
     const dot = Math.abs(_viewVector.dot(_tileNormal));
 
     let adjustedDot = 1.0;
-    if (z < 10) adjustedDot = Math.max(0.5, dot);
+    if (z < GRAZING_ANGLE_THRESHOLD) adjustedDot = Math.max(MIN_GRAZING_DOT, dot);
 
     const effectiveDistanceKm = distanceKm / adjustedDot;
     return z < getDesiredZoom(effectiveDistanceKm);

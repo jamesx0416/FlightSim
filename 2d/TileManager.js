@@ -18,11 +18,30 @@ import { LODManager } from "./LODManager.js";
 import { TileCache } from "./TileCache.js";
 
 
+/**
+ * Manages 2D tile-based satellite imagery rendering on the globe.
+ * 
+ * Uses a quadtree structure with progressive loading for smooth LOD transitions.
+ * Tiles are dynamically loaded based on camera position/frustum and cached
+ * for performance. LOD calculations are offloaded to a Web Worker.
+ * 
+ * @example
+ * const manager = new TileManager(scene, camera);
+ * // In animation loop:
+ * manager.update();
+ */
 export class TileManager {
+    /**
+     * Creates a new TileManager instance.
+     * 
+     * @param {THREE.Scene} scene - The Three.js scene to add tile meshes to
+     * @param {THREE.PerspectiveCamera} camera - The camera for frustum culling and LOD
+     */
     constructor(scene, camera) {
         this.scene = scene;
         this.camera = camera;
 
+        /** @type {LODManager} Manages level-of-detail calculations */
         this.lodManager = new LODManager();
 
         // Web Worker for LOD calculations
@@ -40,6 +59,7 @@ export class TileManager {
             }
         };
 
+        /** @type {TileCache} LRU cache for tile meshes */
         this.tileCache = new TileCache(5000, (mesh) => {
             if (mesh) {
                 this.scene.remove(mesh);
@@ -50,12 +70,12 @@ export class TileManager {
             }
         });
 
+        /** @type {number} Current number of tiles being loaded */
         this.currentLoads = 0;
+        /** @type {boolean} Whether tile loading is paused */
         this.loadingPaused = false;
 
-
-
-        // Track currently rendered tiles to avoid flickering
+        /** @type {Set<string>} Currently rendered tile keys */
         this.activeTiles = new Set();
 
         // Reusable objects for render loop
@@ -70,7 +90,8 @@ export class TileManager {
         this.frameCount = 0;
         this.lastSortFrame = 0;
         this.lastCameraPosition = new THREE.Vector3();
-        this.cameraMovementThreshold = 1.0; // Units of movement before re-sorting
+        this.cameraMovementThreshold = 1.0;
+        /** @type {boolean} Whether the 2D tiles are visible */
         this.isVisible = true;
     }
 
