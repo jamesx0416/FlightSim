@@ -11,6 +11,7 @@ import {
 import { TileManager } from "./2d/TileManager.js";
 import { Tiles3DManager } from "./Tiles3DManager.js";
 import { KEYS } from "./Keys.js";
+import { Atmosphere } from "./atmosphere/Atmosphere.js";
 
 // DOM Elements
 const canvas = document.getElementById("renderCanvas");
@@ -28,7 +29,7 @@ const renderer = new THREE.WebGLRenderer({
 // Performance: Force 1x pixel ratio to uncap FPS on high-DPI displays (Retina)
 renderer.setPixelRatio(RENDER_PIXEL_RATIO);
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000011, 1);  // Dark blue for night sky
+renderer.setClearColor(0x000000, 1);  // Black - atmosphere will provide sky color
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -42,6 +43,9 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(0, 0, RADIUS * 2);
 camera.lookAt(0, 0, 0);
+
+// Atmosphere (sky dome with atmospheric scattering)
+const atmosphere = new Atmosphere(scene, camera);
 
 // Lighting - Ambient (for night side)
 const ambientLight = new THREE.AmbientLight(0x404080, AMBIENT_INTENSITY);
@@ -68,12 +72,8 @@ sunLight.shadow.normalBias = 0.5;
 scene.add(sunLight);
 scene.add(sunLight.target); // Target at origin (Earth center)
 
-// Visual sun indicator (yellow sphere at sun position for debugging)
-const sunGeometry = new THREE.SphereGeometry(RADIUS * 0.5, 32, 32);
-const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
-sunMesh.position.copy(sunLight.position);
-scene.add(sunMesh);
+// Sun direction vector (used by atmosphere)
+const sunDirection = new THREE.Vector3();
 
 // Tile Managers
 const tileManager2D = new TileManager(scene, camera);
@@ -174,8 +174,8 @@ function animate() {
   // Add slight tilt for seasonal variation feel
   sunLight.position.y = Math.sin(sunAngle * 0.1) * SUN_DISTANCE * 0.3;
   
-  // Update sun visual indicator position
-  sunMesh.position.copy(sunLight.position);
+  // Update sun direction for atmosphere
+  sunDirection.copy(sunLight.position).normalize();
 
   // Update controls
   controls?.update();
@@ -186,6 +186,12 @@ function animate() {
   } else {
     tileManager2D.update();
   }
+
+  // Update camera matrices before atmosphere update
+  camera.updateMatrixWorld();
+  
+  // Update atmosphere with current sun direction (after camera update)
+  atmosphere.update(sunDirection);
 
   // Stats display
   updateStats(fps);
