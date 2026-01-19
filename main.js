@@ -1,19 +1,38 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GlobeControls } from "3d-tiles-renderer";
-import { RADIUS, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE_FACTOR, MIN_ALTITUDE, MAX_ALTITUDE_FACTOR } from "./Constants.js";
+import {
+  RADIUS, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE_FACTOR,
+  MIN_ALTITUDE, MAX_ALTITUDE_FACTOR,
+  SUN_DISTANCE, SUN_INTENSITY, AMBIENT_INTENSITY, DAY_CYCLE_SPEED,
+  SHADOW_MAP_SIZE, SHADOW_CAMERA_SIZE,
+  RENDER_PIXEL_RATIO
+} from "./Constants.js";
 import { TileManager } from "./2d/TileManager.js";
 import { Tiles3DManager } from "./Tiles3DManager.js";
-import { Controls } from "./Controls.js";
 import { KEYS } from "./Keys.js";
 
+// DOM Elements
 const canvas = document.getElementById("renderCanvas");
+const pauseBtn = document.getElementById("pauseToggle");
+const zoomInBtn = document.getElementById("zoomIn");
+const zoomOutBtn = document.getElementById("zoomOut");
+const infoEl = document.getElementById("info");
 
-// Three.js core setup
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, logarithmicDepthBuffer: true });
-renderer.setPixelRatio(window.devicePixelRatio || 1);
+// Renderer with shadows
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  logarithmicDepthBuffer: true
+});
+// Performance: Force 1x pixel ratio to uncap FPS on high-DPI displays (Retina)
+renderer.setPixelRatio(RENDER_PIXEL_RATIO);
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000000, 1);
+renderer.setClearColor(0x000011, 1);  // Dark blue for night sky
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
+// Scene & Camera
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
   45,
@@ -21,133 +40,126 @@ const camera = new THREE.PerspectiveCamera(
   CAMERA_NEAR_PLANE,
   RADIUS * CAMERA_FAR_PLANE_FACTOR
 );
-
-// Set initial camera position (looking at Earth from space)
 camera.position.set(0, 0, RADIUS * 2);
 camera.lookAt(0, 0, 0);
 
-// Lights
-{
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x000000, 0.9);
-  scene.add(hemi);
-}
+// Lighting - Ambient (for night side)
+const ambientLight = new THREE.AmbientLight(0x404080, AMBIENT_INTENSITY);
+scene.add(ambientLight);
 
-// Managers
-const tileManager = new TileManager(scene, camera);
-const tiles3DManager = new Tiles3DManager(scene, camera, renderer);
+// Lighting - Sun (Directional Light)
+const sunLight = new THREE.DirectionalLight(0xfffaed, SUN_INTENSITY);
+sunLight.position.set(SUN_DISTANCE, 0, 0);
+sunLight.castShadow = true;
 
-// Controls - will be set after 3D tiles load
+// Shadow camera configuration - adjusted for planetary scale
+// Note: Shadows at planetary scale are challenging; this provides basic coverage
+sunLight.shadow.mapSize.width = SHADOW_MAP_SIZE;
+sunLight.shadow.mapSize.height = SHADOW_MAP_SIZE;
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far = SUN_DISTANCE * 2;
+sunLight.shadow.camera.left = -SHADOW_CAMERA_SIZE;
+sunLight.shadow.camera.right = SHADOW_CAMERA_SIZE;
+sunLight.shadow.camera.top = SHADOW_CAMERA_SIZE;
+sunLight.shadow.camera.bottom = -SHADOW_CAMERA_SIZE;
+sunLight.shadow.bias = -0.0001;
+sunLight.shadow.normalBias = 0.5;
+
+scene.add(sunLight);
+scene.add(sunLight.target); // Target at origin (Earth center)
+
+// Visual sun indicator (yellow sphere at sun position for debugging)
+const sunGeometry = new THREE.SphereGeometry(RADIUS * 0.5, 32, 32);
+const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+const sunMesh = new THREE.Mesh(sunGeometry, sunMaterial);
+sunMesh.position.copy(sunLight.position);
+scene.add(sunMesh);
+
+// Tile Managers
+const tileManager2D = new TileManager(scene, camera);
+const tiles3D = new Tiles3DManager(scene, camera, renderer);
+
+// State
 let controls = null;
-let fallbackControls = null;
+let using3D = false;
+let sunAngle = 0;  // Current angle of the sun (radians)
 
-// Keep fallback controls for 2D mode
-fallbackControls = new Controls(camera, canvas, () => { });
-
-// Initialize 3D Tiles and GlobeControls
+// Initialize
 (async () => {
-  await tiles3DManager.init(KEYS.GOOGLE_MAPS, KEYS.CESIUM_ION);
+  await tiles3D.init(KEYS.GOOGLE_MAPS, KEYS.CESIUM_ION);
 
-  if (tiles3DManager.isInitialized && tiles3DManager.tilesRenderer) {
-    console.log("3D Tiles loaded, setting up GlobeControls");
-    tileManager.setVisible(false);
-
-    // Create GlobeControls - use new API to avoid deprecation warning
-    // Pass null for tilesRenderer, then set scene and ellipsoid separately
-    controls = new GlobeControls(scene, camera, canvas, null);
-
-    // Use the ellipsoid from the tilesRenderer (WGS84 by default)
-    controls.setScene(scene);
-    if (tiles3DManager.tilesRenderer.ellipsoid) {
-      controls.ellipsoid = tiles3DManager.tilesRenderer.ellipsoid;
-    }
-
-    // Configure controls
+  if (tiles3D.isInitialized && tiles3D.tilesRenderer) {
+    using3D = true;
+    tileManager2D.setVisible(false);
+    
+    // Use GlobeControls for 3D Tiles
+    controls = new GlobeControls(scene, camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.1;
+    
+    // Set up GlobeControls specific settings
+    // We attach it to the tiles group so it knows what to collide/interact with
+    controls.setScene(tiles3D.group); 
+    
+    // If available, set the ellipsoid for better navigation
+    if (tiles3D.tilesRenderer.ellipsoid) {
+       controls.setEllipsoid(tiles3D.tilesRenderer.ellipsoid);
+    }
 
-    // Set zoom limits (minDistance = closest, maxDistance = farthest)
+    console.log("3D Tiles ready (GlobeControls active)");
+  } else {
+    using3D = false;
+    // Fallback to OrbitControls for 2D mode
+    controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
     controls.minDistance = RADIUS + MIN_ALTITUDE;
     controls.maxDistance = RADIUS * (1 + MAX_ALTITUDE_FACTOR);
-
-    console.log("GlobeControls initialized successfully");
-
-  } else {
-    console.log("3D Tiles failed to load, using 2D fallback with custom controls");
-    controls = fallbackControls;
+    controls.target.set(0, 0, 0);
+    console.log("2D Tiles ready (OrbitControls active)");
   }
 })();
 
-// UI wiring for Pause
-const pauseToggleBtn = document.getElementById("pauseToggle");
-if (pauseToggleBtn) {
-  pauseToggleBtn.onclick = () => {
-    if (tiles3DManager.isInitialized) {
-      tiles3DManager.loadingPaused = !tiles3DManager.loadingPaused;
-      pauseToggleBtn.textContent = tiles3DManager.loadingPaused
-        ? "Resume Loading"
-        : "Pause Loading";
-    } else {
-      tileManager.loadingPaused = !tileManager.loadingPaused;
-      pauseToggleBtn.textContent = tileManager.loadingPaused
-        ? "Resume Loading"
-        : "Pause Loading";
-    }
-  };
-}
-
-// UI wiring for Zoom buttons
-const zoomInBtn = document.getElementById("zoomIn");
-const zoomOutBtn = document.getElementById("zoomOut");
-
-if (zoomInBtn) {
-  zoomInBtn.onclick = () => {
-    if (controls && controls !== fallbackControls) {
-      // GlobeControls - zoom by moving camera closer
-      const distance = camera.position.length();
-      const newDistance = Math.max(RADIUS + MIN_ALTITUDE, distance * 0.8);
-      camera.position.normalize().multiplyScalar(newDistance);
-    } else if (fallbackControls) {
-      // Fallback controls
-      fallbackControls.radius = Math.max(RADIUS + MIN_ALTITUDE, fallbackControls.radius * 0.8);
-      fallbackControls.updateCamera();
-    }
-  };
-}
-
-if (zoomOutBtn) {
-  zoomOutBtn.onclick = () => {
-    if (controls && controls !== fallbackControls) {
-      // GlobeControls - zoom by moving camera farther
-      const distance = camera.position.length();
-      const newDistance = Math.min(RADIUS * (1 + MAX_ALTITUDE_FACTOR), distance * 1.25);
-      camera.position.normalize().multiplyScalar(newDistance);
-    } else if (fallbackControls) {
-      // Fallback controls
-      fallbackControls.radius = Math.min(RADIUS * (1 + MAX_ALTITUDE_FACTOR), fallbackControls.radius * 1.25);
-      fallbackControls.updateCamera();
-    }
-  };
-}
-
-// Resize handling
-window.addEventListener("resize", () => {
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
+// UI Handlers
+pauseBtn?.addEventListener("click", () => {
+  if (using3D) {
+    tiles3D.loadingPaused = !tiles3D.loadingPaused;
+    pauseBtn.textContent = tiles3D.loadingPaused ? "Resume" : "Pause";
+  } else {
+    tileManager2D.loadingPaused = !tileManager2D.loadingPaused;
+    pauseBtn.textContent = tileManager2D.loadingPaused ? "Resume" : "Pause";
+  }
 });
 
-// Animation loop
-let frameCount = 0;
-let fps = 0;
-let lastFpsTime = performance.now();
+zoomInBtn?.addEventListener("click", () => {
+  const dist = camera.position.length();
+  const newDist = Math.max(RADIUS + MIN_ALTITUDE, dist * 0.8);
+  camera.position.normalize().multiplyScalar(newDist);
+});
 
-function animate(timestamp) {
+zoomOutBtn?.addEventListener("click", () => {
+  const dist = camera.position.length();
+  const newDist = Math.min(RADIUS * (1 + MAX_ALTITUDE_FACTOR), dist * 1.25);
+  camera.position.normalize().multiplyScalar(newDist);
+});
+
+// Resize
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// Animation Loop
+let frameCount = 0, fps = 0, lastFpsTime = performance.now(), lastTime = performance.now();
+
+function animate() {
   requestAnimationFrame(animate);
 
-  // FPS Calculation
   const now = performance.now();
+  const deltaTime = now - lastTime;
+  lastTime = now;
+
+  // FPS
   frameCount++;
   if (now - lastFpsTime >= 1000) {
     fps = frameCount;
@@ -155,74 +167,50 @@ function animate(timestamp) {
     lastFpsTime = now;
   }
 
-  // Update controls (GlobeControls.update() handles camera movement)
-  if (controls && controls.update) {
-    controls.update();
-  } else if (fallbackControls) {
-    fallbackControls.updateCamera();
+  // Update sun position (day/night cycle)
+  sunAngle += DAY_CYCLE_SPEED * deltaTime;
+  sunLight.position.x = Math.cos(sunAngle) * SUN_DISTANCE;
+  sunLight.position.z = Math.sin(sunAngle) * SUN_DISTANCE;
+  // Add slight tilt for seasonal variation feel
+  sunLight.position.y = Math.sin(sunAngle * 0.1) * SUN_DISTANCE * 0.3;
+  
+  // Update sun visual indicator position
+  sunMesh.position.copy(sunLight.position);
+
+  // Update controls
+  controls?.update();
+
+  // Update tiles
+  if (using3D) {
+    tiles3D.update();
+  } else {
+    tileManager2D.update();
   }
 
-  // Update tile managers
-  tileManager.update();
-  tiles3DManager.update();
-
-  // Calculate current zoom based on camera distance
-  const cameraDistance = camera.position.length();
-  const altitude = Math.max(0.001, cameraDistance - RADIUS);
-  const altitudeKm = altitude / 1000; // Convert meters to km
-  const currentZoom = tileManager.lodManager.getDesiredZoom(altitudeKm);
-
-  updateInfoDisplay(fps, currentZoom);
+  // Stats display
+  updateStats(fps);
 
   renderer.render(scene, camera);
 }
 
-animate();
+function updateStats(fps) {
+  if (!infoEl) return;
 
-// Update info UI
-function updateInfoDisplay(fps, zoom) {
-  const infoElement = document.getElementById("info");
-  if (!infoElement) return;
+  const alt = Math.max(0, camera.position.length() - RADIUS);
+  const altKm = (alt / 1000).toFixed(1);
 
-  let activeCount = 0;
-  let cachedCount = 0;
-  let loadingCount = 0;
-
-  if (tiles3DManager.isInitialized && tiles3DManager.tilesRenderer) {
-    // 3D Mode Stats
-    const visibleTiles = tiles3DManager.tilesRenderer.visibleTiles;
-
-    let count = 0;
-    if (visibleTiles) {
-      if (typeof visibleTiles.length === 'number') {
-        count = visibleTiles.length;
-      } else if (typeof visibleTiles.size === 'number') {
-        count = visibleTiles.size;
-      }
-    }
-    activeCount = count;
-
-    loadingCount = (tiles3DManager.tilesRenderer.stats && tiles3DManager.tilesRenderer.stats.downloading) || 0;
-
-    // Cache stats
-    const tilesRenderer = tiles3DManager.tilesRenderer;
-    if (tilesRenderer.lruCache && tilesRenderer.lruCache.itemList) {
-      cachedCount = tilesRenderer.lruCache.itemList.length || 0;
-    } else if (tilesRenderer.lruCache && typeof tilesRenderer.lruCache.size === 'number') {
-      cachedCount = tilesRenderer.lruCache.size;
-    } else {
-      cachedCount = (tilesRenderer.stats && tilesRenderer.stats.downloaded) || 0;
-    }
+  if (using3D && tiles3D.tilesRenderer) {
+    const tr = tiles3D.tilesRenderer;
+    // Some plugins might affect stats or cache structure, safe access:
+    const visible = tr.visibleTiles?.size ?? tr.visibleTiles?.length ?? 0;
+    const loading = tr.stats?.downloading ?? 0;
+    const downloaded = tr.stats?.downloaded ?? 0;
+    
+    infoEl.textContent = `FPS: ${fps} | Alt: ${altKm}km | Tiles: ${visible} | Loading: ${loading}`;
   } else {
-    // 2D Mode Stats
-    activeCount = tileManager.activeTiles.size;
-    cachedCount = tileManager.tileCache.size();
-    loadingCount = tileManager.currentLoads;
+    const zoom = tileManager2D.lodManager.getDesiredZoom(alt / 1000);
+    infoEl.textContent = `FPS: ${fps} | Alt: ${altKm}km | Zoom: ${zoom} | Active: ${tileManager2D.activeTiles.size}`;
   }
-
-  infoElement.textContent =
-    `FPS: ${fps} | Zoom: ${zoom} | ` +
-    `Active: ${activeCount} | ` +
-    `Cached: ${cachedCount} | ` +
-    `Loading: ${loadingCount}`;
 }
+
+animate();
