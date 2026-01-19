@@ -41,3 +41,23 @@ export const DAY_CYCLE_SPEED = 0.00001;
 // Shadows
 export const SHADOW_MAP_SIZE = 2048;
 export const SHADOW_CAMERA_SIZE = RADIUS * 2;
+
+// Atmosphere (inspired by three-geospatial)
+// Based on Eric Bruneton's Precomputed Atmospheric Scattering
+export const ATMOSPHERE_BOTTOM_RADIUS = RADIUS;  // Earth radius in meters
+export const ATMOSPHERE_TOP_RADIUS = RADIUS + 60000;  // Atmosphere extends ~60km
+export const ATMOSPHERE_SCALE_HEIGHT_RAYLEIGH = 8000;  // meters
+export const ATMOSPHERE_SCALE_HEIGHT_MIE = 1200;  // meters
+
+// Rayleigh scattering coefficients (wavelength-dependent, RGB)
+export const RAYLEIGH_SCATTERING = [5.802e-6, 13.558e-6, 33.1e-6];  // per meter
+
+// Mie scattering coefficient (wavelength-independent)
+export const MIE_SCATTERING = 3.996e-6;  // per meter
+export const MIE_ASYMMETRY = 0.8;  // Mie phase function asymmetry (g parameter)
+
+// Sun angular radius
+export const SUN_ANGULAR_RADIUS = 0.00935 / 2;  // ~0.5 degrees in radians
+
+// Meter to unit conversion (for atmosphere calculations in km)
+export const METER_TO_UNIT = 1 / 1000;
