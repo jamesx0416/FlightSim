@@ -5,7 +5,8 @@ import {
     MIN_ZOOM,
     TEXTURE_SIZE,
     LOAD_LIMIT,
-    CULLING_BUFFER
+    CULLING_BUFFER,
+    AMBIENT_INTENSITY
 } from "../Constants.js";
 import {
     tileXToLon,
@@ -96,10 +97,20 @@ export class TileManager {
     }
 
     // Main update loop called from animation frame
-    update() {
+    update(sunDirection) {
         if (this.loadingPaused || !this.isVisible) return;
 
         this.frameCount++;
+
+        // Update sun direction in active tile materials
+        if (sunDirection) {
+            this.activeTiles.forEach(key => {
+                const mesh = this.tileCache.get(key);
+                if (mesh && mesh.material.uniforms.u_sunDirection) {
+                    mesh.material.uniforms.u_sunDirection.value.copy(sunDirection);
+                }
+            });
+        }
 
         // Update Frustum once per frame (still useful for other things)
         this.projScreenMatrix.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse);
@@ -283,12 +294,14 @@ export class TileManager {
         // Custom Shader Material
         const material = new THREE.ShaderMaterial({
             uniforms: {
-                u_texture: { value: null }, // Will be set later
+                u_texture: { value: null },
+                u_sunDirection: { value: new THREE.Vector3(1, 0, 0) },
                 u_minLon: { value: lonMin },
                 u_maxLon: { value: lonMax },
-                u_minLat: { value: latMin }, // Bottom
-                u_maxLat: { value: latMax }, // Top
-                u_radius: { value: RADIUS }
+                u_minLat: { value: latMin },
+                u_maxLat: { value: latMax },
+                u_radius: { value: RADIUS },
+                u_ambientIntensity: { value: AMBIENT_INTENSITY }
             },
             vertexShader: `
                 uniform float u_minLon;
@@ -298,30 +311,17 @@ export class TileManager {
                 uniform float u_radius;
 
                 varying vec2 vUv;
-
-                const float PI = 3.14159265359;
+                varying vec3 vNormal;
 
                 void main() {
                     vUv = uv;
-
-                    // Interpolate Lat/Lon based on UV
-                    // uv.x goes 0->1 (minLon -> maxLon)
-                    // uv.y goes 0->1 (minLat -> maxLat) - Check orientation!
-                    // Usually texture Y is 0 at bottom, 1 at top.
-                    // LatMin is bottom, LatMax is top.
                     
                     float lon = mix(u_minLon, u_maxLon, uv.x);
                     float lat = mix(u_minLat, u_maxLat, uv.y);
 
-                    // Convert to Radians
                     float latRad = radians(lat);
                     float lonRad = radians(lon);
 
-                    // Spherical Projection (matches Utils.js)
-                    // x = -r * cos(lat) * cos(lon)
-                    // y = r * sin(lat)
-                    // z = r * cos(lat) * sin(lon)
-                    
                     float cosLat = cos(latRad);
                     float sinLat = sin(latRad);
                     float cosLon = cos(lonRad);
@@ -333,16 +333,37 @@ export class TileManager {
                         u_radius * cosLat * sinLon
                     );
 
+                    vNormal = normalize(pos);
+
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
                 }
             `,
             fragmentShader: `
                 uniform sampler2D u_texture;
+                uniform vec3 u_sunDirection;
+                uniform float u_ambientIntensity;
                 varying vec2 vUv;
+                varying vec3 vNormal;
 
                 void main() {
-                    vec4 color = texture2D(u_texture, vUv);
-                    gl_FragColor = color;
+                    vec4 texColor = texture2D(u_texture, vUv);
+                    
+                    // Calculate sun visibility for this tile
+                    float sunDot = dot(vNormal, normalize(u_sunDirection));
+                    
+                    // Day side (sunDot > 0): normal lighting
+                    // Night side (sunDot <= 0): darken significantly
+                    float dayFactor = clamp(sunDot, 0.0, 1.0);
+                    float nightFactor = clamp(-sunDot, 0.0, 1.0);
+                    
+                    // Day: full brightness + slight ambient
+                    // Night: very dark (only ambient)
+                    float lighting = dayFactor + nightFactor * u_ambientIntensity;
+                    
+                    // Apply non-linear curve for more dramatic day/night
+                    lighting = mix(0.02, 1.2, dayFactor * dayFactor * dayFactor + u_ambientIntensity * 0.3);
+                    
+                    gl_FragColor = vec4(texColor.rgb * lighting, texColor.a);
                     #include <colorspace_fragment>
                 }
             `,
@@ -509,7 +530,7 @@ export class TileManager {
         }
 
         // Back-face culling
-        this._cameraDir.copy(this.camera.position).normalize();
+        this.camera.getWorldDirection(this._cameraDir);
         patchCenterVector(z, x, y, this._tileCenterNorm);
         const dot = this._cameraDir.dot(this._tileCenterNorm);
         return dot > -0.2; // Allow slightly back-facing tiles for horizon correctness

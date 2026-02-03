@@ -29,7 +29,7 @@ const renderer = new THREE.WebGLRenderer({
 // Performance: Force 1x pixel ratio to uncap FPS on high-DPI displays (Retina)
 renderer.setPixelRatio(RENDER_PIXEL_RATIO);
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setClearColor(0x000000, 1);  // Black - atmosphere will provide sky color
+renderer.setClearColor(0x000000, 1);  // Black space - atmosphere handles day glow
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -44,9 +44,6 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 0, RADIUS * 2);
 camera.lookAt(0, 0, 0);
 
-// Atmosphere (sky dome with atmospheric scattering)
-const atmosphere = new Atmosphere(scene, camera);
-
 // Lighting - Ambient (for night side)
 const ambientLight = new THREE.AmbientLight(0x404080, AMBIENT_INTENSITY);
 scene.add(ambientLight);
@@ -57,20 +54,28 @@ sunLight.position.set(SUN_DISTANCE, 0, 0);
 sunLight.castShadow = true;
 
 // Shadow camera configuration - adjusted for planetary scale
-// Note: Shadows at planetary scale are challenging; this provides basic coverage
+// Shadow camera must track the viewer for proper planetary shadows
+const shadowCamera = sunLight.shadow.camera;
+shadowCamera.position.copy(sunLight.position);
+shadowCamera.lookAt(0, 0, 0);
+
 sunLight.shadow.mapSize.width = SHADOW_MAP_SIZE;
 sunLight.shadow.mapSize.height = SHADOW_MAP_SIZE;
-sunLight.shadow.camera.near = 0.5;
-sunLight.shadow.camera.far = SUN_DISTANCE * 2;
-sunLight.shadow.camera.left = -SHADOW_CAMERA_SIZE;
-sunLight.shadow.camera.right = SHADOW_CAMERA_SIZE;
-sunLight.shadow.camera.top = SHADOW_CAMERA_SIZE;
-sunLight.shadow.camera.bottom = -SHADOW_CAMERA_SIZE;
+
+shadowCamera.near = 0.5;
+shadowCamera.far = SUN_DISTANCE * 2;
+shadowCamera.left = -SHADOW_CAMERA_SIZE;
+shadowCamera.right = SHADOW_CAMERA_SIZE;
+shadowCamera.top = SHADOW_CAMERA_SIZE;
+shadowCamera.bottom = -SHADOW_CAMERA_SIZE;
 sunLight.shadow.bias = -0.0001;
 sunLight.shadow.normalBias = 0.5;
 
 scene.add(sunLight);
 scene.add(sunLight.target); // Target at origin (Earth center)
+
+// Atmosphere (sky dome with atmospheric scattering)
+const atmosphere = new Atmosphere(scene, camera);
 
 // Sun direction vector (used by atmosphere)
 const sunDirection = new THREE.Vector3();
@@ -171,8 +176,13 @@ function animate() {
   sunAngle += DAY_CYCLE_SPEED * deltaTime;
   sunLight.position.x = Math.cos(sunAngle) * SUN_DISTANCE;
   sunLight.position.z = Math.sin(sunAngle) * SUN_DISTANCE;
-  // Add slight tilt for seasonal variation feel
   sunLight.position.y = Math.sin(sunAngle * 0.1) * SUN_DISTANCE * 0.3;
+  
+  // Update shadow camera to track sun position and look at Earth center
+  if (sunLight.shadow.camera) {
+    sunLight.shadow.camera.position.copy(sunLight.position);
+    sunLight.shadow.camera.lookAt(0, 0, 0);
+  }
   
   // Update sun direction for atmosphere
   sunDirection.copy(sunLight.position).normalize();
@@ -183,8 +193,9 @@ function animate() {
   // Update tiles
   if (using3D) {
     tiles3D.update();
+    tiles3D.updateSunDirection(sunDirection);
   } else {
-    tileManager2D.update();
+    tileManager2D.update(sunDirection);
   }
 
   // Update camera matrices before atmosphere update
