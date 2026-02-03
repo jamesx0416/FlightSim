@@ -99,15 +99,9 @@ function isTileVisible(z, x, y) {
     }
 
     // Back-face culling
-    // _center is currently scaled by RADIUS. We need the normalized direction.
-    // _tileNormal is available as a temporary vector.
+    // Calculate view direction from camera to tile center
+    _viewVector.copy(_center).sub(cameraPosition).normalize();
     _tileNormal.copy(_center).normalize();
-
-    // Camera direction (normalized position)
-    // We can reuse _viewVector for this temporary calculation or just use cameraPosition
-    // Note: cameraPosition is not normalized.
-    // Let's use _viewVector to store normalized camera pos to avoid allocating new objects
-    _viewVector.copy(cameraPosition).normalize();
 
     const dot = _viewVector.dot(_tileNormal);
 

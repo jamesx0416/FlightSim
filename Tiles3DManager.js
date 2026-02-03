@@ -89,6 +89,16 @@ export class Tiles3DManager {
         // Add to group
         this.group.add(this.tilesRenderer.group);
 
+        // Enable shadows on loaded tile meshes
+        this.tilesRenderer.onLoadModel = (scene) => {
+            scene.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                }
+            });
+        };
+
         // Rotate to align Z-up (ECEF) to Y-up (Three.js)
         this.tilesRenderer.group.rotation.x = -Math.PI / 2;
 
@@ -108,6 +118,52 @@ export class Tiles3DManager {
             this.tilesRenderer.setResolutionFromRenderer(this.camera, this.webglRenderer);
             this.tilesRenderer.update();
         }
+    }
+
+    updateSunDirection(sunDirection) {
+        if (!this.tilesRenderer?.group) return;
+        
+        this.tilesRenderer.group.traverse((node) => {
+            if (node.isMesh && node.material) {
+                const mat = node.material;
+                
+                // Calculate the world position of this mesh to determine if it's in day or night
+                const worldPos = new THREE.Vector3();
+                node.getWorldPosition(worldPos);
+                worldPos.normalize(); // Direction from Earth center
+                
+                const sunDir = sunDirection.clone().normalize();
+                const dot = worldPos.dot(sunDir);
+                
+                // If dot > 0, tile is in day. If dot < 0, tile is in night.
+                // Apply darkness factor for night side
+                if (dot < 0) {
+                    // Night side - darken significantly
+                    if (!mat.userData.originalColor) {
+                        mat.userData.originalColor = mat.color ? mat.color.clone() : new THREE.Color(1, 1, 1);
+                    }
+                    // Darken based on how far into night we are
+                    const nightFactor = Math.pow(Math.abs(dot), 0.5);
+                    const darkness = 0.02 + nightFactor * 0.1; // Very dark at night
+                    
+                    if (mat.color) {
+                        mat.color.setRGB(
+                            mat.userData.originalColor.r * darkness,
+                            mat.userData.originalColor.g * darkness,
+                            mat.userData.originalColor.b * darkness
+                        );
+                    }
+                    if (mat.emissive) {
+                        mat.emissive.setScalar(0);
+                    }
+                } else {
+                    // Day side - restore original colors
+                    if (mat.userData.originalColor && mat.color) {
+                        mat.color.copy(mat.userData.originalColor);
+                    }
+                }
+            }
+        });
     }
 
     dispose() {

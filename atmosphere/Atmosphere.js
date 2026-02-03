@@ -32,7 +32,7 @@ export class Atmosphere {
     // Create the sky mesh
     this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.mesh.frustumCulled = false; // Always render
-    this.mesh.renderOrder = -1000; // Render first (background)
+    this.mesh.renderOrder = 1000; // Render last (foreground overlay)
     
     // Add to scene
     this.scene.add(this.mesh);

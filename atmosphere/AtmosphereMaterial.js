@@ -165,12 +165,43 @@ void main() {
   vec3 color = atmosphere(ro, rd, sunDir);
   color += renderSun(rd, sunDir, ro);
   
+  // Inverse Atmosphere Logic:
+  // Determine if we are looking at the planet
+  vec2 planet = raySphere(ro, rd, bottomRadius);
+  bool hitPlanet = planet.x > 0.0 && planet.x < planet.y;
+  
+  // Calculate camera altitude for fade effect
+  float altitude = length(ro) - bottomRadius;
+  float altitudeFactor = clamp(altitude / 100000.0, 0.0, 1.0); // Fade out below 100km
+  
+  float alpha;
+  if (hitPlanet) {
+    // We are looking at Earth through the atmosphere.
+    // At night (sun is blocked by Earth), we want it to be OPAQUE BLACK.
+    // At day, we want it to be TRANSPARENT BLUE.
+    
+    vec3 hitPos = ro + rd * planet.x;
+    vec3 normal = normalize(hitPos);
+    float sunVisibility = clamp(dot(normal, sunDir) * 2.0, 0.0, 1.0);
+    
+    // Day side: Alpha tied to scattering intensity
+    // Night side: Alpha = 1.0
+    float scatteringIntensity = length(color);
+    float atmosphereAlpha = mix(1.0, clamp(scatteringIntensity, 0.0, 0.8), sunVisibility);
+    
+    // Fade out atmosphere at low altitude so we can see tiles clearly
+    alpha = atmosphereAlpha * altitudeFactor;
+  } else {
+    // Looking at sky/rim - fade out at low altitude
+    alpha = clamp(length(color), 0.0, 1.0) * altitudeFactor;
+  }
+  
   // Tone mapping
   color = 1.0 - exp(-color * 0.5);
   // Gamma
   color = pow(color, vec3(0.4545));
   
-  gl_FragColor = vec4(color, 1.0);
+  gl_FragColor = vec4(color, alpha);
 }
 `;
 
@@ -202,8 +233,7 @@ export class AtmosphereMaterial extends THREE.ShaderMaterial {
       side: THREE.FrontSide,
       depthTest: false,
       depthWrite: false,
-      transparent: true,
-      blending: THREE.AdditiveBlending
+      transparent: true
     });
   }
 

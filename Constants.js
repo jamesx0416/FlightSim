@@ -35,7 +35,7 @@ export const TILE_ERROR_TARGET = 6; // Lower = higher quality (more tiles), High
 // Lighting
 export const SUN_DISTANCE = RADIUS * 20;
 export const SUN_INTENSITY = 2.0;
-export const AMBIENT_INTENSITY = 0.3;
+export const AMBIENT_INTENSITY = 0.02;
 export const DAY_CYCLE_SPEED = 0.00001;
 
 // Shadows
