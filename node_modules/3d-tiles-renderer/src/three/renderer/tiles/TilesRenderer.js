@@ -1,0 +1,995 @@
+import { TilesRendererBase, LoaderUtils } from '3d-tiles-renderer/core';
+import { B3DMLoader } from '../loaders/B3DMLoader.js';
+import { PNTSLoader } from '../loaders/PNTSLoader.js';
+import { I3DMLoader } from '../loaders/I3DMLoader.js';
+import { CMPTLoader } from '../loaders/CMPTLoader.js';
+import { TilesGroup } from './TilesGroup.js';
+import {
+	Matrix4,
+	Vector3,
+	Vector2,
+	Euler,
+	LoadingManager,
+	EventDispatcher,
+	Group,
+} from 'three';
+import { raycastTraverse, raycastTraverseFirstHit } from './raycastTraverse.js';
+import { TileBoundingVolume } from '../math/TileBoundingVolume.js';
+import { ExtendedFrustum } from '../math/ExtendedFrustum.js';
+import { estimateBytesUsed } from '../utils/MemoryUtils.js';
+import { WGS84_ELLIPSOID } from '../math/GeoConstants.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+const _mat = /* @__PURE__ */ new Matrix4();
+const _euler = /* @__PURE__ */ new Euler();
+
+// In three.js r165 and higher raycast traversal can be ended early
+const INITIAL_FRUSTUM_CULLED = Symbol( 'INITIAL_FRUSTUM_CULLED' );
+const tempMat = /* @__PURE__ */ new Matrix4();
+const tempVector = /* @__PURE__ */ new Vector3();
+const tempVector2 = /* @__PURE__ */ new Vector2();
+
+const X_AXIS = /* @__PURE__ */ new Vector3( 1, 0, 0 );
+const Y_AXIS = /* @__PURE__ */ new Vector3( 0, 1, 0 );
+
+function updateFrustumCulled( object, toInitialValue ) {
+
+	object.traverse( c => {
+
+		c.frustumCulled = c[ INITIAL_FRUSTUM_CULLED ] && toInitialValue;
+
+	} );
+
+}
+
+export class TilesRenderer extends TilesRendererBase {
+
+	get autoDisableRendererCulling() {
+
+		return this._autoDisableRendererCulling;
+
+	}
+
+	set autoDisableRendererCulling( value ) {
+
+		if ( this._autoDisableRendererCulling !== value ) {
+
+			super._autoDisableRendererCulling = value;
+			this.forEachLoadedModel( ( scene ) => {
+
+				updateFrustumCulled( scene, ! value );
+
+			} );
+
+		}
+
+	}
+
+	get optimizeRaycast() {
+
+		return this._optimizeRaycast;
+
+	}
+
+	set optimizeRaycast( v ) {
+
+		console.warn( 'TilesRenderer: The "optimizeRaycast" option has been deprecated.' );
+		this._optimizeRaycast = v;
+
+	}
+
+	constructor( ...args ) {
+
+		super( ...args );
+		this.group = new TilesGroup( this );
+		this.ellipsoid = WGS84_ELLIPSOID.clone();
+		this.cameras = [];
+		this.cameraMap = new Map();
+		this.cameraInfo = [];
+		this._optimizeRaycast = true;
+		this._upRotationMatrix = new Matrix4();
+		this._bytesUsed = new WeakMap();
+
+		// flag indicating whether frustum culling should be disabled
+		this._autoDisableRendererCulling = true;
+
+		this.manager = new LoadingManager();
+
+		// saved for event dispatcher functions
+		this._listeners = {};
+
+	}
+
+	addEventListener( type, listener ) {
+
+		if ( type === 'load-tile-set' ) {
+
+			console.warn( 'TilesRenderer: "load-tile-set" event has been deprecated. Use "load-tileset" instead.' );
+			type = 'load-tileset';
+
+		}
+
+		EventDispatcher.prototype.addEventListener.call( this, type, listener );
+
+	}
+
+	hasEventListener( type, listener ) {
+
+		if ( type === 'load-tile-set' ) {
+
+			console.warn( 'TilesRenderer: "load-tile-set" event has been deprecated. Use "load-tileset" instead.' );
+			type = 'load-tileset';
+
+		}
+
+		return EventDispatcher.prototype.hasEventListener.call( this, type, listener );
+
+	}
+
+	removeEventListener( type, listener ) {
+
+		if ( type === 'load-tile-set' ) {
+
+			console.warn( 'TilesRenderer: "load-tile-set" event has been deprecated. Use "load-tileset" instead.' );
+			type = 'load-tileset';
+
+		}
+
+		EventDispatcher.prototype.removeEventListener.call( this, type, listener );
+
+	}
+
+	dispatchEvent( e ) {
+
+		if ( 'tileset' in e ) {
+
+			Object.defineProperty( e, 'tileSet', {
+				get() {
+
+					console.warn( 'TilesRenderer: "event.tileSet" has been deprecated. Use "event.tileset" instead.' );
+					return e.tileset;
+
+				},
+				enumerable: false,
+				configurable: true,
+			} );
+
+		}
+
+		EventDispatcher.prototype.dispatchEvent.call( this, e );
+
+	}
+
+	/* Public API */
+	getBoundingBox( target ) {
+
+		if ( ! this.root ) {
+
+			return false;
+
+		}
+
+		const boundingVolume = this.root.engineData.boundingVolume;
+		if ( boundingVolume ) {
+
+			boundingVolume.getAABB( target );
+			return true;
+
+		} else {
+
+			return false;
+
+		}
+
+	}
+
+	getOrientedBoundingBox( targetBox, targetMatrix ) {
+
+		if ( ! this.root ) {
+
+			return false;
+
+		}
+
+		const boundingVolume = this.root.engineData.boundingVolume;
+		if ( boundingVolume ) {
+
+			boundingVolume.getOBB( targetBox, targetMatrix );
+			return true;
+
+		} else {
+
+			return false;
+
+		}
+
+	}
+
+	getBoundingSphere( target ) {
+
+		if ( ! this.root ) {
+
+			return false;
+
+		}
+
+		const boundingVolume = this.root.engineData.boundingVolume;
+		if ( boundingVolume ) {
+
+			boundingVolume.getSphere( target );
+			return true;
+
+		} else {
+
+			return false;
+
+		}
+
+	}
+
+	forEachLoadedModel( callback ) {
+
+		this.traverse( tile => {
+
+			const scene = tile.engineData && tile.engineData.scene;
+			if ( scene ) {
+
+				callback( scene, tile );
+
+			}
+
+		}, null, false );
+
+	}
+
+	raycast( raycaster, intersects ) {
+
+		if ( ! this.root ) {
+
+			return;
+
+		}
+
+		if ( raycaster.firstHitOnly ) {
+
+			const hit = raycastTraverseFirstHit( this, this.root, raycaster );
+			if ( hit ) {
+
+				intersects.push( hit );
+
+			}
+
+		} else {
+
+			raycastTraverse( this, this.root, raycaster, intersects );
+
+		}
+
+	}
+
+	hasCamera( camera ) {
+
+		return this.cameraMap.has( camera );
+
+	}
+
+	setCamera( camera ) {
+
+		const cameras = this.cameras;
+		const cameraMap = this.cameraMap;
+		if ( ! cameraMap.has( camera ) ) {
+
+			cameraMap.set( camera, new Vector2() );
+			cameras.push( camera );
+			this.dispatchEvent( { type: 'add-camera', camera } );
+
+			return true;
+
+		}
+
+		return false;
+
+	}
+
+	setResolution( camera, xOrVec, y ) {
+
+		const cameraMap = this.cameraMap;
+		if ( ! cameraMap.has( camera ) ) {
+
+			return false;
+
+		}
+
+		const width = xOrVec.isVector2 ? xOrVec.x : xOrVec;
+		const height = xOrVec.isVector2 ? xOrVec.y : y;
+		const cameraVec = cameraMap.get( camera );
+
+		if ( cameraVec.width !== width || cameraVec.height !== height ) {
+
+			cameraVec.set( width, height );
+			this.dispatchEvent( { type: 'camera-resolution-change' } );
+
+		}
+
+		return true;
+
+	}
+
+	setResolutionFromRenderer( camera, renderer ) {
+
+		renderer.getSize( tempVector2 );
+
+		return this.setResolution( camera, tempVector2.x, tempVector2.y );
+
+	}
+
+	deleteCamera( camera ) {
+
+		const cameras = this.cameras;
+		const cameraMap = this.cameraMap;
+		if ( cameraMap.has( camera ) ) {
+
+			const index = cameras.indexOf( camera );
+			cameras.splice( index, 1 );
+			cameraMap.delete( camera );
+			this.dispatchEvent( { type: 'delete-camera', camera } );
+
+			return true;
+
+		}
+
+		return false;
+
+	}
+
+	/* Overriden */
+	loadRootTileset( ...args ) {
+
+		return super.loadRootTileset( ...args )
+			.then( root => {
+
+				// cache the gltf tileset rotation matrix
+				const { asset, extensions = {} } = root;
+				const upAxis = asset && asset.gltfUpAxis || 'y';
+				switch ( upAxis.toLowerCase() ) {
+
+					case 'x':
+						this._upRotationMatrix.makeRotationAxis( Y_AXIS, - Math.PI / 2 );
+						break;
+
+					case 'y':
+						this._upRotationMatrix.makeRotationAxis( X_AXIS, Math.PI / 2 );
+						break;
+
+				}
+
+				// update the ellipsoid based on the extension
+				if ( '3DTILES_ellipsoid' in extensions ) {
+
+					const ext = extensions[ '3DTILES_ellipsoid' ];
+					const { ellipsoid } = this;
+					ellipsoid.name = ext.body;
+					if ( ext.radii ) {
+
+						ellipsoid.radius.set( ...ext.radii );
+
+					} else {
+
+						ellipsoid.radius.set( 1, 1, 1 );
+
+					}
+
+				}
+
+				return root;
+
+			} );
+
+	}
+
+	prepareForTraversal() {
+
+		const group = this.group;
+		const cameras = this.cameras;
+		const cameraMap = this.cameraMap;
+		const cameraInfo = this.cameraInfo;
+
+		// automatically scale the array of cameraInfo to match the cameras
+		while ( cameraInfo.length > cameras.length ) {
+
+			cameraInfo.pop();
+
+		}
+
+		while ( cameraInfo.length < cameras.length ) {
+
+			cameraInfo.push( {
+
+				frustum: new ExtendedFrustum(),
+				isOrthographic: false,
+				sseDenominator: - 1, // used if isOrthographic:false
+				position: new Vector3(),
+				invScale: - 1,
+				pixelSize: 0, // used if isOrthographic:true
+
+			} );
+
+		}
+
+		// extract scale of group container
+		tempVector.setFromMatrixScale( group.matrixWorldInverse );
+		if ( Math.abs( Math.max( tempVector.x - tempVector.y, tempVector.x - tempVector.z ) ) > 1e-6 ) {
+
+			console.warn( 'ThreeTilesRenderer : Non uniform scale used for tile which may cause issues when calculating screen space error.' );
+
+		}
+
+		// store the camera cameraInfo in the 3d tiles root frame
+		for ( let i = 0, l = cameraInfo.length; i < l; i ++ ) {
+
+			const camera = cameras[ i ];
+			const info = cameraInfo[ i ];
+			const frustum = info.frustum;
+			const position = info.position;
+			const resolution = cameraMap.get( camera );
+
+			if ( resolution.width === 0 || resolution.height === 0 ) {
+
+				console.warn( 'TilesRenderer: resolution for camera error calculation is not set.' );
+
+			}
+
+			// Read the calculated projection matrix directly to support custom Camera implementations
+			const projection = camera.projectionMatrix.elements;
+
+			// The last element of the projection matrix is 1 for orthographic, 0 for perspective
+			info.isOrthographic = projection[ 15 ] === 1;
+
+			if ( info.isOrthographic ) {
+
+				// See OrthographicCamera.updateProjectionMatrix and Matrix4.makeOrthographic:
+				// the view width and height are used to populate matrix elements 0 and 5.
+				const w = 2 / projection[ 0 ];
+				const h = 2 / projection[ 5 ];
+				info.pixelSize = Math.max( h / resolution.height, w / resolution.width );
+
+			} else {
+
+				// See PerspectiveCamera.updateProjectionMatrix and Matrix4.makePerspective:
+				// the vertical FOV is used to populate matrix element 5.
+				info.sseDenominator = ( 2 / projection[ 5 ] ) / resolution.height;
+
+			}
+
+			// get frustum in group root frame
+			tempMat.copy( group.matrixWorld );
+			tempMat.premultiply( camera.matrixWorldInverse );
+			tempMat.premultiply( camera.projectionMatrix );
+
+			frustum.setFromProjectionMatrix( tempMat );
+
+			// get transform position in group root frame
+			position.set( 0, 0, 0 );
+			position.applyMatrix4( camera.matrixWorld );
+			position.applyMatrix4( group.matrixWorldInverse );
+
+		}
+
+	}
+
+	update() {
+
+		super.update();
+
+		// check for cameras _after_ base update so we can enable pre-loading the root tileset
+		if ( this.cameras.length === 0 && this.root ) {
+
+			let found = false;
+			this.invokeAllPlugins( plugin => found = found || Boolean( plugin !== this && plugin.calculateTileViewError ) );
+			if ( found === false ) {
+
+				console.warn( 'TilesRenderer: no cameras defined. Cannot update 3d tiles.' );
+
+			}
+
+		}
+
+	}
+
+	preprocessNode( tile, tilesetDir, parentTile = null ) {
+
+		super.preprocessNode( tile, tilesetDir, parentTile );
+
+		const transform = new Matrix4();
+		if ( tile.transform ) {
+
+			const transformArr = tile.transform;
+			for ( let i = 0; i < 16; i ++ ) {
+
+				transform.elements[ i ] = transformArr[ i ];
+
+			}
+
+		}
+
+		if ( parentTile ) {
+
+			transform.premultiply( parentTile.engineData.transform );
+
+		}
+
+		const transformInverse = new Matrix4().copy( transform ).invert();
+		const boundingVolume = new TileBoundingVolume();
+		if ( 'sphere' in tile.boundingVolume ) {
+
+			boundingVolume.setSphereData( ...tile.boundingVolume.sphere, transform );
+
+		}
+
+		if ( 'box' in tile.boundingVolume ) {
+
+			boundingVolume.setObbData( tile.boundingVolume.box, transform );
+
+		}
+
+		if ( 'region' in tile.boundingVolume ) {
+
+			boundingVolume.setRegionData( this.ellipsoid, ...tile.boundingVolume.region );
+
+		}
+
+		// Extend the base engineData structure with Three.js-specific fields
+		// Base class initializes: scene, metadata, boundingVolume
+		tile.engineData.transform = transform;
+		tile.engineData.transformInverse = transformInverse;
+		tile.engineData.boundingVolume = boundingVolume;
+		tile.engineData.geometry = null;
+		tile.engineData.materials = null;
+		tile.engineData.textures = null;
+
+	}
+
+	async parseTile( buffer, tile, extension, uri, abortSignal ) {
+
+		const engineData = tile.engineData;
+		const workingPath = LoaderUtils.getWorkingPath( uri );
+		const fetchOptions = this.fetchOptions;
+
+		const manager = this.manager;
+		let promise = null;
+
+		const tileTransform = engineData.transform;
+		const upRotationMatrix = this._upRotationMatrix;
+		const fileType = ( LoaderUtils.readMagicBytes( buffer ) || extension ).toLowerCase();
+		switch ( fileType ) {
+
+			case 'b3dm': {
+
+				const loader = new B3DMLoader( manager );
+				loader.workingPath = workingPath;
+				loader.fetchOptions = fetchOptions;
+
+				loader.adjustmentTransform.copy( upRotationMatrix );
+
+				promise = loader.parse( buffer );
+				break;
+
+			}
+
+			case 'pnts': {
+
+				const loader = new PNTSLoader( manager );
+				loader.workingPath = workingPath;
+				loader.fetchOptions = fetchOptions;
+				promise = loader.parse( buffer );
+				break;
+
+			}
+
+			case 'i3dm': {
+
+				const loader = new I3DMLoader( manager );
+				loader.workingPath = workingPath;
+				loader.fetchOptions = fetchOptions;
+
+				loader.adjustmentTransform.copy( upRotationMatrix );
+				loader.ellipsoid.copy( this.ellipsoid );
+
+				promise = loader.parse( buffer );
+				break;
+
+			}
+
+			case 'cmpt': {
+
+				const loader = new CMPTLoader( manager );
+				loader.workingPath = workingPath;
+				loader.fetchOptions = fetchOptions;
+
+				loader.adjustmentTransform.copy( upRotationMatrix );
+				loader.ellipsoid.copy( this.ellipsoid );
+
+				promise = loader
+					.parse( buffer )
+					.then( res => res.scene	);
+				break;
+
+			}
+
+			// 3DTILES_content_gltf
+			case 'gltf':
+			case 'glb': {
+
+				const loader = manager.getHandler( 'path.gltf' ) || manager.getHandler( 'path.glb' ) || new GLTFLoader( manager );
+				loader.setWithCredentials( fetchOptions.credentials === 'include' );
+				loader.setRequestHeader( fetchOptions.headers || {} );
+				if ( fetchOptions.credentials === 'include' && fetchOptions.mode === 'cors' ) {
+
+					loader.setCrossOrigin( 'use-credentials' );
+
+				}
+
+				// assume any pre-registered loader has paths configured as the user desires, but if we're making
+				// a new loader, use the working path during parse to support relative uris on other hosts
+				let resourcePath = loader.resourcePath || loader.path || workingPath;
+				if ( ! /[\\/]$/.test( resourcePath ) && resourcePath.length ) {
+
+					resourcePath += '/';
+
+				}
+
+				promise = loader.parseAsync( buffer, resourcePath ).then( result => {
+
+					// glTF files are not guaranteed to include a scene object
+					result.scene = result.scene || new Group();
+
+					// apply the local up-axis correction rotation
+					// GLTFLoader seems to never set a transformation on the root scene object so
+					// any transformations applied to it can be assumed to be applied after load
+					// (such as applying RTC_CENTER) meaning they should happen _after_ the z-up
+					// rotation fix which is why "multiply" happens here.
+					const { scene } = result;
+					scene.updateMatrix();
+					scene.matrix
+						.multiply( upRotationMatrix )
+						.decompose( scene.position, scene.quaternion, scene.scale );
+
+					return result;
+
+				} );
+				break;
+
+			}
+
+			default: {
+
+				promise = this.invokeOnePlugin( plugin => plugin.parseToMesh && plugin.parseToMesh( buffer, tile, extension, uri, abortSignal ) );
+				break;
+
+			}
+
+		}
+
+		// wait for the tile to load
+		const result = await promise;
+		if ( result === null ) {
+
+			throw new Error( `TilesRenderer: Content type "${ fileType }" not supported.` );
+
+		}
+
+		// get the scene data
+		let scene;
+		let metadata;
+		if ( result.isObject3D ) {
+
+			scene = result;
+			metadata = null;
+
+		} else {
+
+			scene = result.scene;
+			metadata = result;
+
+		}
+
+		// ensure the matrix is up to date in case the scene has a transform applied
+		scene.updateMatrix();
+		scene.matrix.premultiply( tileTransform );
+		scene.matrix.decompose( scene.position, scene.quaternion, scene.scale );
+
+		// wait for extra processing by plugins if needed
+		await this.invokeAllPlugins( plugin => {
+
+			return plugin.processTileModel && plugin.processTileModel( scene, tile );
+
+		} );
+
+		// frustum culling
+		scene.traverse( c => {
+
+			c[ INITIAL_FRUSTUM_CULLED ] = c.frustumCulled;
+
+		} );
+		updateFrustumCulled( scene, ! this.autoDisableRendererCulling );
+
+		// collect all original geometries, materials, etc to be disposed of later
+		const materials = [];
+		const geometry = [];
+		const textures = [];
+		scene.traverse( c => {
+
+			if ( c.geometry ) {
+
+				geometry.push( c.geometry );
+
+			}
+
+			if ( c.material ) {
+
+				const material = c.material;
+				materials.push( c.material );
+
+				for ( const key in material ) {
+
+					const value = material[ key ];
+					if ( value && value.isTexture ) {
+
+						textures.push( value );
+
+					}
+
+				}
+
+			}
+
+		} );
+
+		// exit early if a new request has already started
+		if ( abortSignal.aborted ) {
+
+			// dispose of any image bitmaps that have been opened.
+			// TODO: share this code with the "disposeTile" code below, possibly allow for the tiles
+			// renderer base to trigger a disposal of unneeded data
+			for ( let i = 0, l = textures.length; i < l; i ++ ) {
+
+				const texture = textures[ i ];
+
+				if ( texture.image instanceof ImageBitmap ) {
+
+					texture.image.close();
+
+				}
+
+				texture.dispose();
+
+			}
+
+			return;
+
+		}
+
+		engineData.materials = materials;
+		engineData.geometry = geometry;
+		engineData.textures = textures;
+		engineData.scene = scene;
+		engineData.metadata = metadata;
+
+	}
+
+	disposeTile( tile ) {
+
+		// TODO: call this "disposeTileModel"?
+		super.disposeTile( tile );
+
+		// This could get called before the tile has finished downloading
+		const engineData = tile.engineData;
+		if ( engineData.scene ) {
+
+			const materials = engineData.materials;
+			const geometry = engineData.geometry;
+			const textures = engineData.textures;
+			const parent = engineData.scene.parent;
+
+			// dispose of any textures required by the mesh features extension
+			// TODO: these are being discarded here to remove the image bitmaps -
+			// can this be handled in another way? Or more generically?
+			engineData.scene.traverse( child => {
+
+				if ( child.userData.meshFeatures ) {
+
+					child.userData.meshFeatures.dispose();
+
+				}
+
+				if ( child.userData.structuralMetadata ) {
+
+					child.userData.structuralMetadata.dispose();
+
+				}
+
+			} );
+
+			for ( let i = 0, l = geometry.length; i < l; i ++ ) {
+
+				geometry[ i ].dispose();
+
+			}
+
+			for ( let i = 0, l = materials.length; i < l; i ++ ) {
+
+				materials[ i ].dispose();
+
+			}
+
+			for ( let i = 0, l = textures.length; i < l; i ++ ) {
+
+				const texture = textures[ i ];
+
+				if ( texture.image instanceof ImageBitmap ) {
+
+					texture.image.close();
+
+				}
+
+				texture.dispose();
+
+			}
+
+			if ( parent ) {
+
+				parent.remove( engineData.scene );
+
+			}
+
+			engineData.scene = null;
+			engineData.materials = null;
+			engineData.textures = null;
+			engineData.geometry = null;
+			engineData.metadata = null;
+
+		}
+
+	}
+
+	setTileVisible( tile, visible ) {
+
+		const scene = tile.engineData.scene;
+		const group = this.group;
+
+		if ( visible ) {
+
+			if ( scene ) {
+
+				group.add( scene );
+				scene.updateMatrixWorld( true );
+
+			}
+
+		} else {
+
+			if ( scene ) {
+
+				group.remove( scene );
+
+			}
+
+		}
+
+		super.setTileVisible( tile, visible );
+
+	}
+
+	calculateBytesUsed( tile, scene ) {
+
+		const bytesUsed = this._bytesUsed;
+		if ( ! bytesUsed.has( tile ) && scene ) {
+
+			bytesUsed.set( tile, estimateBytesUsed( scene ) );
+
+		}
+
+		return bytesUsed.get( tile ) ?? null;
+
+	}
+
+	calculateTileViewError( tile, target ) {
+
+		const engineData = tile.engineData;
+		const cameras = this.cameras;
+		const cameraInfo = this.cameraInfo;
+		const boundingVolume = engineData.boundingVolume;
+
+		let inView = false;
+		let inViewError = 0;
+		let inViewDistance = Infinity;
+		let maxCameraError = 0;
+		let minCameraDistance = Infinity;
+
+		for ( let i = 0, l = cameras.length; i < l; i ++ ) {
+
+			// calculate the camera error
+			const info = cameraInfo[ i ];
+			let error;
+			let distance;
+			if ( info.isOrthographic ) {
+
+				const pixelSize = info.pixelSize;
+				error = tile.geometricError / pixelSize;
+				distance = Infinity;
+
+			} else {
+
+				// avoid dividing 0 by 0 which can result in NaN. If the distance to the tile is
+				// 0 then the error should be infinity.
+				const sseDenominator = info.sseDenominator;
+				distance = boundingVolume.distanceToPoint( info.position );
+				error = distance === 0 ? Infinity : tile.geometricError / ( distance * sseDenominator );
+
+			}
+
+			// Track which camera frustums this tile is in so we can use it
+			// to ignore the error calculations for cameras that can't see it
+			const frustum = cameraInfo[ i ].frustum;
+			if ( boundingVolume.intersectsFrustum( frustum ) ) {
+
+				inView = true;
+				inViewError = Math.max( inViewError, error );
+				inViewDistance = Math.min( inViewDistance, distance );
+
+			}
+
+			maxCameraError = Math.max( maxCameraError, error );
+			minCameraDistance = Math.min( minCameraDistance, distance );
+
+		}
+
+		if ( inView ) {
+
+			// write the in-camera error and distance parameters
+			target.inView = true;
+			target.error = inViewError;
+			target.distanceFromCamera = inViewDistance;
+
+		} else {
+
+			// otherwise write variables for load priority
+			target.inView = false;
+			target.error = maxCameraError;
+			target.distanceFromCamera = minCameraDistance;
+
+		}
+
+	}
+
+	// adjust the rotation of the group such that Y is altitude, X is North, and Z is East
+	setLatLonToYUp( lat, lon ) {
+
+		console.warn( 'TilesRenderer: setLatLonToYUp is deprecated. Use the ReorientationPlugin, instead.' );
+
+		const { ellipsoid, group } = this;
+
+		_euler.set( Math.PI / 2, Math.PI / 2, 0 );
+		_mat.makeRotationFromEuler( _euler );
+
+		ellipsoid.getEastNorthUpFrame( lat, lon, 0, group.matrix )
+			.multiply( _mat )
+			.invert()
+			.decompose(
+				group.position,
+				group.quaternion,
+				group.scale,
+			);
+
+		group.updateMatrixWorld( true );
+
+	}
+
+	dispose() {
+
+		super.dispose();
+		this.group.removeFromParent();
+
+	}
+
+}
