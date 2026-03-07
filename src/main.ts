@@ -1,7 +1,25 @@
-import { AgXToneMapping, Group, Mesh, PerspectiveCamera, Scene, SphereGeometry, Vector3 } from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { mrt, normalView, output, pass, toneMapping, uniform } from 'three/tsl'
-import { PostProcessing, WebGPURenderer } from 'three/webgpu'
+import { GlobeControls, TilesRenderer } from '3d-tiles-renderer'
+import {
+  CesiumIonAuthPlugin,
+  GLTFExtensionsPlugin,
+  TileCompressionPlugin,
+  UpdateOnChangePlugin
+} from '3d-tiles-renderer/plugins'
+import { AgXToneMapping, PerspectiveCamera, Scene, Vector3 } from 'three'
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
+import {
+  diffuseColor,
+  mrt,
+  normalView,
+  pass,
+  toneMapping,
+  uniform
+} from 'three/tsl'
+import {
+  MeshBasicNodeMaterial,
+  PostProcessing,
+  WebGPURenderer
+} from 'three/webgpu'
 
 import {
   getECIToECEFRotationMatrix,
@@ -14,7 +32,7 @@ import {
   AtmosphereLight,
   AtmosphereLightNode
 } from '@takram/three-atmosphere/webgpu'
-import { Ellipsoid, Geodetic, radians } from '@takram/three-geospatial'
+import { Geodetic, PointOfView, radians } from '@takram/three-geospatial'
 import {
   dithering,
   highpVelocity,
@@ -22,70 +40,137 @@ import {
   temporalAntialias
 } from '@takram/three-geospatial/webgpu'
 
-const date = new Date('2000-01-01T09:00:00Z')
-const longitude = 30
-const latitude = 35
-const height = 300
+import { TilesFadePlugin } from './plugins/fade/TilesFadePlugin'
 
-async function init(container: HTMLDivElement): Promise<() => void> {
+const dracoLoader = new DRACOLoader()
+dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
+
+const CESIUM_ION_TOKEN = import.meta.env.VITE_CESIUM_ION_TOKEN || ''
+const ASSET_ID = '2275207'
+
+const date = new Date()
+const longitude = 138.5973
+const latitude = 35.2138
+const height = 0
+const heading = 71
+const pitch = -31
+const distance = 7000
+
+class TileMaterialReplacementPlugin {
+  tiles = undefined
+  overrideMaterial = MeshBasicNodeMaterial
+
+  constructor(Material = MeshBasicNodeMaterial) {
+    this.overrideMaterial = Material
+  }
+
+  init(tiles) {
+    this.tiles = tiles
+    tiles.group.traverse(object => {
+      if (object.isMesh) this.replaceMaterial(object)
+    })
+    tiles.addEventListener('load-model', this.handleLoadModel)
+    tiles.addEventListener('dispose-model', this.handleDisposeModel)
+  }
+
+  replaceMaterial(mesh) {
+    const material = mesh.material
+    const nodeMaterial = new this.overrideMaterial()
+    if (material.map && 'map' in nodeMaterial) {
+      nodeMaterial.map = material.map.clone()
+    }
+    mesh.material = nodeMaterial
+    material.dispose()
+  }
+
+  handleLoadModel = ({ scene }) => {
+    scene.traverse(object => {
+      if (object.isMesh) this.replaceMaterial(object)
+    })
+  }
+
+  handleDisposeModel = ({ scene }) => {
+    scene.traverse(object => {
+      if (object.isMesh && object.material) object.material.dispose()
+    })
+  }
+
+  dispose() {
+    this.tiles?.removeEventListener('load-model', this.handleLoadModel)
+    this.tiles?.removeEventListener('dispose-model', this.handleDisposeModel)
+  }
+}
+
+async function init(): Promise<() => void> {
   const renderer = new WebGPURenderer()
   renderer.highPrecision = true
+
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setSize(window.innerWidth, window.innerHeight)
-  container.appendChild(renderer.domElement)
+  document.body.appendChild(renderer.domElement)
   await renderer.init()
 
   const aspect = window.innerWidth / window.innerHeight
-  const camera = new PerspectiveCamera(90, aspect, 10, 1e6)
+  const camera = new PerspectiveCamera(75, aspect)
 
-  const positionECEF = new Geodetic(
-    radians(longitude),
-    radians(latitude),
-    height
-  ).toECEF()
-
-  const east = new Vector3()
-  const north = new Vector3()
-  const up = new Vector3()
-  Ellipsoid.WGS84.getEastNorthUpVectors(positionECEF, east, north, up)
-  camera.up.copy(up)
-  camera.position.copy(positionECEF).add(north).sub(up.multiplyScalar(0.75))
-
-  const scene = new Scene()
-
-  const group = new Group()
-  scene.add(group)
-  Ellipsoid.WGS84.getEastNorthUpFrame(positionECEF).decompose(
-    group.position,
-    group.quaternion,
-    group.scale
+  new PointOfView(distance, radians(heading), radians(pitch)).decompose(
+    new Geodetic(radians(longitude), radians(latitude), height).toECEF(),
+    camera.position,
+    camera.quaternion,
+    camera.up
   )
-
-  const geometry = new SphereGeometry(1e5, 64, 64)
-  const mesh = new Mesh(geometry)
-  mesh.position.z = 1e5 - height + 200
-  group.add(mesh)
 
   const context = new AtmosphereContextNode()
   context.camera = camera
 
+  const scene = new Scene()
+
   renderer.library.addLight(AtmosphereLightNode, AtmosphereLight)
+
   const light = new AtmosphereLight(context)
   scene.add(light)
 
-  const passNode = pass(scene, camera, { samples: 0 }).setMRT(
-    mrt({
-      output,
-      normal: normalView,
-      velocity: highpVelocity
+  const tiles = new TilesRenderer(
+    `https://assets.cesium.com/${ASSET_ID}/tileset.json`
+  )
+  tiles.setCamera(camera)
+  tiles.setResolutionFromRenderer(camera, renderer as any)
+  tiles.registerPlugin(
+    new CesiumIonAuthPlugin({
+      apiToken: CESIUM_ION_TOKEN,
+      assetId: ASSET_ID,
+      autoRefreshToken: true
     })
+  )
+  tiles.registerPlugin(new GLTFExtensionsPlugin({ dracoLoader }))
+  tiles.registerPlugin(new TileCompressionPlugin())
+  tiles.registerPlugin(new UpdateOnChangePlugin())
+  tiles.registerPlugin(new TilesFadePlugin())
+  tiles.registerPlugin(new TileMaterialReplacementPlugin(MeshBasicNodeMaterial))
+  scene.add(tiles.group)
+
+  const controls = new GlobeControls(scene, camera, renderer.domElement)
+  controls.enableDamping = true
+
+  controls.adjustHeight = false
+  controls.addEventListener('start', () => {
+    controls.adjustHeight = true
+  })
+
+  const passNode = pass(scene, camera, { samples: 0 }).setMRT(
+    mrt({ output: diffuseColor, normal: normalView, velocity: highpVelocity })
   )
   const colorNode = passNode.getTextureNode('output')
   const depthNode = passNode.getTextureNode('depth')
   const normalNode = passNode.getTextureNode('normal')
   const velocityNode = passNode.getTextureNode('velocity')
 
-  const aerialNode = aerialPerspective(context, colorNode, depthNode, normalNode)
+  const aerialNode = aerialPerspective(
+    context,
+    colorNode,
+    depthNode,
+    normalNode
+  )
   const lensFlareNode = lensFlare(aerialNode)
   const toneMappingNode = toneMapping(AgXToneMapping, uniform(5), lensFlareNode)
   const taaNode = temporalAntialias(highpVelocity)(
@@ -97,10 +182,6 @@ async function init(container: HTMLDivElement): Promise<() => void> {
 
   const postProcessing = new PostProcessing(renderer)
   postProcessing.outputNode = taaNode.add(dithering)
-
-  const controls = new OrbitControls(camera, container)
-  controls.enableDamping = true
-  controls.target.copy(positionECEF)
 
   const observerECEF = new Vector3()
   void renderer.setAnimationLoop(() => {
@@ -123,6 +204,10 @@ async function init(container: HTMLDivElement): Promise<() => void> {
       observerECEF
     ).applyMatrix4(matrixECIToECEF)
 
+    tiles.setCamera(camera)
+    tiles.setResolutionFromRenderer(camera, renderer as any)
+    tiles.update()
+
     postProcessing.render()
   })
 
@@ -141,13 +226,10 @@ async function init(container: HTMLDivElement): Promise<() => void> {
     aerialNode.dispose()
     passNode.dispose()
     controls.dispose()
-    geometry.dispose()
+    tiles.dispose()
     context.dispose()
     renderer.dispose()
   }
 }
 
-const container = document.querySelector<HTMLDivElement>('#app')!
-if (container) {
-  init(container).catch(console.error)
-}
+init().catch(console.error)
