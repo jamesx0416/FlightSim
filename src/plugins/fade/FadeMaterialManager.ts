@@ -14,7 +14,6 @@ export interface FadeParams {
 export class FadeMaterialManager extends FadeMaterialManagerBase {
   declare protected _fadeParams: WeakMap<Material, FadeParams>
 
-  // HACK: Override "wrapFadeMaterial" to support NodeMaterial:
   override prepareMaterial(material: Material): void {
     const fadeParams = this._fadeParams
     if (fadeParams.has(material)) {
@@ -25,7 +24,6 @@ export class FadeMaterialManager extends FadeMaterialManagerBase {
     if (material instanceof NodeMaterial) {
       params = wrapFadeNodeMaterial(material)
     } else {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
       params = wrapFadeMaterial(material, material.onBeforeCompile)
     }
     fadeParams.set(material, params)

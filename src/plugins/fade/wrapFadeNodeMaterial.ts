@@ -75,7 +75,6 @@ export function wrapFadeNodeMaterial(material: NodeMaterial): FadeParams {
 
   let FEATURE_FADE = 0
 
-  // Use the interface used in non-node materials:
   material.params = params
   material.defines = {
     get FEATURE_FADE() {

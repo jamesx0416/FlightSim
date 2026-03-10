@@ -145,8 +145,8 @@ async function init(): Promise<() => void> {
   tiles.registerPlugin(new GLTFExtensionsPlugin({ dracoLoader }))
   tiles.registerPlugin(new TileCompressionPlugin())
   tiles.registerPlugin(new UpdateOnChangePlugin())
-  tiles.registerPlugin(new TilesFadePlugin())
   tiles.registerPlugin(new TileMaterialReplacementPlugin(MeshBasicNodeMaterial))
+  tiles.registerPlugin(new TilesFadePlugin())
   scene.add(tiles.group)
 
   const controls = new GlobeControls(scene, camera, renderer.domElement)
