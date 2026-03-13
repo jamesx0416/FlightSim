@@ -8,16 +8,17 @@ import {
 import {
   AgXToneMapping,
   Box3,
+  BoxGeometry,
   Matrix4,
   Mesh,
   Object3D,
   PerspectiveCamera,
   Quaternion,
   Scene,
+  SkinnedMesh,
   Vector3
 } from 'three'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import {
   diffuseColor,
   mrt,
@@ -58,6 +59,12 @@ import { FlightHud } from './ui/FlightHud'
 import { FixedStepLoop } from './sim/FixedStepLoop'
 import { b737AircraftParams } from './sim/FlightModel'
 import { NedFrame } from './sim/NedFrame'
+import {
+  applyMsfsExtensions,
+  createMsfsGltfLoader,
+  setupMsfsAnimations,
+  type MsfsAnimationState
+} from './helpers/msfsGltf'
 
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
@@ -72,7 +79,7 @@ const height = 0
 const heading = 71
 const pitch = -31
 const distance = 7000
-const planeModelUrl = new URL('../B737-800.glb', import.meta.url).href
+const planeModelUrl = '/aircraft/a32nx/exterior/LOD00-ktx2/A320_NEO_LOD00.gltf'
 const planeModelRotation = new Vector3((3 * Math.PI) / 2, Math.PI / 2, 0)
 
 class TileMaterialReplacementPlugin {
@@ -120,31 +127,129 @@ class TileMaterialReplacementPlugin {
   }
 }
 
-function loadPlaneModel(plane: Plane): void {
-  const loader = new GLTFLoader()
-  loader.load(planeModelUrl, gltf => {
-    const model = gltf.scene
+function loadPlaneModel(
+  plane: Plane,
+  renderer: WebGPURenderer,
+  onAnimations?: (state: MsfsAnimationState) => void
+): void {
+  const modelUrl = new URL(planeModelUrl, window.location.href)
+  const manifestUrl = new URL('texture-manifest.json', modelUrl).href
 
-    model.rotation.set(planeModelRotation.x, planeModelRotation.y, planeModelRotation.z)
-    model.updateMatrixWorld(true)
+  void fetch(manifestUrl)
+    .then(async response => {
+      if (!response.ok) return null
+      return (await response.json()) as { available?: string[] }
+    })
+    .catch(() => null)
+    .then(manifest => {
+      const available = new Set(manifest?.available ?? [])
+      const loader = createMsfsGltfLoader(renderer, {
+        availableTextures: available
+      })
 
-    const bounds = new Box3().setFromObject(model)
-    const size = bounds.getSize(new Vector3())
-    const maxDim = Math.max(size.x, size.y, size.z)
-    const targetSpan = plane.params.wingSpanM
-    if (maxDim > 0) {
-      const scale = targetSpan / maxDim
-      model.scale.setScalar(scale)
-      model.updateMatrixWorld(true)
+      loader.load(modelUrl.href, gltf => {
+        applyMsfsExtensions(gltf)
+        const animationState = setupMsfsAnimations(gltf)
+        onAnimations?.(animationState)
+
+        const model = gltf.scene
+
+        model.rotation.set(
+          planeModelRotation.x,
+          planeModelRotation.y,
+          planeModelRotation.z
+        )
+        model.updateMatrixWorld(true)
+
+        const bounds = computeBoundsFromGeometry(model)
+        const size = bounds.getSize(new Vector3())
+        const maxDim = Math.max(size.x, size.y, size.z)
+        const targetSpan = plane.params.wingSpanM
+        if (Number.isFinite(maxDim) && maxDim > 0) {
+          const scale = targetSpan / maxDim
+          model.scale.setScalar(scale)
+          model.updateMatrixWorld(true)
+
+          const scaledBounds = computeBoundsFromGeometry(model)
+          const center = scaledBounds.getCenter(new Vector3())
+          if (Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
+            model.position.sub(center)
+          } else {
+            console.warn('[msfs] invalid center; skipping recenter')
+          }
+        } else {
+          console.warn('[msfs] invalid bounds; skipping scale/center')
+        }
+
+        forceVisibleAndBounds(model)
+        replaceWithUnlitMaterials(model)
+        plane.setVisual(model)
+      })
+    })
+}
+
+function forceVisibleAndBounds(root: Object3D): void {
+  root.updateMatrixWorld(true)
+  root.traverse(object => {
+    if (!('isMesh' in object) || !object.isMesh) return
+    const mesh = object as Mesh
+    mesh.visible = true
+    mesh.frustumCulled = false
+    const geometry = mesh.geometry
+    if (geometry && !geometry.boundingBox) geometry.computeBoundingBox()
+    if (geometry && !geometry.boundingSphere) geometry.computeBoundingSphere()
+    if ((mesh as SkinnedMesh).isSkinnedMesh) {
+      const skinned = mesh as SkinnedMesh
+      skinned.normalizeSkinWeights()
+      skinned.skeleton?.update()
     }
-
-    const scaledBounds = new Box3().setFromObject(model)
-    const center = scaledBounds.getCenter(new Vector3())
-    model.position.sub(center)
-
-    replaceWithUnlitMaterials(model)
-    plane.setVisual(model)
   })
+
+  const bounds = new Box3().setFromObject(root)
+  const size = bounds.getSize(new Vector3())
+  const center = bounds.getCenter(new Vector3())
+  const hasSize =
+    Number.isFinite(size.x) &&
+    Number.isFinite(size.y) &&
+    Number.isFinite(size.z) &&
+    size.x > 0 &&
+    size.y > 0 &&
+    size.z > 0
+  if (hasSize) {
+    const box = new Mesh(
+      new BoxGeometry(size.x, size.y, size.z),
+      new MeshBasicNodeMaterial({ wireframe: true })
+    )
+    box.position.copy(center)
+    root.add(box)
+  }
+}
+
+function computeBoundsFromGeometry(root: Object3D): Box3 {
+  root.updateMatrixWorld(true)
+  const rootInverse = new Matrix4().copy(root.matrixWorld).invert()
+  const bounds = new Box3()
+  const temp = new Box3()
+  let hasBounds = false
+
+  root.traverse(object => {
+    if (!('isMesh' in object) || !object.isMesh) return
+    const mesh = object as Mesh
+    const geometry = mesh.geometry
+    const position = geometry?.attributes?.position
+    if (!position || position.count === 0) return
+    temp.setFromBufferAttribute(position)
+    temp.applyMatrix4(mesh.matrixWorld)
+    temp.applyMatrix4(rootInverse)
+    if (!hasBounds) {
+      bounds.copy(temp)
+      hasBounds = true
+    } else {
+      bounds.union(temp)
+    }
+  })
+
+  return bounds
 }
 
 function replaceWithUnlitMaterials(root: Object3D): void {
@@ -226,7 +331,31 @@ async function init(): Promise<() => void> {
 
   const plane = new Plane(b737AircraftParams())
   scene.add(plane.mesh)
-  loadPlaneModel(plane)
+  const controlsAny = controls as any
+  const originalSetState = controlsAny.setState?.bind(controlsAny)
+  const DRAG = 1
+  const ROTATE = 2
+  controlsAny.setState = (state = controlsAny.state, fireEvent = true) => {
+    if (keyboard.isFollowEnabled() && state === DRAG) {
+      state = ROTATE
+    }
+    return originalSetState ? originalSetState(state, fireEvent) : undefined
+  }
+  const originalRaycast = controlsAny._raycast?.bind(controlsAny)
+  controlsAny._raycast = (raycaster: any) => {
+    if (keyboard.isFollowEnabled()) {
+      const point = plane.positionECEF.clone()
+      const distance = raycaster.ray.origin.distanceTo(point)
+      return { point, distance }
+    }
+    return originalRaycast ? originalRaycast(raycaster) : null
+  }
+  let planeAnimationState: MsfsAnimationState | null = null
+  let lastAnimationTimeMs = 0
+  loadPlaneModel(plane, renderer, state => {
+    planeAnimationState = state
+    lastAnimationTimeMs = 0
+  })
 
   const spawnFrame = new NedFrame()
   const bodyToNedMatrix = new Matrix4()
@@ -294,19 +423,18 @@ async function init(): Promise<() => void> {
   const chaseTarget = new Vector3()
   const planeForwardEcef = new Vector3()
   const upEcef = new Vector3()
+  const followAnchorEcef = new Vector3()
 
   const observerECEF = new Vector3()
   void renderer.setAnimationLoop((timeMs: number) => {
     if (keyboard.consumeToggleFollowRequested()) {
-      controls.enabled = !keyboard.isFollowEnabled()
+      if (keyboard.isFollowEnabled()) {
+        followAnchorEcef.copy(plane.positionECEF)
+      }
     }
 
-    if (!keyboard.isFollowEnabled()) {
-      controls.enabled = true
-      controls.update()
-    } else {
-      controls.enabled = false
-    }
+    controls.enabled = true
+    controls.update()
 
     sim.tick(timeMs, dtSeconds => {
       if (keyboard.consumeResetRequested()) resetPlane()
@@ -314,18 +442,41 @@ async function init(): Promise<() => void> {
       latest = plane.step(dtSeconds)
     })
 
+    if (planeAnimationState?.mixer) {
+      if (lastAnimationTimeMs === 0) {
+        lastAnimationTimeMs = timeMs
+      } else {
+        const deltaSeconds = (timeMs - lastAnimationTimeMs) / 1000
+        lastAnimationTimeMs = timeMs
+        if (deltaSeconds > 0) {
+          planeAnimationState.mixer.update(deltaSeconds)
+        }
+      }
+    }
+
     if (keyboard.isFollowEnabled()) {
       chaseOffsetEcef
         .copy(chaseOffsetBody)
         .applyQuaternion(plane.orientationBodyToECEF)
-      camera.position.copy(plane.positionECEF).add(chaseOffsetEcef)
-
-      planeForwardEcef.set(1, 0, 0).applyQuaternion(plane.orientationBodyToECEF)
-      chaseTarget.copy(plane.positionECEF).addScaledVector(planeForwardEcef, 80)
+      if (followAnchorEcef.lengthSq() === 0) {
+        camera.position.copy(plane.positionECEF).add(chaseOffsetEcef)
+        followAnchorEcef.copy(plane.positionECEF)
+      } else {
+        const delta = plane.positionECEF.clone().sub(followAnchorEcef)
+        camera.position.add(delta)
+        followAnchorEcef.copy(plane.positionECEF)
+      }
 
       Ellipsoid.WGS84.getSurfaceNormal(plane.positionECEF, upEcef)
       camera.up.copy(upEcef)
-      camera.lookAt(chaseTarget)
+
+      controls.pivotPoint.copy(plane.positionECEF)
+      controls.zoomPoint.copy(plane.positionECEF)
+      controls.zoomPointSet = true
+      controls._zoomPointWasSet = true
+      controls.pivotMesh.position.copy(plane.positionECEF)
+      controls.pivotMesh.visible = true
+      camera.lookAt(plane.positionECEF)
     }
 
     camera.updateMatrixWorld()

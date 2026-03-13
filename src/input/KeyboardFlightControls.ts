@@ -7,7 +7,7 @@ function clamp(value: number, min: number, max: number): number {
 export class KeyboardFlightControls {
   private readonly pressed = new Set<string>()
   private throttle01 = 0.55
-  private follow = false
+  private follow = true
   private resetRequested = false
 
   constructor(private readonly element: Window = window) {
