@@ -6,7 +6,11 @@ function clamp(value: number, min: number, max: number): number {
 
 export class KeyboardFlightControls {
   private readonly pressed = new Set<string>()
-  private throttle01 = 0.55
+  private throttle01 = 0.35
+  private flapDetentIndex = 2
+  private readonly flapDetents01 = [0, 0.2, 0.45, 0.7, 1] as const
+  private gearDown = true
+  private spoiler01 = 0
   private follow = true
   private resetRequested = false
 
@@ -46,7 +50,10 @@ export class KeyboardFlightControls {
       throttle01: this.throttle01,
       aileron,
       elevator,
-      rudder
+      rudder,
+      flapTarget01: this.flapDetents01[this.flapDetentIndex],
+      gearDown: this.gearDown,
+      spoilerTarget01: this.spoiler01
     }
   }
 
@@ -58,12 +65,29 @@ export class KeyboardFlightControls {
     this.pressed.add(event.code)
     if (event.code === 'Backspace' && !event.repeat) this.resetRequested = true
     if (event.code === 'KeyC' && !event.repeat) this.singlePress.add('KeyC')
+    if (!event.repeat && event.code === 'BracketLeft') {
+      this.flapDetentIndex = Math.max(0, this.flapDetentIndex - 1)
+    }
+    if (!event.repeat && event.code === 'BracketRight') {
+      this.flapDetentIndex = Math.min(
+        this.flapDetents01.length - 1,
+        this.flapDetentIndex + 1
+      )
+    }
+    if (!event.repeat && event.code === 'KeyG') {
+      this.gearDown = !this.gearDown
+    }
+    if (!event.repeat && event.code === 'Minus') {
+      this.spoiler01 = clamp(this.spoiler01 - 0.25, 0, 1)
+    }
+    if (!event.repeat && event.code === 'Equal') {
+      this.spoiler01 = clamp(this.spoiler01 + 0.25, 0, 1)
+    }
 
     if (!event.repeat && event.code.startsWith('Digit')) {
       const digit = Number(event.code.replace('Digit', ''))
       if (!Number.isNaN(digit)) {
-        const next = Math.min(digit + 1, 10) / 10
-        this.throttle01 = clamp(next, 0.1, 1)
+        this.throttle01 = digit === 0 ? 0 : clamp(digit / 10, 0, 1)
       }
     }
 
@@ -76,6 +100,11 @@ export class KeyboardFlightControls {
       event.code === 'ArrowRight' ||
       event.code === 'KeyQ' ||
       event.code === 'KeyE' ||
+      event.code === 'BracketLeft' ||
+      event.code === 'BracketRight' ||
+      event.code === 'KeyG' ||
+      event.code === 'Minus' ||
+      event.code === 'Equal' ||
       event.code.startsWith('Digit')
     ) {
       event.preventDefault()
