@@ -1,6 +1,10 @@
 import { airDensityKgPerM3AtAltitudeMeters } from '../sim/Atmosphere'
 import { computeForcesAndTorquesBody, type AeroTelemetry } from '../sim/FlightModel'
-import type { AircraftParams, ControlInputs } from '../sim/FlightModel'
+import type {
+  AircraftConfigurationState,
+  AircraftParams,
+  ControlInputs
+} from '../sim/FlightModel'
 import { NedFrame } from '../sim/NedFrame'
 import {
   BoxGeometry,
@@ -34,6 +38,12 @@ export interface PlaneStepResult extends AeroTelemetry {
   altitudeMeters: number
 }
 
+export interface AircraftVisualState extends AircraftConfigurationState {
+  aileron: number
+  elevator: number
+  rudder: number
+}
+
 export class Plane {
   readonly mesh: Group
 
@@ -44,10 +54,18 @@ export class Plane {
 
   private readonly frame = new NedFrame()
   private readonly controls: ControlInputs = {
-    throttle01: 0,
+    throttle01: 0.35,
     aileron: 0,
     elevator: 0,
-    rudder: 0
+    rudder: 0,
+    flapTarget01: 0.45,
+    gearDown: true,
+    spoilerTarget01: 0
+  }
+  private readonly configurationState: AircraftConfigurationState = {
+    flaps01: 0.45,
+    gear01: 1,
+    spoiler01: 0
   }
 
   constructor(readonly params: AircraftParams) {
@@ -64,6 +82,22 @@ export class Plane {
     if (next.aileron != null) this.controls.aileron = next.aileron
     if (next.elevator != null) this.controls.elevator = next.elevator
     if (next.rudder != null) this.controls.rudder = next.rudder
+    if (next.flapTarget01 != null) this.controls.flapTarget01 = next.flapTarget01
+    if (next.gearDown != null) this.controls.gearDown = next.gearDown
+    if (next.spoilerTarget01 != null) {
+      this.controls.spoilerTarget01 = next.spoilerTarget01
+    }
+  }
+
+  getVisualState(): AircraftVisualState {
+    return {
+      aileron: this.controls.aileron,
+      elevator: this.controls.elevator,
+      rudder: this.controls.rudder,
+      flaps01: this.configurationState.flaps01,
+      gear01: this.configurationState.gear01,
+      spoiler01: this.configurationState.spoiler01
+    }
   }
 
   resetTo(
@@ -80,6 +114,7 @@ export class Plane {
   step(dtSeconds: number): PlaneStepResult {
     this.frame.updateFromECEF(this.positionECEF)
     const rho = airDensityKgPerM3AtAltitudeMeters(this.frame.altitudeMeters)
+    this.integrateConfiguration(dtSeconds)
 
     vNedScratch.copy(this.velocityECEF).applyMatrix3(this.frame.ecefToNed)
 
@@ -93,6 +128,7 @@ export class Plane {
     const telemetry = computeForcesAndTorquesBody(
       this.params,
       this.controls,
+      this.configurationState,
       vBodyScratch,
       this.omegaBodyRadPerSec,
       rho,
@@ -119,6 +155,27 @@ export class Plane {
     this.mesh.quaternion.copy(this.orientationBodyToECEF)
 
     return { ...telemetry, altitudeMeters: this.frame.altitudeMeters }
+  }
+
+  private integrateConfiguration(dtSeconds: number): void {
+    const configuration = this.params.configuration
+    if (!configuration || dtSeconds <= 0) return
+
+    this.configurationState.flaps01 = moveToward(
+      this.configurationState.flaps01,
+      this.controls.flapTarget01,
+      configuration.flapRatePerSec * dtSeconds
+    )
+    this.configurationState.gear01 = moveToward(
+      this.configurationState.gear01,
+      this.controls.gearDown ? 1 : 0,
+      configuration.gearRatePerSec * dtSeconds
+    )
+    this.configurationState.spoiler01 = moveToward(
+      this.configurationState.spoiler01,
+      this.controls.spoilerTarget01,
+      configuration.spoilerRatePerSec * dtSeconds
+    )
   }
 
   private integrateRotation(dtSeconds: number, torqueBodyNm: Vector3): void {
@@ -180,6 +237,12 @@ export class Plane {
       this.omegaBodyRadPerSec.multiplyScalar(0.9)
     }
   }
+}
+
+function moveToward(current: number, target: number, maxStep: number): number {
+  if (target > current) return Math.min(target, current + maxStep)
+  if (target < current) return Math.max(target, current - maxStep)
+  return current
 }
 
 function createDebugPlaneMesh(): Group {

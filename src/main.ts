@@ -7,8 +7,9 @@ import {
 } from '3d-tiles-renderer/plugins'
 import {
   AgXToneMapping,
+  BufferAttribute,
   Box3,
-  BoxGeometry,
+  FrontSide,
   Matrix4,
   Mesh,
   Object3D,
@@ -57,14 +58,18 @@ import { KeyboardFlightControls } from './input/KeyboardFlightControls'
 import { TilesFadePlugin } from './plugins/fade/TilesFadePlugin'
 import { FlightHud } from './ui/FlightHud'
 import { FixedStepLoop } from './sim/FixedStepLoop'
-import { b737AircraftParams } from './sim/FlightModel'
 import { NedFrame } from './sim/NedFrame'
+import { flyByWireA320AircraftParams } from './sim/FlyByWireA320'
+import { A320VisualAnimator } from './visual/A320VisualAnimator'
 import {
+  applyMsfsAircraftAnimationState,
   applyMsfsExtensions,
   createMsfsGltfLoader,
+  hasNativeAircraftAnimations,
   setupMsfsAnimations,
   type MsfsAnimationState
 } from './helpers/msfsGltf'
+import { loadNormalizedMsfsSourceGltf } from './helpers/msfsSourceGltf'
 
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
@@ -72,14 +77,48 @@ dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
 const CESIUM_ION_TOKEN = import.meta.env.VITE_CESIUM_ION_TOKEN || ''
 const ASSET_ID = '2275207'
 
-const date = new Date()
-const longitude = 138.5973
-const latitude = 35.2138
+function getJapanMiddayDate(reference = new Date()): Date {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(reference)
+
+  const year = parts.find(part => part.type === 'year')?.value
+  const month = parts.find(part => part.type === 'month')?.value
+  const day = parts.find(part => part.type === 'day')?.value
+
+  if (!year || !month || !day) {
+    return reference
+  }
+
+  return new Date(`${year}-${month}-${day}T12:00:00+09:00`)
+}
+
+const date = getJapanMiddayDate()
+const longitude = 144.8379
+const latitude = -37.6707
 const height = 0
-const heading = 71
-const pitch = -31
-const distance = 7000
-const planeModelUrl = '/aircraft/a32nx/exterior/LOD00-ktx2/A320_NEO_LOD00.gltf'
+const heading = 352
+const pitch = -14
+const distance = 3500
+const ymmlRunway34 = {
+  thresholdLatitude: -37.685789,
+  thresholdLongitude: 144.840994,
+  thresholdElevationMeters: 432 * 0.3048,
+  headingDegrees: 351.4
+} as const
+const spawnDistanceFromThresholdMeters = 5000
+const spawnGlideSlopeDegrees = 3
+const spawnAirspeedMps = 75
+const planeModelSources = [
+  {
+    modelUrl: '/vendor/fbw-a32nx/model/A320_NEO_LOD00.gltf',
+    albedoTextureBaseUrl: '/aircraft/a32nx/exterior/LOD00-msfs/',
+    normalizeSourceAsset: true
+  }
+] as const
 const planeModelRotation = new Vector3((3 * Math.PI) / 2, Math.PI / 2, 0)
 
 class TileMaterialReplacementPlugin {
@@ -130,62 +169,104 @@ class TileMaterialReplacementPlugin {
 function loadPlaneModel(
   plane: Plane,
   renderer: WebGPURenderer,
-  onAnimations?: (state: MsfsAnimationState) => void
+  onAnimations?: (state: MsfsAnimationState, model: Object3D) => void
 ): void {
-  const modelUrl = new URL(planeModelUrl, window.location.href)
-  const manifestUrl = new URL('texture-manifest.json', modelUrl).href
+  void loadPlaneModelWithFallback(plane, renderer, planeModelSources, onAnimations)
+}
 
-  void fetch(manifestUrl)
-    .then(async response => {
-      if (!response.ok) return null
-      return (await response.json()) as { available?: string[] }
-    })
-    .catch(() => null)
-    .then(manifest => {
-      const available = new Set(manifest?.available ?? [])
-      const loader = createMsfsGltfLoader(renderer, {
-        availableTextures: available
+async function loadPlaneModelWithFallback(
+  plane: Plane,
+  renderer: WebGPURenderer,
+  modelSources: readonly {
+    modelUrl: string
+    albedoTextureBaseUrl?: string
+    textureManifestUrl?: string
+    normalizeSourceAsset?: boolean
+  }[],
+  onAnimations?: (state: MsfsAnimationState, model: Object3D) => void
+): Promise<void> {
+  let lastError: unknown = null
+
+  for (const source of modelSources) {
+    const modelUrl = new URL(source.modelUrl, window.location.href)
+    const manifestUrl = source.textureManifestUrl
+      ? new URL(source.textureManifestUrl, window.location.href).href
+      : new URL('texture-manifest.json', modelUrl).href
+
+    const manifest = await fetch(manifestUrl)
+      .then(async response => {
+        if (!response.ok) return null
+        return (await response.json()) as { available?: string[] }
       })
+      .catch(() => null)
 
-      loader.load(modelUrl.href, gltf => {
-        applyMsfsExtensions(gltf)
-        const animationState = setupMsfsAnimations(gltf)
-        onAnimations?.(animationState)
+    const available = new Set(manifest?.available ?? [])
+    const loader = createMsfsGltfLoader(renderer, {
+      availableTextures: available
+    })
 
-        const model = gltf.scene
+    try {
+      const gltf = source.normalizeSourceAsset
+        ? await loadNormalizedMsfsSourceGltf(
+            loader,
+            modelUrl.href,
+            new URL(
+              source.albedoTextureBaseUrl ?? '/aircraft/a32nx/exterior/LOD00-msfs/',
+              window.location.href
+            ).href
+          )
+        : await new Promise<any>((resolve, reject) => {
+            loader.load(modelUrl.href, resolve, undefined, reject)
+          })
 
-        model.rotation.set(
-          planeModelRotation.x,
-          planeModelRotation.y,
-          planeModelRotation.z
-        )
+      applyMsfsExtensions(gltf)
+      const animationState = setupMsfsAnimations(gltf)
+      const model = gltf.scene
+      if (!model) {
+        throw new Error('[msfs] glTF scene is missing')
+      }
+
+      model.rotation.set(
+        planeModelRotation.x,
+        planeModelRotation.y,
+        planeModelRotation.z
+      )
+      model.updateMatrixWorld(true)
+
+      const bounds = computeBoundsFromGeometry(model)
+      const size = bounds.getSize(new Vector3())
+      const maxDim = Math.max(size.x, size.y, size.z)
+      const targetSpan = plane.params.wingSpanM
+      if (Number.isFinite(maxDim) && maxDim > 0) {
+        const scale = targetSpan / maxDim
+        model.scale.setScalar(scale)
         model.updateMatrixWorld(true)
 
-        const bounds = computeBoundsFromGeometry(model)
-        const size = bounds.getSize(new Vector3())
-        const maxDim = Math.max(size.x, size.y, size.z)
-        const targetSpan = plane.params.wingSpanM
-        if (Number.isFinite(maxDim) && maxDim > 0) {
-          const scale = targetSpan / maxDim
-          model.scale.setScalar(scale)
-          model.updateMatrixWorld(true)
-
-          const scaledBounds = computeBoundsFromGeometry(model)
-          const center = scaledBounds.getCenter(new Vector3())
-          if (Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
-            model.position.sub(center)
-          } else {
-            console.warn('[msfs] invalid center; skipping recenter')
-          }
+        const scaledBounds = computeBoundsFromGeometry(model)
+        const center = scaledBounds.getCenter(new Vector3())
+        if (Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
+          model.position.sub(center)
         } else {
-          console.warn('[msfs] invalid bounds; skipping scale/center')
+          console.warn('[msfs] invalid center; skipping recenter')
         }
+      } else {
+        console.warn('[msfs] invalid bounds; skipping scale/center')
+      }
 
-        forceVisibleAndBounds(model)
-        replaceWithUnlitMaterials(model)
-        plane.setVisual(model)
-      })
-    })
+      forceVisibleAndBounds(model)
+      repairAircraftGeometry(model)
+      prepareAircraftMaterials(model)
+      plane.setVisual(model)
+      onAnimations?.(animationState, model)
+      console.info('[msfs] loaded plane model from', modelUrl.pathname)
+      return
+    } catch (error) {
+      lastError = error
+      console.warn('[msfs] failed to load plane model from', modelUrl.pathname, error)
+    }
+  }
+
+  console.error('[msfs] unable to load any plane model candidate', lastError)
 }
 
 function forceVisibleAndBounds(root: Object3D): void {
@@ -204,25 +285,6 @@ function forceVisibleAndBounds(root: Object3D): void {
       skinned.skeleton?.update()
     }
   })
-
-  const bounds = new Box3().setFromObject(root)
-  const size = bounds.getSize(new Vector3())
-  const center = bounds.getCenter(new Vector3())
-  const hasSize =
-    Number.isFinite(size.x) &&
-    Number.isFinite(size.y) &&
-    Number.isFinite(size.z) &&
-    size.x > 0 &&
-    size.y > 0 &&
-    size.z > 0
-  if (hasSize) {
-    const box = new Mesh(
-      new BoxGeometry(size.x, size.y, size.z),
-      new MeshBasicNodeMaterial({ wireframe: true })
-    )
-    box.position.copy(center)
-    root.add(box)
-  }
 }
 
 function computeBoundsFromGeometry(root: Object3D): Box3 {
@@ -252,22 +314,322 @@ function computeBoundsFromGeometry(root: Object3D): Box3 {
   return bounds
 }
 
-function replaceWithUnlitMaterials(root: Object3D): void {
+function prepareAircraftMaterials(root: Object3D): void {
+  const emptyLiveryOverlayPattern = /^(?:LIVERY(?:\d+)?|LIVERY_TEXTS(?:\d+)?)$/
+  const hiddenMaterialNames = new Set(['FROST', 'FROST_BLAST'])
+
   root.traverse(object => {
     if (!('isMesh' in object) || !object.isMesh) return
     const mesh = object as Mesh
-    const material = mesh.material
-    const nodeMaterial = new MeshBasicNodeMaterial()
-    if (material && 'map' in material && material.map) {
-      nodeMaterial.map = material.map
+    const sourceMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+    const clonedMaterials = sourceMaterials.map(material => material?.clone?.() ?? material)
+    mesh.material = Array.isArray(mesh.material) ? clonedMaterials : clonedMaterials[0]
+    let hideMesh = sourceMaterials.length > 0
+    const drawOrderOffset = sourceMaterials.reduce((maxOffset, material) => {
+      const offset =
+        typeof material?.userData?.asoboDrawOrderOffset === 'number'
+          ? material.userData.asoboDrawOrderOffset
+          : 0
+      return Math.max(maxOffset, offset)
+    }, 0)
+
+    for (const [index, material] of sourceMaterials.entries()) {
+      if (!material) continue
+      const targetMaterial = clonedMaterials[index]
+      if (!targetMaterial) continue
+
+      const hasMap = 'map' in material && material.map != null
+      const materialDrawOrderOffset =
+        typeof material.userData?.asoboDrawOrderOffset === 'number'
+          ? material.userData.asoboDrawOrderOffset
+          : 0
+      const hasAlphaTexture =
+        !!('alphaMap' in material && material.alphaMap != null) ||
+        hasMap
+      const isAlphaBlendMaterial = material.transparent || material.alphaTest > 0
+      const shouldHideEmptyOverlay =
+        !hasMap &&
+        (emptyLiveryOverlayPattern.test(material.name) ||
+          (materialDrawOrderOffset > 0 && isAlphaBlendMaterial))
+      const suppressBaseColorLayer =
+        material.userData?.asoboBlendGBuffer?.baseColorBlendFactor === 0
+      const shouldHideFrostLayer =
+        material.userData?.asoboMaterialCode === 'GeoDecalFrosted' ||
+        hiddenMaterialNames.has(material.name)
+      hideMesh &&=
+        shouldHideEmptyOverlay || suppressBaseColorLayer || shouldHideFrostLayer
+
+      targetMaterial.side = FrontSide
+      applyFallbackExteriorPbr(targetMaterial, material.name)
+
+      if (shouldHideEmptyOverlay || suppressBaseColorLayer || shouldHideFrostLayer) {
+        targetMaterial.transparent = true
+        targetMaterial.opacity = 0
+        targetMaterial.alphaTest = 0
+        targetMaterial.depthWrite = false
+      } else if (material.transparent || material.alphaTest > 0) {
+        targetMaterial.transparent = true
+        targetMaterial.opacity = material.opacity
+        targetMaterial.alphaTest = material.alphaTest
+        targetMaterial.depthWrite = false
+      } else {
+        targetMaterial.transparent = false
+        targetMaterial.opacity = 1
+        targetMaterial.alphaTest = 0
+        targetMaterial.depthWrite = true
+      }
+
+      if (materialDrawOrderOffset > 0) {
+        targetMaterial.polygonOffset = true
+        targetMaterial.polygonOffsetFactor = -materialDrawOrderOffset
+        targetMaterial.polygonOffsetUnits = -materialDrawOrderOffset
+      }
+
+      targetMaterial.needsUpdate = true
     }
-    mesh.material = nodeMaterial
-    if (Array.isArray(material)) {
-      material.forEach(mat => mat.dispose())
-    } else if (material) {
-      material.dispose()
+
+    mesh.visible = !hideMesh
+
+    if (drawOrderOffset > 0) {
+      mesh.renderOrder += drawOrderOffset
     }
   })
+}
+
+function applyFallbackExteriorPbr(material: any, materialName: string): void {
+  if (!('metalness' in material) || !('roughness' in material)) {
+    return
+  }
+
+  const hasMetalnessMap =
+    'metalnessMap' in material && material.metalnessMap != null
+  const hasRoughnessMap =
+    'roughnessMap' in material && material.roughnessMap != null
+  if (hasMetalnessMap || hasRoughnessMap) {
+    return
+  }
+
+  const fallback = fallbackExteriorPbrByMaterialName[materialName]
+  if (!fallback) {
+    return
+  }
+
+  material.metalness = fallback.metalness
+  material.roughness = fallback.roughness
+}
+
+const fallbackExteriorPbrByMaterialName: Record<
+  string,
+  { metalness: number; roughness: number }
+> = {
+  FUSELAGE: { metalness: 0.02, roughness: 0.78 },
+  WINGS: { metalness: 0.02, roughness: 0.78 },
+  'WINGS DETAILS': { metalness: 0.04, roughness: 0.8 },
+  ENGINES: { metalness: 0.15, roughness: 0.7 },
+  FRONTLANDING: { metalness: 0.18, roughness: 0.72 },
+  REARLANDING: { metalness: 0.18, roughness: 0.72 },
+  Passenger_Door: { metalness: 0.02, roughness: 0.8 },
+  METALFLAPS: { metalness: 0.06, roughness: 0.72 }
+}
+
+function repairAircraftGeometry(root: Object3D): void {
+  root.traverse(object => {
+    if (!('isMesh' in object) || !object.isMesh) return
+
+    const mesh = object as Mesh
+    if (!shouldFlipMeshWinding(mesh.name)) {
+      return
+    }
+
+    const geometry = mesh.geometry.clone()
+    flipGeometryWinding(geometry)
+    geometry.deleteAttribute('tangent')
+    if (shouldRecomputeMeshNormals(mesh.name)) {
+      geometry.deleteAttribute('normal')
+      geometry.computeVertexNormals()
+    }
+    geometry.computeBoundingBox()
+    geometry.computeBoundingSphere()
+    mesh.geometry = geometry
+  })
+}
+
+const windingFlipMeshNames = new Set([
+  'x0_FUSELAGE',
+  'x0_FUSELAGE_1',
+  'x0_FUSELAGE_4',
+  'x0_LIVERY_OFFICIAL_FUSELAGE',
+  'x0_LIVERY_OFFICIAL_FUSELAGE_1',
+  'x0_LIVERY_OFFICIAL_FUSELAGE_2',
+  'x0_LIVERY_OFFICIAL_FUSELAGE_3',
+  'x0_DOOR_PASSENGER',
+  'x0_DOOR_PASSENGER_1',
+  'x0_DOOR_REAR',
+  'x0_DOOR_REAR_3',
+  'x0_PASSENGER_DOOR',
+  'x0_PASSENGER_DOOR_1',
+  'LIVERY_OFFICIAL_RDOOR',
+  'LIVERY_OFFICIAL_RGEAR',
+  'LIVERY_OFFICIAL_LGEAR',
+  'R_DOOR03_RIGHT',
+  'DOOR03_LEFT',
+  'C_DOOR_01_RIGHT',
+  'C_DOOR_02_RIGHT',
+  'C_DOOR_01_LEFT',
+  'C_DOOR_02_LEFT',
+  'DOOR02_LEFT',
+  'DOOR01_LEFT',
+  'DOOR02_RIGHT',
+  'DOOR01_RIGHT',
+  'x0_WING_LEFT',
+  'x0_WING_RIGHT',
+  'x0_WING_LEFT_1',
+  'x0_WING_RIGHT_1',
+  'LIVERY_OFFICIAL_WINGL',
+  'LIVERY_OFFICIAL_WINGR',
+  'AILERON_LEFT',
+  'AILERON_RIGHT',
+  'ENGINES',
+  'x0_REACTOR_LEFT',
+  'x0_REACTOR_RIGHT',
+  'x0_REACTOR_BACK_LEFT',
+  'x0_REACTOR_BACK_RIGHT',
+  'x0_PROP_SLOW_LEFT',
+  'x0_PROP_SLOW_RIGHT',
+  'x0_PROP_STILL_LEFT',
+  'x0_PROP_STILL_RIGHT',
+  'PROP_BLURRED_CONE_LEFT',
+  'PROP_BLURRED_CONE_RIGHT',
+  'TAIL_ELEVATOR_LEFT',
+  'TAIL_ELEVATOR_RIGHT',
+  'TAIL_ELEVATOR_TRIM_LEFT',
+  'TAIL_ELEVATOR_TRIM_RIGHT',
+  'TAIL_RUDDER',
+  'TAIL_RUDDER_C',
+  'LIVERY_OFFICIAL_RUDDER',
+  'x0_LIVERY_OFFICIAL_RUDDER',
+  'x0_LIVERY_OFFICIAL_RUDDER_1'
+])
+
+const normalRecomputeMeshNames = new Set([
+  'x0_WING_LEFT',
+  'x0_WING_RIGHT',
+  'x0_WING_LEFT_1',
+  'x0_WING_RIGHT_1',
+  'LIVERY_OFFICIAL_WINGL',
+  'LIVERY_OFFICIAL_WINGR',
+  'LIVERY_OFFICIAL_RGEAR',
+  'LIVERY_OFFICIAL_LGEAR',
+  'R_DOOR03_RIGHT',
+  'DOOR03_LEFT',
+  'C_DOOR_01_RIGHT',
+  'C_DOOR_02_RIGHT',
+  'C_DOOR_01_LEFT',
+  'C_DOOR_02_LEFT',
+  'DOOR02_LEFT',
+  'DOOR01_LEFT',
+  'DOOR02_RIGHT',
+  'DOOR01_RIGHT',
+  'AILERON_LEFT',
+  'AILERON_RIGHT',
+  'ENGINES',
+  'x0_REACTOR_LEFT',
+  'x0_REACTOR_RIGHT',
+  'x0_REACTOR_BACK_LEFT',
+  'x0_REACTOR_BACK_RIGHT',
+  'x0_PROP_SLOW_LEFT',
+  'x0_PROP_SLOW_RIGHT',
+  'x0_PROP_STILL_LEFT',
+  'x0_PROP_STILL_RIGHT',
+  'PROP_BLURRED_CONE_LEFT',
+  'PROP_BLURRED_CONE_RIGHT',
+  'TAIL_ELEVATOR_LEFT',
+  'TAIL_ELEVATOR_RIGHT',
+  'TAIL_ELEVATOR_TRIM_LEFT',
+  'TAIL_ELEVATOR_TRIM_RIGHT',
+  'TAIL_RUDDER',
+  'TAIL_RUDDER_C',
+  'LIVERY_OFFICIAL_RUDDER',
+  'x0_LIVERY_OFFICIAL_RUDDER',
+  'x0_LIVERY_OFFICIAL_RUDDER_1'
+])
+
+const windingFlipMeshPrefixes = [
+  'WING_FLAP_',
+  'WING_FLAPSKRUEGER_',
+  'WING_SPOILER_',
+  'FLAPSFAIRING_',
+  'FLAPSKRUEGER_',
+  'FLAPS_',
+  'x0_FLAPS_',
+  'SPOILER_',
+  'x0_SPOILER_',
+  'Flaps_Details_'
+]
+
+const normalRecomputeMeshPrefixes = [...windingFlipMeshPrefixes]
+
+function shouldFlipMeshWinding(meshName: string): boolean {
+  return matchesMeshName(meshName, windingFlipMeshNames, windingFlipMeshPrefixes)
+}
+
+function shouldRecomputeMeshNormals(meshName: string): boolean {
+  return matchesMeshName(
+    meshName,
+    normalRecomputeMeshNames,
+    normalRecomputeMeshPrefixes
+  )
+}
+
+function matchesMeshName(
+  meshName: string,
+  exactNames: ReadonlySet<string>,
+  prefixes: readonly string[]
+): boolean {
+  if (exactNames.has(meshName)) {
+    return true
+  }
+
+  return prefixes.some(prefix => meshName.startsWith(prefix))
+}
+
+function flipGeometryWinding(geometry: Mesh['geometry']): void {
+  if (geometry.index) {
+    const index = geometry.index.array
+    for (let i = 0; i + 2 < index.length; i += 3) {
+      const temp = index[i + 1]
+      index[i + 1] = index[i + 2]
+      index[i + 2] = temp
+    }
+    geometry.index.needsUpdate = true
+    return
+  }
+
+  swapTriangleVerticesAcrossAttributes(Object.values(geometry.attributes))
+  for (const attributes of Object.values(geometry.morphAttributes)) {
+    swapTriangleVerticesAcrossAttributes(attributes)
+  }
+}
+
+function swapTriangleVerticesAcrossAttributes(
+  attributes: Array<BufferAttribute | undefined>
+): void {
+  for (const attribute of attributes) {
+    if (!attribute) continue
+
+    const array = attribute.array
+    const itemSize = attribute.itemSize
+    for (let vertex = 0; vertex + 2 < attribute.count; vertex += 3) {
+      const first = (vertex + 1) * itemSize
+      const second = (vertex + 2) * itemSize
+      for (let component = 0; component < itemSize; component++) {
+        const temp = array[first + component]
+        array[first + component] = array[second + component]
+        array[second + component] = temp
+      }
+    }
+    attribute.needsUpdate = true
+  }
 }
 
 async function init(): Promise<() => void> {
@@ -329,7 +691,7 @@ async function init(): Promise<() => void> {
   const keyboard = new KeyboardFlightControls()
   const hud = new FlightHud()
 
-  const plane = new Plane(b737AircraftParams())
+  const plane = new Plane(flyByWireA320AircraftParams())
   scene.add(plane.mesh)
   const controlsAny = controls as any
   const originalSetState = controlsAny.setState?.bind(controlsAny)
@@ -351,10 +713,17 @@ async function init(): Promise<() => void> {
     return originalRaycast ? originalRaycast(raycaster) : null
   }
   let planeAnimationState: MsfsAnimationState | null = null
-  let lastAnimationTimeMs = 0
-  loadPlaneModel(plane, renderer, state => {
+  let aircraftVisualAnimator: A320VisualAnimator | null = null
+  let wheelCycle01 = 0
+  let lastRenderTimeMs = 0
+  loadPlaneModel(plane, renderer, (state, model) => {
     planeAnimationState = state
-    lastAnimationTimeMs = 0
+    if (!model) return
+    aircraftVisualAnimator = hasNativeAircraftAnimations(state)
+      ? null
+      : new A320VisualAnimator(model)
+    wheelCycle01 = 0
+    lastRenderTimeMs = 0
   })
 
   const spawnFrame = new NedFrame()
@@ -365,16 +734,22 @@ async function init(): Promise<() => void> {
   const rightNed = new Vector3()
   const downNed = new Vector3(0, 0, 1)
   const spawnPositionEcef = new Vector3()
+  const runwayThresholdEcef = new Vector3()
+  const spawnOffsetNed = new Vector3()
   const spawnVelocityEcef = new Vector3()
   const spawnVelocityNed = new Vector3()
 
   const resetPlane = (): void => {
-    spawnPositionEcef.copy(
-      new Geodetic(radians(longitude), radians(latitude), 2500).toECEF()
+    runwayThresholdEcef.copy(
+      new Geodetic(
+        radians(ymmlRunway34.thresholdLongitude),
+        radians(ymmlRunway34.thresholdLatitude),
+        ymmlRunway34.thresholdElevationMeters
+      ).toECEF()
     )
-    spawnFrame.updateFromECEF(spawnPositionEcef)
+    spawnFrame.updateFromECEF(runwayThresholdEcef)
 
-    const yaw = radians(heading)
+    const yaw = radians(ymmlRunway34.headingDegrees)
     forwardNed.set(Math.cos(yaw), Math.sin(yaw), 0).normalize()
     rightNed.crossVectors(downNed, forwardNed).normalize()
 
@@ -382,7 +757,16 @@ async function init(): Promise<() => void> {
     qBodyToNed.setFromRotationMatrix(bodyToNedMatrix)
     qBodyToEcef.multiplyQuaternions(spawnFrame.qNedToEcef, qBodyToNed).normalize()
 
-    spawnVelocityNed.copy(forwardNed).multiplyScalar(150)
+    spawnOffsetNed.copy(forwardNed).multiplyScalar(-spawnDistanceFromThresholdMeters)
+    spawnOffsetNed.z =
+      -Math.tan(radians(spawnGlideSlopeDegrees)) * spawnDistanceFromThresholdMeters
+
+    spawnPositionEcef
+      .copy(spawnOffsetNed)
+      .applyMatrix3(spawnFrame.nedToEcef)
+      .add(runwayThresholdEcef)
+
+    spawnVelocityNed.copy(forwardNed).multiplyScalar(spawnAirspeedMps)
     spawnVelocityEcef.copy(spawnVelocityNed).applyMatrix3(spawnFrame.nedToEcef)
 
     plane.resetTo(spawnPositionEcef, spawnVelocityEcef, qBodyToEcef)
@@ -443,16 +827,24 @@ async function init(): Promise<() => void> {
     })
 
     if (planeAnimationState?.mixer) {
-      if (lastAnimationTimeMs === 0) {
-        lastAnimationTimeMs = timeMs
-      } else {
-        const deltaSeconds = (timeMs - lastAnimationTimeMs) / 1000
-        lastAnimationTimeMs = timeMs
-        if (deltaSeconds > 0) {
-          planeAnimationState.mixer.update(deltaSeconds)
-        }
-      }
+      const frameDeltaSeconds =
+        lastRenderTimeMs === 0 ? 0 : Math.max(0, (timeMs - lastRenderTimeMs) / 1000)
+      lastRenderTimeMs = timeMs
+      const tireCircumferenceMeters = 4.25
+      wheelCycle01 =
+        (wheelCycle01 +
+          Math.max(0, latest.speedMS) * frameDeltaSeconds / tireCircumferenceMeters) %
+        1
+      applyMsfsAircraftAnimationState(
+        planeAnimationState,
+        plane.getVisualState(),
+        wheelCycle01
+      )
+    } else {
+      lastRenderTimeMs = timeMs
     }
+
+    aircraftVisualAnimator?.update(plane.getVisualState())
 
     if (keyboard.isFollowEnabled()) {
       chaseOffsetEcef

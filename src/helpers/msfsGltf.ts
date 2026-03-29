@@ -1,5 +1,6 @@
 import {
   AnimationMixer,
+  DataUtils,
   type AnimationAction,
   Float32BufferAttribute,
   Mesh,
@@ -10,6 +11,7 @@ import { DDSLoader } from 'three/examples/jsm/loaders/DDSLoader.js'
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import type { WebGLRenderer } from 'three'
 import type { WebGPURenderer } from 'three/webgpu'
+import type { AircraftVisualState } from '../entities/Plane'
 
 const EXT_MSFT_TEXTURE_DDS = 'MSFT_texture_dds'
 const EXT_ASOBO_NORMAL_MAP_CONVENTION = 'ASOBO_normal_map_convention'
@@ -103,6 +105,9 @@ export function setupMsfsAnimations(gltf: any): MsfsAnimationState {
   animations.forEach((clip, index) => {
     const action = mixer.clipAction(clip)
     action.play()
+    action.paused = true
+    action.setEffectiveTimeScale(0)
+    action.setEffectiveWeight(1)
     const name = typeof clip?.name === 'string' && clip.name.length > 0
       ? clip.name
       : `clip_${index}`
@@ -113,6 +118,58 @@ export function setupMsfsAnimations(gltf: any): MsfsAnimationState {
   mixer.update(0)
 
   return { mixer, actions }
+}
+
+export function hasNativeAircraftAnimations(state: MsfsAnimationState): boolean {
+  return state.actions.has('l_aileron_percent_key') || state.actions.has('elevator_percent_key')
+}
+
+export function applyMsfsAircraftAnimationState(
+  state: MsfsAnimationState,
+  visualState: AircraftVisualState,
+  wheelCycle01: number
+): void {
+  if (!state.mixer) return
+
+  setSignedClipValue(state.actions.get('elevator_percent_key'), visualState.elevator)
+  setSignedClipValue(state.actions.get('rudder_percent_key'), visualState.rudder)
+  setSignedClipValue(state.actions.get('l_aileron_percent_key'), -visualState.aileron)
+  setSignedClipValue(state.actions.get('r_aileron_percent_key'), visualState.aileron)
+
+  setUnsignedClipValue(state.actions.get('l_flap_percent_key'), visualState.flaps01)
+  setUnsignedClipValue(state.actions.get('r_flap_percent_key'), visualState.flaps01)
+  setUnsignedClipValue(state.actions.get('l_slat_percent_key'), visualState.flaps01)
+  setUnsignedClipValue(state.actions.get('r_slat_percent_key'), visualState.flaps01)
+
+  const leftRollSpoiler = Math.max(0, -visualState.aileron) * 0.45
+  const rightRollSpoiler = Math.max(0, visualState.aileron) * 0.45
+  setUnsignedClipValue(
+    state.actions.get('l_spoiler_key'),
+    Math.max(visualState.spoiler01, leftRollSpoiler)
+  )
+  setUnsignedClipValue(
+    state.actions.get('r_spoiler_key'),
+    Math.max(visualState.spoiler01, rightRollSpoiler)
+  )
+
+  const gearValue = clamp01(visualState.gear01)
+  setUnsignedClipValue(state.actions.get('c_gear'), gearValue)
+  setUnsignedClipValue(state.actions.get('l_gear'), gearValue)
+  setUnsignedClipValue(state.actions.get('r_gear'), gearValue)
+  setUnsignedClipValue(state.actions.get('c_gear_door1'), gearValue)
+  setUnsignedClipValue(state.actions.get('c_gear_door2'), gearValue)
+  setUnsignedClipValue(state.actions.get('l_gear_door'), gearValue)
+  setUnsignedClipValue(state.actions.get('r_gear_door'), gearValue)
+
+  const tireValue = clamp01(wheelCycle01)
+  setUnsignedClipValue(state.actions.get('c_tire_anim'), tireValue)
+  setUnsignedClipValue(state.actions.get('l_tire_anim'), tireValue)
+  setUnsignedClipValue(state.actions.get('r_tire_anim'), tireValue)
+  setUnsignedClipValue(state.actions.get('c_wheel'), tireValue)
+  setUnsignedClipValue(state.actions.get('l_wheel'), tireValue)
+  setUnsignedClipValue(state.actions.get('r_wheel'), tireValue)
+
+  state.mixer.update(0)
 }
 
 export function applyMsfsExtensions(gltf: any): void {
@@ -140,7 +197,7 @@ export function applyMsfsExtensions(gltf: any): void {
       }
       for (const name of Object.keys(geometry.attributes)) {
         const attr = geometry.attributes[name]
-        const converted = toFloatAttribute(attr)
+        const converted = toFloatAttribute(attr, name)
         if (converted) geometry.setAttribute(name, converted)
       }
     }
@@ -149,7 +206,7 @@ export function applyMsfsExtensions(gltf: any): void {
         const attrs = geometry.morphAttributes[name]
         if (!Array.isArray(attrs)) continue
         for (let i = 0; i < attrs.length; i++) {
-          const converted = toFloatAttribute(attrs[i])
+          const converted = toFloatAttribute(attrs[i], name)
           if (converted) attrs[i] = converted
         }
       }
@@ -176,6 +233,16 @@ export function applyMsfsExtensions(gltf: any): void {
       const materialDef =
         materialIndex != null ? materialDefs[materialIndex] : undefined
       const extensions = materialDef?.extensions
+      const materialCode =
+        typeof materialDef?.extras?.ASOBO_material_code === 'string'
+          ? materialDef.extras.ASOBO_material_code
+          : undefined
+
+      if (materialCode) {
+        material.userData.asoboMaterialCode = materialCode
+        mesh.userData.asoboMaterialCode = materialCode
+      }
+
       if (!extensions) continue
 
       if (extensions[EXT_ASOBO_MATERIAL_DRAW_ORDER]?.drawOrderOffset != null) {
@@ -220,7 +287,7 @@ export function applyMsfsExtensions(gltf: any): void {
   })
 }
 
-function toFloatAttribute(attr: any): Float32BufferAttribute | null {
+function toFloatAttribute(attr: any, semanticName = ''): Float32BufferAttribute | null {
   if (!attr) return null
 
   const array = attr.isInterleavedBufferAttribute
@@ -228,9 +295,12 @@ function toFloatAttribute(attr: any): Float32BufferAttribute | null {
     : attr.array
   if (!array) return null
 
+  const isTexcoord = semanticName.toLowerCase().includes('uv')
+  const needsTexcoordDecode = isTexcoord && texcoordNeedsHalfFloatDecode(attr)
+
   const isFloat32 =
     array instanceof Float32Array && !attr.normalized && !attr.isInterleavedBufferAttribute
-  if (isFloat32) return null
+  if (isFloat32 && !needsTexcoordDecode) return null
 
   const itemSize = attr.itemSize
   const count = attr.count
@@ -254,6 +324,13 @@ function toFloatAttribute(attr: any): Float32BufferAttribute | null {
       if (itemSize > 2) out[i * itemSize + 2] = clampNorm(attr.getZ(i), denom, signed)
       if (itemSize > 3) out[i * itemSize + 3] = clampNorm(attr.getW(i), denom, signed)
     }
+  } else if (needsTexcoordDecode) {
+    for (let i = 0; i < count; i++) {
+      if (itemSize > 0) out[i * itemSize + 0] = DataUtils.fromHalfFloat(attr.getX(i) & 0xffff)
+      if (itemSize > 1) out[i * itemSize + 1] = DataUtils.fromHalfFloat(attr.getY(i) & 0xffff)
+      if (itemSize > 2) out[i * itemSize + 2] = DataUtils.fromHalfFloat(attr.getZ(i) & 0xffff)
+      if (itemSize > 3) out[i * itemSize + 3] = DataUtils.fromHalfFloat(attr.getW(i) & 0xffff)
+    }
   } else {
     for (let i = 0; i < count; i++) {
       if (itemSize > 0) out[i * itemSize + 0] = attr.getX(i)
@@ -274,4 +351,45 @@ function clampNorm(value: number, denom: number, signed: boolean): number {
     return v
   }
   return value / denom
+}
+
+function setSignedClipValue(action: AnimationAction | undefined, value: number): void {
+  if (!action) return
+  const normalized = clamp01(value * 0.5 + 0.5)
+  setActionTime(action, normalized)
+}
+
+function setUnsignedClipValue(action: AnimationAction | undefined, value: number): void {
+  if (!action) return
+  setActionTime(action, clamp01(value))
+}
+
+function setActionTime(action: AnimationAction, normalized: number): void {
+  const duration = action.getClip().duration
+  action.time = duration * normalized
+  action.paused = true
+}
+
+function clamp01(value: number): number {
+  if (value <= 0) return 0
+  if (value >= 1) return 1
+  return value
+}
+
+function texcoordNeedsHalfFloatDecode(attr: any): boolean {
+  const sampleCount = Math.min(attr.count ?? 0, 8)
+  for (let i = 0; i < sampleCount; i++) {
+    const x = attr.getX(i)
+    const y = attr.getY(i)
+    if (
+      Number.isFinite(x) &&
+      Number.isFinite(y) &&
+      Number.isInteger(x) &&
+      Number.isInteger(y) &&
+      (Math.abs(x) > 1 || Math.abs(y) > 1)
+    ) {
+      return true
+    }
+  }
+  return false
 }

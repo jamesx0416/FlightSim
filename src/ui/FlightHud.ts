@@ -35,14 +35,16 @@ export class FlightHud {
       `Flight\n` +
       `  follow: ${followEnabled ? 'on' : 'off'} (C)\n` +
       `  reset: Backspace\n` +
-      `  throttle: 0-9 (10%-100%)\n` +
+      `  throttle: 0 idle, 1-9 = 10%-90%\n` +
+      `  flaps: [ / ]   gear: G   spoilers: - / =\n` +
       `  roll: ←/→  pitch: ↑/↓  yaw: Q/E\n\n` +
       `State\n` +
       `  alt: ${formatNumber(data.altitudeMeters, 0)} m\n` +
       `  V:   ${formatNumber(data.airspeedMps, 1)} m/s\n` +
       `  rho: ${formatNumber(data.rhoKgPerM3, 3)} kg/m³\n` +
       `  α:   ${formatNumber(alphaDeg, 1)}°\n` +
-      `  β:   ${formatNumber(betaDeg, 1)}°\n\n` +
+      `  β:   ${formatNumber(betaDeg, 1)}°\n` +
+      `  flp: ${formatNumber(data.flaps01 * 100, 0)}%  gear: ${formatNumber(data.gear01 * 100, 0)}%  spdbrk: ${formatNumber(data.spoiler01 * 100, 0)}%\n\n` +
       `Forces\n` +
       `  L: ${formatNumber(data.liftN, 0)} N  D: ${formatNumber(data.dragN, 0)} N  Y: ${formatNumber(data.sideN, 0)} N\n` +
       `  T: ${formatNumber(data.thrustN, 0)} N`
