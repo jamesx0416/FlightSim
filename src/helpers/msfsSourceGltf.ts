@@ -70,7 +70,6 @@ export async function loadNormalizedMsfsSourceGltf(
             gltf.scene as Object3D,
             albedoTextureBaseUrl
           )
-          gltf.animations = []
           resolve(gltf)
         } catch (error) {
           reject(error)

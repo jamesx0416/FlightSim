@@ -17,6 +17,20 @@ export interface AircraftConfigurationState {
   spoiler01: number
 }
 
+export interface FlapVisualSchedule {
+  detents01: readonly number[]
+  trailingOutboardDeg: readonly number[]
+  trailingInboardDeg: readonly number[]
+  leadingDeg: readonly number[]
+}
+
+export interface FlapAutoCommandConfig {
+  conf1Handle01: number
+  conf1FHandle01: number
+  lowSpeedKts: number
+  highSpeedKts: number
+}
+
 export interface AircraftAeroParams {
   // Lift / drag / sideforce
   CL0: number
@@ -76,6 +90,7 @@ export interface AircraftParams {
   throttleToThrustFraction?: LookupTable1D
   configuration?: {
     flapDetents01: readonly number[]
+    defaultFlapDetentIndex?: number
     flapRatePerSec: number
     gearRatePerSec: number
     spoilerRatePerSec: number
@@ -86,6 +101,8 @@ export interface AircraftParams {
     spoilerDragCdMax: number
     spoilerLiftLossMax: number
     spoilerPitchCmMax: number
+    flapVisualSchedule?: FlapVisualSchedule
+    flapAutoCommand?: FlapAutoCommandConfig
   }
   aero: AircraftAeroParams
 }

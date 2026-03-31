@@ -342,7 +342,6 @@ function toFloatAttribute(attr: any, semanticName = ''): Float32BufferAttribute 
 
   return new Float32BufferAttribute(out, itemSize)
 }
-
 function clampNorm(value: number, denom: number, signed: boolean): number {
   if (signed) {
     const v = value / denom
