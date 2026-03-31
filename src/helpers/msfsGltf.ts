@@ -12,7 +12,6 @@ import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js'
 import type { WebGLRenderer } from 'three'
 import type { WebGPURenderer } from 'three/webgpu'
 import type { AircraftVisualState } from '../entities/Plane'
-import type { FlapVisualSchedule } from '../sim/FlightModel'
 
 const EXT_MSFT_TEXTURE_DDS = 'MSFT_texture_dds'
 const EXT_ASOBO_NORMAL_MAP_CONVENTION = 'ASOBO_normal_map_convention'
@@ -128,44 +127,19 @@ export function hasNativeAircraftAnimations(state: MsfsAnimationState): boolean 
 export function applyMsfsAircraftAnimationState(
   state: MsfsAnimationState,
   visualState: AircraftVisualState,
-  wheelCycle01: number,
-  flapVisualSchedule?: FlapVisualSchedule,
-  nativeTrailingFlapClipDetents01?: readonly number[]
+  wheelCycle01: number
 ): void {
   if (!state.mixer) return
 
   setSignedClipValue(state.actions.get('elevator_percent_key'), visualState.elevator)
   setSignedClipValue(state.actions.get('rudder_percent_key'), visualState.rudder)
-  setSignedClipValue(state.actions.get('l_aileron_percent_key'), visualState.aileron)
+  setSignedClipValue(state.actions.get('l_aileron_percent_key'), -visualState.aileron)
   setSignedClipValue(state.actions.get('r_aileron_percent_key'), visualState.aileron)
 
-  const nativeFlapProgress01 =
-    nativeTrailingFlapClipDetents01 != null
-      ? scheduleValue01(
-          visualState.flaps01,
-          flapVisualSchedule?.detents01 ?? [0, 1],
-          nativeTrailingFlapClipDetents01
-        )
-      : flapVisualSchedule == null
-      ? visualState.flaps01
-      : normalizedScheduledAngle01(
-          visualState.flaps01,
-          flapVisualSchedule.detents01,
-          flapVisualSchedule.trailingOutboardDeg
-        )
-  const nativeSlatProgress01 =
-    flapVisualSchedule == null
-      ? visualState.flaps01
-      : normalizedScheduledAngle01(
-          visualState.flaps01,
-          flapVisualSchedule.detents01,
-          flapVisualSchedule.leadingDeg
-        )
-
-  setUnsignedClipValue(state.actions.get('l_flap_percent_key'), nativeFlapProgress01)
-  setUnsignedClipValue(state.actions.get('r_flap_percent_key'), nativeFlapProgress01)
-  setUnsignedClipValue(state.actions.get('l_slat_percent_key'), nativeSlatProgress01)
-  setUnsignedClipValue(state.actions.get('r_slat_percent_key'), nativeSlatProgress01)
+  setUnsignedClipValue(state.actions.get('l_flap_percent_key'), visualState.flaps01)
+  setUnsignedClipValue(state.actions.get('r_flap_percent_key'), visualState.flaps01)
+  setUnsignedClipValue(state.actions.get('l_slat_percent_key'), visualState.flaps01)
+  setUnsignedClipValue(state.actions.get('r_slat_percent_key'), visualState.flaps01)
 
   const leftRollSpoiler = Math.max(0, -visualState.aileron) * 0.45
   const rightRollSpoiler = Math.max(0, visualState.aileron) * 0.45
@@ -399,49 +373,6 @@ function clamp01(value: number): number {
   if (value <= 0) return 0
   if (value >= 1) return 1
   return value
-}
-
-function normalizedScheduledAngle01(
-  flaps01: number,
-  detents01: readonly number[],
-  anglesDeg: readonly number[]
-): number {
-  if (anglesDeg.length === 0) return 0
-  const maxAngleDeg = Math.max(...anglesDeg.map(angle => Math.abs(angle)))
-  if (!(maxAngleDeg > 0)) return 0
-  return clamp01(scheduleAngleDeg(flaps01, detents01, anglesDeg) / maxAngleDeg)
-}
-
-function scheduleValue01(
-  flaps01: number,
-  detents01: readonly number[],
-  values01: readonly number[]
-): number {
-  return clamp01(scheduleAngleDeg(flaps01, detents01, values01))
-}
-
-function scheduleAngleDeg(
-  flaps01: number,
-  detents01: readonly number[],
-  anglesDeg: readonly number[]
-): number {
-  const clampedFlaps01 = clamp01(flaps01)
-  if (detents01.length === 0 || anglesDeg.length === 0) return 0
-  if (detents01.length === 1 || anglesDeg.length === 1) return anglesDeg[0] ?? 0
-  if (clampedFlaps01 <= detents01[0]) return anglesDeg[0] ?? 0
-
-  for (let index = 1; index < detents01.length; index += 1) {
-    const previousDetent = detents01[index - 1] ?? 0
-    const nextDetent = detents01[index] ?? previousDetent
-    if (clampedFlaps01 > nextDetent) continue
-    const span = nextDetent - previousDetent
-    const t = span > 0 ? (clampedFlaps01 - previousDetent) / span : 0
-    const previousAngle = anglesDeg[index - 1] ?? 0
-    const nextAngle = anglesDeg[index] ?? previousAngle
-    return previousAngle + (nextAngle - previousAngle) * t
-  }
-
-  return anglesDeg[anglesDeg.length - 1] ?? 0
 }
 
 function texcoordNeedsHalfFloatDecode(attr: any): boolean {

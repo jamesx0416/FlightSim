@@ -13,18 +13,6 @@ interface AnimatedNode {
   readonly amount: (state: AircraftVisualState) => number
 }
 
-export interface A320VisualAnimatorOptions {
-  readonly enableAilerons?: boolean
-  readonly enableElevator?: boolean
-  readonly enableRudder?: boolean
-  readonly enableTrailingFlaps?: boolean
-  readonly enableInboardTrailingFlaps?: boolean
-  readonly enableOutboardTrailingFlaps?: boolean
-  readonly enableLeadingEdge?: boolean
-  readonly enableSpoilers?: boolean
-  readonly enableGear?: boolean
-}
-
 const rotationScratch = new Quaternion()
 const pivotScratch = new Vector3()
 const offsetScratch = new Vector3()
@@ -48,12 +36,8 @@ const vertexScratch = new Vector3()
 export class A320VisualAnimator {
   private readonly animatedNodes: AnimatedNode[]
 
-  constructor(
-    root: Object3D,
-    flapVisualSchedule: FlapVisualSchedule,
-    options: A320VisualAnimatorOptions = {}
-  ) {
-    this.animatedNodes = collectAnimatedNodes(root, flapVisualSchedule, options)
+  constructor(root: Object3D, flapVisualSchedule: FlapVisualSchedule) {
+    this.animatedNodes = collectAnimatedNodes(root, flapVisualSchedule)
   }
 
   update(state: AircraftVisualState): void {
@@ -73,8 +57,7 @@ export class A320VisualAnimator {
 
 function collectAnimatedNodes(
   root: Object3D,
-  flapVisualSchedule: FlapVisualSchedule,
-  options: A320VisualAnimatorOptions
+  flapVisualSchedule: FlapVisualSchedule
 ): AnimatedNode[] {
   const animatedNodes: AnimatedNode[] = []
   const candidates: Array<{ object: Object3D; name: string }> = []
@@ -86,7 +69,7 @@ function collectAnimatedNodes(
   })
 
   for (const { object, name } of candidates) {
-    const animatedNode = createAnimatedNode(root, object, name, flapVisualSchedule, options)
+    const animatedNode = createAnimatedNode(root, object, name, flapVisualSchedule)
     if (animatedNode) animatedNodes.push(animatedNode)
   }
 
@@ -97,12 +80,11 @@ function createAnimatedNode(
   root: Object3D,
   object: Object3D,
   name: string,
-  flapVisualSchedule: FlapVisualSchedule,
-  options: A320VisualAnimatorOptions
+  flapVisualSchedule: FlapVisualSchedule
 ): AnimatedNode | null {
   const upperName = name.toUpperCase()
 
-  if (options.enableAilerons !== false && aileronNodeNames.has(upperName)) {
+  if (aileronNodeNames.has(upperName)) {
     const sign = upperName.includes('_RIGHT') ? -1 : 1
     return createAileronNode(
       root,
@@ -112,7 +94,7 @@ function createAnimatedNode(
     )
   }
 
-  if (options.enableElevator !== false && elevatorNodeNames.has(upperName)) {
+  if (elevatorNodeNames.has(upperName)) {
     const sign = upperName.includes('_RIGHT') ? -1 : 1
     return createNode(
       object,
@@ -121,7 +103,7 @@ function createAnimatedNode(
     )
   }
 
-  if (options.enableRudder !== false && rudderNodeNames.has(upperName)) {
+  if (rudderNodeNames.has(upperName)) {
     return createNode(
       object,
       new Vector3(0, 1, 0),
@@ -129,28 +111,22 @@ function createAnimatedNode(
     )
   }
 
-  if (options.enableTrailingFlaps !== false && trailingFlapNodeNames.has(upperName)) {
+  if (trailingFlapNodeNames.has(upperName)) {
     const isInboard = upperName.includes('FLAPS_01')
-    if (isInboard) {
-      if (options.enableInboardTrailingFlaps === false) return null
-    } else if (options.enableOutboardTrailingFlaps === false) {
-      return null
-    }
     const flapAngleSign = trailingFlapAngleSignByNodeName[upperName] ?? 1
-    const amount = (state: AircraftVisualState) =>
-      radians(
-        a320TrailingFlapAngle(state.flaps01, isInboard, flapVisualSchedule) *
-          flapAngleSign
-      )
     return createNode(
       object,
       new Vector3(1, 0, 0),
-      amount,
+      state =>
+        radians(
+          a320TrailingFlapAngle(state.flaps01, isInboard, flapVisualSchedule) *
+            flapAngleSign
+        ),
       'trailing'
     )
   }
 
-  if (options.enableLeadingEdge !== false && leadingEdgeNodeNames.has(upperName)) {
+  if (leadingEdgeNodeNames.has(upperName)) {
     const referencedNode = createReferencedHingeNode(
       root,
       object,
@@ -166,7 +142,7 @@ function createAnimatedNode(
     )
   }
 
-  if (options.enableSpoilers !== false && spoilerNodeNames.has(upperName)) {
+  if (spoilerNodeNames.has(upperName)) {
     const isRightSide = upperName.includes('_RIGHT') || upperName.endsWith('_R')
     const amount = (state: AircraftVisualState) => {
       const rollSpoiler = isRightSide
@@ -185,7 +161,7 @@ function createAnimatedNode(
     return createNode(object, new Vector3(1, 0, 0), amount, 'spoiler')
   }
 
-  if (options.enableGear !== false && gearPrimaryNodeNames.has(upperName)) {
+  if (gearPrimaryNodeNames.has(upperName)) {
     const sign = upperName.endsWith('_RIGHT') ? -1 : 1
     return createNode(
       object,
@@ -194,7 +170,7 @@ function createAnimatedNode(
     )
   }
 
-  if (options.enableGear !== false && gearSecondaryNodeNames.has(upperName)) {
+  if (gearSecondaryNodeNames.has(upperName)) {
     const sign = upperName.endsWith('_RIGHT') ? 1 : -1
     return createNode(
       object,
@@ -203,10 +179,7 @@ function createAnimatedNode(
     )
   }
 
-  if (
-    options.enableGear !== false &&
-    matchesName(upperName, gearDoorNodeNames, gearDoorNodePrefixes)
-  ) {
+  if (matchesName(upperName, gearDoorNodeNames, gearDoorNodePrefixes)) {
     const sign = upperName.includes('_RIGHT') ? -1 : 1
     return createNode(
       object,
@@ -242,72 +215,27 @@ function createAileronNode(
   side: 'left' | 'right',
   amount: (state: AircraftVisualState) => number
 ): AnimatedNode | null {
-  return (
-    createHelperPairHingeNode(
-      root,
-      object,
-      `WING_AILERON_1_${side}`,
-      `WING_AILERON_2_${side}`,
-      amount
-    ) ?? createNode(object, new Vector3(1, 0, 0), amount, 'trailing')
-  )
-}
-
-function createHelperPairHingeNode(
-  root: Object3D,
-  object: Object3D,
-  helperName1: string,
-  helperName2: string,
-  amount: (state: AircraftVisualState) => number,
-  options?: {
-    readonly useSurfacePrincipalAxis?: boolean
-    readonly primaryHelperAxisBlend01?: number
+  const helper1 = root.getObjectByName(`WING_AILERON_1_${side}`)
+  const helper2 = root.getObjectByName(`WING_AILERON_2_${side}`)
+  if (!helper1 || !helper2) {
+    return createNode(object, new Vector3(1, 0, 0), amount, 'trailing')
   }
-): AnimatedNode | null {
-  const helper1 = root.getObjectByName(helperName1)
-  const helper2 = root.getObjectByName(helperName2)
-  if (!helper1 || !helper2) return null
 
   root.updateMatrixWorld(true)
   const position = helper1
     .getWorldPosition(helperPosScratch)
     .add(helper2.getWorldPosition(helperPos2Scratch))
     .multiplyScalar(0.5)
-  const helperLineAxis = helper2
+  const helperAxis = helper2
     .getWorldPosition(worldPosScratch)
     .sub(helper1.getWorldPosition(helperPos2Scratch))
     .normalize()
   const normalHint = helper1
     .getWorldQuaternion(worldQuatScratch)
     .slerp(helper2.getWorldQuaternion(helperQuatScratch), 0.5)
-  const primaryHelperAxisBlend01 = Math.max(
-    0,
-    Math.min(1, options?.primaryHelperAxisBlend01 ?? 0)
-  )
-  const helperAxis = helperLineAxis.clone()
-  if (primaryHelperAxisBlend01 > 0) {
-    const primaryHelperAxis = new Vector3(1, 0, 0)
-      .applyQuaternion(helper1.getWorldQuaternion(helperQuatScratch))
-      .normalize()
-    if (primaryHelperAxis.dot(helperLineAxis) < 0) {
-      primaryHelperAxis.multiplyScalar(-1)
-    }
-    helperAxis
-      .multiplyScalar(1 - primaryHelperAxisBlend01)
-      .addScaledVector(primaryHelperAxis, primaryHelperAxisBlend01)
-      .normalize()
-  }
   const worldNormal = new Vector3(0, 0, 1).applyQuaternion(normalHint)
 
-  return createPivotDrivenNode(
-    root,
-    object,
-    position,
-    helperAxis,
-    worldNormal,
-    amount,
-    options
-  )
+  return createPivotDrivenNode(root, object, position, helperAxis, worldNormal, amount)
 }
 
 function createReferencedHingeNode(
@@ -335,18 +263,12 @@ function createPivotDrivenNode(
   worldPosition: Vector3,
   fallbackAxisWorld: Vector3,
   fallbackNormalWorld: Vector3,
-  amount: (state: AircraftVisualState) => number,
-  options?: {
-    readonly useSurfacePrincipalAxis?: boolean
-  }
+  amount: (state: AircraftVisualState) => number
 ): AnimatedNode {
   const pivot = new Object3D()
   pivot.name = `anim_${object.name}`
 
-  const hingeAxisWorld =
-    options?.useSurfacePrincipalAxis === false
-      ? null
-      : computeSurfacePrincipalAxisWorld(object)?.normalize()
+  const hingeAxisWorld = computeSurfacePrincipalAxisWorld(object)?.normalize()
   if (hingeAxisWorld != null && hingeAxisWorld.dot(fallbackAxisWorld) < 0) {
     hingeAxisWorld.multiplyScalar(-1)
   }
