@@ -132,6 +132,8 @@ export function flyByWireA320AircraftParams(): AircraftParams {
       spoilerLiftLossMax: 0.42,
       spoilerPitchCmMax: 0.03,
       flapVisualSchedule: flyByWireA320FbwConfig.flapVisualSchedule,
+      nativeTrailingFlapClipDetents01:
+        flyByWireA320FbwConfig.nativeTrailingFlapClipDetents01,
       flapAutoCommand: flyByWireA320FbwConfig.flapAutoCommand
     },
     aero: {

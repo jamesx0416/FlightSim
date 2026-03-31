@@ -261,28 +261,10 @@ async function loadPlaneModelWithFallback(
         animationState,
         initialVisualState,
         0,
-        plane.params.configuration?.flapVisualSchedule
+        plane.params.configuration?.flapVisualSchedule,
+        plane.params.configuration?.nativeTrailingFlapClipDetents01
       )
-      bindMsfsAnimatedControlSurfaceNodes(
-        model,
-        object => !NATIVE_OUTBOARD_FLAP_PATTERN.test(object.name)
-      )
-      applyMsfsAircraftAnimationState(
-        animationState,
-        { ...initialVisualState, flaps01: 0 },
-        0,
-        plane.params.configuration?.flapVisualSchedule
-      )
-      bindMsfsAnimatedControlSurfaceNodes(
-        model,
-        object => NATIVE_OUTBOARD_FLAP_PATTERN.test(object.name)
-      )
-      applyMsfsAircraftAnimationState(
-        animationState,
-        initialVisualState,
-        0,
-        plane.params.configuration?.flapVisualSchedule
-      )
+      bindMsfsAnimatedControlSurfaceNodes(model)
       updateMsfsAnimatedControlSurfaceNodes(model)
       prepareAircraftMaterials(model)
       plane.setVisual(model)
@@ -545,10 +527,6 @@ function resolveAnimatedHelperBindings(
   root: Object3D,
   surface: Object3D
 ): Array<{ object: Object3D; weight: number }> {
-  if (NATIVE_FLAP_SKIP_PATTERN.test(surface.name)) {
-    return []
-  }
-
   const helperBindings = surface.userData?.msfsAnimationHelpers as
     | MsfsAnimatedHelperBinding[]
     | undefined
@@ -585,8 +563,6 @@ const helperWorldQuaternionScratch = new Quaternion()
 const rootWorldQuaternionScratch = new Quaternion()
 const blendedQuaternionVectorScratch = new Vector4()
 const helperQuaternionVectorScratch = new Vector4()
-const NATIVE_FLAP_SKIP_PATTERN = /^(?:x0_)?FLAPS_01_(?:LEFT|RIGHT)$/
-const NATIVE_OUTBOARD_FLAP_PATTERN = /^(?:x0_)?FLAPS_02_(?:LEFT|RIGHT)$/
 
 function applyWeightedHelperTransform(
   root: Object3D,
@@ -916,14 +892,15 @@ async function init(): Promise<() => void> {
     planeAnimationState = state
     if (!model) return
     const usesNativeAircraftAnimations = hasNativeAircraftAnimations(state)
+    const flapVisualSchedule = planeParams.configuration?.flapVisualSchedule ?? {
+      detents01: planeParams.configuration?.flapDetents01 ?? [0, 1],
+      trailingOutboardDeg: [0, 40],
+      trailingInboardDeg: [0, 40],
+      leadingDeg: [0, 27]
+    }
     aircraftVisualAnimator = new A320VisualAnimator(
       model,
-      planeParams.configuration?.flapVisualSchedule ?? {
-        detents01: planeParams.configuration?.flapDetents01 ?? [0, 1],
-        trailingOutboardDeg: [0, 40],
-        trailingInboardDeg: [0, 40],
-        leadingDeg: [0, 27]
-      },
+      flapVisualSchedule,
       usesNativeAircraftAnimations
         ? {
             enableAilerons: false,
@@ -932,8 +909,7 @@ async function init(): Promise<() => void> {
             enableLeadingEdge: false,
             enableSpoilers: false,
             enableGear: false,
-            enableTrailingFlaps: true,
-            enableInboardTrailingFlaps: true,
+            enableTrailingFlaps: false,
             enableOutboardTrailingFlaps: false
           }
         : undefined
@@ -1055,7 +1031,8 @@ async function init(): Promise<() => void> {
         planeAnimationState,
         plane.getVisualState(),
         wheelCycle01,
-        planeParams.configuration?.flapVisualSchedule
+        planeParams.configuration?.flapVisualSchedule,
+        planeParams.configuration?.nativeTrailingFlapClipDetents01
       )
       const planeModel = plane.mesh.children[0]
       if (planeModel) {

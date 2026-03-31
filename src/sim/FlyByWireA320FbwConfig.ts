@@ -5,17 +5,20 @@ import type {
 import {
   buildEvenDetents01,
   parseMsfsFlapSections,
+  parseMsfsTemplateNormalizedTimes,
   parseSourceConstantNumber
 } from './MsfsFlapConfig'
 
 import flightModelCfgRaw from '../../third_party/flybywire-aircraft/fbw-a32nx/src/base/flybywire-aircraft-a320-neo/SimObjects/AirPlanes/FlyByWire_A320_NEO/flight_model.cfg?raw'
 import flapsChannelRaw from '../../third_party/flybywire-aircraft/fbw-a32nx/src/wasm/systems/a320_systems/src/hydraulic/sfcc/flaps_channel.rs?raw'
+import modelXmlRaw from '../../third_party/flybywire-aircraft/fbw-a32nx/src/base/flybywire-aircraft-a320-neo/SimObjects/AirPlanes/FlyByWire_A320_NEO/model/A320_NEO.xml?raw'
 
 export interface FlyByWireA320FbwConfig {
   readonly flapDetents01: readonly number[]
   readonly flapSurfaceTargets01: readonly number[]
   readonly defaultFlapDetentIndex: number
   readonly flapVisualSchedule: FlapVisualSchedule
+  readonly nativeTrailingFlapClipDetents01: readonly number[]
   readonly flapAutoCommand: FlapAutoCommandConfig
 }
 
@@ -85,6 +88,16 @@ function buildFbwConfig(): FlyByWireA320FbwConfig {
     trailingInboardDeg,
     leadingDeg
   }
+  const nativeFlapClipTimes = parseMsfsTemplateNormalizedTimes(
+    modelXmlRaw,
+    'ASOBO_HANDLING_Flaps_Template'
+  )
+  const nativeTrailingFlapClipDetents01 = [0, ...nativeFlapClipTimes]
+  if (nativeTrailingFlapClipDetents01.length !== detentCount) {
+    throw new Error(
+      `FBW flap clip detent count mismatch: expected ${detentCount}, got ${nativeTrailingFlapClipDetents01.length}`
+    )
+  }
   const flapAutoCommand: FlapAutoCommandConfig = {
     conf1Handle01: flapDetents01[1] ?? 0,
     conf1Surface01: flapSurfaceDetents01[conf1Index] ?? 0,
@@ -98,6 +111,7 @@ function buildFbwConfig(): FlyByWireA320FbwConfig {
     flapSurfaceTargets01,
     defaultFlapDetentIndex: Math.min(2, flapDetents01.length - 1),
     flapVisualSchedule,
+    nativeTrailingFlapClipDetents01,
     flapAutoCommand
   }
 }

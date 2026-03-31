@@ -87,3 +87,36 @@ export function parseSourceConstantNumber(source: string, name: string): number 
 
   return Number(match[1])
 }
+
+export function parseMsfsTemplateNormalizedTimes(
+  source: string,
+  templateName: string
+): readonly number[] {
+  const templatePattern = new RegExp(
+    String.raw`<UseTemplate\s+Name="${escapeRegex(templateName)}">([\s\S]*?)</UseTemplate>`,
+    'i'
+  )
+  const templateMatch = source.match(templatePattern)
+  if (!templateMatch) {
+    throw new Error(`Could not find MSFS template "${templateName}" in source`)
+  }
+
+  const timesByIndex = new Map<number, number>()
+  const normalizedTimePattern =
+    /<NORMALIZED_TIME_(\d+)>\s*([0-9]+(?:\.[0-9]+)?)\s*<\/NORMALIZED_TIME_\1>/gi
+
+  for (const match of templateMatch[1].matchAll(normalizedTimePattern)) {
+    const index = Number(match[1])
+    const value = Number(match[2])
+    if (!Number.isFinite(index) || !Number.isFinite(value)) continue
+    timesByIndex.set(index, value)
+  }
+
+  return [...timesByIndex.entries()]
+    .sort((left, right) => left[0] - right[0])
+    .map(([, value]) => value)
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}

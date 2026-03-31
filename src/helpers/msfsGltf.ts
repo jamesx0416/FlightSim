@@ -129,7 +129,8 @@ export function applyMsfsAircraftAnimationState(
   state: MsfsAnimationState,
   visualState: AircraftVisualState,
   wheelCycle01: number,
-  flapVisualSchedule?: FlapVisualSchedule
+  flapVisualSchedule?: FlapVisualSchedule,
+  nativeTrailingFlapClipDetents01?: readonly number[]
 ): void {
   if (!state.mixer) return
 
@@ -139,7 +140,13 @@ export function applyMsfsAircraftAnimationState(
   setSignedClipValue(state.actions.get('r_aileron_percent_key'), visualState.aileron)
 
   const nativeFlapProgress01 =
-    flapVisualSchedule == null
+    nativeTrailingFlapClipDetents01 != null
+      ? scheduleValue01(
+          visualState.flaps01,
+          flapVisualSchedule?.detents01 ?? [0, 1],
+          nativeTrailingFlapClipDetents01
+        )
+      : flapVisualSchedule == null
       ? visualState.flaps01
       : normalizedScheduledAngle01(
           visualState.flaps01,
@@ -403,6 +410,14 @@ function normalizedScheduledAngle01(
   const maxAngleDeg = Math.max(...anglesDeg.map(angle => Math.abs(angle)))
   if (!(maxAngleDeg > 0)) return 0
   return clamp01(scheduleAngleDeg(flaps01, detents01, anglesDeg) / maxAngleDeg)
+}
+
+function scheduleValue01(
+  flaps01: number,
+  detents01: readonly number[],
+  values01: readonly number[]
+): number {
+  return clamp01(scheduleAngleDeg(flaps01, detents01, values01))
 }
 
 function scheduleAngleDeg(

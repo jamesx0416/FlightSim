@@ -137,14 +137,15 @@ function createAnimatedNode(
       return null
     }
     const flapAngleSign = trailingFlapAngleSignByNodeName[upperName] ?? 1
+    const amount = (state: AircraftVisualState) =>
+      radians(
+        a320TrailingFlapAngle(state.flaps01, isInboard, flapVisualSchedule) *
+          flapAngleSign
+      )
     return createNode(
       object,
       new Vector3(1, 0, 0),
-      state =>
-        radians(
-          a320TrailingFlapAngle(state.flaps01, isInboard, flapVisualSchedule) *
-            flapAngleSign
-        ),
+      amount,
       'trailing'
     )
   }
@@ -241,27 +242,72 @@ function createAileronNode(
   side: 'left' | 'right',
   amount: (state: AircraftVisualState) => number
 ): AnimatedNode | null {
-  const helper1 = root.getObjectByName(`WING_AILERON_1_${side}`)
-  const helper2 = root.getObjectByName(`WING_AILERON_2_${side}`)
-  if (!helper1 || !helper2) {
-    return createNode(object, new Vector3(1, 0, 0), amount, 'trailing')
+  return (
+    createHelperPairHingeNode(
+      root,
+      object,
+      `WING_AILERON_1_${side}`,
+      `WING_AILERON_2_${side}`,
+      amount
+    ) ?? createNode(object, new Vector3(1, 0, 0), amount, 'trailing')
+  )
+}
+
+function createHelperPairHingeNode(
+  root: Object3D,
+  object: Object3D,
+  helperName1: string,
+  helperName2: string,
+  amount: (state: AircraftVisualState) => number,
+  options?: {
+    readonly useSurfacePrincipalAxis?: boolean
+    readonly primaryHelperAxisBlend01?: number
   }
+): AnimatedNode | null {
+  const helper1 = root.getObjectByName(helperName1)
+  const helper2 = root.getObjectByName(helperName2)
+  if (!helper1 || !helper2) return null
 
   root.updateMatrixWorld(true)
   const position = helper1
     .getWorldPosition(helperPosScratch)
     .add(helper2.getWorldPosition(helperPos2Scratch))
     .multiplyScalar(0.5)
-  const helperAxis = helper2
+  const helperLineAxis = helper2
     .getWorldPosition(worldPosScratch)
     .sub(helper1.getWorldPosition(helperPos2Scratch))
     .normalize()
   const normalHint = helper1
     .getWorldQuaternion(worldQuatScratch)
     .slerp(helper2.getWorldQuaternion(helperQuatScratch), 0.5)
+  const primaryHelperAxisBlend01 = Math.max(
+    0,
+    Math.min(1, options?.primaryHelperAxisBlend01 ?? 0)
+  )
+  const helperAxis = helperLineAxis.clone()
+  if (primaryHelperAxisBlend01 > 0) {
+    const primaryHelperAxis = new Vector3(1, 0, 0)
+      .applyQuaternion(helper1.getWorldQuaternion(helperQuatScratch))
+      .normalize()
+    if (primaryHelperAxis.dot(helperLineAxis) < 0) {
+      primaryHelperAxis.multiplyScalar(-1)
+    }
+    helperAxis
+      .multiplyScalar(1 - primaryHelperAxisBlend01)
+      .addScaledVector(primaryHelperAxis, primaryHelperAxisBlend01)
+      .normalize()
+  }
   const worldNormal = new Vector3(0, 0, 1).applyQuaternion(normalHint)
 
-  return createPivotDrivenNode(root, object, position, helperAxis, worldNormal, amount)
+  return createPivotDrivenNode(
+    root,
+    object,
+    position,
+    helperAxis,
+    worldNormal,
+    amount,
+    options
+  )
 }
 
 function createReferencedHingeNode(
@@ -289,12 +335,18 @@ function createPivotDrivenNode(
   worldPosition: Vector3,
   fallbackAxisWorld: Vector3,
   fallbackNormalWorld: Vector3,
-  amount: (state: AircraftVisualState) => number
+  amount: (state: AircraftVisualState) => number,
+  options?: {
+    readonly useSurfacePrincipalAxis?: boolean
+  }
 ): AnimatedNode {
   const pivot = new Object3D()
   pivot.name = `anim_${object.name}`
 
-  const hingeAxisWorld = computeSurfacePrincipalAxisWorld(object)?.normalize()
+  const hingeAxisWorld =
+    options?.useSurfacePrincipalAxis === false
+      ? null
+      : computeSurfacePrincipalAxisWorld(object)?.normalize()
   if (hingeAxisWorld != null && hingeAxisWorld.dot(fallbackAxisWorld) < 0) {
     hingeAxisWorld.multiplyScalar(-1)
   }
