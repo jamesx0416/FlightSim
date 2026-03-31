@@ -315,9 +315,70 @@ function bakeSkinnedMesh(skinned: SkinnedMesh, preserveLocalTransform: boolean):
   bakedMesh.receiveShadow = skinned.receiveShadow
   bakedMesh.renderOrder = skinned.renderOrder
   bakedMesh.userData = { ...skinned.userData }
+  const animationHelperNames = findAnimatedHelperNames(skinned, skinIndex, skinWeight)
+  if (animationHelperNames.length > 0) {
+    bakedMesh.userData.msfsAnimationHelperNames = animationHelperNames
+  }
   bakedMesh.frustumCulled = false
 
   return bakedMesh
+}
+
+function findAnimatedHelperNames(
+  skinned: SkinnedMesh,
+  skinIndex: BufferAttribute | InterleavedBufferAttribute,
+  skinWeight: BufferAttribute | InterleavedBufferAttribute
+): string[] {
+  const helperPrefixes = getAnimatedHelperPrefixes(skinned.name)
+  if (helperPrefixes.length === 0) return []
+
+  const helperWeightByName = new Map<string, number>()
+  const bones = skinned.skeleton.bones
+
+  for (let i = 0; i < skinIndex.count; i += 1) {
+    for (let component = 0; component < Math.min(4, skinIndex.itemSize); component += 1) {
+      const weight = getAttributeComponent(skinWeight, i, component)
+      if (!Number.isFinite(weight) || weight <= 0) continue
+
+      const boneIndex = Math.round(getAttributeComponent(skinIndex, i, component))
+      const boneName = bones[boneIndex]?.name
+      if (!boneName) continue
+      if (!helperPrefixes.some(prefix => boneName.startsWith(prefix))) continue
+
+      helperWeightByName.set(boneName, (helperWeightByName.get(boneName) ?? 0) + weight)
+    }
+  }
+
+  return [...helperWeightByName.entries()]
+    .sort((left, right) => right[1] - left[1])
+    .map(([name]) => name)
+}
+
+function getAnimatedHelperPrefixes(name: string): readonly string[] {
+  if (AILERON_MESH_PATTERN.test(name)) return ['WING_AILERON_']
+  if (TRAILING_FLAP_MESH_PATTERN.test(name)) return ['WING_FLAP_']
+  if (LEADING_EDGE_MESH_PATTERN.test(name)) return ['WING_FLAPSKRUEGER_']
+  if (SPOILER_MESH_PATTERN.test(name)) return ['WING_SPOILER_']
+  return []
+}
+
+function getAttributeComponent(
+  attribute: BufferAttribute | InterleavedBufferAttribute,
+  index: number,
+  component: number
+): number {
+  switch (component) {
+    case 0:
+      return attribute.getX(index)
+    case 1:
+      return attribute.getY(index)
+    case 2:
+      return attribute.getZ(index)
+    case 3:
+      return attribute.getW(index)
+    default:
+      return 0
+  }
 }
 
 function deinterleaveAttribute(attr: BufferAttribute | InterleavedBufferAttribute): BufferAttribute {
@@ -693,6 +754,13 @@ const EXCLUDED_EXTERIOR_OBJECT_PATTERN =
 
 const RIGHT_WING_TRANSFORM_RESET_PATTERN =
   /^(?:AILERON_RIGHT|WING_RIGHT(?:_1|_FROSTED)?|FLAPS(?:_01|_02)?_RIGHT|FLAPSFAIRING_(?:04|05|06)_RIGHT(?:_1|_FROSTED)?|FLAPSKRUEGER(?:_02)?_RIGHT(?:_FROSTED)?|SPOILER(?:_2_[13])?_RIGHT|Flaps_Details_(?:Spoiler1|01|Verin(?:01|02|10|11|12))_RIGHT|WING_STROBE_RIGHT|DETAIL_TEXT_WING11_RIGHT|DECALS_(?:RIVETS_(?:WING|FLAPS|FLAPSFAIRING[123]|FLAPSKRUEGER_(?:01|02))|CUT_WING)_RIGHT)$/
+
+const AILERON_MESH_PATTERN = /^(?:x0_)?AILERON_(?:LEFT|RIGHT)$/
+const TRAILING_FLAP_MESH_PATTERN =
+  /^(?:x0_)?(?:FLAPS_(?:01|02)_(?:LEFT|RIGHT)|DECALS_RIVETS_FLAPS_(?:LEFT|RIGHT))$/
+const LEADING_EDGE_MESH_PATTERN =
+  /^(?:x0_)?(?:FLAPSKRUEGER(?:_02)?_(?:LEFT|RIGHT)(?:_FROSTED)?|DECALS_RIVETS_FLAPSKRUEGER_(?:01|02)_(?:LEFT|RIGHT))$/
+const SPOILER_MESH_PATTERN = /^(?:x0_)?SPOILER(?:_2_[13])?_(?:LEFT|RIGHT)$/
 
 function shouldResetRightWingTransform(object: Object3D): boolean {
   if (!RIGHT_WING_TRANSFORM_RESET_PATTERN.test(object.name)) {

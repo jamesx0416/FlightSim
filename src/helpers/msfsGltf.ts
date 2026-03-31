@@ -133,7 +133,7 @@ export function applyMsfsAircraftAnimationState(
 
   setSignedClipValue(state.actions.get('elevator_percent_key'), visualState.elevator)
   setSignedClipValue(state.actions.get('rudder_percent_key'), visualState.rudder)
-  setSignedClipValue(state.actions.get('l_aileron_percent_key'), -visualState.aileron)
+  setSignedClipValue(state.actions.get('l_aileron_percent_key'), visualState.aileron)
   setSignedClipValue(state.actions.get('r_aileron_percent_key'), visualState.aileron)
 
   setUnsignedClipValue(state.actions.get('l_flap_percent_key'), visualState.flaps01)

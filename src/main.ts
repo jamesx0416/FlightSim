@@ -255,7 +255,8 @@ async function loadPlaneModelWithFallback(
 
       forceVisibleAndBounds(model)
       repairAircraftGeometry(model)
-      bindA320NativeControlSurfaceNodes(model)
+      applyMsfsAircraftAnimationState(animationState, plane.getVisualState(), 0)
+      bindMsfsAnimatedControlSurfaceNodes(model)
       prepareAircraftMaterials(model)
       plane.setVisual(model)
       onAnimations?.(animationState, model)
@@ -455,29 +456,37 @@ function repairAircraftGeometry(root: Object3D): void {
   })
 }
 
-function bindA320NativeControlSurfaceNodes(root: Object3D): void {
+function bindMsfsAnimatedControlSurfaceNodes(root: Object3D): void {
   root.updateMatrixWorld(true)
 
-  for (const [surfaceName, helperName] of nativeA320ControlSurfaceBindings) {
-    const surface = root.getObjectByName(surfaceName)
-    const helper = root.getObjectByName(helperName)
-    if (!surface || !helper || surface.parent === helper) continue
+  const surfacesToBind: Object3D[] = []
+  root.traverse(object => {
+    const helperNames = object.userData?.msfsAnimationHelperNames
+    if (!Array.isArray(helperNames) || helperNames.length === 0) return
+    surfacesToBind.push(object)
+  })
+
+  for (const surface of surfacesToBind) {
+    const helper = resolveAnimatedHelperNode(root, surface)
+    if (!helper || surface.parent === helper || helper === surface) continue
     helper.attach(surface)
   }
 
   root.updateMatrixWorld(true)
 }
 
-const nativeA320ControlSurfaceBindings = [
-  ['FLAPS_01_LEFT', 'WING_FLAP_01_left'],
-  ['FLAPS_02_LEFT', 'WING_FLAP_02_left'],
-  ['FLAPS_01_RIGHT', 'WING_FLAP_01_right'],
-  ['FLAPS_02_RIGHT', 'WING_FLAP_03_right'],
-  ['FLAPSKRUEGER_LEFT', 'WING_FLAPSKRUEGER_0_left'],
-  ['FLAPSKRUEGER_02_LEFT', 'WING_FLAPSKRUEGER_1_left'],
-  ['FLAPSKRUEGER_RIGHT', 'WING_FLAPSKRUEGER_0_right'],
-  ['FLAPSKRUEGER_02_RIGHT', 'WING_FLAPSKRUEGER_1_right']
-] as const
+function resolveAnimatedHelperNode(root: Object3D, surface: Object3D): Object3D | null {
+  const helperNames = surface.userData?.msfsAnimationHelperNames
+  if (!Array.isArray(helperNames)) return null
+
+  for (const helperName of helperNames) {
+    if (typeof helperName !== 'string' || helperName.length === 0) continue
+    const helper = root.getObjectByName(helperName)
+    if (helper) return helper
+  }
+
+  return null
+}
 
 const windingFlipMeshNames = new Set([
   'x0_FUSELAGE',
