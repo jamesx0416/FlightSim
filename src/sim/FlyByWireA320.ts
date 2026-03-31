@@ -119,6 +119,7 @@ export function flyByWireA320AircraftParams(): AircraftParams {
     angularDampingPerSec: new Vector3(0.26, 0.36, 0.26),
     configuration: {
       flapDetents01: flyByWireA320FbwConfig.flapDetents01,
+      flapSurfaceTargets01: flyByWireA320FbwConfig.flapSurfaceTargets01,
       defaultFlapDetentIndex: flyByWireA320FbwConfig.defaultFlapDetentIndex,
       flapRatePerSec: 0.1,
       gearRatePerSec: 0.22,

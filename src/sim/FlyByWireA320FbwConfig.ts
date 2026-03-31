@@ -13,12 +13,24 @@ import flapsChannelRaw from '../../third_party/flybywire-aircraft/fbw-a32nx/src/
 
 export interface FlyByWireA320FbwConfig {
   readonly flapDetents01: readonly number[]
+  readonly flapSurfaceTargets01: readonly number[]
   readonly defaultFlapDetentIndex: number
   readonly flapVisualSchedule: FlapVisualSchedule
   readonly flapAutoCommand: FlapAutoCommandConfig
 }
 
 const parsedFlapSections = parseMsfsFlapSections(flightModelCfgRaw)
+const flapReferenceSection = parsedFlapSections.find(candidate => candidate.index === 0)
+
+function getRequiredPositionIndex(label: string): number {
+  const positionIndex = flapReferenceSection?.positions.findIndex(
+    position => (position.label ?? '').trim().toUpperCase() === label
+  )
+  if (positionIndex == null || positionIndex < 0) {
+    throw new Error(`Missing FBW flap position label ${label}`)
+  }
+  return positionIndex
+}
 
 function getSectionAngles(sectionIndex: number): readonly number[] {
   const section = parsedFlapSections.find(candidate => candidate.index === sectionIndex)
@@ -49,23 +61,42 @@ function buildFbwConfig(): FlyByWireA320FbwConfig {
     throw new Error('FBW flap sections do not share the same detent count')
   }
 
-  const flapDetents01 = buildEvenDetents01(detentCount)
+  const flapSurfaceDetents01 = buildEvenDetents01(detentCount)
+  const conf0Index = getRequiredPositionIndex('CONF 0')
+  const conf1Index = getRequiredPositionIndex('CONF 1')
+  const conf1FIndex = getRequiredPositionIndex('CONF 1+F')
+  const conf2Index = getRequiredPositionIndex('CONF 2')
+  const conf3Index = getRequiredPositionIndex('CONF 3')
+  const confFullIndex = getRequiredPositionIndex('CONF FULL')
+  const flapHandleSurfaceIndices = [
+    conf0Index,
+    conf1Index,
+    conf2Index,
+    conf3Index,
+    confFullIndex
+  ]
+  const flapDetents01 = buildEvenDetents01(flapHandleSurfaceIndices.length)
+  const flapSurfaceTargets01 = flapHandleSurfaceIndices.map(
+    index => flapSurfaceDetents01[index] ?? 0
+  )
   const flapVisualSchedule: FlapVisualSchedule = {
-    detents01: flapDetents01,
+    detents01: flapSurfaceDetents01,
     trailingOutboardDeg,
     trailingInboardDeg,
     leadingDeg
   }
   const flapAutoCommand: FlapAutoCommandConfig = {
     conf1Handle01: flapDetents01[1] ?? 0,
-    conf1FHandle01: flapDetents01[2] ?? 0,
+    conf1Surface01: flapSurfaceDetents01[conf1Index] ?? 0,
+    conf1FSurface01: flapSurfaceDetents01[conf1FIndex] ?? 0,
     lowSpeedKts: parseSourceConstantNumber(flapsChannelRaw, 'KNOTS_100'),
     highSpeedKts: parseSourceConstantNumber(flapsChannelRaw, 'KNOTS_210')
   }
 
   return {
     flapDetents01,
-    defaultFlapDetentIndex: Math.min(3, flapDetents01.length - 1),
+    flapSurfaceTargets01,
+    defaultFlapDetentIndex: Math.min(2, flapDetents01.length - 1),
     flapVisualSchedule,
     flapAutoCommand
   }

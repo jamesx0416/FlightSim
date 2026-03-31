@@ -26,7 +26,8 @@ export interface FlapVisualSchedule {
 
 export interface FlapAutoCommandConfig {
   conf1Handle01: number
-  conf1FHandle01: number
+  conf1Surface01: number
+  conf1FSurface01: number
   lowSpeedKts: number
   highSpeedKts: number
 }
@@ -90,6 +91,7 @@ export interface AircraftParams {
   throttleToThrustFraction?: LookupTable1D
   configuration?: {
     flapDetents01: readonly number[]
+    flapSurfaceTargets01?: readonly number[]
     defaultFlapDetentIndex?: number
     flapRatePerSec: number
     gearRatePerSec: number

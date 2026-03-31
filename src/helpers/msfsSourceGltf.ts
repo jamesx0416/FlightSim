@@ -315,20 +315,20 @@ function bakeSkinnedMesh(skinned: SkinnedMesh, preserveLocalTransform: boolean):
   bakedMesh.receiveShadow = skinned.receiveShadow
   bakedMesh.renderOrder = skinned.renderOrder
   bakedMesh.userData = { ...skinned.userData }
-  const animationHelperNames = findAnimatedHelperNames(skinned, skinIndex, skinWeight)
-  if (animationHelperNames.length > 0) {
-    bakedMesh.userData.msfsAnimationHelperNames = animationHelperNames
+  const animationHelpers = findAnimatedHelpers(skinned, skinIndex, skinWeight)
+  if (animationHelpers.length > 0) {
+    bakedMesh.userData.msfsAnimationHelpers = animationHelpers
   }
   bakedMesh.frustumCulled = false
 
   return bakedMesh
 }
 
-function findAnimatedHelperNames(
+function findAnimatedHelpers(
   skinned: SkinnedMesh,
   skinIndex: BufferAttribute | InterleavedBufferAttribute,
   skinWeight: BufferAttribute | InterleavedBufferAttribute
-): string[] {
+): { name: string; weight: number }[] {
   const helperPrefixes = getAnimatedHelperPrefixes(skinned.name)
   if (helperPrefixes.length === 0) return []
 
@@ -349,9 +349,17 @@ function findAnimatedHelperNames(
     }
   }
 
-  return [...helperWeightByName.entries()]
-    .sort((left, right) => right[1] - left[1])
-    .map(([name]) => name)
+  const sortedHelpers = [...helperWeightByName.entries()].sort(
+    (left, right) => right[1] - left[1]
+  )
+  const selectedHelpers = sortedHelpers.slice(0, 3)
+  const totalWeight = selectedHelpers.reduce((sum, [, weight]) => sum + weight, 0)
+  if (totalWeight <= 0) return []
+
+  return selectedHelpers.map(([name, weight]) => ({
+    name,
+    weight: weight / totalWeight
+  }))
 }
 
 function getAnimatedHelperPrefixes(name: string): readonly string[] {
