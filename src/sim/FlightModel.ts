@@ -104,6 +104,7 @@ export interface AircraftParams {
     spoilerLiftLossMax: number
     spoilerPitchCmMax: number
     flapVisualSchedule?: FlapVisualSchedule
+    nativeTrailingFlapClipDetents01?: readonly number[]
     flapAutoCommand?: FlapAutoCommandConfig
   }
   aero: AircraftAeroParams
