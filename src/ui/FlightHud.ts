@@ -1,5 +1,7 @@
 import type { PlaneStepResult } from '../entities/Plane'
 
+const KNOTS_PER_MPS = 1.9438444924406046
+
 function formatNumber(value: number, digits = 1): string {
   if (!Number.isFinite(value)) return '—'
   return value.toFixed(digits)
@@ -30,6 +32,7 @@ export class FlightHud {
   update(data: PlaneStepResult, followEnabled: boolean): void {
     const alphaDeg = (data.alphaRad * 180) / Math.PI
     const betaDeg = (data.betaRad * 180) / Math.PI
+    const airspeedKts = data.airspeedMps * KNOTS_PER_MPS
 
     this.el.textContent =
       `Flight\n` +
@@ -40,7 +43,7 @@ export class FlightHud {
       `  roll: ←/→  pitch: ↑/↓  yaw: Q/E\n\n` +
       `State\n` +
       `  alt: ${formatNumber(data.altitudeMeters, 0)} m\n` +
-      `  V:   ${formatNumber(data.airspeedMps, 1)} m/s\n` +
+      `  V:   ${formatNumber(airspeedKts, 1)} kt\n` +
       `  rho: ${formatNumber(data.rhoKgPerM3, 3)} kg/m³\n` +
       `  α:   ${formatNumber(alphaDeg, 1)}°\n` +
       `  β:   ${formatNumber(betaDeg, 1)}°\n` +

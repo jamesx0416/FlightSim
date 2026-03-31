@@ -191,8 +191,13 @@ export class Plane {
     if (!configuration) return this.controls.flapTarget01
 
     const handleDetents01 = configuration.flapDetents01
+    const flapSurfaceTargets01 = configuration.flapSurfaceTargets01 ?? handleDetents01
     const autoCommand = configuration.flapAutoCommand
     const handleIndex = nearestDetentIndex(handleDetents01, this.controls.flapTarget01)
+    const surfaceTarget01 =
+      flapSurfaceTargets01[
+        Math.max(0, Math.min(handleIndex, flapSurfaceTargets01.length - 1))
+      ] ?? this.controls.flapTarget01
 
     if (
       !autoCommand ||
@@ -200,14 +205,14 @@ export class Plane {
     ) {
       this.previousFlapHandle01 = this.controls.flapTarget01
       this.flapAutoTarget01 = null
-      return this.controls.flapTarget01
+      return surfaceTarget01
     }
 
     const airspeedKts = airspeedMps * KNOTS_PER_MPS
     if (airspeedKts <= autoCommand.lowSpeedKts) {
-      this.flapAutoTarget01 = autoCommand.conf1FHandle01
+      this.flapAutoTarget01 = autoCommand.conf1FSurface01
     } else if (airspeedKts >= autoCommand.highSpeedKts) {
-      this.flapAutoTarget01 = autoCommand.conf1Handle01
+      this.flapAutoTarget01 = autoCommand.conf1Surface01
     } else if (this.flapAutoTarget01 == null) {
       const previousHandleIndex = nearestDetentIndex(
         handleDetents01,
@@ -215,8 +220,8 @@ export class Plane {
       )
       this.flapAutoTarget01 =
         previousHandleIndex > handleIndex
-          ? autoCommand.conf1FHandle01
-          : autoCommand.conf1Handle01
+          ? autoCommand.conf1FSurface01
+          : autoCommand.conf1Surface01
     }
 
     this.previousFlapHandle01 = this.controls.flapTarget01

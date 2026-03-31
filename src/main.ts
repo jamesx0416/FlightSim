@@ -15,6 +15,7 @@ import {
   Object3D,
   PerspectiveCamera,
   Quaternion,
+  Vector4,
   Scene,
   SkinnedMesh,
   Vector3
@@ -255,8 +256,34 @@ async function loadPlaneModelWithFallback(
 
       forceVisibleAndBounds(model)
       repairAircraftGeometry(model)
-      applyMsfsAircraftAnimationState(animationState, plane.getVisualState(), 0)
-      bindMsfsAnimatedControlSurfaceNodes(model)
+      const initialVisualState = plane.getVisualState()
+      applyMsfsAircraftAnimationState(
+        animationState,
+        initialVisualState,
+        0,
+        plane.params.configuration?.flapVisualSchedule
+      )
+      bindMsfsAnimatedControlSurfaceNodes(
+        model,
+        object => !NATIVE_OUTBOARD_FLAP_PATTERN.test(object.name)
+      )
+      applyMsfsAircraftAnimationState(
+        animationState,
+        { ...initialVisualState, flaps01: 0 },
+        0,
+        plane.params.configuration?.flapVisualSchedule
+      )
+      bindMsfsAnimatedControlSurfaceNodes(
+        model,
+        object => NATIVE_OUTBOARD_FLAP_PATTERN.test(object.name)
+      )
+      applyMsfsAircraftAnimationState(
+        animationState,
+        initialVisualState,
+        0,
+        plane.params.configuration?.flapVisualSchedule
+      )
+      updateMsfsAnimatedControlSurfaceNodes(model)
       prepareAircraftMaterials(model)
       plane.setVisual(model)
       onAnimations?.(animationState, model)
@@ -456,36 +483,166 @@ function repairAircraftGeometry(root: Object3D): void {
   })
 }
 
-function bindMsfsAnimatedControlSurfaceNodes(root: Object3D): void {
+interface MsfsAnimatedHelperBinding {
+  readonly name: string
+  readonly weight: number
+}
+
+interface MsfsAnimatedSurfaceBinding {
+  readonly pivot: Object3D
+  readonly helpers: Array<{ object: Object3D; weight: number }>
+}
+
+function bindMsfsAnimatedControlSurfaceNodes(
+  root: Object3D,
+  predicate: (object: Object3D) => boolean = () => true
+): void {
   root.updateMatrixWorld(true)
 
-  const surfacesToBind: Object3D[] = []
+  const surfacesToBind: Array<{
+    object: Object3D
+    helpers: Array<{ object: Object3D; weight: number }>
+  }> = []
+
   root.traverse(object => {
-    const helperNames = object.userData?.msfsAnimationHelperNames
-    if (!Array.isArray(helperNames) || helperNames.length === 0) return
-    surfacesToBind.push(object)
+    if (!predicate(object)) return
+    const helperBindings = resolveAnimatedHelperBindings(root, object)
+    if (helperBindings.length === 0) return
+    surfacesToBind.push({ object, helpers: helperBindings })
   })
 
+  const surfaceBindings =
+    (root.userData.msfsAnimatedSurfaceBindings as MsfsAnimatedSurfaceBinding[] | undefined) ?? []
   for (const surface of surfacesToBind) {
-    const helper = resolveAnimatedHelperNode(root, surface)
-    if (!helper || surface.parent === helper || helper === surface) continue
-    helper.attach(surface)
+    const pivot = new Object3D()
+    pivot.name = `msfs_anim_${surface.object.name}`
+    root.add(pivot)
+
+    applyWeightedHelperTransform(root, pivot, surface.helpers)
+    pivot.attach(surface.object)
+    surfaceBindings.push({ pivot, helpers: surface.helpers })
   }
+
+  root.userData.msfsAnimatedSurfaceBindings = surfaceBindings
 
   root.updateMatrixWorld(true)
 }
 
-function resolveAnimatedHelperNode(root: Object3D, surface: Object3D): Object3D | null {
-  const helperNames = surface.userData?.msfsAnimationHelperNames
-  if (!Array.isArray(helperNames)) return null
+function updateMsfsAnimatedControlSurfaceNodes(root: Object3D): void {
+  const surfaceBindings = root.userData?.msfsAnimatedSurfaceBindings as
+    | MsfsAnimatedSurfaceBinding[]
+    | undefined
+  if (!Array.isArray(surfaceBindings) || surfaceBindings.length === 0) return
 
-  for (const helperName of helperNames) {
-    if (typeof helperName !== 'string' || helperName.length === 0) continue
-    const helper = root.getObjectByName(helperName)
-    if (helper) return helper
+  root.updateMatrixWorld(true)
+  for (const binding of surfaceBindings) {
+    applyWeightedHelperTransform(root, binding.pivot, binding.helpers)
+  }
+  root.updateMatrixWorld(true)
+}
+
+function resolveAnimatedHelperBindings(
+  root: Object3D,
+  surface: Object3D
+): Array<{ object: Object3D; weight: number }> {
+  if (NATIVE_FLAP_SKIP_PATTERN.test(surface.name)) {
+    return []
   }
 
-  return null
+  const helperBindings = surface.userData?.msfsAnimationHelpers as
+    | MsfsAnimatedHelperBinding[]
+    | undefined
+  if (!Array.isArray(helperBindings)) return []
+
+  const resolvedBindings: Array<{ object: Object3D; weight: number }> = []
+  for (const helperBinding of helperBindings) {
+    if (
+      !helperBinding ||
+      typeof helperBinding.name !== 'string' ||
+      !Number.isFinite(helperBinding.weight) ||
+      helperBinding.weight <= 0
+    ) {
+      continue
+    }
+
+    const helper = root.getObjectByName(helperBinding.name)
+    if (!helper || helper === surface) continue
+    resolvedBindings.push({ object: helper, weight: helperBinding.weight })
+  }
+
+  const totalWeight = resolvedBindings.reduce((sum, binding) => sum + binding.weight, 0)
+  if (totalWeight <= 0) return []
+  return resolvedBindings.map(binding => ({
+    object: binding.object,
+    weight: binding.weight / totalWeight
+  }))
+}
+
+const blendedPositionScratch = new Vector3()
+const blendedQuaternionScratch = new Quaternion()
+const helperWorldPositionScratch = new Vector3()
+const helperWorldQuaternionScratch = new Quaternion()
+const rootWorldQuaternionScratch = new Quaternion()
+const blendedQuaternionVectorScratch = new Vector4()
+const helperQuaternionVectorScratch = new Vector4()
+const NATIVE_FLAP_SKIP_PATTERN = /^(?:x0_)?FLAPS_01_(?:LEFT|RIGHT)$/
+const NATIVE_OUTBOARD_FLAP_PATTERN = /^(?:x0_)?FLAPS_02_(?:LEFT|RIGHT)$/
+
+function applyWeightedHelperTransform(
+  root: Object3D,
+  pivot: Object3D,
+  helpers: Array<{ object: Object3D; weight: number }>
+): void {
+  if (helpers.length === 0) return
+
+  blendedPositionScratch.set(0, 0, 0)
+  blendedQuaternionVectorScratch.set(0, 0, 0, 0)
+  let referenceQuaternion: Quaternion | null = null
+
+  for (const helper of helpers) {
+    helper.object.getWorldPosition(helperWorldPositionScratch)
+    blendedPositionScratch.addScaledVector(helperWorldPositionScratch, helper.weight)
+
+    helper.object.getWorldQuaternion(helperWorldQuaternionScratch)
+    if (referenceQuaternion == null) {
+      referenceQuaternion = helperWorldQuaternionScratch.clone()
+    } else if (referenceQuaternion.dot(helperWorldQuaternionScratch) < 0) {
+      helperWorldQuaternionScratch.set(
+        -helperWorldQuaternionScratch.x,
+        -helperWorldQuaternionScratch.y,
+        -helperWorldQuaternionScratch.z,
+        -helperWorldQuaternionScratch.w
+      )
+    }
+
+    helperQuaternionVectorScratch.set(
+      helperWorldQuaternionScratch.x,
+      helperWorldQuaternionScratch.y,
+      helperWorldQuaternionScratch.z,
+      helperWorldQuaternionScratch.w
+    )
+    blendedQuaternionVectorScratch.addScaledVector(
+      helperQuaternionVectorScratch,
+      helper.weight
+    )
+  }
+
+  blendedQuaternionScratch.set(
+    blendedQuaternionVectorScratch.x,
+    blendedQuaternionVectorScratch.y,
+    blendedQuaternionVectorScratch.z,
+    blendedQuaternionVectorScratch.w
+  )
+  if (blendedQuaternionScratch.lengthSq() <= 1e-8) {
+    blendedQuaternionScratch.identity()
+  } else {
+    blendedQuaternionScratch.normalize()
+  }
+
+  pivot.position.copy(root.worldToLocal(blendedPositionScratch.clone()))
+  root.getWorldQuaternion(rootWorldQuaternionScratch)
+  pivot.quaternion.copy(rootWorldQuaternionScratch).invert().multiply(blendedQuaternionScratch)
+  pivot.updateMatrix()
 }
 
 const windingFlipMeshNames = new Set([
@@ -758,17 +915,29 @@ async function init(): Promise<() => void> {
   loadPlaneModel(plane, renderer, (state, model) => {
     planeAnimationState = state
     if (!model) return
-    aircraftVisualAnimator = hasNativeAircraftAnimations(state)
-      ? null
-      : new A320VisualAnimator(
-          model,
-          planeParams.configuration?.flapVisualSchedule ?? {
-            detents01: planeParams.configuration?.flapDetents01 ?? [0, 1],
-            trailingOutboardDeg: [0, 40],
-            trailingInboardDeg: [0, 40],
-            leadingDeg: [0, 27]
+    const usesNativeAircraftAnimations = hasNativeAircraftAnimations(state)
+    aircraftVisualAnimator = new A320VisualAnimator(
+      model,
+      planeParams.configuration?.flapVisualSchedule ?? {
+        detents01: planeParams.configuration?.flapDetents01 ?? [0, 1],
+        trailingOutboardDeg: [0, 40],
+        trailingInboardDeg: [0, 40],
+        leadingDeg: [0, 27]
+      },
+      usesNativeAircraftAnimations
+        ? {
+            enableAilerons: false,
+            enableElevator: false,
+            enableRudder: false,
+            enableLeadingEdge: false,
+            enableSpoilers: false,
+            enableGear: false,
+            enableTrailingFlaps: true,
+            enableInboardTrailingFlaps: true,
+            enableOutboardTrailingFlaps: false
           }
-        )
+        : undefined
+    )
     wheelCycle01 = 0
     lastRenderTimeMs = 0
   })
@@ -885,8 +1054,13 @@ async function init(): Promise<() => void> {
       applyMsfsAircraftAnimationState(
         planeAnimationState,
         plane.getVisualState(),
-        wheelCycle01
+        wheelCycle01,
+        planeParams.configuration?.flapVisualSchedule
       )
+      const planeModel = plane.mesh.children[0]
+      if (planeModel) {
+        updateMsfsAnimatedControlSurfaceNodes(planeModel)
+      }
     } else {
       lastRenderTimeMs = timeMs
     }

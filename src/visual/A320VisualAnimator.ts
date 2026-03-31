@@ -13,6 +13,18 @@ interface AnimatedNode {
   readonly amount: (state: AircraftVisualState) => number
 }
 
+export interface A320VisualAnimatorOptions {
+  readonly enableAilerons?: boolean
+  readonly enableElevator?: boolean
+  readonly enableRudder?: boolean
+  readonly enableTrailingFlaps?: boolean
+  readonly enableInboardTrailingFlaps?: boolean
+  readonly enableOutboardTrailingFlaps?: boolean
+  readonly enableLeadingEdge?: boolean
+  readonly enableSpoilers?: boolean
+  readonly enableGear?: boolean
+}
+
 const rotationScratch = new Quaternion()
 const pivotScratch = new Vector3()
 const offsetScratch = new Vector3()
@@ -36,8 +48,12 @@ const vertexScratch = new Vector3()
 export class A320VisualAnimator {
   private readonly animatedNodes: AnimatedNode[]
 
-  constructor(root: Object3D, flapVisualSchedule: FlapVisualSchedule) {
-    this.animatedNodes = collectAnimatedNodes(root, flapVisualSchedule)
+  constructor(
+    root: Object3D,
+    flapVisualSchedule: FlapVisualSchedule,
+    options: A320VisualAnimatorOptions = {}
+  ) {
+    this.animatedNodes = collectAnimatedNodes(root, flapVisualSchedule, options)
   }
 
   update(state: AircraftVisualState): void {
@@ -57,7 +73,8 @@ export class A320VisualAnimator {
 
 function collectAnimatedNodes(
   root: Object3D,
-  flapVisualSchedule: FlapVisualSchedule
+  flapVisualSchedule: FlapVisualSchedule,
+  options: A320VisualAnimatorOptions
 ): AnimatedNode[] {
   const animatedNodes: AnimatedNode[] = []
   const candidates: Array<{ object: Object3D; name: string }> = []
@@ -69,7 +86,7 @@ function collectAnimatedNodes(
   })
 
   for (const { object, name } of candidates) {
-    const animatedNode = createAnimatedNode(root, object, name, flapVisualSchedule)
+    const animatedNode = createAnimatedNode(root, object, name, flapVisualSchedule, options)
     if (animatedNode) animatedNodes.push(animatedNode)
   }
 
@@ -80,11 +97,12 @@ function createAnimatedNode(
   root: Object3D,
   object: Object3D,
   name: string,
-  flapVisualSchedule: FlapVisualSchedule
+  flapVisualSchedule: FlapVisualSchedule,
+  options: A320VisualAnimatorOptions
 ): AnimatedNode | null {
   const upperName = name.toUpperCase()
 
-  if (aileronNodeNames.has(upperName)) {
+  if (options.enableAilerons !== false && aileronNodeNames.has(upperName)) {
     const sign = upperName.includes('_RIGHT') ? -1 : 1
     return createAileronNode(
       root,
@@ -94,7 +112,7 @@ function createAnimatedNode(
     )
   }
 
-  if (elevatorNodeNames.has(upperName)) {
+  if (options.enableElevator !== false && elevatorNodeNames.has(upperName)) {
     const sign = upperName.includes('_RIGHT') ? -1 : 1
     return createNode(
       object,
@@ -103,7 +121,7 @@ function createAnimatedNode(
     )
   }
 
-  if (rudderNodeNames.has(upperName)) {
+  if (options.enableRudder !== false && rudderNodeNames.has(upperName)) {
     return createNode(
       object,
       new Vector3(0, 1, 0),
@@ -111,8 +129,13 @@ function createAnimatedNode(
     )
   }
 
-  if (trailingFlapNodeNames.has(upperName)) {
+  if (options.enableTrailingFlaps !== false && trailingFlapNodeNames.has(upperName)) {
     const isInboard = upperName.includes('FLAPS_01')
+    if (isInboard) {
+      if (options.enableInboardTrailingFlaps === false) return null
+    } else if (options.enableOutboardTrailingFlaps === false) {
+      return null
+    }
     const flapAngleSign = trailingFlapAngleSignByNodeName[upperName] ?? 1
     return createNode(
       object,
@@ -126,7 +149,7 @@ function createAnimatedNode(
     )
   }
 
-  if (leadingEdgeNodeNames.has(upperName)) {
+  if (options.enableLeadingEdge !== false && leadingEdgeNodeNames.has(upperName)) {
     const referencedNode = createReferencedHingeNode(
       root,
       object,
@@ -142,7 +165,7 @@ function createAnimatedNode(
     )
   }
 
-  if (spoilerNodeNames.has(upperName)) {
+  if (options.enableSpoilers !== false && spoilerNodeNames.has(upperName)) {
     const isRightSide = upperName.includes('_RIGHT') || upperName.endsWith('_R')
     const amount = (state: AircraftVisualState) => {
       const rollSpoiler = isRightSide
@@ -161,7 +184,7 @@ function createAnimatedNode(
     return createNode(object, new Vector3(1, 0, 0), amount, 'spoiler')
   }
 
-  if (gearPrimaryNodeNames.has(upperName)) {
+  if (options.enableGear !== false && gearPrimaryNodeNames.has(upperName)) {
     const sign = upperName.endsWith('_RIGHT') ? -1 : 1
     return createNode(
       object,
@@ -170,7 +193,7 @@ function createAnimatedNode(
     )
   }
 
-  if (gearSecondaryNodeNames.has(upperName)) {
+  if (options.enableGear !== false && gearSecondaryNodeNames.has(upperName)) {
     const sign = upperName.endsWith('_RIGHT') ? 1 : -1
     return createNode(
       object,
@@ -179,7 +202,10 @@ function createAnimatedNode(
     )
   }
 
-  if (matchesName(upperName, gearDoorNodeNames, gearDoorNodePrefixes)) {
+  if (
+    options.enableGear !== false &&
+    matchesName(upperName, gearDoorNodeNames, gearDoorNodePrefixes)
+  ) {
     const sign = upperName.includes('_RIGHT') ? -1 : 1
     return createNode(
       object,
