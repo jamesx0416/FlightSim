@@ -1,6 +1,7 @@
 import { Vector3 } from 'three'
 import type { AircraftParams } from './FlightModel'
 import type { LookupTable1D } from './LookupTable'
+import { flyByWireA320FbwConfig } from './FlyByWireA320FbwConfig'
 
 // Derived from:
 // - third_party/flybywire-aircraft/fbw-a32nx/.../flight_model.cfg
@@ -117,7 +118,8 @@ export function flyByWireA320AircraftParams(): AircraftParams {
     },
     angularDampingPerSec: new Vector3(0.26, 0.36, 0.26),
     configuration: {
-      flapDetents01: [0, 0.2, 0.45, 0.7, 1],
+      flapDetents01: flyByWireA320FbwConfig.flapDetents01,
+      defaultFlapDetentIndex: flyByWireA320FbwConfig.defaultFlapDetentIndex,
       flapRatePerSec: 0.1,
       gearRatePerSec: 0.22,
       spoilerRatePerSec: 1.8,
@@ -127,7 +129,9 @@ export function flyByWireA320AircraftParams(): AircraftParams {
       gearDragCdMax: 0.045,
       spoilerDragCdMax: 0.16,
       spoilerLiftLossMax: 0.42,
-      spoilerPitchCmMax: 0.03
+      spoilerPitchCmMax: 0.03,
+      flapVisualSchedule: flyByWireA320FbwConfig.flapVisualSchedule,
+      flapAutoCommand: flyByWireA320FbwConfig.flapAutoCommand
     },
     aero: {
       CL0: 0.138,

@@ -1,5 +1,6 @@
 import { Box3, Matrix4, Mesh, Object3D, Quaternion, Vector3 } from 'three'
 import type { AircraftVisualState } from '../entities/Plane'
+import type { FlapVisualSchedule } from '../sim/FlightModel'
 
 interface AnimatedNode {
   readonly object: Object3D
@@ -35,8 +36,8 @@ const vertexScratch = new Vector3()
 export class A320VisualAnimator {
   private readonly animatedNodes: AnimatedNode[]
 
-  constructor(root: Object3D) {
-    this.animatedNodes = collectAnimatedNodes(root)
+  constructor(root: Object3D, flapVisualSchedule: FlapVisualSchedule) {
+    this.animatedNodes = collectAnimatedNodes(root, flapVisualSchedule)
   }
 
   update(state: AircraftVisualState): void {
@@ -54,7 +55,10 @@ export class A320VisualAnimator {
   }
 }
 
-function collectAnimatedNodes(root: Object3D): AnimatedNode[] {
+function collectAnimatedNodes(
+  root: Object3D,
+  flapVisualSchedule: FlapVisualSchedule
+): AnimatedNode[] {
   const animatedNodes: AnimatedNode[] = []
   const candidates: Array<{ object: Object3D; name: string }> = []
 
@@ -65,7 +69,7 @@ function collectAnimatedNodes(root: Object3D): AnimatedNode[] {
   })
 
   for (const { object, name } of candidates) {
-    const animatedNode = createAnimatedNode(root, object, name)
+    const animatedNode = createAnimatedNode(root, object, name, flapVisualSchedule)
     if (animatedNode) animatedNodes.push(animatedNode)
   }
 
@@ -75,7 +79,8 @@ function collectAnimatedNodes(root: Object3D): AnimatedNode[] {
 function createAnimatedNode(
   root: Object3D,
   object: Object3D,
-  name: string
+  name: string,
+  flapVisualSchedule: FlapVisualSchedule
 ): AnimatedNode | null {
   const upperName = name.toUpperCase()
 
@@ -107,17 +112,16 @@ function createAnimatedNode(
   }
 
   if (trailingFlapNodeNames.has(upperName)) {
-    const referencedNode = createReferencedHingeNode(
-      root,
-      object,
-      trailingFlapHelperByNodeName[upperName],
-      state => radians(32) * state.flaps01
-    )
-    if (referencedNode) return referencedNode
+    const isInboard = upperName.includes('FLAPS_01')
+    const flapAngleSign = trailingFlapAngleSignByNodeName[upperName] ?? 1
     return createNode(
       object,
       new Vector3(1, 0, 0),
-      state => radians(32) * state.flaps01,
+      state =>
+        radians(
+          a320TrailingFlapAngle(state.flaps01, isInboard, flapVisualSchedule) *
+            flapAngleSign
+        ),
       'trailing'
     )
   }
@@ -127,13 +131,13 @@ function createAnimatedNode(
       root,
       object,
       leadingEdgeHelperByNodeName[upperName],
-      state => radians(18) * state.flaps01
+      state => radians(a320LeadingEdgeAngle(state.flaps01, flapVisualSchedule))
     )
     if (referencedNode) return referencedNode
     return createNode(
       object,
       new Vector3(1, 0, 0),
-      state => radians(18) * state.flaps01,
+      state => radians(a320LeadingEdgeAngle(state.flaps01, flapVisualSchedule)),
       'leading'
     )
   }
@@ -426,6 +430,58 @@ function radians(valueDeg: number): number {
   return (valueDeg * Math.PI) / 180
 }
 
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t
+}
+
+function scheduleAngle(
+  flaps01: number,
+  detents01: readonly number[],
+  anglesDeg: readonly number[]
+): number {
+  const clampedFlaps01 = Math.max(0, Math.min(1, flaps01))
+  if (detents01.length === 0 || anglesDeg.length === 0) return 0
+  if (detents01.length === 1 || anglesDeg.length === 1) return anglesDeg[0] ?? 0
+
+  if (clampedFlaps01 <= detents01[0]) return anglesDeg[0] ?? 0
+
+  for (let index = 1; index < detents01.length; index += 1) {
+    const previousDetent = detents01[index - 1]
+    const nextDetent = detents01[index]
+    if (clampedFlaps01 > nextDetent) continue
+    const span = nextDetent - previousDetent
+    const t = span > 0 ? (clampedFlaps01 - previousDetent) / span : 0
+    return lerp(anglesDeg[index - 1] ?? 0, anglesDeg[index] ?? 0, t)
+  }
+
+  return anglesDeg[anglesDeg.length - 1] ?? 0
+}
+
+function a320TrailingFlapAngle(
+  flaps01: number,
+  isInboard: boolean,
+  flapVisualSchedule: FlapVisualSchedule
+): number {
+  return scheduleAngle(
+    flaps01,
+    flapVisualSchedule.detents01,
+    isInboard
+      ? flapVisualSchedule.trailingInboardDeg
+      : flapVisualSchedule.trailingOutboardDeg
+  )
+}
+
+function a320LeadingEdgeAngle(
+  flaps01: number,
+  flapVisualSchedule: FlapVisualSchedule
+): number {
+  return scheduleAngle(
+    flaps01,
+    flapVisualSchedule.detents01,
+    flapVisualSchedule.leadingDeg
+  )
+}
+
 const aileronNodeNames = new Set(['AILERON_LEFT', 'AILERON_RIGHT'])
 
 const elevatorNodeNames = new Set([
@@ -474,11 +530,11 @@ const spoilerHelperByNodeName: Record<string, string> = {
   SPOILER_2_3_RIGHT: 'WING_SPOILER_2_3_right'
 }
 
-const trailingFlapHelperByNodeName: Record<string, string> = {
-  FLAPS_01_LEFT: 'WING_FLAP_01_left',
-  FLAPS_02_LEFT: 'WING_FLAP_02_left',
-  FLAPS_01_RIGHT: 'WING_FLAP_01_right',
-  FLAPS_02_RIGHT: 'WING_FLAP_02_right'
+const trailingFlapAngleSignByNodeName: Record<string, number> = {
+  FLAPS_01_LEFT: -1,
+  FLAPS_02_LEFT: 1,
+  FLAPS_01_RIGHT: -1,
+  FLAPS_02_RIGHT: 1
 }
 
 const gearPrimaryNodeNames = new Set(['GEAR_BONE01_LEFT', 'GEAR_BONE01_RIGHT'])

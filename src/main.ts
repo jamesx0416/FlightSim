@@ -255,6 +255,7 @@ async function loadPlaneModelWithFallback(
 
       forceVisibleAndBounds(model)
       repairAircraftGeometry(model)
+      bindA320NativeControlSurfaceNodes(model)
       prepareAircraftMaterials(model)
       plane.setVisual(model)
       onAnimations?.(animationState, model)
@@ -453,6 +454,30 @@ function repairAircraftGeometry(root: Object3D): void {
     mesh.geometry = geometry
   })
 }
+
+function bindA320NativeControlSurfaceNodes(root: Object3D): void {
+  root.updateMatrixWorld(true)
+
+  for (const [surfaceName, helperName] of nativeA320ControlSurfaceBindings) {
+    const surface = root.getObjectByName(surfaceName)
+    const helper = root.getObjectByName(helperName)
+    if (!surface || !helper || surface.parent === helper) continue
+    helper.attach(surface)
+  }
+
+  root.updateMatrixWorld(true)
+}
+
+const nativeA320ControlSurfaceBindings = [
+  ['FLAPS_01_LEFT', 'WING_FLAP_01_left'],
+  ['FLAPS_02_LEFT', 'WING_FLAP_02_left'],
+  ['FLAPS_01_RIGHT', 'WING_FLAP_01_right'],
+  ['FLAPS_02_RIGHT', 'WING_FLAP_03_right'],
+  ['FLAPSKRUEGER_LEFT', 'WING_FLAPSKRUEGER_0_left'],
+  ['FLAPSKRUEGER_02_LEFT', 'WING_FLAPSKRUEGER_1_left'],
+  ['FLAPSKRUEGER_RIGHT', 'WING_FLAPSKRUEGER_0_right'],
+  ['FLAPSKRUEGER_02_RIGHT', 'WING_FLAPSKRUEGER_1_right']
+] as const
 
 const windingFlipMeshNames = new Set([
   'x0_FUSELAGE',
@@ -688,10 +713,15 @@ async function init(): Promise<() => void> {
     controls.adjustHeight = true
   })
 
-  const keyboard = new KeyboardFlightControls()
+  const planeParams = flyByWireA320AircraftParams()
+  const keyboard = new KeyboardFlightControls(
+    window,
+    planeParams.configuration?.flapDetents01,
+    planeParams.configuration?.defaultFlapDetentIndex
+  )
   const hud = new FlightHud()
 
-  const plane = new Plane(flyByWireA320AircraftParams())
+  const plane = new Plane(planeParams)
   scene.add(plane.mesh)
   const controlsAny = controls as any
   const originalSetState = controlsAny.setState?.bind(controlsAny)
@@ -721,7 +751,15 @@ async function init(): Promise<() => void> {
     if (!model) return
     aircraftVisualAnimator = hasNativeAircraftAnimations(state)
       ? null
-      : new A320VisualAnimator(model)
+      : new A320VisualAnimator(
+          model,
+          planeParams.configuration?.flapVisualSchedule ?? {
+            detents01: planeParams.configuration?.flapDetents01 ?? [0, 1],
+            trailingOutboardDeg: [0, 40],
+            trailingInboardDeg: [0, 40],
+            leadingDeg: [0, 27]
+          }
+        )
     wheelCycle01 = 0
     lastRenderTimeMs = 0
   })

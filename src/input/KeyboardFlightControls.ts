@@ -7,14 +7,23 @@ function clamp(value: number, min: number, max: number): number {
 export class KeyboardFlightControls {
   private readonly pressed = new Set<string>()
   private throttle01 = 0.35
-  private flapDetentIndex = 2
-  private readonly flapDetents01 = [0, 0.2, 0.45, 0.7, 1] as const
+  private flapDetentIndex: number
+  private readonly flapDetents01: readonly number[]
   private gearDown = true
   private spoiler01 = 0
   private follow = true
   private resetRequested = false
 
-  constructor(private readonly element: Window = window) {
+  constructor(
+    private readonly element: Window = window,
+    flapDetents01: readonly number[] = [0, 0.33, 0.66, 1],
+    defaultFlapDetentIndex = Math.min(2, flapDetents01.length - 1)
+  ) {
+    this.flapDetents01 = flapDetents01
+    this.flapDetentIndex = Math.max(
+      0,
+      Math.min(defaultFlapDetentIndex, this.flapDetents01.length - 1)
+    )
     this.element.addEventListener('keydown', this.onKeyDown)
     this.element.addEventListener('keyup', this.onKeyUp)
   }

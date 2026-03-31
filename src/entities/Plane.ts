@@ -17,6 +17,7 @@ import {
 import { MeshBasicNodeMaterial } from 'three/webgpu'
 
 const G0 = 9.80665
+const KNOTS_PER_MPS = 1.9438444924406046
 
 const forceBodyScratch = /*#__PURE__*/ new Vector3()
 const torqueBodyScratch = /*#__PURE__*/ new Vector3()
@@ -58,18 +59,24 @@ export class Plane {
     aileron: 0,
     elevator: 0,
     rudder: 0,
-    flapTarget01: 0.45,
+    flapTarget01: 0,
     gearDown: true,
     spoilerTarget01: 0
   }
   private readonly configurationState: AircraftConfigurationState = {
-    flaps01: 0.45,
+    flaps01: 0,
     gear01: 1,
     spoiler01: 0
   }
+  private previousFlapHandle01 = 0
+  private flapAutoTarget01: number | null = null
 
   constructor(readonly params: AircraftParams) {
     this.mesh = createDebugPlaneMesh()
+    const defaultFlapDetent01 = getDefaultFlapDetent01(params)
+    this.controls.flapTarget01 = defaultFlapDetent01
+    this.configurationState.flaps01 = defaultFlapDetent01
+    this.previousFlapHandle01 = defaultFlapDetent01
   }
 
   setVisual(object: Object3D): void {
@@ -114,7 +121,6 @@ export class Plane {
   step(dtSeconds: number): PlaneStepResult {
     this.frame.updateFromECEF(this.positionECEF)
     const rho = airDensityKgPerM3AtAltitudeMeters(this.frame.altitudeMeters)
-    this.integrateConfiguration(dtSeconds)
 
     vNedScratch.copy(this.velocityECEF).applyMatrix3(this.frame.ecefToNed)
 
@@ -124,6 +130,7 @@ export class Plane {
     qNedToBodyScratch.copy(qBodyToNedScratch).invert()
 
     vBodyScratch.copy(vNedScratch).applyQuaternion(qNedToBodyScratch)
+    this.integrateConfiguration(dtSeconds, vBodyScratch.length())
 
     const telemetry = computeForcesAndTorquesBody(
       this.params,
@@ -157,13 +164,14 @@ export class Plane {
     return { ...telemetry, altitudeMeters: this.frame.altitudeMeters }
   }
 
-  private integrateConfiguration(dtSeconds: number): void {
+  private integrateConfiguration(dtSeconds: number, airspeedMps: number): void {
     const configuration = this.params.configuration
     if (!configuration || dtSeconds <= 0) return
+    const flapSurfaceTarget01 = this.resolveFlapSurfaceTarget01(airspeedMps)
 
     this.configurationState.flaps01 = moveToward(
       this.configurationState.flaps01,
-      this.controls.flapTarget01,
+      flapSurfaceTarget01,
       configuration.flapRatePerSec * dtSeconds
     )
     this.configurationState.gear01 = moveToward(
@@ -176,6 +184,43 @@ export class Plane {
       this.controls.spoilerTarget01,
       configuration.spoilerRatePerSec * dtSeconds
     )
+  }
+
+  private resolveFlapSurfaceTarget01(airspeedMps: number): number {
+    const configuration = this.params.configuration
+    if (!configuration) return this.controls.flapTarget01
+
+    const handleDetents01 = configuration.flapDetents01
+    const autoCommand = configuration.flapAutoCommand
+    const handleIndex = nearestDetentIndex(handleDetents01, this.controls.flapTarget01)
+
+    if (
+      !autoCommand ||
+      handleIndex !== nearestDetentIndex(handleDetents01, autoCommand.conf1Handle01)
+    ) {
+      this.previousFlapHandle01 = this.controls.flapTarget01
+      this.flapAutoTarget01 = null
+      return this.controls.flapTarget01
+    }
+
+    const airspeedKts = airspeedMps * KNOTS_PER_MPS
+    if (airspeedKts <= autoCommand.lowSpeedKts) {
+      this.flapAutoTarget01 = autoCommand.conf1FHandle01
+    } else if (airspeedKts >= autoCommand.highSpeedKts) {
+      this.flapAutoTarget01 = autoCommand.conf1Handle01
+    } else if (this.flapAutoTarget01 == null) {
+      const previousHandleIndex = nearestDetentIndex(
+        handleDetents01,
+        this.previousFlapHandle01
+      )
+      this.flapAutoTarget01 =
+        previousHandleIndex > handleIndex
+          ? autoCommand.conf1FHandle01
+          : autoCommand.conf1Handle01
+    }
+
+    this.previousFlapHandle01 = this.controls.flapTarget01
+    return this.flapAutoTarget01 ?? this.controls.flapTarget01
   }
 
   private integrateRotation(dtSeconds: number, torqueBodyNm: Vector3): void {
@@ -243,6 +288,34 @@ function moveToward(current: number, target: number, maxStep: number): number {
   if (target > current) return Math.min(target, current + maxStep)
   if (target < current) return Math.max(target, current - maxStep)
   return current
+}
+
+function getDefaultFlapDetent01(params: AircraftParams): number {
+  const flapDetents01 = params.configuration?.flapDetents01
+  if (!flapDetents01 || flapDetents01.length === 0) return 0
+  const defaultIndex = Math.max(
+    0,
+    Math.min(
+      params.configuration?.defaultFlapDetentIndex ?? Math.min(2, flapDetents01.length - 1),
+      flapDetents01.length - 1
+    )
+  )
+  return flapDetents01[defaultIndex] ?? 0
+}
+
+function nearestDetentIndex(detents01: readonly number[], target01: number): number {
+  if (detents01.length === 0) return 0
+
+  let bestIndex = 0
+  let bestDistance = Number.POSITIVE_INFINITY
+  for (let index = 0; index < detents01.length; index += 1) {
+    const distance = Math.abs((detents01[index] ?? 0) - target01)
+    if (distance >= bestDistance) continue
+    bestDistance = distance
+    bestIndex = index
+  }
+
+  return bestIndex
 }
 
 function createDebugPlaneMesh(): Group {
