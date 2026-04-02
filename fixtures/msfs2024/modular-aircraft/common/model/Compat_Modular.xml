@@ -1,0 +1,15 @@
+<ModelInfo>
+  <LODS>
+    <LOD ModelFile="compat_modular.gltf" minSize="1" />
+  </LODS>
+  <Behaviors>
+    <Include ModelBehaviorFile="Asobo_EX1/Generic.xml" />
+    <Component ID="COMMON_FLAP" Node="COMMON_FLAP_NODE">
+      <UseTemplate Name="ASOBO_EX1_GT_Anim">
+        <ANIM_NAME>compat_common_flap</ANIM_NAME>
+        <ANIM_LENGTH>100</ANIM_LENGTH>
+        <ANIM_CODE>(A:TRAILING EDGE FLAPS LEFT PERCENT, percent)</ANIM_CODE>
+      </UseTemplate>
+    </Component>
+  </Behaviors>
+</ModelInfo>

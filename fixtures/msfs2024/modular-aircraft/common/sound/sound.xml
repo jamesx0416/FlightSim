@@ -1,0 +1,11 @@
+<SoundInfo Version="0.1">
+  <WwisePackages>
+    <MainPackage Name="Compat_Common" />
+  </WwisePackages>
+  <AlwaysPlaySounds>
+    <Sound WwiseEvent="compat_hum" LocalVar="L:COMPAT_AUDIO" Units="number">
+      <Range LowerBound="1" />
+      <WwiseRTPC LocalVar="L:COMPAT_AUDIO" Units="number" RTPCName="LOCALVAR_COMPAT_AUDIO" />
+    </Sound>
+  </AlwaysPlaySounds>
+</SoundInfo>

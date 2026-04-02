@@ -1,9 +1,12 @@
 import {
   AnimationMixer,
+  BufferAttribute,
   DataUtils,
   type AnimationAction,
   Float32BufferAttribute,
+  InterleavedBufferAttribute,
   Mesh,
+  RGBA_BPTC_Format,
   type Object3D
 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -49,12 +52,9 @@ class GLTFMSFTTextureDDSExtension {
 
     const sourceDef = json.images?.[extension.source]
     const uri = sourceDef?.uri
-    if (this.availableTextures && uri && !this.availableTextures.has(uri)) {
+    const textureKey = typeof uri === 'string' ? fileNameOf(uri).toLowerCase() : undefined
+    if (this.availableTextures && textureKey && !this.availableTextures.has(textureKey)) {
       return Promise.resolve(null)
-    }
-
-    if (parser.options?.path) {
-      this.ddsLoader.setPath(parser.options.path)
     }
 
     return parser
@@ -63,9 +63,16 @@ class GLTFMSFTTextureDDSExtension {
   }
 }
 
+class MsfsDDSLoader extends DDSLoader {
+  override parse(buffer: ArrayBuffer, loadMipmaps?: boolean) {
+    return parseMsfsDdsBuffer(buffer, loadMipmaps)
+  }
+}
+
 export interface MsfsAnimationState {
   mixer: AnimationMixer | null
   actions: Map<string, AnimationAction>
+  nodes: Map<string, Object3D[]>
 }
 
 export function createMsfsGltfLoader(
@@ -75,7 +82,7 @@ export function createMsfsGltfLoader(
   }
 ): GLTFLoader {
   const loader = new GLTFLoader()
-  const ddsLoader = new DDSLoader()
+  const ddsLoader = new MsfsDDSLoader()
   const ktx2Loader = new KTX2Loader()
   ktx2Loader.setTranscoderPath('/basis/')
   ktx2Loader.detectSupport(renderer)
@@ -93,10 +100,127 @@ export function createMsfsGltfLoader(
   return loader
 }
 
+export function parseMsfsDdsBuffer(buffer: ArrayBuffer, loadMipmaps?: boolean) {
+  const bc7 = parseBc7Dds(buffer, loadMipmaps)
+  return bc7 ?? new DDSLoader().parse(buffer, loadMipmaps)
+}
+
+function parseBc7Dds(buffer: ArrayBuffer, loadMipmaps?: boolean) {
+  const DDS_MAGIC = 0x20534444
+  const DDSD_MIPMAPCOUNT = 0x20000
+  const DDSCAPS2_CUBEMAP = 0x200
+  const DDSCAPS2_CUBEMAP_POSITIVEX = 0x400
+  const DDSCAPS2_CUBEMAP_NEGATIVEX = 0x800
+  const DDSCAPS2_CUBEMAP_POSITIVEY = 0x1000
+  const DDSCAPS2_CUBEMAP_NEGATIVEY = 0x2000
+  const DDSCAPS2_CUBEMAP_POSITIVEZ = 0x4000
+  const DDSCAPS2_CUBEMAP_NEGATIVEZ = 0x8000
+  const FOURCC_DX10 = fourCCToInt32('DX10')
+  const DXGI_FORMAT_BC7_UNORM = 98
+  const DXGI_FORMAT_BC7_UNORM_SRGB = 99
+  const headerLengthInt = 31
+  const extendedHeaderLengthInt = 5
+
+  const header = new Int32Array(buffer, 0, headerLengthInt)
+  if (header[0] !== DDS_MAGIC) {
+    return null
+  }
+  if (header[21] !== FOURCC_DX10) {
+    return null
+  }
+
+  const extendedHeader = new Int32Array(buffer, (headerLengthInt + 1) * 4, extendedHeaderLengthInt)
+  const dxgiFormat = extendedHeader[0]
+  if (dxgiFormat !== DXGI_FORMAT_BC7_UNORM && dxgiFormat !== DXGI_FORMAT_BC7_UNORM_SRGB) {
+    return null
+  }
+
+  const dds = {
+    mipmaps: [] as Array<{ data: Uint8Array; width: number; height: number }>,
+    width: header[4],
+    height: header[3],
+    format: RGBA_BPTC_Format,
+    mipmapCount: 1,
+    isCubemap: false
+  }
+
+  if (header[2] & DDSD_MIPMAPCOUNT && loadMipmaps !== false) {
+    dds.mipmapCount = Math.max(1, header[7])
+  }
+
+  const caps2 = header[28]
+  dds.isCubemap = (caps2 & DDSCAPS2_CUBEMAP) !== 0
+  if (
+    dds.isCubemap &&
+    (
+      !(caps2 & DDSCAPS2_CUBEMAP_POSITIVEX) ||
+      !(caps2 & DDSCAPS2_CUBEMAP_NEGATIVEX) ||
+      !(caps2 & DDSCAPS2_CUBEMAP_POSITIVEY) ||
+      !(caps2 & DDSCAPS2_CUBEMAP_NEGATIVEY) ||
+      !(caps2 & DDSCAPS2_CUBEMAP_POSITIVEZ) ||
+      !(caps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ)
+    )
+  ) {
+    console.error('THREE.DDSLoader.parse: Incomplete cubemap faces')
+    return null
+  }
+
+  let dataOffset = header[1] + 4 + extendedHeaderLengthInt * 4
+  const blockBytes = 16
+  const faces = dds.isCubemap ? 6 : 1
+
+  for (let face = 0; face < faces; face += 1) {
+    let width = dds.width
+    let height = dds.height
+
+    for (let level = 0; level < dds.mipmapCount; level += 1) {
+      const dataLength = (Math.max(4, width) / 4) * (Math.max(4, height) / 4) * blockBytes
+      const mipmap = {
+        data: new Uint8Array(buffer, dataOffset, dataLength),
+        width,
+        height
+      }
+      dds.mipmaps.push(mipmap)
+      dataOffset += dataLength
+      width = Math.max(width >> 1, 1)
+      height = Math.max(height >> 1, 1)
+    }
+  }
+
+  return dds
+}
+
+function fourCCToInt32(value: string): number {
+  return (
+    value.charCodeAt(0) +
+    (value.charCodeAt(1) << 8) +
+    (value.charCodeAt(2) << 16) +
+    (value.charCodeAt(3) << 24)
+  )
+}
+
+function fileNameOf(value: string): string {
+  const normalized = value.replaceAll('\\', '/')
+  const slashIndex = normalized.lastIndexOf('/')
+  return slashIndex >= 0 ? normalized.slice(slashIndex + 1) : normalized
+}
+
 export function setupMsfsAnimations(gltf: any): MsfsAnimationState {
   const animations = gltf.animations as any[] | undefined
+  const nodes = new Map<string, Object3D[]>()
+  ;(gltf.scene as Object3D | undefined)?.traverse((object: Object3D) => {
+    const name = object.name?.trim()
+    if (!name) return
+    const existing = nodes.get(name)
+    if (existing) {
+      existing.push(object)
+    } else {
+      nodes.set(name, [object])
+    }
+  })
+
   if (!animations || animations.length === 0) {
-    return { mixer: null, actions: new Map() }
+    return { mixer: null, actions: new Map(), nodes }
   }
 
   const mixer = new AnimationMixer(gltf.scene as Object3D)
@@ -104,7 +228,6 @@ export function setupMsfsAnimations(gltf: any): MsfsAnimationState {
 
   animations.forEach((clip, index) => {
     const action = mixer.clipAction(clip)
-    action.play()
     action.paused = true
     action.setEffectiveTimeScale(0)
     action.setEffectiveWeight(1)
@@ -114,10 +237,7 @@ export function setupMsfsAnimations(gltf: any): MsfsAnimationState {
     actions.set(name, action)
   })
 
-  mixer.setTime(0)
-  mixer.update(0)
-
-  return { mixer, actions }
+  return { mixer, actions, nodes }
 }
 
 export function hasNativeAircraftAnimations(state: MsfsAnimationState): boolean {
@@ -170,6 +290,27 @@ export function applyMsfsAircraftAnimationState(
   setUnsignedClipValue(state.actions.get('r_wheel'), tireValue)
 
   state.mixer.update(0)
+}
+
+export function applyMsfsBindingAnimationValue(
+  state: MsfsAnimationState,
+  animationName: string,
+  value: number,
+  animLength?: number
+): void {
+  const action = state.actions.get(animationName)
+  if (!action) return
+  setActionTime(action, normalizeCompiledAnimationValue(value, animLength))
+}
+
+export function applyMsfsNodeVisibilityValue(
+  state: MsfsAnimationState,
+  nodeId: string,
+  visible: boolean
+): void {
+  for (const node of state.nodes.get(nodeId) ?? []) {
+    node.visible = visible
+  }
 }
 
 export function applyMsfsExtensions(gltf: any): void {
@@ -287,7 +428,10 @@ export function applyMsfsExtensions(gltf: any): void {
   })
 }
 
-function toFloatAttribute(attr: any, semanticName = ''): Float32BufferAttribute | null {
+function toFloatAttribute(
+  attr: any,
+  semanticName = ''
+): BufferAttribute | null {
   if (!attr) return null
 
   const array = attr.isInterleavedBufferAttribute
@@ -364,15 +508,35 @@ function setUnsignedClipValue(action: AnimationAction | undefined, value: number
 }
 
 function setActionTime(action: AnimationAction, normalized: number): void {
+  action.play()
   const duration = action.getClip().duration
   action.time = duration * normalized
   action.paused = true
+  action.enabled = true
+  action.setEffectiveTimeScale(0)
+  action.setEffectiveWeight(1)
 }
 
 function clamp01(value: number): number {
   if (value <= 0) return 0
   if (value >= 1) return 1
   return value
+}
+
+function normalizeCompiledAnimationValue(value: number, animLength?: number): number {
+  if (animLength != null && animLength > 0) {
+    return clamp01(value / animLength)
+  }
+  if (value >= -1 && value <= 1) {
+    return clamp01(value * 0.5 + 0.5)
+  }
+  if (value >= 0 && value <= 100) {
+    return clamp01(value / 100)
+  }
+  if (value >= -100 && value < 0) {
+    return clamp01(value / 200 + 0.5)
+  }
+  return clamp01(value)
 }
 
 function texcoordNeedsHalfFloatDecode(attr: any): boolean {

@@ -1,8 +1,8 @@
 # FlightSim
 
-Browser-based flight sandbox built with Vite, TypeScript, WebGPU, `three`, and `3d-tiles-renderer`. The app renders Cesium ion terrain/3D tiles and flies a simplified FlyByWire A320 flight model with a chase camera and on-screen HUD.
+Browser-based flight sandbox built with Vite, TypeScript, WebGPU, `three`, and `3d-tiles-renderer`. The app renders Cesium ion terrain/3D tiles, runs a simplified generic aircraft flight model, and hosts the MSFS compatibility stack for imported aircraft packages.
 
-The current scene spawns the aircraft on short final for YMML runway 34 near Melbourne, with FlyByWire A320 exterior assets loaded from the vendored `third_party/flybywire-aircraft` tree.
+The current scene spawns the aircraft on short final for YMML runway 34 near Melbourne. Aircraft visuals now come from MSFS compatibility descriptors and package assets when available.
 
 ## Stack
 
@@ -64,28 +64,63 @@ bun run preview
 
 ## Asset Pipeline
 
-The app expects FlyByWire A320 assets in `third_party/flybywire-aircraft/fbw-a32nx/...`.
+The Vite plugin in [`vite.config.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/vite.config.ts) serves MSFS compatibility descriptors under `/msfs/compatibility/...` and package/source assets under `/msfs/packages/<cacheKey>/...` for the runtime, panel host, and WASM host flows.
 
-- During development, the custom Vite plugin in [`vite.config.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/vite.config.ts) serves the A320 model, DDS textures, and a generated texture manifest under `/vendor/fbw-a32nx/...`.
-- During production builds, that same plugin copies the required model and textures into `dist/vendor/fbw-a32nx`.
-- Fallback PNG textures for normalized MSFS assets live under [`public/aircraft/a32nx/exterior/LOD00-msfs`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/public/aircraft/a32nx/exterior/LOD00-msfs).
+## MSFS Compatibility
 
-Utility scripts:
+Phase 0 and Phase 1 compatibility groundwork lives in [`src/msfs/contracts.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/msfs/contracts.ts), [`docs/msfs-compatibility-contracts.md`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/docs/msfs-compatibility-contracts.md), and [`scripts/import-msfs-aircraft.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/scripts/import-msfs-aircraft.ts).
 
-- [`scripts/convert-a32nx-exterior.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/scripts/convert-a32nx-exterior.ts): cleans and repacks the FlyByWire exterior glTF
-- [`scripts/build-a32nx-ktx2.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/scripts/build-a32nx-ktx2.ts): converts DDS texture references to KTX2 assets
+Run the MSFS 2020 importer with:
 
-These scripts are not wired into `package.json`; run them directly with `bun` if needed.
+```bash
+bun run import:msfs2020 -- third_party/flybywire-aircraft/fbw-a380x/src/base/flybywire-aircraft-a380-842
+```
+
+Run the modular MSFS 2024 importer with:
+
+```bash
+bun run import:msfs2024 -- fixtures/msfs2024/modular-aircraft
+```
+
+The importer discovers aircraft under `SimObjects/AirPlanes` for 2020 packages, resolves `base_container` inheritance, reads `aircraft.cfg` / `model.cfg` / `panel.cfg` / `panel.xml` / `sound.xml`, and writes a normalized cache to `.msfs-cache/` by default. The 2024 path merges `common`, `attachments`, and `presets` content into the same internal IR.
+
+Phase 2 behavior compilation uses the importer output plus the XML/template compiler in [`src/msfs/behavior/compiler.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/msfs/behavior/compiler.ts), the calculator bytecode compiler in [`src/msfs/behavior/calculator.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/msfs/behavior/calculator.ts), and the runtime VM in [`src/msfs/behavior/vm.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/msfs/behavior/vm.ts).
+
+Compile behavior graphs with:
+
+```bash
+bun run compile:msfs2020-behavior -- third_party/flybywire-aircraft/fbw-a380x/src/base/flybywire-aircraft-a380-842
+```
+
+The compiler resolves local XML includes, expands local templates, compiles calculator code to bytecode, and emits normalized animation / visibility / interaction / update bindings into `.msfs-cache/behavior/` by default. The same compiler script now handles the modular 2024 fixture path too.
+
+Phase 3 through Phase 8 add:
+
+- browser runtime hosting in [`src/msfs/runtime`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/msfs/runtime)
+- panel and WASM compatibility host pages in [`panel-host.html`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/panel-host.html) and [`wasm-host.html`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/wasm-host.html)
+- a compatibility dock overlay in [`src/ui/MsfsCompatibilityDock.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/ui/MsfsCompatibilityDock.ts)
+- a compatibility report CLI:
+
+```bash
+bun run report:msfs-compat -- .msfs-cache --json-out .msfs-cache/reports/compatibility-report.json
+```
+
+- regression tests:
+
+```bash
+bun run test:msfs
+```
 
 ## Project Layout
 
 - [`src/main.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/main.ts): app bootstrap, renderer, tiles, camera, and sim loop
+- [`src/msfs/contracts.ts`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/msfs/contracts.ts): compatibility-layer schemas for package import, behavior output, runtime services, and the Phase 0 matrix
+- [`src/msfs/behavior`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/msfs/behavior): XML/template compiler, calculator bytecode, and runtime VM for Phase 2
 - [`src/sim`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/sim): flight model, atmosphere, frames, and fixed-step loop
 - [`src/entities`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/entities): aircraft entity integration
 - [`src/helpers`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/helpers): MSFS glTF loading, normalization, and controls helpers
 - [`src/plugins`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/plugins): tile material and fade plugins
 - [`src/ui`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/ui): HUD overlay
-- [`src/visual`](/Users/4980/.t3/worktrees/FlightSim/t3code-ccbef850/src/visual): aircraft animation fallback logic
 
 ## Notes
 

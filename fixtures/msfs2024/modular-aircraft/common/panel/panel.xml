@@ -1,0 +1,7 @@
+<PlaneHTMLConfig>
+  <Instrument>
+    <Name>CompatPanel</Name>
+    <AlwaysUpdate>True</AlwaysUpdate>
+    <Simvar name="ELECTRICAL MASTER BATTERY" unit="Bool" />
+  </Instrument>
+</PlaneHTMLConfig>

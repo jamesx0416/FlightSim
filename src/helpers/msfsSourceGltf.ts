@@ -2,14 +2,8 @@ import {
   BufferAttribute,
   DataUtils,
   InterleavedBufferAttribute,
-  Material,
   Mesh,
-  Object3D,
-  SRGBColorSpace,
-  SkinnedMesh,
-  Texture,
-  TextureLoader,
-  Vector3
+  Object3D
 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
@@ -24,8 +18,7 @@ const ACCESSOR_COMPONENT_BYTES: Record<number, number> = {
 
 export async function loadNormalizedMsfsSourceGltf(
   loader: GLTFLoader,
-  modelUrl: string,
-  albedoTextureBaseUrl: string
+  modelUrl: string
 ): Promise<any> {
   const modelResponse = await fetch(modelUrl)
   if (!modelResponse.ok) {
@@ -33,7 +26,6 @@ export async function loadNormalizedMsfsSourceGltf(
   }
 
   const json = (await modelResponse.json()) as Record<string, unknown>
-  stripEmbeddedTextureGraph(json)
   const bufferDefs = Array.isArray(json.buffers) ? (json.buffers as Array<Record<string, unknown>>) : null
   const primaryBuffer = bufferDefs?.[0]
   const bufferUri = typeof primaryBuffer?.uri === 'string' ? primaryBuffer.uri : null
@@ -60,16 +52,12 @@ export async function loadNormalizedMsfsSourceGltf(
   return await new Promise((resolve, reject) => {
     loader.parse(
       JSON.stringify(json),
-      '',
+      new URL('./', modelUrl).href,
       async gltf => {
         URL.revokeObjectURL(bufferObjectUrl)
 
         try {
-          bakeMsfsSourceScene(gltf.scene as Object3D)
-          await bindWorkingLiveryTextures(
-            gltf.scene as Object3D,
-            albedoTextureBaseUrl
-          )
+          normalizeMsfsSourceScene(gltf.scene as Object3D)
           resolve(gltf)
         } catch (error) {
           reject(error)
@@ -83,122 +71,7 @@ export async function loadNormalizedMsfsSourceGltf(
   })
 }
 
-function stripEmbeddedTextureGraph(json: Record<string, unknown>): void {
-  delete json.images
-  delete json.textures
-  delete json.samplers
-
-  const materials = Array.isArray(json.materials)
-    ? (json.materials as Array<Record<string, unknown>>)
-    : null
-  if (materials) {
-    for (const material of materials) {
-      delete material.normalTexture
-      delete material.occlusionTexture
-      delete material.emissiveTexture
-
-      const pbr = material.pbrMetallicRoughness as Record<string, unknown> | undefined
-      if (pbr) {
-        delete pbr.baseColorTexture
-        delete pbr.metallicRoughnessTexture
-      }
-    }
-  }
-
-  const extensionsUsed = Array.isArray(json.extensionsUsed)
-    ? (json.extensionsUsed as string[]).filter(name => name !== 'MSFT_texture_dds')
-    : null
-  if (extensionsUsed) {
-    json.extensionsUsed = extensionsUsed
-  }
-
-  const extensionsRequired = Array.isArray(json.extensionsRequired)
-    ? (json.extensionsRequired as string[]).filter(name => name !== 'MSFT_texture_dds')
-    : null
-  if (extensionsRequired) {
-    json.extensionsRequired = extensionsRequired
-  }
-}
-
-async function bindWorkingLiveryTextures(
-  root: Object3D,
-  albedoTextureBaseUrl: string
-): Promise<void> {
-  const textureNames = new Set<string>()
-  root.traverse(object => {
-    if (!(object as Mesh).isMesh) return
-    const mesh = object as Mesh
-    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-    for (const material of materials) {
-      if (!material) continue
-      const textureName = MATERIAL_ALBEDO_TEXTURES[material.name]
-      if (textureName) {
-        textureNames.add(textureName)
-      }
-    }
-  })
-
-  if (textureNames.size === 0) return
-
-  const loader = new TextureLoader()
-  const textures = new Map<string, Texture>()
-  await Promise.all(
-    [...textureNames].map(
-      textureName =>
-        new Promise<void>((resolve, reject) => {
-          loader.load(
-            new URL(textureName, albedoTextureBaseUrl).href,
-            texture => {
-              texture.flipY = false
-              texture.colorSpace = SRGBColorSpace
-              textures.set(textureName, texture)
-              resolve()
-            },
-            undefined,
-            reject
-          )
-        })
-    )
-  )
-
-  root.traverse(object => {
-    if (!(object as Mesh).isMesh) return
-    const mesh = object as Mesh
-    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-    for (const material of materials) {
-      if (!material) continue
-      const textureName = MATERIAL_ALBEDO_TEXTURES[material.name]
-      if (!textureName) continue
-      const texture = textures.get(textureName)
-      if (!texture) continue
-      applyBaseColorTexture(material, texture)
-    }
-  })
-}
-
-function applyBaseColorTexture(material: Material, texture: Texture): void {
-  if (!('map' in material)) return
-  material.map = texture
-  material.needsUpdate = true
-}
-
-function bakeMsfsSourceScene(root: Object3D): void {
-  root.updateMatrixWorld(true)
-
-  const skinnedMeshes: SkinnedMesh[] = []
-  root.traverse(object => {
-    if ((object as SkinnedMesh).isSkinnedMesh) {
-      skinnedMeshes.push(object as SkinnedMesh)
-    }
-  })
-
-  for (const skinned of skinnedMeshes) {
-    const baked = bakeSkinnedMesh(skinned, !shouldResetRightWingTransform(skinned))
-    const parent = skinned.parent ?? root
-    parent.add(baked)
-    parent.remove(skinned)
-  }
-
+export function normalizeMsfsSourceScene(root: Object3D): void {
   root.updateMatrixWorld(true)
 
   root.traverse(object => {
@@ -225,99 +98,7 @@ function bakeMsfsSourceScene(root: Object3D): void {
     mesh.frustumCulled = false
   })
 
-  const objectsToRemove: Object3D[] = []
-
-  root.traverse(object => {
-    if (shouldExcludeExteriorObject(object)) {
-      objectsToRemove.push(object)
-    }
-  })
-
-  for (const object of objectsToRemove) {
-    object.parent?.remove(object)
-  }
-
-  root.traverse(object => {
-    if (shouldResetRightWingTransform(object)) {
-      resetLocalTransform(object)
-      return
-    }
-    if (shouldResetMirroredPatchTargetTransform(object)) {
-      resetLocalTransform(object)
-    }
-  })
-
   root.updateMatrixWorld(true)
-}
-
-function bakeSkinnedMesh(skinned: SkinnedMesh, preserveLocalTransform: boolean): Mesh {
-  const geometry = skinned.geometry
-  const position = geometry.attributes.position
-  const skinIndex = geometry.attributes.skinIndex
-  const skinWeight = geometry.attributes.skinWeight
-
-  if (!position || !skinIndex || !skinWeight) {
-    throw new Error(`SkinnedMesh ${skinned.name || '(unnamed)'} missing skin attributes`)
-  }
-
-  skinned.updateMatrixWorld(true)
-  skinned.skeleton.update()
-  skinned.normalizeSkinWeights()
-
-  const bakedPositions = new Float32Array(position.count * 3)
-  const skinnedPosition = new Vector3()
-
-  for (let i = 0; i < position.count; i++) {
-    skinned.getVertexPosition(i, skinnedPosition)
-
-    if (
-      !Number.isFinite(skinnedPosition.x) ||
-      !Number.isFinite(skinnedPosition.y) ||
-      !Number.isFinite(skinnedPosition.z)
-    ) {
-      skinnedPosition.fromBufferAttribute(position, i)
-    }
-
-    const offset = i * 3
-    bakedPositions[offset + 0] = skinnedPosition.x
-    bakedPositions[offset + 1] = skinnedPosition.y
-    bakedPositions[offset + 2] = skinnedPosition.z
-  }
-
-  const bakedGeometry = geometry.clone()
-  bakedGeometry.setAttribute('position', new BufferAttribute(bakedPositions, 3))
-  for (const name of Object.keys(bakedGeometry.attributes)) {
-    if (name === 'skinIndex' || name === 'skinWeight') {
-      bakedGeometry.deleteAttribute(name)
-      continue
-    }
-    if (name.toLowerCase().includes('color')) {
-      bakedGeometry.deleteAttribute(name)
-    }
-  }
-
-  bakedGeometry.computeVertexNormals()
-  bakedGeometry.computeBoundingBox()
-  bakedGeometry.computeBoundingSphere()
-
-  const bakedMesh = new Mesh(bakedGeometry, skinned.material)
-  bakedMesh.name = skinned.name
-  if (preserveLocalTransform) {
-    bakedMesh.position.copy(skinned.position)
-    bakedMesh.quaternion.copy(skinned.quaternion)
-    bakedMesh.scale.copy(skinned.scale)
-    bakedMesh.matrix.copy(skinned.matrix)
-    bakedMesh.matrixWorld.copy(skinned.matrixWorld)
-  }
-  bakedMesh.matrixAutoUpdate = skinned.matrixAutoUpdate
-  bakedMesh.visible = skinned.visible
-  bakedMesh.castShadow = skinned.castShadow
-  bakedMesh.receiveShadow = skinned.receiveShadow
-  bakedMesh.renderOrder = skinned.renderOrder
-  bakedMesh.userData = { ...skinned.userData }
-  bakedMesh.frustumCulled = false
-
-  return bakedMesh
 }
 
 function deinterleaveAttribute(attr: BufferAttribute | InterleavedBufferAttribute): BufferAttribute {
@@ -643,94 +424,4 @@ function readIndexComponent(view: DataView, byteOffset: number, componentType: n
     default:
       throw new Error(`Unsupported index accessor component type: ${componentType}`)
   }
-}
-
-const MATERIAL_ALBEDO_TEXTURES: Record<string, string | undefined> = {
-  WINGS: 'A320NEO_AIRFRAME_WINGS_ALBD.PNG.png',
-  FUSELAGE: 'A320NEO_AIRFRAME_FUSELAGE_ALBD.PNG.png',
-  RIBBONS: 'A320NEO_AIRFRAME_RIBBONS_ALBD.PNG.png',
-  ENGINES: 'A320NEO_AIRFRAME_ENGINES_ALBD.PNG.png',
-  DECALS: 'A320NEO_AIRFRAME_DECALS_ALBD.PNG.png',
-  DECALS2: 'A320NEO_AIRFRAME_DECALS_ALBD.PNG.png',
-  FRONTLANDING: 'A320NEO_AIRFRAME_FRONTLANDING_ALBD.PNG.png',
-  Passenger_Door: 'PASSENGER_DOOR_ALBD.PNG.png',
-  Cargo_Door: 'CARGO_DOOR_ALBD.PNG.png',
-  Cargo_Soute: 'CARGO_SOUTE_ALBD.PNG.png',
-  'WINGS DETAILS': 'A320NEO_AIRFRAME_INWING_DETAILS_ALBD.PNG.png'
-}
-
-const MIRRORED_POSITION_PATCHES = [
-  ['AILERON_LEFT', 'AILERON_RIGHT'],
-  ['ARM04_LEFT', 'ARM04_RIGHT'],
-  ['ARM05_LEFT', 'ARM05_RIGHT'],
-  ['ARM06_LEFT', 'ARM06_RIGHT'],
-  ['ARM03_LEFT', 'ARM03_RIGHT'],
-  ['ARM09_LEFT', 'ARM09_RIGHT'],
-  ['BASE_LEFT', 'BASE_RIGHT'],
-  ['DOOR01_LEFT', 'DOOR01_RIGHT'],
-  ['DOOR02_LEFT', 'DOOR02_RIGHT'],
-  ['Flaps_Details_Verin02_LEFT', 'Flaps_Details_Verin02_RIGHT'],
-  ['Flaps_Details_Verin04_LEFT', 'Flaps_Details_Verin04_RIGHT'],
-  ['Flaps_Details_Verin15_LEFT', 'Flaps_Details_Verin15_RIGHT'],
-  ['Flaps_Details_Verin16_LEFT', 'Flaps_Details_Verin16_RIGHT'],
-  ['GLASS_LEFT', 'GLASS_RIGHT'],
-  ['HYDROLIC_LEFT', 'HYDROLIC_RIGHT'],
-  ['LIVERY_OFFICIAL_WINGL', 'LIVERY_OFFICIAL_WINGR'],
-  ['PIVOT_LEFT', 'PIVOT_RIGHT'],
-  ['SUSPENSION01_LEFT', 'SUSPENSION01_RIGHT'],
-  ['SUSPENSION02_LEFT', 'SUSPENSION02_RIGHT'],
-  ['SUSPENSION03_LEFT', 'SUSPENSION03_RIGHT'],
-  ['SUSPENSION04_LEFT', 'SUSPENSION04_RIGHT'],
-  ['SUPPORT_LEFT', 'SUPPORT_RIGHT']
-] as const
-
-const MIRRORED_POSITION_PATCH_TARGETS = new Set(
-  MIRRORED_POSITION_PATCHES.map(([, target]) => target)
-)
-
-const EXCLUDED_EXTERIOR_OBJECT_PATTERN =
-  /^(?:WIRE_LEFT|WIRE_RIGHT|C_WIRE|C_DOOR_0[12]_HYDROLIC_(?:LEFT|RIGHT)|x0_TAIL_ELEVATOR_TRIM_(?:LEFT|RIGHT)_FROSTED(?:_1)?)$/
-
-const RIGHT_WING_TRANSFORM_RESET_PATTERN =
-  /^(?:AILERON_RIGHT|WING_RIGHT(?:_1|_FROSTED)?|FLAPS(?:_01|_02)?_RIGHT|FLAPSFAIRING_(?:04|05|06)_RIGHT(?:_1|_FROSTED)?|FLAPSKRUEGER(?:_02)?_RIGHT(?:_FROSTED)?|SPOILER(?:_2_[13])?_RIGHT|Flaps_Details_(?:Spoiler1|01|Verin(?:01|02|10|11|12))_RIGHT|WING_STROBE_RIGHT|DETAIL_TEXT_WING11_RIGHT|DECALS_(?:RIVETS_(?:WING|FLAPS|FLAPSFAIRING[123]|FLAPSKRUEGER_(?:01|02))|CUT_WING)_RIGHT)$/
-
-function shouldResetRightWingTransform(object: Object3D): boolean {
-  if (!RIGHT_WING_TRANSFORM_RESET_PATTERN.test(object.name)) {
-    return false
-  }
-
-  const epsilon = 1e-3
-  const position = object.position
-  const scale = object.scale
-  const rotation = object.rotation
-
-  return (
-    Math.abs(position.x) < epsilon &&
-    Math.abs(position.y) < epsilon &&
-    Math.abs(position.z) < epsilon &&
-    Math.abs(scale.x - 1) < epsilon &&
-    Math.abs(scale.y - 1) < epsilon &&
-    Math.abs(scale.z - 1) < epsilon &&
-    Math.abs(rotation.x) >= Math.PI / 2 - 0.05 &&
-    Math.abs(rotation.y) < 0.01 &&
-    Math.abs(rotation.z) < 0.01
-  )
-}
-
-function shouldResetMirroredPatchTargetTransform(object: Object3D): boolean {
-  return MIRRORED_POSITION_PATCH_TARGETS.has(
-    object.name as (typeof MIRRORED_POSITION_PATCHES)[number][1]
-  )
-}
-
-function shouldExcludeExteriorObject(object: Object3D): boolean {
-  return EXCLUDED_EXTERIOR_OBJECT_PATTERN.test(object.name)
-}
-
-function resetLocalTransform(object: Object3D): void {
-  object.position.set(0, 0, 0)
-  object.quaternion.identity()
-  object.scale.set(1, 1, 1)
-  object.updateMatrix()
-  object.updateMatrixWorld(true)
 }
