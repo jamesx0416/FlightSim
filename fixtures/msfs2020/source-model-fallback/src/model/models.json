@@ -1,0 +1,14 @@
+[
+  {
+    "gltf": [
+      "Compatibility/CompatExterior_LOD01.gltf",
+      "Compatibility/CompatInterior_LOD01.gltf"
+    ],
+    "output": {
+      "gltf": [
+        "../../SimObjects/AirPlanes/Compat_Generic_Aircraft/model/CompatExterior_LOD01.gltf",
+        "../../SimObjects/AirPlanes/Compat_Generic_Aircraft/model/CompatInterior_LOD01.gltf"
+      ]
+    }
+  }
+]

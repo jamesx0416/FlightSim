@@ -1,0 +1,12 @@
+<ModelInfo>
+  <LODS>
+    <LOD ModelFile="compat_winglet.gltf" minSize="1" />
+  </LODS>
+  <Behaviors>
+    <Component ID="WINGLET_VIS" Node="WINGLET_NODE">
+      <Visibility>
+        <VISIBILITY_CODE>(A:GEAR ANIMATION POSITION:0, percent) 10 &gt;</VISIBILITY_CODE>
+      </Visibility>
+    </Component>
+  </Behaviors>
+</ModelInfo>

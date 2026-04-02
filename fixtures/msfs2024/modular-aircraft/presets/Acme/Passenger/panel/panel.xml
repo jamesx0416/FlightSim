@@ -1,0 +1,7 @@
+<PlaneHTMLConfig AutoMerge="1">
+  <Instrument>
+    <Name>CompatPresetPanel</Name>
+    <AlwaysUpdate>True</AlwaysUpdate>
+    <Simvar name="AIRSPEED TRUE" unit="knots" />
+  </Instrument>
+</PlaneHTMLConfig>

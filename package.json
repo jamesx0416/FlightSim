@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "import:msfs2020": "bun scripts/import-msfs-aircraft.ts",
+    "import:msfs2024": "bun scripts/import-msfs2024-aircraft.ts",
+    "compile:msfs2020-behavior": "bun scripts/compile-msfs-behavior.ts",
+    "compile:msfs2024-behavior": "bun scripts/compile-msfs-behavior.ts",
+    "report:msfs-compat": "bun scripts/report-msfs-compatibility.ts",
+    "test:msfs": "bun test tests/msfs"
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.21",

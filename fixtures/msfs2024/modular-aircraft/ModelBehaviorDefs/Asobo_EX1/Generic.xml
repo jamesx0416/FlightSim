@@ -1,0 +1,14 @@
+<ModelBehaviors>
+  <Template Name="ASOBO_EX1_GT_Anim">
+    <Parameters Type="Default">
+      <ANIM_NAME>compat_default_anim</ANIM_NAME>
+      <ANIM_LENGTH>100</ANIM_LENGTH>
+      <ANIM_CODE>0</ANIM_CODE>
+    </Parameters>
+    <Animation>
+      <ANIM_NAME>#ANIM_NAME#</ANIM_NAME>
+      <ANIM_LENGTH>#ANIM_LENGTH#</ANIM_LENGTH>
+      <ANIM_CODE>#ANIM_CODE#</ANIM_CODE>
+    </Animation>
+  </Template>
+</ModelBehaviors>

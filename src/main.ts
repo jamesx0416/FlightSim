@@ -7,7 +7,6 @@ import {
 } from '3d-tiles-renderer/plugins'
 import {
   AgXToneMapping,
-  BufferAttribute,
   Box3,
   FrontSide,
   Matrix4,
@@ -57,19 +56,27 @@ import { Plane } from './entities/Plane'
 import { KeyboardFlightControls } from './input/KeyboardFlightControls'
 import { TilesFadePlugin } from './plugins/fade/TilesFadePlugin'
 import { FlightHud } from './ui/FlightHud'
+import { MsfsCompatibilityDock } from './ui/MsfsCompatibilityDock'
 import { FixedStepLoop } from './sim/FixedStepLoop'
+import { hydrateCompatibilityAircraftParams } from './sim/MsfsAircraftPhysics'
 import { NedFrame } from './sim/NedFrame'
-import { flyByWireA320AircraftParams } from './sim/FlyByWireA320'
-import { A320VisualAnimator } from './visual/A320VisualAnimator'
 import {
   applyMsfsAircraftAnimationState,
   applyMsfsExtensions,
   createMsfsGltfLoader,
-  hasNativeAircraftAnimations,
   setupMsfsAnimations,
   type MsfsAnimationState
 } from './helpers/msfsGltf'
 import { loadNormalizedMsfsSourceGltf } from './helpers/msfsSourceGltf'
+import { compatibilityChannelName, type CompatibilityBridgeMessage } from './msfs/runtime/bridge'
+import type { AircraftCompatibilityDescriptor } from './msfs/runtime/descriptor'
+import {
+  loadCompatibilityDescriptor,
+  loadCompatibilityIndex,
+  selectCompatibilityDescriptorId
+} from './msfs/runtime/loader'
+import { AircraftCompatibilityRuntime } from './msfs/runtime/host'
+import { applyCompatibilityRuntimeState } from './msfs/runtime/renderer'
 
 const dracoLoader = new DRACOLoader()
 dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/')
@@ -112,14 +119,58 @@ const ymmlRunway34 = {
 const spawnDistanceFromThresholdMeters = 5000
 const spawnGlideSlopeDegrees = 3
 const spawnAirspeedMps = 75
-const planeModelSources = [
-  {
-    modelUrl: '/vendor/fbw-a32nx/model/A320_NEO_LOD00.gltf',
-    albedoTextureBaseUrl: '/aircraft/a32nx/exterior/LOD00-msfs/',
-    normalizeSourceAsset: true
-  }
-] as const
 const planeModelRotation = new Vector3((3 * Math.PI) / 2, Math.PI / 2, 0)
+
+interface PlaneModelSource {
+  modelUrl: string
+  textureManifestUrl?: string | null
+  normalizeSourceAsset?: boolean
+}
+
+interface PlaneModelLoadOptions {
+  preserveModelOrigin: boolean
+  targetWingSpanM?: number
+  visualOffsetBodyMeters?: Vector3
+}
+
+function resolvePlaneModelSources(
+  compatibilityDescriptor: AircraftCompatibilityDescriptor | null
+): readonly PlaneModelSource[] {
+  if (!compatibilityDescriptor) return []
+
+  return [...compatibilityDescriptor.modelSources]
+    .sort(compareCompatibilityModelSources)
+    .map((source) => ({
+      modelUrl: source.modelUrl,
+      textureManifestUrl: source.textureManifestUrl ?? null,
+      normalizeSourceAsset: source.normalizeSourceAsset
+    }))
+}
+
+function compareCompatibilityModelSources(
+  left: AircraftCompatibilityDescriptor['modelSources'][number],
+  right: AircraftCompatibilityDescriptor['modelSources'][number]
+): number {
+  const roleDelta = modelRolePriority(left.role) - modelRolePriority(right.role)
+  if (roleDelta !== 0) return roleDelta
+
+  const minSizeDelta = (right.minSize ?? -Infinity) - (left.minSize ?? -Infinity)
+  if (minSizeDelta !== 0) return minSizeDelta
+
+  return left.modelPath.localeCompare(right.modelPath)
+}
+
+function modelRolePriority(role: string): number {
+  switch (role.toLowerCase()) {
+    case 'normal':
+    case 'exterior':
+      return 0
+    case 'interior':
+      return 1
+    default:
+      return 2
+  }
+}
 
 class TileMaterialReplacementPlugin {
   tiles = undefined
@@ -169,52 +220,55 @@ class TileMaterialReplacementPlugin {
 function loadPlaneModel(
   plane: Plane,
   renderer: WebGPURenderer,
+  modelSources: readonly PlaneModelSource[],
+  options: PlaneModelLoadOptions,
   onAnimations?: (state: MsfsAnimationState, model: Object3D) => void
 ): void {
-  void loadPlaneModelWithFallback(plane, renderer, planeModelSources, onAnimations)
+  void loadPlaneModelWithFallback(plane, renderer, modelSources, options, onAnimations)
 }
 
 async function loadPlaneModelWithFallback(
   plane: Plane,
   renderer: WebGPURenderer,
-  modelSources: readonly {
-    modelUrl: string
-    albedoTextureBaseUrl?: string
-    textureManifestUrl?: string
-    normalizeSourceAsset?: boolean
-  }[],
+  modelSources: readonly PlaneModelSource[],
+  options: PlaneModelLoadOptions,
   onAnimations?: (state: MsfsAnimationState, model: Object3D) => void
 ): Promise<void> {
+  if (modelSources.length === 0) {
+    console.warn('[msfs] no plane model sources are available for the selected aircraft')
+    return
+  }
+
   let lastError: unknown = null
 
   for (const source of modelSources) {
     const modelUrl = new URL(source.modelUrl, window.location.href)
-    const manifestUrl = source.textureManifestUrl
-      ? new URL(source.textureManifestUrl, window.location.href).href
-      : new URL('texture-manifest.json', modelUrl).href
+    const manifest =
+      source.textureManifestUrl === null
+        ? null
+        : await fetch(
+            source.textureManifestUrl
+              ? new URL(source.textureManifestUrl, window.location.href).href
+              : new URL('texture-manifest.json', modelUrl).href
+          )
+            .then(async response => {
+              if (!response.ok) return null
+              return (await response.json()) as { available?: string[] }
+            })
+            .catch(() => null)
 
-    const manifest = await fetch(manifestUrl)
-      .then(async response => {
-        if (!response.ok) return null
-        return (await response.json()) as { available?: string[] }
-      })
-      .catch(() => null)
-
-    const available = new Set(manifest?.available ?? [])
-    const loader = createMsfsGltfLoader(renderer, {
-      availableTextures: available
-    })
+    const availableTextures =
+      manifest?.available && manifest.available.length > 0
+        ? new Set(manifest.available)
+        : undefined
+    const loader = createMsfsGltfLoader(
+      renderer,
+      availableTextures ? { availableTextures } : undefined
+    )
 
     try {
       const gltf = source.normalizeSourceAsset
-        ? await loadNormalizedMsfsSourceGltf(
-            loader,
-            modelUrl.href,
-            new URL(
-              source.albedoTextureBaseUrl ?? '/aircraft/a32nx/exterior/LOD00-msfs/',
-              window.location.href
-            ).href
-          )
+        ? await loadNormalizedMsfsSourceGltf(loader, modelUrl.href)
         : await new Promise<any>((resolve, reject) => {
             loader.load(modelUrl.href, resolve, undefined, reject)
           })
@@ -233,29 +287,36 @@ async function loadPlaneModelWithFallback(
       )
       model.updateMatrixWorld(true)
 
-      const bounds = computeBoundsFromGeometry(model)
-      const size = bounds.getSize(new Vector3())
-      const maxDim = Math.max(size.x, size.y, size.z)
-      const targetSpan = plane.params.wingSpanM
-      if (Number.isFinite(maxDim) && maxDim > 0) {
-        const scale = targetSpan / maxDim
-        model.scale.setScalar(scale)
-        model.updateMatrixWorld(true)
+      if (!options.preserveModelOrigin) {
+        const bounds = computeBoundsFromGeometry(model)
+        const size = bounds.getSize(new Vector3())
+        const maxDim = Math.max(size.x, size.y, size.z)
+        if (options.targetWingSpanM && Number.isFinite(maxDim) && maxDim > 0) {
+          const scale = options.targetWingSpanM / maxDim
+          model.scale.setScalar(scale)
+          model.updateMatrixWorld(true)
 
-        const scaledBounds = computeBoundsFromGeometry(model)
-        const center = scaledBounds.getCenter(new Vector3())
-        if (Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
-          model.position.sub(center)
+          const scaledBounds = computeBoundsFromGeometry(model)
+          const center = scaledBounds.getCenter(new Vector3())
+          if (
+            Number.isFinite(center.x) &&
+            Number.isFinite(center.y) &&
+            Number.isFinite(center.z)
+          ) {
+            model.position.sub(center)
+          } else {
+            console.warn('[msfs] invalid center; skipping recenter')
+          }
         } else {
-          console.warn('[msfs] invalid center; skipping recenter')
+          console.warn('[msfs] invalid bounds; skipping scale/center')
         }
-      } else {
-        console.warn('[msfs] invalid bounds; skipping scale/center')
+      }
+
+      if (options.visualOffsetBodyMeters) {
+        model.position.add(options.visualOffsetBodyMeters)
       }
 
       forceVisibleAndBounds(model)
-      repairAircraftGeometry(model)
-      bindA320NativeControlSurfaceNodes(model)
       prepareAircraftMaterials(model)
       plane.setVisual(model)
       onAnimations?.(animationState, model)
@@ -361,7 +422,6 @@ function prepareAircraftMaterials(root: Object3D): void {
         shouldHideEmptyOverlay || suppressBaseColorLayer || shouldHideFrostLayer
 
       targetMaterial.side = FrontSide
-      applyFallbackExteriorPbr(targetMaterial, material.name)
 
       if (shouldHideEmptyOverlay || suppressBaseColorLayer || shouldHideFrostLayer) {
         targetMaterial.transparent = true
@@ -395,266 +455,6 @@ function prepareAircraftMaterials(root: Object3D): void {
       mesh.renderOrder += drawOrderOffset
     }
   })
-}
-
-function applyFallbackExteriorPbr(material: any, materialName: string): void {
-  if (!('metalness' in material) || !('roughness' in material)) {
-    return
-  }
-
-  const hasMetalnessMap =
-    'metalnessMap' in material && material.metalnessMap != null
-  const hasRoughnessMap =
-    'roughnessMap' in material && material.roughnessMap != null
-  if (hasMetalnessMap || hasRoughnessMap) {
-    return
-  }
-
-  const fallback = fallbackExteriorPbrByMaterialName[materialName]
-  if (!fallback) {
-    return
-  }
-
-  material.metalness = fallback.metalness
-  material.roughness = fallback.roughness
-}
-
-const fallbackExteriorPbrByMaterialName: Record<
-  string,
-  { metalness: number; roughness: number }
-> = {
-  FUSELAGE: { metalness: 0.02, roughness: 0.78 },
-  WINGS: { metalness: 0.02, roughness: 0.78 },
-  'WINGS DETAILS': { metalness: 0.04, roughness: 0.8 },
-  ENGINES: { metalness: 0.15, roughness: 0.7 },
-  FRONTLANDING: { metalness: 0.18, roughness: 0.72 },
-  REARLANDING: { metalness: 0.18, roughness: 0.72 },
-  Passenger_Door: { metalness: 0.02, roughness: 0.8 },
-  METALFLAPS: { metalness: 0.06, roughness: 0.72 }
-}
-
-function repairAircraftGeometry(root: Object3D): void {
-  root.traverse(object => {
-    if (!('isMesh' in object) || !object.isMesh) return
-
-    const mesh = object as Mesh
-    if (!shouldFlipMeshWinding(mesh.name)) {
-      return
-    }
-
-    const geometry = mesh.geometry.clone()
-    flipGeometryWinding(geometry)
-    geometry.deleteAttribute('tangent')
-    if (shouldRecomputeMeshNormals(mesh.name)) {
-      geometry.deleteAttribute('normal')
-      geometry.computeVertexNormals()
-    }
-    geometry.computeBoundingBox()
-    geometry.computeBoundingSphere()
-    mesh.geometry = geometry
-  })
-}
-
-function bindA320NativeControlSurfaceNodes(root: Object3D): void {
-  root.updateMatrixWorld(true)
-
-  for (const [surfaceName, helperName] of nativeA320ControlSurfaceBindings) {
-    const surface = root.getObjectByName(surfaceName)
-    const helper = root.getObjectByName(helperName)
-    if (!surface || !helper || surface.parent === helper) continue
-    helper.attach(surface)
-  }
-
-  root.updateMatrixWorld(true)
-}
-
-const nativeA320ControlSurfaceBindings = [
-  ['FLAPS_01_LEFT', 'WING_FLAP_01_left'],
-  ['FLAPS_02_LEFT', 'WING_FLAP_02_left'],
-  ['FLAPS_01_RIGHT', 'WING_FLAP_01_right'],
-  ['FLAPS_02_RIGHT', 'WING_FLAP_03_right'],
-  ['FLAPSKRUEGER_LEFT', 'WING_FLAPSKRUEGER_0_left'],
-  ['FLAPSKRUEGER_02_LEFT', 'WING_FLAPSKRUEGER_1_left'],
-  ['FLAPSKRUEGER_RIGHT', 'WING_FLAPSKRUEGER_0_right'],
-  ['FLAPSKRUEGER_02_RIGHT', 'WING_FLAPSKRUEGER_1_right']
-] as const
-
-const windingFlipMeshNames = new Set([
-  'x0_FUSELAGE',
-  'x0_FUSELAGE_1',
-  'x0_FUSELAGE_4',
-  'x0_LIVERY_OFFICIAL_FUSELAGE',
-  'x0_LIVERY_OFFICIAL_FUSELAGE_1',
-  'x0_LIVERY_OFFICIAL_FUSELAGE_2',
-  'x0_LIVERY_OFFICIAL_FUSELAGE_3',
-  'x0_DOOR_PASSENGER',
-  'x0_DOOR_PASSENGER_1',
-  'x0_DOOR_REAR',
-  'x0_DOOR_REAR_3',
-  'x0_PASSENGER_DOOR',
-  'x0_PASSENGER_DOOR_1',
-  'LIVERY_OFFICIAL_RDOOR',
-  'LIVERY_OFFICIAL_RGEAR',
-  'LIVERY_OFFICIAL_LGEAR',
-  'R_DOOR03_RIGHT',
-  'DOOR03_LEFT',
-  'C_DOOR_01_RIGHT',
-  'C_DOOR_02_RIGHT',
-  'C_DOOR_01_LEFT',
-  'C_DOOR_02_LEFT',
-  'DOOR02_LEFT',
-  'DOOR01_LEFT',
-  'DOOR02_RIGHT',
-  'DOOR01_RIGHT',
-  'x0_WING_LEFT',
-  'x0_WING_RIGHT',
-  'x0_WING_LEFT_1',
-  'x0_WING_RIGHT_1',
-  'LIVERY_OFFICIAL_WINGL',
-  'LIVERY_OFFICIAL_WINGR',
-  'AILERON_LEFT',
-  'AILERON_RIGHT',
-  'ENGINES',
-  'x0_REACTOR_LEFT',
-  'x0_REACTOR_RIGHT',
-  'x0_REACTOR_BACK_LEFT',
-  'x0_REACTOR_BACK_RIGHT',
-  'x0_PROP_SLOW_LEFT',
-  'x0_PROP_SLOW_RIGHT',
-  'x0_PROP_STILL_LEFT',
-  'x0_PROP_STILL_RIGHT',
-  'PROP_BLURRED_CONE_LEFT',
-  'PROP_BLURRED_CONE_RIGHT',
-  'TAIL_ELEVATOR_LEFT',
-  'TAIL_ELEVATOR_RIGHT',
-  'TAIL_ELEVATOR_TRIM_LEFT',
-  'TAIL_ELEVATOR_TRIM_RIGHT',
-  'TAIL_RUDDER',
-  'TAIL_RUDDER_C',
-  'LIVERY_OFFICIAL_RUDDER',
-  'x0_LIVERY_OFFICIAL_RUDDER',
-  'x0_LIVERY_OFFICIAL_RUDDER_1'
-])
-
-const normalRecomputeMeshNames = new Set([
-  'x0_WING_LEFT',
-  'x0_WING_RIGHT',
-  'x0_WING_LEFT_1',
-  'x0_WING_RIGHT_1',
-  'LIVERY_OFFICIAL_WINGL',
-  'LIVERY_OFFICIAL_WINGR',
-  'LIVERY_OFFICIAL_RGEAR',
-  'LIVERY_OFFICIAL_LGEAR',
-  'R_DOOR03_RIGHT',
-  'DOOR03_LEFT',
-  'C_DOOR_01_RIGHT',
-  'C_DOOR_02_RIGHT',
-  'C_DOOR_01_LEFT',
-  'C_DOOR_02_LEFT',
-  'DOOR02_LEFT',
-  'DOOR01_LEFT',
-  'DOOR02_RIGHT',
-  'DOOR01_RIGHT',
-  'AILERON_LEFT',
-  'AILERON_RIGHT',
-  'ENGINES',
-  'x0_REACTOR_LEFT',
-  'x0_REACTOR_RIGHT',
-  'x0_REACTOR_BACK_LEFT',
-  'x0_REACTOR_BACK_RIGHT',
-  'x0_PROP_SLOW_LEFT',
-  'x0_PROP_SLOW_RIGHT',
-  'x0_PROP_STILL_LEFT',
-  'x0_PROP_STILL_RIGHT',
-  'PROP_BLURRED_CONE_LEFT',
-  'PROP_BLURRED_CONE_RIGHT',
-  'TAIL_ELEVATOR_LEFT',
-  'TAIL_ELEVATOR_RIGHT',
-  'TAIL_ELEVATOR_TRIM_LEFT',
-  'TAIL_ELEVATOR_TRIM_RIGHT',
-  'TAIL_RUDDER',
-  'TAIL_RUDDER_C',
-  'LIVERY_OFFICIAL_RUDDER',
-  'x0_LIVERY_OFFICIAL_RUDDER',
-  'x0_LIVERY_OFFICIAL_RUDDER_1'
-])
-
-const windingFlipMeshPrefixes = [
-  'WING_FLAP_',
-  'WING_FLAPSKRUEGER_',
-  'WING_SPOILER_',
-  'FLAPSFAIRING_',
-  'FLAPSKRUEGER_',
-  'FLAPS_',
-  'x0_FLAPS_',
-  'SPOILER_',
-  'x0_SPOILER_',
-  'Flaps_Details_'
-]
-
-const normalRecomputeMeshPrefixes = [...windingFlipMeshPrefixes]
-
-function shouldFlipMeshWinding(meshName: string): boolean {
-  return matchesMeshName(meshName, windingFlipMeshNames, windingFlipMeshPrefixes)
-}
-
-function shouldRecomputeMeshNormals(meshName: string): boolean {
-  return matchesMeshName(
-    meshName,
-    normalRecomputeMeshNames,
-    normalRecomputeMeshPrefixes
-  )
-}
-
-function matchesMeshName(
-  meshName: string,
-  exactNames: ReadonlySet<string>,
-  prefixes: readonly string[]
-): boolean {
-  if (exactNames.has(meshName)) {
-    return true
-  }
-
-  return prefixes.some(prefix => meshName.startsWith(prefix))
-}
-
-function flipGeometryWinding(geometry: Mesh['geometry']): void {
-  if (geometry.index) {
-    const index = geometry.index.array
-    for (let i = 0; i + 2 < index.length; i += 3) {
-      const temp = index[i + 1]
-      index[i + 1] = index[i + 2]
-      index[i + 2] = temp
-    }
-    geometry.index.needsUpdate = true
-    return
-  }
-
-  swapTriangleVerticesAcrossAttributes(Object.values(geometry.attributes))
-  for (const attributes of Object.values(geometry.morphAttributes)) {
-    swapTriangleVerticesAcrossAttributes(attributes)
-  }
-}
-
-function swapTriangleVerticesAcrossAttributes(
-  attributes: Array<BufferAttribute | undefined>
-): void {
-  for (const attribute of attributes) {
-    if (!attribute) continue
-
-    const array = attribute.array
-    const itemSize = attribute.itemSize
-    for (let vertex = 0; vertex + 2 < attribute.count; vertex += 3) {
-      const first = (vertex + 1) * itemSize
-      const second = (vertex + 2) * itemSize
-      for (let component = 0; component < itemSize; component++) {
-        const temp = array[first + component]
-        array[first + component] = array[second + component]
-        array[second + component] = temp
-      }
-    }
-    attribute.needsUpdate = true
-  }
 }
 
 async function init(): Promise<() => void> {
@@ -713,13 +513,72 @@ async function init(): Promise<() => void> {
     controls.adjustHeight = true
   })
 
-  const planeParams = flyByWireA320AircraftParams()
+  const compatibilityDescriptorId = await loadCompatibilityIndex()
+    .then((entries) => selectCompatibilityDescriptorId(entries, new URLSearchParams(window.location.search)))
+    .catch((error) => {
+      console.warn('[msfs] failed to load compatibility index', error)
+      return undefined
+    })
+  const compatibilityDescriptor = compatibilityDescriptorId
+    ? await loadCompatibilityDescriptor(compatibilityDescriptorId).catch((error) => {
+        console.warn('[msfs] failed to load compatibility descriptor', error)
+        return null
+      })
+    : null
+  const compatibilityRuntime = compatibilityDescriptor
+    ? new AircraftCompatibilityRuntime(compatibilityDescriptor)
+    : null
+  const { aircraftParams: planeParams, visualOffsetBodyMeters } =
+    hydrateCompatibilityAircraftParams(compatibilityDescriptor?.physics)
+  const planeModelSources = resolvePlaneModelSources(compatibilityDescriptor)
+  const useCompatibilityModelPath =
+    compatibilityDescriptor != null && planeModelSources.length > 0
+  if (compatibilityDescriptor && planeModelSources.length === 0) {
+    const modelDiagnostics = compatibilityDescriptor.diagnostics.filter(
+      (diagnostic) =>
+        diagnostic.code === 'model_lod_missing' || diagnostic.code === 'model_assets_unavailable'
+    )
+    if (modelDiagnostics.length > 0) {
+      for (const diagnostic of modelDiagnostics) {
+        console.warn(
+          '[msfs]',
+          diagnostic.message,
+          diagnostic.file ? `(${diagnostic.file})` : ''
+        )
+      }
+    } else {
+      console.warn('[msfs] compatibility descriptor has no loadable model assets')
+    }
+  }
   const keyboard = new KeyboardFlightControls(
     window,
     planeParams.configuration?.flapDetents01,
     planeParams.configuration?.defaultFlapDetentIndex
   )
   const hud = new FlightHud()
+  const compatibilityDock = compatibilityDescriptor && compatibilityRuntime
+    ? new MsfsCompatibilityDock(compatibilityDescriptor, compatibilityRuntime.runtimeId)
+    : null
+  const compatibilityChannel = compatibilityRuntime
+    ? new BroadcastChannel(compatibilityChannelName(compatibilityRuntime.runtimeId))
+    : null
+  if (compatibilityRuntime && compatibilityChannel) {
+    compatibilityChannel.onmessage = (
+      event: MessageEvent<CompatibilityBridgeMessage>
+    ) => {
+      if (event.data.type === 'set-variable') {
+        compatibilityRuntime.setVariable(event.data.reference, event.data.value)
+        return
+      }
+      if (event.data.type === 'emit-event') {
+        compatibilityRuntime.emitEvent(event.data.event, event.data.payload)
+        return
+      }
+      if (event.data.type === 'dispatch-interaction') {
+        compatibilityRuntime.dispatchInteraction(event.data.bindingId)
+      }
+    }
+  }
 
   const plane = new Plane(planeParams)
   scene.add(plane.mesh)
@@ -743,26 +602,26 @@ async function init(): Promise<() => void> {
     return originalRaycast ? originalRaycast(raycaster) : null
   }
   let planeAnimationState: MsfsAnimationState | null = null
-  let aircraftVisualAnimator: A320VisualAnimator | null = null
   let wheelCycle01 = 0
   let lastRenderTimeMs = 0
-  loadPlaneModel(plane, renderer, (state, model) => {
-    planeAnimationState = state
-    if (!model) return
-    aircraftVisualAnimator = hasNativeAircraftAnimations(state)
-      ? null
-      : new A320VisualAnimator(
-          model,
-          planeParams.configuration?.flapVisualSchedule ?? {
-            detents01: planeParams.configuration?.flapDetents01 ?? [0, 1],
-            trailingOutboardDeg: [0, 40],
-            trailingInboardDeg: [0, 40],
-            leadingDeg: [0, 27]
-          }
-        )
-    wheelCycle01 = 0
-    lastRenderTimeMs = 0
-  })
+  let lastCompatibilityPublishTimeMs = 0
+  loadPlaneModel(
+    plane,
+    renderer,
+    planeModelSources,
+    {
+      preserveModelOrigin: useCompatibilityModelPath,
+      targetWingSpanM: useCompatibilityModelPath ? undefined : plane.params.wingSpanM,
+      visualOffsetBodyMeters: useCompatibilityModelPath ? visualOffsetBodyMeters : undefined
+    },
+    (state, model) => {
+      planeAnimationState = state
+      if (!model) return
+      wheelCycle01 = 0
+      lastRenderTimeMs = 0
+      lastCompatibilityPublishTimeMs = 0
+    }
+  )
 
   const spawnFrame = new NedFrame()
   const bodyToNedMatrix = new Matrix4()
@@ -864,25 +723,50 @@ async function init(): Promise<() => void> {
       latest = plane.step(dtSeconds)
     })
 
+    const frameDeltaSeconds =
+      lastRenderTimeMs === 0 ? 0 : Math.max(0, (timeMs - lastRenderTimeMs) / 1000)
+    lastRenderTimeMs = timeMs
+
+    const tireCircumferenceMeters = 4.25
+    wheelCycle01 =
+      (wheelCycle01 +
+        Math.max(0, latest.airspeedMps ?? 0) * frameDeltaSeconds / tireCircumferenceMeters) %
+      1
+
+    const visualState = plane.getVisualState()
+    compatibilityRuntime?.tick({
+      dtSeconds: frameDeltaSeconds,
+      elapsedSeconds: timeMs / 1000,
+      wheelCycle01,
+      visualState,
+      telemetry: latest,
+      angularRatesBodyRadPerSec: {
+        x: plane.omegaBodyRadPerSec.x,
+        y: plane.omegaBodyRadPerSec.y,
+        z: plane.omegaBodyRadPerSec.z
+      }
+    })
+
     if (planeAnimationState?.mixer) {
-      const frameDeltaSeconds =
-        lastRenderTimeMs === 0 ? 0 : Math.max(0, (timeMs - lastRenderTimeMs) / 1000)
-      lastRenderTimeMs = timeMs
-      const tireCircumferenceMeters = 4.25
-      wheelCycle01 =
-        (wheelCycle01 +
-          Math.max(0, latest.speedMS) * frameDeltaSeconds / tireCircumferenceMeters) %
-        1
-      applyMsfsAircraftAnimationState(
-        planeAnimationState,
-        plane.getVisualState(),
-        wheelCycle01
-      )
-    } else {
-      lastRenderTimeMs = timeMs
+      applyMsfsAircraftAnimationState(planeAnimationState, visualState, wheelCycle01)
+      if (compatibilityRuntime) {
+        applyCompatibilityRuntimeState(planeAnimationState, compatibilityRuntime)
+      }
     }
 
-    aircraftVisualAnimator?.update(plane.getVisualState())
+    if (
+      compatibilityRuntime &&
+      compatibilityChannel &&
+      timeMs - lastCompatibilityPublishTimeMs >= 125
+    ) {
+      const snapshot = compatibilityRuntime.createBridgeSnapshot()
+      compatibilityChannel.postMessage({
+        type: 'snapshot',
+        snapshot
+      } satisfies CompatibilityBridgeMessage)
+      compatibilityDock?.update(snapshot)
+      lastCompatibilityPublishTimeMs = timeMs
+    }
 
     if (keyboard.isFollowEnabled()) {
       chaseOffsetEcef
@@ -954,6 +838,8 @@ async function init(): Promise<() => void> {
     context.dispose()
     keyboard.dispose()
     hud.dispose()
+    compatibilityChannel?.close()
+    compatibilityDock?.dispose()
     renderer.dispose()
   }
 }

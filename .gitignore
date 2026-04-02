@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 .vite
+.msfs-cache
 dist
 dist-ssr
 *.local
