@@ -1,22 +1,34 @@
 # FlightSim
 
-Browser-based terrain viewer built with Vite, TypeScript, WebGPU, `three`, and `3d-tiles-renderer`.
+Browser-based MSFS 2020 built-package viewer and compatibility runtime prototype.
 
-The current app renders Cesium ion terrain/3D tiles with atmosphere and postprocessing. The previous aircraft loader and vendored aircraft assets have been removed so the aircraft pipeline can be rebuilt from scratch.
+The current app imports a built package served from the repo `tmp` folder, parses generic SimObjects aircraft config/model references, compiles a supported subset of MSFS model behavior XML, loads the exterior GLTF, and drives generic animation plus node visibility in the browser.
 
-## Stack
+This slice is intentionally generic:
+- no aircraft-specific overrides or code paths
+- no panel hosting
+- no WASM runtime
+- no sound runtime
 
-- `bun` for package management and scripts
-- Vite + TypeScript
-- `three` WebGPU renderer
-- `3d-tiles-renderer` with Cesium ion auth
-- `@takram/three-atmosphere` and `@takram/three-geospatial`
+## Current Scope
 
-## Requirements
+- Package import from a dev-served `tmp` package root
+- `layout.json` and `manifest.json` discovery
+- `aircraft.cfg` parsing, including `base_container` inheritance
+- `model.cfg` and exterior model XML resolution
+- Behavior include loading from package-local `ModelBehaviorDefs`
+- Generic compilation of supported `ASOBO_GT_Anim*` and `ASOBO_GT_Visibility*` template outputs
+- Deterministic demo host variables for behavior-driven animation and visibility
+- Diagnostics overlay for missing includes, unsupported templates, and unsupported RPN tokens
 
-- Bun
-- A browser with WebGPU enabled
-- A valid Cesium ion token
+## Deferred
+
+- `panel.cfg` / `panel.xml`
+- JS instrument hosting
+- WASM
+- sound
+- MSFS 2024 content
+- offline precompilation
 
 ## Setup
 
@@ -26,38 +38,39 @@ The current app renders Cesium ion terrain/3D tiles with atmosphere and postproc
 bun install
 ```
 
-2. Create a `.env` file in the project root:
-
-```dotenv
-VITE_CESIUM_ION_TOKEN=your_cesium_ion_token
-```
-
-3. Start the dev server:
+2. Start the dev server:
 
 ```bash
 bun dev
 ```
 
-4. Build for production:
+3. Build for production:
 
 ```bash
 bun run build
 ```
 
-5. Preview the production build:
+## Package Root
 
-```bash
-bun run preview
+By default the viewer imports:
+
+```text
+/tmp/headwindsim-aircraft-a330-900/
 ```
+
+Override that with:
+
+```dotenv
+VITE_MSFS_PACKAGE_ROOT=/tmp/your-built-package/
+```
+
+The package must be a built MSFS 2020 package inside the repo so Vite can serve it.
 
 ## Project Layout
 
-- [`src/main.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/main.ts): app bootstrap, camera, tiles, atmosphere, and render loop
-- [`src/plugins`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/plugins): tile material and fade plugins
-- [`src/worker`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/worker): worker-backed geometry utilities used by tile plugins
-
-## Notes
-
-- The renderer uses `three/webgpu`, so browser support matters more than in a typical WebGL app.
-- Cesium ion access is required at runtime because the tileset is loaded from `https://assets.cesium.com/2275207/tileset.json`.
-- This repo is now clear of the old aircraft asset pipeline and ready for a new loader implementation.
+- [`plan.md`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/plan.md): implementation plan and phase boundaries
+- [`src/msfs/importer.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/importer.ts): generic built-package importer and config/model resolution
+- [`src/msfs/behavior.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/behavior.ts): behavior include loading, template expansion, and output compilation
+- [`src/msfs/rpn.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/rpn.ts): supported calculator/RPN compiler and evaluator
+- [`src/msfs/runtime.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/runtime.ts): runtime host and animation/visibility application
+- [`src/main.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/main.ts): viewer bootstrap, GLTF loading fallback, and diagnostics UI
