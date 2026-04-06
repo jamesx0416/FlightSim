@@ -21,9 +21,11 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
+import { normalizeMsfsNormalsTangents } from './msfs/gltf/normalizeMsfsNormalsTangents'
 import { normalizeMsfsSkinning } from './msfs/gltf/normalizeMsfsSkinning'
 import { normalizeMsfsTexcoords } from './msfs/gltf/normalizeMsfsTexcoords'
 import { normalizeMsfsVertexColors } from './msfs/gltf/normalizeMsfsVertexColors'
+import { repairMsfsSkinnedAttributes } from './msfs/gltf/repairMsfsSkinnedAttributes'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
 import type { ImportedAircraft, RuntimeState } from './msfs/types'
@@ -147,9 +149,11 @@ async function loadAircraftGltf(
   for (const lod of lods) {
     try {
       const gltf = await loadMsfsGltfLod(loader, lod.url)
+      await repairMsfsSkinnedAttributes(gltf)
       normalizeMsfsSkinning(gltf.scene)
       normalizeMsfsTexcoords(gltf.scene)
       normalizeMsfsVertexColors(gltf.scene)
+      normalizeMsfsNormalsTangents(gltf.scene)
       normalizeMsfsMaterials(gltf.scene)
       return gltf
     } catch (error) {
@@ -267,9 +271,9 @@ function fitCameraToObject(
   camera.far = Math.max(5000, radius * 40)
   camera.position
     .copy(center)
-    .add(new Vector3(radius * 1.9, radius * 0.32, radius * 0.72))
+    .add(new Vector3(radius * 1.2, radius * 0.46, radius * 1.05))
   camera.updateProjectionMatrix()
-  controls.target.copy(center).add(new Vector3(0, radius * 0.08, 0))
+  controls.target.copy(center).add(new Vector3(0, radius * 0.1, radius * 0.08))
   controls.update()
 }
 
