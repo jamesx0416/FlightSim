@@ -48,19 +48,22 @@ export function normalizeMsfsMaterials(root: Object3D): void {
       return
     }
 
-    const material = object.material
-    if (Array.isArray(material)) {
-      for (const entry of material) {
-        materials.add(entry as MsfsMaterial)
+    const meshMaterials = Array.isArray(object.material)
+      ? object.material
+      : [object.material]
+
+    for (const material of meshMaterials) {
+      if (material != null) {
+        materials.add(material as MsfsMaterial)
       }
+    }
+
+    if (meshMaterials.some(material => usesInvisibleMaterial(material))) {
+      object.visible = false
       return
     }
 
-    if (material != null) {
-      materials.add(material as MsfsMaterial)
-    }
-
-    if (usesBlendGBuffer(material)) {
+    if (meshMaterials.some(material => usesBlendGBuffer(material))) {
       object.renderOrder = Math.max(object.renderOrder, 10)
     }
   })
@@ -110,6 +113,13 @@ function usesBlendGBuffer(material: Material | MsfsMaterial | null | undefined):
   return (
     material?.userData?.gltfExtensions != null &&
     'ASOBO_material_blend_gbuffer' in material.userData.gltfExtensions
+  )
+}
+
+function usesInvisibleMaterial(material: Material | MsfsMaterial | null | undefined): boolean {
+  return (
+    material?.userData?.gltfExtensions != null &&
+    'ASOBO_material_invisible' in material.userData.gltfExtensions
   )
 }
 
