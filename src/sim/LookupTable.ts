@@ -9,8 +9,7 @@ export interface LookupTable2D {
   values: readonly number[]
 }
 
-// The search/extrapolation behavior here mirrors FlyByWire's generated lookup helpers
-// in third_party/flybywire-aircraft so the runtime TS model behaves like the source tables.
+// Uses linear interpolation with clamped end extrapolation.
 function findSegment(value: number, breakpoints: readonly number[]): [number, number] {
   const maxIndex = breakpoints.length - 1
   if (maxIndex < 1) {
