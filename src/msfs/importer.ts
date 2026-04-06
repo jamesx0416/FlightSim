@@ -309,6 +309,7 @@ async function importAircraftRecord(
     fltsimSection.values.get('ui_type') ||
     dirname(record.path).split('/').at(-1) ||
     record.path
+  const textureDirectories = resolveTextureDirectories(chain, context)
 
   return {
     id: normalizePath(dirname(record.path)),
@@ -316,6 +317,7 @@ async function importAircraftRecord(
     sourcePath: record.path,
     sourceUrl: record.url,
     inheritedFromPaths: chain.slice(1).map(item => item.path),
+    textureDirectories,
     baseContainer,
     isUserSelectable: parseBoolean(fltsimSection.values.get('isuserselectable')),
     isFlyable: parseBoolean(fltsimSection.values.get('isflyable')),
@@ -474,4 +476,81 @@ function parseBoolean(value: string | undefined): boolean {
 
 function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
+}
+
+function resolveTextureDirectories(
+  chain: readonly AircraftCfgRecord[],
+  context: ImportContext
+): string[] {
+  const textureDirectories: string[] = []
+
+  for (const record of chain) {
+    for (const directoryCandidate of getTextureDirectoryCandidates(record)) {
+      const resolvedTextureDirectory = resolveExistingDirectory(
+        directoryCandidate,
+        context
+      )
+
+      if (
+        resolvedTextureDirectory != null &&
+        !textureDirectories.includes(resolvedTextureDirectory)
+      ) {
+        textureDirectories.push(resolvedTextureDirectory)
+      }
+    }
+  }
+
+  return textureDirectories
+}
+
+function getTextureDirectoryCandidates(record: AircraftCfgRecord): string[] {
+  const aircraftDirectory = dirname(record.path)
+  const sections = getCfgSectionsByPrefix(record.sections, 'fltsim.')
+  const rankedTextureValues = sections
+    .map(section => {
+      const textureValue = section.values.get('texture')?.trim() ?? ''
+      const textureValueUpper = textureValue.toUpperCase()
+      let score = 0
+
+      if (parseBoolean(section.values.get('isuserselectable'))) score += 20
+      if (parseBoolean(section.values.get('isflyable'))) score += 20
+      if (!textureValueUpper.includes('AIB')) score += 10
+      if (textureValue !== '') score += 1
+
+      return { textureValue, score }
+    })
+    .sort((left, right) => right.score - left.score)
+
+  const candidates: string[] = []
+  for (const { textureValue } of rankedTextureValues) {
+    const directoryCandidate = textureValue
+      ? joinPath(aircraftDirectory, `texture.${textureValue}`)
+      : joinPath(aircraftDirectory, 'texture')
+    if (!candidates.includes(directoryCandidate)) {
+      candidates.push(directoryCandidate)
+    }
+  }
+
+  const defaultTextureDirectory = joinPath(aircraftDirectory, 'texture')
+  if (!candidates.includes(defaultTextureDirectory)) {
+    candidates.push(defaultTextureDirectory)
+  }
+
+  return candidates
+}
+
+function resolveExistingDirectory(
+  directoryPath: string,
+  context: ImportContext
+): string | null {
+  const normalizedDirectoryPath = normalizePath(directoryPath)
+  const lowerDirectoryPath = `${normalizedDirectoryPath.toLowerCase()}/`
+
+  for (const [lowerPath, actualPath] of context.layoutPathIndex) {
+    if (lowerPath.startsWith(lowerDirectoryPath)) {
+      return dirname(actualPath)
+    }
+  }
+
+  return null
 }

@@ -1,11 +1,13 @@
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
   Box3,
   Clock,
   Color,
   DirectionalLight,
   Group,
-  LoadingManager,
+  Mesh,
+  PMREMGenerator,
   PerspectiveCamera,
   Scene,
   SRGBColorSpace,
@@ -13,16 +15,20 @@ import {
   WebGLRenderer
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { DDSLoader } from 'three/examples/jsm/loaders/DDSLoader.js'
+import { Sky } from 'three/examples/jsm/objects/Sky.js'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 import { compileMsfs2020Behaviors } from './msfs/behavior'
+import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
+import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
+import { normalizeMsfsSkinning } from './msfs/gltf/normalizeMsfsSkinning'
+import { normalizeMsfsTexcoords } from './msfs/gltf/normalizeMsfsTexcoords'
+import { normalizeMsfsVertexColors } from './msfs/gltf/normalizeMsfsVertexColors'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
 import type { ImportedAircraft, RuntimeState } from './msfs/types'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
-
 async function init(): Promise<void> {
   const packageRoot = ensureTrailingSlash(
     import.meta.env.VITE_MSFS_PACKAGE_ROOT || DEFAULT_PACKAGE_ROOT
@@ -35,12 +41,15 @@ async function init(): Promise<void> {
 
   const compiledBehaviors = await compileMsfs2020Behaviors(packageData, aircraft)
   const scene = new Scene()
-  scene.background = new Color('#d8e2ea')
+  scene.background = new Color('#405264')
 
   const renderer = new WebGLRenderer({ antialias: true })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.outputColorSpace = SRGBColorSpace
+  renderer.toneMapping = ACESFilmicToneMapping
+  renderer.toneMappingExposure = 0.72
+  scene.environment = createAircraftEnvironment(renderer)
   document.body.appendChild(renderer.domElement)
 
   const camera = new PerspectiveCamera(
@@ -54,21 +63,33 @@ async function init(): Promise<void> {
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.enableDamping = true
   controls.target.set(0, 4, 0)
+  ;(globalThis as Record<string, unknown>).__lastRenderer = renderer
+  ;(globalThis as Record<string, unknown>).__lastCamera = camera
+  ;(globalThis as Record<string, unknown>).__lastControls = controls
 
-  const ambientLight = new AmbientLight('#ffffff', 1.8)
-  const keyLight = new DirectionalLight('#fff6df', 3.2)
-  keyLight.position.set(20, 25, 15)
-  const fillLight = new DirectionalLight('#bcd7ff', 1.6)
-  fillLight.position.set(-15, 12, -18)
-  scene.add(ambientLight, keyLight, fillLight)
+  const ambientLight = new AmbientLight('#ffffff', 0.18)
+  const keyLight = new DirectionalLight('#fff1d5', 2.35)
+  keyLight.position.set(34, 9, 18)
+  const fillLight = new DirectionalLight('#b9d5ff', 0.28)
+  fillLight.position.set(-22, 16, -28)
+  const rimLight = new DirectionalLight('#d7e6ff', 0.95)
+  rimLight.position.set(-30, 18, 24)
+  scene.add(ambientLight, keyLight, fillLight, rimLight)
 
   const overlay = createOverlay()
   document.body.appendChild(overlay)
 
-  const gltf = await loadAircraftGltf(aircraft)
+  const gltf = await loadAircraftGltf(
+    aircraft,
+    packageData.rootUrl,
+    packageData.layoutEntries.map(entry => entry.path)
+  )
+  ;(globalThis as Record<string, unknown>).__lastLoadedGltf = gltf
   const aircraftRoot = new Group()
   aircraftRoot.add(gltf.scene)
   scene.add(aircraftRoot)
+  ;(globalThis as Record<string, unknown>).__lastAircraftRoot = aircraftRoot
+  ;(globalThis as Record<string, unknown>).__lastScene = scene
 
   centerObjectAtOrigin(aircraftRoot)
   fitCameraToObject(camera, controls, aircraftRoot)
@@ -105,20 +126,32 @@ async function init(): Promise<void> {
   })
 }
 
-async function loadAircraftGltf(aircraft: ImportedAircraft): Promise<GLTF> {
+async function loadAircraftGltf(
+  aircraft: ImportedAircraft,
+  packageRootUrl: string,
+  layoutPaths: readonly string[]
+): Promise<GLTF> {
   if (aircraft.model == null) {
     throw new Error(`Aircraft ${aircraft.id} does not have a model to load.`)
   }
 
-  const loadingManager = new LoadingManager()
-  loadingManager.addHandler(/\.dds$/iu, new DDSLoader())
-  const loader = new GLTFLoader(loadingManager)
+  const textureUrlResolver = createTextureUrlResolver(
+    aircraft,
+    packageRootUrl,
+    layoutPaths
+  )
+  const loader = createMsfsGltfLoader(textureUrlResolver)
 
   let lastError: unknown = null
-  const lods = [...aircraft.model.lods].sort((left, right) => left.minSize - right.minSize)
+  const lods = [...aircraft.model.lods].sort((left, right) => right.minSize - left.minSize)
   for (const lod of lods) {
     try {
-      return await loadMsfsGltfLod(loader, lod.url)
+      const gltf = await loadMsfsGltfLod(loader, lod.url)
+      normalizeMsfsSkinning(gltf.scene)
+      normalizeMsfsTexcoords(gltf.scene)
+      normalizeMsfsVertexColors(gltf.scene)
+      normalizeMsfsMaterials(gltf.scene)
+      return gltf
     } catch (error) {
       lastError = error
     }
@@ -136,57 +169,60 @@ async function loadMsfsGltfLod(loader: GLTFLoader, url: string): Promise<GLTF> {
   }
 
   const gltfText = await response.text()
-  const gltfJson = JSON.parse(gltfText) as Record<string, unknown>
   const baseUrl = url.slice(0, url.lastIndexOf('/') + 1)
-
-  if (usesMsfsDdsTextures(gltfJson)) {
-    const sanitizedGltf = stripUnsupportedTextureReferences(gltfJson)
-    return await loader.parseAsync(JSON.stringify(sanitizedGltf), baseUrl)
-  }
-
-  return await loader.parseAsync(gltfText, baseUrl)
+  const sanitizedGltf = sanitizeMsfsGltf(JSON.parse(gltfText) as Record<string, unknown>)
+  return await loader.parseAsync(JSON.stringify(sanitizedGltf), baseUrl)
 }
 
-function usesMsfsDdsTextures(gltf: Record<string, unknown>): boolean {
-  const extensionsUsed = Array.isArray(gltf.extensionsUsed) ? gltf.extensionsUsed : []
-  return extensionsUsed.includes('MSFT_texture_dds')
-}
-
-function stripUnsupportedTextureReferences(
-  source: Record<string, unknown>
-): Record<string, unknown> {
+function sanitizeMsfsGltf(source: Record<string, unknown>): Record<string, unknown> {
   const clone = structuredClone(source)
-
-  if (Array.isArray(clone.extensionsUsed)) {
-    clone.extensionsUsed = clone.extensionsUsed.filter(
-      value => value !== 'MSFT_texture_dds'
-    )
-  }
-  if (Array.isArray(clone.extensionsRequired)) {
-    clone.extensionsRequired = clone.extensionsRequired.filter(
-      value => value !== 'MSFT_texture_dds'
-    )
+  if (!Array.isArray(clone.skins)) {
+    return clone
   }
 
-  if (Array.isArray(clone.materials)) {
-    for (const material of clone.materials as Record<string, unknown>[]) {
-      delete material.normalTexture
-      delete material.occlusionTexture
-      delete material.emissiveTexture
-
-      const pbr = material.pbrMetallicRoughness as Record<string, unknown> | undefined
-      if (pbr) {
-        delete pbr.baseColorTexture
-        delete pbr.metallicRoughnessTexture
-      }
+  for (const skin of clone.skins as Array<Record<string, unknown>>) {
+    if (typeof skin.skeleton === 'number' && skin.skeleton < 0) {
+      delete skin.skeleton
     }
   }
 
-  delete clone.textures
-  delete clone.images
-  delete clone.samplers
-
   return clone
+}
+
+function createTextureUrlResolver(
+  aircraft: ImportedAircraft,
+  packageRootUrl: string,
+  layoutPaths: readonly string[]
+): (url: string) => string {
+  const textureDirectories = aircraft.textureDirectories
+  const layoutPathIndex = new Set(layoutPaths.map(path => normalizePath(path).toLowerCase()))
+
+  return (url: string): string => {
+    if (!url.toLowerCase().endsWith('.dds')) {
+      return url
+    }
+
+    const parsedUrl = new URL(url, window.location.href)
+    const fileName = parsedUrl.pathname.split('/').at(-1)
+    if (!fileName) {
+      return parsedUrl.toString()
+    }
+
+    for (const textureDirectory of textureDirectories) {
+      const candidatePath = normalizePath(`${textureDirectory}/${fileName}`)
+      if (!layoutPathIndex.has(candidatePath.toLowerCase())) {
+        continue
+      }
+
+      return new URL(candidatePath, packageRootUrl).toString()
+    }
+
+    return parsedUrl.toString()
+  }
+}
+
+function normalizePath(path: string): string {
+  return path.replaceAll('\\', '/').replace(/^\/+/u, '').replace(/\/+/gu, '/')
 }
 
 function selectPrimaryAircraft(aircraft: readonly ImportedAircraft[]): ImportedAircraft | null {
@@ -209,11 +245,11 @@ function getAircraftSelectionScore(aircraft: ImportedAircraft): number {
 }
 
 function centerObjectAtOrigin(object: Group): void {
-  const bounds = new Box3().setFromObject(object)
+  const bounds = computeApproximateBounds(object)
   const center = bounds.getCenter(new Vector3())
   object.position.sub(center)
 
-  const recenteredBounds = new Box3().setFromObject(object)
+  const recenteredBounds = computeApproximateBounds(object)
   const minimumY = recenteredBounds.min.y
   object.position.y -= minimumY
 }
@@ -223,16 +259,69 @@ function fitCameraToObject(
   controls: OrbitControls,
   object: Group
 ): void {
-  const bounds = new Box3().setFromObject(object)
+  const bounds = computeApproximateBounds(object)
   const size = bounds.getSize(new Vector3())
   const center = bounds.getCenter(new Vector3())
-  const radius = Math.max(size.x, size.y, size.z) * 0.8
+  const radius = Math.max(size.x, size.y, size.z)
   camera.near = 0.1
   camera.far = Math.max(5000, radius * 40)
-  camera.position.copy(center).add(new Vector3(radius * 1.5, radius * 0.6, radius * 1.4))
+  camera.position
+    .copy(center)
+    .add(new Vector3(radius * 1.9, radius * 0.32, radius * 0.72))
   camera.updateProjectionMatrix()
-  controls.target.copy(center)
+  controls.target.copy(center).add(new Vector3(0, radius * 0.08, 0))
   controls.update()
+}
+
+function createAircraftEnvironment(renderer: WebGLRenderer) {
+  const environmentScene = new Scene()
+  const sky = new Sky()
+  sky.scale.setScalar(450000)
+  environmentScene.add(sky)
+
+  const uniforms = sky.material.uniforms
+  uniforms.turbidity.value = 3.8
+  uniforms.rayleigh.value = 1.4
+  uniforms.mieCoefficient.value = 0.012
+  uniforms.mieDirectionalG.value = 0.88
+  uniforms.sunPosition.value.set(0.32, 0.72, -0.48).normalize()
+
+  const pmremGenerator = new PMREMGenerator(renderer)
+  pmremGenerator.compileEquirectangularShader()
+  const environmentTexture = pmremGenerator.fromScene(environmentScene).texture
+  pmremGenerator.dispose()
+  sky.geometry.dispose()
+  sky.material.dispose()
+
+  return environmentTexture
+}
+
+function computeApproximateBounds(object: Group): Box3 {
+  const bounds = new Box3().makeEmpty()
+  object.updateWorldMatrix(true, true)
+
+  object.traverse(node => {
+    if (!(node instanceof Mesh)) {
+      return
+    }
+
+    const geometry = node.geometry
+    if (geometry == null) {
+      return
+    }
+
+    if (geometry.boundingBox == null) {
+      geometry.computeBoundingBox()
+    }
+
+    if (geometry.boundingBox == null) {
+      return
+    }
+
+    bounds.union(geometry.boundingBox.clone().applyMatrix4(node.matrixWorld))
+  })
+
+  return bounds
 }
 
 function createOverlay(): HTMLDivElement {
@@ -240,8 +329,10 @@ function createOverlay(): HTMLDivElement {
   overlay.style.position = 'fixed'
   overlay.style.top = '16px'
   overlay.style.left = '16px'
-  overlay.style.maxWidth = '420px'
-  overlay.style.padding = '14px 16px'
+  overlay.style.maxWidth = '340px'
+  overlay.style.maxHeight = 'calc(100vh - 32px)'
+  overlay.style.overflow = 'hidden'
+  overlay.style.padding = '12px 14px'
   overlay.style.borderRadius = '14px'
   overlay.style.background = 'rgba(15, 23, 32, 0.78)'
   overlay.style.backdropFilter = 'blur(10px)'
@@ -312,7 +403,9 @@ init().catch(error => {
   const overlay = createOverlay()
   overlay.style.pointerEvents = 'auto'
   overlay.textContent =
-    error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+    error instanceof Error
+      ? `${error.name}: ${error.message}\n\n${error.stack ?? ''}`
+      : String(error)
   document.body.appendChild(overlay)
   console.error(error)
 })
