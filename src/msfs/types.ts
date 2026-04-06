@@ -48,6 +48,7 @@ export interface ImportedAircraft {
   readonly sourcePath: string
   readonly sourceUrl: string
   readonly inheritedFromPaths: readonly string[]
+  readonly textureDirectories: readonly string[]
   readonly baseContainer?: string
   readonly isUserSelectable: boolean
   readonly isFlyable: boolean
