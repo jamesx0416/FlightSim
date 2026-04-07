@@ -9,7 +9,11 @@ import {
   WebGLRenderer,
 } from 'three'
 import { Sky } from 'three/examples/jsm/objects/Sky.js'
-import { WebGPURenderer, type NodeMaterial } from 'three/webgpu'
+import { SkyMesh } from 'three/examples/jsm/objects/SkyMesh.js'
+import {
+  WebGPURenderer,
+  type NodeMaterial
+} from 'three/webgpu'
 
 export type RendererPreference = 'webgl' | 'webgpu' | 'auto'
 export type RendererMode = 'webgl' | 'webgpu' | 'webgpu-fallback-webgl'
@@ -36,7 +40,7 @@ export async function createAppRenderer(
   }
 
   try {
-    const renderer = new WebGPURenderer({ antialias: true })
+    const renderer = new WebGPURenderer(await createWebGpuRendererOptions())
     await renderer.init()
     return finalizeRenderer(renderer, preference)
   } catch (error) {
@@ -52,10 +56,37 @@ export async function createAppRenderer(
   }
 }
 
+async function createWebGpuRendererOptions(): Promise<{ antialias: true; requiredLimits?: Record<string, number> }> {
+  const requiredLimits = await getWebGpuRequiredLimits()
+  return requiredLimits == null
+    ? { antialias: true }
+    : { antialias: true, requiredLimits }
+}
+
+async function getWebGpuRequiredLimits(): Promise<Record<string, number> | undefined> {
+  if (typeof navigator === 'undefined' || navigator.gpu == null) {
+    return undefined
+  }
+
+  const adapter = await navigator.gpu.requestAdapter()
+  if (adapter == null) {
+    return undefined
+  }
+
+  const maxColorAttachmentBytesPerSample = adapter.limits.maxColorAttachmentBytesPerSample
+  if (typeof maxColorAttachmentBytesPerSample !== 'number' || maxColorAttachmentBytesPerSample <= 32) {
+    return undefined
+  }
+
+  return {
+    maxColorAttachmentBytesPerSample,
+  }
+}
+
 export function createAircraftEnvironment(renderer: AppRenderer): Texture | null {
   const pmremGenerator = new PMREMGenerator(renderer as never)
   try {
-    return pmremGenerator.fromScene(createSkyScene()).texture
+    return pmremGenerator.fromScene(createSkyScene(renderer)).texture
   } catch {
     return null
   } finally {
@@ -126,13 +157,23 @@ function getRendererFeature(
   return renderer.hasFeature(featureName)
 }
 
-function createSkyScene() {
+function createSkyScene(renderer: AppRenderer) {
   const scene = new Scene()
   scene.background = new Color('#405264')
 
-  const sky = new Sky()
+  const sky =
+    renderer instanceof WebGLRenderer
+      ? createWebGlSky()
+      : createWebGpuSky()
   sky.scale.setScalar(450000)
   scene.add(sky)
+
+  return scene
+}
+
+function createWebGlSky() {
+  const sky = new Sky()
+  sky.scale.setScalar(450000)
 
   const uniforms = sky.material.uniforms
   uniforms['turbidity'].value = 2.2
@@ -141,5 +182,16 @@ function createSkyScene() {
   uniforms['mieDirectionalG'].value = 0.92
   uniforms['sunPosition'].value.set(0.4, 0.9, -0.35).normalize().multiplyScalar(120)
 
-  return scene
+  return sky
+}
+
+function createWebGpuSky() {
+  const sky = new SkyMesh()
+  sky.turbidity.value = 2.2
+  sky.rayleigh.value = 1.7
+  sky.mieCoefficient.value = 0.02
+  sky.mieDirectionalG.value = 0.92
+  sky.sunPosition.value.set(0.4, 0.9, -0.35).normalize().multiplyScalar(120)
+
+  return sky
 }

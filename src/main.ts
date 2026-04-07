@@ -28,9 +28,11 @@ import type { ImportedAircraft, RuntimeState } from './msfs/types'
 import {
   createAircraftEnvironment,
   createAppRenderer,
+  type AppRenderer,
   createNodeMaterialFactory,
   type RendererInfo
 } from './rendering/createAppRenderer'
+import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
 async function init(): Promise<void> {
@@ -101,6 +103,7 @@ async function init(): Promise<void> {
 
   centerObjectAtOrigin(aircraftRoot)
   fitCameraToObject(camera, controls, aircraftRoot)
+  const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
 
   const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never)
   const runtime = new AircraftRuntime(compiledBehaviors, gltf.scene, runtimeHost)
@@ -130,7 +133,7 @@ async function init(): Promise<void> {
     const dtSeconds = clock.getDelta()
     runtimeState = runtime.update(dtSeconds)
     controls.update()
-    renderer.render(scene, camera)
+    renderPasses.render()
     updateOverlay(
       overlay,
       packageRoot,
