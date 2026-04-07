@@ -1,7 +1,7 @@
 import { BufferGeometry, Float32BufferAttribute, Mesh, Object3D } from 'three'
 
-const MSFS_FIXED_POINT_TEXCOORD_SCALE = 16384
 const TEXCOORD_ATTRIBUTE_NAMES = ['uv', 'uv1', 'uv2', 'uv3'] as const
+const MSFS_FIXED_POINT_TEXCOORD_SCALE = 16384
 
 export function normalizeMsfsTexcoords(root: Object3D): void {
   const normalizedGeometries = new WeakSet<BufferGeometry>()

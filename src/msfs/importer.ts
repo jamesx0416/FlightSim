@@ -24,6 +24,11 @@ interface ImportContext {
   readonly textCache: Map<string, Promise<string>>
 }
 
+interface FltsimSectionRef {
+  readonly record: AircraftCfgRecord
+  readonly section: ReturnType<typeof parseCfg>[number]
+}
+
 export async function importBuiltMsfs2020Package(
   rootUrl: string
 ): Promise<ImportedPackage> {
@@ -70,8 +75,8 @@ export async function importBuiltMsfs2020Package(
       aircraftCfgRecords,
       context
     )
-    if (importedAircraft != null) {
-      aircraft.push(importedAircraft)
+    if (importedAircraft.length > 0) {
+      aircraft.push(...importedAircraft)
     }
   }
 
@@ -254,7 +259,7 @@ async function importAircraftRecord(
   record: AircraftCfgRecord,
   aircraftCfgRecords: ReadonlyMap<string, AircraftCfgRecord>,
   context: ImportContext
-): Promise<ImportedAircraft | null> {
+): Promise<ImportedAircraft[]> {
   const visitedPaths = new Set<string>()
   const chain: AircraftCfgRecord[] = []
   let currentRecord: AircraftCfgRecord | undefined = record
@@ -282,47 +287,56 @@ async function importAircraftRecord(
     }
   }
 
-  const fltsimSection =
-    getCfgSectionsByPrefix(record.sections, 'fltsim.')[0] ??
-    getCfgSectionsByPrefix(chain.at(-1)?.sections ?? [], 'fltsim.')[0] ??
-    null
-
-  if (fltsimSection == null) {
+  const fltsimSections = resolveFltsimSections(record, chain)
+  if (fltsimSections.length === 0) {
     context.diagnostics.push({
       code: 'aircraft_fltsim_missing',
       message: `No [FLTSIM.x] section was found in ${record.path}.`,
       severity: 'warning',
       sourcePath: record.path
     })
-    return null
+    return []
   }
 
   const resolvedSource = chain.at(-1) ?? record
-  const model = await importModelDefinition(
-    resolvedSource,
-    fltsimSection.values.get('model') ?? '',
-    context
-  )
+  const inheritedFromPaths = chain.slice(1).map(item => item.path)
+  const aircraftDirectoryName = dirname(record.path).split('/').at(-1) || record.path
+  const importedAircraft: ImportedAircraft[] = []
 
-  const title =
-    fltsimSection.values.get('title') ||
-    fltsimSection.values.get('ui_type') ||
-    dirname(record.path).split('/').at(-1) ||
-    record.path
-  const textureDirectories = resolveTextureDirectories(chain, context)
+  for (const fltsim of fltsimSections) {
+    const section = fltsim.section
+    const model = await importModelDefinition(
+      resolvedSource,
+      section.values.get('model') ?? '',
+      context
+    )
 
-  return {
-    id: normalizePath(dirname(record.path)),
-    title,
-    sourcePath: record.path,
-    sourceUrl: record.url,
-    inheritedFromPaths: chain.slice(1).map(item => item.path),
-    textureDirectories,
-    baseContainer,
-    isUserSelectable: parseBoolean(fltsimSection.values.get('isuserselectable')),
-    isFlyable: parseBoolean(fltsimSection.values.get('isflyable')),
-    model
+    const title =
+      section.values.get('title') ||
+      section.values.get('ui_type') ||
+      aircraftDirectoryName
+    const variationName = section.values.get('ui_variation') || undefined
+    const uiType = section.values.get('ui_type') || undefined
+    const textureDirectories = resolveTextureDirectories(chain, fltsim, context)
+
+    importedAircraft.push({
+      id: `${normalizePath(dirname(record.path))}#${section.name.toLowerCase()}`,
+      title,
+      sectionName: section.name,
+      uiType,
+      variationName,
+      sourcePath: record.path,
+      sourceUrl: record.url,
+      inheritedFromPaths,
+      textureDirectories,
+      baseContainer,
+      isUserSelectable: parseBoolean(section.values.get('isuserselectable')),
+      isFlyable: parseBoolean(section.values.get('isflyable')),
+      model
+    })
   }
+
+  return importedAircraft
 }
 
 async function importModelDefinition(
@@ -478,11 +492,43 @@ function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined
 }
 
+function resolveFltsimSections(
+  record: AircraftCfgRecord,
+  chain: readonly AircraftCfgRecord[]
+): FltsimSectionRef[] {
+  const localSections = getCfgSectionsByPrefix(record.sections, 'fltsim.')
+  if (localSections.length > 0) {
+    return localSections.map(section => ({ record, section }))
+  }
+
+  const inheritedRecord = chain.at(-1)
+  if (inheritedRecord == null) {
+    return []
+  }
+
+  return getCfgSectionsByPrefix(inheritedRecord.sections, 'fltsim.')
+    .map(section => ({ record: inheritedRecord, section }))
+}
+
 function resolveTextureDirectories(
   chain: readonly AircraftCfgRecord[],
+  primaryFltsim: FltsimSectionRef,
   context: ImportContext
 ): string[] {
   const textureDirectories: string[] = []
+
+  const primaryTextureValue = primaryFltsim.section.values.get('texture')?.trim() ?? ''
+  const primaryDirectoryCandidate = primaryTextureValue
+    ? joinPath(dirname(primaryFltsim.record.path), `texture.${primaryTextureValue}`)
+    : joinPath(dirname(primaryFltsim.record.path), 'texture')
+  const resolvedPrimaryTextureDirectory = resolveExistingDirectory(
+    primaryDirectoryCandidate,
+    context
+  )
+
+  if (resolvedPrimaryTextureDirectory != null) {
+    textureDirectories.push(resolvedPrimaryTextureDirectory)
+  }
 
   for (const record of chain) {
     for (const directoryCandidate of getTextureDirectoryCandidates(record)) {

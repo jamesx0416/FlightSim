@@ -1,7 +1,8 @@
 import { BufferGeometry, Float32BufferAttribute, Mesh, Object3D } from 'three'
 
-const MSFS_FIXED_POINT_COLOR_SCALE = 16384
 const MSFS_BYTE_COLOR_SCALE = 255
+const FLOAT16_BUFFER = new ArrayBuffer(2)
+const FLOAT16_VIEW = new DataView(FLOAT16_BUFFER)
 
 export function normalizeMsfsVertexColors(root: Object3D): void {
   const normalizedGeometries = new WeakSet<BufferGeometry>()
@@ -34,7 +35,7 @@ function normalizeGeometryVertexColors(geometry: BufferGeometry): void {
   let readComponent: ((index: number, component: number) => number) | null = null
   if (attribute.array instanceof Uint16Array) {
     readComponent = (index, component) =>
-      getComponent(attribute, index, component) / MSFS_FIXED_POINT_COLOR_SCALE
+      decodeFloat16Bits(getComponent(attribute, index, component))
   } else if (attribute.array instanceof Uint8Array) {
     readComponent = (index, component) =>
       getComponent(attribute, index, component) / MSFS_BYTE_COLOR_SCALE
@@ -87,4 +88,9 @@ function getComponent(
 
 function reinterpretSignedByteAsUnsigned(value: number): number {
   return value < 0 ? value + 256 : value
+}
+
+function decodeFloat16Bits(value: number): number {
+  FLOAT16_VIEW.setUint16(0, value, true)
+  return FLOAT16_VIEW.getFloat16(0, true)
 }
