@@ -1,6 +1,6 @@
 # MSFS 2020 SimObjects Parser and Compatibility Runtime Plan
 
-**Important:** Do not implement, exit, or add anything that is aircraft-specific. All bug fixes and changes must be generic MSFS loader fixes that apply broadly, not patches tailored to a specific aircraft.
+**Important:** Do not implement, exit, or add anything that is aircraft-specific or heuristic. All bug fixes and changes must be generic MSFS loader fixes that apply broadly and authoritatively, not patches tailored to a specific aircraft.
 
 ## Summary
 
