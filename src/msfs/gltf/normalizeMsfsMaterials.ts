@@ -4,6 +4,7 @@ import {
   Material,
   Mesh,
   NoColorSpace,
+  NormalRGPacking,
   Object3D,
   RED_GREEN_RGTC2_Format,
   RGB_S3TC_DXT1_Format,
@@ -13,6 +14,22 @@ import {
   type Shader
 } from 'three'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import {
+  materialAO,
+  materialColor,
+  materialMetalness,
+  materialRoughness,
+  mix,
+  normalMap,
+  texture,
+  uv,
+  vec2,
+  vec3,
+  vec4,
+  vertexColor,
+} from 'three/tsl'
+import type { NodeMaterial } from 'three/webgpu'
+import type { NodeMaterialFactory } from '../../rendering/createAppRenderer'
 
 type MsfsMaterial = Material & {
   map?: {
@@ -102,6 +119,12 @@ type LoadedMsfsDetailTextures = {
   readonly blendMaskTexture: Texture | null
 }
 
+type MsfsMaterialNormalizationOptions = {
+  readonly createNodeMaterial?: NodeMaterialFactory | null
+}
+
+type MsfsNodeMaterial = MsfsMaterial & NodeMaterial
+
 const MSFS_BLEND_GBUFFER_RENDER_ORDER_BASE = 10
 const MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE = -1
 
@@ -162,10 +185,14 @@ const RESOLVED_AOMAP_FRAGMENT_CHUNK = `#ifdef USE_AOMAP
 
 #endif`
 
-export async function normalizeMsfsMaterials(gltf: GLTF): Promise<void> {
+export async function normalizeMsfsMaterials(
+  gltf: GLTF,
+  options: MsfsMaterialNormalizationOptions = {}
+): Promise<void> {
   const root = gltf.scene
   const parser = (gltf as GLTF & { parser?: GltfParserLike }).parser
   const materials = new Set<MsfsMaterial>()
+  const materialReplacements = new Map<MsfsMaterial, MsfsMaterial>()
   const textureCache = new Map<number, Promise<Texture>>()
 
   root.traverse(object => {
@@ -207,12 +234,36 @@ export async function normalizeMsfsMaterials(gltf: GLTF): Promise<void> {
   })
 
   for (const material of materials) {
-    await normalizeMsfsMaterial(
+    const normalizedMaterial = await normalizeMsfsMaterial(
       material,
       parser,
       textureCache,
-      parser?.associations.get(material)?.materials
+      parser?.associations.get(material)?.materials,
+      options
     )
+    materialReplacements.set(material, normalizedMaterial)
+  }
+
+  if (materialReplacements.size > 0) {
+    root.traverse(object => {
+      if (!(object instanceof Mesh)) {
+        return
+      }
+
+      if (Array.isArray(object.material)) {
+        object.material = object.material.map(material =>
+          material == null
+            ? material
+            : materialReplacements.get(material as MsfsMaterial) ?? material
+        )
+        return
+      }
+
+      if (object.material != null) {
+        object.material =
+          materialReplacements.get(object.material as MsfsMaterial) ?? object.material
+      }
+    })
   }
 }
 
@@ -220,52 +271,69 @@ async function normalizeMsfsMaterial(
   material: MsfsMaterial,
   parser: GltfParserLike | undefined,
   textureCache: Map<number, Promise<Texture>>,
-  materialIndex: number | undefined
-): Promise<void> {
+  materialIndex: number | undefined,
+  options: MsfsMaterialNormalizationOptions
+): Promise<MsfsMaterial> {
+  let outputMaterial = material
+
   // MSFS exports DirectX-convention normal maps, while stock glTF assumes OpenGL.
-  if (material.normalMap != null && material.normalScale != null) {
-    material.normalScale.set(material.normalScale.x, -Math.abs(material.normalScale.y))
-    material.normalMap.needsUpdate = true
-    material.needsUpdate = true
+  if (outputMaterial.normalMap != null && outputMaterial.normalScale != null) {
+    outputMaterial.normalScale.set(
+      outputMaterial.normalScale.x,
+      -Math.abs(outputMaterial.normalScale.y)
+    )
+    outputMaterial.normalMap.needsUpdate = true
+    outputMaterial.needsUpdate = true
   }
 
-  if (material.normalMap != null && usesMsfsCompressedRgNormalMap(material.normalMap.format)) {
-    patchCompressedRgNormalMapShader(material, material.normalMap.format)
+  if (
+    options.createNodeMaterial != null &&
+    outputMaterial.normalMap?.format === SIGNED_RED_GREEN_RGTC2_Format
+  ) {
+    outputMaterial = createSignedRgNormalNodeMaterial(
+      outputMaterial,
+      options.createNodeMaterial
+    )
+  } else if (
+    outputMaterial.normalMap != null &&
+    usesMsfsCompressedRgNormalMap(outputMaterial.normalMap.format)
+  ) {
+    patchCompressedRgNormalMapShader(outputMaterial, outputMaterial.normalMap.format)
   }
 
   // Some MSFS blend/decal albedo textures use BC1/DXT1 1-bit alpha. Reinterpret
   // those transparent materials as RGBA DXT1 so the alpha channel is preserved.
   if (
-    material.transparent === true &&
-    material.map != null &&
-    material.map.format === RGB_S3TC_DXT1_Format
+    outputMaterial.transparent === true &&
+    outputMaterial.map != null &&
+    outputMaterial.map.format === RGB_S3TC_DXT1_Format
   ) {
-    material.map.format = RGBA_S3TC_DXT1_Format
-    material.map.needsUpdate = true
-    material.needsUpdate = true
+    outputMaterial.map.format = RGBA_S3TC_DXT1_Format
+    outputMaterial.map.needsUpdate = true
+    outputMaterial.needsUpdate = true
   }
 
-  if (usesBlendGBuffer(material)) {
-    material.depthWrite = false
-    material.alphaTest = 0.02
-    material.polygonOffset = true
-    material.polygonOffsetFactor =
-      MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE - getMsfsDrawOrderOffset(material)
-    material.polygonOffsetUnits =
-      MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE - getMsfsDrawOrderOffset(material)
-    material.premultipliedAlpha = false
-    material.side = DoubleSide
-    material.needsUpdate = true
+  if (usesBlendGBuffer(outputMaterial)) {
+    outputMaterial.depthWrite = false
+    outputMaterial.alphaTest = 0.02
+    outputMaterial.polygonOffset = true
+    outputMaterial.polygonOffsetFactor =
+      MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE - getMsfsDrawOrderOffset(outputMaterial)
+    outputMaterial.polygonOffsetUnits =
+      MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE - getMsfsDrawOrderOffset(outputMaterial)
+    outputMaterial.premultipliedAlpha = false
+    outputMaterial.side = DoubleSide
+    outputMaterial.needsUpdate = true
   }
 
   if (parser == null || materialIndex == null) {
-    return
+    return outputMaterial
   }
 
   const detailMapExtension =
     parser.json.materials?.[materialIndex]?.extensions?.ASOBO_material_detail_map
   if (detailMapExtension == null) {
-    return
+    return outputMaterial
   }
 
   const detailTextures = await loadMsfsDetailTextures(
@@ -273,7 +341,17 @@ async function normalizeMsfsMaterial(
     textureCache,
     detailMapExtension
   )
-  applyMsfsDetailMapShader(material, detailMapExtension, detailTextures)
+  if (options.createNodeMaterial != null) {
+    outputMaterial = applyMsfsDetailMapNodeMaterial(
+      outputMaterial,
+      detailMapExtension,
+      detailTextures,
+      options.createNodeMaterial
+    )
+  } else {
+    applyMsfsDetailMapShader(outputMaterial, detailMapExtension, detailTextures)
+  }
+  return outputMaterial
 }
 
 function usesBlendGBuffer(material: Material | MsfsMaterial | null | undefined): boolean {
@@ -330,6 +408,106 @@ function createCompressedRgNormalMapShaderSnippet(shaderMode: 'signed-rg' | 'uns
     'float mapNz = sqrt( max( 1.0 - dot( mapNxy, mapNxy ), 0.0 ) );',
     'vec3 mapN = vec3( mapNxy, mapNz );'
   ].join('\n\t')
+}
+
+function createSignedRgNormalNodeMaterial(
+  material: MsfsMaterial,
+  createNodeMaterial: NodeMaterialFactory
+): MsfsMaterial {
+  const nodeMaterial = ensureNodeMaterial(material, createNodeMaterial)
+  if (
+    nodeMaterial == null ||
+    material.normalMap == null ||
+    material.normalScale == null
+  ) {
+    return material
+  }
+
+  const encodedSignedRgNormal = vec3(
+    texture(material.normalMap).xy.mul(0.5).add(0.5),
+    0.5
+  )
+  const normalNode = normalMap(
+    encodedSignedRgNormal,
+    vec2(material.normalScale.x, material.normalScale.y)
+  )
+  normalNode.unpackNormalMode = NormalRGPacking
+  normalNode.normalMapType = material.normalMapType
+
+  nodeMaterial.normalNode = normalNode
+  nodeMaterial.needsUpdate = true
+  return nodeMaterial as unknown as MsfsMaterial
+}
+
+function applyMsfsDetailMapNodeMaterial(
+  material: MsfsMaterial,
+  extension: MsfsDetailMapExtension,
+  textures: LoadedMsfsDetailTextures,
+  createNodeMaterial: NodeMaterialFactory
+): MsfsMaterial {
+  const nodeMaterial = ensureNodeMaterial(material, createNodeMaterial)
+  if (nodeMaterial == null) {
+    applyMsfsDetailMapShader(material, extension, textures)
+    return material
+  }
+
+  const detailUv = uv()
+    .mul(extension.UVScale ?? 1)
+    .add(vec2(extension.UVOffset?.[0] ?? 0, extension.UVOffset?.[1] ?? 0))
+
+  let detailBlend = vertexColor().a
+  if (textures.blendMaskTexture != null) {
+    detailBlend = detailBlend.mul(texture(textures.blendMaskTexture, detailUv).r)
+  }
+  detailBlend = detailBlend.clamp(0, 1)
+
+  if (textures.detailColorTexture != null) {
+    const baseColorNode = nodeMaterial.colorNode != null
+      ? vec4(nodeMaterial.colorNode)
+      : materialColor
+    const detailColorNode = texture(textures.detailColorTexture, detailUv).rgb.mul(2)
+    nodeMaterial.colorNode = vec4(
+      mix(baseColorNode.rgb, baseColorNode.rgb.mul(detailColorNode), detailBlend),
+      baseColorNode.a
+    )
+  }
+
+  if (textures.detailMetalRoughAOTexture != null) {
+    const detailOrmNode = texture(textures.detailMetalRoughAOTexture, detailUv)
+    const detailAdjustNode = detailOrmNode.rgb.sub(0.5).mul(2).mul(detailBlend)
+
+    nodeMaterial.roughnessNode = (
+      nodeMaterial.roughnessNode != null ? nodeMaterial.roughnessNode : materialRoughness
+    )
+      .add(detailAdjustNode.g)
+      .clamp(0, 1)
+
+    nodeMaterial.metalnessNode = (
+      nodeMaterial.metalnessNode != null ? nodeMaterial.metalnessNode : materialMetalness
+    )
+      .add(detailAdjustNode.b)
+      .clamp(0, 1)
+
+    nodeMaterial.aoNode = (
+      nodeMaterial.aoNode != null ? nodeMaterial.aoNode : materialAO
+    )
+      .add(detailAdjustNode.r)
+      .clamp(0, 1)
+  }
+
+  nodeMaterial.needsUpdate = true
+  return nodeMaterial as unknown as MsfsMaterial
+}
+
+function ensureNodeMaterial(
+  material: MsfsMaterial,
+  createNodeMaterial: NodeMaterialFactory
+): MsfsNodeMaterial | null {
+  if ((material as MsfsNodeMaterial).isNodeMaterial === true) {
+    return material as MsfsNodeMaterial
+  }
+
+  return createNodeMaterial(material) as MsfsNodeMaterial | null
 }
 
 async function loadMsfsDetailTextures(

@@ -1,5 +1,4 @@
 import {
-  ACESFilmicToneMapping,
   AmbientLight,
   Box3,
   Clock,
@@ -7,15 +6,11 @@ import {
   DirectionalLight,
   Group,
   Mesh,
-  PMREMGenerator,
   PerspectiveCamera,
   Scene,
-  SRGBColorSpace,
-  Vector3,
-  WebGLRenderer
+  Vector3
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { Sky } from 'three/examples/jsm/objects/Sky.js'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 import { compileMsfs2020Behaviors } from './msfs/behavior'
@@ -30,6 +25,12 @@ import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
 import type { ImportedAircraft, RuntimeState } from './msfs/types'
+import {
+  createAircraftEnvironment,
+  createAppRenderer,
+  createNodeMaterialFactory,
+  type RendererInfo
+} from './rendering/createAppRenderer'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
 async function init(): Promise<void> {
@@ -49,12 +50,8 @@ async function init(): Promise<void> {
   const scene = new Scene()
   scene.background = new Color('#405264')
 
-  const renderer = new WebGLRenderer({ antialias: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  renderer.outputColorSpace = SRGBColorSpace
-  renderer.toneMapping = ACESFilmicToneMapping
-  renderer.toneMappingExposure = 0.72
+  const rendererInfo = await createAppRenderer(new URLSearchParams(window.location.search))
+  const { renderer } = rendererInfo
   scene.environment = createAircraftEnvironment(renderer)
   document.body.appendChild(renderer.domElement)
 
@@ -92,7 +89,8 @@ async function init(): Promise<void> {
   const gltf = await loadAircraftGltf(
     aircraft,
     packageData.rootUrl,
-    packageData.layoutEntries.map(entry => entry.path)
+    packageData.layoutEntries.map(entry => entry.path),
+    rendererInfo
   )
   ;(globalThis as Record<string, unknown>).__lastLoadedGltf = gltf
   const aircraftRoot = new Group()
@@ -110,7 +108,15 @@ async function init(): Promise<void> {
 
   const clock = new Clock()
   let runtimeState: RuntimeState = runtime.update(0)
-  updateOverlay(overlay, packageRoot, packageData.packageName, aircraft, compiledBehaviors, runtimeState)
+  updateOverlay(
+    overlay,
+    packageRoot,
+    packageData.packageName,
+    aircraft,
+    compiledBehaviors,
+    runtimeState,
+    rendererInfo
+  )
 
   const handleResize = (): void => {
     camera.aspect = window.innerWidth / window.innerHeight
@@ -131,7 +137,8 @@ async function init(): Promise<void> {
       packageData.packageName,
       aircraft,
       compiledBehaviors,
-      runtimeState
+      runtimeState,
+      rendererInfo
     )
   })
 }
@@ -139,7 +146,8 @@ async function init(): Promise<void> {
 async function loadAircraftGltf(
   aircraft: ImportedAircraft,
   packageRootUrl: string,
-  layoutPaths: readonly string[]
+  layoutPaths: readonly string[],
+  rendererInfo: RendererInfo
 ): Promise<GLTF> {
   if (aircraft.model == null) {
     throw new Error(`Aircraft ${aircraft.id} does not have a model to load.`)
@@ -151,6 +159,7 @@ async function loadAircraftGltf(
     layoutPaths
   )
   const loader = createMsfsGltfLoader(textureUrlResolver)
+  const createNodeMaterial = createNodeMaterialFactory(rendererInfo.renderer)
 
   let lastError: unknown = null
   const lods = [...aircraft.model.lods].sort((left, right) => right.minSize - left.minSize)
@@ -162,7 +171,7 @@ async function loadAircraftGltf(
       normalizeMsfsTexcoords(gltf.scene)
       normalizeMsfsVertexColors(gltf.scene)
       normalizeMsfsNormalsTangents(gltf.scene)
-      await normalizeMsfsMaterials(gltf)
+      await normalizeMsfsMaterials(gltf, { createNodeMaterial })
       return gltf
     } catch (error) {
       lastError = error
@@ -279,29 +288,6 @@ function fitCameraToObject(
   camera.updateProjectionMatrix()
   controls.target.copy(center).add(new Vector3(0, radius * 0.1, radius * 0.08))
   controls.update()
-}
-
-function createAircraftEnvironment(renderer: WebGLRenderer) {
-  const environmentScene = new Scene()
-  const sky = new Sky()
-  sky.scale.setScalar(450000)
-  environmentScene.add(sky)
-
-  const uniforms = sky.material.uniforms
-  uniforms.turbidity.value = 3.8
-  uniforms.rayleigh.value = 1.4
-  uniforms.mieCoefficient.value = 0.012
-  uniforms.mieDirectionalG.value = 0.88
-  uniforms.sunPosition.value.set(0.32, 0.72, -0.48).normalize()
-
-  const pmremGenerator = new PMREMGenerator(renderer)
-  pmremGenerator.compileEquirectangularShader()
-  const environmentTexture = pmremGenerator.fromScene(environmentScene).texture
-  pmremGenerator.dispose()
-  sky.geometry.dispose()
-  sky.material.dispose()
-
-  return environmentTexture
 }
 
 function computeApproximateBounds(object: Group): Box3 {
@@ -429,7 +415,8 @@ function updateOverlay(
     readonly variableKeys: readonly string[]
     readonly diagnostics: readonly { readonly severity: string; readonly message: string }[]
   },
-  runtimeState: RuntimeState
+  runtimeState: RuntimeState,
+  rendererInfo: RendererInfo
 ): void {
   const diagnostics = runtimeState.diagnostics
   const errors = diagnostics.filter(item => item.severity === 'error').length
@@ -450,6 +437,7 @@ function updateOverlay(
   overlay.textContent = [
     `MSFS package: ${packageName}`,
     `Root: ${packageRoot}`,
+    `Renderer: ${formatRendererLabel(rendererInfo)}`,
     `Aircraft: ${aircraft.title}`,
     `Variation: ${aircraft.variationName ?? aircraft.sectionName}`,
     `Source: ${aircraft.sourcePath}`,
@@ -468,6 +456,23 @@ function updateOverlay(
     'Diagnostics preview:',
     diagnosticPreview || 'none'
   ].join('\n')
+}
+
+function formatRendererLabel(rendererInfo: RendererInfo): string {
+  const parts = [rendererInfo.mode]
+
+  if (
+    rendererInfo.preference !== 'auto' &&
+    rendererInfo.preference !== rendererInfo.mode
+  ) {
+    parts.push(`requested=${rendererInfo.preference}`)
+  }
+
+  if (rendererInfo.hasBcTextureCompression != null) {
+    parts.push(`bc=${rendererInfo.hasBcTextureCompression ? 'on' : 'off'}`)
+  }
+
+  return parts.join(' ')
 }
 
 function ensureTrailingSlash(value: string): string {
