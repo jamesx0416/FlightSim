@@ -39,6 +39,14 @@ const OFF_A_BIT_MASK = 26
 const FOURCC_DXT1 = fourCCToInt32('DXT1')
 const FOURCC_DXT3 = fourCCToInt32('DXT3')
 const FOURCC_DXT5 = fourCCToInt32('DXT5')
+const FOURCC_ATI2 = fourCCToInt32('ATI2')
+const FOURCC_AT2N = fourCCToInt32('AT2N')
+const FOURCC_BC5U = fourCCToInt32('BC5U')
+const FOURCC_BC5S = fourCCToInt32('BC5S')
+const FOURCC_DX10 = fourCCToInt32('DX10')
+
+const DXGI_FORMAT_BC5_UNORM = 83
+const DXGI_FORMAT_BC5_SNORM = 84
 
 export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
   constructor(manager?: LoadingManager) {
@@ -100,7 +108,7 @@ export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
         ? Math.max(1, header[OFF_MIPMAPCOUNT])
         : 1
     const fourCC = header[OFF_PF_FOURCC]
-    const dataOffset = header[OFF_SIZE] + 4
+    let dataOffset = header[OFF_SIZE] + 4
 
     let currentWidth = width
     let currentHeight = height
@@ -147,6 +155,58 @@ export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
           currentHeight = Math.max(1, currentHeight >> 1)
         }
         break
+      case FOURCC_ATI2:
+      case FOURCC_AT2N:
+      case FOURCC_BC5U:
+        for (let level = 0; level < mipmapCount; level += 1) {
+          const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
+          mipmaps.push({
+            data: decodeBc5(buffer, currentOffset, currentWidth, currentHeight, false),
+            width: currentWidth,
+            height: currentHeight
+          })
+          currentOffset += byteLength
+          currentWidth = Math.max(1, currentWidth >> 1)
+          currentHeight = Math.max(1, currentHeight >> 1)
+        }
+        break
+      case FOURCC_BC5S:
+        for (let level = 0; level < mipmapCount; level += 1) {
+          const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
+          mipmaps.push({
+            data: decodeBc5(buffer, currentOffset, currentWidth, currentHeight, true),
+            width: currentWidth,
+            height: currentHeight
+          })
+          currentOffset += byteLength
+          currentWidth = Math.max(1, currentWidth >> 1)
+          currentHeight = Math.max(1, currentHeight >> 1)
+        }
+        break
+      case FOURCC_DX10: {
+        const dxgiHeader = new Int32Array(buffer, dataOffset, 5)
+        const dxgiFormat = dxgiHeader[0]
+        dataOffset += 20
+        currentOffset = dataOffset
+
+        if (dxgiFormat !== DXGI_FORMAT_BC5_UNORM && dxgiFormat !== DXGI_FORMAT_BC5_SNORM) {
+          throw new Error(`Unsupported DX10 DDS format for RGBA decode: ${dxgiFormat}`)
+        }
+
+        const signed = dxgiFormat === DXGI_FORMAT_BC5_SNORM
+        for (let level = 0; level < mipmapCount; level += 1) {
+          const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
+          mipmaps.push({
+            data: decodeBc5(buffer, currentOffset, currentWidth, currentHeight, signed),
+            width: currentWidth,
+            height: currentHeight
+          })
+          currentOffset += byteLength
+          currentWidth = Math.max(1, currentWidth >> 1)
+          currentHeight = Math.max(1, currentHeight >> 1)
+        }
+        break
+      }
       default:
         if (isUncompressedRgba(header)) {
           for (let level = 0; level < mipmapCount; level += 1) {
@@ -273,6 +333,40 @@ function decodeDxt5(buffer: ArrayBuffer, dataOffset: number, width: number, heig
   return output
 }
 
+function decodeBc5(
+  buffer: ArrayBuffer,
+  dataOffset: number,
+  width: number,
+  height: number,
+  signed: boolean
+): Uint8Array {
+  const output = new Uint8Array(width * height * 4)
+  const view = new DataView(buffer, dataOffset)
+  const blockWidth = Math.max(1, Math.ceil(width / 4))
+  const blockHeight = Math.max(1, Math.ceil(height / 4))
+
+  for (let blockY = 0; blockY < blockHeight; blockY += 1) {
+    for (let blockX = 0; blockX < blockWidth; blockX += 1) {
+      const offset = (blockY * blockWidth + blockX) * 16
+
+      writeBlock(output, width, height, blockX, blockY, pixelIndex => {
+        const x = decodeBc4Value(view, offset, pixelIndex, signed)
+        const y = decodeBc4Value(view, offset + 8, pixelIndex, signed)
+        const z = Math.sqrt(Math.max(1 - x * x - y * y, 0))
+
+        return [
+          toByte(x * 0.5 + 0.5),
+          toByte(y * 0.5 + 0.5),
+          toByte(z * 0.5 + 0.5),
+          255
+        ]
+      })
+    }
+  }
+
+  return output
+}
+
 function buildDxt3AlphaPalette(view: DataView, offset: number): Uint8Array {
   const alpha = new Uint8Array(16)
   for (let row = 0; row < 4; row += 1) {
@@ -309,6 +403,69 @@ function buildDxt5AlphaPalette(view: DataView, offset: number): Uint8Array {
   palette[6] = 0
   palette[7] = 255
   return palette
+}
+
+function decodeBc4Value(
+  view: DataView,
+  offset: number,
+  pixelIndex: number,
+  signed: boolean
+): number {
+  const endpoints = signed
+    ? [
+        snorm8ToFloat(view.getInt8(offset)),
+        snorm8ToFloat(view.getInt8(offset + 1))
+      ]
+    : [
+        view.getUint8(offset) / 255,
+        view.getUint8(offset + 1) / 255
+      ]
+
+  const palette = buildBc4Palette(endpoints[0], endpoints[1], signed)
+  const indices = readUint48(view, offset + 2)
+  const paletteIndex = Number((indices >> BigInt(pixelIndex * 3)) & 0x07n)
+  const value = palette[paletteIndex]
+  return signed ? value : value * 2 - 1
+}
+
+function buildBc4Palette(endpoint0: number, endpoint1: number, signed: boolean): number[] {
+  const palette = new Array<number>(8)
+  palette[0] = endpoint0
+  palette[1] = endpoint1
+
+  if (endpoint0 > endpoint1) {
+    palette[2] = (6 * endpoint0 + endpoint1) / 7
+    palette[3] = (5 * endpoint0 + 2 * endpoint1) / 7
+    palette[4] = (4 * endpoint0 + 3 * endpoint1) / 7
+    palette[5] = (3 * endpoint0 + 4 * endpoint1) / 7
+    palette[6] = (2 * endpoint0 + 5 * endpoint1) / 7
+    palette[7] = (endpoint0 + 6 * endpoint1) / 7
+    return palette
+  }
+
+  palette[2] = (4 * endpoint0 + endpoint1) / 5
+  palette[3] = (3 * endpoint0 + 2 * endpoint1) / 5
+  palette[4] = (2 * endpoint0 + 3 * endpoint1) / 5
+  palette[5] = (endpoint0 + 4 * endpoint1) / 5
+  palette[6] = signed ? -1 : 0
+  palette[7] = 1
+  return palette
+}
+
+function readUint48(view: DataView, offset: number): bigint {
+  let value = 0n
+  for (let index = 0; index < 6; index += 1) {
+    value |= BigInt(view.getUint8(offset + index)) << BigInt(index * 8)
+  }
+  return value
+}
+
+function snorm8ToFloat(value: number): number {
+  return Math.max(value / 127, -1)
+}
+
+function toByte(value: number): number {
+  return Math.round(Math.min(Math.max(value, 0), 1) * 255)
 }
 
 function buildDxt1Palette(

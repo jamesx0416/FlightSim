@@ -5,16 +5,23 @@ import { createMsftTextureDdsExtension } from './MSFTTextureDDSExtension'
 import { MSFSDDSLoader } from './MSFSDDSLoader'
 
 export function createMsfsGltfLoader(
-  urlResolver?: (url: string) => string
+  options: {
+    readonly urlResolver?: (url: string) => string
+    readonly decodeNormalSources?: boolean
+  } = {}
 ): GLTFLoader {
   const loadingManager = new LoadingManager()
   loadingManager.addHandler(/\.dds$/iu, new MSFSDDSLoader(loadingManager))
-  if (urlResolver != null) {
-    loadingManager.setURLModifier(url => urlResolver(url))
+  if (options.urlResolver != null) {
+    loadingManager.setURLModifier(url => options.urlResolver!(url))
   }
 
   const loader = new GLTFLoader(loadingManager)
-  loader.register(parser => createMsftTextureDdsExtension(parser as never))
+  loader.register(parser =>
+    createMsftTextureDdsExtension(parser as never, {
+      decodeNormalSources: options.decodeNormalSources
+    })
+  )
 
   return loader
 }

@@ -4,7 +4,6 @@ import {
   Material,
   Mesh,
   NoColorSpace,
-  NormalRGPacking,
   Object3D,
   RED_GREEN_RGTC2_Format,
   RGB_S3TC_DXT1_Format,
@@ -24,7 +23,6 @@ import {
   materialOpacity,
   materialRoughness,
   mix,
-  normalMap,
   texture,
   uv,
   vec2,
@@ -313,9 +311,10 @@ async function normalizeMsfsMaterial(
 
   if (
     options.createNodeMaterial != null &&
-    outputMaterial.normalMap?.format === SIGNED_RED_GREEN_RGTC2_Format
+    outputMaterial.normalMap != null &&
+    usesMsfsCompressedRgNormalMap(outputMaterial.normalMap.format)
   ) {
-    outputMaterial = createSignedRgNormalNodeMaterial(
+    outputMaterial = createCompressedRgNormalNodeMaterial(
       outputMaterial,
       options.createNodeMaterial
     )
@@ -373,7 +372,11 @@ async function normalizeMsfsMaterial(
     }
   }
 
-  if (options.createNodeMaterial != null && usesBlendGBufferMaterial(outputMaterial)) {
+  if (
+    options.createNodeMaterial != null &&
+    usesBlendGBufferMaterial(outputMaterial) &&
+    hasNonDefaultBlendFactors(blendFactors)
+  ) {
     outputMaterial =
       (ensureNodeMaterial(outputMaterial, options.createNodeMaterial) as MsfsMaterial | null) ??
       outputMaterial
@@ -440,7 +443,7 @@ function createCompressedRgNormalMapShaderSnippet(shaderMode: 'signed-rg' | 'uns
   ].join('\n\t')
 }
 
-function createSignedRgNormalNodeMaterial(
+function createCompressedRgNormalNodeMaterial(
   material: MsfsMaterial,
   createNodeMaterial: NodeMaterialFactory
 ): MsfsMaterial {
@@ -453,21 +456,12 @@ function createSignedRgNormalNodeMaterial(
     return material
   }
 
-  const encodedSignedRgNormal = vec3(
-    texture(material.normalMap).xy.mul(0.5).add(0.5),
-    0.5
-  )
-  const normalNode = normalMap(
-    encodedSignedRgNormal,
-    vec2(
-      material.normalScale.x,
-      material.normalScale.y
-    )
-  )
-  normalNode.unpackNormalMode = NormalRGPacking
-  normalNode.normalMapType = material.normalMapType
+  const compressedRgNormalNode = createMsfsCompressedRgNormalNode(material)
+  if (compressedRgNormalNode == null) {
+    return material
+  }
 
-  nodeMaterial.normalNode = normalNode
+  nodeMaterial.normalNode = compressedRgNormalNode
   nodeMaterial.needsUpdate = true
   return nodeMaterial as unknown as MsfsMaterial
 }
@@ -578,11 +572,14 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
   }
 
   if (material.normalMap.format === SIGNED_RED_GREEN_RGTC2_Format) {
-    const signedCompressedNormal = texture(material.normalMap).xy
+    const signedCompressedNormalXY = texture(material.normalMap)
+      .xy
+      .mul(material.normalScale)
+
     return vec3(
-      signedCompressedNormal.mul(material.normalScale),
-      signedCompressedNormal
-        .dot(signedCompressedNormal)
+      signedCompressedNormalXY,
+      signedCompressedNormalXY
+        .dot(signedCompressedNormalXY)
         .oneMinus()
         .max(0)
         .sqrt()
@@ -594,9 +591,10 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
       .xy
       .mul(2)
       .sub(1)
+      .mul(material.normalScale)
 
     return vec3(
-      compressedNormalXY.mul(material.normalScale),
+      compressedNormalXY,
       compressedNormalXY
         .dot(compressedNormalXY)
         .oneMinus()
@@ -614,6 +612,23 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
     tangentNormal.xy.mul(material.normalScale),
     tangentNormal.z
   )
+}
+
+function createMsfsCompressedRgNormalNode(material: MsfsMaterial) {
+  if (
+    material.normalMap == null ||
+    material.normalScale == null ||
+    !usesMsfsCompressedRgNormalMap(material.normalMap.format)
+  ) {
+    return null
+  }
+
+  const tangentNormal = createMsfsBaseTangentNormalNode(material)
+  if (tangentNormal == null) {
+    return null
+  }
+
+  return TBNViewMatrix.mul(tangentNormal).normalize()
 }
 
 function ensureNodeMaterial(
@@ -649,6 +664,17 @@ function clampBlendFactor(value: number | undefined): number {
   }
 
   return Math.min(Math.max(value, 0), 1)
+}
+
+function hasNonDefaultBlendFactors(factors: MsfsBlendFactors): boolean {
+  return (
+    factors.baseColor !== 1 ||
+    factors.metallic !== 1 ||
+    factors.roughness !== 1 ||
+    factors.normal !== 1 ||
+    factors.emissive !== 1 ||
+    factors.occlusion !== 1
+  )
 }
 
 async function loadMsfsDetailTextures(

@@ -19,6 +19,7 @@ Use sources in this order:
 - `?renderer=auto` now falls back cleanly to `webgl` if WebGPU initialization fails.
 - The WebGPU path currently uses a flat environment fallback when PMREM scene generation is unavailable.
 - Signed compressed RG normal maps now use `three`'s WebGPU node-material conversion path and match the WebGL normal-scale application instead of re-scaling the blend factor a second time.
+- DDS BC5/BC5S normal sources can now be decoded to standard RGB normal maps on the WebGPU load path, so those materials can stay closer to plain `MeshStandardMaterial` behavior instead of requiring node-material conversion just for compressed normals.
 - `ASOBO_material_detail_map` now has a WebGPU node-material path for detail color, ORM, blend-mask, vertex-alpha blending, and detail-normal composition.
 - `ASOBO_material_blend_gbuffer` factors are now wired into the WebGPU node-material path for opacity/color, roughness, metalness, occlusion, emissive, and normal intensity.
 - The renderer now has generic two-pass decal groundwork for `blend_gbuffer` materials, but this is still not full MSFS parity.

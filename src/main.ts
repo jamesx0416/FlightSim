@@ -161,7 +161,13 @@ async function loadAircraftGltf(
     packageRootUrl,
     layoutPaths
   )
-  const loader = createMsfsGltfLoader(textureUrlResolver)
+  const decodeNormalSources =
+    rendererInfo.mode === 'webgpu' &&
+    rendererInfo.hasBcTextureCompression === false
+  const loader = createMsfsGltfLoader({
+    urlResolver: textureUrlResolver,
+    decodeNormalSources,
+  })
   const createNodeMaterial = createNodeMaterialFactory(rendererInfo.renderer)
 
   let lastError: unknown = null
