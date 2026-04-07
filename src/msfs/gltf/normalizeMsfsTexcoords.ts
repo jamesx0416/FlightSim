@@ -10,7 +10,6 @@ const FLOAT16_REQUIRED_SANITY_RATIO = 0.98
 const FLOAT16_MINIMUM_AREA = 0.1
 const FLOAT16_AREA_MULTIPLIER = 2
 const FIXED_POINT_COLLAPSED_AREA_LIMIT = 0.2
-const FIXED_POINT_COLLAPSED_MIN = 0.5
 const FIXED_POINT_COLLAPSED_MAX = 1.05
 
 export function normalizeMsfsTexcoords(root: Object3D): void {
@@ -166,8 +165,6 @@ function shouldPreferFloat16Texcoords(
     float16Stats.area >= FLOAT16_MINIMUM_AREA &&
     float16Stats.area > fixedStats.area * FLOAT16_AREA_MULTIPLIER &&
     fixedStats.area <= FIXED_POINT_COLLAPSED_AREA_LIMIT &&
-    fixedStats.minX >= FIXED_POINT_COLLAPSED_MIN &&
-    fixedStats.minY >= FIXED_POINT_COLLAPSED_MIN &&
     fixedStats.maxX <= FIXED_POINT_COLLAPSED_MAX &&
     fixedStats.maxY <= FIXED_POINT_COLLAPSED_MAX
   )
