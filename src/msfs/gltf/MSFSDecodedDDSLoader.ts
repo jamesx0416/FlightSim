@@ -1,6 +1,7 @@
 import {
   DataTexture,
   FileLoader,
+  LinearFilter,
   Loader,
   RGBAFormat,
   UnsignedByteType,
@@ -49,7 +50,12 @@ const DXGI_FORMAT_BC5_UNORM = 83
 const DXGI_FORMAT_BC5_SNORM = 84
 
 export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
-  constructor(manager?: LoadingManager) {
+  constructor(
+    manager?: LoadingManager,
+    private readonly options: {
+      readonly loadMipmaps?: boolean
+    } = {}
+  ) {
     super(manager)
   }
 
@@ -70,7 +76,10 @@ export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
       url,
       buffer => {
         try {
-          const parsed = this.parse(buffer as ArrayBuffer)
+          const parsed = this.parse(
+            buffer as ArrayBuffer,
+            this.options.loadMipmaps !== false
+          )
           texture.image = {
             data: parsed.mipmaps[0].data,
             width: parsed.width,
@@ -81,6 +90,8 @@ export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
           texture.type = UnsignedByteType
           texture.flipY = false
           texture.generateMipmaps = false
+          texture.minFilter = parsed.mipmaps.length > 1 ? texture.minFilter : LinearFilter
+          texture.magFilter = LinearFilter
           texture.needsUpdate = true
           onLoad?.(texture)
         } catch (error) {

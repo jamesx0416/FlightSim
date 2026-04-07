@@ -60,10 +60,22 @@ class MSFTTextureDDSExtension {
       return null
     }
 
-    const loader = shouldDecodeTransparentBaseColorSource(this.parser.json, sourceIndex) ||
-      shouldDecodeNormalSource(this.parser.json, sourceIndex, this.decodeNormalSources)
-      ? new MSFSDecodedDDSLoader(this.parser.options.manager)
-      : new MSFSDDSLoader(this.parser.options.manager)
+    const decodeTransparentBaseColor = shouldDecodeTransparentBaseColorSource(
+      this.parser.json,
+      sourceIndex
+    )
+    const decodeNormalSource = shouldDecodeNormalSource(
+      this.parser.json,
+      sourceIndex,
+      this.decodeNormalSources
+    )
+
+    const loader =
+      decodeTransparentBaseColor || decodeNormalSource
+        ? new MSFSDecodedDDSLoader(this.parser.options.manager, {
+            loadMipmaps: !decodeNormalSource,
+          })
+        : new MSFSDDSLoader(this.parser.options.manager)
 
     return this.parser.loadTextureImage(
       textureIndex,
