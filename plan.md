@@ -8,6 +8,21 @@ Build the project as a generic MSFS 2020 built-package importer plus behavior ru
 
 The A330 is the only initial test fixture, but it is not a special-case target. The implementation must contain no A330-specific code paths, assumptions, or overrides. The acceptance statement is: "the A330 works through the same generic path intended for any MSFS 2020 built aircraft package."
 
+## Reference Sources
+
+Use reference material in this order:
+
+1. Official MSFS SDK schemas, docs, and exporter/plugin code.
+2. Direct evidence from the built package data imported by this repo.
+3. Reverse-engineered importers only as secondary corroboration.
+
+Current secondary reference:
+
+- `bestdani/msfs2blend`
+  - GitHub: `https://github.com/bestdani/msfs2blend`
+  - Relevant file: `io_msfs_gltf.py`
+  - Use only as supporting evidence for built-asset interpretation, never as the authoritative source over SDK docs or direct package evidence.
+
 ## Key Changes
 
 ### 1. Reframe the architecture around three layers
