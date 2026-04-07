@@ -26,6 +26,7 @@ import { normalizeMsfsSkinning } from './msfs/gltf/normalizeMsfsSkinning'
 import { normalizeMsfsTexcoords } from './msfs/gltf/normalizeMsfsTexcoords'
 import { normalizeMsfsVertexColors } from './msfs/gltf/normalizeMsfsVertexColors'
 import { repairMsfsSkinnedAttributes } from './msfs/gltf/repairMsfsSkinnedAttributes'
+import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
 import type { ImportedAircraft, RuntimeState } from './msfs/types'
@@ -36,7 +37,10 @@ async function init(): Promise<void> {
     import.meta.env.VITE_MSFS_PACKAGE_ROOT || DEFAULT_PACKAGE_ROOT
   )
   const packageData = await importBuiltMsfs2020Package(packageRoot)
-  const aircraft = selectPrimaryAircraft(packageData.aircraft)
+  const aircraft = selectAircraft(
+    packageData.aircraft,
+    new URLSearchParams(window.location.search).get('aircraft')
+  )
   if (aircraft == null || aircraft.model == null) {
     throw new Error('No importable aircraft model was found in the configured package.')
   }
@@ -80,6 +84,10 @@ async function init(): Promise<void> {
 
   const overlay = createOverlay()
   document.body.appendChild(overlay)
+  const selector = createAircraftSelector(packageData.aircraft, aircraft)
+  if (selector != null) {
+    document.body.appendChild(selector)
+  }
 
   const gltf = await loadAircraftGltf(
     aircraft,
@@ -178,21 +186,6 @@ async function loadMsfsGltfLod(loader: GLTFLoader, url: string): Promise<GLTF> {
   return await loader.parseAsync(JSON.stringify(sanitizedGltf), baseUrl)
 }
 
-function sanitizeMsfsGltf(source: Record<string, unknown>): Record<string, unknown> {
-  const clone = structuredClone(source)
-  if (!Array.isArray(clone.skins)) {
-    return clone
-  }
-
-  for (const skin of clone.skins as Array<Record<string, unknown>>) {
-    if (typeof skin.skeleton === 'number' && skin.skeleton < 0) {
-      delete skin.skeleton
-    }
-  }
-
-  return clone
-}
-
 function createTextureUrlResolver(
   aircraft: ImportedAircraft,
   packageRootUrl: string,
@@ -229,7 +222,18 @@ function normalizePath(path: string): string {
   return path.replaceAll('\\', '/').replace(/^\/+/u, '').replace(/\/+/gu, '/')
 }
 
-function selectPrimaryAircraft(aircraft: readonly ImportedAircraft[]): ImportedAircraft | null {
+function selectAircraft(
+  aircraft: readonly ImportedAircraft[],
+  requestedId: string | null
+): ImportedAircraft | null {
+  if (requestedId != null) {
+    const requestedAircraft =
+      aircraft.find(candidate => candidate.id === requestedId && candidate.model != null) ?? null
+    if (requestedAircraft != null) {
+      return requestedAircraft
+    }
+  }
+
   const rankedAircraft = [...aircraft].sort((left, right) => {
     const leftScore = getAircraftSelectionScore(left)
     const rightScore = getAircraftSelectionScore(right)
@@ -348,6 +352,72 @@ function createOverlay(): HTMLDivElement {
   return overlay
 }
 
+function createAircraftSelector(
+  aircraft: readonly ImportedAircraft[],
+  selectedAircraft: ImportedAircraft
+): HTMLDivElement | null {
+  if (aircraft.length <= 1) {
+    return null
+  }
+
+  const wrapper = document.createElement('div')
+  wrapper.style.position = 'fixed'
+  wrapper.style.top = '16px'
+  wrapper.style.right = '16px'
+  wrapper.style.padding = '10px 12px'
+  wrapper.style.borderRadius = '12px'
+  wrapper.style.background = 'rgba(15, 23, 32, 0.78)'
+  wrapper.style.backdropFilter = 'blur(10px)'
+  wrapper.style.color = '#f3f7fb'
+  wrapper.style.font = '12px/1.35 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace'
+  wrapper.style.boxShadow = '0 12px 36px rgba(0, 0, 0, 0.18)'
+  wrapper.style.pointerEvents = 'auto'
+
+  const label = document.createElement('label')
+  label.textContent = 'Variation'
+  label.style.display = 'block'
+  label.style.marginBottom = '6px'
+  label.style.fontWeight = '600'
+
+  const select = document.createElement('select')
+  select.style.minWidth = '260px'
+  select.style.padding = '6px 8px'
+  select.style.border = '1px solid rgba(255, 255, 255, 0.14)'
+  select.style.borderRadius = '8px'
+  select.style.background = 'rgba(9, 14, 20, 0.9)'
+  select.style.color = '#f3f7fb'
+  select.style.font = 'inherit'
+
+  const sortedAircraft = [...aircraft].sort((left, right) =>
+    getAircraftDisplayName(left).localeCompare(getAircraftDisplayName(right))
+  )
+  for (const candidate of sortedAircraft) {
+    const option = document.createElement('option')
+    option.value = candidate.id
+    option.textContent = getAircraftDisplayName(candidate)
+    option.selected = candidate.id === selectedAircraft.id
+    select.appendChild(option)
+  }
+
+  select.addEventListener('change', () => {
+    const nextUrl = new URL(window.location.href)
+    nextUrl.searchParams.set('aircraft', select.value)
+    window.location.assign(nextUrl.toString())
+  })
+
+  wrapper.append(label, select)
+  return wrapper
+}
+
+function getAircraftDisplayName(aircraft: ImportedAircraft): string {
+  const typeName = aircraft.uiType ?? aircraft.title
+  if (aircraft.variationName != null && aircraft.variationName !== '') {
+    return `${typeName} - ${aircraft.variationName}`
+  }
+
+  return typeName
+}
+
 function updateOverlay(
   overlay: HTMLDivElement,
   packageRoot: string,
@@ -381,6 +451,7 @@ function updateOverlay(
     `MSFS package: ${packageName}`,
     `Root: ${packageRoot}`,
     `Aircraft: ${aircraft.title}`,
+    `Variation: ${aircraft.variationName ?? aircraft.sectionName}`,
     `Source: ${aircraft.sourcePath}`,
     '',
     `Animations compiled: ${compiledBehaviors.animationBindings.length}`,

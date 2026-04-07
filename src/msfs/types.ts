@@ -45,6 +45,9 @@ export interface ImportedModelDefinition {
 export interface ImportedAircraft {
   readonly id: string
   readonly title: string
+  readonly sectionName: string
+  readonly uiType?: string
+  readonly variationName?: string
   readonly sourcePath: string
   readonly sourceUrl: string
   readonly inheritedFromPaths: readonly string[]
