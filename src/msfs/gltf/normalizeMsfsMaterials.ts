@@ -310,19 +310,12 @@ async function normalizeMsfsMaterial(
   }
 
   if (
-    options.createNodeMaterial != null &&
     outputMaterial.normalMap != null &&
     usesMsfsCompressedRgNormalMap(outputMaterial.normalMap.format)
   ) {
-    outputMaterial = createCompressedRgNormalNodeMaterial(
-      outputMaterial,
-      options.createNodeMaterial
-    )
-  } else if (
-    outputMaterial.normalMap != null &&
-    usesMsfsCompressedRgNormalMap(outputMaterial.normalMap.format)
-  ) {
-    patchCompressedRgNormalMapShader(outputMaterial, outputMaterial.normalMap.format)
+    if (options.createNodeMaterial == null) {
+      patchCompressedRgNormalMapShader(outputMaterial, outputMaterial.normalMap.format)
+    }
   }
 
   // Some MSFS blend/decal albedo textures use BC1/DXT1 1-bit alpha. Reinterpret
