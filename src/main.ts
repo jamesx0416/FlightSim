@@ -5,6 +5,7 @@ import {
   Color,
   DirectionalLight,
   Group,
+  HemisphereLight,
   Mesh,
   PerspectiveCamera,
   Scene,
@@ -54,7 +55,8 @@ async function init(): Promise<void> {
 
   const rendererInfo = await createAppRenderer(new URLSearchParams(window.location.search))
   const { renderer } = rendererInfo
-  scene.environment = createAircraftEnvironment(renderer)
+  const aircraftEnvironment = createAircraftEnvironment(renderer)
+  scene.environment = aircraftEnvironment.texture
   document.body.appendChild(renderer.domElement)
 
   const camera = new PerspectiveCamera(
@@ -73,6 +75,9 @@ async function init(): Promise<void> {
   ;(globalThis as Record<string, unknown>).__lastControls = controls
 
   const ambientLight = new AmbientLight('#ffffff', 0.18)
+  const fallbackSkyLight = aircraftEnvironment.usedFallback
+    ? new HemisphereLight('#d6e5f5', '#405264', 0.28)
+    : null
   const keyLight = new DirectionalLight('#fff1d5', 2.35)
   keyLight.position.set(34, 9, 18)
   const fillLight = new DirectionalLight('#b9d5ff', 0.28)
@@ -80,6 +85,9 @@ async function init(): Promise<void> {
   const rimLight = new DirectionalLight('#d7e6ff', 0.95)
   rimLight.position.set(-30, 18, 24)
   scene.add(ambientLight, keyLight, fillLight, rimLight)
+  if (fallbackSkyLight != null) {
+    scene.add(fallbackSkyLight)
+  }
 
   const overlay = createOverlay()
   document.body.appendChild(overlay)
