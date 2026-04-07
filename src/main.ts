@@ -76,7 +76,7 @@ async function init(): Promise<void> {
 
   const ambientLight = new AmbientLight('#ffffff', 0.18)
   const fallbackSkyLight = aircraftEnvironment.usedFallback
-    ? new HemisphereLight('#d6e5f5', '#405264', 0.28)
+    ? new HemisphereLight('#d6e5f5', '#405264', 0.55)
     : null
   const keyLight = new DirectionalLight('#fff1d5', 2.35)
   keyLight.position.set(34, 9, 18)
