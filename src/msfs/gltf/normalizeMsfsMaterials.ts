@@ -10,14 +10,18 @@ import {
   RGB_S3TC_DXT1_Format,
   RGBA_S3TC_DXT1_Format,
   SIGNED_RED_GREEN_RGTC2_Format,
+  TangentSpaceNormalMap,
   Texture,
   type Shader
 } from 'three'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import {
+  TBNViewMatrix,
   materialAO,
   materialColor,
   materialMetalness,
+  materialEmissive,
+  materialOpacity,
   materialRoughness,
   mix,
   normalMap,
@@ -36,6 +40,7 @@ type MsfsMaterial = Material & {
     format?: number
     needsUpdate?: boolean
   } | null
+  metalness?: number
   normalMap?: {
     format?: number
     needsUpdate?: boolean
@@ -45,6 +50,10 @@ type MsfsMaterial = Material & {
     y: number
     set(x: number, y: number): void
   } | null
+  opacity?: number
+  roughness?: number
+  aoMapIntensity?: number
+  emissiveIntensity?: number
   transparent?: boolean
   alphaTest?: number
   depthWrite?: boolean
@@ -69,6 +78,7 @@ type MsfsMaterialExtensions = {
   readonly ASOBO_material_blend_gbuffer?: {
     readonly baseColorBlendFactor?: number
     readonly metallicBlendFactor?: number
+    readonly metallnesBlendFactor?: number
     readonly roughnessBlendFactor?: number
     readonly normalBlendFactor?: number
     readonly emissiveBlendFactor?: number
@@ -121,6 +131,17 @@ type LoadedMsfsDetailTextures = {
 
 type MsfsMaterialNormalizationOptions = {
   readonly createNodeMaterial?: NodeMaterialFactory | null
+}
+
+type MsfsBlendGBufferExtension = NonNullable<MsfsMaterialExtensions['ASOBO_material_blend_gbuffer']>
+
+export type MsfsBlendFactors = {
+  readonly baseColor: number
+  readonly metallic: number
+  readonly roughness: number
+  readonly normal: number
+  readonly emissive: number
+  readonly occlusion: number
 }
 
 type MsfsNodeMaterial = MsfsMaterial & NodeMaterial
@@ -225,7 +246,10 @@ export async function normalizeMsfsMaterials(
       0,
       ...meshMaterials.map(material => getMsfsDrawOrderOffset(material))
     )
-    if (drawOrderOffset > 0 || meshMaterials.some(material => usesBlendGBuffer(material))) {
+    if (
+      drawOrderOffset > 0 ||
+      meshMaterials.some(material => usesBlendGBufferMaterial(material))
+    ) {
       object.renderOrder = Math.max(
         object.renderOrder,
         MSFS_BLEND_GBUFFER_RENDER_ORDER_BASE + drawOrderOffset
@@ -275,12 +299,13 @@ async function normalizeMsfsMaterial(
   options: MsfsMaterialNormalizationOptions
 ): Promise<MsfsMaterial> {
   let outputMaterial = material
+  const blendFactors = getMsfsBlendFactors(outputMaterial)
 
   // MSFS exports DirectX-convention normal maps, while stock glTF assumes OpenGL.
   if (outputMaterial.normalMap != null && outputMaterial.normalScale != null) {
     outputMaterial.normalScale.set(
-      outputMaterial.normalScale.x,
-      -Math.abs(outputMaterial.normalScale.y)
+      outputMaterial.normalScale.x * blendFactors.normal,
+      -Math.abs(outputMaterial.normalScale.y) * blendFactors.normal
     )
     outputMaterial.normalMap.needsUpdate = true
     outputMaterial.needsUpdate = true
@@ -313,7 +338,7 @@ async function normalizeMsfsMaterial(
     outputMaterial.needsUpdate = true
   }
 
-  if (usesBlendGBuffer(outputMaterial)) {
+  if (usesBlendGBufferMaterial(outputMaterial)) {
     outputMaterial.depthWrite = false
     outputMaterial.alphaTest = 0.02
     outputMaterial.polygonOffset = true
@@ -326,35 +351,40 @@ async function normalizeMsfsMaterial(
     outputMaterial.needsUpdate = true
   }
 
-  if (parser == null || materialIndex == null) {
-    return outputMaterial
+  if (parser != null && materialIndex != null) {
+    const detailMapExtension =
+      parser.json.materials?.[materialIndex]?.extensions?.ASOBO_material_detail_map
+    if (detailMapExtension != null) {
+      const detailTextures = await loadMsfsDetailTextures(
+        parser,
+        textureCache,
+        detailMapExtension
+      )
+      if (options.createNodeMaterial != null) {
+        outputMaterial = applyMsfsDetailMapNodeMaterial(
+          outputMaterial,
+          detailMapExtension,
+          detailTextures,
+          options.createNodeMaterial
+        )
+      } else {
+        applyMsfsDetailMapShader(outputMaterial, detailMapExtension, detailTextures)
+      }
+    }
   }
 
-  const detailMapExtension =
-    parser.json.materials?.[materialIndex]?.extensions?.ASOBO_material_detail_map
-  if (detailMapExtension == null) {
-    return outputMaterial
-  }
-
-  const detailTextures = await loadMsfsDetailTextures(
-    parser,
-    textureCache,
-    detailMapExtension
-  )
-  if (options.createNodeMaterial != null) {
-    outputMaterial = applyMsfsDetailMapNodeMaterial(
-      outputMaterial,
-      detailMapExtension,
-      detailTextures,
-      options.createNodeMaterial
-    )
-  } else {
-    applyMsfsDetailMapShader(outputMaterial, detailMapExtension, detailTextures)
+  if (options.createNodeMaterial != null && usesBlendGBufferMaterial(outputMaterial)) {
+    outputMaterial =
+      (ensureNodeMaterial(outputMaterial, options.createNodeMaterial) as MsfsMaterial | null) ??
+      outputMaterial
+    outputMaterial.needsUpdate = true
   }
   return outputMaterial
 }
 
-function usesBlendGBuffer(material: Material | MsfsMaterial | null | undefined): boolean {
+export function usesBlendGBufferMaterial(
+  material: Material | MsfsMaterial | null | undefined
+): boolean {
   return getMsfsExtensions(material)?.ASOBO_material_blend_gbuffer != null
 }
 
@@ -429,7 +459,10 @@ function createSignedRgNormalNodeMaterial(
   )
   const normalNode = normalMap(
     encodedSignedRgNormal,
-    vec2(material.normalScale.x, material.normalScale.y)
+    vec2(
+      material.normalScale.x,
+      material.normalScale.y
+    )
   )
   normalNode.unpackNormalMode = NormalRGPacking
   normalNode.normalMapType = material.normalMapType
@@ -495,8 +528,92 @@ function applyMsfsDetailMapNodeMaterial(
       .clamp(0, 1)
   }
 
+  if (
+    textures.detailNormalTexture != null &&
+    material.normalMap != null &&
+    material.normalScale != null &&
+    material.normalMapType === TangentSpaceNormalMap
+  ) {
+    nodeMaterial.normalNode = createMsfsDetailNormalNode(
+      material,
+      detailUv,
+      detailBlend,
+      textures.detailNormalTexture,
+      extension.detailNormalTexture?.scale ?? 1
+    )
+  }
+
   nodeMaterial.needsUpdate = true
   return nodeMaterial as unknown as MsfsMaterial
+}
+
+function createMsfsDetailNormalNode(
+  material: MsfsMaterial,
+  detailUv: ReturnType<typeof uv>,
+  detailBlend: ReturnType<typeof vertexColor>['a'],
+  detailNormalTexture: Texture,
+  detailNormalScale: number
+) {
+  const baseNormalNode = createMsfsBaseTangentNormalNode(material)
+  if (baseNormalNode == null) {
+    return null
+  }
+
+  const detailNormalNode = texture(detailNormalTexture, detailUv)
+    .xyz
+    .mul(2)
+    .sub(1)
+  const detailNormalXY = detailNormalNode.xy.mul(detailNormalScale).mul(detailBlend)
+  const combinedTangentNormal = vec3(
+    baseNormalNode.xy.add(detailNormalXY),
+    baseNormalNode.z.mul(detailNormalNode.z).max(0)
+  ).normalize()
+
+  return TBNViewMatrix.mul(combinedTangentNormal).normalize()
+}
+
+function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
+  if (material.normalMap == null || material.normalScale == null) {
+    return null
+  }
+
+  if (material.normalMap.format === SIGNED_RED_GREEN_RGTC2_Format) {
+    const signedCompressedNormal = texture(material.normalMap).xy
+    return vec3(
+      signedCompressedNormal.mul(material.normalScale),
+      signedCompressedNormal
+        .dot(signedCompressedNormal)
+        .oneMinus()
+        .max(0)
+        .sqrt()
+    )
+  }
+
+  if (material.normalMap.format === RED_GREEN_RGTC2_Format) {
+    const compressedNormalXY = texture(material.normalMap)
+      .xy
+      .mul(2)
+      .sub(1)
+
+    return vec3(
+      compressedNormalXY.mul(material.normalScale),
+      compressedNormalXY
+        .dot(compressedNormalXY)
+        .oneMinus()
+        .max(0)
+        .sqrt()
+    )
+  }
+
+  const tangentNormal = texture(material.normalMap)
+    .xyz
+    .mul(2)
+    .sub(1)
+
+  return vec3(
+    tangentNormal.xy.mul(material.normalScale),
+    tangentNormal.z
+  )
 }
 
 function ensureNodeMaterial(
@@ -508,6 +625,30 @@ function ensureNodeMaterial(
   }
 
   return createNodeMaterial(material) as MsfsNodeMaterial | null
+}
+
+export function getMsfsBlendFactors(
+  material: Material | MsfsMaterial | null | undefined
+): MsfsBlendFactors {
+  const extension = getMsfsExtensions(material)?.ASOBO_material_blend_gbuffer
+  return {
+    baseColor: clampBlendFactor(extension?.baseColorBlendFactor),
+    metallic: clampBlendFactor(
+      extension?.metallicBlendFactor ?? extension?.metallnesBlendFactor
+    ),
+    roughness: clampBlendFactor(extension?.roughnessBlendFactor),
+    normal: clampBlendFactor(extension?.normalBlendFactor),
+    emissive: clampBlendFactor(extension?.emissiveBlendFactor),
+    occlusion: clampBlendFactor(extension?.occlusionBlendFactor),
+  }
+}
+
+function clampBlendFactor(value: number | undefined): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 1
+  }
+
+  return Math.min(Math.max(value, 0), 1)
 }
 
 async function loadMsfsDetailTextures(

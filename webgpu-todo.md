@@ -18,14 +18,18 @@ Use sources in this order:
 - `?renderer=webgpu` or `VITE_RENDERER=webgpu` can be used to exercise the WebGPU bootstrap path.
 - `?renderer=auto` now falls back cleanly to `webgl` if WebGPU initialization fails.
 - The WebGPU path currently uses a flat environment fallback when PMREM scene generation is unavailable.
-- Signed compressed RG normal maps now use `three`'s WebGPU node-material conversion path instead of the old WebGL shader-patch path.
-- `ASOBO_material_detail_map` now has a WebGPU node-material path for detail color, ORM, blend-mask, and vertex-alpha blending.
+- Signed compressed RG normal maps now use `three`'s WebGPU node-material conversion path and match the WebGL normal-scale application instead of re-scaling the blend factor a second time.
+- `ASOBO_material_detail_map` now has a WebGPU node-material path for detail color, ORM, blend-mask, vertex-alpha blending, and detail-normal composition.
+- `ASOBO_material_blend_gbuffer` factors are now wired into the WebGPU node-material path for opacity/color, roughness, metalness, occlusion, emissive, and normal intensity.
+- The renderer now has generic two-pass decal groundwork for `blend_gbuffer` materials, but this is still not full MSFS parity.
 
 ## Blocking Gaps
 
 - Port WebGL-only material patches in `src/msfs/gltf/normalizeMsfsMaterials.ts` to WebGPU-native material customization.
-  - `ASOBO_material_detail_map` detail-normal parity.
-  - `ASOBO_material_blend_gbuffer`.
+  - Exact background-material `ASOBO_material_blend_gbuffer` decal blending still needs a deferred/G-buffer style decal pass, not just a color backdrop.
+  - The next pass should use `three`'s own WebGPU pass/MRT infrastructure cleanly; the first raw-MRT attempt showed two real blockers:
+    - WebGPU needs higher `maxColorAttachmentBytesPerSample` than the default budget for a full decal component buffer.
+    - Direct ad-hoc MRT sampling in node materials is not yet reliable in this viewer path and needs a more authoritative pass integration.
   - Any later `ASOBO_material_*` shader behavior.
 
 - Confirm DDS compressed texture support on the WebGPU path.
