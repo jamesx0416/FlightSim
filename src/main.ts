@@ -162,7 +162,7 @@ async function loadAircraftGltf(
       normalizeMsfsTexcoords(gltf.scene)
       normalizeMsfsVertexColors(gltf.scene)
       normalizeMsfsNormalsTangents(gltf.scene)
-      normalizeMsfsMaterials(gltf.scene)
+      await normalizeMsfsMaterials(gltf)
       return gltf
     } catch (error) {
       lastError = error
