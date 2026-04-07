@@ -1,11 +1,17 @@
 import {
   ACESFilmicToneMapping,
   Color,
+  DataTexture,
+  EquirectangularReflectionMapping,
+  LinearFilter,
+  LinearSRGBColorSpace,
   Material,
   PMREMGenerator,
+  RGBAFormat,
   SRGBColorSpace,
   Scene,
   Texture,
+  UnsignedByteType,
   WebGLRenderer,
 } from 'three'
 import { Sky } from 'three/examples/jsm/objects/Sky.js'
@@ -88,7 +94,13 @@ export function createAircraftEnvironment(renderer: AppRenderer): Texture | null
   try {
     return pmremGenerator.fromScene(createSkyScene(renderer)).texture
   } catch {
-    return null
+    const fallbackEnvironment = createFallbackEnvironmentTexture()
+    try {
+      return pmremGenerator.fromEquirectangular(fallbackEnvironment).texture
+    } catch {
+      fallbackEnvironment.dispose()
+      return createFallbackEnvironmentTexture()
+    }
   } finally {
     pmremGenerator.dispose()
   }
@@ -194,4 +206,42 @@ function createWebGpuSky() {
   sky.sunPosition.value.set(0.4, 0.9, -0.35).normalize().multiplyScalar(120)
 
   return sky
+}
+
+function createFallbackEnvironmentTexture(): Texture {
+  const width = 64
+  const height = 32
+  const data = new Uint8Array(width * height * 4)
+
+  const zenith = new Color('#7ea7d4')
+  const horizon = new Color('#d6e5f5')
+  const ground = new Color('#405264')
+
+  for (let y = 0; y < height; y += 1) {
+    const v = y / Math.max(height - 1, 1)
+    const gradientColor = new Color()
+
+    if (v < 0.48) {
+      gradientColor.copy(zenith).lerp(horizon, v / 0.48)
+    } else {
+      gradientColor.copy(horizon).lerp(ground, (v - 0.48) / 0.52)
+    }
+
+    for (let x = 0; x < width; x += 1) {
+      const offset = (y * width + x) * 4
+      data[offset] = Math.round(gradientColor.r * 255)
+      data[offset + 1] = Math.round(gradientColor.g * 255)
+      data[offset + 2] = Math.round(gradientColor.b * 255)
+      data[offset + 3] = 255
+    }
+  }
+
+  const texture = new DataTexture(data, width, height, RGBAFormat, UnsignedByteType)
+  texture.mapping = EquirectangularReflectionMapping
+  texture.colorSpace = LinearSRGBColorSpace
+  texture.minFilter = LinearFilter
+  texture.magFilter = LinearFilter
+  texture.generateMipmaps = false
+  texture.needsUpdate = true
+  return texture
 }
