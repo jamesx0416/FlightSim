@@ -12,6 +12,7 @@ import {
   Scene,
   Texture,
   UnsignedByteType,
+  Vector3,
   WebGLRenderer,
 } from 'three'
 import { Sky } from 'three/examples/jsm/objects/Sky.js'
@@ -35,7 +36,18 @@ export interface RendererInfo {
   readonly hasBcTextureCompression: boolean | null
 }
 
+export interface AircraftEnvironmentInfo {
+  readonly texture: Texture | null
+  readonly usedFallback: boolean
+}
+
 export type NodeMaterialFactory = (material: Material) => NodeMaterial | null
+
+const SKY_TURBIDITY = 2.2
+const SKY_RAYLEIGH = 1.7
+const SKY_MIE_COEFFICIENT = 0.02
+const SKY_MIE_DIRECTIONAL_G = 0.92
+const SKY_SUN_DIRECTION = new Vector3(0.4, 0.9, -0.35).normalize()
 
 export async function createAppRenderer(
   searchParams: URLSearchParams
@@ -89,19 +101,35 @@ async function getWebGpuRequiredLimits(): Promise<Record<string, number> | undef
   }
 }
 
-export function createAircraftEnvironment(renderer: AppRenderer): Texture | null {
+export function createAircraftEnvironment(renderer: AppRenderer): AircraftEnvironmentInfo {
   const pmremGenerator = new PMREMGenerator(renderer as never)
+  const toneMapping = renderer.toneMapping
+  const toneMappingExposure = renderer.toneMappingExposure
+  const outputColorSpace = renderer.outputColorSpace
+
   try {
-    return pmremGenerator.fromScene(createSkyScene(renderer)).texture
+    return {
+      texture: pmremGenerator.fromScene(createSkyScene(renderer)).texture,
+      usedFallback: false,
+    }
   } catch {
     const fallbackEnvironment = createFallbackEnvironmentTexture()
     try {
-      return pmremGenerator.fromEquirectangular(fallbackEnvironment).texture
+      return {
+        texture: pmremGenerator.fromEquirectangular(fallbackEnvironment).texture,
+        usedFallback: true,
+      }
     } catch {
       fallbackEnvironment.dispose()
-      return createFallbackEnvironmentTexture()
+      return {
+        texture: createFallbackEnvironmentTexture(),
+        usedFallback: true,
+      }
     }
   } finally {
+    renderer.toneMapping = toneMapping
+    renderer.toneMappingExposure = toneMappingExposure
+    renderer.outputColorSpace = outputColorSpace
     pmremGenerator.dispose()
   }
 }
@@ -188,29 +216,29 @@ function createWebGlSky() {
   sky.scale.setScalar(450000)
 
   const uniforms = sky.material.uniforms
-  uniforms['turbidity'].value = 2.2
-  uniforms['rayleigh'].value = 1.7
-  uniforms['mieCoefficient'].value = 0.02
-  uniforms['mieDirectionalG'].value = 0.92
-  uniforms['sunPosition'].value.set(0.4, 0.9, -0.35).normalize().multiplyScalar(120)
+  uniforms['turbidity'].value = SKY_TURBIDITY
+  uniforms['rayleigh'].value = SKY_RAYLEIGH
+  uniforms['mieCoefficient'].value = SKY_MIE_COEFFICIENT
+  uniforms['mieDirectionalG'].value = SKY_MIE_DIRECTIONAL_G
+  uniforms['sunPosition'].value.copy(SKY_SUN_DIRECTION).multiplyScalar(120)
 
   return sky
 }
 
 function createWebGpuSky() {
   const sky = new SkyMesh()
-  sky.turbidity.value = 2.2
-  sky.rayleigh.value = 1.7
-  sky.mieCoefficient.value = 0.02
-  sky.mieDirectionalG.value = 0.92
-  sky.sunPosition.value.set(0.4, 0.9, -0.35).normalize().multiplyScalar(120)
+  sky.turbidity.value = SKY_TURBIDITY
+  sky.rayleigh.value = SKY_RAYLEIGH
+  sky.mieCoefficient.value = SKY_MIE_COEFFICIENT
+  sky.mieDirectionalG.value = SKY_MIE_DIRECTIONAL_G
+  sky.sunPosition.value.copy(SKY_SUN_DIRECTION).multiplyScalar(120)
 
   return sky
 }
 
 function createFallbackEnvironmentTexture(): Texture {
-  const width = 64
-  const height = 32
+  const width = 256
+  const height = 128
   const data = new Uint8Array(width * height * 4)
 
   const zenith = new Color('#7ea7d4')
