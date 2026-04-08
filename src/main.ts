@@ -15,6 +15,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 import { compileMsfs2020Behaviors } from './msfs/behavior'
+import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPrimitiveBaseVertex'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
 import { normalizeAsoboPrimitiveWinding } from './msfs/gltf/normalizeAsoboPrimitiveWinding'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
@@ -267,6 +268,13 @@ async function loadAircraftGltf(
         lodMinSize: lod.minSize
       })
       normalizeMsfsNormalsTangents(gltf.scene)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:normalize-asobo-primitive-base-vertex',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
+      normalizeAsoboPrimitiveBaseVertex(gltf)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-asobo-primitive-winding',
         aircraftId: aircraft.id,
