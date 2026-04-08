@@ -8,6 +8,7 @@ Rules:
 - Mark items done only when the loader/compiler/runtime support is implemented and verified on at least the A330 and A320 routes where relevant.
 - Stock XML items can only be checked when the relevant official docs/reference pages have been read for that area and the implementation has been updated or confirmed against them.
 - Reference-doc items can only be checked when they have actually been reviewed during implementation, not merely downloaded.
+- No item can be checked off unless an `agent-browser` verification pass has been run on both the A330 and A320 routes, screenshots have been taken, and those screenshots indicate nothing is broken and the change likely works.
 
 ## Core Plumbing
 
