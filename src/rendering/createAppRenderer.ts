@@ -172,7 +172,7 @@ function finalizeRenderer(
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.outputColorSpace = SRGBColorSpace
   renderer.toneMapping = ACESFilmicToneMapping
-  renderer.toneMappingExposure = renderer instanceof WebGPURenderer ? 1.1 : 0.72
+  renderer.toneMappingExposure = 1
 
   return {
     renderer,
