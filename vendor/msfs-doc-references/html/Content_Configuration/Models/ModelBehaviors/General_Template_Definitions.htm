@@ -1,0 +1,1127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  <title>General Template Definitions</title>
+  
+  <!-- <link rel="stylesheet" href="../../../assets/css/Prism/prism.css" type="text/css" /> -->
+  <meta name="rh-index-keywords" content="Models:Model Behaviours"/>
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <!-- <script src="../../../assets/css/Prism/prism.js"></script> -->
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>GENERAL TEMPLATE DEFINITIONS</h2>
+  <p>On this page you can find a list of the general model behavior XML that is used within the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element of the <code class="inline">[model].xml</code> file associated with a SimObject. For an overview of the contents of this page please see the following section:</p>
+  <ul>
+    <li><a href="Model_Behaviors.htm">Model Behaviors</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="Macro"><code class="inline">&lt;Macro&gt;</code></h3>
+  <p>This element creates a global-scope macro that can be used to name values, strings and code which will then be substituted in at runtime wherever the macro is called. The macro has a &quot;name&quot; attribute, which is the name that should be called in the rest of the model behavior XML to use the macro, and the contents of the element are what will be substituted in instead. Note that when calling a macro name it should be preceded by an <code class="inline">@</code>. Macros are usually defined at the top of the XML, directly under the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element, and would look something like this:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Macro Name=&quot;IsUsingRelativePos&quot;&gt;(M:InputType) 1 ==&lt;/Macro&gt;
+&lt;Macro Name=&quot;DragLockResetTimer&quot;&gt;0.05 0.10 @IsUsingRelativePos ?&lt;/Macro&gt;
+&lt;Macro Name=&quot;MyCompany&quot;&gt;&#39;TT_COMPANY_NAME_LOCALISED&#39;&lt;/Macro&gt;</code></pre>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>The name of the macro, which will be used to call the macro in the rest of the XML. Use the <code class="inline">@</code> symbol before the macro to use it, eg: <code class="inline">@on_off_condition</code></td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Include"><code class="inline">&lt;Include /&gt;</code></h3>
+  <p>This element is used to read and register the InputEvents, Macros, Templates and Parameter Functions included within the file given in the chosen attribute. This is a self-closing element that is used within the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element or - for library files - within the <code class="inline"><a href="../Model_Definitions.htm#h39">&lt;ModelBehaviors&gt;</a></code> element. It <em>must</em> have <em>one</em> of the following attributes, and should always be listed at the top of the XML file, or directly after the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> or <code class="inline"><a href="../Model_Definitions.htm#h39">&lt;ModelBehaviors&gt;</a></code> element:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ModelBehaviorFile</code></td>
+        <td>This tells the <code class="inline">models.xml</code> to include one of the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> core model behavior definition files. The path will be relative to the <strong>ModelBehaviorDefs</strong> folder. For example, to include the &quot;<code class="inline">Engine.xml</code>&quot; file, then the path supplied to this attribute would be: &quot;<code class="inline">Asobo\Common\Engine.xml</code>&quot;.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Path</code></td>
+        <td>This is an alias for the <code class="inline">ModelBehaviorFile</code> attribute.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">RelativeFile</code></td>
+        <td>This is for including a file from a path relative to the <code class="inline">[model].xml</code> file location.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">File</code></td>
+        <td>This is an alias for the <code class="inline">RelativeFile</code> attribute.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="IncludeBase"><code class="inline">&lt;IncludeBase /&gt;</code></h3>
+  <p>This element is used to include the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> from another <code class="inline">[model].xml</code> file. For example, if you have an aircraft already defined that is very similar to the one you are currently working on, then you can use this element to include the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> from the first aircraft and then modify only those model behaviors that differ in the current aircraft <code class="inline">[model].xml</code>. This is a self-closing element and should be defined at the top of the XML file, or directly after the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element. It has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">RelativeFile</code></td>
+        <td>This is for including a file from a path relative to the <code class="inline">[model].xml</code> file location.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Optionally you may use these attributes instead of the <code class="inline">RelativeFil</code>e attribute, although these are not generally required:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ModelBehaviorFile</code></td>
+        <td>This tells the <code class="inline">models.xml</code> to include one of the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> core model behavior definition files. The path will be relative to the <strong>ModelBehaviorDefs</strong> folder. For example, to include the &quot;<code class="inline">Engine.xml</code>&quot; file, then the path supplied to this attribute would be: &quot;<code class="inline">Asobo\Common\Engine.xml</code>&quot;.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Path</code></td>
+        <td>This is an alias for the <code class="inline">ModelBehaviorFile</code> attribute.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">File</code></td>
+        <td>This is an alias for the <code class="inline">RelativeFile</code> attribute.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Component"><code class="inline">&lt;Component&gt;</code></h3>
+  <p>With this element you can define a component behavior. The contents of this element will depend on the component being defined and the purpose that it is being created for. The main component elements that can be defined are as follows:</p>
+  <ul>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#partid">&lt;PartID&gt;</a></code></li>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#cameratitle">&lt;CameraTitle&gt;</a></code></li>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#fx">&lt;FX&gt;</a></code></li>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#AnimationTriggers">&lt;AnimationTriggers&gt;</a></code></li>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#visibility">&lt;Visibility&gt;</a></code></li>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#emissive">&lt;EmissiveFactor&gt;</a></code></li>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#Update">&lt;Update&gt;</a></code></li>
+    <li><code class="inline"><a href="../Model_Animation_Definitions.htm#Animation">&lt;Animation&gt;</a></code></li>
+    <li><code class="inline"><a href="../Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code></li>
+    <li><code class="inline"><a href="General_Template_Definitions.htm#UseInputEvent">&lt;UseInputEvent&gt;</a></code></li>
+  </ul>
+  <p>Additionally you can use the <code class="inline"><a href="#Parameters">&lt;Parameters&gt;</a></code>, <code class="inline"><a href="#UseTemplate">&lt;UseTemplate&gt;</a></code>, <code class="inline"><a href="Program_Template_Definitions.htm#Condition">&lt;Condition&gt;</a></code> and other elements (like the ones that are custom to the template, as explained in the <a href="Model_Behaviors.htm#Templates">Templates</a> section of the <a href="Model_Behaviors.htm">Model Behaviors</a> page). Note that you can create hierarchies of components since you can nest one or more <code class="inline">&lt;Component&gt;</code> elements within other <code class="inline">&lt;Component&gt;</code>s.</p>
+  <p> </p>
+  <p>This element has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>The unique ID for the component.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Node</code></td>
+        <td>This is the name of the model node (part) that the component should affect.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">CameraTitle</code></td>
+        <td>This is the name of a camera to use to highlight an instrument when evaluating a checklist.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">OverrideID</code></td>
+        <td>When using an <code class="inline"><a href="General_Template_Definitions.htm#IncludeBase">&lt;IncludeBase /&gt;</a></code> as part of the XML, this lets you create a component that overrides a previously defined component with a a given ID, redefining everything it used to define.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Note that you may see in some of the XML templates the element <code class="inline">&lt;RootComponent&gt;</code>. This is a deprecated element that is now considered an alias for the <code class="inline">&lt;component&gt;</code> element as such should not be used for new model behaviors.</p>
+  <p> </p>
+  <h4 id="partid"><code class="inline">&lt;PartID&gt;</code></h4>
+  <p>This node defines an ID used in a <a href="../../Checklists/Checklists.htm">checklist</a> for highlighting instruments, and has no attributes. Essentially this creates a link between a name (the <code class="inline">PartID</code>) and a node (the component node <code class="inline">ID</code>), but note that you can <em>only</em> have a <code class="inline">&lt;PartId&gt;</code> element when the component it belongs to has an assigned <code class="inline">Node</code> as well. You may have multiple part IDs for a single component ID, and you may also use the same part ID name in multiple components, in which case when an element is highlighted from the part ID (for a checklist, for example), all the components associated with this id - therefore their node and their children in the gltf hierarchy - will be highlighted too.</p>
+  <p> </p>
+  <h4 id="Update"><code class="inline">&lt;Update&gt;</code></h4>
+  <p>This element describes how an animation should be updated based on the given attributes and the RPN that the element contains. This node is used extensively as part of the <a href="Model_Behaviors.htm">Model Behaviors</a> templates, in particular the <code class="inline">ASOBO_GT_Update</code> template where it is called using the <code class="inline">&lt;UPDATE_CODE&gt;</code> custom element. It is usually part of a <code class="inline"><a href="#Component">&lt;Component&gt;</a></code> definition and can have the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">InteractionModel</code></td>
+        <td>
+          <p>This specifies whether the update should run during a specific interaction model or not.</p>
+        </td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <p>&quot;Default&quot;</p>
+          <p>&quot;Drag&quot;</p>
+          <p>&quot;All&quot;</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Once</code></td>
+        <td>This can be used to set whether the update happens only once (set to &quot;true&quot;), or happens repeatedly (set to &quot;false&quot;).</td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Frequency</code></td>
+        <td>This attribute specifies the update frequency in updates per second (Hz).</td>
+        <td>
+          <p>Float</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="updatefrequency"><code class="inline">&lt;UpdateFrequencyPreset&gt;</code></h4>
+  <p>This element permits you to change which update frequency preset a component should be using and is a sub-element of the <code class="inline"><a href="#Component">&lt;Component&gt;</a></code> element. These presets define how often an animation, VFX, etc... should be updated based on the size on screen of the model (calculated as a <a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a>). The frequency itself will be 1 update per game frame for the maximum and 1 update every 30 game frames for the minimum, and the update frequency for models between the min and max size will have an interpolated frequency between 1:1 and 1:30.</p>
+  <p><br/>
+    The default preset for the update frequency is &quot;<code class="inline">Asobo_Default</code>&quot;, which will be used if this sub-element is omitted. The presets available by default to you are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Name</th>
+        <th>Size On Screen For<br/>
+          Max Update Frequency</th>
+        <th>Size On Screen For<br/>
+          Min Update Frequency</th>
+        <th>Size On Screen<br/>
+          To Stop Update</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Asobo_Default</code></td>
+        <td style="text-align: center">1.0</td>
+        <td style="text-align: center">0.01</td>
+        <td style="text-align: center">0.01</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Asobo_FrequentWhenSmall</code></td>
+        <td style="text-align: center">0.01</td>
+        <td style="text-align: center">0.001</td>
+        <td style="text-align: center">0.001</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Asobo_RareWhenSmall</code></td>
+        <td style="text-align: center">1.0</td>
+        <td style="text-align: center">0.1</td>
+        <td style="text-align: center">0.1</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Asobo_Default_NeverStop</code></td>
+        <td style="text-align: center">0.1</td>
+        <td style="text-align: center">0.01</td>
+        <td style="text-align: center">0.0</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>You can find information on how to create your own presets from the following section:</p>
+  <ul>
+    <li><a href="Update_Frequency_Preset_Definitions.htm">Update Frequency Preset Definitions</a></li>
+  </ul>
+  <p> </p>
+  <h4 id="cameratitle"><code class="inline">&lt;CameraTitle&gt;</code></h4>
+  <p>This element simply takes a the name of a camera (as a string) to use to highlight an instrument when evaluating a checklist. The element should be included as part of a <code class="inline"><a href="#Component">&lt;Component&gt;</a></code> and has no attributes.</p>
+  <p> </p>
+  <h4 id="fx"><code class="inline">&lt;FX&gt;</code></h4>
+  <p>This element is used as part of a <code class="inline"><a href="#Component">&lt;Component&gt;</a></code> definition to create a VFX. It can have the following sub-elements: <code class="inline"><a href="#offset">&lt;Offset&gt;</a></code>, <code class="inline"><a href="#contactpoint">&lt;ContactPoint&gt;</a></code>, <code class="inline"><a href="#code">&lt;Code&gt;</a></code>, <code class="inline"><a href="#enableentries">&lt;EnableEntries&gt;</a></code>, <code class="inline"><a href="#disableentries">&lt;DisableEntries&gt;</a></code>, <code class="inline"><a href="General_Template_Definitions.htm#overrideentries">&lt;OverrideEntries&gt;</a></code>, and <code class="inline"><a href="#graphparams">&lt;GraphParameters&gt;</a></code>. This element has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">GUID</code></td>
+        <td>
+          <p>The GUID of the effect that is being used by the component.</p>
+        </td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="offset"><code class="inline">&lt;Offset&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="General_Template_Definitions.htm#fx">&lt;FX&gt;</a></code> element defines the offset in the coordinate system defined by the VFX  (in meters). As such it requires the following sub-elements:</p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Element</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">&lt;X&gt;</code></td>
+        <td>Offset on the X axis (meters)</td>
+        <td colspan="1" rowspan="6">
+          <p>Float</p>
+        </td>
+        <td colspan="1" rowspan="6" style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">&lt;Y&gt;</code></td>
+        <td>Offset on the Y axis (meters)</td>
+      </tr>
+      <tr>
+        <td><code class="inline">&lt;Z&gt;</code></td>
+        <td>Offset on the Z axis (meters)</td>
+      </tr>
+      <tr>
+        <td><code class="inline">&lt;P&gt;</code></td>
+        <td>Rotation offset of the pitch (degrees)</td>
+      </tr>
+      <tr>
+        <td><code class="inline">&lt;B&gt;</code></td>
+        <td>Rotation offset of the bank (degrees)</td>
+      </tr>
+      <tr>
+        <td><code class="inline">&lt;H&gt;</code></td>
+        <td>Rotation offset of the heading (degrees)</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="contactpoint"><code class="inline">&lt;ContactPoint&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="#fx">&lt;FX&gt;</a></code> element defines the contact point to attach the effect to, and you can use -1 for none.</p>
+  <p> </p>
+  <h5 id="code"><code class="inline">&lt;Code&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="#fx">&lt;FX&gt;</a></code> element defines the RPN code to use to spawn the effect. The result of the code will be interpreted as boolean, where if the result is &quot;True&quot; the visual effect is spawned and if it is &quot;False&quot; then it is destroyed.</p>
+  <p> </p>
+  <h5 id="enableentries"><code class="inline">&lt;EnableEntries&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="#fx">&lt;FX&gt;</a></code> element is used to enumerate surface types over which this effect may spawn. This element requires one or more <code class="inline"><a href="General_Template_Definitions.htm#surfacetypeentry">&lt;SurfaceTypeEntry /&gt;</a></code> sub-elements, and may contain <a href="Program_Template_Definitions.htm">Program Template Definitions</a> to generate dynamic changes.</p>
+  <p> </p>
+  <h5 id="disableentries"><code class="inline">&lt;DisableEntries&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="#fx">&lt;FX&gt;</a></code> element is used to enumerate surface types over which this effect may <strong>not</strong> spawn. This element requires one or more <code class="inline"><a href="#surfacetypeentry">&lt;SurfaceTypeEntry /&gt;</a></code> sub-elements, and may contain <a href="Program_Template_Definitions.htm">Program Template Definitions</a> to generate dynamic changes.</p>
+  <p> </p>
+  <h5 id="overrideentries"><code class="inline">&lt;OverrideEntries&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="#fx">&lt;FX&gt;</a></code> element is used to define which VFX will replace the one defined by the GUID for the given <span data-reactroot="" data-token-index="1">surface type</span>. This element requires one or more <code class="inline"><a href="#surfacetypeentry">&lt;SurfaceTypeEntry /&gt;</a></code> sub-elements, and may contain <a href="Program_Template_Definitions.htm">Program Template Definitions</a> to generate dynamic changes.</p>
+  <p> </p>
+  <h5 id="graphparams"><code class="inline">&lt;GraphParameters&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="#fx">&lt;FX&gt;</a></code> element is used to define custom parameters with some RPN code and <a href="Program_Template_Definitions.htm">Program Template Definitions</a> which can then be used in the VFX graph (with the VFX editor <a href="../../../Developer_Mode/VFX_Editor/Nodes/GraphParameter.htm">GraphParameter</a> element).</p>
+  <p> </p>
+  <h5 id="surfacetypeentry"><code class="inline">&lt;SurfaceTypeEntry /&gt;</code></h5>
+  <p>This self-closing element is a sub element of <code class="inline"><a href="General_Template_Definitions.htm#enableentries">&lt;EnableEntries&gt;</a></code>, <code class="inline"><a href="General_Template_Definitions.htm#disableentries">&lt;DisableEntries&gt;</a></code>, and <code class="inline"><a href="General_Template_Definitions.htm#overrideentries">&lt;OverrideEntries&gt;</a></code>. It defines a surface type, which is set using the following attribute:</p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">SurfaceType</code></td>
+        <td>
+          <p>A surface type string.</p>
+        </td>
+        <td>
+          <p><u>String</u>:</p>
+          <ol class="minitoc-list">
+            <li>CONCRETE</li>
+            <li>GRASS</li>
+            <li>WATER_FSX</li>
+            <li>GRASS_BUMPY</li>
+            <li>ASPHALT</li>
+            <li>SHORT_GRASS</li>
+            <li>LONG_GRASS</li>
+            <li>HARD_TURF</li>
+            <li>SNOW</li>
+            <li>ICE</li>
+            <li>URBAN</li>
+            <li>FOREST</li>
+            <li>DIRT</li>
+            <li>CORAL</li>
+            <li>GRAVEL</li>
+            <li>OIL_TREATED</li>
+            <li>STEEL_MATS</li>
+            <li>BITUMINUS</li>
+            <li>BRICK</li>
+            <li>MACADAM</li>
+            <li>PLANKS</li>
+            <li>SAND</li>
+            <li>SHALE</li>
+            <li>TARMAC</li>
+            <li>WRIGHT_FLYER_TRACK</li>
+            <li>OCEAN</li>
+            <li>WATER</li>
+            <li>POND</li>
+            <li>LAKE</li>
+            <li>RIVER</li>
+            <li>WASTE_WATER</li>
+            <li>PAINT</li>
+          </ol>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="visibility"><code class="inline">&lt;Visibility&gt;</code></h4>
+  <p>This element is usually found as part of a <code class="inline"><a href="#Component">&lt;Component&gt;</a></code> definition and is used to control the visibility of a Node (and its children) programmatically. As such it requires a <code class="inline"><a href="../Model_Animation_Definitions.htm#Parameter">&lt;Parameter&gt;</a></code> sub-element to control the visibility toggle.</p>
+  <p> </p>
+  <h4 id="emissive"><code class="inline">&lt;EmissiveFactor&gt;</code></h4>
+  <p>This element is used as part of a <code class="inline"><a href="#Component">&lt;Component&gt;</a></code> element and sets the component as the target of a material component. A material component is used to control the intensity of an emissive programmatically. As such it requires a <code class="inline"><a href="../Model_Animation_Definitions.htm#Parameter">&lt;Parameter&gt;</a></code> sub-element to control the emissive toggle. To turn off an emissive, the resulting value of the parameter code should be 0. The Parameter tag can have the following sub-elements:</p>
+  <ul>
+    <li><code class="inline"><a href="../Model_Animation_Definitions.htm#Code">&lt;Code&gt;</a></code> - The resulting value of any <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">RPN</a> code supplied will be multiplied with the emissive texture</li>
+    <li><code class="inline"><a href="../Model_Animation_Definitions.htm#Sim">&lt;Sim&gt;</a></code> - The SimVar value will be multiplied with the emissive texture</li>
+  </ul>
+  <p> </p>
+  <h4 id="UseInputEvent"><code class="inline">&lt;UseInputEvent&gt;</code></h4>
+  <p>This element will call an input event that has been defined already from a template or from the <code class="inline">[model].xml</code> using the <code class="inline"><a href="#InputEvent">&lt;InputEvent&gt;</a></code> element, and is used as part of a <code class="inline"><a href="#Component">&lt;Component&gt;</a></code>. It has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>The ID (name) of the Input Event to use, as defined by the <code class="inline">ID</code> attribute of the <code class="inline"><a href="#InputEvent">&lt;InputEvent&gt;</a></code> element.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>For more information on input events, please see the following page:</p>
+  <ul>
+    <li><a href="Input_Event_Definitions.htm">Input Event Definitions</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="Template"><code class="inline">&lt;Template&gt;</code></h3>
+  <p>With this element we initialise a template definition and give it a name. This can then be called using the <code class="inline"><a href="General_Template_Definitions.htm#UseTemplate">&lt;UseTemplate&gt;</a></code> element elsewhere in the XML. The element is used as a container for the template data, which can include <code class="inline"><a href="General_Template_Definitions.htm#Component">&lt;Component&gt;</a></code>, <code class="inline"><a href="General_Template_Definitions.htm#Parameters">&lt;Parameters&gt;</a></code>, <code class="inline"><a href="General_Template_Definitions.htm#UseParametersFn">&lt;UseParametersFn&gt;</a></code>, <code class="inline"><a href="General_Template_Definitions.htm#UseTemplate">&lt;UseTemplate&gt;</a></code>, <code class="inline"><a href="Program_Template_Definitions.htm#Condition">&lt;Condition&gt;</a></code>, and other elements (like the ones that are custom to the template, as explained in the <a href="Model_Behaviors.htm#Templates">Templates</a> section of the <a href="Model_Behaviors.htm">Model Behaviors</a> page). This element has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>This is the name of the template, and is what will be used when calling the <code class="inline"><a href="#UseTemplate">&lt;UseTemplate&gt;</a></code> element.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="TemplateAlias"><code class="inline">&lt;TemplateAlias&gt;</code></h4>
+  <p>You can use this element as a sub-element of <code class="inline"><a href="General_Template_Definitions.htm#Template">&lt;Template&gt;</a></code> and is used to define an alias for the template that is using it. This element has no attributes, and requires a string to be used correctly, for example:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Template Name=&quot;DEPRECATED_Propeller_Anim_Rotation_Template&quot;&gt;
+    &lt;TemplateAlias&gt;Propeller_Anim_Rotation_Template&lt;/TemplateAlias&gt;
+&lt;/Template&gt;</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="UseTemplate"><code class="inline">&lt;UseTemplate&gt;</code></h3>
+  <p>This element is used to reference another template. This element has no fixed sub-elements and will generally require the use of the parameters that are created in the template being referenced, some of which may be optional. It has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>This is for including a file from a path relative to the <code class="inline">[model].xml</code> file location.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="InputEvent"><code class="inline">&lt;InputEvent&gt;</code></h3>
+  <p>This element is used to retrieve input from the user. The element is used as a container element for <code class="inline"><a href="Input_Event_Definitions.htm#Presets">&lt;Presets&gt;</a></code> that will be used to create the the different inputs. It has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>The ID (name) of the Input Event being defined. This <code class="inline">ID</code> is then used in the <code class="inline"><a href="General_Template_Definitions.htm#UseInputEvent">&lt;UseInputEvent&gt;</a></code> element to call the event.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>This contents of this element are explained in full on the following page:</p>
+  <ul>
+    <li><a href="Input_Event_Definitions.htm">Input Event Definitions</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="Parameters"><code class="inline">&lt;Parameters&gt;</code></h3>
+  <p>This sub-element is essentially a container for any number of parameters required by other elements - like <code class="inline"><a href="General_Template_Definitions.htm#Template">&lt;Template&gt;</a></code>, <code class="inline"><a href="General_Template_Definitions.htm#Component">&lt;Component&gt;</a></code>, or within <code class="inline"><a href="Input_Event_Definitions.htm#Presets">&lt;Presets&gt;</a></code> - and it can also be used when working with the <a href="Model_Behaviors.htm#XMLPrograms">XML Programs</a> elements. The element does not require any additional attributes, although it does have the following <em>optional</em> attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Type</code></td>
+        <td>When this attribute is included, you are saying that the parameter sub-elements contained in this element will either be used as default parameters or will override existing parameters.</td>
+        <td>
+          <p>String:</p>
+          <ol class="minitoc-list">
+            <li>&quot;Default&quot;</li>
+            <li>&quot;Override&quot;</li>
+          </ol>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Lifetime</code></td>
+        <td>This attribute establishes the lifetime of the parameters, and is <em>only</em> relevant when the element is used within a <code class="inline"><a href="Program_Template_Definitions.htm#Loop">&lt;Loop&gt;</a></code>. When the attribute is set to &quot;Iteration&quot;, the parameters will be created and discarded on <em>each</em> iteration of the loop, while setting it to &quot;Loop&quot; the parameter will be created at the start of the loop, and discarded at the end of <em>all</em> iterations.</td>
+        <td>
+          <p>String:</p>
+          <ol class="minitoc-list">
+            <li>&quot;Loop&quot;</li>
+            <li>&quot;Iteration&quot;</li>
+          </ol>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>It should be noted that in older iterations of the model behavior files and templates the elements <code class="inline">&lt;DefaultTemplateParameters&gt;</code> and <code class="inline">&lt;OverrideTemplateParameters&gt;</code> were used to contain default and override parameters. However <strong>these two elements are now deprecated</strong> and you should use the <code class="inline">&lt;Parameters&gt;</code> element with the appropriate <code class="inline">Type</code> attribute.</p>
+  <p> </p>
+  <p>Any user created parameters called within this element can also have a special <code class="inline">Process</code> attribute added to them. This attribute is explained here:</p>
+  <ul>
+    <li><a href="Model_Behaviors.htm#ParamAttributes">Parameter Attributes</a></li>
+  </ul>
+  <p> </p>
+  <h4 id="saveparams"><code class="inline">&lt;SaveParameters&gt;</code></h4>
+  <p>This element can be defined anywhere a <code class="inline"><a href="General_Template_Definitions.htm#Parameters">&lt;Parameters&gt;</a></code> element can be defined and is used to save the parameters and values it contains to a file. It has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>Unique identifier given to the saved parameters</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Append</code></td>
+        <td>
+          <p>When this attribute is used, saved parameters will be appened onto the save file. When this attribute is not included, the save file will be wiped before saving. The attribute has two ways to save, identified using the following values:</p>
+          <ul>
+            <li><strong>&quot;Default&quot;</strong> - When you supply this value, if any parameters have been saved previously, the values will NOT be overwritten by the new value in the save.</li>
+            <li><strong>&quot;Override&quot;</strong> - When you supply this value, if any parameter has been saved previously, then it&#39;s value will be overwritten by the new value.</li>
+          </ul>
+          <p>In either case, if any parameter is not included in the save file already, it will be appended onto the save.</p>
+        </td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="loadparams"><code class="inline">&lt;LoadParameters /&gt;</code></h4>
+  <p>This sub element of <code class="inline"><a href="#Parameters">&lt;Parameters&gt;</a></code> can be used to load in previously saved parameters and their values (parameters are saved using the <code class="inline"><a href="General_Template_Definitions.htm#saveparams">&lt;SaveParameters&gt;</a></code> element). This element is self closing and has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>The unique identifier that was given to the saved parameters when they were saved.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="removeparams"><code class="inline">&lt;RemoveSavedParameters /&gt;</code></h4>
+  <p>This element can be defined anywhere a <code class="inline"><a href="#Parameters">&lt;Parameters&gt;</a></code> element can be defined and is used to wipe previously saved parameters and their associated values (parameters are saved using the <code class="inline"><a href="#saveparams">&lt;SaveParameters&gt;</a></code> element). This element is self closing and has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>The unique identifier that was given to the saved parameters when they were saved.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="ParametersFn"><code class="inline">&lt;ParametersFn&gt;</code></h3>
+  <p>This element is similar to the <code class="inline"><a href="General_Template_Definitions.htm#Template">&lt;Template&gt;</a></code> element, in that it permits you to create a reusable XML for use in your model behaviors. The element can takes a list of parameters as the input, perform operations on these inputs using <a href="Model_Behaviors.htm#XMLPrograms">XML Programs</a>, and then return one or more parameters as the ouput. This is a container element for <code class="inline"><a href="General_Template_Definitions.htm#Parameters">&lt;Parameters&gt;</a></code>, <code class="inline"><a href="#ReturnParameters">&lt;ReturnParameters&gt;</a></code>, and <a href="Program_Template_Definitions.htm">XML Programing elements</a>, and requires a unique name, and you can have multiple parameter functions defined. This name is what would be used to reference the function in other parts of the model behavior XML.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>This is the name of the parameter function, and is what will be used when calling the <code class="inline"><a href="General_Template_Definitions.htm#UseParametersFn">&lt;UseParametersFn&gt;</a></code> element.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>For more information on how to use this element please see the following section:</p>
+  <ul>
+    <li><a href="Model_Behaviors.htm#h">Parameter Functions</a></li>
+  </ul>
+  <p>And for examples of use, please see here:</p>
+  <ul>
+    <li><a href="../Model_Examples.htm#ParameterFunctions">Parameter Function Example</a></li>
+  </ul>
+  <p> </p>
+  <h4 id="ReturnParameters"><code class="inline">&lt;ReturnParameters&gt;</code></h4>
+  <p>This element is used to define one or more return parameters from a <code class="inline"><a href="General_Template_Definitions.htm#ParametersFn">&lt;ParametersFn&gt;</a></code> element. This element can also contain further parameter function calls using the <code class="inline"><a href="#UseParametersFn">&lt;UseParametersFn&gt;</a></code> as well as <a href="Program_Template_Definitions.htm">XML Programing elements</a>.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="UseParametersFn"><code class="inline">&lt;UseParametersFn&gt;</code></h3>
+  <p>This element is used to call a previously defined parameter function, and can itself serve as a container for parameters. The function named by this element should have been created already using the <code class="inline"><a href="#ParametersFn">&lt;ParametersFn&gt;</a></code> element.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>This is the name of the previously defined parameter function that is being used</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="AnimationTriggers"><code class="inline">&lt;AnimationTriggers&gt;</code></h3>
+  <p>This element is used within the model behaviors as a trigger for generating a sound effect, es explained in the <a href="../../Sounds/Sound_Examples.htm#h7">Animation Sounds Example</a>. It will contain one or more <code class="inline"><a href="General_Template_Definitions.htm#EventTrigger">&lt;EventTrigger&gt;</a></code> elements and requires one attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td>Animation</td>
+        <td>The name of the animation that the sound should play on.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="EventTrigger"><code class="inline">&lt;EventTrigger&gt;</code></h4>
+  <p>This is a sub-element of <code class="inline"><a href="General_Template_Definitions.htm#AnimationTriggers">&lt;AnimationTriggers&gt;</a></code> and is a container for the <code class="inline"><a href="General_Template_Definitions.htm#SoundEvent">&lt;SoundEvent /&gt;</a></code> element (which plays a sound) or the <code class="inline"><a href="General_Template_Definitions.htm#EffectEvent">&lt;EffectEvent /&gt;</a></code> element (which changes the camera). This element has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">NormalizedTime</code></td>
+        <td>This is the normalized time of the animation from which the sound will play. It&#39;s going from 0 to 1. This attribute must be used alone, without a <code class="inline">Count</code> or <code class="inline">Frame</code> attribute.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Count</code></td>
+        <td>
+          <p>This attribute divides the animation timeline in equal segments by the value given. Sounds will play at the middle of each segment. e.g:</p>
+          <ul>
+            <li>If the value is 2 the sound will play when the animation timeline reaches 25% and 75%.</li>
+            <li>If the value is 5 the sound will play when the animation timeline reaches 10%, 30%, 50%, 70 and 90%.</li>
+          </ul>
+          <p>This attribute must be used alone, without a <code class="inline">NormalizedTime</code> or <code class="inline">Frame</code> attribute.</p>
+        </td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Frame</code></td>
+        <td>This is the frame of the animation where the sound will be played. This attribute must be used alone, without a <code class="inline">Count</code> or <code class="inline">NormalizedTime</code> attribute.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Direction</code></td>
+        <td>This attribute determines the direction of the animation timeline in which the sound will be played.</td>
+        <td>
+          <p><u>String</u>:</p>
+          <ol class="minitoc-list">
+            <li>&quot;Forward&quot;</li>
+            <li>&quot;Backward&quot;</li>
+            <li>&quot;Both&quot;</li>
+          </ol>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="SoundEvent"><code class="inline">&lt;SoundEvent /&gt;</code></h4>
+  <p>This is a self-closing sub-element of <code class="inline"><a href="General_Template_Definitions.htm#EventTrigger">&lt;EventTrigger&gt;</a></code> and is what sets the sound to be triggered. This element has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">WwiseEvent</code></td>
+        <td>This is the event that the sound is triggered on and should be the same as that defined for the sound in the <code class="inline"><a href="../../Sounds/Sound_Definitions.htm">sound.xml</a></code>.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Action</code></td>
+        <td>Whether to play or stop the sound. The stop value is useful when dealing with looping sounds.</td>
+        <td>
+          <p><u>String</u>:</p>
+          <ol class="minitoc-list">
+            <li>&quot;Play&quot;</li>
+            <li>&quot;Stop&quot;</li>
+          </ol>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="EffectEvent"><code class="inline">&lt;EffectEvent /&gt;</code></h4>
+  <p>This is a self-closing sub-element of <code class="inline"><a href="#EventTrigger">&lt;EventTrigger&gt;</a></code> and is used to trigger a camera event. This element has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>The name of the camera event to trigger.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.6.1.0_1"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

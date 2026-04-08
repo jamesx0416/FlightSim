@@ -1,0 +1,1709 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>Helpers.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\Generic\Helpers.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;PARAM_REPEATED_START/&gt;
+		&lt;PARAM_REPEATED_END/&gt;
+		&lt;PARAM_START/&gt;
+		&lt;PARAM_END/&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;PARAM_TO_BUILD/&gt;
+		&lt;NEXT_ID&gt;2&lt;/NEXT_ID&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder_2&quot;&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+
+&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder_2&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;PARAM_REPEATED_2_START/&gt;
+		&lt;PARAM_REPEATED_2_END/&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;Condition&gt;
+			&lt;Test&gt;
+				&lt;Or&gt;
+					&lt;Arg NotEmpty=&quot;PARAM_REPEATED_2_START&quot;/&gt;
+					&lt;Arg NotEmpty=&quot;PARAM_REPEATED_2_END&quot;/&gt;
+				&lt;/Or&gt;
+			&lt;/Test&gt;
+			&lt;True&gt;
+				&lt;PARAM_TO_BUILD&gt;#PARAM_TO_BUILD##PARAM_REPEATED_START##ID##PARAM_REPEATED_END##PARAM_REPEATED_2_START##ID##PARAM_REPEATED_2_END#&lt;/PARAM_TO_BUILD&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;PARAM_TO_BUILD&gt;#PARAM_TO_BUILD##PARAM_REPEATED_START##ID##PARAM_REPEATED_END#&lt;/PARAM_TO_BUILD&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+		&lt;TEST_ID Process=&quot;Param&quot;&gt;ID#NEXT_ID#&lt;/TEST_ID&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	
+	&lt;Condition NotEmpty=&quot;TEST_ID&quot;&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder_2&quot;&gt;
+				&lt;ID&gt;#TEST_ID#&lt;/ID&gt;
+				&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 +&lt;/NEXT_ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+		&lt;False&gt;
+			&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;&gt;
+				&lt;#PARAM_NAME#&gt;#PARAM_START##PARAM_TO_BUILD##PARAM_END#&lt;/#PARAM_NAME#&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+
+&lt;!-- Incremental param builder: build as much param as requested with desired content, prefix and suffix --&gt;
+&lt;Template Name=&quot;ASOBO_GT_Helper_Param_Builder_INC&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;CONTENT&gt;&lt;/CONTENT&gt;&lt;!-- What&#39;s in between prefix and suffix (both optional) --&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Param_Builder_INC_1&quot;&gt;
+		&lt;PARAM_ID&gt;1&lt;/PARAM_ID&gt;&lt;!-- Must be an integer (incremented) --&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+&lt;Template Name=&quot;ASOBO_GT_Helper_Param_Builder_INC_1&quot;&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;Condition Valid=&quot;PARAM#PARAM_ID#&quot;&gt;
+			&lt;Condition Valid=&quot;PROCESS_PARAM#PARAM_ID#&quot;&gt;
+				&lt;PROCESS_PARAM&gt;True&lt;/PROCESS_PARAM&gt;
+			&lt;/Condition&gt;
+			&lt;PARAM_NAME Process=&quot;Param&quot;&gt;PARAM#PARAM_ID#&lt;/PARAM_NAME&gt;
+			&lt;Condition Valid=&quot;PARAM#PARAM_ID#_PREFIX&quot;&gt;
+				&lt;True&gt;
+					&lt;PREFIX Process=&quot;Param&quot;&gt;PARAM#PARAM_ID#_PREFIX&lt;/PREFIX&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;PREFIX/&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Valid=&quot;PARAM#PARAM_ID#_SUFFIX&quot;&gt;
+				&lt;True&gt;
+					&lt;SUFFIX Process=&quot;Param&quot;&gt;PARAM#PARAM_ID#_SUFFIX&lt;/SUFFIX&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;SUFFIX/&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+		&lt;/Condition&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Switch&gt;
+		&lt;Case Valid=&quot;PARAM#PARAM_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Param_Builder_INC_1&quot;&gt;
+				&lt;PARAM_ID Process=&quot;Int&quot;&gt;#PARAM_ID# 1 +&lt;/PARAM_ID&gt;
+				&lt;Condition Valid=&quot;PROCESS_PARAM&quot;&gt;
+					&lt;True&gt;
+						&lt;Condition NotEmpty=&quot;#PREFIX##CONTENT##SUFFIX#&quot;&gt;&lt;!-- Make sure param is not empty --&gt;
+							&lt;#PARAM_NAME# Process=&quot;Param&quot;&gt;#PREFIX##CONTENT##SUFFIX#&lt;/#PARAM_NAME#&gt;
+							&lt;PROCESS_PARAM&gt;False&lt;/PROCESS_PARAM&gt;&lt;!-- Reset flag --&gt;
+						&lt;/Condition&gt;
+					&lt;/True&gt;
+					&lt;False&gt;
+						&lt;#PARAM_NAME#&gt;#PREFIX##CONTENT##SUFFIX#&lt;/#PARAM_NAME#&gt;
+					&lt;/False&gt;
+				&lt;/Condition&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Case&gt;
+		&lt;Default&gt;
+			&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Default&gt;
+	&lt;/Switch&gt;
+&lt;/Template&gt;
+
+&lt;!-- call EXIT_TEMPLATE as many times as MAX_ID each time with the param PARAM increasing by one
+--&gt;
+&lt;Template Name=&quot;ASOBO_GT_Helper_Increasing_ID&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;FIRST_ID&gt;1&lt;/FIRST_ID&gt;
+		&lt;MAX_ID&gt;1&lt;/MAX_ID&gt;
+		&lt;PARAM&gt;BTN_ID&lt;/PARAM&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Increasing_ID_2&quot;&gt;
+		&lt;NEXT_ID&gt;#FIRST_ID#&lt;/NEXT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+
+&lt;Template Name=&quot;ASOBO_GT_Helper_Increasing_ID_2&quot;&gt;
+	&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;&gt;
+		&lt;#PARAM#&gt;#NEXT_ID#&lt;/#PARAM#&gt;
+	&lt;/UseTemplate&gt;
+	
+	&lt;Condition&gt;
+		&lt;Test&gt;
+			&lt;Lower&gt;
+				&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+				&lt;Value&gt;MAX_ID&lt;/Value&gt;
+			&lt;/Lower&gt;
+		&lt;/Test&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Increasing_ID_2&quot;&gt;
+				&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 +&lt;/NEXT_ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+
+&lt;!-- call EXIT_TEMPLATE with as much parameters as given for multiple IDs
+	PARAM1 (ID by default): dynamic, goes from FIRST_ID to MAX_ID (Integer)
+	can be configured to add as many as you want with specified PREFIX and SUFFIX 
+	(ex: PARAM2: NODE_ID, PARAM2_PREFIX: Node_, MAX_ID:2 ; will generate: 
+		&lt;NODE_ID&gt;Node_1&lt;/NODE_ID&gt;&lt;ID&gt;1&lt;/ID&gt; for the first call to EXIT_TEMPLATE
+		&lt;NODE_ID&gt;Node_2&lt;/NODE_ID&gt;&lt;ID&gt;2&lt;/ID&gt; for the second
+	)
+--&gt;
+&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_ID&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;FIRST_ID&gt;1&lt;/FIRST_ID&gt;
+		&lt;MAX_ID&gt;1&lt;/MAX_ID&gt;
+		&lt;PARAM1&gt;ID&lt;/PARAM1&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_ID_2&quot;&gt;
+		&lt;NEXT_ID&gt;#FIRST_ID#&lt;/NEXT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+
+&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_ID_2&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Param_Builder_INC&quot;&gt;
+		&lt;CONTENT&gt;#NEXT_ID#&lt;/CONTENT&gt;
+	&lt;/UseTemplate&gt;
+	&lt;Condition&gt;
+		&lt;Test&gt;
+			&lt;Lower&gt;
+				&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+				&lt;Value&gt;MAX_ID&lt;/Value&gt;
+			&lt;/Lower&gt;
+		&lt;/Test&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_ID_2&quot;&gt;
+				&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 +&lt;/NEXT_ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+
+&lt;Template Name=&quot;ASOBO_GT_Helper_Suffix_ID_Appender&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;Switch&gt;
+			&lt;Case Valid=&quot;DONT_APPEND_ID&quot;&gt;
+				&lt;SUFFIX_ID&gt;&lt;/SUFFIX_ID&gt;
+			&lt;/Case&gt;
+			&lt;Default&gt;
+				&lt;Condition NotEmpty=&quot;CONTAINER_ID&quot;&gt;
+					&lt;True&gt;
+						&lt;SUFFIX_ID&gt;_#CONTAINER_ID#&lt;/SUFFIX_ID&gt;
+					&lt;/True&gt;
+					&lt;False&gt;
+						&lt;SUFFIX_ID&gt;_#ID#&lt;/SUFFIX_ID&gt;
+					&lt;/False&gt;
+				&lt;/Condition&gt;
+			&lt;/Default&gt;
+		&lt;/Switch&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	
+	&lt;UseTemplate Name=&quot;#TEMPLATE_TO_CALL#&quot;&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+
+&lt;Template Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;SELECTION&gt;50&lt;/SELECTION&gt;&lt;!-- dynamic parameter for example gallons qty in a fuel tank --&gt;
+		&lt;!-- at least 2 points of reference to interpolate --&gt;
+		&lt;!-- ANIM_VALUE = frame for which the REF_VALUE is corresponding --&gt;
+		&lt;!-- REF_VALUE = value used as a comparison point to SELECTION --&gt;
+		&lt;ANIM_VALUE_0&gt;0&lt;/ANIM_VALUE_0&gt;
+		&lt;REF_VALUE_0&gt;0&lt;/REF_VALUE_0&gt;
+		&lt;ANIM_VALUE_1&gt;100&lt;/ANIM_VALUE_1&gt;
+		&lt;REF_VALUE_1&gt;100&lt;/REF_VALUE_1&gt;
+		&lt;!-- Add as much as necessary when calling the template --&gt;
+		&lt;!-- ######################################################### --&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;&lt;!-- number of frame in the animation --&gt;
+		&lt;MAX_POINT_INDEX&gt;1&lt;/MAX_POINT_INDEX&gt;&lt;!-- index of latest point of reference --&gt;
+		&lt;MAX_DISPLAYABLE&gt;100&lt;/MAX_DISPLAYABLE&gt;&lt;!-- higher bound the value SELECTION can reach (the maximum your gauge can display) --&gt;
+		&lt;MIN_DISPLAYABLE&gt;0&lt;/MIN_DISPLAYABLE&gt;&lt;!-- lower bound the value SELECTION can reach (the minimum your gauge can display) --&gt;
+		&lt;EXIT_TEMPLATE&gt;ASOBO_GT_Anim_Code&lt;/EXIT_TEMPLATE&gt;
+		&lt;EXIT_PARAM_NAME&gt;ANIM_CODE&lt;/EXIT_PARAM_NAME&gt;
+		&lt;CONTENT&gt;&lt;/CONTENT&gt;&lt;!-- CONTENT init: can be used to tweak the value before interpolating --&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+		&lt;NEXT_ID Process=&quot;Int&quot;&gt;#MAX_POINT_INDEX#&lt;/NEXT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+
+&lt;Template Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;ANIM_VAL_CURRENT_POINT Process=&quot;Param&quot;&gt;ANIM_VALUE_#NEXT_ID#&lt;/ANIM_VAL_CURRENT_POINT&gt;
+		&lt;REF_VAL_CURRENT_POINT Process=&quot;Param&quot;&gt;REF_VALUE_#NEXT_ID#&lt;/REF_VAL_CURRENT_POINT&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Condition&gt;
+		&lt;Test&gt;
+			&lt;GreaterOrEqual&gt;
+				&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+				&lt;Number&gt;0&lt;/Number&gt;
+			&lt;/GreaterOrEqual&gt;
+		&lt;/Test&gt;
+		&lt;True&gt;
+			&lt;Condition&gt;
+				&lt;Test&gt;
+					&lt;Equal&gt;
+						&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+						&lt;Value&gt;MAX_POINT_INDEX&lt;/Value&gt;
+					&lt;/Equal&gt;
+				&lt;/Test&gt;
+				&lt;True&gt;
+					&lt;!-- First point (higher bound) --&gt;
+					&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+						&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 -&lt;/NEXT_ID&gt;
+						&lt;ANIM_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;ANIM_VALUE_#NEXT_ID#&lt;/ANIM_VAL_PREVIOUS_POINT&gt;
+						&lt;REF_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;REF_VALUE_#NEXT_ID#&lt;/REF_VAL_PREVIOUS_POINT&gt;
+					&lt;/UseTemplate&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+						&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 -&lt;/NEXT_ID&gt;
+						&lt;CONTENT&gt;
+							#CONTENT#
+							l0 #REF_VAL_CURRENT_POINT# &amp;gt; if{
+								l0 #REF_VAL_CURRENT_POINT# - #REF_VAL_PREVIOUS_POINT# #REF_VAL_CURRENT_POINT# - / #ANIM_VAL_PREVIOUS_POINT# #ANIM_VAL_CURRENT_POINT# - * #ANIM_VAL_CURRENT_POINT# + sp1 g1
+							}
+						&lt;/CONTENT&gt;
+						&lt;ANIM_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;ANIM_VALUE_#NEXT_ID#&lt;/ANIM_VAL_PREVIOUS_POINT&gt;
+						&lt;REF_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;REF_VALUE_#NEXT_ID#&lt;/REF_VAL_PREVIOUS_POINT&gt;
+					&lt;/UseTemplate&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+		&lt;/True&gt;
+		&lt;False&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_3&quot;&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+
+&lt;Template Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_3&quot;&gt;
+	&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;&gt;
+		&lt;#EXIT_PARAM_NAME#&gt;
+			#SELECTION# #MAX_DISPLAYABLE# min #MIN_DISPLAYABLE# max sp0
+			#CONTENT#
+			:1 l1
+		&lt;/#EXIT_PARAM_NAME#&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+&lt;/ModelBehaviors&gt;</div>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_GT_Helper_Recursive_Param_Builder">ASOBO_GT_Helper_Recursive_Param_Builder </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Recursive_Param_Builder_2">ASOBO_GT_Helper_Recursive_Param_Builder_2 </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Param_Builder_INC">ASOBO_GT_Helper_Param_Builder_INC </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Param_Builder_INC_1">ASOBO_GT_Helper_Param_Builder_INC_1 </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Increasing_ID">ASOBO_GT_Helper_Increasing_ID </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Increasing_ID_2">ASOBO_GT_Helper_Increasing_ID_2 </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Recursive_ID">ASOBO_GT_Helper_Recursive_ID </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Recursive_ID_2">ASOBO_GT_Helper_Recursive_ID_2 </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Suffix_ID_Appender">ASOBO_GT_Helper_Suffix_ID_Appender </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Non_Linear_Animation_Code">ASOBO_GT_Helper_Non_Linear_Animation_Code </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Non_Linear_Animation_Code_2">ASOBO_GT_Helper_Non_Linear_Animation_Code_2 </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_Helper_Non_Linear_Animation_Code_3">ASOBO_GT_Helper_Non_Linear_Animation_Code_3 </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Recursive_Param_Builder">ASOBO_GT_Helper_Recursive_Param_Builder</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;PARAM_REPEATED_START/&gt;
+		&lt;PARAM_REPEATED_END/&gt;
+		&lt;PARAM_START/&gt;
+		&lt;PARAM_END/&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;PARAM_TO_BUILD/&gt;
+		&lt;NEXT_ID&gt;2&lt;/NEXT_ID&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder_2&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>PARAM_REPEATED_START</li>
+								<li>PARAM_REPEATED_END</li>
+								<li>PARAM_START</li>
+								<li>PARAM_END</li>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>PARAM_TO_BUILD</li>
+								<li>NEXT_ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Helpers.html#ASOBO_GT_Helper_Recursive_Param_Builder_2">ASOBO_GT_Helper_Recursive_Param_Builder_2</a>
+							<ul>
+								<li>May include a subtemplate using the parameter &#39;EXIT_TEMPLATE&#39; (Values it may resolve to were not found)</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Recursive_Param_Builder_2">ASOBO_GT_Helper_Recursive_Param_Builder_2</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder_2&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;PARAM_REPEATED_2_START/&gt;
+		&lt;PARAM_REPEATED_2_END/&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;Condition&gt;
+			&lt;Test&gt;
+				&lt;Or&gt;
+					&lt;Arg NotEmpty=&quot;PARAM_REPEATED_2_START&quot;/&gt;
+					&lt;Arg NotEmpty=&quot;PARAM_REPEATED_2_END&quot;/&gt;
+				&lt;/Or&gt;
+			&lt;/Test&gt;
+			&lt;True&gt;
+				&lt;PARAM_TO_BUILD&gt;#PARAM_TO_BUILD##PARAM_REPEATED_START##ID##PARAM_REPEATED_END##PARAM_REPEATED_2_START##ID##PARAM_REPEATED_2_END#&lt;/PARAM_TO_BUILD&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;PARAM_TO_BUILD&gt;#PARAM_TO_BUILD##PARAM_REPEATED_START##ID##PARAM_REPEATED_END#&lt;/PARAM_TO_BUILD&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+		&lt;TEST_ID Process=&quot;Param&quot;&gt;ID#NEXT_ID#&lt;/TEST_ID&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Condition NotEmpty=&quot;TEST_ID&quot;&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_Param_Builder_2&quot;&gt;
+				&lt;ID&gt;#TEST_ID#&lt;/ID&gt;
+				&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 +&lt;/NEXT_ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+		&lt;False&gt;
+			&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;&gt;
+				&lt;#PARAM_NAME#&gt;#PARAM_START##PARAM_TO_BUILD##PARAM_END#&lt;/#PARAM_NAME#&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>PARAM_REPEATED_2_START</li>
+								<li>PARAM_REPEATED_2_END</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>TEST_ID (using NEXT_ID)</li>
+							</ul>
+							<p class="fakeh5">Condition: Test(PARAM_REPEATED_2_START, PARAM_REPEATED_2_END)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>PARAM_TO_BUILD (using PARAM_TO_BUILD, PARAM_REPEATED_START, ID, PARAM_REPEATED_END, PARAM_REPEATED_2_START, PARAM_REPEATED_2_END)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>PARAM_TO_BUILD (using PARAM_TO_BUILD, PARAM_REPEATED_START, ID, PARAM_REPEATED_END)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: NotEmpty(TEST_ID)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: True</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="Helpers.html#ASOBO_GT_Helper_Recursive_Param_Builder_2">ASOBO_GT_Helper_Recursive_Param_Builder_2</a>
+											<ul>
+												<li>May include a subtemplate using the parameter &#39;EXIT_TEMPLATE&#39; (Values it may resolve to were not found)</li>
+											</ul>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>ID (using TEST_ID)</li>
+													<li>NEXT_ID (using NEXT_ID)</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>EXIT_TEMPLATE</li>
+									</ul>
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<span>#EXIT_TEMPLATE#</span>
+											<ul>
+												<li>(Values for &#39;EXIT_TEMPLATE&#39; and templates it may resolve to were not found)</li>
+											</ul>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>#PARAM_NAME# (using PARAM_START, PARAM_TO_BUILD, PARAM_END)</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Param_Builder_INC">ASOBO_GT_Helper_Param_Builder_INC</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Param_Builder_INC&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;CONTENT/&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Param_Builder_INC_1&quot;&gt;
+		&lt;PARAM_ID&gt;1&lt;/PARAM_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>CONTENT</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Helpers.html#ASOBO_GT_Helper_Param_Builder_INC_1">ASOBO_GT_Helper_Param_Builder_INC_1</a>
+							<ul>
+								<li>May include a subtemplate using the parameter &#39;EXIT_TEMPLATE&#39; (Values it may resolve to were not found)</li>
+							</ul>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>PARAM_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Param_Builder_INC_1">ASOBO_GT_Helper_Param_Builder_INC_1</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Param_Builder_INC_1&quot;&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;Condition Valid=&quot;PARAM#PARAM_ID#&quot;&gt;
+			&lt;Condition Valid=&quot;PROCESS_PARAM#PARAM_ID#&quot;&gt;
+				&lt;PROCESS_PARAM&gt;True&lt;/PROCESS_PARAM&gt;
+			&lt;/Condition&gt;
+			&lt;PARAM_NAME Process=&quot;Param&quot;&gt;PARAM#PARAM_ID#&lt;/PARAM_NAME&gt;
+			&lt;Condition Valid=&quot;PARAM#PARAM_ID#_PREFIX&quot;&gt;
+				&lt;True&gt;
+					&lt;PREFIX Process=&quot;Param&quot;&gt;PARAM#PARAM_ID#_PREFIX&lt;/PREFIX&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;PREFIX/&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Valid=&quot;PARAM#PARAM_ID#_SUFFIX&quot;&gt;
+				&lt;True&gt;
+					&lt;SUFFIX Process=&quot;Param&quot;&gt;PARAM#PARAM_ID#_SUFFIX&lt;/SUFFIX&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;SUFFIX/&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+		&lt;/Condition&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Switch&gt;
+		&lt;Case Valid=&quot;PARAM#PARAM_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Param_Builder_INC_1&quot;&gt;
+				&lt;PARAM_ID Process=&quot;Int&quot;&gt;#PARAM_ID# 1 +&lt;/PARAM_ID&gt;
+				&lt;Condition Valid=&quot;PROCESS_PARAM&quot;&gt;
+					&lt;True&gt;
+						&lt;Condition NotEmpty=&quot;#PREFIX##CONTENT##SUFFIX#&quot;&gt;
+							&lt;#PARAM_NAME# Process=&quot;Param&quot;&gt;#PREFIX##CONTENT##SUFFIX#&lt;/#PARAM_NAME#&gt;
+							&lt;PROCESS_PARAM&gt;False&lt;/PROCESS_PARAM&gt;
+						&lt;/Condition&gt;
+					&lt;/True&gt;
+					&lt;False&gt;
+						&lt;#PARAM_NAME#&gt;#PREFIX##CONTENT##SUFFIX#&lt;/#PARAM_NAME#&gt;
+					&lt;/False&gt;
+				&lt;/Condition&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Case&gt;
+		&lt;Default&gt;
+			&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;/&gt;
+		&lt;/Default&gt;
+	&lt;/Switch&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: Valid(PARAM#PARAM_ID#)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>PARAM_NAME (using PARAM_ID)</li>
+											</ul>
+											<p class="fakeh5">Condition: Valid(PROCESS_PARAM#PARAM_ID#)</p>
+											<ul>
+												
+												<li>
+													<div>
+														<div class="collapsible">Case: True</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>PROCESS_PARAM</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+											</ul>
+											<p class="fakeh5">Condition: Valid(PARAM#PARAM_ID#_PREFIX)</p>
+											<ul>
+												
+												<li>
+													<div>
+														<div class="collapsible">Case: True</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>PREFIX (using PARAM_ID)</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+												<li>
+													<div>
+														<div class="collapsible">Case: False</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>PREFIX</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+											</ul>
+											<p class="fakeh5">Condition: Valid(PARAM#PARAM_ID#_SUFFIX)</p>
+											<ul>
+												
+												<li>
+													<div>
+														<div class="collapsible">Case: True</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>SUFFIX (using PARAM_ID)</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+												<li>
+													<div>
+														<div class="collapsible">Case: False</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>SUFFIX</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Switch</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: Valid(PARAM#PARAM_ID#)</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>PARAM_ID</li>
+									</ul>
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="Helpers.html#ASOBO_GT_Helper_Param_Builder_INC_1">ASOBO_GT_Helper_Param_Builder_INC_1</a>
+											<ul>
+												<li>May include a subtemplate using the parameter &#39;EXIT_TEMPLATE&#39; (Values it may resolve to were not found)</li>
+											</ul>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>PARAM_ID (using PARAM_ID)</li>
+												</ul>
+												<p class="fakeh5">Condition: Valid(PROCESS_PARAM)</p>
+												<ul>
+													
+													<li>
+														<div>
+															<div class="collapsible">Case: True</div>
+															<div class="collapsibleContent">
+																<p class="fakeh5">Condition: NotEmpty(#PREFIX##CONTENT##SUFFIX#)</p>
+																<ul>
+																	
+																	<li>
+																		<div>
+																			<div class="collapsible">Case: True</div>
+																			<div class="collapsibleContent">
+																				<p class="fakeh5">Parameters set:</p>
+																				<ul>
+																					<li>#PARAM_NAME# (using PREFIX, CONTENT, SUFFIX)</li>
+																					<li>PROCESS_PARAM</li>
+																				</ul>
+																			</div>
+																		</div>
+																	</li>
+																</ul>
+															</div>
+														</div>
+													</li>
+													<li>
+														<div>
+															<div class="collapsible">Case: False</div>
+															<div class="collapsibleContent">
+																<p class="fakeh5">Parameters set:</p>
+																<ul>
+																	<li>#PARAM_NAME# (using PREFIX, CONTENT, SUFFIX)</li>
+																</ul>
+															</div>
+														</div>
+													</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Default case: </div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>EXIT_TEMPLATE</li>
+									</ul>
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<span>#EXIT_TEMPLATE#</span>
+											<ul>
+												<li>(Values for &#39;EXIT_TEMPLATE&#39; and templates it may resolve to were not found)</li>
+											</ul>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Increasing_ID">ASOBO_GT_Helper_Increasing_ID</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Increasing_ID&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;FIRST_ID&gt;1&lt;/FIRST_ID&gt;
+		&lt;MAX_ID&gt;1&lt;/MAX_ID&gt;
+		&lt;PARAM&gt;BTN_ID&lt;/PARAM&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Increasing_ID_2&quot;&gt;
+		&lt;NEXT_ID&gt;#FIRST_ID#&lt;/NEXT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>FIRST_ID</li>
+								<li>MAX_ID</li>
+								<li>PARAM</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Helpers.html#ASOBO_GT_Helper_Increasing_ID_2">ASOBO_GT_Helper_Increasing_ID_2</a>
+							<ul>
+								<li>May include a subtemplate using the parameter &#39;EXIT_TEMPLATE&#39; (Values it may resolve to were not found)</li>
+							</ul>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NEXT_ID (using FIRST_ID)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Increasing_ID_2">ASOBO_GT_Helper_Increasing_ID_2</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Increasing_ID_2&quot;&gt;
+	&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;&gt;
+		&lt;#PARAM#&gt;#NEXT_ID#&lt;/#PARAM#&gt;
+	&lt;/UseTemplate&gt;
+	&lt;Condition&gt;
+		&lt;Test&gt;
+			&lt;Lower&gt;
+				&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+				&lt;Value&gt;MAX_ID&lt;/Value&gt;
+			&lt;/Lower&gt;
+		&lt;/Test&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Increasing_ID_2&quot;&gt;
+				&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 +&lt;/NEXT_ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>EXIT_TEMPLATE</li>
+					</ul>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<span>#EXIT_TEMPLATE#</span>
+							<ul>
+								<li>(Values for &#39;EXIT_TEMPLATE&#39; and templates it may resolve to were not found)</li>
+							</ul>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>#PARAM# (using NEXT_ID)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					<p class="fakeh5">Condition: Test(NEXT_ID, MAX_ID)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: True</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="Helpers.html#ASOBO_GT_Helper_Increasing_ID_2">ASOBO_GT_Helper_Increasing_ID_2</a>
+											<ul>
+												<li>May include a subtemplate using the parameter &#39;EXIT_TEMPLATE&#39; (Values it may resolve to were not found)</li>
+											</ul>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>NEXT_ID (using NEXT_ID)</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Recursive_ID">ASOBO_GT_Helper_Recursive_ID</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_ID&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;FIRST_ID&gt;1&lt;/FIRST_ID&gt;
+		&lt;MAX_ID&gt;1&lt;/MAX_ID&gt;
+		&lt;PARAM1&gt;ID&lt;/PARAM1&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_ID_2&quot;&gt;
+		&lt;NEXT_ID&gt;#FIRST_ID#&lt;/NEXT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>FIRST_ID</li>
+								<li>MAX_ID</li>
+								<li>PARAM1</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Helpers.html#ASOBO_GT_Helper_Recursive_ID_2">ASOBO_GT_Helper_Recursive_ID_2</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NEXT_ID (using FIRST_ID)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Recursive_ID_2">ASOBO_GT_Helper_Recursive_ID_2</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Recursive_ID_2&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Param_Builder_INC&quot;&gt;
+		&lt;CONTENT&gt;#NEXT_ID#&lt;/CONTENT&gt;
+	&lt;/UseTemplate&gt;
+	&lt;Condition&gt;
+		&lt;Test&gt;
+			&lt;Lower&gt;
+				&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+				&lt;Value&gt;MAX_ID&lt;/Value&gt;
+			&lt;/Lower&gt;
+		&lt;/Test&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Recursive_ID_2&quot;&gt;
+				&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 +&lt;/NEXT_ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Helpers.html#ASOBO_GT_Helper_Param_Builder_INC">ASOBO_GT_Helper_Param_Builder_INC</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CONTENT (using NEXT_ID)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					<p class="fakeh5">Condition: Test(NEXT_ID, MAX_ID)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: True</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="Helpers.html#ASOBO_GT_Helper_Recursive_ID_2">ASOBO_GT_Helper_Recursive_ID_2</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>NEXT_ID (using NEXT_ID)</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Suffix_ID_Appender">ASOBO_GT_Helper_Suffix_ID_Appender</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Suffix_ID_Appender&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;Switch&gt;
+			&lt;Case Valid=&quot;DONT_APPEND_ID&quot;&gt;
+				&lt;SUFFIX_ID/&gt;
+			&lt;/Case&gt;
+			&lt;Default&gt;
+				&lt;Condition NotEmpty=&quot;CONTAINER_ID&quot;&gt;
+					&lt;True&gt;
+						&lt;SUFFIX_ID&gt;_#CONTAINER_ID#&lt;/SUFFIX_ID&gt;
+					&lt;/True&gt;
+					&lt;False&gt;
+						&lt;SUFFIX_ID&gt;_#ID#&lt;/SUFFIX_ID&gt;
+					&lt;/False&gt;
+				&lt;/Condition&gt;
+			&lt;/Default&gt;
+		&lt;/Switch&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;#TEMPLATE_TO_CALL#&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Condition: Switch</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: Valid(DONT_APPEND_ID)</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>SUFFIX_ID</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Default case: </div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Condition: NotEmpty(CONTAINER_ID)</p>
+											<ul>
+												
+												<li>
+													<div>
+														<div class="collapsible">Case: True</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>SUFFIX_ID (using CONTAINER_ID)</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+												<li>
+													<div>
+														<div class="collapsible">Case: False</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>SUFFIX_ID (using ID)</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>TEMPLATE_TO_CALL</li>
+					</ul>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<span>#TEMPLATE_TO_CALL#</span>
+							<ul>
+								<li>(Values for &#39;TEMPLATE_TO_CALL&#39; and templates it may resolve to were not found)</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Non_Linear_Animation_Code">ASOBO_GT_Helper_Non_Linear_Animation_Code</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;SELECTION&gt;50&lt;/SELECTION&gt;
+		&lt;ANIM_VALUE_0&gt;0&lt;/ANIM_VALUE_0&gt;
+		&lt;REF_VALUE_0&gt;0&lt;/REF_VALUE_0&gt;
+		&lt;ANIM_VALUE_1&gt;100&lt;/ANIM_VALUE_1&gt;
+		&lt;REF_VALUE_1&gt;100&lt;/REF_VALUE_1&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;MAX_POINT_INDEX&gt;1&lt;/MAX_POINT_INDEX&gt;
+		&lt;MAX_DISPLAYABLE&gt;100&lt;/MAX_DISPLAYABLE&gt;
+		&lt;MIN_DISPLAYABLE&gt;0&lt;/MIN_DISPLAYABLE&gt;
+		&lt;EXIT_TEMPLATE&gt;ASOBO_GT_Anim_Code&lt;/EXIT_TEMPLATE&gt;
+		&lt;EXIT_PARAM_NAME&gt;ANIM_CODE&lt;/EXIT_PARAM_NAME&gt;
+		&lt;CONTENT/&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+		&lt;NEXT_ID Process=&quot;Int&quot;&gt;#MAX_POINT_INDEX#&lt;/NEXT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SELECTION</li>
+								<li>ANIM_VALUE_0</li>
+								<li>REF_VALUE_0</li>
+								<li>ANIM_VALUE_1</li>
+								<li>REF_VALUE_1</li>
+								<li>ANIM_LENGTH</li>
+								<li>MAX_POINT_INDEX</li>
+								<li>MAX_DISPLAYABLE</li>
+								<li>MIN_DISPLAYABLE</li>
+								<li>EXIT_TEMPLATE</li>
+								<li>EXIT_PARAM_NAME</li>
+								<li>CONTENT</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Helpers.html#ASOBO_GT_Helper_Non_Linear_Animation_Code_2">ASOBO_GT_Helper_Non_Linear_Animation_Code_2</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NEXT_ID (using MAX_POINT_INDEX)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">ASOBO_GT_Helper_Non_Linear_Animation_Code_2</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;ANIM_VAL_CURRENT_POINT Process=&quot;Param&quot;&gt;ANIM_VALUE_#NEXT_ID#&lt;/ANIM_VAL_CURRENT_POINT&gt;
+		&lt;REF_VAL_CURRENT_POINT Process=&quot;Param&quot;&gt;REF_VALUE_#NEXT_ID#&lt;/REF_VAL_CURRENT_POINT&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Condition&gt;
+		&lt;Test&gt;
+			&lt;GreaterOrEqual&gt;
+				&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+				&lt;Number&gt;0&lt;/Number&gt;
+			&lt;/GreaterOrEqual&gt;
+		&lt;/Test&gt;
+		&lt;True&gt;
+			&lt;Condition&gt;
+				&lt;Test&gt;
+					&lt;Equal&gt;
+						&lt;Value&gt;NEXT_ID&lt;/Value&gt;
+						&lt;Value&gt;MAX_POINT_INDEX&lt;/Value&gt;
+					&lt;/Equal&gt;
+				&lt;/Test&gt;
+				&lt;True&gt;
+					&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+						&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 -&lt;/NEXT_ID&gt;
+						&lt;ANIM_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;ANIM_VALUE_#NEXT_ID#&lt;/ANIM_VAL_PREVIOUS_POINT&gt;
+						&lt;REF_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;REF_VALUE_#NEXT_ID#&lt;/REF_VAL_PREVIOUS_POINT&gt;
+					&lt;/UseTemplate&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_2&quot;&gt;
+						&lt;NEXT_ID Process=&quot;Int&quot;&gt;#NEXT_ID# 1 -&lt;/NEXT_ID&gt;
+						&lt;CONTENT&gt;
+							#CONTENT#
+							l0 #REF_VAL_CURRENT_POINT# &amp;gt; if{
+								l0 #REF_VAL_CURRENT_POINT# - #REF_VAL_PREVIOUS_POINT# #REF_VAL_CURRENT_POINT# - / #ANIM_VAL_PREVIOUS_POINT# #ANIM_VAL_CURRENT_POINT# - * #ANIM_VAL_CURRENT_POINT# + sp1 g1
+							}
+						&lt;/CONTENT&gt;
+						&lt;ANIM_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;ANIM_VALUE_#NEXT_ID#&lt;/ANIM_VAL_PREVIOUS_POINT&gt;
+						&lt;REF_VAL_PREVIOUS_POINT Process=&quot;Param&quot;&gt;REF_VALUE_#NEXT_ID#&lt;/REF_VAL_PREVIOUS_POINT&gt;
+					&lt;/UseTemplate&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+		&lt;/True&gt;
+		&lt;False&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_3&quot;/&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_VAL_CURRENT_POINT (using NEXT_ID)</li>
+								<li>REF_VAL_CURRENT_POINT (using NEXT_ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Test(NEXT_ID)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: True</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Condition: Test(NEXT_ID, MAX_POINT_INDEX)</p>
+									<ul>
+										
+										<li>
+											<div>
+												<div class="collapsible">Case: True</div>
+												<div class="collapsibleContent">
+													<p class="fakeh5">Templates used:</p>
+													<ul>
+														<li>
+															<a href="Helpers.html#ASOBO_GT_Helper_Non_Linear_Animation_Code_2">ASOBO_GT_Helper_Non_Linear_Animation_Code_2</a>
+															<div>
+																<p class="fakeh5">Parameters set:</p>
+																<ul>
+																	<li>NEXT_ID (using NEXT_ID)</li>
+																	<li>ANIM_VAL_PREVIOUS_POINT (using NEXT_ID)</li>
+																	<li>REF_VAL_PREVIOUS_POINT (using NEXT_ID)</li>
+																</ul>
+															</div>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</li>
+										<li>
+											<div>
+												<div class="collapsible">Case: False</div>
+												<div class="collapsibleContent">
+													<p class="fakeh5">Templates used:</p>
+													<ul>
+														<li>
+															<a href="Helpers.html#ASOBO_GT_Helper_Non_Linear_Animation_Code_2">ASOBO_GT_Helper_Non_Linear_Animation_Code_2</a>
+															<div>
+																<p class="fakeh5">Parameters set:</p>
+																<ul>
+																	<li>NEXT_ID (using NEXT_ID)</li>
+																	<li>CONTENT (using CONTENT, REF_VAL_CURRENT_POINT, REF_VAL_PREVIOUS_POINT, ANIM_VAL_PREVIOUS_POINT, ANIM_VAL_CURRENT_POINT)</li>
+																	<li>ANIM_VAL_PREVIOUS_POINT (using NEXT_ID)</li>
+																	<li>REF_VAL_PREVIOUS_POINT (using NEXT_ID)</li>
+																</ul>
+															</div>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="Helpers.html#ASOBO_GT_Helper_Non_Linear_Animation_Code_3">ASOBO_GT_Helper_Non_Linear_Animation_Code_3</a>
+											<ul>
+												<li>May include a subtemplate using the parameter &#39;EXIT_TEMPLATE&#39; (Values it may resolve to were not found)</li>
+											</ul>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">ASOBO_GT_Helper_Non_Linear_Animation_Code_3</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code_3&quot;&gt;
+	&lt;UseTemplate Name=&quot;#EXIT_TEMPLATE#&quot;&gt;
+		&lt;#EXIT_PARAM_NAME#&gt;
+			#SELECTION# #MAX_DISPLAYABLE# min #MIN_DISPLAYABLE# max sp0
+			#CONTENT#
+			:1 l1
+		&lt;/#EXIT_PARAM_NAME#&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>EXIT_TEMPLATE</li>
+					</ul>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<span>#EXIT_TEMPLATE#</span>
+							<ul>
+								<li>(Values for &#39;EXIT_TEMPLATE&#39; and templates it may resolve to were not found)</li>
+							</ul>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>#EXIT_PARAM_NAME# (using SELECTION, MAX_DISPLAYABLE, MIN_DISPLAYABLE, CONTENT)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.4.2_5"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

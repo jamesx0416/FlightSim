@@ -1,0 +1,3870 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>Lighting.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\Common\Lighting.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+	&lt;Include RelativeFile=&quot;Subtemplates\\Lighting_Subtemplates.xml&quot;/&gt;
+	&lt;Include RelativeFile=&quot;Inputs\\Lighting_Inputs.xml&quot;/&gt;
+	&lt;!-- ################################## LIGHTING ################################## --&gt;
+	&lt;!-- ############################################################################## --&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Landing_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;LANDING&lt;/LIGHT_TYPE&gt;
+			&lt;KEY_ID_SET&gt;LANDING_LIGHTS_SET&lt;/KEY_ID_SET&gt;
+			&lt;KEY_ID_ON&gt;LANDING_LIGHTS_ON&lt;/KEY_ID_ON&gt;
+			&lt;KEY_ID_OFF&gt;LANDING_LIGHTS_OFF&lt;/KEY_ID_OFF&gt;
+			&lt;KEY_ID_TOGGLE&gt;LANDING_LIGHTS_TOGGLE&lt;/KEY_ID_TOGGLE&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.LIGHTING_SWITCH_LIGHT_LANDING_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TYPE&gt;OnOff&lt;/TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Landing_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;LANDING&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Beacon_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;BEACON&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Beacon_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;BEACON&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Strobe_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;STROBE&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Strobe_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;STROBE&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Cabin_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;CABIN&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Cabin_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;CABIN&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Cabin_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;POTENTIOMETER&gt;4&lt;/POTENTIOMETER&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;CABIN&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Cabin_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Cabin_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;4&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+			&lt;SIMVAR_LIGHT&gt;LIGHT CABIN&lt;/SIMVAR_LIGHT&gt;
+			&lt;SIMVAR_LIGHT_ON&gt;LIGHT CABIN ON&lt;/SIMVAR_LIGHT_ON&gt;
+			&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+				&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT CABIN POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+			&lt;/Condition&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Cabin_Bounce_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Cabin_Bounce&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;8&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#&quot;&gt;
+			&lt;Update Frequency=&quot;20&quot;&gt;
+				#BOUNCE_POTENTIOMETER_PERCENT# (&amp;gt;O:_Bounce)
+				(O:_Bounce) (A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent) != if{
+				(O:_Bounce) (&amp;gt;K:LIGHT_POTENTIOMETER_#POTENTIOMETER#_SET)
+				}
+			&lt;/Update&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Potentiometer_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;POTENTIOMETER&lt;/LIGHT_TYPE&gt;
+			&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Potentiometer_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;POTENTIOMETER&lt;/LIGHT_TYPE&gt;
+			&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Potentiometer_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;POTENTIOMETER&lt;/LIGHT_TYPE&gt;
+			&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Potentiometer_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Potentiometer_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Navigation_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;PART_ID&gt;LIGHTING_Switch_Light_Navigation&lt;/PART_ID&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;NAV&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Navigation_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;NAV&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Light_Navigation_Template&quot;&gt;
+		&lt;TemplateAlias&gt;ASOBO_LIGHTING_Knob_Nav_Template&lt;/TemplateAlias&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;POTENTIOMETER&gt;11&lt;/POTENTIOMETER&gt;
+			&lt;PART_ID&gt;LIGHTING_Switch_Light_Navigation&lt;/PART_ID&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;NAV&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Taxi_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;TAXI&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Taxi_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;TAXI&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Glareshield_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;GLARESHIELD&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Glareshield_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;GLARESHIELD&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Glareshield_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;POTENTIOMETER&gt;5&lt;/POTENTIOMETER&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;GLARESHIELD&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Glareshield_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Glareshield_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;5&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+			&lt;SIMVAR_LIGHT&gt;LIGHT GLARESHIELD&lt;/SIMVAR_LIGHT&gt;
+			&lt;SIMVAR_LIGHT_ON&gt;LIGHT GLARESHIELD ON&lt;/SIMVAR_LIGHT_ON&gt;
+			&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+				&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT GLARESHIELD POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+			&lt;/Condition&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Panel_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;PANEL&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Panel_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;PANEL&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Panel_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;POTENTIOMETER&gt;3&lt;/POTENTIOMETER&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;PANEL&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Panel_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Panel_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;3&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+			&lt;SIMVAR_LIGHT&gt;LIGHT PANEL&lt;/SIMVAR_LIGHT&gt;
+			&lt;SIMVAR_LIGHT_ON&gt;LIGHT PANEL ON&lt;/SIMVAR_LIGHT_ON&gt;
+			&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+				&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT PANEL POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+			&lt;/Condition&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Recognition_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;RECOGNITION&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Recognition_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;RECOGNITION&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Recognition_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;RECOGNITION&lt;/LIGHT_TYPE&gt;
+			&lt;POTENTIOMETER&gt;10&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Recognition_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Recognition_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;10&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+			&lt;SIMVAR_LIGHT&gt;LIGHT Recognition&lt;/SIMVAR_LIGHT&gt;
+			&lt;SIMVAR_LIGHT_ON&gt;LIGHT Recognition ON&lt;/SIMVAR_LIGHT_ON&gt;
+			&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+				&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT Recognition POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+			&lt;/Condition&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Wing_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;WING&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Wing_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;WING&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Logo_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;LOGO&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Logo_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;LOGO&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Retractable_Light_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_NAME&gt;LIGHTING_Retractable_#LIGHT_TYPE#_Light_#ID#&lt;/ANIM_NAME&gt;
+			&lt;ANIM_LAG&gt;100&lt;/ANIM_LAG&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+			&lt;ANIM_CODE&gt;(L:#LIGHT_TYPE#_#ID#_Retracted) ! 100 *&lt;/ANIM_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Instruments_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;Condition Check=&quot;ID&quot;&gt;
+				&lt;True&gt;
+					&lt;NODE_ID&gt;LIGHTING_Knob_Instruments_#ID#&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME&gt;LIGHTING_Knob_Instruments_#ID#&lt;/ANIM_NAME&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;NODE_ID&gt;LIGHTING_Knob_Instruments&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME&gt;LIGHTING_Knob_Instruments&lt;/ANIM_NAME&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;POTENTIOMETER&gt;2&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Knob_Potentiometer_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Instruments_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Instruments_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;2&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Radio_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;Condition Check=&quot;ID&quot;&gt;
+				&lt;True&gt;
+					&lt;NODE_ID&gt;LIGHTING_Knob_Radio_#ID#&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME&gt;LIGHTING_Knob_Radio_#ID#&lt;/ANIM_NAME&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;NODE_ID&gt;LIGHTING_Knob_Radio&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME&gt;LIGHTING_Knob_Radio&lt;/ANIM_NAME&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;POTENTIOMETER&gt;7&lt;/POTENTIOMETER&gt;
+			&lt;ANIMREF_ID&gt;0&lt;/ANIMREF_ID&gt;
+			&lt;ANIMTIP_0&gt;TT:COCKPIT.TOOLTIPS.LIGHTING_KNOB_RADIO_DECREASE&lt;/ANIMTIP_0&gt;
+			&lt;ANIMTIP_0_ON_CURSOR&gt;TurnLeft&lt;/ANIMTIP_0_ON_CURSOR&gt;
+			&lt;ANIMTIP_1&gt;TT:COCKPIT.TOOLTIPS.LIGHTING_KNOB_RADIO_INCREASE&lt;/ANIMTIP_1&gt;
+			&lt;ANIMTIP_1_ON_CURSOR&gt;TurnRight&lt;/ANIMTIP_1_ON_CURSOR&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Knob_Glareshield_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Radio_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Radio_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;7&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Pedestal_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;POTENTIOMETER&gt;6&lt;/POTENTIOMETER&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+			&lt;LIGHT_TYPE&gt;PEDESTRAL&lt;/LIGHT_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Pedestal_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Pedestal_Emissive&lt;/NODE_ID&gt;
+			&lt;POTENTIOMETER&gt;6&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+			&lt;SIMVAR_LIGHT&gt;LIGHT PEDESTRAL&lt;/SIMVAR_LIGHT&gt;
+			&lt;SIMVAR_LIGHT_ON&gt;LIGHT PEDESTRAL ON&lt;/SIMVAR_LIGHT_ON&gt;
+			&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+				&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT PEDESTRAL POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+			&lt;/Condition&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Avionics_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;Condition Check=&quot;ID&quot;&gt;
+				&lt;True&gt;
+					&lt;NODE_ID&gt;LIGHTING_Knob_Avionics_#ID#&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME&gt;LIGHTING_Knob_Avionics_#ID#&lt;/ANIM_NAME&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;NODE_ID&gt;LIGHTING_Knob_Avionics&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME&gt;LIGHTING_Knob_Avionics&lt;/ANIM_NAME&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;POTENTIOMETER&gt;9&lt;/POTENTIOMETER&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Knob_Potentiometer_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!-- REQUIRED: valid NODE_ID &amp; either EMISSIVE_CODE or SIMVAR--&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Indicator_Emissive_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Indicator_Emissive&lt;/NODE_ID&gt;
+			&lt;Condition Check=&quot;SIMVAR&quot;&gt;
+				&lt;EMISSIVE_CODE&gt;(A:#SIMVAR#, Bool)&lt;/EMISSIVE_CODE&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Emissive_Gauge&quot;&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;!-- REQUIRED: POTENTIOMETER &amp; BOUNCE_POTENTIOMETER_PERCENT--&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Ambient_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Ambient&lt;/NODE_ID&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;Condition Check=&quot;FAILURE_CIRCUIT&quot;&gt;
+				&lt;False&gt;
+					&lt;FAILURE&gt;(A:CIRCUIT GENERAL PANEL ON, Bool)&lt;/FAILURE&gt;
+				&lt;/False&gt;
+				&lt;True&gt;
+					&lt;FAILURE&gt;(A:CIRCUIT ON:#FAILURE_CIRCUIT#, Bool)&lt;/FAILURE&gt;
+				&lt;/True&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#_#ID#&quot;&gt;
+			&lt;Update Frequency=&quot;20&quot;&gt;
+				#BOUNCE_POTENTIOMETER_PERCENT# #FAILURE# * (&amp;gt;O:_Bounce)
+				(O:_Bounce) (A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent) != if{
+				(O:_Bounce) #POTENTIOMETER# (&amp;gt;K:2:LIGHT_POTENTIOMETER_SET)
+				}
+			&lt;/Update&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Toggle_Var_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Toggle_Var_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Update_SetLandingGearPotentiometer_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;MAX_ANIM_PERCENT_FOR_LIGHTS&gt;0.75&lt;/MAX_ANIM_PERCENT_FOR_LIGHTS&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;Light_LandingGear_Update_#POTENTIOMETER#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+				&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+				&lt;UPDATE_CODE&gt;
+					(A:GEAR TOTAL PCT EXTENDED, Percent) #MAX_ANIM_PERCENT_FOR_LIGHTS# &amp;gt; 100 * #POTENTIOMETER# (&amp;gt;K:2:LIGHT_POTENTIOMETER_SET)
+				&lt;/UPDATE_CODE&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Test_Lights_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Switch_Test_Lights&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;LIGHTING_Switch_Test_Lights&lt;/ANIM_NAME&gt;
+			&lt;IE_NAME&gt;Test_Lights&lt;/IE_NAME&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.SAFETY_PUSH_TEST_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.SAFETY_PUSH_TEST_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;WWISE_EVENT_1&gt;lights_test_push_button_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;lights_test_push_button_off&lt;/WWISE_EVENT_2&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;SWITCH_POSITION_TYPE&gt;L&lt;/SWITCH_POSITION_TYPE&gt;
+			&lt;SWITCH_POSITION_VAR&gt;XMLVAR_Lights_Test&lt;/SWITCH_POSITION_VAR&gt;
+		&lt;/Parameters&gt;
+		
+		&lt;UseTemplate Name=&quot;ASOBO_Lighting_Base_Template&quot;&gt;
+			&lt;SET_STATE_EXTERNAL&gt;(&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+			&lt;EXTRA_OPTION&gt;_Held&lt;/EXTRA_OPTION&gt;
+			&lt;ANIM_HANDLED_SEPARATELY&gt;False&lt;/ANIM_HANDLED_SEPARATELY&gt;
+			&lt;TT_VALUE&gt;(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) @TT_OnOff_Cond&lt;/TT_VALUE&gt;
+			&lt;TT_VALUE_IS_DYNAMIC&gt;True&lt;/TT_VALUE_IS_DYNAMIC&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Mode_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_Switch_Mode&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;LIGHTING_Switch_Mode&lt;/ANIM_NAME&gt;
+			&lt;SWITCH_POSITION_TYPE&gt;L&lt;/SWITCH_POSITION_TYPE&gt;
+			&lt;SWITCH_POSITION_VAR&gt;XMLVAR_Lights_Mode&lt;/SWITCH_POSITION_VAR&gt;
+			&lt;LIMITED_INTENSITY_VALUE&gt;0.25&lt;/LIMITED_INTENSITY_VALUE&gt;
+			&lt;WWISE_EVENT&gt;lighting_switch_generic&lt;/WWISE_EVENT&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#_Parent&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+				&lt;ONCE&gt;True&lt;/ONCE&gt;
+				&lt;!-- Init Factor to non-zero value is not set in FLT --&gt;
+				&lt;UPDATE_CODE&gt;
+					(L:XMLVAR_Light_Mode_Factor) s1 #LIMITED_INTENSITY_VALUE# != l1 1 != and if{
+						(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 2 == if{
+							1 (&amp;gt;L:XMLVAR_Light_Mode_Factor)
+						} els{
+							#LIMITED_INTENSITY_VALUE# (&amp;gt;L:XMLVAR_Light_Mode_Factor)
+						}
+					}
+				&lt;/UPDATE_CODE&gt;
+			&lt;/UseTemplate&gt;
+			&lt;Parameters Type=&quot;Default&quot;&gt;
+				&lt;NUM_STATES&gt;3&lt;/NUM_STATES&gt;
+				&lt;POS_NVG&gt;0&lt;/POS_NVG&gt;
+				&lt;POS_NITE&gt;1&lt;/POS_NITE&gt;
+				&lt;POS_DAY&gt;2&lt;/POS_DAY&gt;
+			&lt;/Parameters&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_Lighting_Base_Template&quot;&gt;
+				&lt;IE_NAME&gt;INT_Lights_Mode&lt;/IE_NAME&gt;
+				&lt;TOOLTIP_TITLE&gt;@TT_Package.AIRLINER_OVHD_KNOB_LIGHT_GLARESHIELD_PANELFLOOD_TITLE&lt;/TOOLTIP_TITLE&gt;
+				&lt;TT_DESCRIPTION_ID&gt;@TT_Package.AIRLINER_OVHD_KNOB_LIGHT_GLARESHIELD_PANELFLOOD_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+				&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+				&lt;GET_STATE_EXTERNAL&gt;(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/GET_STATE_EXTERNAL&gt;
+				
+				&lt;SET_STATE_#POS_NVG#&gt;0 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) #LIMITED_INTENSITY_VALUE# (&amp;gt;L:XMLVAR_Light_Mode_Factor)&lt;/SET_STATE_#POS_NVG#&gt;
+				&lt;SET_STATE_#POS_NITE#&gt;1 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) #LIMITED_INTENSITY_VALUE# (&amp;gt;L:XMLVAR_Light_Mode_Factor)&lt;/SET_STATE_#POS_NITE#&gt;
+				&lt;SET_STATE_#POS_DAY#&gt;2 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 1 (&amp;gt;L:XMLVAR_Light_Mode_Factor)&lt;/SET_STATE_#POS_DAY#&gt;
+				
+				&lt;STR_STATE_#POS_NVG#&gt;NVG&lt;/STR_STATE_#POS_NVG#&gt;
+				&lt;STR_STATE_#POS_NITE#&gt;Nite&lt;/STR_STATE_#POS_NITE#&gt;
+				&lt;STR_STATE_#POS_DAY#&gt;Day&lt;/STR_STATE_#POS_DAY#&gt;
+				
+				&lt;TT_VALUE_#POS_NVG#&gt;@TT_Package.GT_STATE_NVG&lt;/TT_VALUE_#POS_NVG#&gt;
+				&lt;TT_VALUE_#POS_NITE#&gt;@TT_Package.GT_STATE_NITE&lt;/TT_VALUE_#POS_NITE#&gt;
+				&lt;TT_VALUE_#POS_DAY#&gt;@TT_Package.GT_STATE_DAY&lt;/TT_VALUE_#POS_DAY#&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_AOA_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;LIGHTING_AOA_&lt;/NODE_ID&gt;
+			&lt;Switch Param=&quot;TYPE&quot;&gt;
+				&lt;Case Value=&quot;GREEN&quot;&gt;
+					&lt;MIN_AOA&gt;8.8&lt;/MIN_AOA&gt;
+					&lt;MAX_AOA&gt;99&lt;/MAX_AOA&gt;
+				&lt;/Case&gt;
+				&lt;Case Value=&quot;YELLOW&quot;&gt;
+					&lt;MIN_AOA&gt;6.9&lt;/MIN_AOA&gt;
+					&lt;MAX_AOA&gt;9.3&lt;/MAX_AOA&gt;
+				&lt;/Case&gt;
+				&lt;Case Value=&quot;RED&quot;&gt;
+					&lt;MIN_AOA&gt;-99&lt;/MIN_AOA&gt;
+					&lt;MAX_AOA&gt;7.4&lt;/MAX_AOA&gt;
+				&lt;/Case&gt;
+			&lt;/Switch&gt;
+			&lt;BRIGHTNESS_VAR&gt;1&lt;/BRIGHTNESS_VAR&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+			&lt;EMISSIVE_CODE&gt;
+				(A:INCIDENCE ALPHA, degrees) s1 #MIN_AOA# &amp;gt; l1 #MAX_AOA# &amp;lt; and #BRIGHTNESS_VAR# *
+			&lt;/EMISSIVE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Exterior_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;SWITCH_POSITION_TYPE&gt;L&lt;/SWITCH_POSITION_TYPE&gt;
+			&lt;SWITCH_POSITION_VAR&gt;XMLVAR_EXT_Lights_Mode&lt;/SWITCH_POSITION_VAR&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#_Parent&quot;&gt;
+			&lt;Parameters Type=&quot;Default&quot;&gt;
+				&lt;NUM_STATES&gt;3&lt;/NUM_STATES&gt;
+				&lt;POS_NORM&gt;0&lt;/POS_NORM&gt;
+				&lt;POS_NVIS&gt;1&lt;/POS_NVIS&gt;
+				&lt;POS_OFF&gt;2&lt;/POS_OFF&gt;
+			&lt;/Parameters&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_Lighting_Base_Template&quot;&gt;
+				&lt;IE_NAME&gt;EXT_Lights_Mode&lt;/IE_NAME&gt;
+				&lt;TOOLTIP_TITLE&gt;@TT_Package.LIGHTING_SWITCH_EXT_LIGHTS_TITLE&lt;/TOOLTIP_TITLE&gt;
+				&lt;TT_DESCRIPTION_ID&gt;@TT_Package.LIGHTING_SWITCH_EXT_LIGHTS_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+				&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+				&lt;GET_STATE_EXTERNAL&gt;(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/GET_STATE_EXTERNAL&gt;
+				
+				&lt;Condition Valid=&quot;EXT_LTS_BUS_ID&quot;&gt;
+					&lt;True&gt;
+						&lt;SET_STATE_#POS_OFF#&gt;2 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) #EXT_LTS_BUS_ID# #BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) &lt;/SET_STATE_#POS_OFF#&gt;
+						&lt;SET_STATE_#POS_NVIS#&gt;1 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) (A:BUS CONNECTION ON:#EXT_LTS_BUS_ID#,Bool) 0 == if{ #EXT_LTS_BUS_ID# #BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/SET_STATE_#POS_NVIS#&gt;
+						&lt;SET_STATE_#POS_NORM#&gt;0 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) &lt;/SET_STATE_#POS_NORM#&gt;
+					&lt;/True&gt;
+					&lt;False&gt;
+						&lt;SET_STATE_#POS_OFF#&gt;2 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_#POS_OFF#&gt;
+						&lt;SET_STATE_#POS_NVIS#&gt;1 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_#POS_NVIS#&gt;
+						&lt;SET_STATE_#POS_NORM#&gt;0 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_#POS_NORM#&gt;
+					&lt;/False&gt;
+				&lt;/Condition&gt;
+				
+				&lt;STR_STATE_#POS_NORM#&gt;Norm&lt;/STR_STATE_#POS_NORM#&gt;
+				&lt;STR_STATE_#POS_NVIS#&gt;NVis&lt;/STR_STATE_#POS_NVIS#&gt;
+				&lt;STR_STATE_#POS_OFF#&gt;Off&lt;/STR_STATE_#POS_OFF#&gt;
+				
+				&lt;TT_VALUE_#POS_NORM#&gt;@TT_Package.GT_STATE_NORMAL&lt;/TT_VALUE_#POS_NORM#&gt;
+				&lt;TT_VALUE_#POS_NVIS#&gt;@TT_Package.GT_STATE_NIGHT&lt;/TT_VALUE_#POS_NVIS#&gt;
+				&lt;TT_VALUE_#POS_OFF#&gt;@TT_Package.GT_STATE_OFF&lt;/TT_VALUE_#POS_OFF#&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;!-- ########################################## --&gt;
+	&lt;!-- LIGHTING Interaction inputs setup template --&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Base_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;LIGHTING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+			&lt;WWISE_PREFIX&gt;LIGHTING&lt;/WWISE_PREFIX&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;LIGHTING&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Event_Base_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Push_Event_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;LIGHTING&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_LIGHTING_Pull_Event_Base_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Pull_Event_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;LIGHTING&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+&lt;/ModelBehaviors&gt;
+</div>
+		<h3>Includes</h3>
+		<ul>
+			<li>
+				RelativeFile: 
+				<a href="Subtemplates/Lighting_Subtemplates.html">Subtemplates\\Lighting_Subtemplates.xml</a>
+			</li>
+			<li>
+				RelativeFile: 
+				<a href="Inputs/Lighting_Inputs.html">Inputs\\Lighting_Inputs.xml</a>
+			</li>
+		</ul>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Landing_Template">ASOBO_LIGHTING_Push_Light_Landing_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Landing_Template">ASOBO_LIGHTING_Switch_Light_Landing_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Beacon_Template">ASOBO_LIGHTING_Switch_Light_Beacon_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Beacon_Template">ASOBO_LIGHTING_Push_Light_Beacon_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Strobe_Template">ASOBO_LIGHTING_Switch_Light_Strobe_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Strobe_Template">ASOBO_LIGHTING_Push_Light_Strobe_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Cabin_Template">ASOBO_LIGHTING_Switch_Light_Cabin_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Cabin_Template">ASOBO_LIGHTING_Push_Light_Cabin_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Cabin_Template">ASOBO_LIGHTING_Knob_Cabin_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Cabin_Emissive_Template">ASOBO_LIGHTING_Cabin_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Cabin_Bounce_Template">ASOBO_LIGHTING_Cabin_Bounce_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Potentiometer_Template">ASOBO_LIGHTING_Switch_Potentiometer_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Potentiometer_Template">ASOBO_LIGHTING_Push_Potentiometer_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Potentiometer_Template">ASOBO_LIGHTING_Knob_Potentiometer_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Potentiometer_Emissive_Template">ASOBO_LIGHTING_Potentiometer_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Navigation_Template">ASOBO_LIGHTING_Switch_Light_Navigation_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Navigation_Template">ASOBO_LIGHTING_Push_Light_Navigation_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Light_Navigation_Template">ASOBO_LIGHTING_Knob_Light_Navigation_Template [ASOBO_LIGHTING_Knob_Nav_Template]</a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Taxi_Template">ASOBO_LIGHTING_Switch_Light_Taxi_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Taxi_Template">ASOBO_LIGHTING_Push_Light_Taxi_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Glareshield_Template">ASOBO_LIGHTING_Switch_Light_Glareshield_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Glareshield_Template">ASOBO_LIGHTING_Push_Light_Glareshield_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Glareshield_Template">ASOBO_LIGHTING_Knob_Glareshield_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Glareshield_Emissive_Template">ASOBO_LIGHTING_Glareshield_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Panel_Template">ASOBO_LIGHTING_Switch_Light_Panel_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Panel_Template">ASOBO_LIGHTING_Push_Light_Panel_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Panel_Template">ASOBO_LIGHTING_Knob_Panel_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Panel_Emissive_Template">ASOBO_LIGHTING_Panel_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Recognition_Template">ASOBO_LIGHTING_Switch_Light_Recognition_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Recognition_Template">ASOBO_LIGHTING_Push_Light_Recognition_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Recognition_Template">ASOBO_LIGHTING_Knob_Recognition_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Recognition_Emissive_Template">ASOBO_LIGHTING_Recognition_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Wing_Template">ASOBO_LIGHTING_Switch_Light_Wing_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Wing_Template">ASOBO_LIGHTING_Push_Light_Wing_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Logo_Template">ASOBO_LIGHTING_Switch_Light_Logo_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Light_Logo_Template">ASOBO_LIGHTING_Push_Light_Logo_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Retractable_Light_Template">ASOBO_LIGHTING_Retractable_Light_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Instruments_Template">ASOBO_LIGHTING_Knob_Instruments_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Instruments_Emissive_Template">ASOBO_LIGHTING_Instruments_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Radio_Template">ASOBO_LIGHTING_Knob_Radio_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Radio_Emissive_Template">ASOBO_LIGHTING_Radio_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Pedestal_Template">ASOBO_LIGHTING_Knob_Pedestal_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Pedestal_Emissive_Template">ASOBO_LIGHTING_Pedestal_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Knob_Avionics_Template">ASOBO_LIGHTING_Knob_Avionics_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Indicator_Emissive_Template">ASOBO_LIGHTING_Indicator_Emissive_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Ambient_Template">ASOBO_LIGHTING_Ambient_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Toggle_Var_Template">ASOBO_LIGHTING_Toggle_Var_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Update_SetLandingGearPotentiometer_Template">ASOBO_LIGHTING_Update_SetLandingGearPotentiometer_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Test_Lights_Template">ASOBO_LIGHTING_Switch_Test_Lights_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Mode_Template">ASOBO_LIGHTING_Switch_Mode_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_AOA_Template">ASOBO_LIGHTING_AOA_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Switch_Light_Exterior_Template">ASOBO_LIGHTING_Switch_Light_Exterior_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Base_Template">ASOBO_LIGHTING_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Push_Event_Base_Template">ASOBO_LIGHTING_Push_Event_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_LIGHTING_Pull_Event_Base_Template">ASOBO_LIGHTING_Pull_Event_Base_Template </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Landing_Template">ASOBO_LIGHTING_Push_Light_Landing_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Landing_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;LANDING&lt;/LIGHT_TYPE&gt;
+		&lt;KEY_ID_SET&gt;LANDING_LIGHTS_SET&lt;/KEY_ID_SET&gt;
+		&lt;KEY_ID_ON&gt;LANDING_LIGHTS_ON&lt;/KEY_ID_ON&gt;
+		&lt;KEY_ID_OFF&gt;LANDING_LIGHTS_OFF&lt;/KEY_ID_OFF&gt;
+		&lt;KEY_ID_TOGGLE&gt;LANDING_LIGHTS_TOGGLE&lt;/KEY_ID_TOGGLE&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.LIGHTING_SWITCH_LIGHT_LANDING_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TYPE&gt;OnOff&lt;/TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+								<li>KEY_ID_SET</li>
+								<li>KEY_ID_ON</li>
+								<li>KEY_ID_OFF</li>
+								<li>KEY_ID_TOGGLE</li>
+								<li>TOOLTIP_TITLE</li>
+								<li>TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Landing_Template">ASOBO_LIGHTING_Switch_Light_Landing_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Landing_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;LANDING&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Beacon_Template">ASOBO_LIGHTING_Switch_Light_Beacon_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Beacon_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;BEACON&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Beacon_Template">ASOBO_LIGHTING_Push_Light_Beacon_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Beacon_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;BEACON&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Strobe_Template">ASOBO_LIGHTING_Switch_Light_Strobe_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Strobe_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;STROBE&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Strobe_Template">ASOBO_LIGHTING_Push_Light_Strobe_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Strobe_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;STROBE&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Cabin_Template">ASOBO_LIGHTING_Switch_Light_Cabin_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Cabin_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;CABIN&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Cabin_Template">ASOBO_LIGHTING_Push_Light_Cabin_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Cabin_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;CABIN&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Cabin_Template">ASOBO_LIGHTING_Knob_Cabin_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Cabin_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;POTENTIOMETER&gt;4&lt;/POTENTIOMETER&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;CABIN&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Cabin_Emissive_Template">ASOBO_LIGHTING_Cabin_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Cabin_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Cabin_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;4&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;SIMVAR_LIGHT&gt;LIGHT CABIN&lt;/SIMVAR_LIGHT&gt;
+		&lt;SIMVAR_LIGHT_ON&gt;LIGHT CABIN ON&lt;/SIMVAR_LIGHT_ON&gt;
+		&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+			&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT CABIN POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+		&lt;/Condition&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>SIMVAR_LIGHT</li>
+									<li>SIMVAR_LIGHT_ON</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(USE_INTEGRATED_POWER_SETTING)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>LIGHT_SIMVAR_POWER_SETTING</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Cabin_Bounce_Template">ASOBO_LIGHTING_Cabin_Bounce_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Cabin_Bounce_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Cabin_Bounce&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;8&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#&quot;&gt;
+		&lt;Update Frequency=&quot;20&quot;&gt;
+				#BOUNCE_POTENTIOMETER_PERCENT# (&amp;gt;O:_Bounce)
+				(O:_Bounce) (A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent) != if{
+				(O:_Bounce) (&amp;gt;K:LIGHT_POTENTIOMETER_#POTENTIOMETER#_SET)
+				}
+			&lt;/Update&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID#</span>
+							<div>
+								<p class="fakeh5">Parameters read:</p>
+								<ul>
+									<li>BOUNCE_POTENTIOMETER_PERCENT</li>
+									<li>POTENTIOMETER</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Potentiometer_Template">ASOBO_LIGHTING_Switch_Potentiometer_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Potentiometer_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;POTENTIOMETER&lt;/LIGHT_TYPE&gt;
+		&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Potentiometer_Template">ASOBO_LIGHTING_Push_Potentiometer_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Potentiometer_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;POTENTIOMETER&lt;/LIGHT_TYPE&gt;
+		&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Potentiometer_Template">ASOBO_LIGHTING_Knob_Potentiometer_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Potentiometer_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;POTENTIOMETER&lt;/LIGHT_TYPE&gt;
+		&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Potentiometer_Emissive_Template">ASOBO_LIGHTING_Potentiometer_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Potentiometer_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Potentiometer_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;1&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Navigation_Template">ASOBO_LIGHTING_Switch_Light_Navigation_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Navigation_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;PART_ID&gt;LIGHTING_Switch_Light_Navigation&lt;/PART_ID&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;NAV&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>PART_ID</li>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Navigation_Template">ASOBO_LIGHTING_Push_Light_Navigation_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Navigation_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;NAV&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Light_Navigation_Template">
+					ASOBO_LIGHTING_Knob_Light_Navigation_Template
+					<br/>
+					[ASOBO_LIGHTING_Knob_Nav_Template]
+				</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Light_Navigation_Template&quot;&gt;
+	&lt;TemplateAlias&gt;ASOBO_LIGHTING_Knob_Nav_Template&lt;/TemplateAlias&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;POTENTIOMETER&gt;11&lt;/POTENTIOMETER&gt;
+		&lt;PART_ID&gt;LIGHTING_Switch_Light_Navigation&lt;/PART_ID&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;NAV&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+								<li>PART_ID</li>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Taxi_Template">ASOBO_LIGHTING_Switch_Light_Taxi_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Taxi_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;TAXI&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Taxi_Template">ASOBO_LIGHTING_Push_Light_Taxi_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Taxi_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;TAXI&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Glareshield_Template">ASOBO_LIGHTING_Switch_Light_Glareshield_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Glareshield_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;GLARESHIELD&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Glareshield_Template">ASOBO_LIGHTING_Push_Light_Glareshield_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Glareshield_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;GLARESHIELD&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Glareshield_Template">ASOBO_LIGHTING_Knob_Glareshield_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Glareshield_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;POTENTIOMETER&gt;5&lt;/POTENTIOMETER&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;GLARESHIELD&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Glareshield_Emissive_Template">ASOBO_LIGHTING_Glareshield_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Glareshield_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Glareshield_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;5&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;SIMVAR_LIGHT&gt;LIGHT GLARESHIELD&lt;/SIMVAR_LIGHT&gt;
+		&lt;SIMVAR_LIGHT_ON&gt;LIGHT GLARESHIELD ON&lt;/SIMVAR_LIGHT_ON&gt;
+		&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+			&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT GLARESHIELD POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+		&lt;/Condition&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>SIMVAR_LIGHT</li>
+									<li>SIMVAR_LIGHT_ON</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(USE_INTEGRATED_POWER_SETTING)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>LIGHT_SIMVAR_POWER_SETTING</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Panel_Template">ASOBO_LIGHTING_Switch_Light_Panel_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Panel_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;PANEL&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Panel_Template">ASOBO_LIGHTING_Push_Light_Panel_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Panel_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;PANEL&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Panel_Template">ASOBO_LIGHTING_Knob_Panel_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Panel_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;POTENTIOMETER&gt;3&lt;/POTENTIOMETER&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;PANEL&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Panel_Emissive_Template">ASOBO_LIGHTING_Panel_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Panel_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Panel_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;3&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;SIMVAR_LIGHT&gt;LIGHT PANEL&lt;/SIMVAR_LIGHT&gt;
+		&lt;SIMVAR_LIGHT_ON&gt;LIGHT PANEL ON&lt;/SIMVAR_LIGHT_ON&gt;
+		&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+			&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT PANEL POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+		&lt;/Condition&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>SIMVAR_LIGHT</li>
+									<li>SIMVAR_LIGHT_ON</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(USE_INTEGRATED_POWER_SETTING)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>LIGHT_SIMVAR_POWER_SETTING</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Recognition_Template">ASOBO_LIGHTING_Switch_Light_Recognition_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Recognition_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;RECOGNITION&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Recognition_Template">ASOBO_LIGHTING_Push_Light_Recognition_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Recognition_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;RECOGNITION&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Recognition_Template">ASOBO_LIGHTING_Knob_Recognition_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Recognition_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;RECOGNITION&lt;/LIGHT_TYPE&gt;
+		&lt;POTENTIOMETER&gt;10&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Recognition_Emissive_Template">ASOBO_LIGHTING_Recognition_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Recognition_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Recognition_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;10&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;SIMVAR_LIGHT&gt;LIGHT Recognition&lt;/SIMVAR_LIGHT&gt;
+		&lt;SIMVAR_LIGHT_ON&gt;LIGHT Recognition ON&lt;/SIMVAR_LIGHT_ON&gt;
+		&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+			&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT Recognition POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+		&lt;/Condition&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>SIMVAR_LIGHT</li>
+									<li>SIMVAR_LIGHT_ON</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(USE_INTEGRATED_POWER_SETTING)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>LIGHT_SIMVAR_POWER_SETTING</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Wing_Template">ASOBO_LIGHTING_Switch_Light_Wing_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Wing_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;WING&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Wing_Template">ASOBO_LIGHTING_Push_Light_Wing_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Wing_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;WING&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Logo_Template">ASOBO_LIGHTING_Switch_Light_Logo_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Logo_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;LOGO&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Light_Logo_Template">ASOBO_LIGHTING_Push_Light_Logo_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Light_Logo_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;LOGO&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Retractable_Light_Template">ASOBO_LIGHTING_Retractable_Light_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Retractable_Light_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_NAME&gt;LIGHTING_Retractable_#LIGHT_TYPE#_Light_#ID#&lt;/ANIM_NAME&gt;
+		&lt;ANIM_LAG&gt;100&lt;/ANIM_LAG&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+		&lt;ANIM_CODE&gt;(L:#LIGHT_TYPE#_#ID#_Retracted) ! 100 *&lt;/ANIM_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME (using LIGHT_TYPE, ID)</li>
+								<li>ANIM_LAG</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIM_CODE (using LIGHT_TYPE, ID)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Instruments_Template">ASOBO_LIGHTING_Knob_Instruments_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Instruments_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;Condition Check=&quot;ID&quot;&gt;
+			&lt;True&gt;
+				&lt;NODE_ID&gt;LIGHTING_Knob_Instruments_#ID#&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME&gt;LIGHTING_Knob_Instruments_#ID#&lt;/ANIM_NAME&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;NODE_ID&gt;LIGHTING_Knob_Instruments&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME&gt;LIGHTING_Knob_Instruments&lt;/ANIM_NAME&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+		&lt;POTENTIOMETER&gt;2&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Knob_Potentiometer_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(ID)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID (using ID)</li>
+												<li>ANIM_NAME (using ID)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID</li>
+												<li>ANIM_NAME</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Lighting.html#ASOBO_LIGHTING_Knob_Potentiometer_Template">ASOBO_LIGHTING_Knob_Potentiometer_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Instruments_Emissive_Template">ASOBO_LIGHTING_Instruments_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Instruments_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Instruments_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;2&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Radio_Template">ASOBO_LIGHTING_Knob_Radio_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Radio_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;Condition Check=&quot;ID&quot;&gt;
+			&lt;True&gt;
+				&lt;NODE_ID&gt;LIGHTING_Knob_Radio_#ID#&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME&gt;LIGHTING_Knob_Radio_#ID#&lt;/ANIM_NAME&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;NODE_ID&gt;LIGHTING_Knob_Radio&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME&gt;LIGHTING_Knob_Radio&lt;/ANIM_NAME&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+		&lt;POTENTIOMETER&gt;7&lt;/POTENTIOMETER&gt;
+		&lt;ANIMREF_ID&gt;0&lt;/ANIMREF_ID&gt;
+		&lt;ANIMTIP_0&gt;TT:COCKPIT.TOOLTIPS.LIGHTING_KNOB_RADIO_DECREASE&lt;/ANIMTIP_0&gt;
+		&lt;ANIMTIP_0_ON_CURSOR&gt;TurnLeft&lt;/ANIMTIP_0_ON_CURSOR&gt;
+		&lt;ANIMTIP_1&gt;TT:COCKPIT.TOOLTIPS.LIGHTING_KNOB_RADIO_INCREASE&lt;/ANIMTIP_1&gt;
+		&lt;ANIMTIP_1_ON_CURSOR&gt;TurnRight&lt;/ANIMTIP_1_ON_CURSOR&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Knob_Glareshield_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+								<li>ANIMREF_ID</li>
+								<li>ANIMTIP_0</li>
+								<li>ANIMTIP_0_ON_CURSOR</li>
+								<li>ANIMTIP_1</li>
+								<li>ANIMTIP_1_ON_CURSOR</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(ID)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID (using ID)</li>
+												<li>ANIM_NAME (using ID)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID</li>
+												<li>ANIM_NAME</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Lighting.html#ASOBO_LIGHTING_Knob_Glareshield_Template">ASOBO_LIGHTING_Knob_Glareshield_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Radio_Emissive_Template">ASOBO_LIGHTING_Radio_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Radio_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Radio_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;7&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Pedestal_Template">ASOBO_LIGHTING_Knob_Pedestal_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Pedestal_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;POTENTIOMETER&gt;6&lt;/POTENTIOMETER&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;LIGHT_TYPE&gt;PEDESTRAL&lt;/LIGHT_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Light_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+								<li>INTERACTION_TYPE</li>
+								<li>LIGHT_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Light_Template">ASOBO_LIGHTING_Light_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Pedestal_Emissive_Template">ASOBO_LIGHTING_Pedestal_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Pedestal_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Pedestal_Emissive&lt;/NODE_ID&gt;
+		&lt;POTENTIOMETER&gt;6&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Emissive_SubTemplate&quot;&gt;
+		&lt;SIMVAR_LIGHT&gt;LIGHT PEDESTRAL&lt;/SIMVAR_LIGHT&gt;
+		&lt;SIMVAR_LIGHT_ON&gt;LIGHT PEDESTRAL ON&lt;/SIMVAR_LIGHT_ON&gt;
+		&lt;Condition Valid=&quot;USE_INTEGRATED_POWER_SETTING&quot;&gt;
+			&lt;LIGHT_SIMVAR_POWER_SETTING&gt;LIGHT PEDESTRAL POWER SETTING&lt;/LIGHT_SIMVAR_POWER_SETTING&gt;
+		&lt;/Condition&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>POTENTIOMETER</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Emissive_SubTemplate">ASOBO_LIGHTING_Emissive_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>SIMVAR_LIGHT</li>
+									<li>SIMVAR_LIGHT_ON</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(USE_INTEGRATED_POWER_SETTING)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>LIGHT_SIMVAR_POWER_SETTING</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Knob_Avionics_Template">ASOBO_LIGHTING_Knob_Avionics_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Knob_Avionics_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;Condition Check=&quot;ID&quot;&gt;
+			&lt;True&gt;
+				&lt;NODE_ID&gt;LIGHTING_Knob_Avionics_#ID#&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME&gt;LIGHTING_Knob_Avionics_#ID#&lt;/ANIM_NAME&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;NODE_ID&gt;LIGHTING_Knob_Avionics&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME&gt;LIGHTING_Knob_Avionics&lt;/ANIM_NAME&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+		&lt;POTENTIOMETER&gt;9&lt;/POTENTIOMETER&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Knob_Potentiometer_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>POTENTIOMETER</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(ID)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID (using ID)</li>
+												<li>ANIM_NAME (using ID)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID</li>
+												<li>ANIM_NAME</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Lighting.html#ASOBO_LIGHTING_Knob_Potentiometer_Template">ASOBO_LIGHTING_Knob_Potentiometer_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Indicator_Emissive_Template">ASOBO_LIGHTING_Indicator_Emissive_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Indicator_Emissive_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Indicator_Emissive&lt;/NODE_ID&gt;
+		&lt;Condition Check=&quot;SIMVAR&quot;&gt;
+			&lt;EMISSIVE_CODE&gt;(A:#SIMVAR#, Bool)&lt;/EMISSIVE_CODE&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Emissive_Gauge&quot;/&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(SIMVAR)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>EMISSIVE_CODE (using SIMVAR)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID# (Node: #NODE_ID#)</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Emissive.html#ASOBO_GT_Emissive_Gauge">ASOBO_GT_Emissive_Gauge</a>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Ambient_Template">ASOBO_LIGHTING_Ambient_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Ambient_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Ambient&lt;/NODE_ID&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;Condition Check=&quot;FAILURE_CIRCUIT&quot;&gt;
+			&lt;False&gt;
+				&lt;FAILURE&gt;(A:CIRCUIT GENERAL PANEL ON, Bool)&lt;/FAILURE&gt;
+			&lt;/False&gt;
+			&lt;True&gt;
+				&lt;FAILURE&gt;(A:CIRCUIT ON:#FAILURE_CIRCUIT#, Bool)&lt;/FAILURE&gt;
+			&lt;/True&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#_#ID#&quot;&gt;
+		&lt;Update Frequency=&quot;20&quot;&gt;
+				#BOUNCE_POTENTIOMETER_PERCENT# #FAILURE# * (&amp;gt;O:_Bounce)
+				(O:_Bounce) (A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent) != if{
+				(O:_Bounce) #POTENTIOMETER# (&amp;gt;K:2:LIGHT_POTENTIOMETER_SET)
+				}
+			&lt;/Update&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ID</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(FAILURE_CIRCUIT)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>FAILURE</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>FAILURE (using FAILURE_CIRCUIT)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+						<li>ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID#_#ID#</span>
+							<div>
+								<p class="fakeh5">Parameters read:</p>
+								<ul>
+									<li>BOUNCE_POTENTIOMETER_PERCENT</li>
+									<li>FAILURE</li>
+									<li>POTENTIOMETER</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Toggle_Var_Template">ASOBO_LIGHTING_Toggle_Var_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Toggle_Var_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_LIGHTING_Toggle_Var_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Lighting_Subtemplates.html#ASOBO_LIGHTING_Toggle_Var_SubTemplate">ASOBO_LIGHTING_Toggle_Var_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Update_SetLandingGearPotentiometer_Template">ASOBO_LIGHTING_Update_SetLandingGearPotentiometer_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Update_SetLandingGearPotentiometer_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;MAX_ANIM_PERCENT_FOR_LIGHTS&gt;0.75&lt;/MAX_ANIM_PERCENT_FOR_LIGHTS&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;Light_LandingGear_Update_#POTENTIOMETER#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;UPDATE_CODE&gt;
+					(A:GEAR TOTAL PCT EXTENDED, Percent) #MAX_ANIM_PERCENT_FOR_LIGHTS# &amp;gt; 100 * #POTENTIOMETER# (&amp;gt;K:2:LIGHT_POTENTIOMETER_SET)
+				&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>MAX_ANIM_PERCENT_FOR_LIGHTS</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>POTENTIOMETER</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>Light_LandingGear_Update_#POTENTIOMETER#</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>FREQUENCY</li>
+												<li>UPDATE_CODE (using MAX_ANIM_PERCENT_FOR_LIGHTS, POTENTIOMETER)</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Test_Lights_Template">ASOBO_LIGHTING_Switch_Test_Lights_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Test_Lights_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Switch_Test_Lights&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;LIGHTING_Switch_Test_Lights&lt;/ANIM_NAME&gt;
+		&lt;IE_NAME&gt;Test_Lights&lt;/IE_NAME&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.SAFETY_PUSH_TEST_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.SAFETY_PUSH_TEST_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;WWISE_EVENT_1&gt;lights_test_push_button_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;lights_test_push_button_off&lt;/WWISE_EVENT_2&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;SWITCH_POSITION_TYPE&gt;L&lt;/SWITCH_POSITION_TYPE&gt;
+		&lt;SWITCH_POSITION_VAR&gt;XMLVAR_Lights_Test&lt;/SWITCH_POSITION_VAR&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Lighting_Base_Template&quot;&gt;
+		&lt;SET_STATE_EXTERNAL&gt;(&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;EXTRA_OPTION&gt;_Held&lt;/EXTRA_OPTION&gt;
+		&lt;ANIM_HANDLED_SEPARATELY&gt;False&lt;/ANIM_HANDLED_SEPARATELY&gt;
+		&lt;TT_VALUE&gt;(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) @TT_OnOff_Cond&lt;/TT_VALUE&gt;
+		&lt;TT_VALUE_IS_DYNAMIC&gt;True&lt;/TT_VALUE_IS_DYNAMIC&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+								<li>IE_NAME</li>
+								<li>TT_DESCRIPTION_ID</li>
+								<li>TOOLTIP_TITLE</li>
+								<li>WWISE_EVENT_1</li>
+								<li>WWISE_EVENT_2</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SWITCH_POSITION_TYPE</li>
+								<li>SWITCH_POSITION_VAR</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Lighting.html#ASOBO_LIGHTING_Base_Template">ASOBO_Lighting_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>SET_STATE_EXTERNAL (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+									<li>INTERACTION_TYPE</li>
+									<li>EXTRA_OPTION</li>
+									<li>ANIM_HANDLED_SEPARATELY</li>
+									<li>TT_VALUE (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+									<li>TT_VALUE_IS_DYNAMIC</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Mode_Template">ASOBO_LIGHTING_Switch_Mode_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Mode_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_Switch_Mode&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;LIGHTING_Switch_Mode&lt;/ANIM_NAME&gt;
+		&lt;SWITCH_POSITION_TYPE&gt;L&lt;/SWITCH_POSITION_TYPE&gt;
+		&lt;SWITCH_POSITION_VAR&gt;XMLVAR_Lights_Mode&lt;/SWITCH_POSITION_VAR&gt;
+		&lt;LIMITED_INTENSITY_VALUE&gt;0.25&lt;/LIMITED_INTENSITY_VALUE&gt;
+		&lt;WWISE_EVENT&gt;lighting_switch_generic&lt;/WWISE_EVENT&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#_Parent&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;ONCE&gt;True&lt;/ONCE&gt;
+			&lt;UPDATE_CODE&gt;
+					(L:XMLVAR_Light_Mode_Factor) s1 #LIMITED_INTENSITY_VALUE# != l1 1 != and if{
+						(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 2 == if{
+							1 (&amp;gt;L:XMLVAR_Light_Mode_Factor)
+						} els{
+							#LIMITED_INTENSITY_VALUE# (&amp;gt;L:XMLVAR_Light_Mode_Factor)
+						}
+					}
+				&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NUM_STATES&gt;3&lt;/NUM_STATES&gt;
+			&lt;POS_NVG&gt;0&lt;/POS_NVG&gt;
+			&lt;POS_NITE&gt;1&lt;/POS_NITE&gt;
+			&lt;POS_DAY&gt;2&lt;/POS_DAY&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Lighting_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;INT_Lights_Mode&lt;/IE_NAME&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.AIRLINER_OVHD_KNOB_LIGHT_GLARESHIELD_PANELFLOOD_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.AIRLINER_OVHD_KNOB_LIGHT_GLARESHIELD_PANELFLOOD_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+			&lt;GET_STATE_EXTERNAL&gt;(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;SET_STATE_#POS_NVG#&gt;0 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) #LIMITED_INTENSITY_VALUE# (&amp;gt;L:XMLVAR_Light_Mode_Factor)&lt;/SET_STATE_#POS_NVG#&gt;
+			&lt;SET_STATE_#POS_NITE#&gt;1 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) #LIMITED_INTENSITY_VALUE# (&amp;gt;L:XMLVAR_Light_Mode_Factor)&lt;/SET_STATE_#POS_NITE#&gt;
+			&lt;SET_STATE_#POS_DAY#&gt;2 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 1 (&amp;gt;L:XMLVAR_Light_Mode_Factor)&lt;/SET_STATE_#POS_DAY#&gt;
+			&lt;STR_STATE_#POS_NVG#&gt;NVG&lt;/STR_STATE_#POS_NVG#&gt;
+			&lt;STR_STATE_#POS_NITE#&gt;Nite&lt;/STR_STATE_#POS_NITE#&gt;
+			&lt;STR_STATE_#POS_DAY#&gt;Day&lt;/STR_STATE_#POS_DAY#&gt;
+			&lt;TT_VALUE_#POS_NVG#&gt;@TT_Package.GT_STATE_NVG&lt;/TT_VALUE_#POS_NVG#&gt;
+			&lt;TT_VALUE_#POS_NITE#&gt;@TT_Package.GT_STATE_NITE&lt;/TT_VALUE_#POS_NITE#&gt;
+			&lt;TT_VALUE_#POS_DAY#&gt;@TT_Package.GT_STATE_DAY&lt;/TT_VALUE_#POS_DAY#&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+								<li>SWITCH_POSITION_TYPE</li>
+								<li>SWITCH_POSITION_VAR</li>
+								<li>LIMITED_INTENSITY_VALUE</li>
+								<li>WWISE_EVENT</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID#_Parent</span>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NUM_STATES</li>
+									<li>POS_NVG</li>
+									<li>POS_NITE</li>
+									<li>POS_DAY</li>
+								</ul>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>ONCE</li>
+												<li>UPDATE_CODE (using LIMITED_INTENSITY_VALUE, SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<a href="Lighting.html#ASOBO_LIGHTING_Base_Template">ASOBO_Lighting_Base_Template</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>IE_NAME</li>
+												<li>TOOLTIP_TITLE</li>
+												<li>TT_DESCRIPTION_ID</li>
+												<li>INTERACTION_TYPE</li>
+												<li>GET_STATE_EXTERNAL (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+												<li>SET_STATE_#POS_NVG# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR, LIMITED_INTENSITY_VALUE)</li>
+												<li>SET_STATE_#POS_NITE# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR, LIMITED_INTENSITY_VALUE)</li>
+												<li>SET_STATE_#POS_DAY# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+												<li>STR_STATE_#POS_NVG#</li>
+												<li>STR_STATE_#POS_NITE#</li>
+												<li>STR_STATE_#POS_DAY#</li>
+												<li>TT_VALUE_#POS_NVG#</li>
+												<li>TT_VALUE_#POS_NITE#</li>
+												<li>TT_VALUE_#POS_DAY#</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_AOA_Template">ASOBO_LIGHTING_AOA_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_AOA_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;LIGHTING_AOA_&lt;/NODE_ID&gt;
+		&lt;Switch Param=&quot;TYPE&quot;&gt;
+			&lt;Case Value=&quot;GREEN&quot;&gt;
+				&lt;MIN_AOA&gt;8.8&lt;/MIN_AOA&gt;
+				&lt;MAX_AOA&gt;99&lt;/MAX_AOA&gt;
+			&lt;/Case&gt;
+			&lt;Case Value=&quot;YELLOW&quot;&gt;
+				&lt;MIN_AOA&gt;6.9&lt;/MIN_AOA&gt;
+				&lt;MAX_AOA&gt;9.3&lt;/MAX_AOA&gt;
+			&lt;/Case&gt;
+			&lt;Case Value=&quot;RED&quot;&gt;
+				&lt;MIN_AOA&gt;-99&lt;/MIN_AOA&gt;
+				&lt;MAX_AOA&gt;7.4&lt;/MAX_AOA&gt;
+			&lt;/Case&gt;
+		&lt;/Switch&gt;
+		&lt;BRIGHTNESS_VAR&gt;1&lt;/BRIGHTNESS_VAR&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+		&lt;EMISSIVE_CODE&gt;
+				(A:INCIDENCE ALPHA, degrees) s1 #MIN_AOA# &amp;gt; l1 #MAX_AOA# &amp;lt; and #BRIGHTNESS_VAR# *
+			&lt;/EMISSIVE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>BRIGHTNESS_VAR</li>
+							</ul>
+							<p class="fakeh5">Condition: Switch(TYPE)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: GREEN</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>MIN_AOA</li>
+												<li>MAX_AOA</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: YELLOW</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>MIN_AOA</li>
+												<li>MAX_AOA</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: RED</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>MIN_AOA</li>
+												<li>MAX_AOA</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Emissive.html#ASOBO_GT_Component_Emissive_Gauge">ASOBO_GT_Component_Emissive_Gauge</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>EMISSIVE_CODE (using MIN_AOA, MAX_AOA, BRIGHTNESS_VAR)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Switch_Light_Exterior_Template">ASOBO_LIGHTING_Switch_Light_Exterior_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Switch_Light_Exterior_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;SWITCH_POSITION_TYPE&gt;L&lt;/SWITCH_POSITION_TYPE&gt;
+		&lt;SWITCH_POSITION_VAR&gt;XMLVAR_EXT_Lights_Mode&lt;/SWITCH_POSITION_VAR&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#_Parent&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NUM_STATES&gt;3&lt;/NUM_STATES&gt;
+			&lt;POS_NORM&gt;0&lt;/POS_NORM&gt;
+			&lt;POS_NVIS&gt;1&lt;/POS_NVIS&gt;
+			&lt;POS_OFF&gt;2&lt;/POS_OFF&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Lighting_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;EXT_Lights_Mode&lt;/IE_NAME&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.LIGHTING_SWITCH_EXT_LIGHTS_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.LIGHTING_SWITCH_EXT_LIGHTS_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+			&lt;GET_STATE_EXTERNAL&gt;(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;Condition Valid=&quot;EXT_LTS_BUS_ID&quot;&gt;
+				&lt;True&gt;
+					&lt;SET_STATE_#POS_OFF#&gt;2 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) #EXT_LTS_BUS_ID# #BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) &lt;/SET_STATE_#POS_OFF#&gt;
+					&lt;SET_STATE_#POS_NVIS#&gt;1 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) (A:BUS CONNECTION ON:#EXT_LTS_BUS_ID#,Bool) 0 == if{ #EXT_LTS_BUS_ID# #BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/SET_STATE_#POS_NVIS#&gt;
+					&lt;SET_STATE_#POS_NORM#&gt;0 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) &lt;/SET_STATE_#POS_NORM#&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;SET_STATE_#POS_OFF#&gt;2 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_#POS_OFF#&gt;
+					&lt;SET_STATE_#POS_NVIS#&gt;1 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_#POS_NVIS#&gt;
+					&lt;SET_STATE_#POS_NORM#&gt;0 (&amp;gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)&lt;/SET_STATE_#POS_NORM#&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;STR_STATE_#POS_NORM#&gt;Norm&lt;/STR_STATE_#POS_NORM#&gt;
+			&lt;STR_STATE_#POS_NVIS#&gt;NVis&lt;/STR_STATE_#POS_NVIS#&gt;
+			&lt;STR_STATE_#POS_OFF#&gt;Off&lt;/STR_STATE_#POS_OFF#&gt;
+			&lt;TT_VALUE_#POS_NORM#&gt;@TT_Package.GT_STATE_NORMAL&lt;/TT_VALUE_#POS_NORM#&gt;
+			&lt;TT_VALUE_#POS_NVIS#&gt;@TT_Package.GT_STATE_NIGHT&lt;/TT_VALUE_#POS_NVIS#&gt;
+			&lt;TT_VALUE_#POS_OFF#&gt;@TT_Package.GT_STATE_OFF&lt;/TT_VALUE_#POS_OFF#&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SWITCH_POSITION_TYPE</li>
+								<li>SWITCH_POSITION_VAR</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID#_Parent</span>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NUM_STATES</li>
+									<li>POS_NORM</li>
+									<li>POS_NVIS</li>
+									<li>POS_OFF</li>
+								</ul>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="Lighting.html#ASOBO_LIGHTING_Base_Template">ASOBO_Lighting_Base_Template</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>IE_NAME</li>
+												<li>TOOLTIP_TITLE</li>
+												<li>TT_DESCRIPTION_ID</li>
+												<li>INTERACTION_TYPE</li>
+												<li>GET_STATE_EXTERNAL (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+												<li>STR_STATE_#POS_NORM#</li>
+												<li>STR_STATE_#POS_NVIS#</li>
+												<li>STR_STATE_#POS_OFF#</li>
+												<li>TT_VALUE_#POS_NORM#</li>
+												<li>TT_VALUE_#POS_NVIS#</li>
+												<li>TT_VALUE_#POS_OFF#</li>
+											</ul>
+											<p class="fakeh5">Condition: Valid(EXT_LTS_BUS_ID)</p>
+											<ul>
+												
+												<li>
+													<div>
+														<div class="collapsible">Case: True</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>SET_STATE_#POS_OFF# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR, EXT_LTS_BUS_ID, BUS_ID)</li>
+																<li>SET_STATE_#POS_NVIS# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR, EXT_LTS_BUS_ID, BUS_ID)</li>
+																<li>SET_STATE_#POS_NORM# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+												<li>
+													<div>
+														<div class="collapsible">Case: False</div>
+														<div class="collapsibleContent">
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>SET_STATE_#POS_OFF# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+																<li>SET_STATE_#POS_NVIS# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+																<li>SET_STATE_#POS_NORM# (using SWITCH_POSITION_TYPE, SWITCH_POSITION_VAR)</li>
+															</ul>
+														</div>
+													</div>
+												</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Base_Template">ASOBO_LIGHTING_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Base_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;LIGHTING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;WWISE_PREFIX&gt;LIGHTING&lt;/WWISE_PREFIX&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;LIGHTING&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INPUT_EVENT_ID_SOURCE</li>
+								<li>WWISE_PREFIX</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Base_Template">ASOBO_Interaction_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Push_Event_Base_Template">ASOBO_LIGHTING_Push_Event_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Push_Event_Base_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Push_Event_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;LIGHTING&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Push_Event_Base_Template">ASOBO_Interaction_Push_Event_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_LIGHTING_Pull_Event_Base_Template">ASOBO_LIGHTING_Pull_Event_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_LIGHTING_Pull_Event_Base_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Pull_Event_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;LIGHTING&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Pull_Event_Base_Template">ASOBO_Interaction_Pull_Event_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.3.2_11"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

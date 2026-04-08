@@ -1,0 +1,4310 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>Handling.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\Common\Handling.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+	&lt;Include RelativeFile=&quot;Subtemplates\\Handling_Subtemplates.xml&quot;/&gt;
+	&lt;Include RelativeFile=&quot;Inputs\\Handling_Inputs.xml&quot;/&gt;
+	&lt;!-- ################################## HANDLING ################################## --&gt;
+	&lt;!-- ############################################################################## --&gt;
+	&lt;!-- Yoke that cannot be hidden --&gt;
+	&lt;!-- 
+		NODE_ID: Node that should be highlighted during checklist
+		
+		optional: 
+		CREATE_TWO_NODES: create both yoke nodes and there respective highlight
+			NODE_ID2: other Node that should be highlighted during checklist (ex: copilot yoke)
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Yoke_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Yoke_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;!-- Yoke that can be hidden --&gt;
+	&lt;!-- 
+		NODE_ID: root node of Yoke and decorative elements (ex: cables, buttons)
+		YOKE_NODE_ID: Node that should be highlighted during checklist
+		YOKE_HIDER_NODE_ID: Node that is used to toggle the visibility of the yoke (often the base of the yoke, never the yoke itself)
+		by default (without any option) also create the animations for both yokes, 
+		- to create additional yokes (ex: copilot yoke) use the option ONLY_HIDEABLE (this will also make it highlightable)
+		- to hide unwanted features taht are not parented to the Yoke itself use the option ONLY_DECORATIVE
+		
+		subTemplate relevant options: 
+		CREATE_TWO_NODES: create both yoke nodes and there respective highlight in the same template
+			NODE_ID2: other Node that should be highlighted during checklist (ex: copilot yoke)
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Yoke_Hideable_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Yoke_Hideable_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Timer_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Timer_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_Timer_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Timer_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_StormClear_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_StormClear_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_StormClear_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_StormClear_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_CWS_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_CWS_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_CWS_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_CWS_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Ident_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Ident_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_Ident_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Ident_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Swap_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Swap_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_Swap_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Swap_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_AP_Trim_Disc_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AP_Trim_Disc_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Steering_Tiller_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Steering_Tiller_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_ElevatorTrim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_ElevatorTrim_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Wheel_ElevatorTrim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_ElevatorTrim_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;WHEEL&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Secondary_Trim_Available_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Secondary_Trim_Available_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_Secondary_ElevatorTrim_Available_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Secondary_Trim_Available_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+			&lt;TRIM_NAME&gt;Elevator&lt;/TRIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Joystick_YawPitch_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Joystick_YawPitch_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_AntiSkid_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AntiSkid_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AntiSkid_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AntiSkid_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_GLimiter_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_GLimiter_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_GLimiter_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_GLimiter_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_GLimiter_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_GLimiter_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!-- InertSep --&gt;
+	&lt;Template name=&quot;ASOBO_HANDLING_InertSep_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_InertSep_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template name=&quot;ASOBO_HANDLING_Lever_InertSep_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_InertSep_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!-- Rudder trim --&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Knob_RudderTrim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderTrim_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_RudderTrim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderTrim_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Wheel_RudderTrim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderTrim_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;WHEEL&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!-- Rudder pedals --&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_RudderPedals_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;Condition Check=&quot;SPLIT_RUDDERS&quot;&gt;
+				&lt;True&gt;
+					&lt;RUDDERPEDALS_TYPE&gt;SPLITTED&lt;/RUDDERPEDALS_TYPE&gt;
+				&lt;/True&gt;
+			&lt;/Condition&gt;
+			&lt;!-- &lt;DIFFERENTIATE_BRAKE_ANIM_L_R&gt;True&lt;/DIFFERENTIATE_BRAKE_ANIM_L_R&gt; --&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderPedals_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_RudderPedals_Brake_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+			&lt;ANIM_NAME_L&gt;HANDLING_RudderPedals_Brake_L&lt;/ANIM_NAME_L&gt;
+			&lt;ANIM_NAME_R&gt;HANDLING_RudderPedals_Brake_R&lt;/ANIM_NAME_R&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;Condition Valid=&quot;DONT_BRAKE_ON_PARKINGBRAKE&quot;&gt;
+				&lt;True&gt;
+					&lt;SIMVAR_END&gt; EX1&lt;/SIMVAR_END&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;SIMVAR_END/&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		&lt;Condition Valid=&quot;DIFFERENTIATE_BRAKE_ANIM_L_R&quot;&gt;
+			&lt;True&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+					&lt;ANIM_NAME&gt;#ANIM_NAME_L#&lt;/ANIM_NAME&gt;
+					&lt;ANIM_SIMVAR&gt;BRAKE LEFT POSITION#SIMVAR_END#&lt;/ANIM_SIMVAR&gt;
+					&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+				&lt;/UseTemplate&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+					&lt;ANIM_NAME&gt;#ANIM_NAME_R#&lt;/ANIM_NAME&gt;
+					&lt;ANIM_SIMVAR&gt;BRAKE RIGHT POSITION#SIMVAR_END#&lt;/ANIM_SIMVAR&gt;
+					&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+					&lt;ANIM_SIMVAR&gt;BRAKE LEFT POSITION#SIMVAR_END#&lt;/ANIM_SIMVAR&gt;
+					&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Autobrakes_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Autobrakes_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_Autobrakes_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Autobrakes_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Knob_Autobrakes_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Autobrakes_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Indicator_ElevatorTrim_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_NAME&gt;HANDLING_Indicator_ElevatorTrim&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;Switch&gt;
+			&lt;Case Check=&quot;REF_VALUE_0&quot;&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code&quot;&gt;
+					&lt;SELECTION&gt;(A:ELEVATOR TRIM POSITION, degrees)&lt;/SELECTION&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Case&gt;
+			&lt;Case Check=&quot;DISCRETE_STATES&quot;&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+					&lt;ANIM_CODE&gt;(A:ELEVATOR TRIM PCT, Percent) 100 + 200 / #DISCRETE_STATES# * near&lt;/ANIM_CODE&gt;
+					&lt;ANIM_LENGTH&gt;#DISCRETE_STATES#&lt;/ANIM_LENGTH&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Case&gt;
+			&lt;Case Check=&quot;ANIM_CODE&quot;&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;/&gt;
+			&lt;/Case&gt;
+			&lt;Default&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+					&lt;ANIM_LENGTH&gt;200&lt;/ANIM_LENGTH&gt;
+					&lt;ANIM_SIMVAR&gt;ELEVATOR TRIM PCT&lt;/ANIM_SIMVAR&gt;
+					&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+					&lt;!-- [-100, 100] --&gt;
+					&lt;ANIM_SIMVAR_BIAS&gt;100&lt;/ANIM_SIMVAR_BIAS&gt;
+					&lt;!-- [-100, 100] + 100 =&gt; [0, 200] --&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Default&gt;
+		&lt;/Switch&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_AutoSpoiler_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AutoSpoiler_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_AutoSpoiler_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AutoSpoiler_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	
+	&lt;Template Name=&quot;ASOBO_HANDLING_Spoilers_Int_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Spoilers_Int_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Spoiler_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Spoilers_Int_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Spoilers_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Spoilers_Int_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	
+	&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Flaps_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Flaps_Continuous_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+			&lt;IS_CONTINUOUS&gt;True&lt;/IS_CONTINUOUS&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!--
+		Require SELECTED_FLAPS_DEGREE (default 0) and MAX_FLAPS_DEGREE (default 45)
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Button_Flaps_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Lever_With_Button_Flaps_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+			&lt;HAS_BUTTON&gt;True&lt;/HAS_BUTTON&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Indicator_Flaps_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_NAME&gt;HANDLING_Indicator_Flaps&lt;/ANIM_NAME&gt;
+			&lt;NODE_ID&gt;HANDLING_Indicator_Flaps&lt;/NODE_ID&gt;
+			&lt;PART_ID&gt;HANDLING_Indicator_Flaps&lt;/PART_ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+				&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+				&lt;ANIM_SIMVAR&gt;TRAILING EDGE FLAPS LEFT PERCENT&lt;/ANIM_SIMVAR&gt;
+				&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AileronTrim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AileronTrim_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Knob_AileronTrim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AileronTrim_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!-- Light up when elevator trim is near 0% --&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Light_ElevatorTrim_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_Light_ElevatorTrim&lt;/NODE_ID&gt;
+			&lt;TRIM_TYPE&gt;ELEVATOR&lt;/TRIM_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Trim_Subtemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;!-- Light up when rudder trim is near 0% --&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Light_RudderTrim_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_Light_RudderTrim&lt;/NODE_ID&gt;
+			&lt;TRIM_TYPE&gt;RUDDER&lt;/TRIM_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Trim_Subtemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;!-- Light up when aileron trim is near 0% --&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Light_AileronTrim_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_Light_AileronTrim&lt;/NODE_ID&gt;
+			&lt;TRIM_TYPE&gt;AILERON&lt;/TRIM_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Trim_Subtemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;!-- Trim combination in a switch --&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Combined_Trim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Combined_Trim_SubTemplate&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Joystick&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Elevator_Aileron_Trim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Combined_Trim_Template&quot;&gt;
+			&lt;UP_DN_TRIM_TYPE&gt;ELEVATOR&lt;/UP_DN_TRIM_TYPE&gt;
+			&lt;L_R_TRIM_TYPE&gt;AILERON&lt;/L_R_TRIM_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Longitudinal_Lateral_Trim_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Combined_Trim_Template&quot;&gt;
+			&lt;UP_DN_TRIM_TYPE&gt;LONGITUDINAL&lt;/UP_DN_TRIM_TYPE&gt;
+			&lt;L_R_TRIM_TYPE&gt;LATERAL&lt;/L_R_TRIM_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!--
+	With default use case, you can set
+		TARGET_ANGLE_DEGREE: will light up when flaps reach this degree (default 0)
+		VALUE_RANGE: increase degree range for degree lighting (default 0.1)
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Light_Flaps_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;MAX_FLAPS_INDEX&gt;(A:FLAPS NUM HANDLE POSITIONS, Number)&lt;/MAX_FLAPS_INDEX&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Flaps_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Light_Flaps_Transit_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_Light_Flaps_#ID#&lt;/NODE_ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Emissive_Gauge&quot;&gt;
+				&lt;EMISSIVE_CODE&gt;(A:CIRCUIT FLAP MOTOR ON, Bool)&lt;/EMISSIVE_CODE&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Water_Rudder_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Water_Rudder_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+			&lt;INVERT_INTERACTION&gt;True&lt;/INVERT_INTERACTION&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Wing_Fold_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_Switch_Wing_Fold&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;HANDLING_Switch_Wing_Fold&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;Lever_WingFold&lt;/IE_NAME&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.WING_FOLD_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.WING_FOLD_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_RETRACTED&lt;/TT_VALUE_ON&gt;
+			&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_EXTENDED&lt;/TT_VALUE_OFF&gt;
+			&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+			&lt;SET_STATE_EXTERNAL&gt;p0 (&amp;gt;K:SET_WING_FOLD)&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;GET_STATE_EXTERNAL&gt;(A:FOLDING WING HANDLE POSITION, Boolean) sp0&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;WWISE_EVENT_1&gt;wing_fold_switch_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;wing_fold_switch_off&lt;/WWISE_EVENT_2&gt;
+			&lt;BINDING_SET_0&gt;Toggle&lt;/BINDING_SET_0&gt;
+			&lt;BINDING_SET_0_PARAM_0&gt;(B:HANDLING_Lever_WingFold) !&lt;/BINDING_SET_0_PARAM_0&gt;
+			&lt;BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;
+			&lt;BINDING_SET_0_EVENT_ID&gt;TOGGLE_WING_FOLD&lt;/BINDING_SET_0_EVENT_ID&gt;
+			&lt;BINDING_SET_1&gt;Set&lt;/BINDING_SET_1&gt;
+			&lt;BINDING_SET_1_PARAM_0&gt;p0 0 !=&lt;/BINDING_SET_1_PARAM_0&gt;
+			&lt;BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;
+			&lt;BINDING_SET_1_EVENT_ID&gt;SET_WING_FOLD&lt;/BINDING_SET_1_EVENT_ID&gt;
+			&lt;SIMVAR_TO_WATCH_0&gt;FOLDING WING HANDLE POSITION&lt;/SIMVAR_TO_WATCH_0&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Wipers_Controller_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Wipers_Controller_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Wipers_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Wipers_Controller_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Knob_Wipers_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Wipers_Controller_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Launch_Bar_Retract_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_Launch_Bar_Retract&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;HANDLING_Launch_Bar_Retract&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;Lever_LaunchBar&lt;/IE_NAME&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.LAUNCH_BAR_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.LAUNCH_BAR_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_EXTENDED&lt;/TT_VALUE_ON&gt;
+			&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_RETRACTED&lt;/TT_VALUE_OFF&gt;
+			&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+			&lt;SET_STATE_EXTERNAL&gt;p0 (&amp;gt;K:SET_LAUNCH_BAR_SWITCH)&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;GET_STATE_EXTERNAL&gt;(A:LAUNCHBAR SWITCH, Boolean) sp0&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;WWISE_EVENT_1&gt;launchbar_switch_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;launchbar_switch_off&lt;/WWISE_EVENT_2&gt;
+			&lt;BINDING_SET_0&gt;Toggle&lt;/BINDING_SET_0&gt;
+			&lt;BINDING_SET_0_PARAM_0&gt;(B:HANDLING_Lever_LaunchBar) !&lt;/BINDING_SET_0_PARAM_0&gt;
+			&lt;BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;
+			&lt;BINDING_SET_0_EVENT_ID&gt;TOGGLE_LAUNCH_BAR_SWITCH&lt;/BINDING_SET_0_EVENT_ID&gt;
+			&lt;BINDING_SET_1&gt;Set&lt;/BINDING_SET_1&gt;
+			&lt;BINDING_SET_1_PARAM_0&gt;p0 0 !=&lt;/BINDING_SET_1_PARAM_0&gt;
+			&lt;BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;
+			&lt;BINDING_SET_1_EVENT_ID&gt;SET_LAUNCH_BAR_SWITCH&lt;/BINDING_SET_1_EVENT_ID&gt;
+			&lt;SIMVAR_TO_WATCH_0&gt;LAUNCHBAR SWITCH&lt;/SIMVAR_TO_WATCH_0&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_TailHook_Lever_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_TailHook_Lever&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;HANDLING_TailHook_Lever&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		
+		&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;Lever_TailHook&lt;/IE_NAME&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.TAIL_HOOK_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.TAIL_HOOK_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_EXTENDED&lt;/TT_VALUE_ON&gt;
+			&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_RETRACTED&lt;/TT_VALUE_OFF&gt;
+			&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+			&lt;SET_STATE_EXTERNAL&gt;p0 (&amp;gt;K:SET_TAIL_HOOK_HANDLE)&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;GET_STATE_EXTERNAL&gt;(A:TAILHOOK HANDLE, Boolean) sp0&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;WWISE_EVENT_1&gt;tailhook_switch_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;tailhook_switch_off&lt;/WWISE_EVENT_2&gt;
+			&lt;BINDING_SET_0&gt;Toggle&lt;/BINDING_SET_0&gt;
+			&lt;BINDING_SET_0_PARAM_0&gt;(B:HANDLING_Lever_TailHook) !&lt;/BINDING_SET_0_PARAM_0&gt;
+			&lt;BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;
+			&lt;BINDING_SET_0_EVENT_ID&gt;TOGGLE_TAIL_HOOK_HANDLE&lt;/BINDING_SET_0_EVENT_ID&gt;
+			&lt;BINDING_SET_1&gt;Set&lt;/BINDING_SET_1&gt;
+			&lt;BINDING_SET_1_PARAM_0&gt;p0 0 !=&lt;/BINDING_SET_1_PARAM_0&gt;
+			&lt;BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;
+			&lt;BINDING_SET_1_EVENT_ID&gt;SET_TAIL_HOOK_HANDLE&lt;/BINDING_SET_1_EVENT_ID&gt;
+			&lt;SIMVAR_TO_WATCH_0&gt;TAILHOOK HANDLE&lt;/SIMVAR_TO_WATCH_0&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	
+	&lt;Template Name=&quot;ASOBO_HANDLING_Trim_Reset_Push_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;HANDLING_Push_Trim_Reset&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;HANDLING_Push_Trim_Reset&lt;/ANIM_NAME&gt;
+			&lt;RUDDER_RESET_VALUE&gt;0&lt;/RUDDER_RESET_VALUE&gt;
+			&lt;ELEVATOR_RESET_VALUE&gt;0&lt;/ELEVATOR_RESET_VALUE&gt;
+			&lt;AILERON_RESET_VALUE&gt;0&lt;/AILERON_RESET_VALUE&gt;
+			&lt;RUDDER_RESET/&gt;
+			&lt;ELEVATOR_RESET/&gt;
+			&lt;AILERON_RESET/&gt;
+			&lt;WWISE_EVENT_1&gt;trim_reset_push_button_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;trim_reset_push_button_off&lt;/WWISE_EVENT_2&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;Condition Valid=&quot;NO_RUDDER_RESET&quot;&gt;
+				&lt;False&gt;
+					&lt;RUDDER_RESET&gt;#RUDDER_RESET_VALUE# (&amp;gt;K:RUDDER_TRIM_SET)&lt;/RUDDER_RESET&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Valid=&quot;NO_RUDDER_ELEVATOR&quot;&gt;
+				&lt;False&gt;
+					&lt;ELEVATOR_RESET&gt;#ELEVATOR_RESET_VALUE# (&amp;gt;K:ELEVATOR_TRIM_SET)&lt;/ELEVATOR_RESET&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Valid=&quot;NO_AILERON_RESET&quot;&gt;
+				&lt;False&gt;
+					&lt;AILERON_RESET&gt;#AILERON_RESET_VALUE# (&amp;gt;K:AILERON_TRIM_SET)&lt;/AILERON_RESET&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		
+		&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;HANDLING_Trim_Reset&lt;/IE_NAME&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.HANDLING_PUSH_TRIMRESET_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.HANDLING_PUSH_TRIMRESET_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;SET_STATE_EXTERNAL&gt;
+				#RUDDER_RESET#
+				#AILERON_RESET#
+				(A:SIM ON GROUND,Bool) if{ #ELEVATOR_RESET# }
+			&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!-- ########################################## --&gt;
+	&lt;!-- HANDLING Interaction inputs setup template --&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Base_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;HANDLING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+			&lt;WWISE_PREFIX&gt;HANDLING&lt;/WWISE_PREFIX&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_Event_Base_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Push_Event_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Pull_Event_Base_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Pull_Event_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Axis_Event_Base_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;HANDLING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Axis_Event_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_HANDLING_Update_Unlock_Tailwheel&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;0&lt;/ID&gt;
+			&lt;TAILWHEEL_LOCK_MAX_ANGLE&gt;2&lt;/TAILWHEEL_LOCK_MAX_ANGLE&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;LOCK_CODE&gt;(&amp;gt;K:TOGGLE_TAILWHEEL_LOCK)&lt;/LOCK_CODE&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;Condition&gt;
+				&lt;Test&gt;
+					&lt;Greater&gt;
+						&lt;Value&gt;TAILWHEEL_LOCK_MAX_ANGLE&lt;/Value&gt;
+						&lt;Number&gt;0&lt;/Number&gt;
+					&lt;/Greater&gt;
+				&lt;/Test&gt;
+				&lt;True&gt;
+					&lt;LOCK_CODE&gt;
+						l1 (A:GEAR STEER ANGLE:#ID#, degrees) abs #TAILWHEEL_LOCK_MAX_ANGLE# &amp;lt; or if{
+						(* Tailwheel only relocks when  *)
+						#LOCK_CODE#
+						}
+					&lt;/LOCK_CODE&gt;
+				&lt;/True&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;2&lt;/FREQUENCY&gt;
+			&lt;UPDATE_CODE&gt;
+				(A:YOKE Y POSITION, percent) -90 &amp;lt; (A:TAILWHEEL LOCK ON, Bool) s1 == if{
+				#LOCK_CODE#
+				}
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Water_Ballast_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;Switch_Water_Ballast_#ID#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;Switch_Water_Ballast_#ID#&lt;/ANIM_NAME&gt;
+			&lt;IE_NAME&gt;Glider_Switch_Water_Ballast_#ID#&lt;/IE_NAME&gt;
+			&lt;MIN_BALLAST_TO_TOGGLE&gt;1&lt;/MIN_BALLAST_TO_TOGGLE&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;GET_STATE_EXTERNAL/&gt;
+			&lt;SET_STATE_EXTERNAL/&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;Condition NotEmpty=&quot;BALLAST_VALVE_ID_1&quot;&gt;
+				&lt;True&gt;
+					&lt;Loop&gt;
+						&lt;Setup&gt;
+							&lt;Param&gt;CUR_ID&lt;/Param&gt;
+							&lt;From&gt;1&lt;/From&gt;
+							&lt;Inc&gt;1&lt;/Inc&gt;
+							&lt;While&gt;
+								&lt;Arg Valid=&quot;BALLAST_VALVE_ID_#CUR_ID#&quot;/&gt;
+							&lt;/While&gt;
+						&lt;/Setup&gt;
+						&lt;Do&gt;
+							&lt;Parameters Type=&quot;Default&quot; Lifetime=&quot;Loop&quot;&gt;
+								&lt;SET_STATE_EXTERNAL_T/&gt;
+								&lt;GET_STATE_EXTERNAL_T&gt;1&lt;/GET_STATE_EXTERNAL_T&gt;
+							&lt;/Parameters&gt;
+							&lt;Parameters Type=&quot;Override&quot; Lifetime=&quot;Loop&quot;&gt;
+								&lt;CUR_BALLAST_ID Process=&quot;Param&quot;&gt;BALLAST_VALVE_ID_#CUR_ID#&lt;/CUR_BALLAST_ID&gt;
+							&lt;/Parameters&gt;
+							&lt;Parameters Type=&quot;Override&quot; Lifetime=&quot;Loop&quot;&gt;
+								&lt;SET_STATE_EXTERNAL_T&gt;#SET_STATE_EXTERNAL_T# (A:WATER BALLAST VALVE:#CUR_BALLAST_ID#, Boolean) (O:HANDLING_#IE_NAME#_Position) != if{ #CUR_BALLAST_ID# (&amp;gt;K:TOGGLE_WATER_BALLAST_VALVE) }&lt;/SET_STATE_EXTERNAL_T&gt;
+								&lt;GET_STATE_EXTERNAL_T&gt;#GET_STATE_EXTERNAL_T# (A:WATER BALLAST VALVE:#CUR_BALLAST_ID#, Boolean) and&lt;/GET_STATE_EXTERNAL_T&gt;
+							&lt;/Parameters&gt;
+						&lt;/Do&gt;
+						&lt;Then&gt;
+							&lt;SET_STATE_EXTERNAL&gt;#SET_STATE_EXTERNAL_T# sp0&lt;/SET_STATE_EXTERNAL&gt;
+							&lt;GET_STATE_EXTERNAL&gt;#GET_STATE_EXTERNAL_T#&lt;/GET_STATE_EXTERNAL&gt;
+						&lt;/Then&gt;
+					&lt;/Loop&gt;
+				&lt;/True&gt;
+				&lt;False&gt;
+					&lt;GET_STATE_EXTERNAL&gt;(A:WATER BALLAST VALVE:#ID#) sp0&lt;/GET_STATE_EXTERNAL&gt;
+					&lt;SET_STATE_EXTERNAL&gt;(A:WATER BALLAST VALVE:#ID#, Boolean) (O:HANDLING_#IE_NAME#_Position) != if{ #ID# (&amp;gt;K:TOGGLE_WATER_BALLAST_VALVE) }&lt;/SET_STATE_EXTERNAL&gt;
+				&lt;/False&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		
+		&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;					
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.WATER_BALLAST_VALVE_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.WATER_BALLAST_VALVE_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+			&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_OPEN&lt;/TT_VALUE_ON&gt;
+			&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_CLOSED&lt;/TT_VALUE_OFF&gt;
+			&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	
+	&lt;Template Name=&quot;ASOBO_HANDLING_Push_Tow_Release&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;&lt;/ANIM_NAME&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.TOW_RELEASE_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.TOW_RELEASE_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TT_VALUE&gt;(A:TOW CONNECTION, Bool) if{ (R:1:@TT_Package.GT_STATE_CONNECTED) } els{ (R:1:@TT_Package.GT_STATE_RELEASED) }&lt;/TT_VALUE&gt;
+			&lt;TT_VALUE_IS_DYNAMIC&gt;True&lt;/TT_VALUE_IS_DYNAMIC&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;HANDLING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+			&lt;WWISE_PREFIX&gt;Tow_Release&lt;/WWISE_PREFIX&gt;
+			&lt;IE_NAME&gt;Tow_Release&lt;/IE_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+			&lt;CREATE_COMPONENT&gt;True&lt;/CREATE_COMPONENT&gt;
+			&lt;SET_STATE_EXTERNAL&gt;(&amp;gt;K:TOW_PLANE_RELEASE)&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;GET_STATE_EXTERNAL&gt;(A:TOW RELEASE HANDLE,percent over 100) (&amp;gt;O:_ButtonAnimVar)&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;SIMVAR_TO_WATCH_0&gt;TOW RELEASE HANDLE&lt;/SIMVAR_TO_WATCH_0&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+&lt;/ModelBehaviors&gt;
+</div>
+		<h3>Includes</h3>
+		<ul>
+			<li>
+				RelativeFile: 
+				<a href="Subtemplates/Handling_Subtemplates.html">Subtemplates\\Handling_Subtemplates.xml</a>
+			</li>
+			<li>
+				RelativeFile: 
+				<a href="Inputs/Handling_Inputs.html">Inputs\\Handling_Inputs.xml</a>
+			</li>
+		</ul>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_HANDLING_Yoke_Template">ASOBO_HANDLING_Yoke_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Yoke_Hideable_Template">ASOBO_HANDLING_Yoke_Hideable_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Timer_Template">ASOBO_HANDLING_Timer_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_Timer_Template">ASOBO_HANDLING_Push_Timer_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_StormClear_Template">ASOBO_HANDLING_StormClear_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_StormClear_Template">ASOBO_HANDLING_Push_StormClear_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_CWS_Template">ASOBO_HANDLING_CWS_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_CWS_Template">ASOBO_HANDLING_Push_CWS_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Ident_Template">ASOBO_HANDLING_Ident_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_Ident_Template">ASOBO_HANDLING_Push_Ident_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Swap_Template">ASOBO_HANDLING_Swap_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_Swap_Template">ASOBO_HANDLING_Push_Swap_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_AP_Trim_Disc_Template">ASOBO_HANDLING_AP_Trim_Disc_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_AP_Trim_Disc_Template">ASOBO_HANDLING_Push_AP_Trim_Disc_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_AP_Trim_Disc_Template">ASOBO_HANDLING_Switch_AP_Trim_Disc_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Steering_Tiller_Template">ASOBO_HANDLING_Steering_Tiller_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_ElevatorTrim_Template">ASOBO_HANDLING_Switch_ElevatorTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Wheel_ElevatorTrim_Template">ASOBO_HANDLING_Wheel_ElevatorTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Secondary_Trim_Available_Template">ASOBO_HANDLING_Secondary_Trim_Available_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_Secondary_ElevatorTrim_Available_Template">ASOBO_HANDLING_Push_Secondary_ElevatorTrim_Available_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Joystick_YawPitch_Template">ASOBO_HANDLING_Joystick_YawPitch_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_AntiSkid_Template">ASOBO_HANDLING_AntiSkid_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_AntiSkid_Template">ASOBO_HANDLING_Switch_AntiSkid_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_GLimiter_Template">ASOBO_HANDLING_GLimiter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_GLimiter_Template">ASOBO_HANDLING_Push_GLimiter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_GLimiter_Template">ASOBO_HANDLING_Switch_GLimiter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_InertSep_Template">ASOBO_HANDLING_InertSep_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Lever_InertSep_Template">ASOBO_HANDLING_Lever_InertSep_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Knob_RudderTrim_Template">ASOBO_HANDLING_Knob_RudderTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_RudderTrim_Template">ASOBO_HANDLING_Switch_RudderTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Wheel_RudderTrim_Template">ASOBO_HANDLING_Wheel_RudderTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_RudderPedals_Template">ASOBO_HANDLING_RudderPedals_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_RudderPedals_Brake_Template">ASOBO_HANDLING_RudderPedals_Brake_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Autobrakes_Template">ASOBO_HANDLING_Autobrakes_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_Autobrakes_Template">ASOBO_HANDLING_Push_Autobrakes_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Knob_Autobrakes_Template">ASOBO_HANDLING_Knob_Autobrakes_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Indicator_ElevatorTrim_Template">ASOBO_HANDLING_Indicator_ElevatorTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_AutoSpoiler_Template">ASOBO_HANDLING_AutoSpoiler_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_AutoSpoiler_Template">ASOBO_HANDLING_Push_AutoSpoiler_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Spoilers_Int_Template">ASOBO_HANDLING_Spoilers_Int_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_Spoiler_Template">ASOBO_HANDLING_Switch_Spoiler_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Lever_Spoilers_Template">ASOBO_HANDLING_Lever_Spoilers_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Lever_Flaps_Template">ASOBO_HANDLING_Lever_Flaps_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Lever_Flaps_Continuous_Template">ASOBO_HANDLING_Lever_Flaps_Continuous_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Button_Flaps_Template">ASOBO_HANDLING_Button_Flaps_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Lever_With_Button_Flaps_Template">ASOBO_HANDLING_Lever_With_Button_Flaps_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Indicator_Flaps_Template">ASOBO_HANDLING_Indicator_Flaps_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_Template">ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_AileronTrim_Template">ASOBO_HANDLING_Switch_AileronTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Knob_AileronTrim_Template">ASOBO_HANDLING_Knob_AileronTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Light_ElevatorTrim_Template">ASOBO_HANDLING_Light_ElevatorTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Light_RudderTrim_Template">ASOBO_HANDLING_Light_RudderTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Light_AileronTrim_Template">ASOBO_HANDLING_Light_AileronTrim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Combined_Trim_Template">ASOBO_HANDLING_Combined_Trim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Elevator_Aileron_Trim_Template">ASOBO_HANDLING_Elevator_Aileron_Trim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Longitudinal_Lateral_Trim_Template">ASOBO_HANDLING_Longitudinal_Lateral_Trim_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Light_Flaps_Template">ASOBO_HANDLING_Light_Flaps_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Light_Flaps_Transit_Template">ASOBO_HANDLING_Light_Flaps_Transit_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Water_Rudder_Controller_Template">ASOBO_HANDLING_Water_Rudder_Controller_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_Water_Rudder_Template">ASOBO_HANDLING_Switch_Water_Rudder_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Lever_Water_Rudder_Template">ASOBO_HANDLING_Lever_Water_Rudder_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_Wing_Fold_Template">ASOBO_HANDLING_Switch_Wing_Fold_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Wipers_Controller_Template">ASOBO_HANDLING_Wipers_Controller_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_Wipers_Template">ASOBO_HANDLING_Switch_Wipers_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Knob_Wipers_Template">ASOBO_HANDLING_Knob_Wipers_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Launch_Bar_Retract_Template">ASOBO_HANDLING_Launch_Bar_Retract_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_TailHook_Lever_Template">ASOBO_HANDLING_TailHook_Lever_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Trim_Reset_Push_Template">ASOBO_HANDLING_Trim_Reset_Push_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Base_Template">ASOBO_HANDLING_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_Event_Base_Template">ASOBO_HANDLING_Push_Event_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Pull_Event_Base_Template">ASOBO_HANDLING_Pull_Event_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Axis_Event_Base_Template">ASOBO_HANDLING_Axis_Event_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Update_Unlock_Tailwheel">ASOBO_HANDLING_Update_Unlock_Tailwheel </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Switch_Water_Ballast_Template">ASOBO_HANDLING_Switch_Water_Ballast_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_HANDLING_Push_Tow_Release">ASOBO_HANDLING_Push_Tow_Release </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_HANDLING_Yoke_Template">ASOBO_HANDLING_Yoke_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Yoke_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Yoke_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Yoke_SubTemplate">ASOBO_HANDLING_Yoke_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Yoke_Hideable_Template">ASOBO_HANDLING_Yoke_Hideable_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Yoke_Hideable_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Yoke_Hideable_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Yoke_Hideable_SubTemplate">ASOBO_HANDLING_Yoke_Hideable_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Timer_Template">ASOBO_HANDLING_Timer_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Timer_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Timer_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Timer_SubTemplate">ASOBO_HANDLING_Timer_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_Timer_Template">ASOBO_HANDLING_Push_Timer_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_Timer_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Timer_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Timer_Template">ASOBO_HANDLING_Timer_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_StormClear_Template">ASOBO_HANDLING_StormClear_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_StormClear_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_StormClear_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_StormClear_SubTemplate">ASOBO_HANDLING_StormClear_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_StormClear_Template">ASOBO_HANDLING_Push_StormClear_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_StormClear_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_StormClear_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_StormClear_Template">ASOBO_HANDLING_StormClear_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_CWS_Template">ASOBO_HANDLING_CWS_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_CWS_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_CWS_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_CWS_SubTemplate">ASOBO_HANDLING_CWS_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_CWS_Template">ASOBO_HANDLING_Push_CWS_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_CWS_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_CWS_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_CWS_Template">ASOBO_HANDLING_CWS_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Ident_Template">ASOBO_HANDLING_Ident_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Ident_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Ident_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Ident_SubTemplate">ASOBO_HANDLING_Ident_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_Ident_Template">ASOBO_HANDLING_Push_Ident_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_Ident_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Ident_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Ident_Template">ASOBO_HANDLING_Ident_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Swap_Template">ASOBO_HANDLING_Swap_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Swap_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Swap_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Swap_SubTemplate">ASOBO_HANDLING_Swap_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_Swap_Template">ASOBO_HANDLING_Push_Swap_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_Swap_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Swap_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Swap_Template">ASOBO_HANDLING_Swap_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_AP_Trim_Disc_Template">ASOBO_HANDLING_AP_Trim_Disc_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_AP_Trim_Disc_SubTemplate">ASOBO_HANDLING_AP_Trim_Disc_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_AP_Trim_Disc_Template">ASOBO_HANDLING_Push_AP_Trim_Disc_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_AP_Trim_Disc_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_AP_Trim_Disc_Template">ASOBO_HANDLING_AP_Trim_Disc_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_AP_Trim_Disc_Template">ASOBO_HANDLING_Switch_AP_Trim_Disc_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AP_Trim_Disc_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AP_Trim_Disc_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_AP_Trim_Disc_Template">ASOBO_HANDLING_AP_Trim_Disc_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Steering_Tiller_Template">ASOBO_HANDLING_Steering_Tiller_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Steering_Tiller_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Steering_Tiller_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Steering_Tiller_SubTemplate">ASOBO_HANDLING_Steering_Tiller_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_ElevatorTrim_Template">ASOBO_HANDLING_Switch_ElevatorTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_ElevatorTrim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_ElevatorTrim_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_ElevatorTrim_Template">ASOBO_HANDLING_ElevatorTrim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Wheel_ElevatorTrim_Template">ASOBO_HANDLING_Wheel_ElevatorTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Wheel_ElevatorTrim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_ElevatorTrim_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;WHEEL&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_ElevatorTrim_Template">ASOBO_HANDLING_ElevatorTrim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Secondary_Trim_Available_Template">ASOBO_HANDLING_Secondary_Trim_Available_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Secondary_Trim_Available_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Secondary_Trim_Available_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Secondary_Trim_Available_SubTemplate">ASOBO_HANDLING_Secondary_Trim_Available_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_Secondary_ElevatorTrim_Available_Template">ASOBO_HANDLING_Push_Secondary_ElevatorTrim_Available_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_Secondary_ElevatorTrim_Available_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Secondary_Trim_Available_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;TRIM_NAME&gt;Elevator&lt;/TRIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Secondary_Trim_Available_Template">ASOBO_HANDLING_Secondary_Trim_Available_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+									<li>TRIM_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Joystick_YawPitch_Template">ASOBO_HANDLING_Joystick_YawPitch_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Joystick_YawPitch_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Joystick_YawPitch_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Joystick_YawPitch_SubTemplate">ASOBO_HANDLING_Joystick_YawPitch_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_AntiSkid_Template">ASOBO_HANDLING_AntiSkid_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_AntiSkid_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AntiSkid_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_AntiSkid_SubTemplate">ASOBO_HANDLING_AntiSkid_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_AntiSkid_Template">ASOBO_HANDLING_Switch_AntiSkid_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AntiSkid_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AntiSkid_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_AntiSkid_Template">ASOBO_HANDLING_AntiSkid_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_GLimiter_Template">ASOBO_HANDLING_GLimiter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_GLimiter_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_GLimiter_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_GLimiter_SubTemplate">ASOBO_HANDLING_GLimiter_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_GLimiter_Template">ASOBO_HANDLING_Push_GLimiter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_GLimiter_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_GLimiter_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_GLimiter_Template">ASOBO_HANDLING_GLimiter_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_GLimiter_Template">ASOBO_HANDLING_Switch_GLimiter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_GLimiter_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_GLimiter_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_GLimiter_Template">ASOBO_HANDLING_GLimiter_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_InertSep_Template">ASOBO_HANDLING_InertSep_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template name=&quot;ASOBO_HANDLING_InertSep_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_InertSep_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_InertSep_SubTemplate">ASOBO_HANDLING_InertSep_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Lever_InertSep_Template">ASOBO_HANDLING_Lever_InertSep_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template name=&quot;ASOBO_HANDLING_Lever_InertSep_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_InertSep_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_InertSep_Template">ASOBO_HANDLING_InertSep_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Knob_RudderTrim_Template">ASOBO_HANDLING_Knob_RudderTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Knob_RudderTrim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderTrim_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_RudderTrim_Template">ASOBO_HANDLING_RudderTrim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_RudderTrim_Template">ASOBO_HANDLING_Switch_RudderTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_RudderTrim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderTrim_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_RudderTrim_Template">ASOBO_HANDLING_RudderTrim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Wheel_RudderTrim_Template">ASOBO_HANDLING_Wheel_RudderTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Wheel_RudderTrim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderTrim_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;WHEEL&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_RudderTrim_Template">ASOBO_HANDLING_RudderTrim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_RudderPedals_Template">ASOBO_HANDLING_RudderPedals_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_RudderPedals_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;Condition Check=&quot;SPLIT_RUDDERS&quot;&gt;
+			&lt;True&gt;
+				&lt;RUDDERPEDALS_TYPE&gt;SPLITTED&lt;/RUDDERPEDALS_TYPE&gt;
+			&lt;/True&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_RudderPedals_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(SPLIT_RUDDERS)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>RUDDERPEDALS_TYPE</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_RudderPedals_SubTemplate">ASOBO_HANDLING_RudderPedals_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_RudderPedals_Brake_Template">ASOBO_HANDLING_RudderPedals_Brake_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_RudderPedals_Brake_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;ANIM_NAME_L&gt;HANDLING_RudderPedals_Brake_L&lt;/ANIM_NAME_L&gt;
+		&lt;ANIM_NAME_R&gt;HANDLING_RudderPedals_Brake_R&lt;/ANIM_NAME_R&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;Condition Valid=&quot;DONT_BRAKE_ON_PARKINGBRAKE&quot;&gt;
+			&lt;True&gt;
+				&lt;SIMVAR_END&gt; EX1&lt;/SIMVAR_END&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;SIMVAR_END/&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;Condition Valid=&quot;DIFFERENTIATE_BRAKE_ANIM_L_R&quot;&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+				&lt;ANIM_NAME&gt;#ANIM_NAME_L#&lt;/ANIM_NAME&gt;
+				&lt;ANIM_SIMVAR&gt;BRAKE LEFT POSITION#SIMVAR_END#&lt;/ANIM_SIMVAR&gt;
+				&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+			&lt;/UseTemplate&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+				&lt;ANIM_NAME&gt;#ANIM_NAME_R#&lt;/ANIM_NAME&gt;
+				&lt;ANIM_SIMVAR&gt;BRAKE RIGHT POSITION#SIMVAR_END#&lt;/ANIM_SIMVAR&gt;
+				&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+		&lt;False&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+				&lt;ANIM_SIMVAR&gt;BRAKE LEFT POSITION#SIMVAR_END#&lt;/ANIM_SIMVAR&gt;
+				&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_LENGTH</li>
+								<li>ANIM_NAME_L</li>
+								<li>ANIM_NAME_R</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: Valid(DONT_BRAKE_ON_PARKINGBRAKE)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>SIMVAR_END</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>SIMVAR_END</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Valid(DIFFERENTIATE_BRAKE_ANIM_L_R)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: True</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Animations.html#ASOBO_GT_Anim_Sim">ASOBO_GT_Anim_Sim</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>ANIM_NAME (using ANIM_NAME_L)</li>
+													<li>ANIM_SIMVAR (using SIMVAR_END)</li>
+													<li>ANIM_SIMVAR_UNITS</li>
+												</ul>
+											</div>
+										</li>
+										<li>
+											<a href="../Generic/Animations.html#ASOBO_GT_Anim_Sim">ASOBO_GT_Anim_Sim</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>ANIM_NAME (using ANIM_NAME_R)</li>
+													<li>ANIM_SIMVAR (using SIMVAR_END)</li>
+													<li>ANIM_SIMVAR_UNITS</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Animations.html#ASOBO_GT_Anim_Sim">ASOBO_GT_Anim_Sim</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>ANIM_SIMVAR (using SIMVAR_END)</li>
+													<li>ANIM_SIMVAR_UNITS</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Autobrakes_Template">ASOBO_HANDLING_Autobrakes_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Autobrakes_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Autobrakes_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Autobrakes_SubTemplate">ASOBO_HANDLING_Autobrakes_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_Autobrakes_Template">ASOBO_HANDLING_Push_Autobrakes_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_Autobrakes_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Autobrakes_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Autobrakes_Template">ASOBO_HANDLING_Autobrakes_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Knob_Autobrakes_Template">ASOBO_HANDLING_Knob_Autobrakes_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Knob_Autobrakes_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Autobrakes_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Autobrakes_Template">ASOBO_HANDLING_Autobrakes_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Indicator_ElevatorTrim_Template">ASOBO_HANDLING_Indicator_ElevatorTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Indicator_ElevatorTrim_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_NAME&gt;HANDLING_Indicator_ElevatorTrim&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;Switch&gt;
+		&lt;Case Check=&quot;REF_VALUE_0&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Non_Linear_Animation_Code&quot;&gt;
+				&lt;SELECTION&gt;(A:ELEVATOR TRIM POSITION, degrees)&lt;/SELECTION&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Case&gt;
+		&lt;Case Check=&quot;DISCRETE_STATES&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+				&lt;ANIM_CODE&gt;(A:ELEVATOR TRIM PCT, Percent) 100 + 200 / #DISCRETE_STATES# * near&lt;/ANIM_CODE&gt;
+				&lt;ANIM_LENGTH&gt;#DISCRETE_STATES#&lt;/ANIM_LENGTH&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Case&gt;
+		&lt;Case Check=&quot;ANIM_CODE&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;/&gt;
+		&lt;/Case&gt;
+		&lt;Default&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+				&lt;ANIM_LENGTH&gt;200&lt;/ANIM_LENGTH&gt;
+				&lt;ANIM_SIMVAR&gt;ELEVATOR TRIM PCT&lt;/ANIM_SIMVAR&gt;
+				&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+				&lt;ANIM_SIMVAR_BIAS&gt;100&lt;/ANIM_SIMVAR_BIAS&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Default&gt;
+	&lt;/Switch&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Switch</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: Check(REF_VALUE_0)</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>REF_VALUE_0</li>
+									</ul>
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Helpers.html#ASOBO_GT_Helper_Non_Linear_Animation_Code">ASOBO_GT_Helper_Non_Linear_Animation_Code</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>SELECTION</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Case: Check(DISCRETE_STATES)</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>DISCRETE_STATES</li>
+									</ul>
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>ANIM_CODE (using DISCRETE_STATES)</li>
+													<li>ANIM_LENGTH (using DISCRETE_STATES)</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Case: Check(ANIM_CODE)</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>ANIM_CODE</li>
+									</ul>
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Default case: </div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Animations.html#ASOBO_GT_Anim_Sim">ASOBO_GT_Anim_Sim</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>ANIM_LENGTH</li>
+													<li>ANIM_SIMVAR</li>
+													<li>ANIM_SIMVAR_UNITS</li>
+													<li>ANIM_SIMVAR_BIAS</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_AutoSpoiler_Template">ASOBO_HANDLING_AutoSpoiler_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_AutoSpoiler_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AutoSpoiler_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_AutoSpoiler_SubTemplate">ASOBO_HANDLING_AutoSpoiler_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_AutoSpoiler_Template">ASOBO_HANDLING_Push_AutoSpoiler_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_AutoSpoiler_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AutoSpoiler_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_AutoSpoiler_Template">ASOBO_HANDLING_AutoSpoiler_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Spoilers_Int_Template">ASOBO_HANDLING_Spoilers_Int_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Spoilers_Int_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Spoilers_Int_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Spoilers_Int_SubTemplate">ASOBO_HANDLING_Spoilers_Int_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_Spoiler_Template">ASOBO_HANDLING_Switch_Spoiler_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Spoiler_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Spoilers_Int_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Spoilers_Int_Template">ASOBO_HANDLING_Spoilers_Int_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Lever_Spoilers_Template">ASOBO_HANDLING_Lever_Spoilers_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Spoilers_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Spoilers_Int_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Spoilers_Int_Template">ASOBO_HANDLING_Spoilers_Int_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Lever_Flaps_Template">ASOBO_HANDLING_Lever_Flaps_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Flaps_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Flaps_SubTemplate">ASOBO_HANDLING_Flaps_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Lever_Flaps_Continuous_Template">ASOBO_HANDLING_Lever_Flaps_Continuous_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Flaps_Continuous_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+		&lt;IS_CONTINUOUS&gt;True&lt;/IS_CONTINUOUS&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Flaps_SubTemplate">ASOBO_HANDLING_Flaps_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+									<li>IS_CONTINUOUS</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Button_Flaps_Template">ASOBO_HANDLING_Button_Flaps_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Button_Flaps_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Flaps_SubTemplate">ASOBO_HANDLING_Flaps_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Lever_With_Button_Flaps_Template">ASOBO_HANDLING_Lever_With_Button_Flaps_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Lever_With_Button_Flaps_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Flaps_SubTemplate&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+		&lt;HAS_BUTTON&gt;True&lt;/HAS_BUTTON&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Flaps_SubTemplate">ASOBO_HANDLING_Flaps_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+									<li>HAS_BUTTON</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Indicator_Flaps_Template">ASOBO_HANDLING_Indicator_Flaps_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Indicator_Flaps_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_NAME&gt;HANDLING_Indicator_Flaps&lt;/ANIM_NAME&gt;
+		&lt;NODE_ID&gt;HANDLING_Indicator_Flaps&lt;/NODE_ID&gt;
+		&lt;PART_ID&gt;HANDLING_Indicator_Flaps&lt;/PART_ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Sim&quot;&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+			&lt;ANIM_SIMVAR&gt;TRAILING EDGE FLAPS LEFT PERCENT&lt;/ANIM_SIMVAR&gt;
+			&lt;ANIM_SIMVAR_UNITS&gt;percent&lt;/ANIM_SIMVAR_UNITS&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>NODE_ID</li>
+								<li>PART_ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID# (Node: #NODE_ID#)</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Animations.html#ASOBO_GT_Anim_Sim">ASOBO_GT_Anim_Sim</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>ANIM_LENGTH</li>
+												<li>ANIM_SIMVAR</li>
+												<li>ANIM_SIMVAR_UNITS</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_Template">ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_SubTemplate">ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_AileronTrim_Template">ASOBO_HANDLING_Switch_AileronTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_AileronTrim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AileronTrim_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_AileronTrim_Template">ASOBO_HANDLING_AileronTrim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Knob_AileronTrim_Template">ASOBO_HANDLING_Knob_AileronTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Knob_AileronTrim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_AileronTrim_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;KNOB&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_AileronTrim_Template">ASOBO_HANDLING_AileronTrim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Light_ElevatorTrim_Template">ASOBO_HANDLING_Light_ElevatorTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Light_ElevatorTrim_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_Light_ElevatorTrim&lt;/NODE_ID&gt;
+		&lt;TRIM_TYPE&gt;ELEVATOR&lt;/TRIM_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Trim_Subtemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>TRIM_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Light_Trim_Subtemplate">ASOBO_HANDLING_Light_Trim_Subtemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Light_RudderTrim_Template">ASOBO_HANDLING_Light_RudderTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Light_RudderTrim_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_Light_RudderTrim&lt;/NODE_ID&gt;
+		&lt;TRIM_TYPE&gt;RUDDER&lt;/TRIM_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Trim_Subtemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>TRIM_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Light_Trim_Subtemplate">ASOBO_HANDLING_Light_Trim_Subtemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Light_AileronTrim_Template">ASOBO_HANDLING_Light_AileronTrim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Light_AileronTrim_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_Light_AileronTrim&lt;/NODE_ID&gt;
+		&lt;TRIM_TYPE&gt;AILERON&lt;/TRIM_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Trim_Subtemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>TRIM_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Light_Trim_Subtemplate">ASOBO_HANDLING_Light_Trim_Subtemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Combined_Trim_Template">ASOBO_HANDLING_Combined_Trim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Combined_Trim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Combined_Trim_SubTemplate&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Joystick&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Combined_Trim_SubTemplate">ASOBO_HANDLING_Combined_Trim_SubTemplate</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Elevator_Aileron_Trim_Template">ASOBO_HANDLING_Elevator_Aileron_Trim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Elevator_Aileron_Trim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Combined_Trim_Template&quot;&gt;
+		&lt;UP_DN_TRIM_TYPE&gt;ELEVATOR&lt;/UP_DN_TRIM_TYPE&gt;
+		&lt;L_R_TRIM_TYPE&gt;AILERON&lt;/L_R_TRIM_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Combined_Trim_Template">ASOBO_HANDLING_Combined_Trim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>UP_DN_TRIM_TYPE</li>
+									<li>L_R_TRIM_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Longitudinal_Lateral_Trim_Template">ASOBO_HANDLING_Longitudinal_Lateral_Trim_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Longitudinal_Lateral_Trim_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Combined_Trim_Template&quot;&gt;
+		&lt;UP_DN_TRIM_TYPE&gt;LONGITUDINAL&lt;/UP_DN_TRIM_TYPE&gt;
+		&lt;L_R_TRIM_TYPE&gt;LATERAL&lt;/L_R_TRIM_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Combined_Trim_Template">ASOBO_HANDLING_Combined_Trim_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>UP_DN_TRIM_TYPE</li>
+									<li>L_R_TRIM_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Light_Flaps_Template">ASOBO_HANDLING_Light_Flaps_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Light_Flaps_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;MAX_FLAPS_INDEX&gt;(A:FLAPS NUM HANDLE POSITIONS, Number)&lt;/MAX_FLAPS_INDEX&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Light_Flaps_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>MAX_FLAPS_INDEX</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Light_Flaps_SubTemplate">ASOBO_HANDLING_Light_Flaps_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Light_Flaps_Transit_Template">ASOBO_HANDLING_Light_Flaps_Transit_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Light_Flaps_Transit_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_Light_Flaps_#ID#&lt;/NODE_ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Emissive_Gauge&quot;&gt;
+			&lt;EMISSIVE_CODE&gt;(A:CIRCUIT FLAP MOTOR ON, Bool)&lt;/EMISSIVE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID (using ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID# (Node: #NODE_ID#)</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Emissive.html#ASOBO_GT_Emissive_Gauge">ASOBO_GT_Emissive_Gauge</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>EMISSIVE_CODE</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Water_Rudder_Controller_Template">ASOBO_HANDLING_Water_Rudder_Controller_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Water_Rudder_Controller_SubTemplate">ASOBO_HANDLING_Water_Rudder_Controller_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_Water_Rudder_Template">ASOBO_HANDLING_Switch_Water_Rudder_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Water_Rudder_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Water_Rudder_Controller_Template">ASOBO_HANDLING_Water_Rudder_Controller_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Lever_Water_Rudder_Template">ASOBO_HANDLING_Lever_Water_Rudder_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Lever_Water_Rudder_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Water_Rudder_Controller_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+		&lt;INVERT_INTERACTION&gt;True&lt;/INVERT_INTERACTION&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Water_Rudder_Controller_Template">ASOBO_HANDLING_Water_Rudder_Controller_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+									<li>INVERT_INTERACTION</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_Wing_Fold_Template">ASOBO_HANDLING_Switch_Wing_Fold_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Wing_Fold_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_Switch_Wing_Fold&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;HANDLING_Switch_Wing_Fold&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+		&lt;IE_NAME&gt;Lever_WingFold&lt;/IE_NAME&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.WING_FOLD_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.WING_FOLD_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_RETRACTED&lt;/TT_VALUE_ON&gt;
+		&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_EXTENDED&lt;/TT_VALUE_OFF&gt;
+		&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+		&lt;SET_STATE_EXTERNAL&gt;p0 (&amp;gt;K:SET_WING_FOLD)&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;GET_STATE_EXTERNAL&gt;(A:FOLDING WING HANDLE POSITION, Boolean) sp0&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;WWISE_EVENT_1&gt;wing_fold_switch_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;wing_fold_switch_off&lt;/WWISE_EVENT_2&gt;
+		&lt;BINDING_SET_0&gt;Toggle&lt;/BINDING_SET_0&gt;
+		&lt;BINDING_SET_0_PARAM_0&gt;(B:HANDLING_Lever_WingFold) !&lt;/BINDING_SET_0_PARAM_0&gt;
+		&lt;BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;
+		&lt;BINDING_SET_0_EVENT_ID&gt;TOGGLE_WING_FOLD&lt;/BINDING_SET_0_EVENT_ID&gt;
+		&lt;BINDING_SET_1&gt;Set&lt;/BINDING_SET_1&gt;
+		&lt;BINDING_SET_1_PARAM_0&gt;p0 0 !=&lt;/BINDING_SET_1_PARAM_0&gt;
+		&lt;BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;
+		&lt;BINDING_SET_1_EVENT_ID&gt;SET_WING_FOLD&lt;/BINDING_SET_1_EVENT_ID&gt;
+		&lt;SIMVAR_TO_WATCH_0&gt;FOLDING WING HANDLE POSITION&lt;/SIMVAR_TO_WATCH_0&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Base_Template">ASOBO_Handling_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>IE_NAME</li>
+									<li>INTERACTION_TYPE</li>
+									<li>TOOLTIP_TITLE</li>
+									<li>TT_DESCRIPTION_ID</li>
+									<li>TT_VALUE_ON</li>
+									<li>TT_VALUE_OFF</li>
+									<li>TT_VALUE_ONOFF_IS_DYNAMIC</li>
+									<li>SET_STATE_EXTERNAL</li>
+									<li>GET_STATE_EXTERNAL</li>
+									<li>WWISE_EVENT_1</li>
+									<li>WWISE_EVENT_2</li>
+									<li>BINDING_SET_0</li>
+									<li>BINDING_SET_0_PARAM_0</li>
+									<li>BINDING_SET_0_PARAM_0_IS_DYNAMIC</li>
+									<li>BINDING_SET_0_EVENT_ID</li>
+									<li>BINDING_SET_1</li>
+									<li>BINDING_SET_1_PARAM_0</li>
+									<li>BINDING_SET_1_PARAM_0_IS_DYNAMIC</li>
+									<li>BINDING_SET_1_EVENT_ID</li>
+									<li>SIMVAR_TO_WATCH_0</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Wipers_Controller_Template">ASOBO_HANDLING_Wipers_Controller_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Wipers_Controller_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Wipers_Controller_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Handling_Subtemplates.html#ASOBO_HANDLING_Wipers_Controller_SubTemplate">ASOBO_HANDLING_Wipers_Controller_SubTemplate</a>
+							<ul>
+								<li>
+									May include a subtemplate using the parameter &#39;TEMPLATE_TO_USE&#39; and resolve to the following template(s): 
+									<ul>
+										<li>
+											<a href="../Generic/Complex/Switch.html#ASOBO_GT_Switch_XStates">ASOBO_GT_Switch_XStates</a>
+										</li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_Wipers_Template">ASOBO_HANDLING_Switch_Wipers_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Wipers_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Wipers_Controller_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Wipers_Controller_Template">ASOBO_HANDLING_Wipers_Controller_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Knob_Wipers_Template">ASOBO_HANDLING_Knob_Wipers_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Knob_Wipers_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_HANDLING_Wipers_Controller_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Wipers_Controller_Template">ASOBO_HANDLING_Wipers_Controller_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Launch_Bar_Retract_Template">ASOBO_HANDLING_Launch_Bar_Retract_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Launch_Bar_Retract_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_Launch_Bar_Retract&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;HANDLING_Launch_Bar_Retract&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+		&lt;IE_NAME&gt;Lever_LaunchBar&lt;/IE_NAME&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.LAUNCH_BAR_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.LAUNCH_BAR_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_EXTENDED&lt;/TT_VALUE_ON&gt;
+		&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_RETRACTED&lt;/TT_VALUE_OFF&gt;
+		&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+		&lt;SET_STATE_EXTERNAL&gt;p0 (&amp;gt;K:SET_LAUNCH_BAR_SWITCH)&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;GET_STATE_EXTERNAL&gt;(A:LAUNCHBAR SWITCH, Boolean) sp0&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;WWISE_EVENT_1&gt;launchbar_switch_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;launchbar_switch_off&lt;/WWISE_EVENT_2&gt;
+		&lt;BINDING_SET_0&gt;Toggle&lt;/BINDING_SET_0&gt;
+		&lt;BINDING_SET_0_PARAM_0&gt;(B:HANDLING_Lever_LaunchBar) !&lt;/BINDING_SET_0_PARAM_0&gt;
+		&lt;BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;
+		&lt;BINDING_SET_0_EVENT_ID&gt;TOGGLE_LAUNCH_BAR_SWITCH&lt;/BINDING_SET_0_EVENT_ID&gt;
+		&lt;BINDING_SET_1&gt;Set&lt;/BINDING_SET_1&gt;
+		&lt;BINDING_SET_1_PARAM_0&gt;p0 0 !=&lt;/BINDING_SET_1_PARAM_0&gt;
+		&lt;BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;
+		&lt;BINDING_SET_1_EVENT_ID&gt;SET_LAUNCH_BAR_SWITCH&lt;/BINDING_SET_1_EVENT_ID&gt;
+		&lt;SIMVAR_TO_WATCH_0&gt;LAUNCHBAR SWITCH&lt;/SIMVAR_TO_WATCH_0&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Base_Template">ASOBO_Handling_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>IE_NAME</li>
+									<li>INTERACTION_TYPE</li>
+									<li>TOOLTIP_TITLE</li>
+									<li>TT_DESCRIPTION_ID</li>
+									<li>TT_VALUE_ON</li>
+									<li>TT_VALUE_OFF</li>
+									<li>TT_VALUE_ONOFF_IS_DYNAMIC</li>
+									<li>SET_STATE_EXTERNAL</li>
+									<li>GET_STATE_EXTERNAL</li>
+									<li>WWISE_EVENT_1</li>
+									<li>WWISE_EVENT_2</li>
+									<li>BINDING_SET_0</li>
+									<li>BINDING_SET_0_PARAM_0</li>
+									<li>BINDING_SET_0_PARAM_0_IS_DYNAMIC</li>
+									<li>BINDING_SET_0_EVENT_ID</li>
+									<li>BINDING_SET_1</li>
+									<li>BINDING_SET_1_PARAM_0</li>
+									<li>BINDING_SET_1_PARAM_0_IS_DYNAMIC</li>
+									<li>BINDING_SET_1_EVENT_ID</li>
+									<li>SIMVAR_TO_WATCH_0</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_TailHook_Lever_Template">ASOBO_HANDLING_TailHook_Lever_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_TailHook_Lever_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_TailHook_Lever&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;HANDLING_TailHook_Lever&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+		&lt;IE_NAME&gt;Lever_TailHook&lt;/IE_NAME&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.TAIL_HOOK_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.TAIL_HOOK_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_EXTENDED&lt;/TT_VALUE_ON&gt;
+		&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_RETRACTED&lt;/TT_VALUE_OFF&gt;
+		&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+		&lt;SET_STATE_EXTERNAL&gt;p0 (&amp;gt;K:SET_TAIL_HOOK_HANDLE)&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;GET_STATE_EXTERNAL&gt;(A:TAILHOOK HANDLE, Boolean) sp0&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;WWISE_EVENT_1&gt;tailhook_switch_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;tailhook_switch_off&lt;/WWISE_EVENT_2&gt;
+		&lt;BINDING_SET_0&gt;Toggle&lt;/BINDING_SET_0&gt;
+		&lt;BINDING_SET_0_PARAM_0&gt;(B:HANDLING_Lever_TailHook) !&lt;/BINDING_SET_0_PARAM_0&gt;
+		&lt;BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_0_PARAM_0_IS_DYNAMIC&gt;
+		&lt;BINDING_SET_0_EVENT_ID&gt;TOGGLE_TAIL_HOOK_HANDLE&lt;/BINDING_SET_0_EVENT_ID&gt;
+		&lt;BINDING_SET_1&gt;Set&lt;/BINDING_SET_1&gt;
+		&lt;BINDING_SET_1_PARAM_0&gt;p0 0 !=&lt;/BINDING_SET_1_PARAM_0&gt;
+		&lt;BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;True&lt;/BINDING_SET_1_PARAM_0_IS_DYNAMIC&gt;
+		&lt;BINDING_SET_1_EVENT_ID&gt;SET_TAIL_HOOK_HANDLE&lt;/BINDING_SET_1_EVENT_ID&gt;
+		&lt;SIMVAR_TO_WATCH_0&gt;TAILHOOK HANDLE&lt;/SIMVAR_TO_WATCH_0&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Base_Template">ASOBO_Handling_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>IE_NAME</li>
+									<li>INTERACTION_TYPE</li>
+									<li>TOOLTIP_TITLE</li>
+									<li>TT_DESCRIPTION_ID</li>
+									<li>TT_VALUE_ON</li>
+									<li>TT_VALUE_OFF</li>
+									<li>TT_VALUE_ONOFF_IS_DYNAMIC</li>
+									<li>SET_STATE_EXTERNAL</li>
+									<li>GET_STATE_EXTERNAL</li>
+									<li>WWISE_EVENT_1</li>
+									<li>WWISE_EVENT_2</li>
+									<li>BINDING_SET_0</li>
+									<li>BINDING_SET_0_PARAM_0</li>
+									<li>BINDING_SET_0_PARAM_0_IS_DYNAMIC</li>
+									<li>BINDING_SET_0_EVENT_ID</li>
+									<li>BINDING_SET_1</li>
+									<li>BINDING_SET_1_PARAM_0</li>
+									<li>BINDING_SET_1_PARAM_0_IS_DYNAMIC</li>
+									<li>BINDING_SET_1_EVENT_ID</li>
+									<li>SIMVAR_TO_WATCH_0</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Trim_Reset_Push_Template">ASOBO_HANDLING_Trim_Reset_Push_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Trim_Reset_Push_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;HANDLING_Push_Trim_Reset&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;HANDLING_Push_Trim_Reset&lt;/ANIM_NAME&gt;
+		&lt;RUDDER_RESET_VALUE&gt;0&lt;/RUDDER_RESET_VALUE&gt;
+		&lt;ELEVATOR_RESET_VALUE&gt;0&lt;/ELEVATOR_RESET_VALUE&gt;
+		&lt;AILERON_RESET_VALUE&gt;0&lt;/AILERON_RESET_VALUE&gt;
+		&lt;RUDDER_RESET/&gt;
+		&lt;ELEVATOR_RESET/&gt;
+		&lt;AILERON_RESET/&gt;
+		&lt;WWISE_EVENT_1&gt;trim_reset_push_button_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;trim_reset_push_button_off&lt;/WWISE_EVENT_2&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;Condition Valid=&quot;NO_RUDDER_RESET&quot;&gt;
+			&lt;False&gt;
+				&lt;RUDDER_RESET&gt;#RUDDER_RESET_VALUE# (&amp;gt;K:RUDDER_TRIM_SET)&lt;/RUDDER_RESET&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+		&lt;Condition Valid=&quot;NO_RUDDER_ELEVATOR&quot;&gt;
+			&lt;False&gt;
+				&lt;ELEVATOR_RESET&gt;#ELEVATOR_RESET_VALUE# (&amp;gt;K:ELEVATOR_TRIM_SET)&lt;/ELEVATOR_RESET&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+		&lt;Condition Valid=&quot;NO_AILERON_RESET&quot;&gt;
+			&lt;False&gt;
+				&lt;AILERON_RESET&gt;#AILERON_RESET_VALUE# (&amp;gt;K:AILERON_TRIM_SET)&lt;/AILERON_RESET&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+		&lt;IE_NAME&gt;HANDLING_Trim_Reset&lt;/IE_NAME&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.HANDLING_PUSH_TRIMRESET_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.HANDLING_PUSH_TRIMRESET_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;SET_STATE_EXTERNAL&gt;
+				#RUDDER_RESET#
+				#AILERON_RESET#
+				(A:SIM ON GROUND,Bool) if{ #ELEVATOR_RESET# }
+			&lt;/SET_STATE_EXTERNAL&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+								<li>RUDDER_RESET_VALUE</li>
+								<li>ELEVATOR_RESET_VALUE</li>
+								<li>AILERON_RESET_VALUE</li>
+								<li>RUDDER_RESET</li>
+								<li>ELEVATOR_RESET</li>
+								<li>AILERON_RESET</li>
+								<li>WWISE_EVENT_1</li>
+								<li>WWISE_EVENT_2</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: Valid(NO_RUDDER_RESET)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>RUDDER_RESET (using RUDDER_RESET_VALUE)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+							<p class="fakeh5">Condition: Valid(NO_RUDDER_ELEVATOR)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>ELEVATOR_RESET (using ELEVATOR_RESET_VALUE)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+							<p class="fakeh5">Condition: Valid(NO_AILERON_RESET)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>AILERON_RESET (using AILERON_RESET_VALUE)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Base_Template">ASOBO_Handling_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>IE_NAME</li>
+									<li>INTERACTION_TYPE</li>
+									<li>TOOLTIP_TITLE</li>
+									<li>TT_DESCRIPTION_ID</li>
+									<li>SET_STATE_EXTERNAL (using RUDDER_RESET, AILERON_RESET, ELEVATOR_RESET)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Base_Template">ASOBO_HANDLING_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Base_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;HANDLING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;WWISE_PREFIX&gt;HANDLING&lt;/WWISE_PREFIX&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INPUT_EVENT_ID_SOURCE</li>
+								<li>WWISE_PREFIX</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Base_Template">ASOBO_Interaction_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_Event_Base_Template">ASOBO_HANDLING_Push_Event_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_Event_Base_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Push_Event_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Push_Event_Base_Template">ASOBO_Interaction_Push_Event_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Pull_Event_Base_Template">ASOBO_HANDLING_Pull_Event_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Pull_Event_Base_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Pull_Event_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Pull_Event_Base_Template">ASOBO_Interaction_Pull_Event_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Axis_Event_Base_Template">ASOBO_HANDLING_Axis_Event_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Axis_Event_Base_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;HANDLING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Axis_Event_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;HANDLING&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INPUT_EVENT_ID_SOURCE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Axis_Event_Base_Template">ASOBO_Interaction_Axis_Event_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Update_Unlock_Tailwheel">ASOBO_HANDLING_Update_Unlock_Tailwheel</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Update_Unlock_Tailwheel&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;0&lt;/ID&gt;
+		&lt;TAILWHEEL_LOCK_MAX_ANGLE&gt;2&lt;/TAILWHEEL_LOCK_MAX_ANGLE&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;LOCK_CODE&gt;(&amp;gt;K:TOGGLE_TAILWHEEL_LOCK)&lt;/LOCK_CODE&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;Condition&gt;
+			&lt;Test&gt;
+				&lt;Greater&gt;
+					&lt;Value&gt;TAILWHEEL_LOCK_MAX_ANGLE&lt;/Value&gt;
+					&lt;Number&gt;0&lt;/Number&gt;
+				&lt;/Greater&gt;
+			&lt;/Test&gt;
+			&lt;True&gt;
+				&lt;LOCK_CODE&gt;
+						l1 (A:GEAR STEER ANGLE:#ID#, degrees) abs #TAILWHEEL_LOCK_MAX_ANGLE# &amp;lt; or if{
+						(* Tailwheel only relocks when  *)
+						#LOCK_CODE#
+						}
+					&lt;/LOCK_CODE&gt;
+			&lt;/True&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;2&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(A:YOKE Y POSITION, percent) -90 &amp;lt; (A:TAILWHEEL LOCK ON, Bool) s1 == if{
+				#LOCK_CODE#
+				}
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>TAILWHEEL_LOCK_MAX_ANGLE</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>LOCK_CODE</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: Test(TAILWHEEL_LOCK_MAX_ANGLE)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>LOCK_CODE (using ID, TAILWHEEL_LOCK_MAX_ANGLE, LOCK_CODE)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE (using LOCK_CODE)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Switch_Water_Ballast_Template">ASOBO_HANDLING_Switch_Water_Ballast_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Switch_Water_Ballast_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;Switch_Water_Ballast_#ID#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;Switch_Water_Ballast_#ID#&lt;/ANIM_NAME&gt;
+		&lt;IE_NAME&gt;Glider_Switch_Water_Ballast_#ID#&lt;/IE_NAME&gt;
+		&lt;MIN_BALLAST_TO_TOGGLE&gt;1&lt;/MIN_BALLAST_TO_TOGGLE&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;GET_STATE_EXTERNAL/&gt;
+		&lt;SET_STATE_EXTERNAL/&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;Condition NotEmpty=&quot;BALLAST_VALVE_ID_1&quot;&gt;
+			&lt;True&gt;
+				&lt;Loop&gt;
+					&lt;Setup&gt;
+						&lt;Param&gt;CUR_ID&lt;/Param&gt;
+						&lt;From&gt;1&lt;/From&gt;
+						&lt;Inc&gt;1&lt;/Inc&gt;
+						&lt;While&gt;
+							&lt;Arg Valid=&quot;BALLAST_VALVE_ID_#CUR_ID#&quot;/&gt;
+						&lt;/While&gt;
+					&lt;/Setup&gt;
+					&lt;Do&gt;
+						&lt;Parameters Type=&quot;Default&quot; Lifetime=&quot;Loop&quot;&gt;
+							&lt;SET_STATE_EXTERNAL_T/&gt;
+							&lt;GET_STATE_EXTERNAL_T&gt;1&lt;/GET_STATE_EXTERNAL_T&gt;
+						&lt;/Parameters&gt;
+						&lt;Parameters Type=&quot;Override&quot; Lifetime=&quot;Loop&quot;&gt;
+							&lt;CUR_BALLAST_ID Process=&quot;Param&quot;&gt;BALLAST_VALVE_ID_#CUR_ID#&lt;/CUR_BALLAST_ID&gt;
+						&lt;/Parameters&gt;
+						&lt;Parameters Type=&quot;Override&quot; Lifetime=&quot;Loop&quot;&gt;
+							&lt;SET_STATE_EXTERNAL_T&gt;#SET_STATE_EXTERNAL_T# (A:WATER BALLAST VALVE:#CUR_BALLAST_ID#, Boolean) (O:HANDLING_#IE_NAME#_Position) != if{ #CUR_BALLAST_ID# (&amp;gt;K:TOGGLE_WATER_BALLAST_VALVE) }&lt;/SET_STATE_EXTERNAL_T&gt;
+							&lt;GET_STATE_EXTERNAL_T&gt;#GET_STATE_EXTERNAL_T# (A:WATER BALLAST VALVE:#CUR_BALLAST_ID#, Boolean) and&lt;/GET_STATE_EXTERNAL_T&gt;
+						&lt;/Parameters&gt;
+					&lt;/Do&gt;
+					&lt;Then&gt;
+						&lt;SET_STATE_EXTERNAL&gt;#SET_STATE_EXTERNAL_T# sp0&lt;/SET_STATE_EXTERNAL&gt;
+						&lt;GET_STATE_EXTERNAL&gt;#GET_STATE_EXTERNAL_T#&lt;/GET_STATE_EXTERNAL&gt;
+					&lt;/Then&gt;
+				&lt;/Loop&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;GET_STATE_EXTERNAL&gt;(A:WATER BALLAST VALVE:#ID#) sp0&lt;/GET_STATE_EXTERNAL&gt;
+				&lt;SET_STATE_EXTERNAL&gt;(A:WATER BALLAST VALVE:#ID#, Boolean) (O:HANDLING_#IE_NAME#_Position) != if{ #ID# (&amp;gt;K:TOGGLE_WATER_BALLAST_VALVE) }&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.WATER_BALLAST_VALVE_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.WATER_BALLAST_VALVE_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;TT_VALUE_ON&gt;@TT_Package.GT_STATE_OPEN&lt;/TT_VALUE_ON&gt;
+		&lt;TT_VALUE_OFF&gt;@TT_Package.GT_STATE_CLOSED&lt;/TT_VALUE_OFF&gt;
+		&lt;TT_VALUE_ONOFF_IS_DYNAMIC&gt;False&lt;/TT_VALUE_ONOFF_IS_DYNAMIC&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID (using ID)</li>
+								<li>ANIM_NAME (using ID)</li>
+								<li>IE_NAME (using ID)</li>
+								<li>MIN_BALLAST_TO_TOGGLE</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>GET_STATE_EXTERNAL</li>
+								<li>SET_STATE_EXTERNAL</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: NotEmpty(BALLAST_VALVE_ID_1)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters read:</p>
+											<ul>
+												<li>CUR_ID</li>
+											</ul>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>CUR_ID</li>
+												<li>SET_STATE_EXTERNAL_T</li>
+												<li>GET_STATE_EXTERNAL_T</li>
+												<li>CUR_BALLAST_ID (using CUR_ID)</li>
+												<li>SET_STATE_EXTERNAL_T (using SET_STATE_EXTERNAL_T, CUR_BALLAST_ID, IE_NAME)</li>
+												<li>GET_STATE_EXTERNAL_T (using GET_STATE_EXTERNAL_T, CUR_BALLAST_ID)</li>
+												<li>SET_STATE_EXTERNAL (using SET_STATE_EXTERNAL_T)</li>
+												<li>GET_STATE_EXTERNAL (using GET_STATE_EXTERNAL_T)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+								<li>
+									<div>
+										<div class="collapsible">Case: False</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>GET_STATE_EXTERNAL (using ID)</li>
+												<li>SET_STATE_EXTERNAL (using ID, IE_NAME)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Base_Template">ASOBO_Handling_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>TOOLTIP_TITLE</li>
+									<li>TT_DESCRIPTION_ID</li>
+									<li>INTERACTION_TYPE</li>
+									<li>TT_VALUE_ON</li>
+									<li>TT_VALUE_OFF</li>
+									<li>TT_VALUE_ONOFF_IS_DYNAMIC</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_HANDLING_Push_Tow_Release">ASOBO_HANDLING_Push_Tow_Release</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_HANDLING_Push_Tow_Release&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID/&gt;
+		&lt;ANIM_NAME/&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.TOW_RELEASE_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.TOW_RELEASE_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TT_VALUE&gt;(A:TOW CONNECTION, Bool) if{ (R:1:@TT_Package.GT_STATE_CONNECTED) } els{ (R:1:@TT_Package.GT_STATE_RELEASED) }&lt;/TT_VALUE&gt;
+		&lt;TT_VALUE_IS_DYNAMIC&gt;True&lt;/TT_VALUE_IS_DYNAMIC&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;HANDLING&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;WWISE_PREFIX&gt;Tow_Release&lt;/WWISE_PREFIX&gt;
+		&lt;IE_NAME&gt;Tow_Release&lt;/IE_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Handling_Base_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;CREATE_COMPONENT&gt;True&lt;/CREATE_COMPONENT&gt;
+		&lt;SET_STATE_EXTERNAL&gt;(&amp;gt;K:TOW_PLANE_RELEASE)&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;GET_STATE_EXTERNAL&gt;(A:TOW RELEASE HANDLE,percent over 100) (&amp;gt;O:_ButtonAnimVar)&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;SIMVAR_TO_WATCH_0&gt;TOW RELEASE HANDLE&lt;/SIMVAR_TO_WATCH_0&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>TOOLTIP_TITLE</li>
+								<li>TT_DESCRIPTION_ID</li>
+								<li>TT_VALUE</li>
+								<li>TT_VALUE_IS_DYNAMIC</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INPUT_EVENT_ID_SOURCE</li>
+								<li>WWISE_PREFIX</li>
+								<li>IE_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Handling.html#ASOBO_HANDLING_Base_Template">ASOBO_Handling_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+									<li>CREATE_COMPONENT</li>
+									<li>SET_STATE_EXTERNAL</li>
+									<li>GET_STATE_EXTERNAL</li>
+									<li>SIMVAR_TO_WATCH_0</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.3.2_7"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

@@ -1,0 +1,2011 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>GroundVehicles.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\Misc\GroundVehicles.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+	&lt;Include ModelBehaviorFile=&quot;Asobo\Generic.xml&quot;/&gt;
+
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_Smooth_Animation&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;0&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;0.1&lt;/SPEED&gt;
+			&lt;VAR_TARGET&gt;O:XMLVAR_#ANIM_NAME#_Animation_Target_Position&lt;/VAR_TARGET&gt;
+			&lt;VAR_CURRENT&gt;O:XMLVAR_#ANIM_NAME#_Animation_Position&lt;/VAR_CURRENT&gt;
+			&lt;!-- Necessary : BASE_TARGET_VALUE, ANIM_NAME --&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+			&lt;ANIMATION_BASE_CODE&gt;
+				#BASE_TARGET_VALUE# (#VAR_TARGET#) - abs 0.01 &amp;gt; if{
+					#BASE_TARGET_VALUE# (&amp;gt;#VAR_TARGET#)
+				}
+			&lt;/ANIMATION_BASE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;0&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;0.1&lt;/SPEED&gt;
+			&lt;ANIMATION_BASE_CODE&gt;&lt;/ANIMATION_BASE_CODE&gt;
+			&lt;!-- Necessary : VAR_CURRENT, VAR_TARGET, ANIM_NAME --&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+			&lt;ANIM_CODE&gt;
+				#ANIMATION_BASE_CODE#
+				
+				(#VAR_TARGET#) #MAX_POSITION# &amp;gt; if{
+					#MAX_POSITION# (&amp;gt;#VAR_TARGET#)
+				}
+				(#VAR_TARGET#) #MIN_POSITION# &amp;lt; if{
+					#MIN_POSITION# (&amp;gt;#VAR_TARGET#)
+				}
+				
+				(#VAR_CURRENT#) #MAX_POSITION# &amp;gt; if{
+					#MAX_POSITION# (&amp;gt;#VAR_CURRENT#)
+				}
+				(#VAR_CURRENT#) #MIN_POSITION# &amp;lt; if{
+					#MIN_POSITION# (&amp;gt;#VAR_CURRENT#)
+				}
+				
+				(#VAR_CURRENT#) (#VAR_TARGET#) - abs 0.01 &amp;gt; if{
+					(#VAR_CURRENT#) (#VAR_TARGET#) &amp;gt; if{
+						(#VAR_CURRENT#) #SPEED# (A:ANIMATION DELTA TIME,seconds) * - (#VAR_TARGET#) max (&amp;gt;#VAR_CURRENT#)
+					} els{
+						(#VAR_CURRENT#) #SPEED# (A:ANIMATION DELTA TIME,seconds) * + (#VAR_TARGET#) min (&amp;gt;#VAR_CURRENT#)
+					}
+				} els{
+					(#VAR_TARGET#) (&amp;gt;#VAR_CURRENT#) 
+				}
+				
+				(#VAR_CURRENT#) #MIN_POSITION# - 100 #MAX_POSITION# #MIN_POSITION# - / *
+			
+			&lt;/ANIM_CODE&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_Apply_Direct_Clamped_Value&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;0&lt;/MAX_POSITION&gt;
+			&lt;!-- Necessary : VAR_CURRENT, ANIMATION_BASE_CODE, ANIM_NAME --&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+			&lt;ANIM_CODE&gt;
+				#ANIMATION_BASE_CODE# (&amp;gt;#VAR_CURRENT#) 
+				
+				(#VAR_CURRENT#)  #MAX_POSITION# &amp;gt; if{
+					#MAX_POSITION# (&amp;gt;#VAR_CURRENT#) 
+				}
+				
+				(#VAR_CURRENT#)  #MIN_POSITION# &amp;lt; if{
+					#MIN_POSITION# (&amp;gt;#VAR_CURRENT#) 
+				}
+				
+				(#VAR_CURRENT#) #MIN_POSITION# - 100 #MAX_POSITION# #MIN_POSITION# - / *
+			
+			&lt;/ANIM_CODE&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_Wheel_Roll&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Wheel_Rotation&lt;/ANIM_NAME&gt;
+			&lt;WHEEL_RADIUS&gt;0.5&lt;/WHEEL_RADIUS&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+			&lt;ANIM_CODE&gt;(A:VELOCITY BODY Z,meters per second) (A:ANIMATION DELTA TIME, seconds) * 2 pi * #WHEEL_RADIUS# * / 100 *&lt;/ANIM_CODE&gt;
+			&lt;ANIM_DELTA&gt;1&lt;/ANIM_DELTA&gt;
+			&lt;ANIM_WRAP&gt;1&lt;/ANIM_WRAP&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_Wheel_Turn&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Wheel_Rotation&lt;/ANIM_NAME&gt;
+			&lt;!--&lt;DISTANCE_BETWEEN_WHEELS&gt;4&lt;/DISTANCE_BETWEEN_WHEELS&gt;
+			&lt;FIRST_FRAME_ANGLE&gt;40&lt;/FIRST_FRAME_ANGLE&gt;
+			&lt;LAST_FRAME_ANGLE&gt;-40&lt;/LAST_FRAME_ANGLE&gt;--&gt;
+			&lt;ORDER_MULTIPLIER&gt;1&lt;/ORDER_MULTIPLIER&gt;
+			&lt;PERCENT_PER_SECOND&gt;50&lt;/PERCENT_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_Animation&quot;&gt;
+			&lt;!--&lt;ANIM_CODE&gt;	
+				(A:GROUND VELOCITY,meters per second) 0 == if{
+					0
+				} els{
+					(A:ROTATION VELOCITY BODY Y,radians per second) 0 == if{
+						0
+					} els{
+						#DISTANCE_BETWEEN_WHEELS# (A:ROTATION VELOCITY BODY Y,radians per second) * (A:GROUND VELOCITY,meters per second) / atg
+					}
+				}
+				(&amp;gt;O:XMLVAR_#ANIM_NAME#_Cur_Angle_Radians)
+				
+				(O:XMLVAR_#ANIM_NAME#_Cur_Angle_Radians) 360 * 2 pi * / #FIRST_FRAME_ANGLE# - #LAST_FRAME_ANGLE# #FIRST_FRAME_ANGLE# - / (&amp;gt;O:XMLVAR_#ANIM_NAME#_Cur_Percentage)
+				
+				(O:XMLVAR_#ANIM_NAME#_Cur_Percentage) 1 &amp;gt; if{
+					1 (&amp;gt;O:XMLVAR_#ANIM_NAME#_Cur_Percentage)
+				}
+				els{
+					(O:XMLVAR_#ANIM_NAME#_Cur_Percentage) 0 &amp;lt; if{
+						0 (&amp;gt;O:XMLVAR_#ANIM_NAME#_Cur_Percentage)
+					}
+				}
+				
+				(O:XMLVAR_#ANIM_NAME#_Cur_Percentage) 100 *
+			&lt;/ANIM_CODE&gt;--&gt;
+			&lt;BASE_TARGET_VALUE&gt;(A:GEAR CENTER STEER ANGLE PCT,percent) #ORDER_MULTIPLIER# * 2 *&lt;/BASE_TARGET_VALUE&gt;
+			&lt;MIN_POSITION&gt;-100&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;#PERCENT_PER_SECOND# 2 *&lt;/SPEED&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_CateringTruck_Elevation_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Elevation&lt;/ANIM_NAME&gt;
+			&lt;BASE_HEIGHT&gt;0&lt;/BASE_HEIGHT&gt;
+			&lt;MAX_HEIGHT&gt;0&lt;/MAX_HEIGHT&gt;
+			&lt;METERS_PER_SECOND&gt;0.1&lt;/METERS_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+			&lt;VAR_CURRENT&gt;A:CATERINGTRUCK ELEVATION CURRENT,meters&lt;/VAR_CURRENT&gt;
+			&lt;VAR_TARGET&gt;A:CATERINGTRUCK ELEVATION TARGET,meters&lt;/VAR_TARGET&gt;
+			&lt;MIN_POSITION&gt;#BASE_HEIGHT#&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;#MAX_HEIGHT#&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;#METERS_PER_SECOND#&lt;/SPEED&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_CateringTruck_Overture_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Deployment&lt;/ANIM_NAME&gt;
+			&lt;PERCENT_PER_SECOND&gt;20&lt;/PERCENT_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+			&lt;VAR_CURRENT&gt;A:CATERINGTRUCK OPENING CURRENT,percent&lt;/VAR_CURRENT&gt;
+			&lt;VAR_TARGET&gt;A:CATERINGTRUCK OPENING TARGET,percent&lt;/VAR_TARGET&gt;
+			&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;#PERCENT_PER_SECOND#&lt;/SPEED&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_CateringTruck_Overture_Follow_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Deployment&lt;/ANIM_NAME&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+			&lt;ANIM_CODE&gt;(A:CATERINGTRUCK OPENING CURRENT,percent)&lt;/ANIM_CODE&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+
+
+	&lt;Template Name=&quot;ASOBO_BoardingRamp_Elevation_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Deployment&lt;/ANIM_NAME&gt;
+			&lt;BASE_HEIGHT&gt;0&lt;/BASE_HEIGHT&gt;
+			&lt;MAX_HEIGHT&gt;0&lt;/MAX_HEIGHT&gt;
+			&lt;METERS_PER_SECOND&gt;0.1&lt;/METERS_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+			&lt;VAR_CURRENT&gt;A:BOARDINGRAMP ELEVATION CURRENT,meters&lt;/VAR_CURRENT&gt;
+			&lt;VAR_TARGET&gt;A:BOARDINGRAMP ELEVATION TARGET,meters&lt;/VAR_TARGET&gt;
+			&lt;MIN_POSITION&gt;#BASE_HEIGHT#&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;#MAX_HEIGHT#&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;#METERS_PER_SECOND#&lt;/SPEED&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_BoardingRamp_Orientation_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Elevation&lt;/ANIM_NAME&gt;
+			&lt;PERCENT_PER_SECOND&gt;10&lt;/PERCENT_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+			&lt;VAR_CURRENT&gt;A:BOARDINGRAMP ORIENTATION CURRENT,percent&lt;/VAR_CURRENT&gt;
+			&lt;VAR_TARGET&gt;A:BOARDINGRAMP ORIENTATION TARGET,percent&lt;/VAR_TARGET&gt;
+			&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;#PERCENT_PER_SECOND#&lt;/SPEED&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_BaggageLoader_Inclination_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Elevation&lt;/ANIM_NAME&gt;
+			&lt;DEGREE_PER_SECOND&gt;10&lt;/DEGREE_PER_SECOND&gt;
+			&lt;BASE_ANGLE&gt;0&lt;/BASE_ANGLE&gt;
+			&lt;MAX_ANGLE&gt;90&lt;/MAX_ANGLE&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+			&lt;VAR_CURRENT&gt;A:BAGGAGELOADER ANGLE CURRENT,degrees&lt;/VAR_CURRENT&gt;
+			&lt;VAR_TARGET&gt;A:BAGGAGELOADER ANGLE TARGET,degrees&lt;/VAR_TARGET&gt;
+			&lt;MIN_POSITION&gt;#BASE_ANGLE#&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;#MAX_ANGLE#&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;#DEGREE_PER_SECOND#&lt;/SPEED&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_Pushback_Attach&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Locker&lt;/ANIM_NAME&gt;
+			&lt;PERCENT_PER_SECOND&gt;50&lt;/PERCENT_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_Animation&quot;&gt;
+			&lt;BASE_TARGET_VALUE&gt;(A:PUSHBACK ATTACHED,bool) if{ 100 } els{ 0 }&lt;/BASE_TARGET_VALUE&gt;
+			&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+			&lt;SPEED&gt;#PERCENT_PER_SECOND#&lt;/SPEED&gt;
+		&lt;/UseTemplate&gt;
+		
+	&lt;/Template&gt;
+
+
+	&lt;Template Name=&quot;ASOBO_FuelTruck_Hose_Deployment_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;NODE_ID&gt;FUEL_HOSE&lt;/NODE_ID&gt;
+		&lt;/DefaultTemplateParameters&gt;
+		
+		&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Visibility_Code&quot;&gt;
+				&lt;VISIBILITY_CODE&gt;(A:FUELTRUCK HOSE DEPLOYED,percent) 0 &amp;gt; if{ 1 } els{ 0 }&lt;/VISIBILITY_CODE&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_GroundPowerUnit_Hose_Deployment_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_HOSE&lt;/NODE_ID&gt;
+		&lt;/DefaultTemplateParameters&gt;
+		
+		&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Visibility_Code&quot;&gt;
+				&lt;VISIBILITY_CODE&gt;(A:GROUNDPOWERUNIT HOSE DEPLOYED,percent) 0 &amp;gt; if{ 1 } els{ 0 }&lt;/VISIBILITY_CODE&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+
+
+	&lt;Template Name=&quot;ASOBO_Wagon_Front_Link_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Link&lt;/ANIM_NAME&gt;
+			&lt;ORDER_MULTIPLIER&gt;1&lt;/ORDER_MULTIPLIER&gt;
+			&lt;MIN_ANGLE&gt;-60&lt;/MIN_ANGLE&gt;
+			&lt;MAX_ANGLE&gt;60&lt;/MAX_ANGLE&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Apply_Direct_Clamped_Value&quot;&gt;
+			&lt;MIN_POSITION&gt;#MIN_ANGLE#&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;#MAX_ANGLE#&lt;/MAX_POSITION&gt;
+			&lt;VAR_CURRENT&gt;O:XMLVAR_#ANIM_NAME#_Animation_Position&lt;/VAR_CURRENT&gt;
+			&lt;ANIMATION_BASE_CODE&gt;(A:WAGON FRONT LINK ORIENTATION,degrees) #ORDER_MULTIPLIER# *&lt;/ANIMATION_BASE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_Wagon_Back_Link_Template&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Link&lt;/ANIM_NAME&gt;
+			&lt;ORDER_MULTIPLIER&gt;1&lt;/ORDER_MULTIPLIER&gt;
+			&lt;MIN_ANGLE&gt;-60&lt;/MIN_ANGLE&gt;
+			&lt;MAX_ANGLE&gt;60&lt;/MAX_ANGLE&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Apply_Direct_Clamped_Value&quot;&gt;
+			&lt;MIN_POSITION&gt;#MIN_ANGLE#&lt;/MIN_POSITION&gt;
+			&lt;MAX_POSITION&gt;#MAX_ANGLE#&lt;/MAX_POSITION&gt;
+			&lt;VAR_CURRENT&gt;O:XMLVAR_#ANIM_NAME#_Animation_Position&lt;/VAR_CURRENT&gt;
+			&lt;ANIMATION_BASE_CODE&gt;(A:WAGON BACK LINK ORIENTATION,degrees) #ORDER_MULTIPLIER# *&lt;/ANIMATION_BASE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_Old_HeadLights&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;!-- TIME OF DAY enum : 1 = Day ; 2 = Dusk/Dawn ; 3 = Night --&gt;
+			&lt;UPDATE_CODE&gt;
+				(E:TIME OF DAY,enum) 1 !=
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt; and
+				if{
+					(&amp;gt;K:LANDING_LIGHTS_ON)
+				} els{
+					(&amp;gt;K:LANDING_LIGHTS_OFF)
+				}
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_Old_Gyrophare&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Gyrolight&lt;/ANIM_NAME&gt;
+			&lt;PERCENT_PER_SECOND&gt;100&lt;/PERCENT_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+		
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+			&lt;ANIM_CODE&gt;(A:ANIMATION DELTA TIME,seconds) #PERCENT_PER_SECOND# *&lt;/ANIM_CODE&gt;
+			&lt;ANIM_DELTA&gt;1&lt;/ANIM_DELTA&gt;
+			&lt;ANIM_WRAP&gt;1&lt;/ANIM_WRAP&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;/UseTemplate&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;UPDATE_CODE&gt;
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt;
+				if{
+					(&amp;gt;K:STROBES_ON)
+				} els{
+					(&amp;gt;K:STROBES_OFF)
+				}
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_HeadLights&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;!-- TIME OF DAY enum : 1 = Day ; 2 = Dusk/Dawn ; 3 = Night --&gt;
+			&lt;UPDATE_CODE&gt;
+				(E:TIME OF DAY,enum) 1 !=
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt; and
+				if{
+					1 (&amp;gt;A:LIGHT HEADLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT HEADLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_BackLights&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;!-- TIME OF DAY enum : 1 = Day ; 2 = Dusk/Dawn ; 3 = Night --&gt;
+			&lt;UPDATE_CODE&gt;
+				(E:TIME OF DAY,enum) 1 !=
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt; and
+				if{
+					1 (&amp;gt;A:LIGHT BACKLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT BACKLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_GyroLights&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;UPDATE_CODE&gt;
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt;
+				if{
+					1 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name=&quot;ASOBO_GroundVehicle_GyroLights_Animated&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;ANIM_NAME&gt;Gyrolight&lt;/ANIM_NAME&gt;
+			&lt;PERCENT_PER_SECOND&gt;100&lt;/PERCENT_PER_SECOND&gt;
+		&lt;/DefaultTemplateParameters&gt;
+		
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+			&lt;ANIM_CODE&gt;(A:ANIMATION DELTA TIME,seconds) #PERCENT_PER_SECOND# *&lt;/ANIM_CODE&gt;
+			&lt;ANIM_DELTA&gt;1&lt;/ANIM_DELTA&gt;
+			&lt;ANIM_WRAP&gt;1&lt;/ANIM_WRAP&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;/UseTemplate&gt;
+
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;UPDATE_CODE&gt;
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt;
+				if{
+					1 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+&lt;/ModelBehaviors&gt;
+
+</div>
+		<h3>Includes</h3>
+		<ul>
+			<li>
+				ModelBehaviorFile: 
+				<a href="../Generic.html">Asobo\Generic.xml</a>
+			</li>
+		</ul>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_GroundVehicle_Smooth_Animation">ASOBO_GroundVehicle_Smooth_Animation </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_Apply_Direct_Clamped_Value">ASOBO_GroundVehicle_Apply_Direct_Clamped_Value </a>
+				</li>
+				<li>
+					<a href="#ASOBO_Wheel_Roll">ASOBO_Wheel_Roll </a>
+				</li>
+				<li>
+					<a href="#ASOBO_Wheel_Turn">ASOBO_Wheel_Turn </a>
+				</li>
+				<li>
+					<a href="#ASOBO_CateringTruck_Elevation_Template">ASOBO_CateringTruck_Elevation_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_CateringTruck_Overture_Template">ASOBO_CateringTruck_Overture_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_CateringTruck_Overture_Follow_Template">ASOBO_CateringTruck_Overture_Follow_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_BoardingRamp_Elevation_Template">ASOBO_BoardingRamp_Elevation_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_BoardingRamp_Orientation_Template">ASOBO_BoardingRamp_Orientation_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_BaggageLoader_Inclination_Template">ASOBO_BaggageLoader_Inclination_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_Pushback_Attach">ASOBO_Pushback_Attach </a>
+				</li>
+				<li>
+					<a href="#ASOBO_FuelTruck_Hose_Deployment_Template">ASOBO_FuelTruck_Hose_Deployment_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundPowerUnit_Hose_Deployment_Template">ASOBO_GroundPowerUnit_Hose_Deployment_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_Wagon_Front_Link_Template">ASOBO_Wagon_Front_Link_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_Wagon_Back_Link_Template">ASOBO_Wagon_Back_Link_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_Old_HeadLights">ASOBO_GroundVehicle_Old_HeadLights </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_Old_Gyrophare">ASOBO_GroundVehicle_Old_Gyrophare </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_HeadLights">ASOBO_GroundVehicle_HeadLights </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_BackLights">ASOBO_GroundVehicle_BackLights </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_GyroLights">ASOBO_GroundVehicle_GyroLights </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GroundVehicle_GyroLights_Animated">ASOBO_GroundVehicle_GyroLights_Animated </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_Smooth_Animation">ASOBO_GroundVehicle_Smooth_Animation</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_Smooth_Animation&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;0&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;0.1&lt;/SPEED&gt;
+		&lt;VAR_TARGET&gt;O:XMLVAR_#ANIM_NAME#_Animation_Target_Position&lt;/VAR_TARGET&gt;
+		&lt;VAR_CURRENT&gt;O:XMLVAR_#ANIM_NAME#_Animation_Position&lt;/VAR_CURRENT&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+		&lt;ANIMATION_BASE_CODE&gt;
+				#BASE_TARGET_VALUE# (#VAR_TARGET#) - abs 0.01 &amp;gt; if{
+					#BASE_TARGET_VALUE# (&amp;gt;#VAR_TARGET#)
+				}
+			&lt;/ANIMATION_BASE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>MIN_POSITION</li>
+								<li>MAX_POSITION</li>
+								<li>SPEED</li>
+								<li>VAR_TARGET (using ANIM_NAME)</li>
+								<li>VAR_CURRENT (using ANIM_NAME)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIMATION_BASE_CODE (using BASE_TARGET_VALUE, VAR_TARGET)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;0&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;0.1&lt;/SPEED&gt;
+		&lt;ANIMATION_BASE_CODE/&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+		&lt;ANIM_CODE&gt;
+				#ANIMATION_BASE_CODE#
+				
+				(#VAR_TARGET#) #MAX_POSITION# &amp;gt; if{
+					#MAX_POSITION# (&amp;gt;#VAR_TARGET#)
+				}
+				(#VAR_TARGET#) #MIN_POSITION# &amp;lt; if{
+					#MIN_POSITION# (&amp;gt;#VAR_TARGET#)
+				}
+				
+				(#VAR_CURRENT#) #MAX_POSITION# &amp;gt; if{
+					#MAX_POSITION# (&amp;gt;#VAR_CURRENT#)
+				}
+				(#VAR_CURRENT#) #MIN_POSITION# &amp;lt; if{
+					#MIN_POSITION# (&amp;gt;#VAR_CURRENT#)
+				}
+				
+				(#VAR_CURRENT#) (#VAR_TARGET#) - abs 0.01 &amp;gt; if{
+					(#VAR_CURRENT#) (#VAR_TARGET#) &amp;gt; if{
+						(#VAR_CURRENT#) #SPEED# (A:ANIMATION DELTA TIME,seconds) * - (#VAR_TARGET#) max (&amp;gt;#VAR_CURRENT#)
+					} els{
+						(#VAR_CURRENT#) #SPEED# (A:ANIMATION DELTA TIME,seconds) * + (#VAR_TARGET#) min (&amp;gt;#VAR_CURRENT#)
+					}
+				} els{
+					(#VAR_TARGET#) (&amp;gt;#VAR_CURRENT#) 
+				}
+				
+				(#VAR_CURRENT#) #MIN_POSITION# - 100 #MAX_POSITION# #MIN_POSITION# - / *
+			
+			&lt;/ANIM_CODE&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>MIN_POSITION</li>
+								<li>MAX_POSITION</li>
+								<li>SPEED</li>
+								<li>ANIMATION_BASE_CODE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIM_CODE (using ANIMATION_BASE_CODE, VAR_TARGET, MAX_POSITION, MIN_POSITION, VAR_CURRENT, SPEED)</li>
+									<li>ANIM_LENGTH</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_Apply_Direct_Clamped_Value">ASOBO_GroundVehicle_Apply_Direct_Clamped_Value</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_Apply_Direct_Clamped_Value&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;0&lt;/MAX_POSITION&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+		&lt;ANIM_CODE&gt;
+				#ANIMATION_BASE_CODE# (&amp;gt;#VAR_CURRENT#) 
+				
+				(#VAR_CURRENT#)  #MAX_POSITION# &amp;gt; if{
+					#MAX_POSITION# (&amp;gt;#VAR_CURRENT#) 
+				}
+				
+				(#VAR_CURRENT#)  #MIN_POSITION# &amp;lt; if{
+					#MIN_POSITION# (&amp;gt;#VAR_CURRENT#) 
+				}
+				
+				(#VAR_CURRENT#) #MIN_POSITION# - 100 #MAX_POSITION# #MIN_POSITION# - / *
+			
+			&lt;/ANIM_CODE&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>MIN_POSITION</li>
+								<li>MAX_POSITION</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIM_CODE (using ANIMATION_BASE_CODE, VAR_CURRENT, MAX_POSITION, MIN_POSITION)</li>
+									<li>ANIM_LENGTH</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_Wheel_Roll">ASOBO_Wheel_Roll</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_Wheel_Roll&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Wheel_Rotation&lt;/ANIM_NAME&gt;
+		&lt;WHEEL_RADIUS&gt;0.5&lt;/WHEEL_RADIUS&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+		&lt;ANIM_CODE&gt;(A:VELOCITY BODY Z,meters per second) (A:ANIMATION DELTA TIME, seconds) * 2 pi * #WHEEL_RADIUS# * / 100 *&lt;/ANIM_CODE&gt;
+		&lt;ANIM_DELTA&gt;1&lt;/ANIM_DELTA&gt;
+		&lt;ANIM_WRAP&gt;1&lt;/ANIM_WRAP&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>WHEEL_RADIUS</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIM_CODE (using WHEEL_RADIUS)</li>
+									<li>ANIM_DELTA</li>
+									<li>ANIM_WRAP</li>
+									<li>ANIM_LENGTH</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_Wheel_Turn">ASOBO_Wheel_Turn</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_Wheel_Turn&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Wheel_Rotation&lt;/ANIM_NAME&gt;
+		&lt;ORDER_MULTIPLIER&gt;1&lt;/ORDER_MULTIPLIER&gt;
+		&lt;PERCENT_PER_SECOND&gt;50&lt;/PERCENT_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_Animation&quot;&gt;
+		&lt;BASE_TARGET_VALUE&gt;(A:GEAR CENTER STEER ANGLE PCT,percent) #ORDER_MULTIPLIER# * 2 *&lt;/BASE_TARGET_VALUE&gt;
+		&lt;MIN_POSITION&gt;-100&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;#PERCENT_PER_SECOND# 2 *&lt;/SPEED&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>ORDER_MULTIPLIER</li>
+								<li>PERCENT_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_Animation">ASOBO_GroundVehicle_Smooth_Animation</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BASE_TARGET_VALUE (using ORDER_MULTIPLIER)</li>
+									<li>MIN_POSITION</li>
+									<li>MAX_POSITION</li>
+									<li>SPEED (using PERCENT_PER_SECOND)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_CateringTruck_Elevation_Template">ASOBO_CateringTruck_Elevation_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_CateringTruck_Elevation_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Elevation&lt;/ANIM_NAME&gt;
+		&lt;BASE_HEIGHT&gt;0&lt;/BASE_HEIGHT&gt;
+		&lt;MAX_HEIGHT&gt;0&lt;/MAX_HEIGHT&gt;
+		&lt;METERS_PER_SECOND&gt;0.1&lt;/METERS_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+		&lt;VAR_CURRENT&gt;A:CATERINGTRUCK ELEVATION CURRENT,meters&lt;/VAR_CURRENT&gt;
+		&lt;VAR_TARGET&gt;A:CATERINGTRUCK ELEVATION TARGET,meters&lt;/VAR_TARGET&gt;
+		&lt;MIN_POSITION&gt;#BASE_HEIGHT#&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;#MAX_HEIGHT#&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;#METERS_PER_SECOND#&lt;/SPEED&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>BASE_HEIGHT</li>
+								<li>MAX_HEIGHT</li>
+								<li>METERS_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>VAR_CURRENT</li>
+									<li>VAR_TARGET</li>
+									<li>MIN_POSITION (using BASE_HEIGHT)</li>
+									<li>MAX_POSITION (using MAX_HEIGHT)</li>
+									<li>SPEED (using METERS_PER_SECOND)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_CateringTruck_Overture_Template">ASOBO_CateringTruck_Overture_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_CateringTruck_Overture_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Deployment&lt;/ANIM_NAME&gt;
+		&lt;PERCENT_PER_SECOND&gt;20&lt;/PERCENT_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+		&lt;VAR_CURRENT&gt;A:CATERINGTRUCK OPENING CURRENT,percent&lt;/VAR_CURRENT&gt;
+		&lt;VAR_TARGET&gt;A:CATERINGTRUCK OPENING TARGET,percent&lt;/VAR_TARGET&gt;
+		&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;#PERCENT_PER_SECOND#&lt;/SPEED&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>PERCENT_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>VAR_CURRENT</li>
+									<li>VAR_TARGET</li>
+									<li>MIN_POSITION</li>
+									<li>MAX_POSITION</li>
+									<li>SPEED (using PERCENT_PER_SECOND)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_CateringTruck_Overture_Follow_Template">ASOBO_CateringTruck_Overture_Follow_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_CateringTruck_Overture_Follow_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Deployment&lt;/ANIM_NAME&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+		&lt;ANIM_CODE&gt;(A:CATERINGTRUCK OPENING CURRENT,percent)&lt;/ANIM_CODE&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIM_CODE</li>
+									<li>ANIM_LENGTH</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_BoardingRamp_Elevation_Template">ASOBO_BoardingRamp_Elevation_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_BoardingRamp_Elevation_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Deployment&lt;/ANIM_NAME&gt;
+		&lt;BASE_HEIGHT&gt;0&lt;/BASE_HEIGHT&gt;
+		&lt;MAX_HEIGHT&gt;0&lt;/MAX_HEIGHT&gt;
+		&lt;METERS_PER_SECOND&gt;0.1&lt;/METERS_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+		&lt;VAR_CURRENT&gt;A:BOARDINGRAMP ELEVATION CURRENT,meters&lt;/VAR_CURRENT&gt;
+		&lt;VAR_TARGET&gt;A:BOARDINGRAMP ELEVATION TARGET,meters&lt;/VAR_TARGET&gt;
+		&lt;MIN_POSITION&gt;#BASE_HEIGHT#&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;#MAX_HEIGHT#&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;#METERS_PER_SECOND#&lt;/SPEED&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>BASE_HEIGHT</li>
+								<li>MAX_HEIGHT</li>
+								<li>METERS_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>VAR_CURRENT</li>
+									<li>VAR_TARGET</li>
+									<li>MIN_POSITION (using BASE_HEIGHT)</li>
+									<li>MAX_POSITION (using MAX_HEIGHT)</li>
+									<li>SPEED (using METERS_PER_SECOND)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_BoardingRamp_Orientation_Template">ASOBO_BoardingRamp_Orientation_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_BoardingRamp_Orientation_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Elevation&lt;/ANIM_NAME&gt;
+		&lt;PERCENT_PER_SECOND&gt;10&lt;/PERCENT_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+		&lt;VAR_CURRENT&gt;A:BOARDINGRAMP ORIENTATION CURRENT,percent&lt;/VAR_CURRENT&gt;
+		&lt;VAR_TARGET&gt;A:BOARDINGRAMP ORIENTATION TARGET,percent&lt;/VAR_TARGET&gt;
+		&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;#PERCENT_PER_SECOND#&lt;/SPEED&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>PERCENT_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>VAR_CURRENT</li>
+									<li>VAR_TARGET</li>
+									<li>MIN_POSITION</li>
+									<li>MAX_POSITION</li>
+									<li>SPEED (using PERCENT_PER_SECOND)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_BaggageLoader_Inclination_Template">ASOBO_BaggageLoader_Inclination_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_BaggageLoader_Inclination_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Elevation&lt;/ANIM_NAME&gt;
+		&lt;DEGREE_PER_SECOND&gt;10&lt;/DEGREE_PER_SECOND&gt;
+		&lt;BASE_ANGLE&gt;0&lt;/BASE_ANGLE&gt;
+		&lt;MAX_ANGLE&gt;90&lt;/MAX_ANGLE&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_VarEvolution&quot;&gt;
+		&lt;VAR_CURRENT&gt;A:BAGGAGELOADER ANGLE CURRENT,degrees&lt;/VAR_CURRENT&gt;
+		&lt;VAR_TARGET&gt;A:BAGGAGELOADER ANGLE TARGET,degrees&lt;/VAR_TARGET&gt;
+		&lt;MIN_POSITION&gt;#BASE_ANGLE#&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;#MAX_ANGLE#&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;#DEGREE_PER_SECOND#&lt;/SPEED&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>DEGREE_PER_SECOND</li>
+								<li>BASE_ANGLE</li>
+								<li>MAX_ANGLE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_VarEvolution">ASOBO_GroundVehicle_Smooth_VarEvolution</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>VAR_CURRENT</li>
+									<li>VAR_TARGET</li>
+									<li>MIN_POSITION (using BASE_ANGLE)</li>
+									<li>MAX_POSITION (using MAX_ANGLE)</li>
+									<li>SPEED (using DEGREE_PER_SECOND)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_Pushback_Attach">ASOBO_Pushback_Attach</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_Pushback_Attach&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Locker&lt;/ANIM_NAME&gt;
+		&lt;PERCENT_PER_SECOND&gt;50&lt;/PERCENT_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Smooth_Animation&quot;&gt;
+		&lt;BASE_TARGET_VALUE&gt;(A:PUSHBACK ATTACHED,bool) if{ 100 } els{ 0 }&lt;/BASE_TARGET_VALUE&gt;
+		&lt;MIN_POSITION&gt;0&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;100&lt;/MAX_POSITION&gt;
+		&lt;SPEED&gt;#PERCENT_PER_SECOND#&lt;/SPEED&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>PERCENT_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Smooth_Animation">ASOBO_GroundVehicle_Smooth_Animation</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BASE_TARGET_VALUE</li>
+									<li>MIN_POSITION</li>
+									<li>MAX_POSITION</li>
+									<li>SPEED (using PERCENT_PER_SECOND)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_FuelTruck_Hose_Deployment_Template">ASOBO_FuelTruck_Hose_Deployment_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_FuelTruck_Hose_Deployment_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;NODE_ID&gt;FUEL_HOSE&lt;/NODE_ID&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Visibility_Code&quot;&gt;
+			&lt;VISIBILITY_CODE&gt;(A:FUELTRUCK HOSE DEPLOYED,percent) 0 &amp;gt; if{ 1 } els{ 0 }&lt;/VISIBILITY_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID# (Node: #NODE_ID#)</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Visibility.html#ASOBO_GT_Visibility_Code">ASOBO_GT_Visibility_Code</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>VISIBILITY_CODE</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundPowerUnit_Hose_Deployment_Template">ASOBO_GroundPowerUnit_Hose_Deployment_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundPowerUnit_Hose_Deployment_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_HOSE&lt;/NODE_ID&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Visibility_Code&quot;&gt;
+			&lt;VISIBILITY_CODE&gt;(A:GROUNDPOWERUNIT HOSE DEPLOYED,percent) 0 &amp;gt; if{ 1 } els{ 0 }&lt;/VISIBILITY_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID# (Node: #NODE_ID#)</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Visibility.html#ASOBO_GT_Visibility_Code">ASOBO_GT_Visibility_Code</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>VISIBILITY_CODE</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_Wagon_Front_Link_Template">ASOBO_Wagon_Front_Link_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_Wagon_Front_Link_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Link&lt;/ANIM_NAME&gt;
+		&lt;ORDER_MULTIPLIER&gt;1&lt;/ORDER_MULTIPLIER&gt;
+		&lt;MIN_ANGLE&gt;-60&lt;/MIN_ANGLE&gt;
+		&lt;MAX_ANGLE&gt;60&lt;/MAX_ANGLE&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Apply_Direct_Clamped_Value&quot;&gt;
+		&lt;MIN_POSITION&gt;#MIN_ANGLE#&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;#MAX_ANGLE#&lt;/MAX_POSITION&gt;
+		&lt;VAR_CURRENT&gt;O:XMLVAR_#ANIM_NAME#_Animation_Position&lt;/VAR_CURRENT&gt;
+		&lt;ANIMATION_BASE_CODE&gt;(A:WAGON FRONT LINK ORIENTATION,degrees) #ORDER_MULTIPLIER# *&lt;/ANIMATION_BASE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>ORDER_MULTIPLIER</li>
+								<li>MIN_ANGLE</li>
+								<li>MAX_ANGLE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Apply_Direct_Clamped_Value">ASOBO_GroundVehicle_Apply_Direct_Clamped_Value</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>MIN_POSITION (using MIN_ANGLE)</li>
+									<li>MAX_POSITION (using MAX_ANGLE)</li>
+									<li>VAR_CURRENT (using ANIM_NAME)</li>
+									<li>ANIMATION_BASE_CODE (using ORDER_MULTIPLIER)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_Wagon_Back_Link_Template">ASOBO_Wagon_Back_Link_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_Wagon_Back_Link_Template&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Link&lt;/ANIM_NAME&gt;
+		&lt;ORDER_MULTIPLIER&gt;1&lt;/ORDER_MULTIPLIER&gt;
+		&lt;MIN_ANGLE&gt;-60&lt;/MIN_ANGLE&gt;
+		&lt;MAX_ANGLE&gt;60&lt;/MAX_ANGLE&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GroundVehicle_Apply_Direct_Clamped_Value&quot;&gt;
+		&lt;MIN_POSITION&gt;#MIN_ANGLE#&lt;/MIN_POSITION&gt;
+		&lt;MAX_POSITION&gt;#MAX_ANGLE#&lt;/MAX_POSITION&gt;
+		&lt;VAR_CURRENT&gt;O:XMLVAR_#ANIM_NAME#_Animation_Position&lt;/VAR_CURRENT&gt;
+		&lt;ANIMATION_BASE_CODE&gt;(A:WAGON BACK LINK ORIENTATION,degrees) #ORDER_MULTIPLIER# *&lt;/ANIMATION_BASE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>ORDER_MULTIPLIER</li>
+								<li>MIN_ANGLE</li>
+								<li>MAX_ANGLE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="GroundVehicles.html#ASOBO_GroundVehicle_Apply_Direct_Clamped_Value">ASOBO_GroundVehicle_Apply_Direct_Clamped_Value</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>MIN_POSITION (using MIN_ANGLE)</li>
+									<li>MAX_POSITION (using MAX_ANGLE)</li>
+									<li>VAR_CURRENT (using ANIM_NAME)</li>
+									<li>ANIMATION_BASE_CODE (using ORDER_MULTIPLIER)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_Old_HeadLights">ASOBO_GroundVehicle_Old_HeadLights</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_Old_HeadLights&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(E:TIME OF DAY,enum) 1 !=
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt; and
+				if{
+					(&amp;gt;K:LANDING_LIGHTS_ON)
+				} els{
+					(&amp;gt;K:LANDING_LIGHTS_OFF)
+				}
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_Old_Gyrophare">ASOBO_GroundVehicle_Old_Gyrophare</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_Old_Gyrophare&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Gyrolight&lt;/ANIM_NAME&gt;
+		&lt;PERCENT_PER_SECOND&gt;100&lt;/PERCENT_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+		&lt;ANIM_CODE&gt;(A:ANIMATION DELTA TIME,seconds) #PERCENT_PER_SECOND# *&lt;/ANIM_CODE&gt;
+		&lt;ANIM_DELTA&gt;1&lt;/ANIM_DELTA&gt;
+		&lt;ANIM_WRAP&gt;1&lt;/ANIM_WRAP&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt;
+				if{
+					(&amp;gt;K:STROBES_ON)
+				} els{
+					(&amp;gt;K:STROBES_OFF)
+				}
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>PERCENT_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIM_CODE (using PERCENT_PER_SECOND)</li>
+									<li>ANIM_DELTA</li>
+									<li>ANIM_WRAP</li>
+									<li>ANIM_LENGTH</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_HeadLights">ASOBO_GroundVehicle_HeadLights</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_HeadLights&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(E:TIME OF DAY,enum) 1 !=
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt; and
+				if{
+					1 (&amp;gt;A:LIGHT HEADLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT HEADLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_BackLights">ASOBO_GroundVehicle_BackLights</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_BackLights&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(E:TIME OF DAY,enum) 1 !=
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt; and
+				if{
+					1 (&amp;gt;A:LIGHT BACKLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT BACKLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_GyroLights">ASOBO_GroundVehicle_GyroLights</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_GyroLights&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt;
+				if{
+					1 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GroundVehicle_GyroLights_Animated">ASOBO_GroundVehicle_GyroLights_Animated</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GroundVehicle_GyroLights_Animated&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;ANIM_NAME&gt;Gyrolight&lt;/ANIM_NAME&gt;
+		&lt;PERCENT_PER_SECOND&gt;100&lt;/PERCENT_PER_SECOND&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Anim_Code&quot;&gt;
+		&lt;ANIM_CODE&gt;(A:ANIMATION DELTA TIME,seconds) #PERCENT_PER_SECOND# *&lt;/ANIM_CODE&gt;
+		&lt;ANIM_DELTA&gt;1&lt;/ANIM_DELTA&gt;
+		&lt;ANIM_WRAP&gt;1&lt;/ANIM_WRAP&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(A:GENERAL ENG COMBUSTION SOUND PERCENT,percent) 1 &amp;gt;
+				if{
+					1 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				} els{
+					0 (&amp;gt;A:LIGHT GYROLIGHT INTENSITY, percent over 100)
+				}
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>PERCENT_PER_SECOND</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Animations.html#ASOBO_GT_Anim_Code">ASOBO_GT_Anim_Code</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>ANIM_CODE (using PERCENT_PER_SECOND)</li>
+									<li>ANIM_DELTA</li>
+									<li>ANIM_WRAP</li>
+									<li>ANIM_LENGTH</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.8.1_8"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

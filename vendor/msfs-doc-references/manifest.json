@@ -1,0 +1,88 @@
+{
+  "docs": [
+    {
+      "url": "https://docs.flightsimulator.com/html/Introduction/Using_The_SDK.htm",
+      "path": "msfs-doc-references/html/Introduction/Using_The_SDK.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Introduction/Introduction.htm",
+      "path": "msfs-doc-references/html/Introduction/Introduction.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/Models.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/Models/Models.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/Model_Definitions.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/Models/Model_Definitions.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/Model_Animation_Definitions.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/Models/Model_Animation_Definitions.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/Model_Behaviors.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/Models/ModelBehaviors/Model_Behaviors.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/General_Template_Definitions.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/Models/ModelBehaviors/General_Template_Definitions.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/Input_Event_Definitions.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/Models/ModelBehaviors/Input_Event_Definitions.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Template_Explorer.html",
+      "path": "msfs-doc-references/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Template_Explorer.html"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/mergedProjects/How_To_Make_An_Aircraft/Contents/Model_Behaviours/Default_Templates.htm",
+      "path": "msfs-doc-references/html/mergedProjects/How_To_Make_An_Aircraft/Contents/Model_Behaviours/Default_Templates.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Asset_Creation/3D_Models/General_Principles.htm",
+      "path": "msfs-doc-references/html/Asset_Creation/3D_Models/General_Principles.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Asset_Creation/Blender_Plugin/The_Blender_Plugin.htm",
+      "path": "msfs-doc-references/html/Asset_Creation/Blender_Plugin/The_Blender_Plugin.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/SimObjects/SimObjects.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/SimObjects/SimObjects.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/SimObjects/Aircraft_SimO/flight_model/interactive_points.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/SimObjects/Aircraft_SimO/flight_model/interactive_points.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/VisualEffects/Visual_Effects_Landing_Templates.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/VisualEffects/Visual_Effects_Landing_Templates.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Checklists/Checklists.htm",
+      "path": "msfs-doc-references/html/Content_Configuration/Checklists/Checklists.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/msfs2024/html/3_Models_And_Textures/Plugins/glTF_Schemas.htm",
+      "path": "msfs-doc-references/msfs2024/html/3_Models_And_Textures/Plugins/glTF_Schemas.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/msfs2024/flighting/html/3_Models_And_Textures/Textures/Materials/FlightSim_Materials.htm",
+      "path": "msfs-doc-references/msfs2024/flighting/html/3_Models_And_Textures/Textures/Materials/FlightSim_Materials.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/msfs2024/html/3_Models_And_Textures/Textures/Materials/FlightSim_Material_Parameters.htm",
+      "path": "msfs-doc-references/msfs2024/html/3_Models_And_Textures/Textures/Materials/FlightSim_Material_Parameters.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/msfs2024/flighting/html/6_Programming_APIs/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm",
+      "path": "msfs-doc-references/msfs2024/flighting/html/6_Programming_APIs/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/mergedProjects/How_To_Make_An_Aircraft/Contents/Modelling/Airframe/Texturing/Surface_Detail.htm?agt=index",
+      "path": "msfs-doc-references/html/mergedProjects/How_To_Make_An_Aircraft/Contents/Modelling/Airframe/Texturing/Surface_Detail__agt_index.htm"
+    }
+  ]
+}

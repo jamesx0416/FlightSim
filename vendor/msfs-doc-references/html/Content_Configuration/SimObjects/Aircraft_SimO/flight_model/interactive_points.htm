@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>flight_model.cfg - [INTERACTIVE POINTS]</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="Flight Model"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>flight_model.cfg - [INTERACTIVE POINTS]</h2>
+  <p>Interactive Points in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> are used to define the position of various doors of the aircraft - regular, emergency, and cargo doors - as well as some other points to interact with <a href="../../../Environment/Living_World/Airport_Services/Airport_Services.htm">Airport Services</a>, such as the end of a fuel hose to interact with a FuelTruck, or the end of an electrical cable to interact with a GroundPowerUnit vehicle. Interactive points should be added through the <a href="../../../../Developer_Mode/Aircraft_Editor/The_Aircraft_Editor.htm">Aircraft Editor</a>, and only tweaked if required through the <a href="../flight_model_cfg.htm"><code class="inline">flight_model.cfg</code></a> file.</p>
+  <p><span class="note"><strong>NOTE</strong>: While interactive points are currently stored in the flight_model.cfg file, they have <strong>no relationship with the actual Flight Model</strong> for an aircraft. Future updates to the SDK may move this data to another file.</span></p>
+  <p> </p>
+  <p>The <code class="inline">[INTERACTIVE POINTS]</code> section should contain a line <code class="inline">number_of_interactive_points = <em>N</em></code> where <code class="inline"><em>N</em></code> represents the total number of interactive points for the aircraft. This parameter should then be followed by the required number of <code class="inline">interactive_point.<em>i</em> = &lt;DATA&gt;</code>, where <code class="inline"><em>i</em></code> is a value between <code class="inline">0</code> and <code class="inline"><em>N</em> - 1</code>. , and <code class="inline">&lt;DATA&gt;</code> is a 1D table of values that set up the interactive point. Below you can see an example of interactive points being defined:</p>
+  <pre class="codeblock">[INTERACTIVE POINTS]
+number_of_interactive_points = 10
+interactive_point.0 = 0.4, 27.93, -6.05, 3.02, 0, 0, 0, -86, 72, 16, 85, 3, -2, 33, -1
+interactive_point.1 = 0.4, 27.93, 6.05, 3.02, 0, 0, 0, 86, 85, 3, 72, 16, -2, 33, -1
+interactive_point.2 = 0.4, -53, -5.2, 3, 0, 0, 0, -103, 0, 0, 0, 0, 0, 0, -1
+interactive_point.3 = 0.4, -53, 5.2, 3, 0, 0, 0, 103, 0, 0, 0, 0, 0, 0, -1
+interactive_point.4 = 0.4, -29.5, 2, -1.8, 1, 0, 0, 90, 0, 0, 0, 0, 0, 0, -1
+interactive_point.5 = 0.4, 18, 1.93, -1.9, 1, 0, 0, 90, 0, 0, 0, 0, 0, 0, -1
+interactive_point.6 = 0.4, -4, -6, 6.2, 2, 0, 0, -90, 0, 0, 0, 0, 0, 0, -1
+interactive_point.7 = 0.4, -4, 6, 6.2, 2, 0, 0, 90, 0, 0, 0, 0, 0, 0, -1
+interactive_point.8 = 0, 36.3, 10.78, -5.18, 4, 0, 0, 45, 0, 0, 0, 0, 0, 0, -1
+interactive_point.9 = 0, 0, -54.59, -7.57, 3, 0, 0, -90, 0, 0, 0, 0, 0, 0, -1</pre>
+  <p> </p>
+  <p>The available parameters for the <code class="inline">[INTERACTIVE POINTS]</code> section are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 275px;"/>
+      <col style="width: 522px;"/>
+      <col style="width: 134px;"/>
+      <col style="width: 78px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">number_of_interactive_points</code></td>
+        <td>
+          <p>The number of interactive points being defined. Ïf greater than 0, each one needs to have a corresponding <code class="inline">interactive_point.<em>N</em></code> parameter, counting from 0 up to <code class="inline">number_of_interactive_points</code> - 1.</p>
+        </td>
+        <td>Integer</td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><a id="interactive_point.N"></a><code class="inline">interactive_point.<em>N</em></code></td>
+        <td>
+          <p>A table of values defining the interactive point. This table has the following format:</p>
+          <p class="codeblock">interactive_point.0 = Open Close Rate, Pos Z, Pos X, Pos Y, Type, Pitch, Bank, Heading, Jetway Left Bend, Jetway Left Deployment, Jetway Right Bend, Jetway Right Deployment, Jetway Top Horizontal, Jetway Top Vertical</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Each interactive point definition requires the input of 14 different values. The table below explains what each one of the values represents, as well as the <a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#points">Interactive Points</a> (if it has one):</p>
+  <p> </p>
+  <table>
+    <colgroup>
+      <col style="width: 97px;"/>
+      <col style="width: 105px;"/>
+      <col style="width: 331px;"/>
+      <col style="width: 154px;"/>
+      <col style="width: 279px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Position</th>
+        <th>Position Name</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>SimVar</th>
+      </tr>
+      <tr>
+        <td style="text-align: center;">0</td>
+        <td>Open Close Rate</td>
+        <td>Percent per second of animation of the interactive point (used mostly for doors).</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li>-</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">1</td>
+        <td>Pos - Z</td>
+        <td>Coordinate in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> of the point relative to aircraft <a href="../Aircraft.htm#h">Datum Reference Point</a>, on the back-to-front (Z) axis.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_POSZ">INTERACTIVE_POINT_POSZ</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">2</td>
+        <td>Pos - X</td>
+        <td>Coordinate in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> of the point relative to aircraft <a href="../Aircraft.htm#h">Datum Reference Point</a>, on the left-to-right (X) axis.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_POSX">INTERACTIVE_POINT_POSX</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">3</td>
+        <td>Pos - Y</td>
+        <td>Coordinate in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> of the point relative to aircraft <a href="../Aircraft.htm#h">Datum Reference Point</a>, on the bottom-to-top (Y) axis.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_POSZ">INTERACTIVE_POINT_POSZ</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">4</td>
+        <td>Type</td>
+        <td>Integer corresponding to an enum, determining the type of the point (see the <a href="interactive_points.htm#about-type-position-and-orientation">Type, Position, and Orientation</a> section for more details).</td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = Main exit</li>
+            <li>1 = Cargo exit/door</li>
+            <li>2 = Emergency exit</li>
+            <li>3 = Fuel hose</li>
+            <li>4 = Ground Power cable</li>
+            <li>5 = Air Start Unit</li>
+            <li>6 = Tailhook</li>
+            <li>99 = Unknown (used for errors)</li>
+          </ol>
+        </td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_TYPE">INTERACTIVE_POINT_TYPE</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">5</td>
+        <td>Orientation - Pitch</td>
+        <td>Pitch, in degrees, of the point orientation, where 0° means horizontal.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_PITCH">INTERACTIVE_POINT_PITCH</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">6</td>
+        <td>Orientation - Bank</td>
+        <td>Bank, in degrees, of the point orientation (currently unused, please set 0 here).</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_BANK">INTERACTIVE_POINT_BANK</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">7</td>
+        <td>Orientation - Heading</td>
+        <td>Heading, in degrees, of the point orientation (0° means same heading as the aircraft).</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_HEADING">INTERACTIVE_POINT_HEADING</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">8</td>
+        <td>Jetway Left Bend</td>
+        <td>A percentage value for the jetway left bend. See the <a href="interactive_points.htm#about-jetway-values">Jetway Values</a> section for more information.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_JETWAY_LEFT_BEND">INTERACTIVE_POINT_JETWAY_LEFT_BEND</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">9</td>
+        <td>Jetway Left Deployment</td>
+        <td>A value, in degrees, for the jetway left deployment. See the <a href="#about-jetway-values">Jetway Values</a> section for more information.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_JETWAY_LEFT_DEPLOYMENT">INTERACTIVE_POINT_JETWAY_LEFT_DEPLOYMENT</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">10</td>
+        <td>Jetway Right Bend</td>
+        <td>A percentage value for the jetway right bend. See the <a href="#about-jetway-values">Jetway Values</a> section for more information.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_JETWAY_RIGHT_BEND">INTERACTIVE_POINT_JETWAY_RIGHT_BEND</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">11</td>
+        <td>Jetway Right Deployment</td>
+        <td>A value, in degrees, for the jetway right deployment. See the <a href="#about-jetway-values">Jetway Values</a> section for more information.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_JETWAY_RIGHT_DEPLOYMENT">INTERACTIVE_POINT_JETWAY_RIGHT_DEPLOYMENT</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">12</td>
+        <td>Jetway Top Horizontal</td>
+        <td>A value, between -100 and 100, for the jetway horizontal line. See the <a href="#about-jetway-values">Jetway Values</a> section for more information.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_JETWAY_TOP_HORIZONTAL">INTERACTIVE_POINT_JETWAY_TOP_HORIZONTAL</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td style="text-align: center;">13</td>
+        <td>Jetway Top Vertical</td>
+        <td>A value, between -100 and 100, for the jetway vertical line. See the <a href="#about-jetway-values">Jetway Values</a> section for more information.</td>
+        <td>Float</td>
+        <td>
+          <ol class="minitoc-list">
+            <li><code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_JETWAY_TOP_VERTICAL">INTERACTIVE_POINT_JETWAY_TOP_VERTICAL</a></code></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td>14</td>
+        <td>Exit Open Failure Speed</td>
+        <td>A value which corresponds to the speed at which the aircraft will have a failure if an exit is open, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second. This is only valid if the interactive point is of the type 0 (Exit). If set to -1, failures of this type will be disabled, and if not included then the default speed is 50 <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second</td>
+        <td>Float</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="about-type-position-and-orientation">Type, Position, and Orientation</h3>
+  <p>For the first three available point types - <em>Main exit</em>, <em>Cargo exit/door</em> and <em>Emergency exit</em> - the interactive point should be positioned at the <em>bottom </em>of the door (in the middle of it for other directions). The orientation should point horizontally towards the exterior of the door (i.e. perpendicular to the door itself). This position and orientation will be used by Jetways, BoardingRamps, CateringTruck, and (for cargo) BaggageLoaders, in order to align properly.</p>
+  <p> </p>
+  <p>For an aircraft to properly interact with a FuelTruck, it should have a fuel hose node as part of its model, hidden by default thanks to ModelBehaviors, preferably on the left side of the aircraft (see the section below for more details). The associated interactive point of type 3 - <em>Fuel Hose</em> - should then be placed at the end of the hose (on the fueltruck side), in the center of the circle (assuming a cylindrical hose). The orientation should point towards the exterior of the hose, in the same direction as the last part of the hose.</p>
+  <p> </p>
+  <p>For an aircraft to properly interact with a GroundPowerUnit, it should have an electrical cable node as part of its model, hidden by default thanks to model behaviors, preferably on the right side of the aircraft, close to its nose (see the section below for more details). The associated interactive point of type 4 - <em>Ground Power cable</em> - should then be placed at the end of the cable (on the groundpowerunit side), in the center of the circle (assuming a cylindrical cable). The orientation should point towards the exterior of the cable, in the same direction as the last part of the cable.</p>
+  <p> </p>
+  <p>Note that, when using the <a href="../../../../Developer_Mode/Aircraft_Editor/The_Aircraft_Editor.htm">Aircraft Editor</a>, interactive points are represented on the aircraft with an arrow starting from their position that indicates their orientation.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="about-jetway-values">Jetway Values</h3>
+  <p>The last six values of an <code class="inline">interactive_point</code> are used to properly animate the hood of a jetway in order to best match the shape of the aircraft. This also means that those values are only useful for interactive points of type 0 - <em>Main exit</em> - and only for aircrafts suitable for jetway interaction (defined in the <a href="../../../../Developer_Mode/Aircraft_Editor/Tabs/The_Aircraft_Tab.htm#services">Services</a> section of the Aircraft Editor <a href="../../../../Developer_Mode/Aircraft_Editor/Tabs/The_Aircraft_Tab.htm">Aircraft Tab</a> or the <code class="inline"><a href="../aircraft_cfg.htm#h1">[SERVICES]</a></code> section of <code class="inline"><a href="../aircraft_cfg.htm">aircraft.cfg</a></code>).</p>
+  <p> </p>
+  <p>Those six values are matched with the six animations for the jetway hood. The left and right deployment values are angles in degrees to incline the base of the jetway hood (with 0 being the default vertical position). The left and right bend values are percentages of the bending animation (0 to 100, where 0 is the default state). The top horizontal and vertical values are signed percentages of the corresponding animations (-100 to 100, where 0 is the default state).</p>
+  <p> </p>
+  <p>To properly define them for your aircraft, there is sadly no magic recipe, and you will have to tweak those values until the result is satisfying. The recommended way to do so is as follows:</p>
+  <ul>
+    <li>start a flight on a gate with your aircraft</li>
+    <li>call the jetway with the shortcut input TOGGLE JETWAY (default to <code class="inline">ctrl+J</code>, and it can be changed in the controls option menu)</li>
+    <li>examine the current result of hood animation</li>
+    <li>retract the jetway with the shortcut input</li>
+    <li>edit interactive point values</li>
+    <li>save them and reload your aircraft sim</li>
+    <li>repeat</li>
+  </ul>
+  <p>The good thing about those values is that any jetway created by any company will give similar results as your aircraft, as long as they use the same animation conventions.</p>
+  <p> </p>
+  <p>To give an example, the default Airbus A320 Neo in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> has the following last six values for its interactive point of the front-left door:</p>
+  <pre class="codeblock">72, 16, 85, 3, -2, 33</pre>
+  <p>These correspond - in order - to:</p>
+  <ul>
+    <li>left bend</li>
+    <li>left deployment</li>
+    <li>right bend</li>
+    <li>right deployment</li>
+    <li>top horizontal</li>
+    <li>top vertical</li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="carrier_landings">Carrier Landings</h3>
+  <p>If you are wanting an aircraft to land on an aircraft carrier, then it must have a <strong>tailhook</strong> so it can be correctly arrested at speed when landing by the deck cables. This tailhook should be enabled in the <a href="../systems_cfg.htm">systems.cfg</a> file (see the <code class="inline"><a href="../systems_cfg.htm#tailhook">[TailHook]</a></code> section), and will require you to setup 3 interactive points for it to work correctly. These need to be of the <strong>type</strong> &quot;Tailhook&quot; (6) and will be associated with the following details:</p>
+  <ul>
+    <li>the point where the tail hook is attached to the plane</li>
+    <li>the point of the end of the tail hook when fully retracted</li>
+    <li>the point of the end of the tail hook when fully deployed</li>
+  </ul>
+  <p> </p>
+  <p>So, in this following example, we have 7 interactive points defined for the aircraft, and points 4, 5 and 6 are the ones that are used for the TailHook:</p>
+  <pre class="codeblock">[INTERACTIVE POINTS]
+number_of_interactive_points =7
+interactive_point.0 =0.33 , 4.00 , -30.00, -2.50, 3 , 0.00, 0.00, -90.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
+interactive_point.1 =0.330000 , 4.000000 , 30.000000, -2.500000, 3 , 0.000000, 0.000000, 90.000000 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
+interactive_point.2 =0.33 , -22.00 , -13.00, -2.50, 4 , 0.00, 0.00, -135.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
+interactive_point.3 =0.33 , -22.00 , 23.00, -2.50, 4 , 0.00, 0.00, 135.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
+interactive_point.4 =0.33 , -21.30 , 0.00, -1.7, 6 , 0.00, 0.00, 0.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
+interactive_point.5 =0.33 , -27.30 , 0.00, -0.5, 6 , 0.00, 0.00, 0.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
+interactive_point.6 =0.33 , -24.50 , 0.00, -7.0, 6 , 0.00, 0.00, 0.00 , 0.00, 0.00, 0.00, 0.00, 0.00, 0.00
+</pre>
+  <p> </p>
+  <p> </p>
+  <h3>Behaviors And SimVars Related To Interactive Points</h3>
+  <p>Each interactive point SimVar has to use an index corresponding to the index of the interactive point in the <code class="inline">flight_model.cfg</code> (starting at 0). In addition to the SimVars listed here and representing the constant values of interactive points, another simvar - <code class="inline"><a href="../../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#INTERACTIVE_POINT_OPEN">INTERACTIVE_POINT_OPEN</a></code> - is available. This simvar is a percentage which is 0% when the corresponding interactive point door is closed or the hose/cable is not visible, and 100% when the door is open or hose/cable is fully deployed.</p>
+  <p> </p>
+  <p>All those SimVars can be used directly, or you can also use the following <a href="../../../Models/ModelBehaviors/Model_Behaviors.htm"><code class="inline">&lt;Behaviors&gt;</code> templates</a>, by using this include:</p>
+  <pre class="codeblock">&lt;Include Path=&quot;Asobo\Exterior.xml&quot;/&gt;</pre>
+  <p>The template <code class="inline">ASOBO_DOOR_InteractivePoint_Template</code> is used to play an animation of a door opening, matching the SimVar for the associated interactive point. It can also be used for hose/cable deployment animations. It takes two parameters:</p>
+  <ul>
+    <li><code class="inline">&lt;ID&gt;</code> - the index of the corresponding interactive point</li>
+    <li><code class="inline">&lt;ANIM_NAME&gt;</code> - contains the name of the corresponding animation</li>
+  </ul>
+  <p>Note that the animations first frame should be with the door closed (or hose/cable not visible).</p>
+  <p> </p>
+  <p>The template <code class="inline">ASOBO_FuelHose_InteractivePoint_Template</code> is used when no animation is available to hide/show a hose/cable Node in the model based on the associated SimVar value. It takes two parameters:</p>
+  <ul>
+    <li><code class="inline">&lt;ID&gt;</code> - the index of the corresponding interactive point</li>
+    <li><code class="inline">&lt;NODE_ID</code>&gt; - the name of the node in the model</li>
+  </ul>
+  <p>Note that the node will be hidden when <code class="inline">INTERACTIVE POINT OPEN</code> is 0 (by default) and shown for values strictly greater than 0.</p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../.."
+    gCommonRootRelPath = "../../../.."
+    gTopicId = "5.3.1.2.0_5"
+  
+//]]></script>
+
+
+  <script src="../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

@@ -1,0 +1,597 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  <title>Model Definitions</title>
+  
+  <!-- <link rel="stylesheet" href="../../assets/css/Prism/prism.css" type="text/css" /> -->
+  <!-- <link href="../../assets/css/Prism/prism.css" rel="stylesheet" /> -->
+  <meta name="rh-index-keywords" content="Models,XML Files"/>
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <!-- <script src="../../assets/css/Prism/prism.js"></script> -->
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>MODEL DEFINITIONS</h2>
+  <p>The <code class="inline">&lt;model_filename&gt;.xml</code> file goes in the <code class="inline">Model</code> folder beside the other folders for the object and should be formatted as follows:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;ModelInfo version=&quot;1.0&quot; guid=&quot;&lt;!-- GUID HERE --&gt;&quot;&gt;
+    &lt;LODS&gt;
+        &lt;!-- LOD DATA HERE --&gt;
+    &lt;/LODS&gt;
+    &lt;!-- MODEL ANIMATION DATA HERE --&gt;
+    &lt;AnimGraph&gt;
+        &lt;!-- ANIMATION GRAPH AND BLENDTREE DATA HERE --&gt;
+    &lt;AnimGraph&gt;
+    &lt;Behaviors&gt;
+        &lt;!-- MODEL BEHAVIOR DATA HERE --&gt;
+    &lt;/Behaviors&gt;
+&lt;/ModelInfo&gt;
+ 
+&lt;ModelBehaviors&gt;
+    &lt;!-- DEPRECATED --&gt;
+&lt;/ModelBehaviors&gt;</code></pre>
+  <p>Here you <em>must</em> include the <code class="inline"><a href="Model_Definitions.htm#h38">&lt;ModelInfo&gt;</a></code> element, and some older files may have the <code class="inline"><a href="Model_Definitions.htm#h39">&lt;ModelBehaviors&gt;</a></code> element. However that has since been deprecated in favor of the <code class="inline"><a href="#Behaviors">&lt;Behaviors&gt;</a></code> element, and it should not be used except if it already exists as part of a legacy SimObject, <em>or</em> if you are creating additional Template, Input Event or Parameter Function files. The rest of the XML is comprised of the elements listed on this page as well as the elements listed on the <a href="Model_Animation_Definitions.htm">Model Animation Definitions</a> page (since animation can be embedded in the model XML <em>or</em> included as a separate <code class="inline">animation.xml</code> file, elements related to animation are listed on a separate page). You can find multiple examples of the model file in the various <a href="../../Samples_And_Tutorials/Samples_And_Tutorials.htm">samples that come with the SDK</a>, and some short example snippets on the <a href="Model_Examples.htm">Model Examples</a> page.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="h38"><code class="inline">&lt;ModelInfo&gt;</code></h3>
+  <p>This element is a container element for all the model details. This element can contain the following:</p>
+  <p><code class="inline"><a href="Model_Definitions.htm#h37">&lt;LODS&gt;</a></code>, <code class="inline"><a href="Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#Animation">&lt;Animation&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#NodeAnimation">&lt;NodeAnimation&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#AnimationEvent">&lt;AnimationEvent&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#AnimGraph">&lt;AnimGraph&gt;</a></code>, <code class="inline"><a href="#h40">&lt;IKChain&gt;</a></code>, <code class="inline"><a href="#h41">&lt;IKConstraint&gt;</a></code>, <code class="inline"><a href="Model_Definitions.htm#ModelAttachments">&lt;ModelAttachments&gt;</a></code>.</p>
+  <p> </p>
+  <p>Note that not all the elements listed above are required for every model type - some are specific to aircraft while others are more suited to ground vehicle or scenery SimObjects, and still others will depend on the sub-elements included within other elements.</p>
+  <p> </p>
+  <p>This element has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Version</code></td>
+        <td>The version of this ModelInfo definition. Default is &quot;1.0&quot;. Currently not important.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">GUID</code></td>
+        <td>The unique <a href="#" data-popovertext="GUID stands for &#39;Globally Unique IDentifier&#39; which is a 128-bit value used to identify information in computer systems." data-rhwidget="TextPopOver">GUID</a> of the model this XML accompanies. Must be in the format &quot;<code class="inline">{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx}</code>&quot;, all lower case, e.g: &quot;<code class="inline">{12f06ee8-11ce-4e7b-a715-a9c5deb5352f}</code>&quot;. This is currently only required for scenery objects.</td>
+        <td> </td>
+        <td style="text-align: center">No<br/>
+          (Unless model is for a Scenery Object)</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h37"><code class="inline">&lt;LODS&gt;</code></h3>
+  <p>This is a container element that takes no attributes and contains one or more <code class="inline">&lt;LOD /&gt;</code> sub-elements. See the <a href="Model_Examples.htm#h">LOD Example</a> for more information on how this element works.</p>
+  <p><span class="note"><strong>IMPORTANT!</strong> Please ensure that you have read and understood the <a href="../../Asset_Creation/3D_Models/LODs.htm">LOD limits</a> for models in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>.</span></p>
+  <p> </p>
+  <h4 id="Lod"><code class="inline">&lt;LOD /&gt;</code></h4>
+  <p>This sub-element of <code class="inline"><a href="#h37">&lt;LODS&gt;</a></code> is used to describe a single <a href="#" data-popovertext="Stands for &#39;Level of Detail&#39; and refers to the complexity of a 3D model representation. In general this detail will be lower the further an object is from the viewer, and greater the closer it is." data-rhwidget="TextPopOver">LOD</a> model. It can be self closing, or it can contain the (deprecated) <code class="inline"><a href="Model_Definitions.htm#AnimFileList">&lt;AnimationFileList&gt;</a></code> container element, one or more <code class="inline"><a href="Model_Definitions.htm#MergeModel">&lt;MergeModel&gt;</a></code> elements, and/or one or more <code class="inline"><a href="Model_Definitions.htm#AttachModel">&lt;AttachModel&gt;</a></code> elements. It has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">modelFile</code></td>
+        <td>Defines the model file to use (from a relative path) for this LOD.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><a id="minSize"></a><code class="inline">minSize</code></td>
+        <td>This is the minimum size on screen before this LOD model is considered for display, as a percentage. Note that the value can be greater than 100%. Please see <a href="../../Asset_Creation/3D_Models/LODs.htm#minsize">LOD Minsize Rules</a> for more information.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="MergeModel"><code class="inline">&lt;MergeModel&gt;</code></h4>
+  <p>This element is used to define the different animation and/or submodel gLTF files that should be used for the SimObject over the different <code class="inline"><a href="Model_Definitions.htm#Lod">&lt;LOD /&gt;</a></code> elements. Paths for this element are relative to the model XML file location. If you are using both submodels and animations then you would have at least two of these elements, although you can have more as required. You can find an example for this element here: <a href="Model_Examples.htm#MergeModel"> </a>. You can also find out more information about submodel merging here: <a href="../../Asset_Creation/3D_Models/Submodel_Merging.htm">Submodel Merging</a>.</p>
+  <p> </p>
+  <h4 id="AttachModel"><code class="inline">&lt;AttachModel&gt;</code></h4>
+  <p>This element is used to define a unique ID string for a glTF file that is going to be attached to the main model (as defined in the main <code class="inline"><a href="#Lod">&lt;LOD /&gt;</a></code> element) when the main model is on the given LOD. If you include this element then you will also need to add a <code class="inline"><a href="Model_Definitions.htm#ModelAttachments">&lt;ModelAttachments&gt;</a></code> element where you will define the path and other details relevant to the model being attached. Note too that you may have multiple <code class="inline">&lt;AttachModel&gt;</code> elements if required.</p>
+  <p>You can find an example for this element here: <a href="Model_Examples.htm#attachments">Model Attachments</a>.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">id</code></td>
+        <td>The unique ID of the model that is being attached.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>You can also find out more information about setting up and using attachments here: <a href="../../Asset_Creation/3D_Models/Model_Attachments.htm">Model Attachments</a>.</p>
+  <p> </p>
+  <p> </p>
+  <h4 id="AnimFileList"><code class="inline">&lt;AnimationFileList&gt;</code></h4>
+  <p>This is a container sub-element that is used to hold one or more <code class="inline"><a href="Model_Definitions.htm#AnimFile">&lt;AnimationFile&gt;</a></code> elements, and it has no attributes. Note that this is a deprecated feature that - while still supported - should not be used for new SimObjects created for <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>. Instead, you should be using the <code class="inline"><a href="#MergeModel">&lt;MergeModel&gt;</a></code> elements.</p>
+  <p> </p>
+  <h4 id="AnimFile"><code class="inline">&lt;AnimationFile&gt;</code></h4>
+  <p>This element is a sub-element of the <code class="inline"><a href="Model_Definitions.htm#AnimFileList">&lt;AnimationFileList&gt;</a></code> and holds the name (including the extension) of the gLTF file that has the animations that the LOD requires. This file should be in the &quot;animation&quot; folder, beside the &quot;model&quot; and &quot;texture&quot; folder for the SimObject.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="AnimationInclude"><code class="inline">&lt;AnimationInclude&gt;</code></h3>
+  <p>When you have an object that has variations, you may wish each variation to reference the same set of animations. In these cases, you would not include the different <a href="Model_Animation_Definitions.htm">animation elements</a> in the individual <code class="inline">[model].xml</code> but instead create a separate <code class="inline">animation.xml</code> file that contains only contains the animation elements to be shared. This file would then be referenced using the <code class="inline">&lt;AnimationInclude&gt;</code> element. This element has no parameters and requires the <code class="inline">&lt;Include /&gt;</code> sub-element to define the path to the animation file to use.</p>
+  <p> </p>
+  <h4 id="Include"><code class="inline">&lt;Include /&gt;</code></h4>
+  <p>This is a self closing element and is a sub-element of <code class="inline"><a href="Model_Definitions.htm#AnimationInclude">&lt;AnimationInclude&gt;</a></code>. The element has a single attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">File</code></td>
+        <td>The path to the <a href="Model_Animation_Definitions.htm"><code class="inline">animation.xml</code></a>, relative to the <code class="inline">[model].xml</code> directory.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h40"><code class="inline">&lt;IKChain&gt;</code></h3>
+  <p>This element describes an Inverse Kinematic (IK) chain, most commonly used with Jetways. You can see an example of this element being used in the sample <a href="../../Samples_And_Tutorials/Samples/SimObjects_Other/Jetway.htm">Jetway</a> project and also on the XML examples page: <a href="Model_Examples.htm#h1">Jetway Example</a>. It must have one each of the sub-elements <code class="inline"><a href="#h42">&lt;Start&gt;</a></code>, <code class="inline"><a href="#h43">&lt;End&gt;</a></code>, <code class="inline"><a href="#h44">&lt;TranslationSpeed&gt;</a></code> and <code class="inline"><a href="#h45">&lt;RotationSpeed&gt;</a></code>, and takes the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>The name of the event of the IK Chain.</td>
+        <td>
+          <p><u>String</u>:</p>
+          <p><code class="inline">IK_MainHandle</code> - for both jetways and jetway links<br/>
+            <code class="inline">IK_SecondaryHandle</code> - For Jetways<br/>
+            <code class="inline">IK_WheelsGroundLock</code> - For Jetways
+          </p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p><span class="note"><strong>NOTE</strong>: The hierarchy of Nodes in the object is crucial to define an IK chain. The chain will be composed of the line of descendants from the Start Node to the End Node, and each of these nodes (except End) will move within its constraints, aiming the End Node towards a target. Each of these nodes move relative to its parent, and any other descendants (in the hierarchy) of these nodes will follow.</span></p>
+  <p> </p>
+  <h4 id="h42"><code class="inline">&lt;Start&gt;</code></h4>
+  <p><span>This sub-element of <code class="inline"><a href="#h40">&lt;IKChain&gt;</a></code> contains the name of the Node at the start of the chain, which can move within its constraints. This should <em>not</em> be the root Node of the object.</span></p>
+  <p> </p>
+  <h4 id="h43"><code class="inline">&lt;End&gt;</code></h4>
+  <p><span>This sub-element of <code class="inline"><a href="#h40">&lt;IKChain&gt;</a></code> contains the name </span>of the Node at the end of the chain, aiming for a target position. Must be a descendant of the Start Node in the hierarchy, and it will not move relative to its parent as part of this IK chain.</p>
+  <p> </p>
+  <h4 id="h44"><code class="inline">&lt;TranslationSpeed&gt;</code></h4>
+  <p><span>This sub-element of <code class="inline"><a href="#h40">&lt;IKChain&gt;</a></code> contains the </span>maximal translation speed of each Node of the chain (relative to its parent), in meters per second.</p>
+  <p> </p>
+  <h4 id="h45"><code class="inline">&lt;RotationSpeed&gt;</code></h4>
+  <p><span>This sub-element of <code class="inline"><a href="#h40">&lt;IKChain&gt;</a></code> contains the </span>maximal rotation speed of each Node of the chain (relative to its parent), in degrees per second.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="h41"><code class="inline">&lt;IKConstraint&gt;</code></h3>
+  <p>This element takes no parameters and defines the constraints of a Node for inverse kinematic (IK) purposes. It will only have an effect if the Node is part of an IK chain (<em>excluding</em> the End node). You can see an example of this element being used in the sample <a href="../../Samples_And_Tutorials/Samples/SimObjects_Other/Jetway.htm">Jetway</a> project and also on the examples page: <a href="Model_Examples.htm#h1">Jetway Example</a>. It must have <code class="inline"><a href="#h48">&lt;Node&gt;</a></code> sub-element, and can have also have the following optional sub-elements: <code class="inline"><a href="#h49">&lt;X&gt;, &lt;Y&gt;, &lt;Z&gt;</a></code>, <code class="inline"><a href="#h50">&lt;Pitch /&gt;</a></code>, <code class="inline"><a href="#h46">&lt;Bank /&gt;</a></code>, <code class="inline"><a href="#h47">&lt;Heading /&gt;</a></code>.</p>
+  <p><span class="note"><strong>NOTE</strong>: A Node part of an IK Chain that has no defined <code class="inline">&lt;IKConstraint&gt;</code> will not move at all (relative to its parent) during IK movements.</span></p>
+  <p>Each of the sub elements <em>except</em> <code class="inline">&lt;Node&gt;</code> can have the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Min</code></td>
+        <td>Minimal position/angle relative to its parent Node</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Max</code></td>
+        <td>Maximal position/angle relative to its parent Node</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>If neither <code class="inline">Min</code> nor <code class="inline">Max</code> are defined, this means the Node has no limits to translating or rotating along the direction for the sub-element direction, relative to its parent. If both <code class="inline">Min</code> and <code class="inline">Max</code> are defined, the Node will always stay within the given range relative to its parent. Note that the default position/angle (relative to parent) should be in this range.</p>
+  <p> </p>
+  <h4 id="h48"><code class="inline">&lt;Node&gt;</code></h4>
+  <p>This sub-element of the <code class="inline"><a href="#h41">&lt;IKConstraint&gt;</a></code> element contains the name of the Node that can move within constraints during IK.</p>
+  <p> </p>
+  <h4 id="h49"><code class="inline">&lt;X&gt;, &lt;Y&gt;, &lt;Z&gt;</code></h4>
+  <p>These sub-elements of the <code class="inline"><a href="#h41">&lt;IKConstraint&gt;</a></code> element are used to define a translation for the node along the X, Y or Z axis.</p>
+  <p> </p>
+  <h4 id="h50"><code class="inline">&lt;Pitch /&gt;</code></h4>
+  <p>This self closing sub-element of the <code class="inline"><a href="#h41">&lt;IKConstraint&gt;</a></code> element takes no parameters and has no sub-elements. When added to the main constraint container element, it indicates that the node can be rotated by changing pitch.</p>
+  <p> </p>
+  <h4 id="h46"><code class="inline">&lt;Bank /&gt;</code></h4>
+  <p>This self closing sub-element of the <code class="inline"><a href="#h41">&lt;IKConstraint&gt;</a></code> element takes no parameters and has no sub-elements. When added to the main constraint container element, it indicates that the node can be rotated by changing bank.</p>
+  <p> </p>
+  <h4 id="h47"><code class="inline">&lt;Heading /&gt;</code></h4>
+  <p>This self closing sub-element of the <code class="inline"><a href="#h41">&lt;IKConstraint&gt;</a></code> element takes no parameters and has no sub-elements. When added to the main constraint container element, it indicates that the node can be rotated by changing heading.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="ModelAttachments"><code class="inline">&lt;ModelAttachments&gt;</code></h3>
+  <p>This element is required when you have specified that an attachment is being used in the <code class="inline"><a href="#Lod">&lt;LOD /&gt;</a></code> section of the XML file using the <code class="inline"><a href="#AttachModel">&lt;AttachModel&gt;</a></code> element. It acts as a container element that will hold one or more <code class="inline"><a href="Model_Definitions.htm#ModelAttachment">&lt;ModelAttachment&gt;</a></code> element (one for each of the <code class="inline"><a href="Model_Definitions.htm#AttachModel">&lt;AttachModel&gt;</a></code> IDs that have been defined). For more information, please see the page on <a href="../../Asset_Creation/3D_Models/Model_Attachments.htm">Model Attachments</a>.</p>
+  <p> </p>
+  <h4 id="ModelAttachment"><code class="inline">&lt;ModelAttachment&gt;</code></h4>
+  <p>This element is a container for the <code class="inline"><a href="Model_Definitions.htm#AttachToNode">&lt;AttachToNode&gt;</a></code> and <code class="inline"><a href="Model_Definitions.htm#Model">&lt;Model&gt;</a></code> elements. Each of these elements should be linked with an <code class="inline"><a href="Model_Definitions.htm#AttachModel">&lt;AttachModel&gt;</a></code> element using the ID attribute.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">id</code></td>
+        <td>The ID that the model glTF being defined should be linked to.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="AttachToNode"><code class="inline">&lt;AttachToNode&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="Model_Definitions.htm#ModelAttachment">&lt;ModelAttachment&gt;</a></code> element is used to define the node on the &quot;main&quot; model (as defined in the main <code class="inline"><a href="#Lod">&lt;LOD /&gt;</a></code> element) that the model attachment should be attached to.</p>
+  <p> </p>
+  <h5 id="Model"><code class="inline">&lt;Model&gt;</code></h5>
+  <p>This sub-element of the <code class="inline"><a href="#ModelAttachment">&lt;ModelAttachment&gt;</a></code> element is used to give the path to the model XML file of the model being attached. Note that the path is <em>relative</em> to the XML file path where you are defining it.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Behaviors"><code class="inline">&lt;Behaviors&gt;</code></h3>
+  <p>This element is for defining the different behaviors of the SimObject model using a flexible components system that permits you to use and create <i>templates</i>. This template system relies on a number of &quot;base&quot; templates that have predefined values for different things within a SimObject, with the idea being that you call a template for a specific behavior then use additional XML elements to override only the parts of the template that you require to change for the model being referenced. You can find full details of how this system works from the following page: <a href="ModelBehaviors/Model_Behaviors.htm">Model Behaviors</a></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="h39"><code class="inline">&lt;ModelBehaviors&gt;</code></h3>
+  <p>This element was previously used exactly the same as the current <code class="inline">&lt;Behaviors&gt;</code> element when used within a <code class="inline">[model].xml</code> file, but has since been deprecated in that capacity, and is now exclusively used when defining library files for model behaviors. In this capacity it is used as the <em>root </em>element when creating independent library files for <a href="ModelBehaviors/Model_Behaviors.htm#Templates">Templates</a>, <a href="ModelBehaviors/Input_Event_Definitions.htm">Input Events</a> and <a href="ModelBehaviors/Model_Behaviors.htm#h">Parameter Functions</a>. These independent files can be referenced using the <code class="inline"><a href="ModelBehaviors/General_Template_Definitions.htm#Include">&lt;Include /&gt;</a></code> element within the other files and should be formatted like this:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;ModelBehaviors&gt;
+    &lt;!-- Any Further File Includes --&gt;
+    &lt;Include ModelBehaviorFile=&quot;FILE_PATH&quot; /&gt;
+    &lt;!-- Templates --&gt;
+    &lt;Template Name = &quot;TEMPLATE_NAME&quot;&gt;
+        &lt;!-- Define Template --&gt;
+    &lt;/Template&gt;
+    &lt;!-- Input Events --&gt;
+    &lt;InputEvent ID=&quot;INPUT_EVENT_NAME&quot;&gt;
+        &lt;Presets&gt;
+            &lt;!-- Event Presets --&gt;
+        &lt;/Presets&gt;
+    &lt;/InputEvent&gt;
+    &lt;!-- Parameter Functions --&gt;
+    &lt;ParametersFn ID=&quot;FUNCTION_NAME&quot;&gt;
+        &lt;!-- Define Function --&gt;
+        &lt;ReturnParameters&gt;
+            &lt;!-- Return Parameters--&gt;
+        &lt;/ReturnParameters&gt;
+    &lt;/ParametersFn&gt;
+&lt;/ModelBehaviors&gt;</code></pre>
+  <p>When creating library files in this way, you can have unique files for each of the types (Templates, Inputs and Fucntions), or you can have them all in a single file, or any combination that you require, as long as the general formatting shown above is maintained.</p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../.."
+    gCommonRootRelPath = "../.."
+    gTopicId = "5.6.0_3"
+  
+//]]></script>
+
+
+  <script src="../../template/scripts/topicpage.js"></script>
+  <script src="../../whxdata/layoutconfig.js"></script>
+  <script src="../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

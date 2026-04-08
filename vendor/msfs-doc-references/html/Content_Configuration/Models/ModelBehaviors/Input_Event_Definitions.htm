@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  <title>Input Event Definitions</title>
+  
+  
+  <meta name="rh-index-keywords" content="XML Files,Models:Model Behaviours"/>
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <script src="../../../assets/css/Prism/prism.js"></script>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>INPUT EVENT DEFINITIONS</h2>
+  <p>The <code class="inline"><a href="General_Template_Definitions.htm#InputEvent">&lt;InputEvent&gt;</a></code> element is designed to act as an interface between what the user inputs and the simulation, permitting you to react and inhibit any <a href="../../../Programming_Tools/Event_IDs/Event_IDs.htm">Event IDs</a> and generate custom behavior instead of sending the event to the sim. This means that you can redefine how a key works and prevent it from altering something in an uncontrolled or unwanted way. The element also acts as a link between the simulation and the user interface, permitting the creation of custom tooltips for control inputs.</p>
+  <p><span class="note"><strong>NOTE</strong>: We recommend that you create a separate &quot;inputs.xml&quot; file for Input Events. This would have the different <code class="inline"><a href="General_Template_Definitions.htm#InputEvent">&lt;InputEvent&gt;</a></code> elements within the main <code class="inline"><a href="../Model_Definitions.htm#h39">&lt;ModelBehaviors&gt;</a></code> element.</span></p>
+  <p> </p>
+  <p>The goal when creating an Input Event is to shift the code complexity outside of the <code class="inline"><a href="../Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code> - which defines what to do based on the user interaction with a knob or button, etc... - and into the input event <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code>. This greatly simplifies interactions as you only have to define some aliases to do the job most of the time, and it also simplifies animations since you can simply retrieve the input event value and base your animation on that instead of looking for the SimVar state which can get quite complicated quite rapidly. The added bonus is that input events are only executed when they are needed, so it&#39;s far cheaper to get an animation value using the cached value inside the input event rather than recalculating it every frame in the animation code.</p>
+  <p> </p>
+  <p>We recommend that you take some time to look over the different input templates which can be found in the following locations:</p>
+  <p class="codeblock">&lt;PACKAGES ROOT&gt;\Official\OneStore\fs-base-aircraft-common\ModelBehaviorDefs\Asobo\Inputs\<br/>
+    &lt;PACKAGES ROOT&gt;\Official\OneStore\fs-base-aircraft-common\ModelBehaviorDefs\Asobo\Common\Inputs\</p>
+  <p>Pay particular attention to the &quot;<code class="inline">Templates.xml</code>&quot; which simplifies interaction templates and is designed as a base to be copied into your own aircraft and then modified to suit your needs. Also be sure to have a look at the different XML files stored in the various &quot;Inputs&quot; sub folders elsewhere in the main &quot;Asobo&quot; directory. It is worth noting that you can also create your own Input Event and template files - you can find a primer on how to create these files from the following page:</p>
+  <ul>
+    <li><a href="../../../Samples_And_Tutorials/Tutorials/Creating_Interactions_Using_InputEvents.htm">Creating Interactions Using InputEvents</a></li>
+  </ul>
+  <p> </p>
+  <p>Below is a schematic for how a basic <code class="inline"><a href="General_Template_Definitions.htm#InputEvent">&lt;InputEvent&gt;</a></code> should be structured, and you can find an example of a complete event from the following section:</p>
+  <ul>
+    <li><a href="../Model_Examples.htm#h2">Input Event Example</a></li>
+  </ul>
+  <p> </p>
+  <pre class="language-xml"><code class="language-xml">&lt;InputEvent ID=&quot;ASOBO_GIE_Base&quot;&gt;
+    &lt;Presets&gt;
+        &lt;Preset ID=&quot;#INPUT_EVENT_ID_SOURCE#_#IE_NAME#&quot;&gt;
+            &lt;Tooltip&gt;
+                &lt;Icon&gt;#TT_ICON#&lt;/Icon&gt;
+                &lt;Interaction&gt;#TT_INTERACTION#&lt;/Interaction&gt;
+                &lt;InteractionLockable&gt;#TT_INTERACTION_LOCKABLE#&lt;/InteractionLockable&gt;
+                &lt;TTDescription RPN=&quot;#TT_DESCRIPTION_IS_DYNAMIC#&quot;&gt;#TT_DESCRIPTION#&lt;/TTDescription&gt;
+                &lt;TTValue RPN=&quot;#TT_VALUE_IS_DYNAMIC#&quot;&gt;#TT_VALUE#&lt;/TTValue&gt;
+            &lt;/Tooltip&gt;
+            &lt;Value&gt;
+                &lt;Units&gt;#VALUE_UNITS#&lt;/Units&gt;
+                &lt;Code&gt;#VALUE_CODE#&lt;/Code&gt;
+                &lt;Init&gt;#INIT_CODE#&lt;/Init&gt;
+                &lt;WatchVars&gt;
+                    &lt;LocalVar ID=&quot;#LOCAL_VAR_TO_WATCH#&quot;/&gt;
+                    &lt;Simvar ID=&quot;#SIMVAR_TO_WATCH#&quot;/&gt;
+                &lt;/WatchVars&gt;
+            &lt;/Value&gt;
+            &lt;Inc&gt;
+                &lt;Code&gt;#INC_CODE#&lt;/Code&gt;
+                &lt;Parameters&gt;
+                    &lt;Param Type=&quot;#PARAM_TYPE#&quot; RPN=&quot;#PARAM_IS_DYNAMIC#&quot;&gt;#PARAM_VALUE#&lt;/Param&gt;
+                &lt;/Parameters&gt;
+                &lt;Bindings&gt;
+                    &lt;Binding Alias=&quot;#ALIAS_ID#&quot; EventID=&quot;#EVENT_ID#&quot;&gt;
+                        &lt;Param RPN=&quot;#IS_RPN#&quot;&gt;#VALUE#&lt;/Param&gt;
+                    &lt;/Binding&gt;
+                &lt;/Bindings&gt;
+            &lt;/Inc&gt;
+            &lt;Dec&gt;...&lt;/Dec&gt;
+            &lt;Set&gt;...&lt;/Set&gt;
+        &lt;/Preset&gt;
+    &lt;/Presets&gt;
+&lt;/InputEvent&gt;</code></pre>
+  <p>The principle behind the InputEvent system is the creation of one or more <code class="inline"><a href="Input_Event_Definitions.htm#Preset">&lt;Preset&gt;</a></code> elements, where each element has a unique ID with which it can then be referenced elsewhere in the model behavior. If you want to define an InputEvent preset the principle elements that you&#39;ll be required to create will be:</p>
+  <ul>
+    <li><code class="inline"><a href="Input_Event_Definitions.htm#Inc">&lt;Inc&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Dec">&lt;Dec&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Set">&lt;Set&gt;</a></code>: These elements are what govern the logic of what the InputEvent preset does as well as its bindings. These are obligatory elements as without them the preset won&#39;t register the user input correctly.</li>
+    <li><code class="inline"><a href="Input_Event_Definitions.htm#Value">&lt;Value&gt;</a></code>: If defined, this element will associate a value to the InputEvent preset which can be used to keep a state in memory (either a number or a string).</li>
+    <li><code class="inline"><a href="Input_Event_Definitions.htm#Tooltip">&lt;Tooltip&gt;</a></code>: If defined, this element will associate data that can be used to display some information about the event.</li>
+  </ul>
+  <p>It is also worth noting that you have the <code class="inline">B:</code> variable for use in these elements to modify the value of an input event using <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation</a>. When using <code class="inline">B:</code> you would supply the <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> ID with the operation you wish to perform appended onto it. For example, to increment the preset &quot;<code class="inline">Sound_COM1_Volume</code>&quot; you would have some <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">RPN</a> like this:</p>
+  <pre class="language-xml"><code class="language-xml">(&gt;B:Sound_COM1_Volume_Inc)</code></pre>
+  <ul>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="Presets"><code class="inline">&lt;Presets&gt;</code></h3>
+  <p>This element is a container element for the different <code class="inline"><a href="Input_Event_Definitions.htm#Preset">&lt;Preset&gt;</a></code> and <code class="inline"><a href="Input_Event_Definitions.htm#Extend">&lt;Extend&gt;</a></code> elements that are going to be used for input. It has no attributes.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Extend"><code class="inline">&lt;Extend&gt;</code></h3>
+  <p>This element is designed to permit you to make the most of the pre-defined &quot;generic&quot; input event templates. These generic templates setup a great number of things for so you don&#39;t have to recreate the same input events time and time again. You can find these generic input events in the following file:</p>
+  <p class="codeblock">&lt;PACKAGES ROOT&gt;\Official\OneStore\fs-base-aircraft-common\ModelBehaviorDefs\Asobo\Inputs\Generic.xml</p>
+  <p>This is similar to the idea of the model behavior component <a href="Model_Behaviors.htm#Templates">Templates</a>, only for input events.</p>
+  <p> </p>
+  <p>The element should be within a <code class="inline"><a href="Input_Event_Definitions.htm#Presets">&lt;Presets&gt;</a></code> container element, can contain one or more <code class="inline"><a href="General_Template_Definitions.htm#Parameters">&lt;Parameters&gt;</a></code> element, and it has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Target</code></td>
+        <td>The target <code class="inline"><a href="General_Template_Definitions.htm#InputEvent">&lt;InputEvent&gt;</a></code> ID to use as the extension</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>When extending the parameters of the target input event, you can choose to set the &quot;Default&quot; parameters as well as &quot;Override&quot; any of the existing parameters. Note that most of the generic extensions have an element <code class="inline">&lt;INPUT_EVENT_ID_SOURCE&gt;</code> which should be used to supply the ID of the input event that is using the extension. Below you can see a cut-down example taken from the <code class="inline">Generic.xml</code>:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;InputEvent ID=&quot;ASOBO_GIE_Anim_Handling&quot;&gt;
+    &lt;Presets&gt;
+        &lt;Preset ID=&quot;#INPUT_EVENT_ID_SOURCE#_#IE_NAME#&quot;&gt;
+            &lt;Extend Target=&quot;ASOBO_GIE&quot;&gt;
+                &lt;Parameters Type=&quot;Override&quot;&gt;
+                    &lt;INPUT_EVENT_TYPE&gt;FLOAT&lt;/INPUT_EVENT_TYPE&gt;
+                    &lt;IE_NAME&gt;#LEVER_ID#&lt;/IE_NAME&gt;
+                    &lt;INTERACTION_TYPE&gt;Lever&lt;/INTERACTION_TYPE&gt;
+                &lt;/Parameters&gt;
+                &lt;Parameters Type=&quot;Default&quot;&gt;
+                    &lt;ON_STATE_CHANGED_EXTERNAL_CODE/&gt;
+                    &lt;ROTATION_SPEED&gt;10&lt;/ROTATION_SPEED&gt;
+                    &lt;ANIM_VAR&gt;_LeverAnimVar&lt;/ANIM_VAR&gt;
+                    &lt;ANIM_VAR_TYPE&gt;O&lt;/ANIM_VAR_TYPE&gt;
+                &lt;/Parameters&gt;
+                &lt;Parameters Type=&quot;Override&quot;&gt;
+                    &lt;Condition Valid=&quot;NO_ANIM_VAR_UPDATE&quot;&gt;
+                        &lt;False&gt;
+                            &lt;ON_STATE_CHANGED_EXTERNAL_CODE&gt;#ON_STATE_CHANGED_EXTERNAL_CODE# (O:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Position) (&amp;gt;#ANIM_VAR_TYPE#:#ANIM_VAR#)&lt;/ON_STATE_CHANGED_EXTERNAL_CODE&gt;
+                        &lt;/False&gt;
+                    &lt;/Condition&gt;
+                &lt;/Parameters&gt;
+            &lt;/Extend&gt;
+        &lt;/Preset&gt;
+    &lt;/Presets&gt;
+&lt;/InputEvent&gt;</code>
+</pre>
+  <p> </p>
+  <h3 id="Preset"><code class="inline">&lt;Preset&gt;</code></h3>
+  <p>This element is used to define a single preset within an input event, and can use any of the <a href="Program_Template_Definitions.htm">Program Template Definitions</a>, as well as some of the <a href="General_Template_Definitions.htm">General Template Definitions</a>, and the <code class="inline"><a href="Input_Event_Definitions.htm#Extend">&lt;Extend&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Tooltip">&lt;Tooltip&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Value">&lt;Value&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Inc">&lt;Inc&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Dec">&lt;Dec&gt;</a></code>,and <code class="inline"><a href="Input_Event_Definitions.htm#Set">&lt;Set&gt;</a></code> elements. It is a sub-element of <code class="inline"><a href="Input_Event_Definitions.htm#Presets">&lt;Presets&gt;</a></code> and has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>This is the preset ID (name) and is what will be used elsewhere to reference the input.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Tooltip"><code class="inline">&lt;Tooltip&gt;</code></h3>
+  <p>This container element is used to define the tooltip overlay that will accompany the input <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code>. The image below shows an example of this tooltip and the main elements that should be defined for it to function correctly:</p>
+  <p><img alt="A Tooltip In Game With The Main Elements Highlighted" class="center" src="../../../assets/images/Content_Config/Models/input_event_tooltips.png"/>There should only be one tooltip element per-preset, and it can contain the <code class="inline"><a href="Input_Event_Definitions.htm#Icon">&lt;Icon&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#IconLockable">&lt;IconLockable&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#TTDescription">&lt;TTDescription&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#TTValue">&lt;TTValue&gt;</a></code>, <code class="inline"><a href="#Interaction">&lt;Interaction&gt;</a></code>, <code class="inline"><a href="#TTInteraction">&lt;TTInteraction&gt;</a></code>, <code class="inline"><a href="#InteractionLockable">&lt;InteractionLockable&gt;</a></code>, and <code class="inline"><a href="Input_Event_Definitions.htm#TTInteractionLockable">&lt;TTInteractionLockable&gt;</a></code> elements. It has no attributes.</p>
+  <p> </p>
+  <h4 id="Icon"><code class="inline">&lt;Icon&gt;</code></h4>
+  <p>This defines the icon graphic that should be used for the <code class="inline"><a href="Input_Event_Definitions.htm#Preset">&lt;Preset&gt;</a></code> when the input is the mouse. The element is a sub-element of <code class="inline"><a href="#Tooltip">&lt;Tooltip&gt;</a></code>, has no attributes, and will use one of the following strings:</p>
+  <table style="width:50%;">
+    <tbody>
+      <tr>
+        <th>String</th>
+        <th>Icon</th>
+      </tr>
+      <tr>
+        <td><code class="inline">MOVE_X</code></td>
+        <td style="text-align: center"><img alt="MOVE_X Icon" src="../../../assets/images/Content_Config/Models/icon_move_x.png"/></td>
+      </tr>
+      <tr>
+        <td><code class="inline">MOVE_Y</code></td>
+        <td style="text-align: center"><img alt="MOVE_Y Icon" src="../../../assets/images/Content_Config/Models/icon_move_y.png"/></td>
+      </tr>
+      <tr>
+        <td><code class="inline">MOVE_AXIS</code></td>
+        <td style="text-align: center"><img alt="MOVE_AXIS Icon" src="../../../assets/images/Content_Config/Models/icon_move_axis.png"/></td>
+      </tr>
+      <tr>
+        <td><code class="inline">MOVE_AXIS_X</code></td>
+        <td style="text-align: center"><img alt="MOVE_AXIS_X Icon" src="../../../assets/images/Content_Config/Models/icon_move_x_axis.png"/></td>
+      </tr>
+      <tr>
+        <td><code class="inline">MOVE_AXIS_Y</code></td>
+        <td style="text-align: center"><img alt="MOVE_AXIS_Y Icon" height="66" src="../../../assets/images/Content_Config/Models/icon_move_y_axis.png" width="69"/></td>
+      </tr>
+      <tr>
+        <td><code class="inline">ROTATE</code></td>
+        <td style="text-align: center"><img alt="ROTATE Icon" src="../../../assets/images/Content_Config/Models/icon_rotate.png"/></td>
+      </tr>
+      <tr>
+        <td><code class="inline">PUSH</code></td>
+        <td style="text-align: center"><img alt="PUSH Icon" src="../../../assets/images/Content_Config/Models/icon_push.png"/></td>
+      </tr>
+      <tr>
+        <td><code class="inline">PULL</code></td>
+        <td style="text-align: center"><img alt="PULL Icon" src="../../../assets/images/Content_Config/Models/icon_pull.png"/></td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="IconLockable"><code class="inline">&lt;IconLockable&gt;</code></h4>
+  <p>This defines the icon graphic that should be used for the <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> when the input is the gamepad. The element is a sub-element of <code class="inline"><a href="Input_Event_Definitions.htm#Tooltip">&lt;Tooltip&gt;</a></code>, has no attributes, and will use the same icon strings as the <code class="inline"><a href="#Icon">&lt;Icon&gt;</a></code> element.</p>
+  <p> </p>
+  <h4 id="TTDescription"><code class="inline">&lt;TTDescription&gt;</code></h4>
+  <p>This element is for generating the <code class="inline"><a href="#Tooltip">&lt;Tooltip&gt;</a></code> description within a single <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code>. It has the following optional attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">RPN</code></td>
+        <td>Sets whether the string should be constructed using RPN or not.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>When the <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">RPN</a> attribute is &quot;<code class="inline">False</code>&quot; (or omitted) then the element can only contain a <a href="https://docs.microsoft.com/en-us/previous-versions/microsoft-esp/cc526960(v=msdn.10)">tooltip ID</a> (This is a <strong>legacy<em> </em></strong>feature and should not be used - it is only listed for supporting <span data-keyref="game_fx_short">FSX</span> projects).</p>
+  <p> </p>
+  <p>When the <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">RPN</a> attribute is &quot;<code class="inline">True</code>&quot;, then you can use RPN to access and generate the description string. This requires the use of an RPN stack which can use the <code class="inline">R:</code> variable and a localization ID or a string. For example:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;TTDescription RPN=&quot;True&quot;&gt;1 (R:1:@TT_PATH.AUDIOPANEL_KNOB_COM_VOLUME_ACTION) (F:Format)&lt;/TTDescription&gt;</code></pre>
+  <p>In this example the <code class="inline"><a href="General_Template_Definitions.htm#Macro">&lt;Macro&gt;</a></code> <code class="inline">@TT_PATH</code> would be the path to the localization file, while <code class="inline">AUDIOPANEL_KNOB_COM_VOLUME_ACTION</code> is the value in the file to retrieve the localized ID from - in this case the ID would point to the (localized) string <code class="inline">&quot;Adjust COM %d volume&quot;</code>. The expression then uses the <code class="inline">F:</code> variable to perform a substitution which will finally output the string &quot;Adjust COM 1 volume&quot;. You may also use a non-localized string when RPN is &quot;True&quot;:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;TTDescription RPN=&quot;True&quot;&gt;&#39;Adjust the panel light brightness&#39;&lt;/TTDescription&gt;</code></pre>
+  <p>or with an RPN expression:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;TTDescription RPN=&quot;True&quot;&gt;1 &#39;Adjust COM %d volume&#39; (F:Format)&lt;/TTDescription&gt;</code></pre>
+  <p> </p>
+  <h4 id="TTValue"><code class="inline">&lt;TTValue&gt;</code></h4>
+  <p>This element is for showing a value associated with the item that is displaying the tooltip. This value does <em>not</em> have to be numeric in nature, as long as it&#39;s a formatted string then it will be used, for example:</p>
+  <p><img alt="The Value Display For A Tooltip" class="center" height="154" src="../../../assets/images/Content_Config/Models/input_event_value.png" width="413"/></p>
+  <p>As with the <code class="inline"><a href="#TTDescription">&lt;TTDescription&gt;</a></code> element, this has the following optional attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">RPN</code></td>
+        <td>Sets whether the string should be constructed using RPN or not.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>When the RPN attribute is &quot;<code class="inline">False</code>&quot; (or omitted) then the element can only contain a localization ID for a simple (non-dynamic) value string, for example &quot;N/A&quot;.</p>
+  <p> </p>
+  <p>When the RPN attribute is &quot;<code class="inline">True</code>&quot;, then you can use <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">RPN</a> to access and generate the description string. This requires the use of an RPN stack which can use the <code class="inline">R:</code> variable and a localization ID or a string. For example:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;TTDescription RPN=&quot;True&quot;&gt;1 (R:1:@TT_PATH.AUDIOPANEL_KNOB_COM_VOLUME_ACTION) (F:Format)&lt;/TTDescription&gt;</code></pre>
+  <p>In this example the <code class="inline"><a href="General_Template_Definitions.htm#Macro">&lt;Macro&gt;</a></code> <code class="inline">@TT_PATH</code> would be the path to the localization file, while <code class="inline">AUDIOPANEL_KNOB_COM_VOLUME_ACTION</code> is the value in the file to retrieve the localized ID from - in this case the ID would point to the (localized) string <code class="inline">&quot;Adjust COM %d volume&quot;</code>. The expression then uses the <code class="inline">F:</code> variable to perform a substitution which will finally output the string &quot;Adjust COM 1 volume&quot;. You may also use a non-localized string when RPN is &quot;True&quot;:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;TTDescription RPN=&quot;True&quot;&gt;&#39;Adjust the panel light brightness&#39;&lt;/TTDescription&gt;</code></pre>
+  <p>or with an RPN expression:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;TTDescription RPN=&quot;True&quot;&gt;1 &#39;Adjust COM %d volume&#39; (F:Format)&lt;/TTDescription&gt;</code></pre>
+  <p> </p>
+  <h4 id="Interaction"><code class="inline">&lt;Interaction&gt;</code></h4>
+  <p>This is used to define the interaction <code class="inline"><a href="#Tooltip">&lt;Tooltip&gt;</a></code> text within the <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> when using a mouse. This element has no attributes and can be one or more of the following pre-created options (if you want to generate custom interaction text, you should instead use <code class="inline"><a href="Input_Event_Definitions.htm#TTInteraction">&lt;TTInteraction&gt;</a></code>):</p>
+  <p><span class="note"><strong>NOTE</strong>: These can be combined in pairs if required, for example: <code class="inline">SECONDARY_DOWN+UNLOCK</code></span></p>
+  <ul>
+    <li><code class="inline">X_AXIS</code></li>
+    <li><code class="inline">X_AXIS_LEFT</code></li>
+    <li><code class="inline">X_AXIS_RIGHT</code></li>
+    <li><code class="inline">Y_AXIS</code></li>
+    <li><code class="inline">Y_AXIS_DOWN</code></li>
+    <li><code class="inline">Y_AXIS_UP</code></li>
+    <li><code class="inline">PRIMARY_UP</code></li>
+    <li><code class="inline">PRIMARY_DOWN</code></li>
+    <li><code class="inline">SECONDARY_UP</code></li>
+    <li><code class="inline">SECONDARY_DOWN</code></li>
+    <li><code class="inline">TERTIARY_UP</code></li>
+    <li><code class="inline">TERTIARY_DOWN</code></li>
+    <li><code class="inline">LOCK</code></li>
+    <li><code class="inline">UNLOCK</code></li>
+    <li><code class="inline">INCREASE</code></li>
+    <li><code class="inline">DECREASE</code></li>
+  </ul>
+  <p> </p>
+  <h4 id="TTInteraction"><code class="inline">&lt;TTInteraction&gt;</code></h4>
+  <p>This is used to define a localized string for the interaction <code class="inline"><a href="#Tooltip">&lt;Tooltip&gt;</a></code> text within the <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> when using a mouse. This element has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">RPN</code></td>
+        <td>Sets whether the string should be constructed using RPN or not.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Please see the <code class="inline"><a href="#TTDescription">&lt;TTDescription&gt;</a></code> element description for details of how to format the input when the RPN attribute is set to &quot;<code class="inline">True</code>&quot; or &quot;<code class="inline">False</code>&quot;. Note that you may use the <code class="inline"><a href="#Interaction">&lt;Interaction&gt;</a></code> element instead of this one if you want to use any of the built-in interaction strings.</p>
+  <p> </p>
+  <p> </p>
+  <h4 id="InteractionLockable"><code class="inline">&lt;InteractionLockable&gt;</code></h4>
+  <p>This is used to define the interaction <code class="inline"><a href="#Tooltip">&lt;Tooltip&gt;</a></code> text within the <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> when using a gamepad. This element has no attributes and will accept the same strings as <code class="inline"><a href="#Interaction">&lt;Interaction&gt;</a></code>.</p>
+  <p> </p>
+  <h4 id="TTInteractionLockable"><code class="inline">&lt;TTInteractionLockable&gt;</code></h4>
+  <p>This is used to define a localized string for the interaction <code class="inline"><a href="#Tooltip">&lt;Tooltip&gt;</a></code> text within the <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> when using a gamepad. This element has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">RPN</code></td>
+        <td>Sets whether the string should be constructed using RPN or not.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Please see the <code class="inline"><a href="#TTDescription">&lt;TTDescription&gt;</a></code> element description for details of how to format the input when the RPN attribute is set to &quot;<code class="inline">True</code>&quot; or &quot;<code class="inline">False</code>&quot;. Note that you may use the <code class="inline"><a href="#InteractionLockable">&lt;InteractionLockable&gt;</a></code> element instead of this one if you want to use any of the built-in interaction strings.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Value"><code class="inline">&lt;Value&gt;</code></h3>
+  <p>This element is for retrieving the value that the input event is affecting. It is contained within the <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> element, has no attributes, and contains the elements <code class="inline"><a href="Input_Event_Definitions.htm#Units">&lt;Units&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Code">&lt;Code&gt;</a></code>, <code class="inline"><a href="Input_Event_Definitions.htm#Init">&lt;Init&gt;</a></code>, and <code class="inline"><a href="Input_Event_Definitions.htm#WatchVars">&lt;WatchVars&gt;</a></code>.</p>
+  <p> </p>
+  <h4 id="Units"><code class="inline">&lt;Units&gt;</code></h4>
+  <p>This sub-element of <code class="inline"><a href="#Value">&lt;Value&gt;</a></code> defines the units used by the value being retrieved. It can be any one of the unit strings listed here: <a href="../../../Programming_Tools/SimVars/Simulation_Variable_Units.htm">Simulation Variable Units</a></p>
+  <p> </p>
+  <h4 id="Code"><code class="inline">&lt;Code&gt;</code></h4>
+  <p>This sub-element of <code class="inline"><a href="#Value">&lt;Value&gt;</a></code> defines the code <span>that should be executed to generate the value</span>. Code is written using <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation</a>.</p>
+  <p> </p>
+  <h4 id="Init"><code class="inline">&lt;Init&gt;</code></h4>
+  <p>This sub-element of <code class="inline"><a href="#Value">&lt;Value&gt;</a></code> defines the code to be <span><span>executed to regenerate the value when starting a flight or when a watched variable is updated</span></span>. Code is written using <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation</a>.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="WatchVars"><code class="inline">&lt;WatchVars&gt;</code></h3>
+  <p>This sub-element of <code class="inline"><a href="#Value">&lt;Value&gt;</a></code> defines one or more <strong>watch variables</strong>, which are the variables that will be watched for change when the input event is triggered. When an watched variable has it&#39;s value changed, the <code class="inline"><a href="#Init">&lt;Init&gt;</a></code> code will be triggered. This element has no attributes and is a container for <code class="inline"><a href="Input_Event_Definitions.htm#LocalVar">&lt;LocalVar /&gt;</a></code> and <code class="inline"><a href="Input_Event_Definitions.htm#SimVar">&lt;SimVar /&gt;</a></code>.</p>
+  <p> </p>
+  <h4 id="LocalVar"><code class="inline">&lt;LocalVar /&gt;</code></h4>
+  <p>This self-closing element sets a <em>local</em> variable as the watch variable for the input event. You may have multiple of these elements within a <code class="inline"><a href="#WatchVars">&lt;WatchVars&gt;</a></code> container, and it has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>The Id of the local variable to add to the variable watch list.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="SimVar"><code class="inline">&lt;SimVar /&gt;</code></h4>
+  <p>This self-closing element sets a <a href="../../../Programming_Tools/SimVars/Simulation_Variables.htm"><i>simulation variable</i></a> as the watch variable for the input event. You may have multiple of these elements within a <code class="inline"><a href="#WatchVars">&lt;WatchVars&gt;</a></code> container, and it has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">ID</code></td>
+        <td>The Id of the SimVar to add to the variable watch list.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Inc"><code class="inline">&lt;Inc&gt;</code></h3>
+  <p>This element is used in a <code class="inline"><a href="Input_Event_Definitions.htm#Preset">&lt;Preset&gt;</a></code> to increment the value associated with the input. This is an essential element within a preset and requires a <code class="inline"><a href="#Code">&lt;Code&gt;</a></code> and at least one <code class="inline"><a href="Input_Event_Definitions.htm#Param">&lt;Param&gt;</a></code>. To use this event you would call the preset name then append the string &quot;_Inc&quot; to the end, for example incrementing a value inside the input event <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> &quot;<code class="inline">Sound_COM1_Volume</code>&quot;:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Inc&gt;
+    &lt;Code&gt;(B:SOUND_COM_1_Volume) p0 + (&amp;gt;B:SOUND_COM_1_Volume_Set)&lt;/Code&gt;
+    &lt;Parameters&gt;
+        &lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p0 5 *&lt;/Param&gt;
+    &lt;/Parameters&gt;
+&lt;/Inc&gt;</code></pre>
+  <p>You would then have your <code class="inline"><a href="../Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code> with the following code to use it:</p>
+  <pre class="language-xml"><code class="language-xml">1 (&gt;B:Sound_COM1_Volume_Inc)</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="Dec"><code class="inline">&lt;Dec&gt;</code></h3>
+  <p>This element is used in a <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> to decrement the value associated with the input. This is an essential element within a preset and requires a <code class="inline"><a href="#Code">&lt;Code&gt;</a></code> and at least one <code class="inline"><a href="#Param">&lt;Param&gt;</a></code>. To use this event you would call the preset name then append the string &quot;_Dec&quot; to the end, for example decrementing a value inside the input event <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> &quot;<code class="inline">Sound_COM1_Volume</code>&quot;:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Dec&gt;
+    &lt;Code&gt;(B:SOUND_COM_1_Volume) p0 - (&amp;gt;B:SOUND_COM_1_Volume_Set)&lt;/Code&gt;
+    &lt;Parameters&gt;
+        &lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p0 5 *&lt;/Param&gt;
+    &lt;/Parameters&gt;
+&lt;/Dec&gt;</code></pre>
+  <p>You would then have your <code class="inline"><a href="../Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code> with the following code to use it:</p>
+  <pre class="language-xml"><code class="language-xml">1 (&gt;B:Sound_COM1_Volume_Dec)</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="Set"><code class="inline">&lt;Set&gt;</code></h3>
+  <p>This element is used in a <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> to set the input variable to a value that has been modified. This is an essential element within a preset and requires a <code class="inline"><a href="#Code">&lt;Code&gt;</a></code> and at least one <code class="inline"><a href="#Param">&lt;Param&gt;</a></code>. To use this event you would call the preset name then append the string &quot;_Set&quot; to the end, for example setting a value inside the input event <code class="inline"><a href="#Preset">&lt;Preset&gt;</a></code> &quot;<code class="inline">Sound_COM1_Volume</code>&quot;:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Set&gt;
+    &lt;Code&gt;p0 0 max 100 min (&amp;gt;O:MyValue)&lt;/Code&gt;
+    &lt;Parameters&gt;
+         &lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p0&lt;/Param&gt;
+    &lt;/Parameters&gt;
+&lt;/Set&gt;</code></pre>
+  <p>You would then have your <code class="inline"><a href="../Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code> with the following code to use it:</p>
+  <pre class="language-xml"><code class="language-xml">50 (&gt;B:Sound_COM1_Volume_Set)</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="Param"><code class="inline">&lt;Param&gt;</code></h3>
+  <p>This is a sub element within the <code class="inline"><a href="General_Template_Definitions.htm#Parameters">&lt;Parameters&gt;</a></code> element or the <code class="inline"><a href="Input_Event_Definitions.htm#Binding">&lt;Binding&gt;</a></code> element, and is used to create - or modify - a parameter value. This element can be used in multiple places, for example: <code class="inline"><a href="#Inc">&lt;Inc&gt;</a></code>, <code class="inline"><a href="#Dec">&lt;Dec&gt;</a></code>, <code class="inline"><a href="#Set">&lt;Set&gt;</a></code>. The element can have either of the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Type</code></td>
+        <td>The type of parameter that is being modified. This is a required attribute.</td>
+        <td>
+          <p>String:</p>
+          <p>&quot;Int&quot;<br/>
+            &quot;Float&quot;<br/>
+            &quot;Param&quot;</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">RPN</code></td>
+        <td>Sets whether the parameter should be constructed using RPN or not.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>The attribute types listed above will do the following:</p>
+  <ul>
+    <li><strong>Int</strong>: Compute the contents of the element using RPN, with an <em>integer</em> result.</li>
+    <li><strong>Float</strong>: Compute the contents of the element using RPN, with an <i>float</i> result.</li>
+    <li><strong>Param</strong>: Get the content of a parameter by name when it is not possible to use <code class="inline">#PARAM_NAME#</code>.</li>
+  </ul>
+  <p>Here are some examples of use:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Param Type=&quot;Param&quot;&gt;#TYPE##ID#_SIMVAR_INDEX&lt;/Param&gt;
+&lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p0 5 *&lt;/Param&gt;
+&lt;Param Type=&quot;Int&quot; RPN=&quot;True&quot;&gt;(L:Toggle_Value) !&lt;/Param&gt;</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="Bindings"><code class="inline">&lt;Bindings&gt;</code></h3>
+  <p>This is a container element for one or more <code class="inline"><a href="Input_Event_Definitions.htm#Binding">&lt;Binding&gt;</a></code> elements for the preset. These can be used to override a default key event behavior using your own code, or you they create aliases for different presets within your own behaviors. This element has no attributes.</p>
+  <p> </p>
+  <h4 id="Binding"><code class="inline">&lt;Binding&gt;</code></h4>
+  <p>This is a sub element of the <code class="inline"><a href="Input_Event_Definitions.htm#Bindings">&lt;Bindings&gt;</a></code> container and is used to create a single binding within a preset. This element should contain at least one <code class="inline"><a href="#Param">&lt;Param&gt;</a></code> and has the following attributes, of which only <em>one</em> should be used:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">EventID</code></td>
+        <td>The <a href="../../../Programming_Tools/Event_IDs/Event_IDs.htm">Event ID</a> to override with the binding.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Alias</code></td>
+        <td>The name of the binding alias for the preset.</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>For more information on how this element should be used, please see the following section:</p>
+  <ul>
+    <li><a href="Model_Behaviors.htm#InputBindings">Input Bindings</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.6.1.0_3"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

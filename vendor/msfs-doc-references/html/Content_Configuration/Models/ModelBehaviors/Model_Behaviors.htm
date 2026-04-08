@@ -1,0 +1,675 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  <title>Model Behaviors</title>
+  
+  
+  <!-- <link href="../../../assets/css/Prism/prism.css" rel="stylesheet" /> -->
+  <meta name="rh-index-keywords" content="Models:Model Behaviours"/>
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <!-- <script src="../../../assets/css/Prism/prism.js"></script> -->
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>MODEL BEHAVIORS</h2>
+  <p>A major part of setting up any SimObject within <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> is controlling the way the different components of the model will behave under specific circumstances. This is made possible by using <strong>components</strong> within the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element of the <code class="inline">[model].xml</code> and you can control these components in one of two ways:</p>
+  <ul>
+    <li>Using <a href="../../../Programming_Tools/SimVars/Simulation_Variables.htm">Simulation Variables</a> (SimVars)</li>
+    <li>Using code (RPN - <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation</a>)</li>
+  </ul>
+  <p>In general you would create a series of components that use one of the above methods to get information that will then influence the behavior of the model in the simulation, and each component would be assigned to a specific <em>node</em> and/or <em>animation</em>.</p>
+  <p> </p>
+  <p>Another feature of the model behaviors is that you can use <strong>templates</strong> that have been pre-created for you, or that you have created yourself. This system means that you can call templates with default values for things like landing gear, switches, etc... You can then override any (or all) of the default values when required for any particular model, saving you time having to re-create the same section of XML multiple times for different projects.</p>
+  <p><span class="note"><strong>IMPORTANT</strong>: Incorrectly using the template system may mean you overwrite default <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> templates, due to the way <a href="../../../Developer_Mode/Menus/Tools/The_Virtual_File_System.htm">The Virtual File System</a> works. This will <strong>impact all Sim Objects using that template</strong>, so extreme care should be taken when creating/editing templates. We recommend that instead of overwriting the default templates, you instead COPY the ones you want to modify and give them a new name, instead of editing either the base files or overriding them in your package using the same template names.</span></p>
+  <p> </p>
+  <p>Below you can find examples of a basic component as well as the same component used as a template, and on the following pages you can find more in-depth information about the different XML elements used for creating components and templates as well as how to use them:</p>
+  <ul>
+    <li><a href="General_Template_Definitions.htm">General Template Definitions</a></li>
+    <li><a href="Program_Template_Definitions.htm">Program Template Definitions</a></li>
+    <li><a href="Important_Templates.htm">Important Templates</a></li>
+  </ul>
+  <p>You can find all the available pre-created templates from the following folder:</p>
+  <p class="codeblock">&lt;PACKAGES ROOT&gt;\Official\OneStore\fs-base-aircraft-common\ModelBehaviorDefs\Asobo</p>
+  <p>The documentation also has an interactive <strong>Template Explorer</strong> which can be accessed here:</p>
+  <ul>
+    <li><a href="TemplateExplorer/Template_Explorer.html">Template Explorer</a></li>
+  </ul>
+  <p> </p>
+  <p>To find the OneStore root you can use <a href="../../../Developer_Mode/Menus/Tools/The_Virtual_File_System.htm">The Virtual File System</a> window:</p>
+  <p><img alt="The OneStore Folder Location Using The Virtual File System" class="center" src="../../../assets/images/Content_Config/SimObj/modeldefs_locations.png"/></p>
+  <p> </p>
+  <p>Finally, model behaviors are also used to define <strong>Input Events</strong>. These are events that are triggered by some interaction between the user and an aircraft cockpit control, like a lever or a button. The input events are used to change or set a value corresponding to the control being used, using the SimVar associated with the control and RPN to modify the value. The XML contents for these events are described in full in the following section:</p>
+  <ul>
+    <li><a href="Input_Event_Definitions.htm">Input Event Definitions</a></li>
+  </ul>
+  <p> </p>
+  <p>It is worth noting that the Input Events can also be used to intercept and override some of the general simulation key events, by binding <a href="../../../Programming_Tools/Event_IDs/Event_IDs.htm">Event IDs</a> to an input event <code class="inline"><a href="Input_Event_Definitions.htm#Preset">&lt;Preset&gt;</a></code>. This is explained in the following section:</p>
+  <ul>
+    <li><a href="Model_Behaviors.htm#InputBindings">Input Bindings</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="Components">Basic Components</h3>
+  <p>To get a better idea of how model behaviors are constructed let&#39;s look at a simple component within the context of the <code class="inline"><a href="../Model_Definitions.htm">[model].xml</a></code> file. In this file, components are added within the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element, and in the example below you can see a component for changing the visibility of something:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;ModelInfo version=&quot;1.0&quot; guid=&quot;&lt;!-- GUID HERE --&gt;&quot;&gt;
+&lt;!-- General Model XML Here --&gt;
+    &lt;Behaviors&gt;
+        &lt;Component ID=&quot;Some_Unique_Id&quot; Node=&quot;Node_Name_To_Hide_Here&quot;&gt;
+            &lt;Visibility&gt;
+                &lt;Parameter&gt;
+                    &lt;Sim&gt;
+                        &lt;Variable&gt;STALL WARNING&lt;/Variable&gt;
+                        &lt;Units&gt;bool&lt;/Units&gt;
+                    &lt;/Sim&gt;
+                &lt;/Parameter&gt;
+            &lt;/Visibility&gt;
+        &lt;Component&gt;
+    &lt;/Behaviors&gt;
+&lt;/ModelInfo&gt;</code></pre>
+  <p>In this example, you can see that the component is given an <strong>ID</strong> string and - in this case - a <strong>Node</strong>. The node comes from the model <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> and should be the name of a part in the 3D model. Within the component we tell the simulation what kind of behavior we are dealing with (visibility) and then define some parameters that will modify this behavior. In this case we&#39;re using a SimVar, which means that - in the simulation - the node for the model will be made visible/invisible depending on the value that the given SimVar has at any time.</p>
+  <p><span class="note"><strong>NOTE</strong>: In this example the <code class="inline">&lt;Variable&gt;</code> and <code class="inline">&lt;Units&gt;</code> elements are required to define the SimVar, but there are also optional <code class="inline">&lt;Scale&gt;</code> and <code class="inline">&lt;Bias&gt;</code> elements for SimVars that can be included to.</span></p>
+  <p>This is the most basic way to add a component to the model XML and may even be the best approach when creating simple SimObjects other than aircraft. Note that the model behaviors XML is not just limited to using the <code class="inline"><a href="General_Template_Definitions.htm#Component">&lt;Component&gt;</a></code> element at it&#39;s top level, and it can also create <code class="inline"><a href="General_Template_Definitions.htm#Macro">&lt;Macro&gt;</a></code> and <code class="inline"><a href="General_Template_Definitions.htm#InputEvent">&lt;InputEvent&gt;</a></code> elements. You can find an explanation of these - and other - general template elements on the following page:</p>
+  <ul>
+    <li><a href="General_Template_Definitions.htm">General Template Definitions</a></li>
+  </ul>
+  <p> </p>
+  <p>The documentation also has an interactive <strong>Template Explorer</strong> which can be accessed here:</p>
+  <ul>
+    <li><a href="TemplateExplorer/Template_Explorer.html">Template Explorer</a></li>
+  </ul>
+  <p> </p>
+  <h4><code class="inline">&lt;ModelBehaviors&gt;</code></h4>
+  <p>The <code class="inline">&lt;Behaviors&gt;</code> element is how all new SimObject behaviors should be defined, but previously this was done using the <code class="inline">&lt;ModelBehaviors&gt;</code> element, like this:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;ModelInfo version=&quot;1.0&quot; guide=&quot;&quot;&gt;
+    &lt;!-- Model Info XML here --&gt;
+&lt;/ModelInfo&gt;
+&lt;ModelBehaviors&gt;
+    &lt;!-- ModelBehaviors XML here --&gt;
+&lt;/ModelBehaviors&gt;</code></pre>
+  <p>This format has been deprecated for the <code class="inline">[model].xml</code> files and should not be used for new projects. However, everything described in this section of the documentation can be applied equally to <code class="inline">&lt;ModelBehaviors&gt;</code> as it can to <code class="inline">&lt;Behaviors&gt;</code>.</p>
+  <p><span class="note"><strong>NOTE</strong>: <code class="inline">&lt;ModelBehaviors&gt;</code> is still a valid element when it is the root element for <a href="../../../Samples_And_Tutorials/Tutorials/Creating_Interactions_Using_InputEvents.htm">Input Events</a> and Event templates.</span></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Templates">Templates</h3>
+  <p>More complex SimObjects will require more complex behaviors, and in an attempt to streamline things for developers and make creating model behaviors easier, <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> makes use of a <strong>template</strong> system. This is basically a large quantity of components that have been pre-created and stored in various template files, and each of these components can be referenced from within any other component, or directly from the <code class="inline">[model].xml</code> file in the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element. The idea here is to reduce the time and effort required to create complex systems, since all you need to do is add in a template, and then override only those values that are relevant to the model the behavior is for.</p>
+  <p><span class="note"><strong>NOTE</strong>: There is an interactive tool for exploring templates and model behaviours here: <a href="TemplateExplorer/Template_Explorer.html">Template Explorer</a></span></p>
+  <p> </p>
+  <p>Let&#39;s have a look at the visibility XML from before, but this time converted into a template:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Template Name = &quot;ASOBO_GT_Visibility_Sim&quot;&gt;
+    &lt;Parameters type=&quot;Default&quot;&gt;
+        &lt;VISIBILITY_SIMVAR_SCALE&gt;1&lt;/VISIBILITY_SIMVAR_SCALE&gt;
+        &lt;VISIBILITY_SIMVAR_BIAS&gt;0&lt;/VISIBILITY_SIMVAR_BIAS&gt;
+    &lt;/Parameters&gt;
+    &lt;Visibility&gt;
+        &lt;Parameter&gt;
+            &lt;Sim&gt;
+                &lt;Variable&gt;#VISIBILITY_SIMVAR#&lt;/Variable&gt;
+                &lt;Units&gt;#VISIBILITY_SIMVAR_UNITS#&lt;/Units&gt;
+                &lt;Scale&gt;#VISIBILITY_SIMVAR_SCALE#&lt;/Scale&gt;
+                &lt;Bias&gt;#VISIBILITY_SIMVAR_BIAS#&lt;/Bias&gt;
+            &lt;/Sim&gt;
+        &lt;/Parameter&gt;
+    &lt;/Visibility&gt;
+&lt;/Template&gt;</code></pre>
+  <p>In the XML above you can see that we have created a template with the name &quot;<code class="inline">ASOBO_GT_Visibility_Sim</code>&quot;, and then we define some default values for the template. The default parameters are there to set values for any <em>optional</em> parameters that the user want&#39;s to omit if they use the template.</p>
+  <p><span class="note"><strong>NOTE</strong>: The parameters of the XML will be processed in a <strong>linear</strong> order, from top to bottom.</span></p>
+  <p>We then define the actual <code class="inline">&lt;Visibility&gt;</code> element, and we supply the required SimVar parameters. You&#39;ll see that these are given names between hash <code class="inline">#</code> symbols. Using the <code class="inline">#</code> like that tells us that these values are the ones that the user will be able to set when they call the template, and they are also the names of the elements that the user will use to set the value. In this case - for example - we have &quot;<code class="inline">#VISIBILITY_SIMVAR#</code>&quot;, which would become the <code class="inline">&lt;VISIBILITY_SIMVAR&gt;</code> element when the template is called.</p>
+  <p><span class="note"><strong>IMPORTANT!</strong> Parameter elements created in this way can have some special attributes assigned to them. Please see the section below on <a href="Model_Behaviors.htm#ParamAttributes">Parameter Attributes</a> for more information.</span></p>
+  <p>Now, to use the template above you&#39;d have something like this in the <code class="inline">[model].xml</code>:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;ModelInfo version=&quot;1.0&quot; guid=&quot;&lt;!-- GUID HERE --&gt;&quot;&gt;
+&lt;!-- General Model XML Here --&gt;
+    &lt;Behaviors&gt;
+        &lt;Include ModelBehaviorFile=&quot;Asobo\Generic\FX.xml&quot;/&gt;
+        &lt;Component ID=&quot;Some_Unique_Id&quot; Node=&quot;Node_Name_To_Hide_Here&quot;&gt;
+            &lt;UseTemplate Name=&quot;ASOBO_GT_Visibility_Sim&quot;&gt;
+                &lt;VISIBILITY_SIMVAR&gt;STALL WARNING&lt;/VISIBILITY_SIMVAR&gt;
+                &lt;VISIBILITY_SIMVAR_UNITS&gt;bool&lt;/VISIBILITY_SIMVAR_UNITS&gt;
+            &lt;/UseTemplate&gt;
+        &lt;/Component&gt;
+    &lt;/Behaviors&gt;
+&lt;/ModelInfo&gt;</code></pre>
+  <p>The important thing to note here is the <code class="inline"><a href="General_Template_Definitions.htm#Include">&lt;Include /&gt;</a></code> element, which specifies the model behavior XML file that has the template(s) that we want to reference. This is required when using the template system to tell <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> where to look to find the template that is being used, and it should be called at start of the XML defining the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code>.</p>
+  <p> </p>
+  <p>It&#39;s worth mentioning too that you can use the element <code class="inline">#</code> naming system to create values using <em>multiple</em> inputs. For example, consider the following template element:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;WWISE_EVENT_1&gt;#LIGHT_TYPE#_light_#INTERACTION_TYPE#_on&lt;/WWISE_EVENT_1&gt;</code></pre>
+  <p>Here you have two &quot;custom&quot; values that would be generated from the XML that uses the template like this:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;LIGHT_TYPE&gt;landing&lt;/LIGHT_TYPE&gt;
+&lt;INTERACTION_TYPE&gt;switch&lt;/INTERACTION_TYPE&gt;</code></pre>
+  <p>So, this essentially creates the value &quot;<code class="inline">landing_light_switch_on</code>&quot;, which is passed to the Wwise event in this case.</p>
+  <p> </p>
+  <p>Finally, here&#39;s the same visibility template, only this time set up to use RPN rather than a SimVar to determine the outcome:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Template Name = &quot;ASOBO_GT_Visibility_Code&quot;&gt;
+    &lt;Parameter type=&quot;Default&quot;&gt;
+        &lt;ONCE&gt;False&lt;/ONCE&gt;
+    &lt;/Parameter&gt;
+    &lt;Visibility Once=&quot;#ONCE#&quot;&gt;
+        &lt;Parameter&gt;
+            &lt;Code&gt;#VISIBILITY_CODE#&lt;/Code&gt;
+        &lt;/Parameter&gt;
+    &lt;/Visibility&gt;
+&lt;/Template&gt;</code></pre>
+  <p>We&#39;ll be referencing both the SimVar and RPN versions of this template in the <a href="Model_Behaviors.htm#XMLPrograms">XML Programs</a> section.</p>
+  <p> </p>
+  <h4 id="ParamAttributes">Parameter Attributes</h4>
+  <p>When creating custom XML parameter elements using the <code class="inline">#</code> symbol (as explained in the section on <a href="Model_Behaviors.htm#Templates">Templates</a>), there is a special pre-defined attribute that can be used when calling the element elsewhere in the XML:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Process</code></td>
+        <td>This processes the contents of the parameter ins a specific way, as explained below.</td>
+        <td>
+          <p>String:</p>
+          <ol class="minitoc-list">
+            <li>&quot;Int&quot;</li>
+            <li>&quot;Float&quot;</li>
+            <li>&quot;Param&quot;</li>
+            <li>&quot;String&quot;</li>
+          </ol>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>The attribute types listed above will do the following:</p>
+  <ul>
+    <li><strong>Int</strong>: Compute the contents of the element using RPN, with an <em>integer</em> result.</li>
+    <li><strong>Float</strong>: Compute the contents of the element using RPN, with an <i>float</i> result.</li>
+    <li><strong>Param</strong>: Get the content of a parameter by name when it is not possible to use <code class="inline">#PARAM_NAME#</code>. What this means is that the <code class="inline">#</code> parameter will first be evaluated, then it&#39;s value will be used to create the parameter within the node (see the example below).</li>
+    <li><strong>String</strong>: Allow a parameter to be processed as a string using the RPN <a href="../../../Additional_Information/Reverse_Polish_Notation.htm#String Operators">String Operators</a>.</li>
+  </ul>
+  <p>Here are some examples of use:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;SIMVAR_INDEX Process=&quot;Param&quot;&gt;#TYPE##ID#_SIMVAR_INDEX&lt;/SIMVAR_INDEX&gt;
+&lt;MIN_SPEED_TAKEOFF_LIFT Process=&quot;Float&quot;&gt;#MIN_SPEED_TAKEOFF_HYDRAULICS# 0.45 *&lt;/MIN_SPEED_TAKEOFF_LIFT&gt;
+&lt;STATE_ON_ID Process=&quot;Int&quot;&gt;#DIMMER_POS_0_VALUE# 100 == if{ 0 quit } #DIMMER_POS_1_VALUE# 100 == if{ 1 quit } 2&lt;/STATE_ON_ID&gt;
+&lt;PREFIXED_ID Process=&quot;String&quot;&gt;#ID# &#39;%03d&#39; @sprintf&lt;/PREFIXED_ID&gt;</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="XMLPrograms">XML Programs</h3>
+  <p>One important feature of using the template system is that you can create &quot;XML Programs&quot; that use different XML elements to create small programs that will change the model behavior based on the outcome of some calculation or check. Generally you&#39;ll find these XML programs in the lowest level of the template hierarchy, in the &quot;sub-templates&quot;, however they can be used just about anywhere.</p>
+  <p> </p>
+  <p>To give an example of how these elements can be used, we&#39;ll build on the visibility template examples given in the sections above, and use them to create our <em>own</em> template. In this template we&#39;ll do a conditional check to use <em>either</em> a <a href="../../../Programming_Tools/SimVars/Simulation_Variables.htm">SimVar</a> <em>or</em> some <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">RPN</a> code to decide if the model node should be visible or not:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Template Name=&quot;MyVisibilityTemplate&quot;&gt;
+    &lt;Component ID=&quot;#NODE_ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+        &lt;Condition NotEmpty=&quot;VISIBILITY_CODE&quot;&gt;
+            &lt;True&gt;
+                &lt;UseTemplate Name=&quot;ASOBO_GT_Visibility_Code&quot;/&gt;
+            &lt;/True&gt;
+            &lt;False&gt;
+                &lt;UseTemplate Name=&quot;ASOBO_GT_Visibility_Sim&quot;/&gt;
+            &lt;/False&gt;
+        &lt;/Condition&gt;        
+    &lt;/Component&gt;
+&lt;/Template&gt;
+</code></pre>
+  <p>This custom template is using a <strong>conditional</strong> check to see if the element <code class="inline">&lt;VISIBILITY_CODE&gt;</code> is &quot;empty&quot; or not.</p>
+  <p><span class="note"><strong>NOTE</strong>: An &quot;empty&quot; node is a node that has been created but has no assigned value, while a node that does not exist would be considered as &quot;undefined&quot; rather than &quot;empty&quot;.</span>If it is <em>not</em> empty - the condition is <strong>True</strong> - then the <code class="inline">ASOBO_GT_Visibility_Code</code> template will be used, and if it <em>is</em> empty - the condition is <strong>false</strong> - then <code class="inline">ASOBO_GT_Visibility_Sim</code> will be used. Where does the <code class="inline">&lt;VISIBILITY_CODE&gt;</code> element come from? Well, that would be from some XML that is either in another template, or in the [model].xml itself, and it would look like this when using RPN:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;UseTemplate Name=&quot;MyVisibilityTemplate&quot;&gt;
+    &lt;NODE_ID&gt;NodeNameToHide&lt;/NODE_ID&gt;
+    &lt;VISIBILITY_CODE&gt;(A:STALL WARNING, Bool)&lt;/VISIBILITY_CODE&gt;
+&lt;/UseTemplate&gt;
+</code></pre>
+  <p>Or it would look like this when using a SimVar:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;UseTemplate Name=&quot;MyVisibilityTemplate&quot;&gt;
+    &lt;NODE_ID&gt;NodeNameToHide&lt;/NODE_ID&gt;
+    &lt;VISIBILITY_SIMVAR&gt;STALL WARNING&lt;/VISIBILITY_SIMVAR&gt;
+    &lt;VISIBILITY_SIMVAR_UNITS&gt;Bool&lt;/VISIBILITY_SIMVAR_UNITS&gt;
+&lt;/UseTemplate&gt;</code></pre>
+  <p> </p>
+  <p>So, either one of the XML snippets above will call the template &quot;<code class="inline">MyVisibilityTemplate</code>&quot;, and if you use the one with the <code class="inline">&lt;VISIBILITY_CODE&gt;</code> element, then the conditional check will use the supplied RPN code to set the visibility, while if you use the other one, then a SimVar will be used. This is a <em>very</em> simple example of how a simple XML program is created, but there are a great number of program XML elements that can be used to modify the way any template resolves based on the given inputs.</p>
+  <p> </p>
+  <p>You can find out more about all the specific programming elements from the following page:</p>
+  <ul>
+    <li><a href="Program_Template_Definitions.htm">Program Template Definitions</a></li>
+  </ul>
+  <p>And you can find examples of the main &quot;building block&quot; elements for these programs on this page:</p>
+  <ul>
+    <li><a href="../Model_Examples.htm#XMLPrograms">XML Program Examples</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="InputParams">Input Parameters</h3>
+  <p>When dealing with <a href="Input_Event_Definitions.htm">Input Events</a>, some initial value is normally passed in from the input source, which is usually a <code class="inline"><a href="../Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code>. This will contain some <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">RPN</a> code that generates the initial value for the button, lever, switch, etc... that is being interacted with. This value is then passed through to the <code class="inline"><a href="General_Template_Definitions.htm#InputEvent">&lt;InputEvent&gt;</a></code> as the variable <strong><code class="inline">p<em>N</em></code></strong>, where <em><code class="inline">N</code></em> is a value starting at 0 and incrementing for each parameter that is being passed into the input event.</p>
+  <p> </p>
+  <p>To give an example, we&#39;ll imagine a simple button that is used to set the COM volume to 50% . In this case our <code class="inline">&lt;MouseRect&gt;</code> will have this snippet of RPN:</p>
+  <p class="codeblock">50 (&gt;B:SOUND_COM_1_Volume_Set)</p>
+  <p>This is calling the InputEvent &quot;<code class="inline">SOUND_COM_1_Volume</code>&quot;, and is using the code defined in the <code class="inline"><a href="Input_Event_Definitions.htm#Set">&lt;Set&gt;</a></code> element to generate the actual event. This element would look like this:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Set&gt;
+    &lt;Code&gt;p0 0 max 100 min (&amp;gt;O:MyValue) (O:MyValue) (&amp;gt;K:COM1_VOLUME_SET)&lt;/Code&gt;
+    &lt;Parameters&gt;
+        &lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p0&lt;/Param&gt;
+    &lt;/Parameters&gt;
+&lt;/Set&gt;
+</code></pre>
+  <p>Here, all that&#39;s happening is that the value contained in <code class="inline">p0</code> is being passed into the input parameter without being modified, then it is being output and becomes the <code class="inline">p0</code> input used in the <code class="inline"><a href="Input_Event_Definitions.htm#Code">&lt;Code&gt;</a></code> element, where the RPN uses it to set the &quot;MyValue&quot; component variable. This will then be used to set the <code class="inline">COM VOLUME</code> SimVar, as defined in the <code class="inline"><a href="Input_Event_Definitions.htm#Value">&lt;Value&gt;</a></code> element of the XML:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Value&gt;
+    &lt;Units&gt;percent&lt;/Units&gt;
+    &lt;Code&gt;(O:MyValue)&lt;/Code&gt;
+    &lt;Init&gt;(A:COM VOLUME:1, percent) (&amp;gt;O:MyValue)&lt;/Init&gt;
+    &lt;WatchVars&gt;
+        &lt;Simvar ID=&quot;COM VOLUME:1&quot;/&gt;
+    &lt;/WatchVars&gt;
+&lt;/Value&gt;</code></pre>
+  <p><span class="note"><strong>IMPORTANT!</strong> Even if you do not wish to modify the <code class="inline">p0</code> input, you <strong>must declare it as a <code class="inline">&lt;Param&gt;</code></strong>, as shown in the <code class="inline">&lt;Set&gt;</code> example, above. Trying to access <code class="inline">p0</code> without first having assigned a parameter will cause errors. </span></p>
+  <p> </p>
+  <p>Another important thing to note is how the input parameters are affected by the use of RPN or not, since a <code class="inline"><a href="Input_Event_Definitions.htm#Param">&lt;Param&gt;</a></code> that is <em>not</em> using RPN will not be considered as using an input parameter at all. For example, consider this XML that has various bindings with 2 parameters in each:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Set&gt;
+    &lt;Code&gt;p0 if{ (&amp;gt;H:My_Event_True) } els{ (&amp;gt;H:My_Event_False) } p1 (&amp;gt;O:MyValue)&lt;/Code&gt;
+    &lt;Parameters&gt;
+        &lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p0&lt;/Param&gt;
+        &lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p1&lt;/Param&gt;
+    &lt;/Parameters&gt;
+    &lt;Bindings&gt;
+        &lt;Binding Alias=&quot;EVENT_Set_Value_True&quot;&gt;
+            &lt;Param&gt;1&lt;/Param&gt;
+            &lt;Param RPN=&quot;True&quot;&gt;p0&lt;/Param&gt;
+        &lt;/Binding&gt;
+        &lt;Binding Alias=&quot;EVENT_Set_Value_False&quot;&gt;
+            &lt;Param&gt;0&lt;/Param&gt;
+            &lt;Param RPN=&quot;True&quot;&gt;p0&lt;/Param&gt;
+        &lt;/Binding&gt;
+        &lt;Binding Alias=&quot;EVENT_Set_Value_Toggle&quot;&gt;
+            &lt;Param RPN=&quot;True&quot;&gt;(L:MY_VALUE_IS_ON) !&lt;/Param&gt;
+            &lt;Param RPN=&quot;True&quot;&gt;p0&lt;/Param&gt;
+        &lt;/Binding&gt;
+    &lt;/Bindings&gt;
+&lt;/Set&gt;
+</code></pre>
+  <p>If you look at the alias &quot;<code class="inline">EVENT_Set_Value_True</code>&quot;, here we only have one <em>input </em>parameter, which is <code class="inline">p0</code>, but we will be outputting two parameters: 1 <em>and</em> <code class="inline">p0</code> (in that order since the XML is parsed in a linear form). This means that in the &quot;set&quot; <code class="inline"><a href="Input_Event_Definitions.htm#Code">&lt;Code&gt;</a></code>, the first input parameter - <code class="inline">p0</code> - is 1 and the second input parameter - <code class="inline">p1</code> - is the initial input value from <code class="inline">p0</code>. To make it clearer, let&#39;s label the inputs and outputs:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Binding Alias=&quot;EVENT_Set_Value_True&quot;&gt;
+&lt;!-- No Input --&gt;   &lt;Param&gt;1&lt;/Param&gt;               &lt;!-- p0 Output --&gt;
+&lt;!-- p0 Input --&gt;   &lt;Param RPN=&quot;True&quot;&gt;p0&lt;/Param&gt;   &lt;!-- p1 Output --&gt;
+&lt;/Binding&gt;</code></pre>
+  <p>Essentially you can consider the <code class="inline">p<em>N</em></code> format as simply defining a <em>local</em> scope variable to hold a value until the next operation.</p>
+  <p> </p>
+  <p>You can find a full example that illustrates input parameters as well as the creation of a simple input event from the following section:</p>
+  <ul>
+    <li><a href="../Model_Examples.htm#h2">Input Event Example</a></li>
+  </ul>
+  <p>You can also find more information on input bindings from the section below, and we have a full tutorial on using the vairous templates and parameters for simple interactions here:</p>
+  <ul>
+    <li><a href="../../../Samples_And_Tutorials/Tutorials/Creating_Interactions_Using_InputEvents.htm">Creating Interactions Using InputEvents</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="InputBindings">Input Bindings</h3>
+  <p>An important feature of Input Events is that they can be <em>bound</em> to <a href="../../../Programming_Tools/Event_IDs/Event_IDs.htm">Event IDs</a> or even to each other. This means that you can use an Input Event to override a default key event behavior using your own code, or you can create aliases for different presets within your own behaviors. Let&#39;s consider the following example for setting a value inside the input event <code class="inline"><a href="Input_Event_Definitions.htm#Preset">&lt;Preset&gt;</a></code> &quot;<code class="inline">Sound_COM1_Volume</code>&quot;:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Set&gt;
+    &lt;Code&gt;p0 0 max 100 min s0 (&amp;gt;O:MyValue) l0 (&amp;gt;K:COM1_VOLUME_SET)&lt;/Code&gt;
+    &lt;Parameters&gt;
+        &lt;Param Type=&quot;Float&quot; RPN=&quot;True&quot;&gt;p0 100 *&lt;/Param&gt;
+    &lt;/Parameters&gt;
+    &lt;Bindings&gt;
+        &lt;Binding EventID=&quot;COM1_VOLUME_SET&quot;&gt;
+            &lt;Param RPN=&quot;True&quot;&gt;p0 16384 /&lt;/Param&gt;
+            &lt;!-- convert -16k/16k value to -1/1 value --&gt;
+        &lt;/Binding&gt;
+        &lt;Binding Alias=&quot;SOUND_COM_1_Volume_Min&quot;&gt;
+            &lt;Param&gt;0&lt;/Param&gt;
+        &lt;/Binding&gt;
+        &lt;Binding Alias=&quot;SOUND_COM_1_Volume_Max&quot;&gt;
+            &lt;Param&gt;1&lt;/Param&gt;
+        &lt;/Binding&gt;
+    &lt;/Bindings&gt;
+&lt;/Set&gt;</code></pre>
+  <p>In this example, a binding that overrides the behavior of an Event ID has been defined with the attribute &quot;<code class="inline">EventID</code>&quot;:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Binding EventID=&quot;COM1_VOLUME_SET&quot;&gt;</code></pre>
+  <p>This will now intercept the simulation event <code class="inline">KEY_COM1_VOLUME_SET</code> and instead use the <code class="inline"><a href="Input_Event_Definitions.htm#Code">&lt;Code&gt;</a></code> within the <code class="inline"><a href="Input_Event_Definitions.htm#Set">&lt;Set&gt;</a></code> element. Note that when setting the binding to an event ID, the <strong>Input Parameter</strong> <code class="inline">p0</code> will usually be the <em>raw</em> input value - which would be between -16383 and <span>16384 for axis input and between 0 and 1 for a single input. The parameter <code class="inline">p1</code> will also always have data, and in most cases this will be the same as the <code class="inline">p0</code> data, however it may also have been pre-processed in some way before being pushed to the input event. The parameters <code class="inline">p2</code> - <code class="inline">p6</code> may also contain data, depending on the <code class="inline">KEY_</code> event being checked.</span></p>
+  <p><span class="note"><strong>NOTE</strong>: If you plan on using <code class="inline">KEY_</code> events in checklists, and those events are intercepted by an input event preset, then you have to use the <code class="inline">p1</code> value and above, as <code class="inline">p0</code> will always return 0 when a checklist has generated the event.</span></p>
+  <p> </p>
+  <p>In the above example we also generate a couple of <strong>aliases </strong>that can be used to override the <a href="Model_Behaviors.htm#InputParams">Input Parameters</a>, in this case outputting a value of 0 or 1 and ignoring the <code class="inline">p0</code> input:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Binding Alias=&quot;SOUND_COM_1_Volume_Min&quot;&gt;
+&lt;Binding Alias=&quot;SOUND_COM_1_Volume_Max&quot;&gt;</code></pre>
+  <p>When creating an alias, it can be whatever you want <em>as long as it is unique</em>, but to avoid naming conflicts we advise that you always use the base Input Event preset name suffixed by a custom name describing what the alias does. For example, to set the COM1 volume to the minimum we created the alias &quot;<code class="inline">SOUND_COM_1_Volume_Min</code>&quot; for the preset &quot;<code class="inline">SOUND_COM_1_Volume</code>&quot;, which means that in RPN calling:</p>
+  <pre class="language-xml"><code class="language-xml">(&amp;gt;B:SOUND_COM_1_Volume_Min)</code></pre>
+  <p>would do the same thing as:</p>
+  <pre class="language-xml"><code class="language-xml">0 (&amp;gt;B:SOUND_COM_1_Volume_Set)</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="h">Parameter Functions</h3>
+  <p>Much like <a href="Model_Behaviors.htm#Templates">Templates</a>, parameter functions are a form of creating reusable XML that can be applied in multiple different circumstances without having to repeatedly type out the same elements. The concept here is that you can use <a href="Program_Template_Definitions.htm">XML Programing elements</a> to create custom functions that can then be used within the different areas of the behaviors files. These functions are created using the <code class="inline"><a href="General_Template_Definitions.htm#ParametersFn">&lt;ParametersFn&gt;</a></code> element, which would be done within the <code class="inline"><a href="../Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element (or within the <code class="inline"><a href="../Model_Definitions.htm#h39">&lt;ModelBehaviors&gt;</a></code> element, if you want to create library files of functions). Once defined, the function can be called using the <code class="inline"><a href="General_Template_Definitions.htm#UseParametersFn">&lt;UseParametersFn&gt;</a></code> element within a template or a component. Below you can see a simple schematic showing how all this comes together:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;ModelInfo version=&quot;1.0&quot; guid=&quot;&lt;!-- GUID HERE --&gt;&quot;&gt;
+&lt;!-- General Model XML Here --&gt;
+    &lt;Behaviors&gt;
+        &lt;ParametersFn ID=&quot;GET_NODE_ID_AND_ANIM_NAME_FOR_BASE_NAME&quot;&gt;
+            &lt;ReturnParameters&gt;
+                &lt;NODE_ID&gt;#BASE_NAME#&lt;/NODE_ID&gt;
+                &lt;ANIM_NAME&gt;#BASE_NAME#&lt;/ANIM_NAME&gt;
+            &lt;/ReturnParameters&gt;
+        &lt;/ParametersFn&gt;
+        &lt;Component ID=&quot;EXAMPLE&quot;&gt;
+            &lt;Parameters Type=&quot;Override&quot;&gt;
+                &lt;UseParametersFn Name=&quot;GET_NODE_ID_AND_ANIM_NAME_FOR_BASE_NAME&quot;&gt;
+                    &lt;BASE_NAME&gt;A_NAME&lt;/BASE_NAME&gt;
+                &lt;/UseParametersFn&gt;
+                &lt;!-- will load: --&gt;
+                &lt;!-- &lt;NODE_ID&gt;A_NAME&lt;/NODE_ID&gt; --&gt;
+                &lt;!-- &lt;ANIM_NAME&gt;A_NAME&lt;/ANIM_NAME&gt; --&gt;
+            &lt;/Parameters&gt;
+            &lt;Component ID=&quot;EXAMPLE_COMPONENT&quot; Node=&quot;#NODE_ID#&quot;&gt;&lt;!-- make use of the NODE_ID here --&gt;
+                &lt;!-- do other stuff .. --&gt;
+            &lt;/Component&gt;
+        &lt;/Component&gt;
+    &lt;/Behaviors&gt;
+&lt;/ModelInfo&gt;</code></pre>
+  <p>In this example we have a function that will return two parameters (<code class="inline">NODE_ID</code> and <code class="inline">ANIM_NAME</code>) that have been set to hold the <code class="inline">&lt;BASE_NAME&gt;</code> string. We then have a component that calls the function before using the parameters that it generates. This is the simplest and most straightforward way to use this functionality, but it&#39;s worth noting that within a parameter function you can use <a href="Program_Template_Definitions.htm">XML Programing</a> to create more complex procedures for generating parameters, and you can also nest functions, eg: your function can perform some operation and then in the <code class="inline"><a href="General_Template_Definitions.htm#ReturnParameters">&lt;ReturnParameters&gt;</a></code> call <em>another</em> function to perform further operations on the parameters. The snippet below illustrates this:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;ParametersFn Name=&quot;ASOBO_FN_Get_Interaction_Parameters_Positions_OnAutoOff&quot;&gt;
+    &lt;Parameters Type=&quot;Default&quot;&gt;
+        &lt;POS_ON&gt;0&lt;/POS_ON&gt;
+        &lt;POS_AUTO&gt;1&lt;/POS_AUTO&gt;
+        &lt;POS_OFF&gt;2&lt;/POS_OFF&gt;
+        &lt;POS_ON_NAME&gt;On&lt;/POS_ON_NAME&gt;
+        &lt;POS_AUTO_NAME&gt;Auto&lt;/POS_AUTO_NAME&gt;
+        &lt;POS_OFF_NAME&gt;Off&lt;/POS_OFF_NAME&gt;
+    &lt;/Parameters&gt;
+    &lt;ReturnParameters&gt;
+        &lt;UseParametersFn Name=&quot;ASOBO_FN_Get_Interaction_Parameters_X_Positions&quot;&gt;
+            &lt;POS_ID_#POS_ON#&gt;#POS_ON_NAME#&lt;/POS_ID_#POS_ON#&gt;
+            &lt;POS_ID_#POS_AUTO#&gt;#POS_AUTO_NAME#&lt;/POS_ID_#POS_AUTO#&gt;
+            &lt;POS_ID_#POS_OFF#&gt;#POS_OFF_NAME#&lt;/POS_ID_#POS_OFF#&gt;
+        &lt;/UseParametersFn&gt;
+    &lt;/ReturnParameters&gt;
+&lt;/ParametersFn&gt;</code></pre>
+  <p>You can find further examples for parameter functions on the following page:</p>
+  <ul>
+    <li><a href="../Model_Examples.htm#ParameterFunctions">Parameter Function Example</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.6.1"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

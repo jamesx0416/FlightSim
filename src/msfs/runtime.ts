@@ -127,57 +127,60 @@ export class AircraftRuntime {
 export class DemoRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
+  private cycles: {
+    readonly gearCycle: number
+    readonly flapCycle: number
+    readonly spoilerCycle: number
+    readonly engineCycle: number
+    readonly aileronCycle: number
+    readonly elevatorCycle: number
+    readonly rudderCycle: number
+    readonly reverserCycle: number
+    readonly dtSeconds: number
+  } = {
+    gearCycle: 0.5,
+    flapCycle: 0.5,
+    spoilerCycle: 0.5,
+    engineCycle: 55,
+    aileronCycle: 0,
+    elevatorCycle: 0,
+    rudderCycle: 0,
+    reverserCycle: 0,
+    dtSeconds: 0
+  }
 
   constructor(private readonly diagnostics: ImportDiagnostic[]) {}
 
   tick(dtSeconds: number): void {
     this.elapsedSeconds += dtSeconds
+    this.cycles = {
+      gearCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.22),
+      flapCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.18 + 0.4),
+      spoilerCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.9 + 1.3),
+      engineCycle: 55 + 35 * Math.sin(this.elapsedSeconds * 0.35),
+      aileronCycle: 0.8 * Math.sin(this.elapsedSeconds * 0.7),
+      elevatorCycle: 0.6 * Math.sin(this.elapsedSeconds * 0.5 + 0.6),
+      rudderCycle: 70 * Math.sin(this.elapsedSeconds * 0.45 + 0.2),
+      reverserCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.24 + 2.2),
+      dtSeconds
+    }
+
     this.values.set('A:ANIMATION DELTA TIME', dtSeconds)
-
-    const gearCycle = 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.22)
-    const flapCycle = 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.18 + 0.4)
-    const spoilerCycle = 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.9 + 1.3)
-    const engineCycle = 55 + 35 * Math.sin(this.elapsedSeconds * 0.35)
-    const aileronCycle = 0.8 * Math.sin(this.elapsedSeconds * 0.7)
-    const elevatorCycle = 0.6 * Math.sin(this.elapsedSeconds * 0.5 + 0.6)
-    const rudderCycle = 70 * Math.sin(this.elapsedSeconds * 0.45 + 0.2)
-    const reverserCycle = 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.24 + 2.2)
-
-    this.values.set('A:GEAR ANIMATION POSITION:0', gearCycle * 100)
-    this.values.set('A:GEAR ANIMATION POSITION:1', gearCycle * 100)
-    this.values.set('A:GEAR ANIMATION POSITION:2', gearCycle * 100)
+    this.values.set('A:GEAR ANIMATION POSITION:0', this.cycles.gearCycle * 100)
+    this.values.set('A:GEAR ANIMATION POSITION:1', this.cycles.gearCycle * 100)
+    this.values.set('A:GEAR ANIMATION POSITION:2', this.cycles.gearCycle * 100)
 
     for (const [key] of this.values) {
-      this.values.set(key, this.resolveHeuristicValue(key, {
-        gearCycle,
-        flapCycle,
-        spoilerCycle,
-        engineCycle,
-        aileronCycle,
-        elevatorCycle,
-        rudderCycle,
-        reverserCycle,
-        dtSeconds
-      }))
+      this.values.set(key, this.resolveHeuristicValue(key, this.cycles).value)
     }
   }
 
   readVariable(key: string): number {
     if (!this.values.has(key)) {
-      const value = this.resolveHeuristicValue(key, {
-        gearCycle: 0,
-        flapCycle: 0,
-        spoilerCycle: 0,
-        engineCycle: 0,
-        aileronCycle: 0,
-        elevatorCycle: 0,
-        rudderCycle: 0,
-        reverserCycle: 0,
-        dtSeconds: 0
-      })
+      const resolved = this.resolveHeuristicValue(key, this.cycles)
 
-      this.values.set(key, value)
-      if (value === 0) {
+      this.values.set(key, resolved.value)
+      if (!resolved.handled) {
         this.diagnostics.push({
           code: 'runtime_variable_defaulted',
           message: `Variable ${key} is not provided by the demo host and defaulted to 0.`,
@@ -193,6 +196,10 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     this.values.set(key, value)
   }
 
+  invokeKeyEvent(name: string, args: readonly number[]): void {
+    this.values.set(`K:${name}`, args.at(-1) ?? 0)
+  }
+
   private resolveHeuristicValue(
     key: string,
     cycles: {
@@ -206,30 +213,66 @@ export class DemoRuntimeHost implements RuntimeHostServices {
       readonly reverserCycle: number
       readonly dtSeconds: number
     }
-  ): number {
+  ): { readonly handled: boolean; readonly value: number } {
     const upperKey = key.toUpperCase()
 
-    if (upperKey === 'A:ANIMATION DELTA TIME') return cycles.dtSeconds
-    if (upperKey.includes('ENGINE_N1')) return cycles.engineCycle
-    if (upperKey.includes('REVERSER')) return cycles.reverserCycle
-    if (upperKey.includes('AILERON_LEFT')) return cycles.aileronCycle
-    if (upperKey.includes('AILERON_RIGHT')) return -cycles.aileronCycle
-    if (upperKey.includes('AILERON')) return cycles.aileronCycle
-    if (upperKey.includes('ELEVATOR_LEFT')) return cycles.elevatorCycle
-    if (upperKey.includes('ELEVATOR_RIGHT')) return cycles.elevatorCycle
-    if (upperKey.includes('ELEVATOR')) return cycles.elevatorCycle
-    if (upperKey.includes('RUDDER')) return cycles.rudderCycle
-    if (upperKey.includes('SPOILER_LEFT')) return cycles.spoilerCycle
-    if (upperKey.includes('SPOILER_RIGHT')) return cycles.spoilerCycle
-    if (upperKey.includes('SPOILER')) return cycles.spoilerCycle
-    if (upperKey.includes('SLAT')) return cycles.flapCycle * 100
-    if (upperKey.includes('FLAP')) return cycles.flapCycle
+    if (upperKey === 'A:ANIMATION DELTA TIME') return handled(cycles.dtSeconds)
+    if (upperKey === 'A:SIM ON GROUND') return handled(0)
+    if (upperKey === 'A:SURFACE RELATIVE GROUND SPEED') return handled(0)
+    if (upperKey === 'A:LIGHT BEACON') return handled(1)
+    if (upperKey.startsWith('O:')) return handled(this.values.get(key) ?? 0)
+    if (upperKey.startsWith('A:CIRCUIT ON:')) return handled(1)
+    if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(1)
+    if (upperKey.startsWith('A:CIRCUIT CONNECTION ON:')) return handled(1)
+    if (upperKey.startsWith('A:INTERACTIVE POINT OPEN:')) return handled(0)
+    if (upperKey.startsWith('A:GEAR STEER ANGLE:')) return handled(0)
+    if (upperKey.includes('ENGINE_N1')) return handled(cycles.engineCycle)
+    if (upperKey.includes('REVERSER')) return handled(cycles.reverserCycle)
+    if (upperKey.includes('AILERON_LEFT')) return handled(toPercentIfRequested(upperKey, cycles.aileronCycle))
+    if (upperKey.includes('AILERON_RIGHT')) return handled(toPercentIfRequested(upperKey, -cycles.aileronCycle))
+    if (upperKey.includes('AILERON')) return handled(toPercentIfRequested(upperKey, cycles.aileronCycle))
+    if (upperKey.includes('ELEVATOR_LEFT')) return handled(toPercentIfRequested(upperKey, cycles.elevatorCycle))
+    if (upperKey.includes('ELEVATOR_RIGHT')) return handled(toPercentIfRequested(upperKey, cycles.elevatorCycle))
+    if (upperKey.includes('ELEVATOR')) return handled(toPercentIfRequested(upperKey, cycles.elevatorCycle))
+    if (upperKey.includes('HYD_AILERON_LEFT_DEFLECTION')) return handled(cycles.aileronCycle * 100)
+    if (upperKey.includes('HYD_AILERON_RIGHT_DEFLECTION')) return handled(-cycles.aileronCycle * 100)
+    if (upperKey.includes('RUDDER')) return handled(cycles.rudderCycle)
+    if (upperKey.includes('SPOILER_LEFT')) return handled(cycles.spoilerCycle)
+    if (upperKey.includes('SPOILER_RIGHT')) return handled(cycles.spoilerCycle)
+    if (upperKey.includes('SPOILER')) return handled(cycles.spoilerCycle)
+    if (upperKey.includes('SLAT')) return handled(cycles.flapCycle * 100)
+    if (upperKey.includes('FLAP')) return handled(cycles.flapCycle)
+    if (/^L:LANDING_\d+_RETRACTED$/u.test(upperKey)) return handled(1)
+    if (upperKey.endsWith('_NOSE_WHEEL_POSITION')) return handled(0)
+    if (upperKey.endsWith('_MODEL_CONES_ENABLED')) return handled(0)
+    if (upperKey.endsWith('_IS_STATIONARY')) return handled(0)
+    if (upperKey.endsWith('_SATCOM_ENABLED')) return handled(0)
+    if (upperKey.endsWith('_PARK_BRAKE_LEVER_POS')) return handled(0)
+    if (upperKey.endsWith('_GND_FLT_SVC_BUS_IS_POWERED')) return handled(1)
+    if (upperKey.includes('GSX') && upperKey.endsWith('DEPARTURE_STATE')) return handled(0)
+    if (upperKey.includes('WHEELCHOCK')) return handled(0)
+    if (/^A:(CENTER|LEFT|RIGHT) WHEEL RPM$/u.test(upperKey)) return handled(0)
+    if (/^A:(CENTER|LEFT|RIGHT) WHEEL ROTATION ANGLE$/u.test(upperKey)) return handled(0)
     if (upperKey.includes('GEAR') && upperKey.includes('POSITION')) {
-      return cycles.gearCycle * 100
+      return handled(cycles.gearCycle * 100)
     }
-    if (upperKey.includes('DOOR')) return cycles.gearCycle * 100
+    if (upperKey.includes('DOOR')) return handled(cycles.gearCycle * 100)
 
-    return this.values.get(key) ?? 0
+    return {
+      handled: false,
+      value: this.values.get(key) ?? 0
+    }
+  }
+}
+
+function toPercentIfRequested(key: string, value: number): number {
+  return key.includes('PCT') || key.includes('PERCENT') ? value * 100 : value
+}
+
+function handled(value: number): { readonly handled: true; readonly value: number } {
+  return {
+    handled: true,
+    value
   }
 }
 

@@ -1,0 +1,1038 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>FlightSim Material Parameters</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  <link rel="stylesheet" href="../../../assets/css/default.css" type="text/css" id="style"/>
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="rh-index-keywords" content="Materials"/>
+<meta name="rh-version" content="2022.4.179"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.4.179"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="generator" content="Adobe RoboHelp 2022"/>
+    <meta name="rh-authors" content="Mark Alexander"/>
+  </div>
+  <link href="../../../assets/css/extra_symbols.css" rel="stylesheet" type="text/css"/>
+  <link href="../../../assets/css/mathjax/mathjax.css" rel="stylesheet" type="text/css"/>
+  <!-- <link href="../css/Prism/prism.css" rel="stylesheet" type="text/css" /> -->
+  <script src="../../../assets/css/Prism/prism.js"></script>
+  <script src="../../../assets/css/mathjax/es5/tex-chtml.js" type="text/javascript"></script>
+  <script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js" charset="UTF-8"></script>
+  <script type="text/x-mathjax-config">
+    <![CDATA[
+          MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+              tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+              TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+              messageStyle: "none"
+      svg: {
+          scale: 1,                      // global scaling factor for all expressions
+          minScale: .5,                  // smallest scaling factor to use
+          mtextInheritFont: false,       // true to make mtext elements use surrounding font
+          merrorInheritFont: true,       // true to make merror text use surrounding font
+          mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+          skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+          exFactor: .5,                  // default size of ex in em units
+          displayAlign: 'center',        // default for indentalign when set to 'auto'
+          displayIndent: '0',            // default for indentshift when set to 'auto'
+          fontCache: 'local',            // or 'global' or 'none'
+          localID: null,                 // ID to use for local font cache (for single equation processing)
+          internalSpeechTitles: true,    // insert <title> tags with speech content
+          titleID: 0                     // initial id number to use for aria-labeledby titles
+        }
+          });
+        ]]>
+  </script>
+  <div>
+  <h2>FLIGHTSIM MATERIAL PARAMETERS</h2>
+  <p>The following extra parameters are only available to very specific materials. The materials that the parameters are appropriate for have been linked to in each description. Please see the main <a href="FlightSim_Materials.htm">FlightSim Materials</a> for more information.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="pearl-params">Pearl Parameters (<a data-xref="{text}" href="FlightSim_Materials.htm#standard">Standard</a>)</h3>
+  <p><img alt="Pearlescence Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_9_param_pearl.png" title="Pearlescence Parameters"/></p>
+  <p>This parameter can be used to add a &quot;pearlescent&quot; effect to the Standard material type.</p>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="pearl-effect">Use Pearl Effect</h5>
+      This can be used to enable/disable the pearlescent effect of a material.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="color-shift">Color Shift</h5>
+      Use this value to adjust the amount of shift from the base color that the pearlescent effect will produce.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="color-range">Color Range</h5>
+      Use this value to adjust the range around the base color for the pearlescent effect.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="color-brightness">Color Brightness</h5>
+      Use this value to modify the brightness of the colours used for the pearlescent effect.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="decal-blend-factor">Decal Per Component Blend Factors (<a data-xref="{text}" href="FlightSim_Materials.htm#decal">Decal</a>)</h3>
+  <p><img alt="Decal Per Component Blend Factors For The Decal Material" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_10_param_decalblend.png" title="Decal Per Component Blend Factors For The Decal Material"/></p>
+  <ul>
+    <li>
+      <h5 id="color">Color</h5>
+      This value determine how the decal material is blended with the background. A value of 0 means the background material&#39;s color component is used. A value of 1 means the decal material&#39;s color component is used. A value between 0 and 1 will blend the two values. The components are linearly interpolated.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="roughness-decal">Roughness</h5>
+      This value determine how the decal material is blended with the background. A value of 0 means the background material&#39;s roughness component is used. A value of 1 means the decal material&#39;s roughness component is used. A value between 0 and 1 will blend the two values. The components are linearly interpolated.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="metal">Metal</h5>
+      This value determine how the decal material is blended with the background. A value of 0 means the background material&#39;s metal component is used. A value of 1 means the decal material&#39;s metal component is used. A value between 0 and 1 will blend the two values. The components are linearly interpolated.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="occlusion">Occlusion</h5>
+      This value determine how the decal material is blended with the background. A value of 0 means the background material&#39;s occlusion component is used. A value of 1 means the decal material&#39;s occlusion component multiplied with the background one is used. A value between 0 and 1 will blend the two values. The components are linearly interpolated.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="normal">Normal</h5>
+      This value determine how the decal material is blended with the background. A value of 0 means the background material&#39;s normal component is used. A value of 1 means the decal material&#39;s normal component is used. A value between 0 and 1 will blend the two values. The components are linearly interpolated.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="emissive-decal">Emissive</h5>
+      This value determine how the decal material is blended with the background. A value of 0 means the background material&#39;s emissive is used. A value of 1 means the decal material&#39;s emissive is used. A value between 0 and 1 will blend the two values. The components are linearly interpolated.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="normal-mode">Normal Mode - Tangent / Override</h5>
+      This parameter permits you to control the way surface normals will be generated based on the given value, where:
+      <ul>
+        <li>0 - The mesh normal will be that of the surface the geodecal mesh is covering</li>
+        <li>1 - The mesh normal will be that of the geodecal mesh itself</li>
+        <li>&gt; 0, &lt; 1 - The mesh normal will be an interpolated normal between that of the original mesh and the geodecal mesh.</li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="render-on-clearcoat">Render On ClearCoat (3DS Max) / <span>Render Under Clearcoat (Blender)</span></h5>
+      When this is checked in <strong>3DS Max</strong>, the material will be rendered <em>over</em> the <a data-xref="{text}" href="FlightSim_Materials.htm#clearcoat">ClearCoat</a> layer instead of under it. When this is checked in <strong>Blender</strong>, the material will be rendered <em>under</em> the <a data-xref="{text}" href="FlightSim_Materials.htm#clearcoat">ClearCoat</a> layer instead of over it.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="decal-channel-masks">Decal Channel Masks</h5>
+      This section is used to determine the render channels which the Decal material will use in the simulation. You can check 1 or more of the boxes, but note that if you <em>un-check</em> all options, <strong>the decal will be invisible in the simulation</strong>. The options available are as follows:
+      <ul>
+        <li><strong>Scenery Channel</strong> - The decal material will render on scenery objects.</li>
+        <li><strong>Terrain Channel</strong> - The decal material will render on terrain.</li>
+        <li><strong>SimObject Channel</strong> - The decal material will render on SimObjects.</li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="windshield-parameters">Windshield Parameters (<a data-xref="{bookmarkText}" href="FlightSim_Materials.htm#windshield">windshield</a>)</h3>
+  <p><img alt="Windshield Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_windshield.png" title="Windshield Parameters"/></p>
+  <ul>
+    <li>
+      <h5 id="detail-1-r-rough">Detail 1 (R) Rough</h5>
+      This value control the roughness of the red component (R) of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_details_icing_details">Details 1 (R), Icing Mask (G), Details 2 (B)</a> texture, which is a mask.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="detail-1-r-opacity">Detail 1 (R) Opacity</h5>
+      This value control the opacity of the red component (R) of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_details_icing_details">Details 1 (R), Icing Mask (G), Details 2 (B)</a> texture, which is a mask.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="detail-2-b-rough">Detail 2 (B) Rough</h5>
+      This value control the roughness of the blue component (B) of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_details_icing_details">Details 1 (R), Icing Mask (G), Details 2 (B)</a> texture, which is a mask.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="detail-2-b-opacity">Detail 2 (B) Opacity</h5>
+      This value control the opacity of the blue component (B) of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_details_icing_details">Details 1 (R), Icing Mask (G), Details 2 (B)</a> texture, which is a mask.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="micro-scratches-tiling">Micro-Scratches Tiling</h5>
+      This value defines the scale of the tiled <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_scratches">Scratches Normal</a> texture.<br/>
+      <img alt="Example Illustrating How Tiling Affects Micro-Scratches" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_windshield_scratch1.png" title="Example Illustrating How Tiling Affects Micro-Scratches"/>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="micro-scratches-strength">Micro-Scratches Strength</h5>
+      This value defines the strength of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_scratches">Scratches Normal</a> texture effect.<br/>
+      <img alt="Example Illustrating How Strength Affects Micro-Scratches" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_windshield_scratch2.png" title="Example Illustrating How Strength Affects Micro-Scratches"/>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="detail-normal-refraction-strength">Detail Normal Refraction Strength</h5>
+      This value defines the scale of the offset of the light refraction by the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#detail-normal">Detail Normal</a> texture.
+    </li>
+  </ul>
+  <p> </p>
+  <h4 id="windshield-parameters-iridescent">Windshield Parameters (Iridescent)</h4>
+  <p>(<a data-xref="{bookmarkText}" href="FlightSim_Materials.htm#windshield">windshield</a>)</p>
+  <p><img alt="Windshield Iridescence Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_iridescence.png" title="Windshield Iridescence Parameters"/></p>
+  <ul>
+    <li>
+      <h5 id="use-iridescence">Use Iridescence</h5>
+      When enabled, this option will use the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_iridescent">Iridescent Thickness (R)</a> texture to create an &quot;iridescent&quot; effect on the windshield, simulating the &quot;rainbow&quot; effect from strong light that the protective film over some glass can have.<br/>
+      <img alt="Example Of Windshield Iridescence" class="center" height="280" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_iridescence_example.png" width="840"/>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="min-thickness">Min Thickness</h5>
+      This value defines the minimum thickness of the iridescent film. Note that the texture values will be interpolated between this value and the <a data-xref="{text}" href="#max-thickness">Max Thickness</a> value, such that 0 in the texture is the minimum thickness and 1 in the texture is the maximum thickness.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="max-thickness">Max Thickness</h5>
+      This value defines the maximum thickness of the iridescent film. Note that the texture values will be interpolated between the <a data-xref="{text}" href="#min-thickness">Min Thickness</a> and this value, such that 0 in the texture is the minimum thickness and 1 in the texture is the maximum thickness.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="brightness">Brightness</h5>
+      This value defines how &quot;bright&quot; the iridescent effect will be.
+    </li>
+  </ul>
+  <p> </p>
+  <h4 id="windshield-parameters-wipers">Windshield Parameters (Wipers)</h4>
+  <p>(<a data-xref="{bookmarkText}" href="FlightSim_Materials.htm#windshield">windshield</a>)</p>
+  <p><img alt="Windshield Wiper Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_wipers.png" title="Windshield Wiper Parameters"/></p>
+  <ul>
+    <li>
+      <h5 id="wiper-lines">Wiper Lines</h5>
+      When this parameter is enabled, the simulation will render wiper dust lines across the area of movement of the windshield wipers. This effect requires a <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_wipermask">Wiper Mask (RGBA)</a> texture. The image below shows how this effect will look in the simulation:<br/>
+      <img alt="An Example Of Wiper Lines On A Windshield" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_wipers_1.png" title="An Example Of Wiper Lines On A Windshield"/>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="tiling">Tiling</h5>
+      This value controls the wiper line count, where a higher value means less lines, and a lower value will mean more of them.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="strength">Strength</h5>
+      This value controls the strength of the wiper line effect: essentially setting how visible it will be.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="wiper-animation">Wiper Animation</h5>
+      The wiper animation is interpolated to be between 0 (closed/idle position) and 1 (open/upper position) such that this value can be used to set an initial position for the material animation between those positions. For more information on how to set up this animation, please see the following section: <a data-xref="{text}" href="../../Modeling/Aircraft/Airframe/Windshield_And_Windows.htm#Wipers">Wipers</a><br/>
+      <span class="note"><strong>IMPORTANT!</strong> The Material animation feature works only with FlightSim materials, MultiMaterials are not supported</span>
+    </li>
+  </ul>
+  <p> </p>
+  <h4 id="windshield-parameters-debug">Windshield Parameters (Debug Shader Windshield)</h4>
+  <p>(<a data-xref="{bookmarkText}" href="FlightSim_Materials.htm#windshield">windshield</a>)</p>
+  <p><span class="note"><strong>NOTE</strong>: These options are only for debugging during the modelling process and will have no effect on the exported model materials.</span></p>
+  <p><img alt="Windshield Wiper Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_windshield_debug1.png" title="Windshield Wiper Parameters"/></p>
+  <ul>
+    <li>
+      <h5 id="wipermask">Wipermask</h5>
+      When this parameter is enabled, any wipermasks will be shown as applied in the scene (as long as the render shader is not in vertex colour/alpha mode):<br/>
+      <img alt="The Wiper Mask Debug View" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_windshield_debug2.png" title="The Wiper Mask Debug View"/>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="insects-albedo">Insects Albedo</h5>
+      When this parameter is enabled, the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_insects_albedo">Insects Albedo (RGBA)</a> texture will be applied to the windscreen, permitting you to debug the way it will look over time using the <strong>Insects Mask</strong> value. For more information please see here: <a data-xref="{text}" href="../../Modeling/Aircraft/Airframe/Windshield_And_Windows.htm#insect-splatter">Insect Splatter</a>.<br/>
+      <img alt="The Insects Albedo Debug View" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_windshield_debug3.png" style="cursor: nwse-resize;" title="The Insects Albedo Debug View"/>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="insects-mask">Insects Mask</h5>
+      This value will change the alpha application of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#windshield_insects_mask">Insects Mask (A)</a> texture to show how the insects albedo texture will be applied to the windshield. For more information please see here: <a data-xref="{text}" href="../../Modeling/Aircraft/Airframe/Windshield_And_Windows.htm#insect-splatter">Insect Splatter</a>.<br/>
+      Adjusting the slider value will adjust the alpha mask application so you can see the insects &quot;appear&quot; on the windshield, as shown in the image below (note the image has been tone adjusted to make it more obvious what is happening):<br/>
+      <img alt="Animated Example Of The Insects Mask Value Changing" class="center" height="280" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_windshield_debug4.gif" title="Animated Example Of The Insects Mask Value Changing" width="840"/>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="debug-vertex-colour">Debug Vertex Colour</h5>
+      From this section you can independently watch the contents of each vertex color channel as well as the alpha channel. Click the one that you wish to see to check it, and then click it again to uncheck it.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="windshield-parameters-rain">Windshield / Clearcoat Parameters (Rain)</h3>
+  <p>(<a data-xref="{bookmarkText}" href="FlightSim_Materials.htm#windshield">windshield</a>, <a data-xref="{text}" href="FlightSim_Materials.htm#clearcoat">ClearCoat</a>)</p>
+  <p><img alt="Windshield Rain Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_11_param_rain.png" title="Windshield Rain Parameters"/></p>
+  <ul>
+    <li>
+      <h5 id="recieve-rain">Recieve Rain</h5>
+      When this is enabled, the windshield will have rain effects in bad weather.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="rain-drop-tiling">Rain Drop Tiling</h5>
+      This value can be used to adjust the size of the raindrops on the windshield. When setting this value be aware that higher values will create smaller raindrops, and lower values will create bigger raindrops. Only valid when <a data-xref="{text}" href="#recieve-rain">Recieve Rain</a> is enabled.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="rain-on-backface">Rain On Backface</h5>
+      This option determines on which side of the glass the rain effect will be rendered. This is disabled by default - rain will be rendered on the front face - and is generally only required if you see the raindrops move in the wrong direction to the current airflow (from wind or movement). Only valid when <a data-xref="{text}" href="#recieve-rain">Recieve Rain</a> is enabled.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="porthole">Porthole</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="glass-parameters">Glass Parameters (<a data-xref="{bookmarkText}" href="FlightSim_Materials.htm#glass">glass</a>)</h3>
+  <p><img alt="Glass Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_25_param_glass.png" title=""/></p>
+  <ul>
+    <li>
+      <h5>Glass Thickness (mm)</h5>
+      Here you can set the &quot;thickness&quot; of the glass material. This will affect how the material refracts the light where a thicker glass will have more refraction, and a thinner glass will have less.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="decal-blend-factor-geo">Decal Per Component Blend Factors (<a data-xref="{text}" href="FlightSim_Materials.htm#geodecalfrosted">GeoDecalFrosted</a>)</h3>
+  <p><img alt="The Decal Per Component Blend Factors For GeoDecalFrosted Blended" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_24_param_geodecalfrosted.png" title="The Decal Per Component Blend Factors For GeoDecalFrosted Blended"/></p>
+  <ul>
+    <li>
+      <h5><a data-xref="{text}" href="#color">Color</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="#roughness-decal">Roughness</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="#metal">Metal</a></h5>
+    </li>
+    <li>
+      <h5 id="blast-sys">Blast Sys</h5>
+      If your aircraft is equipped with a <strong>blast system</strong> to remove ice accretions (ie: pneumatic swells pads located on some parts of the aircraft such as the leading-edges, stabiliser, etc...) then this should be set to 1.
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="#normal">Normal</a></h5>
+    </li>
+    <li>
+      <h5 id="melt-sys">Melt Sys</h5>
+      If your aircraft is equipped with a <strong>melt system</strong> to remove ice accretions (ie: a series of chemical sprays that can be activated to remove the ice from parts of the aircraft like the leading-edges, stabiliser, etc...) then this should be set to 1.
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="#emissive-decal">Emissive</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="FlightSim_Material_Parameters.htm#normal-mode">Normal Mode - Tangent / Override</a></h5>
+    </li>
+    <li>
+      <h5><a href="FlightSim_Material_Parameters.htm#render-on-clearcoat">Render On/Under ClearCoat</a></h5>
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="clearcoat-parameters">ClearCoat Parameters [<a data-xref="{text}" href="FlightSim_Materials.htm#clearcoat">ClearCoat</a>]</h3>
+  <ul>
+    <li><img alt="ClearCoat Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_14_param_clearcoat.png" title="ClearCoat Parameters"/>
+      <h5 id="clearcoat-roughness-factor">ClearCoat Roughness Factor</h5>
+      This parameter specifies a multiplicative factor of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#clear-coat-amount">Clearcoat Colour (RGB) ClearCoat Roughness (A)</a> texture.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="clearcoat-normal-factor">ClearCoat Normal Factor</h5>
+      This parameter specifies a multiplicative factor of the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#clearcoat-normal">ClearCoat Normal</a> texture.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="clearcoat-roughness-tiling">ClearCoat Colour/Roughness Tiling</h5>
+      This parameter specifies the tiling of the <a data-xref="{text}" href="FlightSim_Materials.htm#clear-coat-amount"> </a> texture.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="clearcoat-normal-tiling">ClearCoat Normal Tiling</h5>
+      This parameter specifies the tiling of the <a data-xref="{text}" href="FlightSim_Materials.htm#clearcoat-normal"> </a> texture.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="use-uniform-base-roughness">Use Uniform Base Roughness</h5>
+      If your material does not require two separate roughness maps - as would be the case, for example, with a varnished carbon part - and you simply need to apply a layer of clearcoat while keeping the roughness information of your base material, you can check this option. When checked, it will disable the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#clear-coat-amount">Clearcoat Colour (RGB) ClearCoat Roughness (A)</a> texture slot, and will use the roughness from the material&#39;s <a data-xref="{text}" href="FlightSim_Material_Textures.htm#occlusionr-roughnessg-metallicb">Occlusion(R) Roughness(G) Metallic(B)</a> texture map. This will also enable the <a data-xref="{text}" href="#base-roughness">Base Roughness</a> modifier to be edited.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="base-roughness">Base Roughness</h5>
+      This value is only used when the <a data-xref="{text}" href="FlightSim_Material_Parameters.htm#use-uniform-base-roughness">Use Uniform Base Roughness</a> option is enabled, and sets the base roughness for the layer under the clearcoat.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="not-use-clearcoat">Base Normal Affect Coat</h5>
+      When this option is checked, the base <a data-xref="{bookmarkText}" href="FlightSim_Material_Textures.htm#normal">normal</a> texture will also affect the clearcoat.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="parallax-parameters">Parallax Parameters (<a data-xref="{text}" href="FlightSim_Materials.htm#parallaxwindow">ParallaxWindow</a>)</h3>
+  <p><img alt="Parallax Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_27_param_parallax.png"/>A parallax effect can be used to render fake interiors through a building window. It uses the second UV set (UV2 in 3DS Max or UVMap2 in Blender) to tile the fake rooms.</p>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="parallax-scale">Room Scale Z</h5>
+      A scalar multiplier applied to increase the depth of the fake rooms.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="room-sizex-scale">Room Scale X</h5>
+      A scalar multiplier applied to increase the horizontal size of the fake room, it is a multiplier for the 3DS Max UV2, or Blender UVMap2, used for the fake rooms.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="room-sizey-scale">Room Scale Y</h5>
+      A scalar multiplier applied to increase the vertical size of the fake room, it is a multiplier for the 3DS Max UV2, or Blender UVMap2, used for the fake rooms.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="room-count">Room Count</h5>
+      The number of rooms available on the textures <a data-xref="{text}" href="FlightSim_Material_Textures.htm#parallax-emissive">Emissive Ins Window (RGB) offset Time (A)</a><a data-xref="{text}" href="FlightSim_Materials.htm#parallax-emissive"> </a> and <a data-xref="{text}" href="FlightSim_Material_Textures.htm#parallax-alpha">Behind Glass Color (RGB) Alpha (A)</a><a data-xref="{text}" href="FlightSim_Materials.htm#parallax-alpha"> </a>.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="corridor">Corridor</h5>
+      Use this to not render the left and right walls of the fake interiors. This will connect rooms together on the horizontal axis and, when observed from an angle, make them look like corridors.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="anisotropic">Anisotropic</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="hair">Hair</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="sss">SSS</h3>
+  <p><img alt="Fresnel Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_16_param_sss.png"/></p>
+  <ul>
+    <li>
+      <h5 id="sss-colour">SSS Colour</h5>
+      This parameter sets the colour to be used as the &quot;glow&quot; from the scattered light. Essentially the colour that will be blended with the incoming light after it has been &quot;scattered&quot; through the material, for example, a slight pink after passing through the &quot;skin&quot; of a character model.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="invisible">Invisible</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="fake-terrain">Fake Terrain</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="fresnel-parameters">Fresnel Parameters (<a data-xref="{text}" href="FlightSim_Materials.htm#fresnelfade">FresnelFade</a>)</h3>
+  <p><img alt="Fresnel Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_15_param_fresnel.png"/></p>
+  <ul>
+    <li>
+      <h5 id="fresnel-factor">Fresnel Factor</h5>
+      Exponent factor for the opacity of the Fresnel effect.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="fresnel-opacity-bias">Fresnel Opacity Bias</h5>
+      This value is subtracted from the previous Fresnel opacity result. It&#39;s there to enforce the transparency effect when the previous dot product is close to zero.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="environment-occluder">Environment Occluder</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="ghost_params">Ghost Parameters (<a data-xref="{text}" href="FlightSim_Materials.htm#ghost">Ghost</a>)</h3>
+  <p><img alt="The Additional Parameters For The Ghost Material" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_18_param_ghost.png" title="The Additional Parameters For The Ghost Material"/></p>
+  <ul>
+    <li>
+      <h5 id="bias-factor">Bias Factor</h5>
+      This value is an offset to make the object less transparent, where 0 is 100% transparent and 1 is 100% opaque.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="ghost-power">Ghost Power</h5>
+      This value is the exponent that increase the reflection at shallow angles for the material. Values are between 0 and 64 where 0 means no reflection and 64 means a very metallic reflection at shallow angles.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="ghost-scale">Ghost Scale</h5>
+      This value is a proportional factor that changes the weight of the transparency gradient, where 0 means no reflection weight and 1 means full reflection weight.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="geo-blend-factors">Decal Per Component Blend Factors (<a data-xref="{text}" href="FlightSim_Materials.htm#geodecalblendedmask" title="The  for">GeoDecal Blended Mask</a>)</h3>
+  <p><img alt="The Decal Per Component Blend Factors For GeoDecal Blended" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_20_param_geodecal.png" title="The Decal Per Component Blend Factors For GeoDecal Blended"/></p>
+  <ul>
+    <li>
+      <h5><a data-xref="{text}" href="FlightSim_Material_Parameters.htm#color">Color</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="FlightSim_Material_Parameters.htm#roughness-decal">Roughness</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="FlightSim_Material_Parameters.htm#metal">Metal</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="FlightSim_Material_Parameters.htm#occlusion">Occlusion</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="FlightSim_Material_Parameters.htm#normal">Normal</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="FlightSim_Material_Parameters.htm#emissive-decal">Emissive</a></h5>
+    </li>
+    <li>
+      <h5><a data-xref="{text}" href="#normal-mode">Normal Mode - Tangent / Override</a></h5>
+    </li>
+    <li>
+      <h5><a href="#render-on-clearcoat">Render On/Under ClearCoat</a></h5>
+    </li>
+    <li>
+      <h5 id="blend-sharpness">Blend Sharpness</h5>
+      This parameter permits you to control the sharpness of your blend mask, where a low value will create a sharper mask, and a higher value will mean a more blended mask.<br/>
+      <img alt="Different Blend Thresholds And How They Affect The BlendMask" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_21_param_geodecal_sharpness.png" title="Different Blend Thresholds And How They Affect The BlendMask"/>
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="sail-parameters">Sail Parameters [<a data-xref="{text}" href="FlightSim_Materials.htm#sail">Sail</a>]</h3>
+  <p><img alt="The Additional Parameters For The Sail Material" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_19_param_sail.png" title="The Additional Parameters For The Sail Material"/></p>
+  <ul>
+    <li>
+      <h5 id="light-absorption">Light Absorption</h5>
+      This parameter is used to determine the amount of light that can be absorbed by the surface of the material, with the the rest passing through the material to appear on the back-face. A value of 1 will mean that the material is completely opaque, with no light visible through the material, while a value of 0 will mean <em>50%</em> of the light will be transmitted thought the material.<br/>
+      <img alt="Example Of The Light Absorption Parameter" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_19_param_sail_absorb.png" title="Example Of The Light Absorption Parameter"/>
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="propeller">Propeller</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="windflex-parameters">WindFlex Parameters [<a data-xref="{text}" href="FlightSim_Materials.htm#windflex">Windflex</a>]</h3>
+  <p><img alt="WindFlex Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_22_param_windflex.png" title="WindFlex Parameters"/></p>
+  <ul>
+    <li>
+      <h5 id="move-detail-normal">Move Detail Normal</h5>
+      <em><span>Not currently used in the simulation.</span></em>
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="tree">Tree</h3>
+  <p><em>No extra parameters are required by this material.</em></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="vegetation-parameters">Vegetation Parameters [<a data-xref="{text}" href="FlightSim_Materials.htm#vegetation">Vegetation</a>]</h3>
+  <p><img alt="Vegetation Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_23_param_vegetation.png" title="Vegetation Parameters"/></p>
+  <ul>
+    <li>
+      <h5 id="translucency">Translucency</h5>
+      <span><em><span>Not currently used in the simulation.</span></em></span>
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="tire">Tire</h3>
+  <p><span class="note"><strong>NOTE</strong>: This material is not currently used in the simulation.</span></p>
+  <p><img alt="The Additional Parameters For The Tire Material" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_26_param_tire.png" title="The Additional Parameters For The Tire Material"/></p>
+  <ul>
+    <li>
+      <h5 id="mud-tiling">Mud Tiling</h5>
+      This parameter is used to set the UV tiling scale for the <a data-xref="{text}" href="FlightSim_Material_Textures.htm#tire-details">Tire Details: Mud (R), Dust (G)</a> texture.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="mud-anim-state">Mud Anim State</h5>
+      This parameter is used set the mud animation state.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="dust-anim-state">Dust Anim State</h5>
+      This parameter is used to set the dust animation state.
+    </li>
+  </ul>
+  <p> </p>
+  <div class="reltopics">
+    <p class="reltopics-caption">Related Topics</p>
+    <ol class="reltopics-list" data-topics="../Textures_And_Materials.htm|FlightSim_Materials.htm|FlightSim_Material_Textures.htm">
+      
+    <li><a href="../Textures_And_Materials.htm" class="reltopics-list-item" style="">Textures_And_Materials</a></li><li><a href="FlightSim_Materials.htm" class="reltopics-list-item" style="">FlightSim Materials</a></li><li><a href="FlightSim_Material_Textures.htm" class="reltopics-list-item" style="">FlightSim Material Textures</a></li></ol>
+  </div>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        // Prism
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded');
+        // MATHJAX
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        }
+        // SKIN CHANGER
+        setTimeout(
+          () => {
+            const event = new Event("change");
+            document.getElementById('status').dispatchEvent(event);
+          }, 250);
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+      
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+      
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box">
+    <div class="rh-layout-footer-inner-left-box">
+      <!--REMEMEBER TO FIX THE <label> tags!!!! 
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox" /> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div> -->
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox"/> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div>
+      <div class="custom-checkbox"><button class="button_flighting" id="button_flighting" onclick="return get_URL();" role="button">Docs</button></div>
+    </div>
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2025 Microsoft</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    //<![CDATA[
+    // function to set a given theme/color-scheme
+    function setTheme(checked) { // False is dark/default, true is light
+      let themeName = checked ? 'light' : 'dark';
+      localStorage.setItem('theme', themeName);
+      const divElement = document.getElementById("style");
+      var position = divElement.getAttribute("href").search("assets");
+      /*console.log(position);*/
+      let _substr = divElement.getAttribute("href").substring(0, position);
+      /*console.log("Relative path:", _substr);*/
+      var links = document.querySelectorAll('link[rel="StyleSheet"]');
+      for (let index = 0; index < links.length; index++) {
+        let href = links[index].href;
+        let fileName = href.substring(href.lastIndexOf('/') + 1);
+        console.log('FileName:', fileName);
+        if (typeof fileName === 'string' || fileName instanceof String) {
+          if (fileName == 'default.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/default.css';
+            } else {
+              links[index].href = _substr + 'assets/css/default.css';
+            }
+          }
+          if (fileName == 'layout.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/layout.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/layout.css';
+            }
+          }
+          if (fileName == 'userstyles.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/userstyles.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/userstyles.css'; /*?rnd=' + (new Date().valueOf())*/
+            }
+          }
+        }
+      }
+    }
+    window.onload = async function() {
+      // THEME SETTER
+      if (localStorage.getItem('theme') === 'light') {
+        document.getElementById('status').checked = true;
+      } else {
+        document.getElementById('status').checked = false;
+      }
+      document.getElementById('status').addEventListener("change", (event) => {
+        setTheme(event.target.checked);
+      });
+      // SET FLIGHTING BUTTON NAME
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let btn = document.getElementById('button_flighting');
+      if (currentLocation.includes('flighting/')) {
+        btn.innerHTML = 'Retail Docs';
+      } else {
+        btn.innerHTML = 'Flighting Docs';
+      }
+    };
+    // FLIGHTING / SIMUPDATE DOCS SWITCHER
+    get_URL = async function() {
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let new_URL = '';
+      let fail_URL = '';
+      if (currentLocation.includes('flighting/')) {
+        new_URL = currentLocation.replace('flighting/', '');
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+      } else {
+        new_URL = currentLocation.slice(0, 42) + "flighting/" + currentLocation.slice(42);
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/flighting/html/1_Introduction/Introduction.htm'
+      }
+      console.log(new_URL);
+      var url_check = new XMLHttpRequest();
+      url_check.open('get', new_URL, true);
+      url_check.onreadystatechange = await checkReadyState;
+      function checkReadyState() {
+        if (url_check.readyState === 4) {
+          if ((url_check.status == 200) || (url_check.status == 0)) {
+            console.log(new_URL + ' exists.');
+          } else {
+            console.log(new_URL + ' does not exist.');
+            new_URL = fail_URL
+          }
+        }
+      }
+      url_check.send(null);
+      window.location = new_URL;
+      return true;
+    };
+
+    /*
+    window.onload = async function() {
+	    // THEME SETTER
+		if (localStorage.getItem('theme') === 'light') {
+			document.getElementById('status').checked = true;
+			}
+		else {
+			document.getElementById('status').checked = false;
+			}
+		document.getElementById('status').addEventListener("change", (event) => {
+			setTheme(event.target.checked);
+			});
+		// FLIGHTING / SIMUPDATE DOCS SWITCHER
+		let currentLocation = window.location.toString(); //'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+		let new_URL = '';
+		let fail_URL = '';
+		let btn = document.getElementById('button_flighting');
+		if (currentLocation.includes('flighting/')) {
+			new_URL = currentLocation.replace('flighting/', '');
+			fail_URL = 'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+			btn.innerHTML = 'SimUpdate Docs';
+			}
+		else {
+			new_URL = currentLocation.slice(0, 42) + "flighting/" + currentLocation.slice(42);
+			fail_URL = 'https://docs.flightsimulator.com/msfs2024/flighting/html/1_Introduction/Introduction.htm'
+			btn.innerHTML = 'Flighting Docs';
+			}
+		console.log(new_URL);
+		var url_check = new XMLHttpRequest();
+		url_check.open('get', new_URL, true);
+		url_check.onreadystatechange = checkReadyState;
+		function checkReadyState() {
+			if (url_check.readyState === 4) {
+			if ((url_check.status == 200) || (url_check.status == 0)) {
+				console.log(new_URL + ' exists.');
+				}
+			else {
+				console.log(new_URL + ' does not exist.');
+				new_URL = fail_URL
+				}
+			}
+		}
+	url_check.send(null);
+	//return new_URL;
+	document.getElementById('link_flighting').setAttribute("href", new_URL);
+	}*/
+    //]]>
+  </script>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "4.2.1.1.0_1"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

@@ -1,0 +1,1751 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>ADF.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\NAVCOM\ADF.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+	&lt;Include RelativeFile=&quot;Navcomsystem.xml&quot;/&gt;
+	
+	&lt;!-- #######  --&gt;
+	&lt;!-- Presets --&gt;
+	
+	&lt;!-- ADF AS87 --&gt;
+	&lt;Template Name=&quot;ASOBO_INSTRUMENT_ADF_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ADF_AS87_Template&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ADF_AS87_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Suffix_ID_Appender&quot;&gt;
+			&lt;TEMPLATE_TO_CALL&gt;ASOBO_ADF_AS87_SubTemplate&lt;/TEMPLATE_TO_CALL&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ADF_AS87_SubTemplate&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_LAG&gt;400&lt;/ANIM_LAG&gt;
+			&lt;EMISSIVE_POTENTIOMETER&gt;1&lt;/EMISSIVE_POTENTIOMETER&gt;
+			&lt;BUTTON_EMISSIVE_FACTOR&gt;1&lt;/BUTTON_EMISSIVE_FACTOR&gt;
+			&lt;ANIM_NEVER_FAILS&gt;True&lt;/ANIM_NEVER_FAILS&gt;
+			&lt;Condition Check=&quot;CIRCUIT_ADF&quot;&gt;
+				&lt;FAILURE&gt;(A:CIRCUIT ON:#CIRCUIT_ADF#, Bool)&lt;/FAILURE&gt;
+			&lt;/Condition&gt;
+			&lt;NODE_ID_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/NODE_ID_ADF_VOLUME&gt;
+			&lt;ANIM_NAME_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/ANIM_NAME_ADF_VOLUME&gt;
+			&lt;NODE_ID_PUSH_ADF&gt;ADF_Push_ADF#SUFFIX_ID#&lt;/NODE_ID_PUSH_ADF&gt;
+			&lt;ANIM_NAME_PUSH_ADF&gt;ADF_Push_ADF#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_ADF&gt;
+			&lt;NODE_ID_PUSH_BFO&gt;ADF_Push_BFO#SUFFIX_ID#&lt;/NODE_ID_PUSH_BFO&gt;
+			&lt;ANIM_NAME_PUSH_BFO&gt;ADF_Push_BFO#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_BFO&gt;
+			&lt;NODE_ID_PUSH_FRQ&gt;ADF_Push_FRQ#SUFFIX_ID#&lt;/NODE_ID_PUSH_FRQ&gt;
+			&lt;ANIM_NAME_PUSH_FRQ&gt;ADF_Push_FRQ#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_FRQ&gt;
+			&lt;NODE_ID_PUSH_FLT&gt;ADF_Push_FLT#SUFFIX_ID#&lt;/NODE_ID_PUSH_FLT&gt;
+			&lt;ANIM_NAME_PUSH_FLT&gt;ADF_Push_FLT#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_FLT&gt;
+			&lt;NODE_ID_PUSH_SET_RESET&gt;ADF_Push_SetReset#SUFFIX_ID#&lt;/NODE_ID_PUSH_SET_RESET&gt;
+			&lt;ANIM_NAME_PUSH_SET_RESET&gt;ADF_Push_SetReset#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_SET_RESET&gt;
+			&lt;NODE_ID_FRAME&gt;ADF_Frame#SUFFIX_ID#&lt;/NODE_ID_FRAME&gt;
+			&lt;NODE_ID_SCREEN&gt;ADF_Screen#SUFFIX_ID#&lt;/NODE_ID_SCREEN&gt;
+			&lt;NODE_ID_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/NODE_ID_100_KHZ&gt;
+			&lt;ANIM_NAME_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/ANIM_NAME_100_KHZ&gt;
+			&lt;NODE_ID_1_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/NODE_ID_1_10_KHZ&gt;
+			&lt;ANIM_NAME_1_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/ANIM_NAME_1_10_KHZ&gt;
+			&lt;ANIM_NAME_1_10_KHZ_PUSH&gt;ADF_Knob_Frequency_KHz_Push#SUFFIX_ID#&lt;/ANIM_NAME_1_10_KHZ_PUSH&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+			&lt;BUTTON_ID&gt;ADF_ANT_MODE_TOGGLE&lt;/BUTTON_ID&gt;
+			&lt;HTML_EVENT&gt;adf_AntAdf&lt;/HTML_EVENT&gt;
+			&lt;NODE_ID&gt;#NODE_ID_PUSH_ADF#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_ADF#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+			&lt;BUTTON_ID&gt;BFO&lt;/BUTTON_ID&gt;
+			&lt;HTML_EVENT&gt;adf_bfo&lt;/HTML_EVENT&gt;
+			&lt;NODE_ID&gt;#NODE_ID_PUSH_BFO#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_BFO#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+			&lt;BUTTON_ID&gt;FRQ&lt;/BUTTON_ID&gt;
+			&lt;HTML_EVENT&gt;adf_frqTransfert&lt;/HTML_EVENT&gt;
+			&lt;NODE_ID&gt;#NODE_ID_PUSH_FRQ#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_FRQ#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+			&lt;BUTTON_ID&gt;FLTET&lt;/BUTTON_ID&gt;
+			&lt;HTML_EVENT&gt;adf_FltEt&lt;/HTML_EVENT&gt;
+			&lt;NODE_ID&gt;#NODE_ID_PUSH_FLT#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_FLT#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+			&lt;BUTTON_ID&gt;SETRESET&lt;/BUTTON_ID&gt;
+			&lt;HTML_EVENT&gt;adf_SetRst&lt;/HTML_EVENT&gt;
+			&lt;NODE_ID&gt;#NODE_ID_PUSH_SET_RESET#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_SET_RESET#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ADF_Knob_Volume_Template&quot;&gt;
+			&lt;NODE_ID&gt;#NODE_ID_ADF_VOLUME#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_ADF_VOLUME#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+			&lt;NODE_ID&gt;#NODE_ID_FRAME#&lt;/NODE_ID&gt;
+			&lt;EMISSIVE_CODE&gt;(A:LIGHT POTENTIOMETER:#EMISSIVE_POTENTIOMETER#, percent over 100)&lt;/EMISSIVE_CODE&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+			&lt;NODE_ID&gt;#NODE_ID_SCREEN#&lt;/NODE_ID&gt;
+			&lt;EMISSIVE_CODE&gt;0.5&lt;/EMISSIVE_CODE&gt;
+		&lt;/UseTemplate&gt;
+		&lt;Component ID=&quot;ADF_Frequency_Knobs#SUFFIX_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+				&lt;WWISE_EVENT&gt;adf_frequency_outer_knob&lt;/WWISE_EVENT&gt;	
+				&lt;COUNT&gt;36&lt;/COUNT&gt;
+				&lt;THRESHOLD_INPUT&gt;0.0005&lt;/THRESHOLD_INPUT&gt;
+				&lt;THRESHOLD_MOUSE&gt;0.01&lt;/THRESHOLD_MOUSE&gt;
+				&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+				&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_PARAM_KHZ_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+				&lt;TT_DESCRIPTION_INDEX&gt;100&lt;/TT_DESCRIPTION_INDEX&gt;
+				&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_FREQUENCY_KHZ_TITLE&lt;/TOOLTIP_TITLE&gt;
+				&lt;KNOB_ID&gt;ADF_Freq_100_Khz&lt;/KNOB_ID&gt;
+				&lt;ANIM_NAME&gt;#ANIM_NAME_100_KHZ#&lt;/ANIM_NAME&gt;
+				&lt;NODE_ID&gt;#NODE_ID_100_KHZ#&lt;/NODE_ID&gt;
+				&lt;FORMAT_VALUE&gt;&#39;%d&#39; @sprintf&lt;/FORMAT_VALUE&gt;
+				&lt;GET_TT_VALUE_STATE&gt;(A:ADF STANDBY FREQUENCY:#ID#, Khz) s0 100 / int 10 % l0 1000 / int 10 % 10 * +&lt;/GET_TT_VALUE_STATE&gt;
+				&lt;EVENT_CW&gt;(&amp;gt;K:ADF_100_INC)&lt;/EVENT_CW&gt;
+				&lt;EVENT_CCW&gt;(&amp;gt;K:ADF_100_DEC)&lt;/EVENT_CCW&gt;
+				&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+			&lt;/UseTemplate&gt;
+			&lt;Component ID=&quot;#NODE_ID_1_10_KHZ#&quot; Node=&quot;#NODE_ID_1_10_KHZ#&quot;&gt;
+				&lt;Parameters Type=&quot;Override&quot;&gt;
+					&lt;BTN_ID_EXTERNAL&gt;ADF_Freq_Increment&lt;/BTN_ID_EXTERNAL&gt;
+					&lt;VAR_NAME&gt;XMLVAR_ADF_Frequency_10_Khz&lt;/VAR_NAME&gt;
+					&lt;VAR_TYPE&gt;L&lt;/VAR_TYPE&gt;
+					&lt;FORMAT_VALUE&gt;&#39;%d&#39; @sprintf&lt;/FORMAT_VALUE&gt;
+				&lt;/Parameters&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Push_Event_Only_Template&quot;&gt;
+					&lt;BTN_ID&gt;#BTN_ID_EXTERNAL#&lt;/BTN_ID&gt;
+					&lt;GET_STATE_EXTERNAL&gt;(#VAR_TYPE#:#VAR_NAME#) sp0&lt;/GET_STATE_EXTERNAL&gt;
+					&lt;SIM_STATE_IS_ON_EXTERNAL&gt;l0&lt;/SIM_STATE_IS_ON_EXTERNAL&gt;
+					&lt;SET_STATE_ON&gt;1 (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_ON&gt;
+					&lt;TT_VALUE_ON&gt;&#39;10 Khz&#39;&lt;/TT_VALUE_ON&gt;
+					&lt;SET_STATE_OFF&gt;0 (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_OFF&gt;
+					&lt;TT_VALUE_OFF&gt;&#39;1 Khz&#39;&lt;/TT_VALUE_OFF&gt;
+					&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_INCREMENT_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+					&lt;TT_DESCRIPTION_INDEX&gt;100&lt;/TT_DESCRIPTION_INDEX&gt;
+				&lt;/UseTemplate&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+					&lt;KNOB_ID&gt;ADF_Freq_1_10_Khz&lt;/KNOB_ID&gt;
+					&lt;BTN_EXTERNAL_BINDING_TO_CALL&gt;_Toggle&lt;/BTN_EXTERNAL_BINDING_TO_CALL&gt;
+					&lt;CREATE_COMPONENT&gt;False&lt;/CREATE_COMPONENT&gt;
+					&lt;WWISE_EVENT&gt;adf_frequency_inner_knob&lt;/WWISE_EVENT&gt;	
+					&lt;WWISE_EVENT_1&gt;ADF_knob_push_button_on&lt;/WWISE_EVENT_1&gt;
+					&lt;WWISE_EVENT_2&gt;ADF_knob_push_button_off&lt;/WWISE_EVENT_2&gt;
+					&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+					&lt;NORMALIZED_TIME_2&gt;0.1&lt;/NORMALIZED_TIME_2&gt;
+					&lt;COUNT&gt;36&lt;/COUNT&gt;
+					&lt;THRESHOLD_X_INPUT&gt;0.1&lt;/THRESHOLD_X_INPUT&gt;
+					&lt;THRESHOLD_X_MOUSE&gt;0.005&lt;/THRESHOLD_X_MOUSE&gt;	
+					&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+					&lt;NODE_ID&gt;#NODE_ID_1_10_KHZ#&lt;/NODE_ID&gt;
+					&lt;KNOB_TYPE&gt;Infinite_Pull&lt;/KNOB_TYPE&gt;
+					&lt;TEMPLATE_VARIANT/&gt;
+					&lt;ANIM_CODE&gt;(#VAR_TYPE#:#VAR_NAME#) 100 *&lt;/ANIM_CODE&gt;
+					&lt;ANIM_NAME_KNOB&gt;#ANIM_NAME_1_10_KHZ#&lt;/ANIM_NAME_KNOB&gt;
+					&lt;ANIM_NAME_PULL&gt;#ANIM_NAME_1_10_KHZ_PUSH#&lt;/ANIM_NAME_PULL&gt;
+					&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_1_10_KHZ_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+					&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_FREQUENCY_KHZ_TITLE&lt;/TOOLTIP_TITLE&gt;
+					&lt;EVENT_CW&gt;(#VAR_TYPE#:#VAR_NAME#) if{ (&amp;gt;K:ADF_10_INC) } els{ (&amp;gt;K:ADF_1_INC) }&lt;/EVENT_CW&gt;
+					&lt;EVENT_CCW&gt;(#VAR_TYPE#:#VAR_NAME#) if{ (&amp;gt;K:ADF_10_DEC) } els{ (&amp;gt;K:ADF_1_DEC) }&lt;/EVENT_CCW&gt;
+					&lt;GET_TT_VALUE_STATE&gt;(A:ADF STANDBY FREQUENCY:#ID#, Khz) sp0 (#VAR_TYPE#:#VAR_NAME#) if{ l0 10 / int 10 % } els{ l0 int 10 % }&lt;/GET_TT_VALUE_STATE&gt;
+					&lt;EXTRA_INTERACTION&gt;_LeftSingle&lt;/EXTRA_INTERACTION&gt;
+					&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+					&lt;COUNT&gt;36&lt;/COUNT&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Component&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+
+	&lt;!-- ADF AS300 --&gt;
+	&lt;Template Name=&quot;ASOBO_ADF_AS300_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Suffix_ID_Appender&quot;&gt;
+			&lt;TEMPLATE_TO_CALL&gt;ASOBO_ADF_AS300_SubTemplate&lt;/TEMPLATE_TO_CALL&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ADF_AS300_SubTemplate&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID_SCREEN&gt;ADF_Screen&lt;/NODE_ID_SCREEN&gt;
+			&lt;NODE_ID_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/NODE_ID_100_KHZ&gt;
+			&lt;ANIM_NAME_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/ANIM_NAME_100_KHZ&gt;
+			&lt;NODE_ID_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/NODE_ID_10_KHZ&gt;
+			&lt;ANIM_NAME_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/ANIM_NAME_10_KHZ&gt;
+			&lt;NODE_ID_1_KHZ&gt;ADF_Knob_Frequency_Hz#SUFFIX_ID#&lt;/NODE_ID_1_KHZ&gt;
+			&lt;ANIM_NAME_1_KHZ&gt;ADF_Knob_Frequency_Hz#SUFFIX_ID#&lt;/ANIM_NAME_1_KHZ&gt;
+			&lt;NODE_ID_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/NODE_ID_ADF_VOLUME&gt;
+			&lt;ANIM_NAME_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/ANIM_NAME_ADF_VOLUME&gt;
+			&lt;NODE_ID_ADF_MODE&gt;ADF_Knob_Mode#SUFFIX_ID#&lt;/NODE_ID_ADF_MODE&gt;
+			&lt;ANIM_NAME_ADF_MODE&gt;ADF_Knob_Mode#SUFFIX_ID#&lt;/ANIM_NAME_ADF_MODE&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;ADF_Frequency_Knobs#SUFFIX_ID#&quot;&gt;
+			&lt;Parameters Type=&quot;Override&quot;&gt;
+				&lt;WWISE_EVENT&gt;adf_frequency_knob&lt;/WWISE_EVENT&gt;	
+				&lt;COUNT&gt;36&lt;/COUNT&gt;
+				&lt;THRESHOLD_INPUT&gt;0.0005&lt;/THRESHOLD_INPUT&gt;
+				&lt;THRESHOLD_MOUSE&gt;0.01&lt;/THRESHOLD_MOUSE&gt;
+				&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+				&lt;FORMAT_VALUE&gt;&#39;%d&#39; @sprintf&lt;/FORMAT_VALUE&gt;
+				&lt;GET_TT_VALUE_100_KHZ&gt;(A:ADF ACTIVE FREQUENCY:#ID#, Khz) s0 100 / int 10 % l0 1000 / int 10 % 10 * +&lt;/GET_TT_VALUE_100_KHZ&gt;
+				&lt;GET_TT_VALUE_10_KHZ&gt;(A:ADF ACTIVE FREQUENCY:#ID#, Khz) 10 / int 10 %&lt;/GET_TT_VALUE_10_KHZ&gt;
+				&lt;GET_TT_VALUE_1_KHZ&gt;(A:ADF ACTIVE FREQUENCY:#ID#, Khz) int 10 %&lt;/GET_TT_VALUE_1_KHZ&gt;
+			&lt;/Parameters&gt;
+			&lt;Loop&gt;
+				&lt;Setup&gt;
+					&lt;Param&gt;CUR_ID&lt;/Param&gt;
+					&lt;From&gt;0&lt;/From&gt;
+					&lt;Inc&gt;1&lt;/Inc&gt;
+					&lt;To&gt;2&lt;/To&gt;
+				&lt;/Setup&gt;
+				&lt;Do&gt;
+					&lt;Parameters Type=&quot;Override&quot;&gt;
+						&lt;ID_POS Process=&quot;Int&quot;&gt;10 #CUR_ID# pow&lt;/ID_POS&gt;
+					&lt;/Parameters&gt;
+					&lt;Parameters Type=&quot;Default&quot;&gt;
+						&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_PARAM_KHZ_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+						&lt;TT_DESCRIPTION_INDEX&gt;#ID_POS#&lt;/TT_DESCRIPTION_INDEX&gt;
+						&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_FREQUENCY_KHZ_TITLE&lt;/TOOLTIP_TITLE&gt;
+					&lt;/Parameters&gt;
+					&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+						&lt;KNOB_ID&gt;ADF_Freq_#ID_POS#_Khz&lt;/KNOB_ID&gt;
+						&lt;ANIM_NAME Process=&quot;Param&quot;&gt;ANIM_NAME_#ID_POS#_KHZ&lt;/ANIM_NAME&gt;
+						&lt;NODE_ID Process=&quot;Param&quot;&gt;NODE_ID_#ID_POS#_KHZ&lt;/NODE_ID&gt;
+						&lt;GET_TT_VALUE_STATE Process=&quot;Param&quot;&gt;GET_TT_VALUE_#ID_POS#_KHZ&lt;/GET_TT_VALUE_STATE&gt;
+						&lt;EVENT_CW&gt;(&amp;gt;K:ADF_#ID_POS#_INC)&lt;/EVENT_CW&gt;
+						&lt;EVENT_CCW&gt;(&amp;gt;K:ADF_#ID_POS#_DEC)&lt;/EVENT_CCW&gt;
+						&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+					&lt;/UseTemplate&gt;
+				&lt;/Do&gt;
+			&lt;/Loop&gt;
+		&lt;/Component&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ADF_Knob_Volume_Template&quot;&gt;
+			&lt;NODE_ID&gt;#NODE_ID_ADF_VOLUME#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_ADF_VOLUME#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ADF_Knob_Mode_Template&quot;&gt;
+			&lt;NODE_ID&gt;#NODE_ID_ADF_MODE#&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_ADF_MODE#&lt;/ANIM_NAME&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+			&lt;NODE_ID&gt;#NODE_ID_SCREEN#&lt;/NODE_ID&gt;
+			&lt;EMISSIVE_CODE&gt;1&lt;/EMISSIVE_CODE&gt;
+			&lt;FAILURE&gt;(A:ADF VOLUME:#ID#, Percent) 0 &amp;gt; (A:CIRCUIT GENERAL PANEL ON, Bool) and&lt;/FAILURE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	
+	&lt;!-- ########## --&gt;
+	&lt;!-- Components --&gt;
+	
+	&lt;Template Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;PART_ID&gt;ADF_Push_#BUTTON_ID#&lt;/PART_ID&gt;
+			&lt;WWISE_EVENT_1&gt;ADF_push_button_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;ADF_push_button_off&lt;/WWISE_EVENT_2&gt; 
+			&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+			&lt;NORMALIZED_TIME_2&gt;0.5&lt;/NORMALIZED_TIME_2&gt;	
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_PUSH_#BUTTON_ID#_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_PUSH_#BUTTON_ID#_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+			&lt;BTN_ID&gt;ADF_#BUTTON_ID#&lt;/BTN_ID&gt;
+			&lt;SET_STATE_EXTERNAL&gt;(&amp;gt;H:#HTML_EVENT#)&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;EMISSIVE_CODE&gt;(A:LIGHT POTENTIOMETER:#EMISSIVE_POTENTIOMETER#, percent over 100) #BUTTON_EMISSIVE_FACTOR# *&lt;/EMISSIVE_CODE&gt;		
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ADF_Knob_Volume_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;WWISE_EVENT&gt;adf_volume_knob&lt;/WWISE_EVENT&gt;	
+			&lt;COUNT&gt;50&lt;/COUNT&gt;
+			&lt;THRESHOLD_INPUT&gt;0.000025&lt;/THRESHOLD_INPUT&gt;
+			&lt;THRESHOLD_MOUSE&gt;0.0025&lt;/THRESHOLD_MOUSE&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;EVENT_CW&gt;(&amp;gt;K:ADF_VOLUME_INC)&lt;/EVENT_CW&gt;
+			&lt;EVENT_CCW&gt;(&amp;gt;K:ADF_VOLUME_DEC)&lt;/EVENT_CCW&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;Condition NotEmpty=&quot;CIRCUIT_ADF&quot;&gt;
+				&lt;EVENT_CW&gt;#EVENT_CW# (A:ADF VOLUME:1, Percent) 0 &amp;gt; (A:CIRCUIT SWITCH ON:#CIRCUIT_ADF#, Bool) != if{ #CIRCUIT_ADF# (&amp;gt;K:ELECTRICAL_CIRCUIT_TOGGLE) }&lt;/EVENT_CW&gt;
+				&lt;EVENT_CCW&gt;#EVENT_CCW# (A:ADF VOLUME:1, Percent) 0 &amp;gt; (A:CIRCUIT SWITCH ON:#CIRCUIT_ADF#, Bool) != if{ #CIRCUIT_ADF# (&amp;gt;K:ELECTRICAL_CIRCUIT_TOGGLE) }&lt;/EVENT_CCW&gt;
+				&lt;COMP_INIT_CODE&gt;(A:ADF VOLUME:1, Percent) 0 == (A:CIRCUIT SWITCH ON:#CIRCUIT_ADF#, Bool) and if{ #CIRCUIT_ADF# (&amp;gt;K:ELECTRICAL_CIRCUIT_TOGGLE) }&lt;/COMP_INIT_CODE&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_RECEIVERVOLUME_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_RECEIVERVOLUME_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+			&lt;KNOB_ID&gt;ADF_Volume&lt;/KNOB_ID&gt;
+			&lt;GET_TT_VALUE_STATE&gt;(A:ADF VOLUME:1, percent)&lt;/GET_TT_VALUE_STATE&gt;
+			&lt;ANIM_CODE&gt;(A:ADF VOLUME:1, percent)&lt;/ANIM_CODE&gt;
+			&lt;IS_INFINITE&gt;False&lt;/IS_INFINITE&gt;
+			&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ADF_Knob_Mode_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;WWISE_EVENT&gt;adf_mode_knob&lt;/WWISE_EVENT&gt;	
+			&lt;ANIM_LAG&gt;600&lt;/ANIM_LAG&gt;
+			&lt;COUNT&gt;3&lt;/COUNT&gt;
+			&lt;POS_BFO&gt;0&lt;/POS_BFO&gt;
+			&lt;POS_REC&gt;1&lt;/POS_REC&gt;
+			&lt;POS_ADF&gt;2&lt;/POS_ADF&gt;
+			&lt;POS_TEST&gt;3&lt;/POS_TEST&gt;
+			&lt;VAR_TYPE&gt;L&lt;/VAR_TYPE&gt;
+			&lt;VAR_NAME&gt;XMLVAR_ADF_Mode&lt;/VAR_NAME&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;NAVCOM&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;KNOB_ID&gt;ADF_Mode&lt;/KNOB_ID&gt;
+			&lt;ENUM_VAL_BFO&gt;0&lt;/ENUM_VAL_BFO&gt;
+			&lt;ENUM_VAL_REC&gt;1&lt;/ENUM_VAL_REC&gt;
+			&lt;ENUM_VAL_ADF&gt;2&lt;/ENUM_VAL_ADF&gt;
+			&lt;ENUM_VAL_TEST&gt;3&lt;/ENUM_VAL_TEST&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_MODE_ACTION_SET&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_MODE_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;INIT_POS&gt;#POS_ADF#&lt;/INIT_POS&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+			&lt;Condition NotEmpty=&quot;INIT_POS&quot;&gt;
+				&lt;COMP_INIT_CODE&gt;#INIT_POS# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/COMP_INIT_CODE&gt;				
+			&lt;/Condition&gt;
+			&lt;USE_BTN_IE&gt;True&lt;/USE_BTN_IE&gt;
+			&lt;NUM_STATES&gt;4&lt;/NUM_STATES&gt;
+			&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+			&lt;SWITCH_DIRECTION&gt;Horizontal&lt;/SWITCH_DIRECTION&gt;
+			&lt;IS_INFINITE&gt;False&lt;/IS_INFINITE&gt;
+			&lt;GET_STATE_EXTERNAL&gt;(#VAR_TYPE#:#VAR_NAME#) sp0&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;ENUM_VAL_TO_POS_EXTERNAL&gt;
+				l0 #ENUM_VAL_BFO# == if{ #POS_BFO# sp1 g2 }
+				l0 #ENUM_VAL_REC# == if{ #POS_REC# sp1 g2 }
+				l0 #ENUM_VAL_ADF# == if{ #POS_ADF# sp1 g2 }
+				l0 #ENUM_VAL_TEST# == if{ #POS_TEST# sp1 g2 }
+				:2 l1
+			&lt;/ENUM_VAL_TO_POS_EXTERNAL&gt;
+			&lt;BTN_ID&gt;#KNOB_ID#&lt;/BTN_ID&gt;
+			&lt;!-- POS_BFO --&gt;
+			&lt;TT_VALUE_#POS_BFO#&gt;@TT_Package.GT_STATE_BFO&lt;/TT_VALUE_#POS_BFO#&gt;
+			&lt;SET_STATE_#POS_BFO#&gt;#ENUM_VAL_BFO# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_BFO#&gt;
+			&lt;STR_STATE_#POS_BFO#&gt;BFO&lt;/STR_STATE_#POS_BFO#&gt;
+			&lt;CODE_POS_#POS_BFO#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_BFO)&lt;/CODE_POS_#POS_BFO#&gt;
+			&lt;STATE#POS_BFO#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_BFO# ==&lt;/STATE#POS_BFO#_TEST&gt;
+			&lt;!-- POS_REC --&gt;
+			&lt;TT_VALUE_#POS_REC#&gt;@TT_Package.GT_STATE_REC&lt;/TT_VALUE_#POS_REC#&gt;
+			&lt;SET_STATE_#POS_REC#&gt;#ENUM_VAL_REC# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_REC#&gt;
+			&lt;STR_STATE_#POS_REC#&gt;REC&lt;/STR_STATE_#POS_REC#&gt;
+			&lt;CODE_POS_#POS_REC#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_REC)&lt;/CODE_POS_#POS_REC#&gt;
+			&lt;STATE#POS_REC#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_REC# ==&lt;/STATE#POS_REC#_TEST&gt;
+			&lt;!-- POS_ADF --&gt;
+			&lt;TT_VALUE_#POS_ADF#&gt;@TT_Package.GT_STATE_ADF&lt;/TT_VALUE_#POS_ADF#&gt;
+			&lt;SET_STATE_#POS_ADF#&gt;#ENUM_VAL_ADF# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_ADF#&gt;
+			&lt;STR_STATE_#POS_ADF#&gt;ADF&lt;/STR_STATE_#POS_ADF#&gt;
+			&lt;CODE_POS_#POS_ADF#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_ADF)&lt;/CODE_POS_#POS_ADF#&gt;
+			&lt;STATE#POS_ADF#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_ADF# ==&lt;/STATE#POS_ADF#_TEST&gt;
+			&lt;!-- POS_TEST --&gt;
+			&lt;TT_VALUE_#POS_TEST#&gt;@TT_Package.GT_STATE_TEST&lt;/TT_VALUE_#POS_TEST#&gt;
+			&lt;SET_STATE_#POS_TEST#&gt;#ENUM_VAL_TEST# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_TEST#&gt;
+			&lt;STR_STATE_#POS_TEST#&gt;TEST&lt;/STR_STATE_#POS_TEST#&gt;
+			&lt;CODE_POS_#POS_TEST#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_TEST)&lt;/CODE_POS_#POS_TEST#&gt;
+			&lt;STATE#POS_TEST#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_TEST# ==&lt;/STATE#POS_TEST#_TEST&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+&lt;/ModelBehaviors&gt;</div>
+		<h3>Includes</h3>
+		<ul>
+			<li>
+				RelativeFile: 
+				<a href="Navcomsystem.html">Navcomsystem.xml</a>
+			</li>
+		</ul>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_INSTRUMENT_ADF_Template">ASOBO_INSTRUMENT_ADF_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ADF_AS87_Template">ASOBO_ADF_AS87_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ADF_AS87_SubTemplate">ASOBO_ADF_AS87_SubTemplate </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ADF_AS300_Template">ASOBO_ADF_AS300_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ADF_AS300_SubTemplate">ASOBO_ADF_AS300_SubTemplate </a>
+				</li>
+				<li>
+					<a href="#ASOBO_Button_ADF_ID_Template">ASOBO_Button_ADF_ID_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ADF_Knob_Volume_Template">ASOBO_ADF_Knob_Volume_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ADF_Knob_Mode_Template">ASOBO_ADF_Knob_Mode_Template </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_INSTRUMENT_ADF_Template">ASOBO_INSTRUMENT_ADF_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_INSTRUMENT_ADF_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ADF_AS87_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="ADF.html#ASOBO_ADF_AS87_Template">ASOBO_ADF_AS87_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ADF_AS87_Template">ASOBO_ADF_AS87_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ADF_AS87_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Suffix_ID_Appender&quot;&gt;
+		&lt;TEMPLATE_TO_CALL&gt;ASOBO_ADF_AS87_SubTemplate&lt;/TEMPLATE_TO_CALL&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Helpers.html#ASOBO_GT_Helper_Suffix_ID_Appender">ASOBO_GT_Helper_Suffix_ID_Appender</a>
+							<ul>
+								<li>
+									May include a subtemplate using the parameter &#39;TEMPLATE_TO_CALL&#39; and resolve to the following template(s): 
+									<ul>
+										<li>
+											<a href="ADF.html#ASOBO_ADF_AS87_SubTemplate">ASOBO_ADF_AS87_SubTemplate</a>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>TEMPLATE_TO_CALL</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ADF_AS87_SubTemplate">ASOBO_ADF_AS87_SubTemplate</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ADF_AS87_SubTemplate&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_LAG&gt;400&lt;/ANIM_LAG&gt;
+		&lt;EMISSIVE_POTENTIOMETER&gt;1&lt;/EMISSIVE_POTENTIOMETER&gt;
+		&lt;BUTTON_EMISSIVE_FACTOR&gt;1&lt;/BUTTON_EMISSIVE_FACTOR&gt;
+		&lt;ANIM_NEVER_FAILS&gt;True&lt;/ANIM_NEVER_FAILS&gt;
+		&lt;Condition Check=&quot;CIRCUIT_ADF&quot;&gt;
+			&lt;FAILURE&gt;(A:CIRCUIT ON:#CIRCUIT_ADF#, Bool)&lt;/FAILURE&gt;
+		&lt;/Condition&gt;
+		&lt;NODE_ID_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/NODE_ID_ADF_VOLUME&gt;
+		&lt;ANIM_NAME_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/ANIM_NAME_ADF_VOLUME&gt;
+		&lt;NODE_ID_PUSH_ADF&gt;ADF_Push_ADF#SUFFIX_ID#&lt;/NODE_ID_PUSH_ADF&gt;
+		&lt;ANIM_NAME_PUSH_ADF&gt;ADF_Push_ADF#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_ADF&gt;
+		&lt;NODE_ID_PUSH_BFO&gt;ADF_Push_BFO#SUFFIX_ID#&lt;/NODE_ID_PUSH_BFO&gt;
+		&lt;ANIM_NAME_PUSH_BFO&gt;ADF_Push_BFO#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_BFO&gt;
+		&lt;NODE_ID_PUSH_FRQ&gt;ADF_Push_FRQ#SUFFIX_ID#&lt;/NODE_ID_PUSH_FRQ&gt;
+		&lt;ANIM_NAME_PUSH_FRQ&gt;ADF_Push_FRQ#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_FRQ&gt;
+		&lt;NODE_ID_PUSH_FLT&gt;ADF_Push_FLT#SUFFIX_ID#&lt;/NODE_ID_PUSH_FLT&gt;
+		&lt;ANIM_NAME_PUSH_FLT&gt;ADF_Push_FLT#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_FLT&gt;
+		&lt;NODE_ID_PUSH_SET_RESET&gt;ADF_Push_SetReset#SUFFIX_ID#&lt;/NODE_ID_PUSH_SET_RESET&gt;
+		&lt;ANIM_NAME_PUSH_SET_RESET&gt;ADF_Push_SetReset#SUFFIX_ID#&lt;/ANIM_NAME_PUSH_SET_RESET&gt;
+		&lt;NODE_ID_FRAME&gt;ADF_Frame#SUFFIX_ID#&lt;/NODE_ID_FRAME&gt;
+		&lt;NODE_ID_SCREEN&gt;ADF_Screen#SUFFIX_ID#&lt;/NODE_ID_SCREEN&gt;
+		&lt;NODE_ID_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/NODE_ID_100_KHZ&gt;
+		&lt;ANIM_NAME_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/ANIM_NAME_100_KHZ&gt;
+		&lt;NODE_ID_1_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/NODE_ID_1_10_KHZ&gt;
+		&lt;ANIM_NAME_1_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/ANIM_NAME_1_10_KHZ&gt;
+		&lt;ANIM_NAME_1_10_KHZ_PUSH&gt;ADF_Knob_Frequency_KHz_Push#SUFFIX_ID#&lt;/ANIM_NAME_1_10_KHZ_PUSH&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+		&lt;BUTTON_ID&gt;ADF_ANT_MODE_TOGGLE&lt;/BUTTON_ID&gt;
+		&lt;HTML_EVENT&gt;adf_AntAdf&lt;/HTML_EVENT&gt;
+		&lt;NODE_ID&gt;#NODE_ID_PUSH_ADF#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_ADF#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+		&lt;BUTTON_ID&gt;BFO&lt;/BUTTON_ID&gt;
+		&lt;HTML_EVENT&gt;adf_bfo&lt;/HTML_EVENT&gt;
+		&lt;NODE_ID&gt;#NODE_ID_PUSH_BFO#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_BFO#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+		&lt;BUTTON_ID&gt;FRQ&lt;/BUTTON_ID&gt;
+		&lt;HTML_EVENT&gt;adf_frqTransfert&lt;/HTML_EVENT&gt;
+		&lt;NODE_ID&gt;#NODE_ID_PUSH_FRQ#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_FRQ#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+		&lt;BUTTON_ID&gt;FLTET&lt;/BUTTON_ID&gt;
+		&lt;HTML_EVENT&gt;adf_FltEt&lt;/HTML_EVENT&gt;
+		&lt;NODE_ID&gt;#NODE_ID_PUSH_FLT#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_FLT#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+		&lt;BUTTON_ID&gt;SETRESET&lt;/BUTTON_ID&gt;
+		&lt;HTML_EVENT&gt;adf_SetRst&lt;/HTML_EVENT&gt;
+		&lt;NODE_ID&gt;#NODE_ID_PUSH_SET_RESET#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_PUSH_SET_RESET#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ADF_Knob_Volume_Template&quot;&gt;
+		&lt;NODE_ID&gt;#NODE_ID_ADF_VOLUME#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_ADF_VOLUME#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+		&lt;NODE_ID&gt;#NODE_ID_FRAME#&lt;/NODE_ID&gt;
+		&lt;EMISSIVE_CODE&gt;(A:LIGHT POTENTIOMETER:#EMISSIVE_POTENTIOMETER#, percent over 100)&lt;/EMISSIVE_CODE&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+		&lt;NODE_ID&gt;#NODE_ID_SCREEN#&lt;/NODE_ID&gt;
+		&lt;EMISSIVE_CODE&gt;0.5&lt;/EMISSIVE_CODE&gt;
+	&lt;/UseTemplate&gt;
+	&lt;Component ID=&quot;ADF_Frequency_Knobs#SUFFIX_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+			&lt;WWISE_EVENT&gt;adf_frequency_outer_knob&lt;/WWISE_EVENT&gt;
+			&lt;COUNT&gt;36&lt;/COUNT&gt;
+			&lt;THRESHOLD_INPUT&gt;0.0005&lt;/THRESHOLD_INPUT&gt;
+			&lt;THRESHOLD_MOUSE&gt;0.01&lt;/THRESHOLD_MOUSE&gt;
+			&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_PARAM_KHZ_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TT_DESCRIPTION_INDEX&gt;100&lt;/TT_DESCRIPTION_INDEX&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_FREQUENCY_KHZ_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;KNOB_ID&gt;ADF_Freq_100_Khz&lt;/KNOB_ID&gt;
+			&lt;ANIM_NAME&gt;#ANIM_NAME_100_KHZ#&lt;/ANIM_NAME&gt;
+			&lt;NODE_ID&gt;#NODE_ID_100_KHZ#&lt;/NODE_ID&gt;
+			&lt;FORMAT_VALUE&gt;&amp;apos;%d&amp;apos; @sprintf&lt;/FORMAT_VALUE&gt;
+			&lt;GET_TT_VALUE_STATE&gt;(A:ADF STANDBY FREQUENCY:#ID#, Khz) s0 100 / int 10 % l0 1000 / int 10 % 10 * +&lt;/GET_TT_VALUE_STATE&gt;
+			&lt;EVENT_CW&gt;(&amp;gt;K:ADF_100_INC)&lt;/EVENT_CW&gt;
+			&lt;EVENT_CCW&gt;(&amp;gt;K:ADF_100_DEC)&lt;/EVENT_CCW&gt;
+			&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+		&lt;/UseTemplate&gt;
+		&lt;Component ID=&quot;#NODE_ID_1_10_KHZ#&quot; Node=&quot;#NODE_ID_1_10_KHZ#&quot;&gt;
+			&lt;Parameters Type=&quot;Override&quot;&gt;
+				&lt;BTN_ID_EXTERNAL&gt;ADF_Freq_Increment&lt;/BTN_ID_EXTERNAL&gt;
+				&lt;VAR_NAME&gt;XMLVAR_ADF_Frequency_10_Khz&lt;/VAR_NAME&gt;
+				&lt;VAR_TYPE&gt;L&lt;/VAR_TYPE&gt;
+				&lt;FORMAT_VALUE&gt;&amp;apos;%d&amp;apos; @sprintf&lt;/FORMAT_VALUE&gt;
+			&lt;/Parameters&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Push_Event_Only_Template&quot;&gt;
+				&lt;BTN_ID&gt;#BTN_ID_EXTERNAL#&lt;/BTN_ID&gt;
+				&lt;GET_STATE_EXTERNAL&gt;(#VAR_TYPE#:#VAR_NAME#) sp0&lt;/GET_STATE_EXTERNAL&gt;
+				&lt;SIM_STATE_IS_ON_EXTERNAL&gt;l0&lt;/SIM_STATE_IS_ON_EXTERNAL&gt;
+				&lt;SET_STATE_ON&gt;1 (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_ON&gt;
+				&lt;TT_VALUE_ON&gt;&amp;apos;10 Khz&amp;apos;&lt;/TT_VALUE_ON&gt;
+				&lt;SET_STATE_OFF&gt;0 (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_OFF&gt;
+				&lt;TT_VALUE_OFF&gt;&amp;apos;1 Khz&amp;apos;&lt;/TT_VALUE_OFF&gt;
+				&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_INCREMENT_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+				&lt;TT_DESCRIPTION_INDEX&gt;100&lt;/TT_DESCRIPTION_INDEX&gt;
+			&lt;/UseTemplate&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+				&lt;KNOB_ID&gt;ADF_Freq_1_10_Khz&lt;/KNOB_ID&gt;
+				&lt;BTN_EXTERNAL_BINDING_TO_CALL&gt;_Toggle&lt;/BTN_EXTERNAL_BINDING_TO_CALL&gt;
+				&lt;CREATE_COMPONENT&gt;False&lt;/CREATE_COMPONENT&gt;
+				&lt;WWISE_EVENT&gt;adf_frequency_inner_knob&lt;/WWISE_EVENT&gt;
+				&lt;WWISE_EVENT_1&gt;ADF_knob_push_button_on&lt;/WWISE_EVENT_1&gt;
+				&lt;WWISE_EVENT_2&gt;ADF_knob_push_button_off&lt;/WWISE_EVENT_2&gt;
+				&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+				&lt;NORMALIZED_TIME_2&gt;0.1&lt;/NORMALIZED_TIME_2&gt;
+				&lt;COUNT&gt;36&lt;/COUNT&gt;
+				&lt;THRESHOLD_X_INPUT&gt;0.1&lt;/THRESHOLD_X_INPUT&gt;
+				&lt;THRESHOLD_X_MOUSE&gt;0.005&lt;/THRESHOLD_X_MOUSE&gt;
+				&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+				&lt;NODE_ID&gt;#NODE_ID_1_10_KHZ#&lt;/NODE_ID&gt;
+				&lt;KNOB_TYPE&gt;Infinite_Pull&lt;/KNOB_TYPE&gt;
+				&lt;TEMPLATE_VARIANT/&gt;
+				&lt;ANIM_CODE&gt;(#VAR_TYPE#:#VAR_NAME#) 100 *&lt;/ANIM_CODE&gt;
+				&lt;ANIM_NAME_KNOB&gt;#ANIM_NAME_1_10_KHZ#&lt;/ANIM_NAME_KNOB&gt;
+				&lt;ANIM_NAME_PULL&gt;#ANIM_NAME_1_10_KHZ_PUSH#&lt;/ANIM_NAME_PULL&gt;
+				&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_1_10_KHZ_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+				&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_FREQUENCY_KHZ_TITLE&lt;/TOOLTIP_TITLE&gt;
+				&lt;EVENT_CW&gt;(#VAR_TYPE#:#VAR_NAME#) if{ (&amp;gt;K:ADF_10_INC) } els{ (&amp;gt;K:ADF_1_INC) }&lt;/EVENT_CW&gt;
+				&lt;EVENT_CCW&gt;(#VAR_TYPE#:#VAR_NAME#) if{ (&amp;gt;K:ADF_10_DEC) } els{ (&amp;gt;K:ADF_1_DEC) }&lt;/EVENT_CCW&gt;
+				&lt;GET_TT_VALUE_STATE&gt;(A:ADF STANDBY FREQUENCY:#ID#, Khz) sp0 (#VAR_TYPE#:#VAR_NAME#) if{ l0 10 / int 10 % } els{ l0 int 10 % }&lt;/GET_TT_VALUE_STATE&gt;
+				&lt;EXTRA_INTERACTION&gt;_LeftSingle&lt;/EXTRA_INTERACTION&gt;
+				&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+				&lt;COUNT&gt;36&lt;/COUNT&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_LAG</li>
+								<li>EMISSIVE_POTENTIOMETER</li>
+								<li>BUTTON_EMISSIVE_FACTOR</li>
+								<li>ANIM_NEVER_FAILS</li>
+								<li>NODE_ID_ADF_VOLUME (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_ADF_VOLUME (using SUFFIX_ID)</li>
+								<li>NODE_ID_PUSH_ADF (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_PUSH_ADF (using SUFFIX_ID)</li>
+								<li>NODE_ID_PUSH_BFO (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_PUSH_BFO (using SUFFIX_ID)</li>
+								<li>NODE_ID_PUSH_FRQ (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_PUSH_FRQ (using SUFFIX_ID)</li>
+								<li>NODE_ID_PUSH_FLT (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_PUSH_FLT (using SUFFIX_ID)</li>
+								<li>NODE_ID_PUSH_SET_RESET (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_PUSH_SET_RESET (using SUFFIX_ID)</li>
+								<li>NODE_ID_FRAME (using SUFFIX_ID)</li>
+								<li>NODE_ID_SCREEN (using SUFFIX_ID)</li>
+								<li>NODE_ID_100_KHZ (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_100_KHZ (using SUFFIX_ID)</li>
+								<li>NODE_ID_1_10_KHZ (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_1_10_KHZ (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_1_10_KHZ_PUSH (using SUFFIX_ID)</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(CIRCUIT_ADF)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>FAILURE (using CIRCUIT_ADF)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>SUFFIX_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>ADF_Frequency_Knobs#SUFFIX_ID#</span>
+							<div>
+								<p class="fakeh5">Parameters read:</p>
+								<ul>
+									<li>NODE_ID_1_10_KHZ</li>
+								</ul>
+								<p class="fakeh5">Components:</p>
+								<ul>
+									<li>
+										<span>#NODE_ID_1_10_KHZ# (Node: #NODE_ID_1_10_KHZ#)</span>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>BTN_ID_EXTERNAL</li>
+												<li>VAR_NAME</li>
+												<li>VAR_TYPE</li>
+												<li>FORMAT_VALUE</li>
+											</ul>
+											<p class="fakeh5">Templates used:</p>
+											<ul>
+												<li>
+													<a href="NavComSystem.html#ASOBO_NAVCOM_Alternative_Base_Push_Event_Only_Template">ASOBO_NAVCOM_Alternative_Base_Push_Event_Only_Template</a>
+													<div>
+														<p class="fakeh5">Parameters set:</p>
+														<ul>
+															<li>BTN_ID (using BTN_ID_EXTERNAL)</li>
+															<li>GET_STATE_EXTERNAL (using VAR_TYPE, VAR_NAME)</li>
+															<li>SIM_STATE_IS_ON_EXTERNAL</li>
+															<li>SET_STATE_ON (using VAR_TYPE, VAR_NAME)</li>
+															<li>TT_VALUE_ON</li>
+															<li>SET_STATE_OFF (using VAR_TYPE, VAR_NAME)</li>
+															<li>TT_VALUE_OFF</li>
+															<li>TT_DESCRIPTION_ID</li>
+															<li>TT_DESCRIPTION_INDEX</li>
+														</ul>
+													</div>
+												</li>
+												<li>
+													<a href="NavComSystem.html#ASOBO_NAVCOM_Alternative_Base_Template">ASOBO_NAVCOM_Alternative_Base_Template</a>
+													<div>
+														<p class="fakeh5">Parameters set:</p>
+														<ul>
+															<li>KNOB_ID</li>
+															<li>BTN_EXTERNAL_BINDING_TO_CALL</li>
+															<li>CREATE_COMPONENT</li>
+															<li>WWISE_EVENT</li>
+															<li>WWISE_EVENT_1</li>
+															<li>WWISE_EVENT_2</li>
+															<li>NORMALIZED_TIME_1</li>
+															<li>NORMALIZED_TIME_2</li>
+															<li>COUNT</li>
+															<li>THRESHOLD_X_INPUT</li>
+															<li>THRESHOLD_X_MOUSE</li>
+															<li>INTERACTION_TYPE</li>
+															<li>NODE_ID (using NODE_ID_1_10_KHZ)</li>
+															<li>KNOB_TYPE</li>
+															<li>TEMPLATE_VARIANT</li>
+															<li>ANIM_CODE (using VAR_TYPE, VAR_NAME)</li>
+															<li>ANIM_NAME_KNOB (using ANIM_NAME_1_10_KHZ)</li>
+															<li>ANIM_NAME_PULL (using ANIM_NAME_1_10_KHZ_PUSH)</li>
+															<li>TT_DESCRIPTION_ID</li>
+															<li>TOOLTIP_TITLE</li>
+															<li>EVENT_CW (using VAR_TYPE, VAR_NAME)</li>
+															<li>EVENT_CCW (using VAR_TYPE, VAR_NAME)</li>
+															<li>GET_TT_VALUE_STATE (using ID, VAR_TYPE, VAR_NAME)</li>
+															<li>EXTRA_INTERACTION</li>
+															<li>IS_INFINITE</li>
+														</ul>
+													</div>
+												</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="NavComSystem.html#ASOBO_NAVCOM_Alternative_Base_Template">ASOBO_NAVCOM_Alternative_Base_Template</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>WWISE_EVENT</li>
+												<li>COUNT</li>
+												<li>THRESHOLD_INPUT</li>
+												<li>THRESHOLD_MOUSE</li>
+												<li>INTERACTION_TYPE</li>
+												<li>TT_DESCRIPTION_ID</li>
+												<li>TT_DESCRIPTION_INDEX</li>
+												<li>TOOLTIP_TITLE</li>
+												<li>KNOB_ID</li>
+												<li>ANIM_NAME (using ANIM_NAME_100_KHZ)</li>
+												<li>NODE_ID (using NODE_ID_100_KHZ)</li>
+												<li>FORMAT_VALUE</li>
+												<li>GET_TT_VALUE_STATE (using ID)</li>
+												<li>EVENT_CW</li>
+												<li>EVENT_CCW</li>
+												<li>IS_INFINITE</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="ADF.html#ASOBO_Button_ADF_ID_Template">ASOBO_Button_ADF_ID_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BUTTON_ID</li>
+									<li>HTML_EVENT</li>
+									<li>NODE_ID (using NODE_ID_PUSH_ADF)</li>
+									<li>ANIM_NAME (using ANIM_NAME_PUSH_ADF)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="ADF.html#ASOBO_Button_ADF_ID_Template">ASOBO_Button_ADF_ID_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BUTTON_ID</li>
+									<li>HTML_EVENT</li>
+									<li>NODE_ID (using NODE_ID_PUSH_BFO)</li>
+									<li>ANIM_NAME (using ANIM_NAME_PUSH_BFO)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="ADF.html#ASOBO_Button_ADF_ID_Template">ASOBO_Button_ADF_ID_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BUTTON_ID</li>
+									<li>HTML_EVENT</li>
+									<li>NODE_ID (using NODE_ID_PUSH_FRQ)</li>
+									<li>ANIM_NAME (using ANIM_NAME_PUSH_FRQ)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="ADF.html#ASOBO_Button_ADF_ID_Template">ASOBO_Button_ADF_ID_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BUTTON_ID</li>
+									<li>HTML_EVENT</li>
+									<li>NODE_ID (using NODE_ID_PUSH_FLT)</li>
+									<li>ANIM_NAME (using ANIM_NAME_PUSH_FLT)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="ADF.html#ASOBO_Button_ADF_ID_Template">ASOBO_Button_ADF_ID_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BUTTON_ID</li>
+									<li>HTML_EVENT</li>
+									<li>NODE_ID (using NODE_ID_PUSH_SET_RESET)</li>
+									<li>ANIM_NAME (using ANIM_NAME_PUSH_SET_RESET)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="ADF.html#ASOBO_ADF_Knob_Volume_Template">ASOBO_ADF_Knob_Volume_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using NODE_ID_ADF_VOLUME)</li>
+									<li>ANIM_NAME (using ANIM_NAME_ADF_VOLUME)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="../Generic/Emissive.html#ASOBO_GT_Component_Emissive_Gauge">ASOBO_GT_Component_Emissive_Gauge</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using NODE_ID_FRAME)</li>
+									<li>EMISSIVE_CODE (using EMISSIVE_POTENTIOMETER)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="../Generic/Emissive.html#ASOBO_GT_Component_Emissive_Gauge">ASOBO_GT_Component_Emissive_Gauge</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using NODE_ID_SCREEN)</li>
+									<li>EMISSIVE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ADF_AS300_Template">ASOBO_ADF_AS300_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ADF_AS300_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Helper_Suffix_ID_Appender&quot;&gt;
+		&lt;TEMPLATE_TO_CALL&gt;ASOBO_ADF_AS300_SubTemplate&lt;/TEMPLATE_TO_CALL&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Helpers.html#ASOBO_GT_Helper_Suffix_ID_Appender">ASOBO_GT_Helper_Suffix_ID_Appender</a>
+							<ul>
+								<li>
+									May include a subtemplate using the parameter &#39;TEMPLATE_TO_CALL&#39; and resolve to the following template(s): 
+									<ul>
+										<li>
+											<a href="ADF.html#ASOBO_ADF_AS300_SubTemplate">ASOBO_ADF_AS300_SubTemplate</a>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>TEMPLATE_TO_CALL</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ADF_AS300_SubTemplate">ASOBO_ADF_AS300_SubTemplate</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ADF_AS300_SubTemplate&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID_SCREEN&gt;ADF_Screen&lt;/NODE_ID_SCREEN&gt;
+		&lt;NODE_ID_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/NODE_ID_100_KHZ&gt;
+		&lt;ANIM_NAME_100_KHZ&gt;ADF_Knob_Frequency_MHz#SUFFIX_ID#&lt;/ANIM_NAME_100_KHZ&gt;
+		&lt;NODE_ID_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/NODE_ID_10_KHZ&gt;
+		&lt;ANIM_NAME_10_KHZ&gt;ADF_Knob_Frequency_KHz#SUFFIX_ID#&lt;/ANIM_NAME_10_KHZ&gt;
+		&lt;NODE_ID_1_KHZ&gt;ADF_Knob_Frequency_Hz#SUFFIX_ID#&lt;/NODE_ID_1_KHZ&gt;
+		&lt;ANIM_NAME_1_KHZ&gt;ADF_Knob_Frequency_Hz#SUFFIX_ID#&lt;/ANIM_NAME_1_KHZ&gt;
+		&lt;NODE_ID_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/NODE_ID_ADF_VOLUME&gt;
+		&lt;ANIM_NAME_ADF_VOLUME&gt;ADF_Knob_Volume#SUFFIX_ID#&lt;/ANIM_NAME_ADF_VOLUME&gt;
+		&lt;NODE_ID_ADF_MODE&gt;ADF_Knob_Mode#SUFFIX_ID#&lt;/NODE_ID_ADF_MODE&gt;
+		&lt;ANIM_NAME_ADF_MODE&gt;ADF_Knob_Mode#SUFFIX_ID#&lt;/ANIM_NAME_ADF_MODE&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;ADF_Frequency_Knobs#SUFFIX_ID#&quot;&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;WWISE_EVENT&gt;adf_frequency_knob&lt;/WWISE_EVENT&gt;
+			&lt;COUNT&gt;36&lt;/COUNT&gt;
+			&lt;THRESHOLD_INPUT&gt;0.0005&lt;/THRESHOLD_INPUT&gt;
+			&lt;THRESHOLD_MOUSE&gt;0.01&lt;/THRESHOLD_MOUSE&gt;
+			&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+			&lt;FORMAT_VALUE&gt;&amp;apos;%d&amp;apos; @sprintf&lt;/FORMAT_VALUE&gt;
+			&lt;GET_TT_VALUE_100_KHZ&gt;(A:ADF ACTIVE FREQUENCY:#ID#, Khz) s0 100 / int 10 % l0 1000 / int 10 % 10 * +&lt;/GET_TT_VALUE_100_KHZ&gt;
+			&lt;GET_TT_VALUE_10_KHZ&gt;(A:ADF ACTIVE FREQUENCY:#ID#, Khz) 10 / int 10 %&lt;/GET_TT_VALUE_10_KHZ&gt;
+			&lt;GET_TT_VALUE_1_KHZ&gt;(A:ADF ACTIVE FREQUENCY:#ID#, Khz) int 10 %&lt;/GET_TT_VALUE_1_KHZ&gt;
+		&lt;/Parameters&gt;
+		&lt;Loop&gt;
+			&lt;Setup&gt;
+				&lt;Param&gt;CUR_ID&lt;/Param&gt;
+				&lt;From&gt;0&lt;/From&gt;
+				&lt;Inc&gt;1&lt;/Inc&gt;
+				&lt;To&gt;2&lt;/To&gt;
+			&lt;/Setup&gt;
+			&lt;Do&gt;
+				&lt;Parameters Type=&quot;Override&quot;&gt;
+					&lt;ID_POS Process=&quot;Int&quot;&gt;10 #CUR_ID# pow&lt;/ID_POS&gt;
+				&lt;/Parameters&gt;
+				&lt;Parameters Type=&quot;Default&quot;&gt;
+					&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_FREQUENCY_PARAM_KHZ_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+					&lt;TT_DESCRIPTION_INDEX&gt;#ID_POS#&lt;/TT_DESCRIPTION_INDEX&gt;
+					&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_FREQUENCY_KHZ_TITLE&lt;/TOOLTIP_TITLE&gt;
+				&lt;/Parameters&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+					&lt;KNOB_ID&gt;ADF_Freq_#ID_POS#_Khz&lt;/KNOB_ID&gt;
+					&lt;ANIM_NAME Process=&quot;Param&quot;&gt;ANIM_NAME_#ID_POS#_KHZ&lt;/ANIM_NAME&gt;
+					&lt;NODE_ID Process=&quot;Param&quot;&gt;NODE_ID_#ID_POS#_KHZ&lt;/NODE_ID&gt;
+					&lt;GET_TT_VALUE_STATE Process=&quot;Param&quot;&gt;GET_TT_VALUE_#ID_POS#_KHZ&lt;/GET_TT_VALUE_STATE&gt;
+					&lt;EVENT_CW&gt;(&amp;gt;K:ADF_#ID_POS#_INC)&lt;/EVENT_CW&gt;
+					&lt;EVENT_CCW&gt;(&amp;gt;K:ADF_#ID_POS#_DEC)&lt;/EVENT_CCW&gt;
+					&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Do&gt;
+		&lt;/Loop&gt;
+	&lt;/Component&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ADF_Knob_Volume_Template&quot;&gt;
+		&lt;NODE_ID&gt;#NODE_ID_ADF_VOLUME#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_ADF_VOLUME#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ADF_Knob_Mode_Template&quot;&gt;
+		&lt;NODE_ID&gt;#NODE_ID_ADF_MODE#&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;#ANIM_NAME_ADF_MODE#&lt;/ANIM_NAME&gt;
+	&lt;/UseTemplate&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+		&lt;NODE_ID&gt;#NODE_ID_SCREEN#&lt;/NODE_ID&gt;
+		&lt;EMISSIVE_CODE&gt;1&lt;/EMISSIVE_CODE&gt;
+		&lt;FAILURE&gt;(A:ADF VOLUME:#ID#, Percent) 0 &amp;gt; (A:CIRCUIT GENERAL PANEL ON, Bool) and&lt;/FAILURE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID_SCREEN</li>
+								<li>NODE_ID_100_KHZ (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_100_KHZ (using SUFFIX_ID)</li>
+								<li>NODE_ID_10_KHZ (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_10_KHZ (using SUFFIX_ID)</li>
+								<li>NODE_ID_1_KHZ (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_1_KHZ (using SUFFIX_ID)</li>
+								<li>NODE_ID_ADF_VOLUME (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_ADF_VOLUME (using SUFFIX_ID)</li>
+								<li>NODE_ID_ADF_MODE (using SUFFIX_ID)</li>
+								<li>ANIM_NAME_ADF_MODE (using SUFFIX_ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>SUFFIX_ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>ADF_Frequency_Knobs#SUFFIX_ID#</span>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>WWISE_EVENT</li>
+									<li>COUNT</li>
+									<li>THRESHOLD_INPUT</li>
+									<li>THRESHOLD_MOUSE</li>
+									<li>INTERACTION_TYPE</li>
+									<li>FORMAT_VALUE</li>
+									<li>GET_TT_VALUE_100_KHZ (using ID)</li>
+									<li>GET_TT_VALUE_10_KHZ (using ID)</li>
+									<li>GET_TT_VALUE_1_KHZ (using ID)</li>
+									<li>CUR_ID</li>
+									<li>ID_POS (using CUR_ID)</li>
+									<li>TT_DESCRIPTION_ID</li>
+									<li>TT_DESCRIPTION_INDEX (using ID_POS)</li>
+									<li>TOOLTIP_TITLE</li>
+								</ul>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="NavComSystem.html#ASOBO_NAVCOM_Alternative_Base_Template">ASOBO_NAVCOM_Alternative_Base_Template</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>KNOB_ID (using ID_POS)</li>
+												<li>ANIM_NAME (using ID_POS)</li>
+												<li>NODE_ID (using ID_POS)</li>
+												<li>GET_TT_VALUE_STATE (using ID_POS)</li>
+												<li>EVENT_CW (using ID_POS)</li>
+												<li>EVENT_CCW (using ID_POS)</li>
+												<li>IS_INFINITE</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="ADF.html#ASOBO_ADF_Knob_Volume_Template">ASOBO_ADF_Knob_Volume_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using NODE_ID_ADF_VOLUME)</li>
+									<li>ANIM_NAME (using ANIM_NAME_ADF_VOLUME)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="ADF.html#ASOBO_ADF_Knob_Mode_Template">ASOBO_ADF_Knob_Mode_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using NODE_ID_ADF_MODE)</li>
+									<li>ANIM_NAME (using ANIM_NAME_ADF_MODE)</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="../Generic/Emissive.html#ASOBO_GT_Component_Emissive_Gauge">ASOBO_GT_Component_Emissive_Gauge</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using NODE_ID_SCREEN)</li>
+									<li>EMISSIVE_CODE</li>
+									<li>FAILURE (using ID)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_Button_ADF_ID_Template">ASOBO_Button_ADF_ID_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_Button_ADF_ID_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;PART_ID&gt;ADF_Push_#BUTTON_ID#&lt;/PART_ID&gt;
+		&lt;WWISE_EVENT_1&gt;ADF_push_button_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;ADF_push_button_off&lt;/WWISE_EVENT_2&gt;
+		&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+		&lt;NORMALIZED_TIME_2&gt;0.5&lt;/NORMALIZED_TIME_2&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_PUSH_#BUTTON_ID#_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_PUSH_#BUTTON_ID#_TITLE&lt;/TOOLTIP_TITLE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+		&lt;BTN_ID&gt;ADF_#BUTTON_ID#&lt;/BTN_ID&gt;
+		&lt;SET_STATE_EXTERNAL&gt;(&amp;gt;H:#HTML_EVENT#)&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;EMISSIVE_CODE&gt;(A:LIGHT POTENTIOMETER:#EMISSIVE_POTENTIOMETER#, percent over 100) #BUTTON_EMISSIVE_FACTOR# *&lt;/EMISSIVE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>PART_ID (using BUTTON_ID)</li>
+								<li>WWISE_EVENT_1</li>
+								<li>WWISE_EVENT_2</li>
+								<li>NORMALIZED_TIME_1</li>
+								<li>NORMALIZED_TIME_2</li>
+								<li>TT_DESCRIPTION_ID (using BUTTON_ID)</li>
+								<li>TOOLTIP_TITLE (using BUTTON_ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="NavComSystem.html#ASOBO_NAVCOM_Alternative_Base_Template">ASOBO_NAVCOM_Alternative_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>BTN_ID (using BUTTON_ID)</li>
+									<li>SET_STATE_EXTERNAL (using HTML_EVENT)</li>
+									<li>EMISSIVE_CODE (using EMISSIVE_POTENTIOMETER, BUTTON_EMISSIVE_FACTOR)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ADF_Knob_Volume_Template">ASOBO_ADF_Knob_Volume_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ADF_Knob_Volume_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;WWISE_EVENT&gt;adf_volume_knob&lt;/WWISE_EVENT&gt;
+		&lt;COUNT&gt;50&lt;/COUNT&gt;
+		&lt;THRESHOLD_INPUT&gt;0.000025&lt;/THRESHOLD_INPUT&gt;
+		&lt;THRESHOLD_MOUSE&gt;0.0025&lt;/THRESHOLD_MOUSE&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;EVENT_CW&gt;(&amp;gt;K:ADF_VOLUME_INC)&lt;/EVENT_CW&gt;
+		&lt;EVENT_CCW&gt;(&amp;gt;K:ADF_VOLUME_DEC)&lt;/EVENT_CCW&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;Condition NotEmpty=&quot;CIRCUIT_ADF&quot;&gt;
+			&lt;EVENT_CW&gt;#EVENT_CW# (A:ADF VOLUME:1, Percent) 0 &amp;gt; (A:CIRCUIT SWITCH ON:#CIRCUIT_ADF#, Bool) != if{ #CIRCUIT_ADF# (&amp;gt;K:ELECTRICAL_CIRCUIT_TOGGLE) }&lt;/EVENT_CW&gt;
+			&lt;EVENT_CCW&gt;#EVENT_CCW# (A:ADF VOLUME:1, Percent) 0 &amp;gt; (A:CIRCUIT SWITCH ON:#CIRCUIT_ADF#, Bool) != if{ #CIRCUIT_ADF# (&amp;gt;K:ELECTRICAL_CIRCUIT_TOGGLE) }&lt;/EVENT_CCW&gt;
+			&lt;COMP_INIT_CODE&gt;(A:ADF VOLUME:1, Percent) 0 == (A:CIRCUIT SWITCH ON:#CIRCUIT_ADF#, Bool) and if{ #CIRCUIT_ADF# (&amp;gt;K:ELECTRICAL_CIRCUIT_TOGGLE) }&lt;/COMP_INIT_CODE&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_RECEIVERVOLUME_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_RECEIVERVOLUME_TITLE&lt;/TOOLTIP_TITLE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+		&lt;KNOB_ID&gt;ADF_Volume&lt;/KNOB_ID&gt;
+		&lt;GET_TT_VALUE_STATE&gt;(A:ADF VOLUME:1, percent)&lt;/GET_TT_VALUE_STATE&gt;
+		&lt;ANIM_CODE&gt;(A:ADF VOLUME:1, percent)&lt;/ANIM_CODE&gt;
+		&lt;IS_INFINITE&gt;False&lt;/IS_INFINITE&gt;
+		&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>WWISE_EVENT</li>
+								<li>COUNT</li>
+								<li>THRESHOLD_INPUT</li>
+								<li>THRESHOLD_MOUSE</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>EVENT_CW</li>
+								<li>EVENT_CCW</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: NotEmpty(CIRCUIT_ADF)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>EVENT_CW (using EVENT_CW, CIRCUIT_ADF)</li>
+												<li>EVENT_CCW (using EVENT_CCW, CIRCUIT_ADF)</li>
+												<li>COMP_INIT_CODE (using CIRCUIT_ADF)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>TT_DESCRIPTION_ID</li>
+								<li>TOOLTIP_TITLE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="NavComSystem.html#ASOBO_NAVCOM_Alternative_Base_Template">ASOBO_NAVCOM_Alternative_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>KNOB_ID</li>
+									<li>GET_TT_VALUE_STATE</li>
+									<li>ANIM_CODE</li>
+									<li>IS_INFINITE</li>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ADF_Knob_Mode_Template">ASOBO_ADF_Knob_Mode_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ADF_Knob_Mode_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;WWISE_EVENT&gt;adf_mode_knob&lt;/WWISE_EVENT&gt;
+		&lt;ANIM_LAG&gt;600&lt;/ANIM_LAG&gt;
+		&lt;COUNT&gt;3&lt;/COUNT&gt;
+		&lt;POS_BFO&gt;0&lt;/POS_BFO&gt;
+		&lt;POS_REC&gt;1&lt;/POS_REC&gt;
+		&lt;POS_ADF&gt;2&lt;/POS_ADF&gt;
+		&lt;POS_TEST&gt;3&lt;/POS_TEST&gt;
+		&lt;VAR_TYPE&gt;L&lt;/VAR_TYPE&gt;
+		&lt;VAR_NAME&gt;XMLVAR_ADF_Mode&lt;/VAR_NAME&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;NAVCOM&lt;/INPUT_EVENT_ID_SOURCE&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;KNOB_ID&gt;ADF_Mode&lt;/KNOB_ID&gt;
+		&lt;ENUM_VAL_BFO&gt;0&lt;/ENUM_VAL_BFO&gt;
+		&lt;ENUM_VAL_REC&gt;1&lt;/ENUM_VAL_REC&gt;
+		&lt;ENUM_VAL_ADF&gt;2&lt;/ENUM_VAL_ADF&gt;
+		&lt;ENUM_VAL_TEST&gt;3&lt;/ENUM_VAL_TEST&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ADF_KNOB_MODE_ACTION_SET&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.ADF_KNOB_MODE_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;INIT_POS&gt;#POS_ADF#&lt;/INIT_POS&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_NAVCOM_Alternative_Base_Template&quot;&gt;
+		&lt;Condition NotEmpty=&quot;INIT_POS&quot;&gt;
+			&lt;COMP_INIT_CODE&gt;#INIT_POS# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/COMP_INIT_CODE&gt;
+		&lt;/Condition&gt;
+		&lt;USE_BTN_IE&gt;True&lt;/USE_BTN_IE&gt;
+		&lt;NUM_STATES&gt;4&lt;/NUM_STATES&gt;
+		&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+		&lt;SWITCH_DIRECTION&gt;Horizontal&lt;/SWITCH_DIRECTION&gt;
+		&lt;IS_INFINITE&gt;False&lt;/IS_INFINITE&gt;
+		&lt;GET_STATE_EXTERNAL&gt;(#VAR_TYPE#:#VAR_NAME#) sp0&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;ENUM_VAL_TO_POS_EXTERNAL&gt;
+				l0 #ENUM_VAL_BFO# == if{ #POS_BFO# sp1 g2 }
+				l0 #ENUM_VAL_REC# == if{ #POS_REC# sp1 g2 }
+				l0 #ENUM_VAL_ADF# == if{ #POS_ADF# sp1 g2 }
+				l0 #ENUM_VAL_TEST# == if{ #POS_TEST# sp1 g2 }
+				:2 l1
+			&lt;/ENUM_VAL_TO_POS_EXTERNAL&gt;
+		&lt;BTN_ID&gt;#KNOB_ID#&lt;/BTN_ID&gt;
+		&lt;TT_VALUE_#POS_BFO#&gt;@TT_Package.GT_STATE_BFO&lt;/TT_VALUE_#POS_BFO#&gt;
+		&lt;SET_STATE_#POS_BFO#&gt;#ENUM_VAL_BFO# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_BFO#&gt;
+		&lt;STR_STATE_#POS_BFO#&gt;BFO&lt;/STR_STATE_#POS_BFO#&gt;
+		&lt;CODE_POS_#POS_BFO#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_BFO)&lt;/CODE_POS_#POS_BFO#&gt;
+		&lt;STATE#POS_BFO#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_BFO# ==&lt;/STATE#POS_BFO#_TEST&gt;
+		&lt;TT_VALUE_#POS_REC#&gt;@TT_Package.GT_STATE_REC&lt;/TT_VALUE_#POS_REC#&gt;
+		&lt;SET_STATE_#POS_REC#&gt;#ENUM_VAL_REC# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_REC#&gt;
+		&lt;STR_STATE_#POS_REC#&gt;REC&lt;/STR_STATE_#POS_REC#&gt;
+		&lt;CODE_POS_#POS_REC#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_REC)&lt;/CODE_POS_#POS_REC#&gt;
+		&lt;STATE#POS_REC#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_REC# ==&lt;/STATE#POS_REC#_TEST&gt;
+		&lt;TT_VALUE_#POS_ADF#&gt;@TT_Package.GT_STATE_ADF&lt;/TT_VALUE_#POS_ADF#&gt;
+		&lt;SET_STATE_#POS_ADF#&gt;#ENUM_VAL_ADF# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_ADF#&gt;
+		&lt;STR_STATE_#POS_ADF#&gt;ADF&lt;/STR_STATE_#POS_ADF#&gt;
+		&lt;CODE_POS_#POS_ADF#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_ADF)&lt;/CODE_POS_#POS_ADF#&gt;
+		&lt;STATE#POS_ADF#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_ADF# ==&lt;/STATE#POS_ADF#_TEST&gt;
+		&lt;TT_VALUE_#POS_TEST#&gt;@TT_Package.GT_STATE_TEST&lt;/TT_VALUE_#POS_TEST#&gt;
+		&lt;SET_STATE_#POS_TEST#&gt;#ENUM_VAL_TEST# (&amp;gt;#VAR_TYPE#:#VAR_NAME#)&lt;/SET_STATE_#POS_TEST#&gt;
+		&lt;STR_STATE_#POS_TEST#&gt;TEST&lt;/STR_STATE_#POS_TEST#&gt;
+		&lt;CODE_POS_#POS_TEST#&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#_TEST)&lt;/CODE_POS_#POS_TEST#&gt;
+		&lt;STATE#POS_TEST#_TEST&gt;(B:#INPUT_EVENT_ID_SOURCE#_#KNOB_ID#) #POS_TEST# ==&lt;/STATE#POS_TEST#_TEST&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>WWISE_EVENT</li>
+								<li>ANIM_LAG</li>
+								<li>COUNT</li>
+								<li>POS_BFO</li>
+								<li>POS_REC</li>
+								<li>POS_ADF</li>
+								<li>POS_TEST</li>
+								<li>VAR_TYPE</li>
+								<li>VAR_NAME</li>
+								<li>INPUT_EVENT_ID_SOURCE</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>KNOB_ID</li>
+								<li>ENUM_VAL_BFO</li>
+								<li>ENUM_VAL_REC</li>
+								<li>ENUM_VAL_ADF</li>
+								<li>ENUM_VAL_TEST</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>TT_DESCRIPTION_ID</li>
+								<li>TOOLTIP_TITLE</li>
+								<li>INIT_POS (using POS_ADF)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="NavComSystem.html#ASOBO_NAVCOM_Alternative_Base_Template">ASOBO_NAVCOM_Alternative_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_BTN_IE</li>
+									<li>NUM_STATES</li>
+									<li>INTERACTION_TYPE</li>
+									<li>SWITCH_DIRECTION</li>
+									<li>IS_INFINITE</li>
+									<li>GET_STATE_EXTERNAL (using VAR_TYPE, VAR_NAME)</li>
+									<li>ENUM_VAL_TO_POS_EXTERNAL (using ENUM_VAL_BFO, POS_BFO, ENUM_VAL_REC, POS_REC, ENUM_VAL_ADF, POS_ADF, ENUM_VAL_TEST, POS_TEST)</li>
+									<li>BTN_ID (using KNOB_ID)</li>
+									<li>TT_VALUE_#POS_BFO#</li>
+									<li>SET_STATE_#POS_BFO# (using ENUM_VAL_BFO, VAR_TYPE, VAR_NAME)</li>
+									<li>STR_STATE_#POS_BFO#</li>
+									<li>CODE_POS_#POS_BFO# (using INPUT_EVENT_ID_SOURCE, KNOB_ID)</li>
+									<li>STATE#POS_BFO#_TEST (using INPUT_EVENT_ID_SOURCE, KNOB_ID, POS_BFO)</li>
+									<li>TT_VALUE_#POS_REC#</li>
+									<li>SET_STATE_#POS_REC# (using ENUM_VAL_REC, VAR_TYPE, VAR_NAME)</li>
+									<li>STR_STATE_#POS_REC#</li>
+									<li>CODE_POS_#POS_REC# (using INPUT_EVENT_ID_SOURCE, KNOB_ID)</li>
+									<li>STATE#POS_REC#_TEST (using INPUT_EVENT_ID_SOURCE, KNOB_ID, POS_REC)</li>
+									<li>TT_VALUE_#POS_ADF#</li>
+									<li>SET_STATE_#POS_ADF# (using ENUM_VAL_ADF, VAR_TYPE, VAR_NAME)</li>
+									<li>STR_STATE_#POS_ADF#</li>
+									<li>CODE_POS_#POS_ADF# (using INPUT_EVENT_ID_SOURCE, KNOB_ID)</li>
+									<li>STATE#POS_ADF#_TEST (using INPUT_EVENT_ID_SOURCE, KNOB_ID, POS_ADF)</li>
+									<li>TT_VALUE_#POS_TEST#</li>
+									<li>SET_STATE_#POS_TEST# (using ENUM_VAL_TEST, VAR_TYPE, VAR_NAME)</li>
+									<li>STR_STATE_#POS_TEST#</li>
+									<li>CODE_POS_#POS_TEST# (using INPUT_EVENT_ID_SOURCE, KNOB_ID)</li>
+									<li>STATE#POS_TEST#_TEST (using INPUT_EVENT_ID_SOURCE, KNOB_ID, POS_TEST)</li>
+								</ul>
+								<p class="fakeh5">Condition: NotEmpty(INIT_POS)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>COMP_INIT_CODE (using INIT_POS, VAR_TYPE, VAR_NAME)</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.9.1_1"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

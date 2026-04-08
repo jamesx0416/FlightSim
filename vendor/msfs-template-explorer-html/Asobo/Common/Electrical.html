@@ -1,0 +1,3622 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>Electrical.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\Common\Electrical.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+	&lt;Include RelativeFile=&quot;Subtemplates\\Electrical_Subtemplates.xml&quot;/&gt;
+	&lt;Include RelativeFile=&quot;Inputs\\Electrical_Inputs.xml&quot;/&gt;
+	&lt;!-- ################################# ELECTRICAL ################################# --&gt;
+	&lt;!-- ############################################################################## --&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Battery_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Battery_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Battery_Master_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Battery_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Avionics_Master_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Master_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Master_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Master_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Avionics_Bus_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Bus_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Bus_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Bus_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Swap_Bus_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Swap_Bus_#ID#&lt;/NODE_ID&gt;
+			&lt;IE_NAME&gt;ELECTRICAL_Switch_Swap_Bus_#ID#&lt;/IE_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_NAME&gt;#NODE_ID#&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;ENABLE_BUS_1&gt;#SOURCE_BUS_ID_1# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_1#, Bool) ! if{ #SOURCE_BUS_ID_1# #TARGET_BUS_ID_1# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/ENABLE_BUS_1&gt;
+			&lt;DISABLE_BUS_1&gt;#SOURCE_BUS_ID_1# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_1#, Bool) if{ #SOURCE_BUS_ID_1# #TARGET_BUS_ID_1# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/DISABLE_BUS_1&gt;
+			&lt;ENABLE_BUS_2&gt;#SOURCE_BUS_ID_2# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_2#, Bool) ! if{ #SOURCE_BUS_ID_2# #TARGET_BUS_ID_2# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/ENABLE_BUS_2&gt;
+			&lt;DISABLE_BUS_2&gt;#SOURCE_BUS_ID_2# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_2#, Bool) if{ #SOURCE_BUS_ID_2# #TARGET_BUS_ID_2# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/DISABLE_BUS_2&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+			&lt;GET_STATE_EXTERNAL&gt;#SOURCE_BUS_ID_2# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_2#, Bool) sp0&lt;/GET_STATE_EXTERNAL&gt;	
+			&lt;SET_STATE_EXTERNAL&gt;
+				p0 if{
+					#ENABLE_BUS_2#
+					#DISABLE_BUS_1#
+				} els{
+					#ENABLE_BUS_1#
+					#DISABLE_BUS_2#
+				}
+			&lt;/SET_STATE_EXTERNAL&gt;	
+			&lt;ON_BEFORE_INIT_CODE&gt;#ENABLE_BUS_1# #DISABLE_BUS_2#&lt;/ON_BEFORE_INIT_CODE&gt;
+		&lt;/Parameters&gt;
+	
+		&lt;UseTemplate Name=&quot;ASOBO_Electrical_Base_Template&quot;&gt;				
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Essential_Bus_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Essential_Bus_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Alternator_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Alternator_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Alternator_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NUM_STATES&gt;2&lt;/NUM_STATES&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Alternator_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Alternator_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Alternator_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Engine_Bleed_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Engine_Bleed_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Engine_Bleed_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Engine_Bleed_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Update_APU_Shutdown_After_Engine_Start_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ENGINE_COUNT&gt;1&lt;/ENGINE_COUNT&gt;
+			&lt;SHUTDOWN_DELAY&gt;60&lt;/SHUTDOWN_DELAY&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+			&lt;UPDATE_CODE&gt;
+				(A:APU SWITCH, Bool) ! if{ g1 }
+				(A:GENERAL ENG COMBUSTION:1, Bool) ! if{ g1 }
+				#ENGINE_COUNT# 2 &amp;gt;= if{
+				(A:GENERAL ENG COMBUSTION:2, Bool) ! if{ g1 }
+				#ENGINE_COUNT# 3 &amp;gt;= if{
+				(A:GENERAL ENG COMBUSTION:3, Bool) ! if{ g1 }
+				#ENGINE_COUNT# 4 &amp;gt;= if{
+				(A:GENERAL ENG COMBUSTION:4, Bool) ! if{ g1 }
+				}
+				}
+				}
+				(O:XMLVAR_APU_Shutdown_Time) 0 == if{
+				(E:SIMULATION TIME, seconds) #SHUTDOWN_DELAY# + (&amp;gt;O:XMLVAR_APU_Shutdown_Time)
+				}
+				(O:XMLVAR_APU_Shutdown_Time) (E:SIMULATION TIME, seconds) &amp;lt; if{
+				(&amp;gt;K:APU_OFF_SWITCH)
+				}
+				quit :1 0 (&amp;gt;O:XMLVAR_APU_Shutdown_Time) quit
+			&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Indicator_APU_Ready_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Indicator_APU_Ready&lt;/NODE_ID&gt;
+			&lt;MIN_PCT_RPM&gt;95&lt;/MIN_PCT_RPM&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+			&lt;EMISSIVE_CODE&gt;(A:APU PCT RPM, Percent) #MIN_PCT_RPM# &amp;gt;&lt;/EMISSIVE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Bleed_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Bleed_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_APU_Starter_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Starter_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_APU_Starter_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Starter_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Starter_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NUM_STATES&gt;3&lt;/NUM_STATES&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Starter_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_APU_Generator_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Generator_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_APU_Generator_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Generator_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Generator_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Generator_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Bus_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Bus_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Circuit_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Circuit_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Circuit_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Circuit_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Circuit_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Circuit_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Emissive_Battery_Discharge_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Emissive_Battery_Discharge_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_BatteryCharge_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Push_BatteryCharge_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Starter_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Starter_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Starter_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Starter_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Knob_Master_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;SWITCH_TYPE&gt;OFF_ON_START&lt;/SWITCH_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Knob_Master_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Battery_STBY_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;WWISE_EVENT&gt;switch_battery&lt;/WWISE_EVENT&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Battery_STBY_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Alternator_STBY_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Alternator_STBY_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_STBY_Power_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_STBY_Power&lt;/ANIM_NAME&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Avionics_STBY_Power&lt;/NODE_ID&gt;
+			&lt;PART_ID&gt;ELECTRICAL_Switch_Avionics_STBY_Power&lt;/PART_ID&gt;
+			&lt;COVER_NODE_ID&gt;ELECTRICAL_Switch_Avionics_STBY_Power_Cover&lt;/COVER_NODE_ID&gt;
+			&lt;COVER_ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_STBY_Power_Cover&lt;/COVER_ANIM_NAME&gt;
+			&lt;WWISE_EVENT_1&gt;avionics_stby_power_switch_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;avionics_stby_power_switch_off&lt;/WWISE_EVENT_2&gt;
+			&lt;BTN_ID&gt;Avionics_STBY_Power&lt;/BTN_ID&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_STANDBY_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_STANDBY_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_Bus_Tie&lt;/ANIM_NAME&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Avionics_Bus_Tie&lt;/NODE_ID&gt;
+			&lt;PART_ID&gt;ELECTRICAL_Switch_Avionics_Bus_Tie&lt;/PART_ID&gt;
+			&lt;COVER_NODE_ID&gt;ELECTRICAL_Switch_Avionics_Bus_Tie_Cover&lt;/COVER_NODE_ID&gt;
+			&lt;COVER_ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_Bus_Tie_Cover&lt;/COVER_ANIM_NAME&gt;
+			&lt;SOURCE_BUS_ID&gt;1&lt;/SOURCE_BUS_ID&gt;
+			&lt;DESTINATION_BUS&gt;2&lt;/DESTINATION_BUS&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+			&lt;WWISE_EVENT_1&gt;avionics_bus_tie_switch_on&lt;/WWISE_EVENT_1&gt;
+			&lt;WWISE_EVENT_2&gt;avionics_bus_tie_switch_off&lt;/WWISE_EVENT_2&gt;
+			&lt;BTN_ID&gt;Avionics_Bus_Tie&lt;/BTN_ID&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_BUSTIE_ACTION_SET&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_BUSTIE_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;COVER_IE_NAME&gt;#BTN_ID#_Cover&lt;/COVER_IE_NAME&gt;
+			&lt;COVER_VAR_NAME&gt;XMLVAR_ELECTRICAL_#BTN_ID#_Cover_Opened&lt;/COVER_VAR_NAME&gt;
+			&lt;COVER_VAR_TYPE&gt;I&lt;/COVER_VAR_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Switch_Covered&quot;&gt;
+			&lt;INPUT_EVENT_ID&gt;ELECTRICAL&lt;/INPUT_EVENT_ID&gt;
+			&lt;TOOLTIP_ENTRY_0&gt;ELECTRICAL_#BTN_ID#&lt;/TOOLTIP_ENTRY_0&gt;
+			&lt;COVER_IE_ID_SOURCE&gt;ELECTRICAL&lt;/COVER_IE_ID_SOURCE&gt;
+			&lt;SWITCH_NODE_ID&gt;#NODE_ID#&lt;/SWITCH_NODE_ID&gt;
+			&lt;SWITCH_ANIM_NAME&gt;#ANIM_NAME#&lt;/SWITCH_ANIM_NAME&gt;
+			&lt;TOGGLE_STATE&gt;(&amp;gt;B:ELECTRICAL_#BTN_ID#_Toggle)&lt;/TOGGLE_STATE&gt;
+			&lt;SWITCH_ANIM_CODE&gt;(B:ELECTRICAL_#BTN_ID#, Bool) 100 *&lt;/SWITCH_ANIM_CODE&gt;
+			&lt;SET_STATE_EXTERNAL&gt;
+				#SOURCE_BUS_ID# (A:1:BUS CONNECTION ON:#DESTINATION_BUS#, Bool) p0 != if{
+				#DESTINATION_BUS# #SOURCE_BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE)
+				}
+			&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;GET_STATE_EXTERNAL&gt;#SOURCE_BUS_ID# (A:1:BUS CONNECTION ON:#DESTINATION_BUS#, Bool) sp0&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;SIM_STATE_IS_ON_EXTERNAL&gt;l0&lt;/SIM_STATE_IS_ON_EXTERNAL&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_ExternalPower_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;NUM_STATES&gt;2&lt;/NUM_STATES&gt;
+			&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_ExternalPower_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_ExternalPower_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+			&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_ExternalPower_Template&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Connection_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Connection&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Connection&lt;/ANIM_NAME&gt;
+			&lt;SOURCE_BUS_ID&gt;1&lt;/SOURCE_BUS_ID&gt;
+			&lt;DESTINATION_BUS&gt;2&lt;/DESTINATION_BUS&gt;
+			&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+			&lt;TOGGLE_CODE/&gt;
+			&lt;WWISE_EVENT_1&gt;electrical_switch_on&lt;/WWISE_EVENT_1&gt;
+			&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+			&lt;WWISE_EVENT_2&gt;electrical_switch_off&lt;/WWISE_EVENT_2&gt;
+			&lt;NORMALIZED_TIME_2&gt;0.5&lt;/NORMALIZED_TIME_2&gt;
+			&lt;ON_CONNECTION_ON/&gt;
+			&lt;ON_CONNECTION_OFF/&gt;
+			&lt;IS_CONNECTION_ON/&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;ELECTRICAL&lt;/INPUT_EVENT_ID_SOURCE&gt;
+			&lt;IE_CONNECTION_ID&gt;Connection_#ID#&lt;/IE_CONNECTION_ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;SET_CONNECTION_STATE&gt;l1 != if{ #DESTINATION_BUS# #SOURCE_BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/SET_CONNECTION_STATE&gt;
+			&lt;IS_CONNECTION_ON&gt;#SOURCE_BUS_ID# (A:1:BUS CONNECTION ON:#DESTINATION_BUS#, Bool) #IS_CONNECTION_ON#&lt;/IS_CONNECTION_ON&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;BTN_ID&gt;#IE_CONNECTION_ID#&lt;/BTN_ID&gt;
+			&lt;GET_STATE_EXTERNAL&gt;#IS_CONNECTION_ON# sp1&lt;/GET_STATE_EXTERNAL&gt;
+			&lt;SIM_STATE_IS_ON_EXTERNAL&gt;l1&lt;/SIM_STATE_IS_ON_EXTERNAL&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Override&quot;&gt;
+			&lt;SET_STATE_ON&gt;1 #SET_CONNECTION_STATE# #ON_CONNECTION_ON#&lt;/SET_STATE_ON&gt;
+			&lt;SET_STATE_OFF&gt;0 #SET_CONNECTION_STATE# #ON_CONNECTION_OFF#&lt;/SET_STATE_OFF&gt;
+			&lt;ON_BEFORE_SET_CODE&gt;#GET_STATE_EXTERNAL# &lt;/ON_BEFORE_SET_CODE&gt;
+			&lt;IS_CONNECTION_ON_EXTERNAL&gt;(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#, Bool)&lt;/IS_CONNECTION_ON_EXTERNAL&gt;
+			&lt;LEFT_SINGLE_CODE&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#_Toggle)&lt;/LEFT_SINGLE_CODE&gt;
+			&lt;TOOLTIP_ENTRY_0&gt;#INPUT_EVENT_ID_SOURCE#_#BTN_ID#&lt;/TOOLTIP_ENTRY_0&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;Condition Valid=&quot;IS_AIRLINER&quot;&gt;
+				&lt;SEQ1_EMISSIVE_CODE&gt;#IS_CONNECTION_ON_EXTERNAL#&lt;/SEQ1_EMISSIVE_CODE&gt;
+				&lt;SEQ2_EMISSIVE_CODE&gt;#IS_CONNECTION_ON_EXTERNAL# !&lt;/SEQ2_EMISSIVE_CODE&gt;
+			&lt;/Condition&gt;
+		&lt;/Parameters&gt;
+		&lt;Condition NotEmpty=&quot;ENSURE_VARIABLE_CONSISTENCY&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+				&lt;FREQUENCY&gt;5&lt;/FREQUENCY&gt;
+				&lt;UPDATE_CODE&gt;#ENSURE_VARIABLE_CONSISTENCY#&lt;/UPDATE_CODE&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Condition&gt;
+		&lt;Condition Valid=&quot;IS_AIRLINER&quot;&gt;
+			&lt;True&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Push_Button_Airliner&quot;&gt;
+					&lt;INPUT_EVENT_ID&gt;ELECTRICAL&lt;/INPUT_EVENT_ID&gt;
+					&lt;Condition Valid=&quot;INVERT_EMISSIVE_STATE&quot;&gt;
+						&lt;True&gt;
+							&lt;SEQ1_EMISSIVE_CODE&gt;#SEQ2_EMISSIVE_CODE#&lt;/SEQ1_EMISSIVE_CODE&gt;
+							&lt;SEQ2_EMISSIVE_CODE&gt;#SEQ1_EMISSIVE_CODE#&lt;/SEQ2_EMISSIVE_CODE&gt;
+						&lt;/True&gt;
+					&lt;/Condition&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/True&gt;
+			&lt;False&gt;
+				&lt;Component ID=&quot;#NODE_ID#_#ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+					&lt;UseInputEvent ID=&quot;ELECTRICAL&quot;&gt;
+						&lt;ANIM&gt;EXTERNAL&lt;/ANIM&gt;
+					&lt;/UseInputEvent&gt;
+					&lt;UseTemplate Name=&quot;ASOBO_GT_Switch_Code&quot;&gt;
+						&lt;ANIM_CODE&gt;#IS_CONNECTION_ON_EXTERNAL# #ANIM_LENGTH# *&lt;/ANIM_CODE&gt;
+					&lt;/UseTemplate&gt;
+				&lt;/Component&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Procedure_Template&quot;&gt;
+		&lt;!-- PARAM: IS_ON (code returning true when the procedure has been executed) Since it&#39;s context dependent it must be provided case by case --&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Procedure_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Procedure_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Procedure_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Procedure_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Procedure_Template&quot;&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Autopilot_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_Autopilot&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_Autopilot&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;AUTOPILOT&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_AvnFan_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_AvnFan&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_AvnFan&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;AVNFAN&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_GPS_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_GPS&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_GPS&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;GPS&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Avionics_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_Avionics&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_Avionics&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;AVNBUS1&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM1_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_NAVCOM1&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_NAVCOM1&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;NAVCOM1&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM2_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_NAVCOM2&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_NAVCOM2&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;NAVCOM2&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM3_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_NAVCOM3&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_NAVCOM3&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;NAVCOM3&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_ADF_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_ADF&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_ADF&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;ADF&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_XPNDR_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_XPNDR&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_XPNDR&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;XPNDR&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_FLAP_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_FLAP&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_FLAP&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;FLAP&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS1_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_AVNBUS1&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_AVNBUS1&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;AVNBUS1&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS2_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_AVNBUS2&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_AVNBUS2&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;AVNBUS2&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_LTSPWR_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_LTSPWR&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_LTSPWR&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;LTSPWR&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_ALTFLD_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_ALTFLD&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_ALTFLD&lt;/ANIM_NAME&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+			&lt;CIRCUIT_NAME&gt;ALTFLD&lt;/CIRCUIT_NAME&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Emissive_Bus_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;BUS_INDEX&gt;-1&lt;/BUS_INDEX&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Emissive_Bus_SubTemplate&quot;&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;!-- ############################################ --&gt;
+	&lt;!-- ELECTRICAL Interaction inputs setup template --&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Base_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;ELECTRICAL&lt;/INPUT_EVENT_ID_SOURCE&gt;
+			&lt;WWISE_PREFIX&gt;ELECTRICAL&lt;/WWISE_PREFIX&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;ELECTRICAL&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Event_Base_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Push_Event_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;ELECTRICAL&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	&lt;Template Name=&quot;ASOBO_ELECTRICAL_Pull_Event_Base_Template&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Pull_Event_Base_Template&quot;&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;ELECTRICAL&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+&lt;/ModelBehaviors&gt;</div>
+		<h3>Includes</h3>
+		<ul>
+			<li>
+				RelativeFile: 
+				<a href="Subtemplates/Electrical_Subtemplates.html">Subtemplates\\Electrical_Subtemplates.xml</a>
+			</li>
+			<li>
+				RelativeFile: 
+				<a href="Inputs/Electrical_Inputs.html">Inputs\\Electrical_Inputs.xml</a>
+			</li>
+		</ul>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Battery_Template">ASOBO_ELECTRICAL_Battery_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Battery_Master_Template">ASOBO_ELECTRICAL_Switch_Battery_Master_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Avionics_Master_Template">ASOBO_ELECTRICAL_Avionics_Master_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Avionics_Master_Template">ASOBO_ELECTRICAL_Switch_Avionics_Master_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Avionics_Bus_Template">ASOBO_ELECTRICAL_Avionics_Bus_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Avionics_Bus_Template">ASOBO_ELECTRICAL_Switch_Avionics_Bus_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Swap_Bus_Template">ASOBO_ELECTRICAL_Switch_Swap_Bus_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Essential_Bus_Template">ASOBO_ELECTRICAL_Switch_Essential_Bus_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Alternator_Template">ASOBO_ELECTRICAL_Alternator_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Alternator_Template">ASOBO_ELECTRICAL_Switch_Alternator_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_Alternator_Template">ASOBO_ELECTRICAL_Push_Alternator_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Engine_Bleed_Template">ASOBO_ELECTRICAL_Engine_Bleed_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_Engine_Bleed_Template">ASOBO_ELECTRICAL_Push_Engine_Bleed_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Update_APU_Shutdown_After_Engine_Start_Template">ASOBO_ELECTRICAL_Update_APU_Shutdown_After_Engine_Start_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Indicator_APU_Ready_Template">ASOBO_ELECTRICAL_Indicator_APU_Ready_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_APU_Bleed_Template">ASOBO_ELECTRICAL_Switch_APU_Bleed_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_APU_Starter_Template">ASOBO_ELECTRICAL_APU_Starter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_APU_Starter_Template">ASOBO_ELECTRICAL_Push_APU_Starter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_APU_Starter_Template">ASOBO_ELECTRICAL_Switch_APU_Starter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_APU_Generator_Template">ASOBO_ELECTRICAL_APU_Generator_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_APU_Generator_Template">ASOBO_ELECTRICAL_Push_APU_Generator_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_APU_Generator_Template">ASOBO_ELECTRICAL_Switch_APU_Generator_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Bus_Template">ASOBO_ELECTRICAL_Switch_Bus_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Circuit_Template">ASOBO_ELECTRICAL_Circuit_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Circuit_Template">ASOBO_ELECTRICAL_Switch_Circuit_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_Circuit_Template">ASOBO_ELECTRICAL_Push_Circuit_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Emissive_Battery_Discharge_Template">ASOBO_ELECTRICAL_Emissive_Battery_Discharge_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_BatteryCharge_Template">ASOBO_ELECTRICAL_Push_BatteryCharge_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Starter_Template">ASOBO_ELECTRICAL_Switch_Starter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_Starter_Template">ASOBO_ELECTRICAL_Push_Starter_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Knob_Master_Template">ASOBO_ELECTRICAL_Knob_Master_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Battery_STBY_Template">ASOBO_ELECTRICAL_Switch_Battery_STBY_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Alternator_STBY_Template">ASOBO_ELECTRICAL_Switch_Alternator_STBY_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Avionics_STBY_Power_Template">ASOBO_ELECTRICAL_Switch_Avionics_STBY_Power_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template">ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_ExternalPower_Template">ASOBO_ELECTRICAL_Switch_ExternalPower_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_ExternalPower_Template">ASOBO_ELECTRICAL_Push_ExternalPower_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Connection_Template">ASOBO_ELECTRICAL_Switch_Connection_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Procedure_Template">ASOBO_ELECTRICAL_Procedure_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Procedure_Template">ASOBO_ELECTRICAL_Switch_Procedure_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_Procedure_Template">ASOBO_ELECTRICAL_Push_Procedure_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_Autopilot_Template">ASOBO_ELECTRICAL_Switch_Breaker_Autopilot_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_AvnFan_Template">ASOBO_ELECTRICAL_Switch_Breaker_AvnFan_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_GPS_Template">ASOBO_ELECTRICAL_Switch_Breaker_GPS_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_Avionics_Template">ASOBO_ELECTRICAL_Switch_Breaker_Avionics_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM1_Template">ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM1_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM2_Template">ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM2_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM3_Template">ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM3_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_ADF_Template">ASOBO_ELECTRICAL_Switch_Breaker_ADF_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_XPNDR_Template">ASOBO_ELECTRICAL_Switch_Breaker_XPNDR_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_FLAP_Template">ASOBO_ELECTRICAL_Switch_Breaker_FLAP_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS1_Template">ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS1_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS2_Template">ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS2_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_LTSPWR_Template">ASOBO_ELECTRICAL_Switch_Breaker_LTSPWR_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Switch_Breaker_ALTFLD_Template">ASOBO_ELECTRICAL_Switch_Breaker_ALTFLD_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Emissive_Bus_Template">ASOBO_ELECTRICAL_Emissive_Bus_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Base_Template">ASOBO_ELECTRICAL_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Push_Event_Base_Template">ASOBO_ELECTRICAL_Push_Event_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ELECTRICAL_Pull_Event_Base_Template">ASOBO_ELECTRICAL_Pull_Event_Base_Template </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Battery_Template">ASOBO_ELECTRICAL_Battery_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Battery_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Battery_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Battery_SubTemplate">ASOBO_ELECTRICAL_Battery_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Battery_Master_Template">ASOBO_ELECTRICAL_Switch_Battery_Master_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Battery_Master_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Battery_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Battery_Template">ASOBO_ELECTRICAL_Battery_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Avionics_Master_Template">ASOBO_ELECTRICAL_Avionics_Master_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Avionics_Master_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Master_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Avionics_Master_SubTemplate">ASOBO_ELECTRICAL_Avionics_Master_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Avionics_Master_Template">ASOBO_ELECTRICAL_Switch_Avionics_Master_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Master_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Master_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Avionics_Master_Template">ASOBO_ELECTRICAL_Avionics_Master_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Avionics_Bus_Template">ASOBO_ELECTRICAL_Avionics_Bus_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Avionics_Bus_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Bus_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Avionics_Bus_SubTemplate">ASOBO_ELECTRICAL_Avionics_Bus_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Avionics_Bus_Template">ASOBO_ELECTRICAL_Switch_Avionics_Bus_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Bus_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Avionics_Bus_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Avionics_Bus_Template">ASOBO_ELECTRICAL_Avionics_Bus_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Swap_Bus_Template">ASOBO_ELECTRICAL_Switch_Swap_Bus_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Swap_Bus_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Swap_Bus_#ID#&lt;/NODE_ID&gt;
+		&lt;IE_NAME&gt;ELECTRICAL_Switch_Swap_Bus_#ID#&lt;/IE_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_NAME&gt;#NODE_ID#&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;ENABLE_BUS_1&gt;#SOURCE_BUS_ID_1# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_1#, Bool) ! if{ #SOURCE_BUS_ID_1# #TARGET_BUS_ID_1# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/ENABLE_BUS_1&gt;
+		&lt;DISABLE_BUS_1&gt;#SOURCE_BUS_ID_1# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_1#, Bool) if{ #SOURCE_BUS_ID_1# #TARGET_BUS_ID_1# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/DISABLE_BUS_1&gt;
+		&lt;ENABLE_BUS_2&gt;#SOURCE_BUS_ID_2# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_2#, Bool) ! if{ #SOURCE_BUS_ID_2# #TARGET_BUS_ID_2# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/ENABLE_BUS_2&gt;
+		&lt;DISABLE_BUS_2&gt;#SOURCE_BUS_ID_2# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_2#, Bool) if{ #SOURCE_BUS_ID_2# #TARGET_BUS_ID_2# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/DISABLE_BUS_2&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+		&lt;GET_STATE_EXTERNAL&gt;#SOURCE_BUS_ID_2# (A:1:BUS CONNECTION ON:#TARGET_BUS_ID_2#, Bool) sp0&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;SET_STATE_EXTERNAL&gt;
+				p0 if{
+					#ENABLE_BUS_2#
+					#DISABLE_BUS_1#
+				} els{
+					#ENABLE_BUS_1#
+					#DISABLE_BUS_2#
+				}
+			&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;ON_BEFORE_INIT_CODE&gt;#ENABLE_BUS_1# #DISABLE_BUS_2#&lt;/ON_BEFORE_INIT_CODE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Electrical_Base_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID (using ID)</li>
+								<li>IE_NAME (using ID)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME (using NODE_ID)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ENABLE_BUS_1 (using SOURCE_BUS_ID_1, TARGET_BUS_ID_1)</li>
+								<li>DISABLE_BUS_1 (using SOURCE_BUS_ID_1, TARGET_BUS_ID_1)</li>
+								<li>ENABLE_BUS_2 (using SOURCE_BUS_ID_2, TARGET_BUS_ID_2)</li>
+								<li>DISABLE_BUS_2 (using SOURCE_BUS_ID_2, TARGET_BUS_ID_2)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INTERACTION_TYPE</li>
+								<li>GET_STATE_EXTERNAL (using SOURCE_BUS_ID_2, TARGET_BUS_ID_2)</li>
+								<li>SET_STATE_EXTERNAL (using ENABLE_BUS_2, DISABLE_BUS_1, ENABLE_BUS_1, DISABLE_BUS_2)</li>
+								<li>ON_BEFORE_INIT_CODE (using ENABLE_BUS_1, DISABLE_BUS_2)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Base_Template">ASOBO_Electrical_Base_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Essential_Bus_Template">ASOBO_ELECTRICAL_Switch_Essential_Bus_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Essential_Bus_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Essential_Bus_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Essential_Bus_SubTemplate">ASOBO_ELECTRICAL_Switch_Essential_Bus_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Alternator_Template">ASOBO_ELECTRICAL_Alternator_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Alternator_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Alternator_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Alternator_SubTemplate">ASOBO_ELECTRICAL_Alternator_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Alternator_Template">ASOBO_ELECTRICAL_Switch_Alternator_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Alternator_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NUM_STATES&gt;2&lt;/NUM_STATES&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Alternator_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NUM_STATES</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Alternator_Template">ASOBO_ELECTRICAL_Alternator_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_Alternator_Template">ASOBO_ELECTRICAL_Push_Alternator_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Alternator_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Alternator_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Alternator_Template">ASOBO_ELECTRICAL_Alternator_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Engine_Bleed_Template">ASOBO_ELECTRICAL_Engine_Bleed_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Engine_Bleed_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Engine_Bleed_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Engine_Bleed_SubTemplate">ASOBO_ELECTRICAL_Engine_Bleed_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_Engine_Bleed_Template">ASOBO_ELECTRICAL_Push_Engine_Bleed_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Engine_Bleed_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Engine_Bleed_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Engine_Bleed_Template">ASOBO_ELECTRICAL_Engine_Bleed_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Update_APU_Shutdown_After_Engine_Start_Template">ASOBO_ELECTRICAL_Update_APU_Shutdown_After_Engine_Start_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Update_APU_Shutdown_After_Engine_Start_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ENGINE_COUNT&gt;1&lt;/ENGINE_COUNT&gt;
+		&lt;SHUTDOWN_DELAY&gt;60&lt;/SHUTDOWN_DELAY&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+		&lt;FREQUENCY&gt;1&lt;/FREQUENCY&gt;
+		&lt;UPDATE_CODE&gt;
+				(A:APU SWITCH, Bool) ! if{ g1 }
+				(A:GENERAL ENG COMBUSTION:1, Bool) ! if{ g1 }
+				#ENGINE_COUNT# 2 &amp;gt;= if{
+				(A:GENERAL ENG COMBUSTION:2, Bool) ! if{ g1 }
+				#ENGINE_COUNT# 3 &amp;gt;= if{
+				(A:GENERAL ENG COMBUSTION:3, Bool) ! if{ g1 }
+				#ENGINE_COUNT# 4 &amp;gt;= if{
+				(A:GENERAL ENG COMBUSTION:4, Bool) ! if{ g1 }
+				}
+				}
+				}
+				(O:XMLVAR_APU_Shutdown_Time) 0 == if{
+				(E:SIMULATION TIME, seconds) #SHUTDOWN_DELAY# + (&amp;gt;O:XMLVAR_APU_Shutdown_Time)
+				}
+				(O:XMLVAR_APU_Shutdown_Time) (E:SIMULATION TIME, seconds) &amp;lt; if{
+				(&amp;gt;K:APU_OFF_SWITCH)
+				}
+				quit :1 0 (&amp;gt;O:XMLVAR_APU_Shutdown_Time) quit
+			&lt;/UPDATE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ENGINE_COUNT</li>
+								<li>SHUTDOWN_DELAY</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>FREQUENCY</li>
+									<li>UPDATE_CODE (using ENGINE_COUNT, SHUTDOWN_DELAY)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Indicator_APU_Ready_Template">ASOBO_ELECTRICAL_Indicator_APU_Ready_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Indicator_APU_Ready_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Indicator_APU_Ready&lt;/NODE_ID&gt;
+		&lt;MIN_PCT_RPM&gt;95&lt;/MIN_PCT_RPM&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+		&lt;EMISSIVE_CODE&gt;(A:APU PCT RPM, Percent) #MIN_PCT_RPM# &amp;gt;&lt;/EMISSIVE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>MIN_PCT_RPM</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Emissive.html#ASOBO_GT_Component_Emissive_Gauge">ASOBO_GT_Component_Emissive_Gauge</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>EMISSIVE_CODE (using MIN_PCT_RPM)</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_APU_Bleed_Template">ASOBO_ELECTRICAL_Switch_APU_Bleed_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Bleed_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Bleed_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_APU_Bleed_SubTemplate">ASOBO_ELECTRICAL_Switch_APU_Bleed_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_APU_Starter_Template">ASOBO_ELECTRICAL_APU_Starter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_APU_Starter_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Starter_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_APU_Starter_SubTemplate">ASOBO_ELECTRICAL_APU_Starter_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_APU_Starter_Template">ASOBO_ELECTRICAL_Push_APU_Starter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_APU_Starter_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Starter_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_APU_Starter_Template">ASOBO_ELECTRICAL_APU_Starter_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_APU_Starter_Template">ASOBO_ELECTRICAL_Switch_APU_Starter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Starter_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NUM_STATES&gt;3&lt;/NUM_STATES&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Starter_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NUM_STATES</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_APU_Starter_Template">ASOBO_ELECTRICAL_APU_Starter_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_APU_Generator_Template">ASOBO_ELECTRICAL_APU_Generator_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_APU_Generator_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Generator_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_APU_Generator_SubTemplate">ASOBO_ELECTRICAL_APU_Generator_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_APU_Generator_Template">ASOBO_ELECTRICAL_Push_APU_Generator_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_APU_Generator_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Generator_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_APU_Generator_Template">ASOBO_ELECTRICAL_APU_Generator_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_APU_Generator_Template">ASOBO_ELECTRICAL_Switch_APU_Generator_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_APU_Generator_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_APU_Generator_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_APU_Generator_Template">ASOBO_ELECTRICAL_APU_Generator_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Bus_Template">ASOBO_ELECTRICAL_Switch_Bus_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Bus_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Bus_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Bus_SubTemplate">ASOBO_ELECTRICAL_Switch_Bus_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Circuit_Template">ASOBO_ELECTRICAL_Circuit_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Circuit_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Circuit_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Circuit_SubTemplate">ASOBO_ELECTRICAL_Circuit_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Circuit_Template">ASOBO_ELECTRICAL_Switch_Circuit_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Circuit_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Circuit_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Circuit_Template">ASOBO_ELECTRICAL_Circuit_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_Circuit_Template">ASOBO_ELECTRICAL_Push_Circuit_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Circuit_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Circuit_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Circuit_Template">ASOBO_ELECTRICAL_Circuit_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Emissive_Battery_Discharge_Template">ASOBO_ELECTRICAL_Emissive_Battery_Discharge_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Emissive_Battery_Discharge_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Emissive_Battery_Discharge_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Emissive_Battery_Discharge_SubTemplate">ASOBO_ELECTRICAL_Emissive_Battery_Discharge_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_BatteryCharge_Template">ASOBO_ELECTRICAL_Push_BatteryCharge_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_BatteryCharge_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Push_BatteryCharge_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Push_BatteryCharge_SubTemplate">ASOBO_ELECTRICAL_Push_BatteryCharge_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Starter_Template">ASOBO_ELECTRICAL_Switch_Starter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Starter_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Starter_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>INTERACTION_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Starter_Template">ASOBO_ELECTRICAL_Starter_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_Starter_Template">ASOBO_ELECTRICAL_Push_Starter_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Starter_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Starter_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>INTERACTION_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Starter_Template">ASOBO_ELECTRICAL_Starter_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Knob_Master_Template">ASOBO_ELECTRICAL_Knob_Master_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Knob_Master_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;SWITCH_TYPE&gt;OFF_ON_START&lt;/SWITCH_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Knob_Master_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>SWITCH_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Knob_Master_SubTemplate">ASOBO_ELECTRICAL_Knob_Master_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Battery_STBY_Template">ASOBO_ELECTRICAL_Switch_Battery_STBY_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Battery_STBY_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;WWISE_EVENT&gt;switch_battery&lt;/WWISE_EVENT&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Battery_STBY_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>WWISE_EVENT</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Battery_STBY_SubTemplate">ASOBO_ELECTRICAL_Switch_Battery_STBY_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Alternator_STBY_Template">ASOBO_ELECTRICAL_Switch_Alternator_STBY_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Alternator_STBY_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Alternator_STBY_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Alternator_STBY_SubTemplate">ASOBO_ELECTRICAL_Switch_Alternator_STBY_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Avionics_STBY_Power_Template">ASOBO_ELECTRICAL_Switch_Avionics_STBY_Power_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_STBY_Power_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_STBY_Power&lt;/ANIM_NAME&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Avionics_STBY_Power&lt;/NODE_ID&gt;
+		&lt;PART_ID&gt;ELECTRICAL_Switch_Avionics_STBY_Power&lt;/PART_ID&gt;
+		&lt;COVER_NODE_ID&gt;ELECTRICAL_Switch_Avionics_STBY_Power_Cover&lt;/COVER_NODE_ID&gt;
+		&lt;COVER_ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_STBY_Power_Cover&lt;/COVER_ANIM_NAME&gt;
+		&lt;WWISE_EVENT_1&gt;avionics_stby_power_switch_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;avionics_stby_power_switch_off&lt;/WWISE_EVENT_2&gt;
+		&lt;BTN_ID&gt;Avionics_STBY_Power&lt;/BTN_ID&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_STANDBY_ACTION&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_STANDBY_TITLE&lt;/TOOLTIP_TITLE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>NODE_ID</li>
+								<li>PART_ID</li>
+								<li>COVER_NODE_ID</li>
+								<li>COVER_ANIM_NAME</li>
+								<li>WWISE_EVENT_1</li>
+								<li>WWISE_EVENT_2</li>
+								<li>BTN_ID</li>
+								<li>TT_DESCRIPTION_ID</li>
+								<li>TOOLTIP_TITLE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template">ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template">ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Avionics_Bus_Tie_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_Bus_Tie&lt;/ANIM_NAME&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Avionics_Bus_Tie&lt;/NODE_ID&gt;
+		&lt;PART_ID&gt;ELECTRICAL_Switch_Avionics_Bus_Tie&lt;/PART_ID&gt;
+		&lt;COVER_NODE_ID&gt;ELECTRICAL_Switch_Avionics_Bus_Tie_Cover&lt;/COVER_NODE_ID&gt;
+		&lt;COVER_ANIM_NAME&gt;ELECTRICAL_Switch_Avionics_Bus_Tie_Cover&lt;/COVER_ANIM_NAME&gt;
+		&lt;SOURCE_BUS_ID&gt;1&lt;/SOURCE_BUS_ID&gt;
+		&lt;DESTINATION_BUS&gt;2&lt;/DESTINATION_BUS&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;WWISE_EVENT_1&gt;avionics_bus_tie_switch_on&lt;/WWISE_EVENT_1&gt;
+		&lt;WWISE_EVENT_2&gt;avionics_bus_tie_switch_off&lt;/WWISE_EVENT_2&gt;
+		&lt;BTN_ID&gt;Avionics_Bus_Tie&lt;/BTN_ID&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_BUSTIE_ACTION_SET&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.ELECTRICAL_SWITCH_AVIONICS_BUSTIE_TITLE&lt;/TOOLTIP_TITLE&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;COVER_IE_NAME&gt;#BTN_ID#_Cover&lt;/COVER_IE_NAME&gt;
+		&lt;COVER_VAR_NAME&gt;XMLVAR_ELECTRICAL_#BTN_ID#_Cover_Opened&lt;/COVER_VAR_NAME&gt;
+		&lt;COVER_VAR_TYPE&gt;I&lt;/COVER_VAR_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Switch_Covered&quot;&gt;
+		&lt;INPUT_EVENT_ID&gt;ELECTRICAL&lt;/INPUT_EVENT_ID&gt;
+		&lt;TOOLTIP_ENTRY_0&gt;ELECTRICAL_#BTN_ID#&lt;/TOOLTIP_ENTRY_0&gt;
+		&lt;COVER_IE_ID_SOURCE&gt;ELECTRICAL&lt;/COVER_IE_ID_SOURCE&gt;
+		&lt;SWITCH_NODE_ID&gt;#NODE_ID#&lt;/SWITCH_NODE_ID&gt;
+		&lt;SWITCH_ANIM_NAME&gt;#ANIM_NAME#&lt;/SWITCH_ANIM_NAME&gt;
+		&lt;TOGGLE_STATE&gt;(&amp;gt;B:ELECTRICAL_#BTN_ID#_Toggle)&lt;/TOGGLE_STATE&gt;
+		&lt;SWITCH_ANIM_CODE&gt;(B:ELECTRICAL_#BTN_ID#, Bool) 100 *&lt;/SWITCH_ANIM_CODE&gt;
+		&lt;SET_STATE_EXTERNAL&gt;
+				#SOURCE_BUS_ID# (A:1:BUS CONNECTION ON:#DESTINATION_BUS#, Bool) p0 != if{
+				#DESTINATION_BUS# #SOURCE_BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE)
+				}
+			&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;GET_STATE_EXTERNAL&gt;#SOURCE_BUS_ID# (A:1:BUS CONNECTION ON:#DESTINATION_BUS#, Bool) sp0&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;SIM_STATE_IS_ON_EXTERNAL&gt;l0&lt;/SIM_STATE_IS_ON_EXTERNAL&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ANIM_NAME</li>
+								<li>NODE_ID</li>
+								<li>PART_ID</li>
+								<li>COVER_NODE_ID</li>
+								<li>COVER_ANIM_NAME</li>
+								<li>SOURCE_BUS_ID</li>
+								<li>DESTINATION_BUS</li>
+								<li>ANIM_LENGTH</li>
+								<li>WWISE_EVENT_1</li>
+								<li>WWISE_EVENT_2</li>
+								<li>BTN_ID</li>
+								<li>TT_DESCRIPTION_ID</li>
+								<li>TOOLTIP_TITLE</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>COVER_IE_NAME (using BTN_ID)</li>
+								<li>COVER_VAR_NAME (using BTN_ID)</li>
+								<li>COVER_VAR_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Generic/Complex/Switch.html#ASOBO_GT_Switch_Covered">ASOBO_GT_Switch_Covered</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INPUT_EVENT_ID</li>
+									<li>TOOLTIP_ENTRY_0 (using BTN_ID)</li>
+									<li>COVER_IE_ID_SOURCE</li>
+									<li>SWITCH_NODE_ID (using NODE_ID)</li>
+									<li>SWITCH_ANIM_NAME (using ANIM_NAME)</li>
+									<li>TOGGLE_STATE (using BTN_ID)</li>
+									<li>SWITCH_ANIM_CODE (using BTN_ID)</li>
+									<li>SET_STATE_EXTERNAL (using SOURCE_BUS_ID, DESTINATION_BUS)</li>
+									<li>GET_STATE_EXTERNAL (using SOURCE_BUS_ID, DESTINATION_BUS)</li>
+									<li>SIM_STATE_IS_ON_EXTERNAL</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_ExternalPower_Template">ASOBO_ELECTRICAL_Switch_ExternalPower_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_ExternalPower_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;NUM_STATES&gt;2&lt;/NUM_STATES&gt;
+		&lt;INTERACTION_TYPE&gt;SWITCH&lt;/INTERACTION_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_ExternalPower_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>NUM_STATES</li>
+								<li>INTERACTION_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_ExternalPower_Template">ASOBO_ELECTRICAL_ExternalPower_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_ExternalPower_Template">ASOBO_ELECTRICAL_Push_ExternalPower_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_ExternalPower_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+		&lt;INTERACTION_TYPE&gt;PUSH&lt;/INTERACTION_TYPE&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_ExternalPower_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+								<li>INTERACTION_TYPE</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_ExternalPower_Template">ASOBO_ELECTRICAL_ExternalPower_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Connection_Template">ASOBO_ELECTRICAL_Switch_Connection_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Connection_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Connection&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Connection&lt;/ANIM_NAME&gt;
+		&lt;SOURCE_BUS_ID&gt;1&lt;/SOURCE_BUS_ID&gt;
+		&lt;DESTINATION_BUS&gt;2&lt;/DESTINATION_BUS&gt;
+		&lt;ANIM_LENGTH&gt;100&lt;/ANIM_LENGTH&gt;
+		&lt;TOGGLE_CODE/&gt;
+		&lt;WWISE_EVENT_1&gt;electrical_switch_on&lt;/WWISE_EVENT_1&gt;
+		&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+		&lt;WWISE_EVENT_2&gt;electrical_switch_off&lt;/WWISE_EVENT_2&gt;
+		&lt;NORMALIZED_TIME_2&gt;0.5&lt;/NORMALIZED_TIME_2&gt;
+		&lt;ON_CONNECTION_ON/&gt;
+		&lt;ON_CONNECTION_OFF/&gt;
+		&lt;IS_CONNECTION_ON/&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;ELECTRICAL&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;IE_CONNECTION_ID&gt;Connection_#ID#&lt;/IE_CONNECTION_ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;SET_CONNECTION_STATE&gt;l1 != if{ #DESTINATION_BUS# #SOURCE_BUS_ID# (&amp;gt;K:2:ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE) }&lt;/SET_CONNECTION_STATE&gt;
+		&lt;IS_CONNECTION_ON&gt;#SOURCE_BUS_ID# (A:1:BUS CONNECTION ON:#DESTINATION_BUS#, Bool) #IS_CONNECTION_ON#&lt;/IS_CONNECTION_ON&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;BTN_ID&gt;#IE_CONNECTION_ID#&lt;/BTN_ID&gt;
+		&lt;GET_STATE_EXTERNAL&gt;#IS_CONNECTION_ON# sp1&lt;/GET_STATE_EXTERNAL&gt;
+		&lt;SIM_STATE_IS_ON_EXTERNAL&gt;l1&lt;/SIM_STATE_IS_ON_EXTERNAL&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Override&quot;&gt;
+		&lt;SET_STATE_ON&gt;1 #SET_CONNECTION_STATE# #ON_CONNECTION_ON#&lt;/SET_STATE_ON&gt;
+		&lt;SET_STATE_OFF&gt;0 #SET_CONNECTION_STATE# #ON_CONNECTION_OFF#&lt;/SET_STATE_OFF&gt;
+		&lt;ON_BEFORE_SET_CODE&gt;#GET_STATE_EXTERNAL# &lt;/ON_BEFORE_SET_CODE&gt;
+		&lt;IS_CONNECTION_ON_EXTERNAL&gt;(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#, Bool)&lt;/IS_CONNECTION_ON_EXTERNAL&gt;
+		&lt;LEFT_SINGLE_CODE&gt;(&amp;gt;B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#_Toggle)&lt;/LEFT_SINGLE_CODE&gt;
+		&lt;TOOLTIP_ENTRY_0&gt;#INPUT_EVENT_ID_SOURCE#_#BTN_ID#&lt;/TOOLTIP_ENTRY_0&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;Condition Valid=&quot;IS_AIRLINER&quot;&gt;
+			&lt;SEQ1_EMISSIVE_CODE&gt;#IS_CONNECTION_ON_EXTERNAL#&lt;/SEQ1_EMISSIVE_CODE&gt;
+			&lt;SEQ2_EMISSIVE_CODE&gt;#IS_CONNECTION_ON_EXTERNAL# !&lt;/SEQ2_EMISSIVE_CODE&gt;
+		&lt;/Condition&gt;
+	&lt;/Parameters&gt;
+	&lt;Condition NotEmpty=&quot;ENSURE_VARIABLE_CONSISTENCY&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Update&quot;&gt;
+			&lt;FREQUENCY&gt;5&lt;/FREQUENCY&gt;
+			&lt;UPDATE_CODE&gt;#ENSURE_VARIABLE_CONSISTENCY#&lt;/UPDATE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Condition&gt;
+	&lt;Condition Valid=&quot;IS_AIRLINER&quot;&gt;
+		&lt;True&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Push_Button_Airliner&quot;&gt;
+				&lt;INPUT_EVENT_ID&gt;ELECTRICAL&lt;/INPUT_EVENT_ID&gt;
+				&lt;Condition Valid=&quot;INVERT_EMISSIVE_STATE&quot;&gt;
+					&lt;True&gt;
+						&lt;SEQ1_EMISSIVE_CODE&gt;#SEQ2_EMISSIVE_CODE#&lt;/SEQ1_EMISSIVE_CODE&gt;
+						&lt;SEQ2_EMISSIVE_CODE&gt;#SEQ1_EMISSIVE_CODE#&lt;/SEQ2_EMISSIVE_CODE&gt;
+					&lt;/True&gt;
+				&lt;/Condition&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/True&gt;
+		&lt;False&gt;
+			&lt;Component ID=&quot;#NODE_ID#_#ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+				&lt;UseInputEvent ID=&quot;ELECTRICAL&quot;&gt;
+					&lt;ANIM&gt;EXTERNAL&lt;/ANIM&gt;
+				&lt;/UseInputEvent&gt;
+				&lt;UseTemplate Name=&quot;ASOBO_GT_Switch_Code&quot;&gt;
+					&lt;ANIM_CODE&gt;#IS_CONNECTION_ON_EXTERNAL# #ANIM_LENGTH# *&lt;/ANIM_CODE&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Component&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+								<li>SOURCE_BUS_ID</li>
+								<li>DESTINATION_BUS</li>
+								<li>ANIM_LENGTH</li>
+								<li>TOGGLE_CODE</li>
+								<li>WWISE_EVENT_1</li>
+								<li>NORMALIZED_TIME_1</li>
+								<li>WWISE_EVENT_2</li>
+								<li>NORMALIZED_TIME_2</li>
+								<li>ON_CONNECTION_ON</li>
+								<li>ON_CONNECTION_OFF</li>
+								<li>IS_CONNECTION_ON</li>
+								<li>INPUT_EVENT_ID_SOURCE</li>
+								<li>IE_CONNECTION_ID (using ID)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SET_CONNECTION_STATE (using DESTINATION_BUS, SOURCE_BUS_ID)</li>
+								<li>IS_CONNECTION_ON (using SOURCE_BUS_ID, DESTINATION_BUS, IS_CONNECTION_ON)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>BTN_ID (using IE_CONNECTION_ID)</li>
+								<li>GET_STATE_EXTERNAL (using IS_CONNECTION_ON)</li>
+								<li>SIM_STATE_IS_ON_EXTERNAL</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SET_STATE_ON (using SET_CONNECTION_STATE, ON_CONNECTION_ON)</li>
+								<li>SET_STATE_OFF (using SET_CONNECTION_STATE, ON_CONNECTION_OFF)</li>
+								<li>ON_BEFORE_SET_CODE (using GET_STATE_EXTERNAL)</li>
+								<li>IS_CONNECTION_ON_EXTERNAL (using INPUT_EVENT_ID_SOURCE, BTN_ID)</li>
+								<li>LEFT_SINGLE_CODE (using INPUT_EVENT_ID_SOURCE, BTN_ID)</li>
+								<li>TOOLTIP_ENTRY_0 (using INPUT_EVENT_ID_SOURCE, BTN_ID)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Condition: Valid(IS_AIRLINER)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>SEQ1_EMISSIVE_CODE (using IS_CONNECTION_ON_EXTERNAL)</li>
+												<li>SEQ2_EMISSIVE_CODE (using IS_CONNECTION_ON_EXTERNAL)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: NotEmpty(ENSURE_VARIABLE_CONSISTENCY)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: True</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Updates.html#ASOBO_GT_Update">ASOBO_GT_Update</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>FREQUENCY</li>
+													<li>UPDATE_CODE (using ENSURE_VARIABLE_CONSISTENCY)</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+					<p class="fakeh5">Condition: Valid(IS_AIRLINER)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: True</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Templates used:</p>
+									<ul>
+										<li>
+											<a href="../Generic/Complex/PushButton.html#ASOBO_GT_Push_Button_Airliner">ASOBO_GT_Push_Button_Airliner</a>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>INPUT_EVENT_ID</li>
+												</ul>
+												<p class="fakeh5">Condition: Valid(INVERT_EMISSIVE_STATE)</p>
+												<ul>
+													
+													<li>
+														<div>
+															<div class="collapsible">Case: True</div>
+															<div class="collapsibleContent">
+																<p class="fakeh5">Parameters set:</p>
+																<ul>
+																	<li>SEQ1_EMISSIVE_CODE (using SEQ2_EMISSIVE_CODE)</li>
+																	<li>SEQ2_EMISSIVE_CODE (using SEQ1_EMISSIVE_CODE)</li>
+																</ul>
+															</div>
+														</div>
+													</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>NODE_ID</li>
+										<li>ID</li>
+									</ul>
+									<p class="fakeh5">Components:</p>
+									<ul>
+										<li>
+											<span>#NODE_ID#_#ID# (Node: #NODE_ID#)</span>
+											<div>
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>ANIM</li>
+												</ul>
+												<p class="fakeh5">Templates used:</p>
+												<ul>
+													<li>
+														<a href="../Generic/Complex/Switch.html#ASOBO_GT_Switch_Code">ASOBO_GT_Switch_Code</a>
+														<div>
+															<p class="fakeh5">Parameters set:</p>
+															<ul>
+																<li>ANIM_CODE (using IS_CONNECTION_ON_EXTERNAL, ANIM_LENGTH)</li>
+															</ul>
+														</div>
+													</li>
+												</ul>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Procedure_Template">ASOBO_ELECTRICAL_Procedure_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Procedure_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Procedure_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Procedure_SubTemplate">ASOBO_ELECTRICAL_Procedure_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Procedure_Template">ASOBO_ELECTRICAL_Switch_Procedure_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Procedure_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Procedure_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Switch&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Procedure_Template">ASOBO_ELECTRICAL_Procedure_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_Procedure_Template">ASOBO_ELECTRICAL_Push_Procedure_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Procedure_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Procedure_Template&quot;&gt;
+		&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Electrical.html#ASOBO_ELECTRICAL_Procedure_Template">ASOBO_ELECTRICAL_Procedure_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>INTERACTION_TYPE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_Autopilot_Template">ASOBO_ELECTRICAL_Switch_Breaker_Autopilot_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Autopilot_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_Autopilot&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_Autopilot&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;AUTOPILOT&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_AvnFan_Template">ASOBO_ELECTRICAL_Switch_Breaker_AvnFan_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_AvnFan_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_AvnFan&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_AvnFan&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;AVNFAN&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_GPS_Template">ASOBO_ELECTRICAL_Switch_Breaker_GPS_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_GPS_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_GPS&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_GPS&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;GPS&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_Avionics_Template">ASOBO_ELECTRICAL_Switch_Breaker_Avionics_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Avionics_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_Avionics&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_Avionics&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;AVNBUS1&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM1_Template">ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM1_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM1_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_NAVCOM1&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_NAVCOM1&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;NAVCOM1&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM2_Template">ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM2_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM2_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_NAVCOM2&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_NAVCOM2&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;NAVCOM2&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM3_Template">ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM3_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_NAVCOM3_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_NAVCOM3&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_NAVCOM3&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;NAVCOM3&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_ADF_Template">ASOBO_ELECTRICAL_Switch_Breaker_ADF_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_ADF_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_ADF&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_ADF&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;ADF&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_XPNDR_Template">ASOBO_ELECTRICAL_Switch_Breaker_XPNDR_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_XPNDR_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_XPNDR&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_XPNDR&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;XPNDR&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_FLAP_Template">ASOBO_ELECTRICAL_Switch_Breaker_FLAP_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_FLAP_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_FLAP&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_FLAP&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;FLAP&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS1_Template">ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS1_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS1_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_AVNBUS1&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_AVNBUS1&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;AVNBUS1&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS2_Template">ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS2_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_AVNBUS2_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_AVNBUS2&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_AVNBUS2&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;AVNBUS2&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_LTSPWR_Template">ASOBO_ELECTRICAL_Switch_Breaker_LTSPWR_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_LTSPWR_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_LTSPWR&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_LTSPWR&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;LTSPWR&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Switch_Breaker_ALTFLD_Template">ASOBO_ELECTRICAL_Switch_Breaker_ALTFLD_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_ALTFLD_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID&gt;ELECTRICAL_Switch_Breaker_ALTFLD&lt;/NODE_ID&gt;
+		&lt;ANIM_NAME&gt;ELECTRICAL_Switch_Breaker_ALTFLD&lt;/ANIM_NAME&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Switch_Breaker_Template&quot;&gt;
+		&lt;CIRCUIT_NAME&gt;ALTFLD&lt;/CIRCUIT_NAME&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Switch_Breaker_Template">ASOBO_ELECTRICAL_Switch_Breaker_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>CIRCUIT_NAME</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Emissive_Bus_Template">ASOBO_ELECTRICAL_Emissive_Bus_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Emissive_Bus_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;BUS_INDEX&gt;-1&lt;/BUS_INDEX&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ELECTRICAL_Emissive_Bus_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>BUS_INDEX</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="Subtemplates/Electrical_Subtemplates.html#ASOBO_ELECTRICAL_Emissive_Bus_SubTemplate">ASOBO_ELECTRICAL_Emissive_Bus_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Base_Template">ASOBO_ELECTRICAL_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Base_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;ELECTRICAL&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;WWISE_PREFIX&gt;ELECTRICAL&lt;/WWISE_PREFIX&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;ELECTRICAL&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INPUT_EVENT_ID_SOURCE</li>
+								<li>WWISE_PREFIX</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Base_Template">ASOBO_Interaction_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Push_Event_Base_Template">ASOBO_ELECTRICAL_Push_Event_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Push_Event_Base_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Push_Event_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;ELECTRICAL&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Push_Event_Base_Template">ASOBO_Interaction_Push_Event_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ELECTRICAL_Pull_Event_Base_Template">ASOBO_ELECTRICAL_Pull_Event_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ELECTRICAL_Pull_Event_Base_Template&quot;&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Pull_Event_Base_Template&quot;&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;ELECTRICAL&lt;/USE_INPUT_EVENT_ID&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Pull_Event_Base_Template">ASOBO_Interaction_Pull_Event_Base_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>USE_INPUT_EVENT_ID</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.3.2_4"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

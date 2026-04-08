@@ -38,7 +38,14 @@ Secondary corroborating reference currently in use:
   - Generic additional package-root support is now in place through `VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS`.
   - Public stock Asobo XMLs from the official Template Explorer are now mounted locally at `/vendor/msfs-stock/`.
   - Package-level stock include resolution is working through that mounted root.
-  - Next step is to broaden generic parsing/compiler coverage for stock XML syntax that still does not parse under a plain DOM pass.
+  - The compiler now supports the missing stock XML constructs that were blocking mounted public Asobo XML use in practice:
+    - dynamic tag preprocessing
+    - `<Parameters Type="Default|Override">`
+    - stock `Condition` / `Switch` parameter-block branches
+    - stock `Process="Int|Float|Param"`
+    - direct `<Update ...>` compilation
+    - `ASOBO_GT_Anim` simvar-driven and code-driven forms
+  - Next step is to keep replacing remaining mirrored built-ins only when the general XML evaluator can consume the stock template family without regressions.
 
 - Tighten stock/shared texture fallback resolution.
   - Generic additional package-root support is now in place for texture fallback lookup as well.

@@ -1,0 +1,866 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>AnimationTriggers.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\Generic\AnimationTriggers.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+
+	&lt;!-- ####################################################################### --&gt;
+	&lt;!-- #################### Animation triggers Templates ##################### --&gt;
+	&lt;!-- ####################################################################### --&gt;
+
+
+	&lt;!--
+		One effect event on animation.
+
+		Required parameter:
+			ANIM_NAME
+			EVENT_NAME
+	--&gt;
+	&lt;Template Name = &quot;ASOBO_GT_AnimTriggers_EffectEvent&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;NORMALIZED_TIME&gt;0&lt;/NORMALIZED_TIME&gt;
+			&lt;DIRECTION&gt;Both&lt;/DIRECTION&gt;
+			&lt;ACTION&gt;Play&lt;/ACTION&gt;
+		&lt;/DefaultTemplateParameters&gt;
+
+		&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+			&lt;False&gt;
+		&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+			&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME#&quot; Direction=&quot;#DIRECTION#&quot;&gt;
+				&lt;EffectEvent Name=&quot;#EVENT_NAME#&quot;/&gt;
+			&lt;/EventTrigger&gt;
+		&lt;/AnimationTriggers&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Template&gt;
+
+	&lt;!-- ####################################################################### --&gt;
+	&lt;!-- ################## Animation Triggers Sound Templates ################# --&gt;
+	&lt;!-- ####################################################################### --&gt;
+
+	&lt;!--
+		One sound event on animation.
+
+		Required parameter:
+			ANIM_NAME
+			WWISE_EVENT
+	--&gt;
+	&lt;Template Name = &quot;ASOBO_GT_AnimTriggers_SoundEvent&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;WWISE_EVENT&gt;button_switch_generic&lt;/WWISE_EVENT&gt;
+			&lt;NORMALIZED_TIME&gt;0.1&lt;/NORMALIZED_TIME&gt;
+			&lt;DIRECTION&gt;Both&lt;/DIRECTION&gt;
+			&lt;ACTION&gt;Play&lt;/ACTION&gt;
+		&lt;/DefaultTemplateParameters&gt;
+		&lt;OverrideTemplateParameters&gt;
+			&lt;Condition Check=&quot;AUDIO_NORMALIZED_TIME&quot;&gt;
+				&lt;NORMALIZED_TIME&gt;#AUDIO_NORMALIZED_TIME#&lt;/NORMALIZED_TIME&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Check=&quot;AUDIO_DIRECTION&quot;&gt;
+				&lt;DIRECTION&gt;#AUDIO_DIRECTION#&lt;/DIRECTION&gt;
+			&lt;/Condition&gt;
+		&lt;/OverrideTemplateParameters&gt;
+
+		&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+			&lt;False&gt;
+		&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+			&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME#&quot; Direction=&quot;#DIRECTION#&quot;&gt;
+				&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT#&quot; Action=&quot;#ACTION#&quot;/&gt;
+			&lt;/EventTrigger&gt;
+		&lt;/AnimationTriggers&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Template&gt;
+
+	&lt;Template Name = &quot;ASOBO_GT_AnimTriggers_SoundEvents_Same&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;WWISE_EVENT&gt;button_switch_generic&lt;/WWISE_EVENT&gt;
+			&lt;ACTION&gt;Play&lt;/ACTION&gt;
+			&lt;COUNT&gt;2&lt;/COUNT&gt;
+			&lt;AUDIO_DIRECTION&gt;Both&lt;/AUDIO_DIRECTION&gt;
+		&lt;/DefaultTemplateParameters&gt;
+		&lt;OverrideTemplateParameters&gt;
+			&lt;Condition Check=&quot;AUDIO_DIRECTION&quot;&gt;
+				&lt;DIRECTION&gt;#AUDIO_DIRECTION#&lt;/DIRECTION&gt;
+			&lt;/Condition&gt;
+		&lt;/OverrideTemplateParameters&gt;
+		
+		&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+			&lt;False&gt;
+		&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+			&lt;EventTrigger Count=&quot;#COUNT#&quot; Direction=&quot;#DIRECTION#&quot;&gt;
+				&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT#&quot; Action=&quot;#ACTION#&quot;/&gt;
+			&lt;/EventTrigger&gt;
+		&lt;/AnimationTriggers&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Template&gt;
+
+	&lt;!--
+		Two same sound events on animation.
+
+		Required parameter:
+			ANIM_NAME
+			WWISE_EVENT
+	--&gt;
+	&lt;Template Name = &quot;ASOBO_GT_AnimTriggers_2SoundEvents&quot;&gt;
+		&lt;DefaultTemplateParameters&gt;
+			&lt;WWISE_EVENT_1&gt;button_switch_generic&lt;/WWISE_EVENT_1&gt;
+			&lt;ACTION_1&gt;Play&lt;/ACTION_1&gt;
+			&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+			&lt;DIRECTION_1&gt;Forward&lt;/DIRECTION_1&gt;
+			&lt;WWISE_EVENT_2&gt;button_switch_generic&lt;/WWISE_EVENT_2&gt;
+			&lt;ACTION_2&gt;Play&lt;/ACTION_2&gt;
+			&lt;NORMALIZED_TIME_2&gt;0.9&lt;/NORMALIZED_TIME_2&gt;
+			&lt;DIRECTION_2&gt;Backward&lt;/DIRECTION_2&gt;
+		&lt;/DefaultTemplateParameters&gt;
+		&lt;OverrideTemplateParameters&gt;
+			&lt;Condition Check=&quot;AUDIO_NORMALIZED_TIME_1&quot;&gt;
+				&lt;NORMALIZED_TIME_1&gt;#AUDIO_NORMALIZED_TIME_1#&lt;/NORMALIZED_TIME_1&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Check=&quot;AUDIO_NORMALIZED_TIME_2&quot;&gt;
+				&lt;NORMALIZED_TIME_2&gt;#AUDIO_NORMALIZED_TIME_2#&lt;/NORMALIZED_TIME_2&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Check=&quot;AUDIO_DIRECTION_1&quot;&gt;
+				&lt;DIRECTION_1&gt;#AUDIO_DIRECTION_1#&lt;/DIRECTION_1&gt;
+			&lt;/Condition&gt;
+			&lt;Condition Check=&quot;AUDIO_DIRECTION_2&quot;&gt;
+				&lt;DIRECTION_2&gt;#AUDIO_DIRECTION_2#&lt;/DIRECTION_2&gt;
+			&lt;/Condition&gt;
+		&lt;/OverrideTemplateParameters&gt;
+
+		&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+			&lt;False&gt;
+		&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+			&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME_1#&quot; Direction=&quot;#DIRECTION_1#&quot;&gt;
+				&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT_1#&quot; Action=&quot;#ACTION_1#&quot;/&gt;
+			&lt;/EventTrigger&gt;
+			&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME_2#&quot; Direction=&quot;#DIRECTION_2#&quot;&gt;
+				&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT_2#&quot; Action=&quot;#ACTION_2#&quot;/&gt;
+			&lt;/EventTrigger&gt;
+		&lt;/AnimationTriggers&gt;
+			&lt;/False&gt;
+		&lt;/Condition&gt;
+	&lt;/Template&gt;
+&lt;/ModelBehaviors&gt;</div>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_GT_AnimTriggers_EffectEvent">ASOBO_GT_AnimTriggers_EffectEvent </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_AnimTriggers_SoundEvent">ASOBO_GT_AnimTriggers_SoundEvent </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_AnimTriggers_SoundEvents_Same">ASOBO_GT_AnimTriggers_SoundEvents_Same </a>
+				</li>
+				<li>
+					<a href="#ASOBO_GT_AnimTriggers_2SoundEvents">ASOBO_GT_AnimTriggers_2SoundEvents </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_GT_AnimTriggers_EffectEvent">ASOBO_GT_AnimTriggers_EffectEvent</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_AnimTriggers_EffectEvent&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;NORMALIZED_TIME&gt;0&lt;/NORMALIZED_TIME&gt;
+		&lt;DIRECTION&gt;Both&lt;/DIRECTION&gt;
+		&lt;ACTION&gt;Play&lt;/ACTION&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+		&lt;False&gt;
+			&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+				&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME#&quot; Direction=&quot;#DIRECTION#&quot;&gt;
+					&lt;EffectEvent Name=&quot;#EVENT_NAME#&quot;/&gt;
+				&lt;/EventTrigger&gt;
+			&lt;/AnimationTriggers&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NORMALIZED_TIME</li>
+								<li>DIRECTION</li>
+								<li>ACTION</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Valid(DISABLE_ANIMATION)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>ANIM_NAME</li>
+										<li>NORMALIZED_TIME</li>
+										<li>DIRECTION</li>
+										<li>EVENT_NAME</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_AnimTriggers_SoundEvent">ASOBO_GT_AnimTriggers_SoundEvent</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_AnimTriggers_SoundEvent&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;WWISE_EVENT&gt;button_switch_generic&lt;/WWISE_EVENT&gt;
+		&lt;NORMALIZED_TIME&gt;0.1&lt;/NORMALIZED_TIME&gt;
+		&lt;DIRECTION&gt;Both&lt;/DIRECTION&gt;
+		&lt;ACTION&gt;Play&lt;/ACTION&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;Condition Check=&quot;AUDIO_NORMALIZED_TIME&quot;&gt;
+			&lt;NORMALIZED_TIME&gt;#AUDIO_NORMALIZED_TIME#&lt;/NORMALIZED_TIME&gt;
+		&lt;/Condition&gt;
+		&lt;Condition Check=&quot;AUDIO_DIRECTION&quot;&gt;
+			&lt;DIRECTION&gt;#AUDIO_DIRECTION#&lt;/DIRECTION&gt;
+		&lt;/Condition&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+		&lt;False&gt;
+			&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+				&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME#&quot; Direction=&quot;#DIRECTION#&quot;&gt;
+					&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT#&quot; Action=&quot;#ACTION#&quot;/&gt;
+				&lt;/EventTrigger&gt;
+			&lt;/AnimationTriggers&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>WWISE_EVENT</li>
+								<li>NORMALIZED_TIME</li>
+								<li>DIRECTION</li>
+								<li>ACTION</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: Check(AUDIO_NORMALIZED_TIME)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NORMALIZED_TIME (using AUDIO_NORMALIZED_TIME)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(AUDIO_DIRECTION)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>DIRECTION (using AUDIO_DIRECTION)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Valid(DISABLE_ANIMATION)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>ANIM_NAME</li>
+										<li>NORMALIZED_TIME</li>
+										<li>DIRECTION</li>
+										<li>WWISE_EVENT</li>
+										<li>ACTION</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_AnimTriggers_SoundEvents_Same">ASOBO_GT_AnimTriggers_SoundEvents_Same</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_AnimTriggers_SoundEvents_Same&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;WWISE_EVENT&gt;button_switch_generic&lt;/WWISE_EVENT&gt;
+		&lt;ACTION&gt;Play&lt;/ACTION&gt;
+		&lt;COUNT&gt;2&lt;/COUNT&gt;
+		&lt;AUDIO_DIRECTION&gt;Both&lt;/AUDIO_DIRECTION&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;Condition Check=&quot;AUDIO_DIRECTION&quot;&gt;
+			&lt;DIRECTION&gt;#AUDIO_DIRECTION#&lt;/DIRECTION&gt;
+		&lt;/Condition&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+		&lt;False&gt;
+			&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+				&lt;EventTrigger Count=&quot;#COUNT#&quot; Direction=&quot;#DIRECTION#&quot;&gt;
+					&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT#&quot; Action=&quot;#ACTION#&quot;/&gt;
+				&lt;/EventTrigger&gt;
+			&lt;/AnimationTriggers&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>WWISE_EVENT</li>
+								<li>ACTION</li>
+								<li>COUNT</li>
+								<li>AUDIO_DIRECTION</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: Check(AUDIO_DIRECTION)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>DIRECTION (using AUDIO_DIRECTION)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Valid(DISABLE_ANIMATION)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>ANIM_NAME</li>
+										<li>COUNT</li>
+										<li>DIRECTION</li>
+										<li>WWISE_EVENT</li>
+										<li>ACTION</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_GT_AnimTriggers_2SoundEvents">ASOBO_GT_AnimTriggers_2SoundEvents</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_GT_AnimTriggers_2SoundEvents&quot;&gt;
+	&lt;DefaultTemplateParameters&gt;
+		&lt;WWISE_EVENT_1&gt;button_switch_generic&lt;/WWISE_EVENT_1&gt;
+		&lt;ACTION_1&gt;Play&lt;/ACTION_1&gt;
+		&lt;NORMALIZED_TIME_1&gt;0.1&lt;/NORMALIZED_TIME_1&gt;
+		&lt;DIRECTION_1&gt;Forward&lt;/DIRECTION_1&gt;
+		&lt;WWISE_EVENT_2&gt;button_switch_generic&lt;/WWISE_EVENT_2&gt;
+		&lt;ACTION_2&gt;Play&lt;/ACTION_2&gt;
+		&lt;NORMALIZED_TIME_2&gt;0.9&lt;/NORMALIZED_TIME_2&gt;
+		&lt;DIRECTION_2&gt;Backward&lt;/DIRECTION_2&gt;
+	&lt;/DefaultTemplateParameters&gt;
+	&lt;OverrideTemplateParameters&gt;
+		&lt;Condition Check=&quot;AUDIO_NORMALIZED_TIME_1&quot;&gt;
+			&lt;NORMALIZED_TIME_1&gt;#AUDIO_NORMALIZED_TIME_1#&lt;/NORMALIZED_TIME_1&gt;
+		&lt;/Condition&gt;
+		&lt;Condition Check=&quot;AUDIO_NORMALIZED_TIME_2&quot;&gt;
+			&lt;NORMALIZED_TIME_2&gt;#AUDIO_NORMALIZED_TIME_2#&lt;/NORMALIZED_TIME_2&gt;
+		&lt;/Condition&gt;
+		&lt;Condition Check=&quot;AUDIO_DIRECTION_1&quot;&gt;
+			&lt;DIRECTION_1&gt;#AUDIO_DIRECTION_1#&lt;/DIRECTION_1&gt;
+		&lt;/Condition&gt;
+		&lt;Condition Check=&quot;AUDIO_DIRECTION_2&quot;&gt;
+			&lt;DIRECTION_2&gt;#AUDIO_DIRECTION_2#&lt;/DIRECTION_2&gt;
+		&lt;/Condition&gt;
+	&lt;/OverrideTemplateParameters&gt;
+	&lt;Condition Valid=&quot;DISABLE_ANIMATION&quot;&gt;
+		&lt;False&gt;
+			&lt;AnimationTriggers Animation=&quot;#ANIM_NAME#&quot;&gt;
+				&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME_1#&quot; Direction=&quot;#DIRECTION_1#&quot;&gt;
+					&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT_1#&quot; Action=&quot;#ACTION_1#&quot;/&gt;
+				&lt;/EventTrigger&gt;
+				&lt;EventTrigger NormalizedTime=&quot;#NORMALIZED_TIME_2#&quot; Direction=&quot;#DIRECTION_2#&quot;&gt;
+					&lt;SoundEvent WwiseEvent=&quot;#WWISE_EVENT_2#&quot; Action=&quot;#ACTION_2#&quot;/&gt;
+				&lt;/EventTrigger&gt;
+			&lt;/AnimationTriggers&gt;
+		&lt;/False&gt;
+	&lt;/Condition&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>WWISE_EVENT_1</li>
+								<li>ACTION_1</li>
+								<li>NORMALIZED_TIME_1</li>
+								<li>DIRECTION_1</li>
+								<li>WWISE_EVENT_2</li>
+								<li>ACTION_2</li>
+								<li>NORMALIZED_TIME_2</li>
+								<li>DIRECTION_2</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersOverride">Override</span>
+						<div>
+							<p class="fakeh5">Condition: Check(AUDIO_NORMALIZED_TIME_1)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NORMALIZED_TIME_1 (using AUDIO_NORMALIZED_TIME_1)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(AUDIO_NORMALIZED_TIME_2)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NORMALIZED_TIME_2 (using AUDIO_NORMALIZED_TIME_2)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(AUDIO_DIRECTION_1)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>DIRECTION_1 (using AUDIO_DIRECTION_1)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+							<p class="fakeh5">Condition: Check(AUDIO_DIRECTION_2)</p>
+							<ul>
+								
+								<li>
+									<div>
+										<div class="collapsible">Case: True</div>
+										<div class="collapsibleContent">
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>DIRECTION_2 (using AUDIO_DIRECTION_2)</li>
+											</ul>
+										</div>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Condition: Valid(DISABLE_ANIMATION)</p>
+					<ul>
+						
+						<li>
+							<div>
+								<div class="collapsible">Case: False</div>
+								<div class="collapsibleContent">
+									<p class="fakeh5">Parameters read:</p>
+									<ul>
+										<li>ANIM_NAME</li>
+										<li>NORMALIZED_TIME_1</li>
+										<li>DIRECTION_1</li>
+										<li>WWISE_EVENT_1</li>
+										<li>ACTION_1</li>
+										<li>NORMALIZED_TIME_2</li>
+										<li>DIRECTION_2</li>
+										<li>WWISE_EVENT_2</li>
+										<li>ACTION_2</li>
+									</ul>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.4.2_2"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

@@ -1,0 +1,1424 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../../../Favicon.png"/>
+    
+<meta name="generator" content="Adobe RoboHelp 2022"/><meta name="rh-authors" content="Mark Alexander"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+		<meta charset="UTF-8"/>
+		<title>ASNAV.xml</title>
+	<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+		<a href="..\..\Template_Explorer.html" class="link_back_header">[Go back to index]</a>
+		<h2 id="top">Asobo\NAVCOM\ASNAV.xml</h2>
+		<div class="collapsible">Source XML</div>
+		<div class="xmlSource collapsibleContent">&lt;ModelBehaviors&gt;
+	&lt;Include ModelBehaviorFile=&quot;Asobo\Inputs\Helpers.xml&quot;/&gt;
+
+	&lt;!-- For input event name --&gt;
+	&lt;InputEvent ID=&quot;AXNAV&quot;&gt;
+		&lt;Presets&gt;
+			&lt;Extend Target=&quot;ASOBO_GIE_Anim_Handling&quot;&gt;
+				&lt;Parameters Type=&quot;Default&quot;&gt;
+					&lt;INPUT_EVENT_ID_SOURCE&gt;#MODEL_PREFIX#&lt;/INPUT_EVENT_ID_SOURCE&gt;
+				&lt;/Parameters&gt;
+			&lt;/Extend&gt;
+		&lt;/Presets&gt;
+	&lt;/InputEvent&gt;
+	
+	&lt;!--
+	Generic input event template
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_ASNAV_Base_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;INPUT_EVENT_ID_SOURCE&gt;#MODEL_PREFIX#&lt;/INPUT_EVENT_ID_SOURCE&gt;
+			&lt;USE_INPUT_EVENT_ID&gt;AXNAV&lt;/USE_INPUT_EVENT_ID&gt;
+			&lt;WWISE_PREFIX&gt;AXNAV&lt;/WWISE_PREFIX&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;/&gt;
+	&lt;/Template&gt;
+
+	&lt;!--
+	Simple push button sending an HTML_EVENT on push
+	--&gt;
+	&lt;Template Name=&quot;ASNAV_SoftKey_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt; &lt;!-- required, need to be defined --&gt;
+			&lt;NODE_ID&gt;&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;&lt;/ANIM_NAME&gt;
+			&lt;ID&gt;&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt; &lt;!-- optionnal, should be good --&gt;
+			&lt;HTML_EVENT&gt;(&amp;gt;H:#MODEL_PREFIX#_SoftKey#ID#Push)&lt;/HTML_EVENT&gt;
+			&lt;TOOLTIP_TITLE&gt;@TT_Package.AS3X_PUSH_SOFTKEY_TITLE&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;&#39;#ID#&#39; (R:1:@TT_Package.AS3X_PUSH_SOFTKEY_ACTION) @sprintf&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#_#ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_ASNAV_Base_Template&quot;&gt;
+				&lt;IE_NAME&gt;SoftKey_#ID#&lt;/IE_NAME&gt;
+				&lt;TT_VALUE&gt;@TT_Package.GT_STATE_NA&lt;/TT_VALUE&gt;
+				&lt;TT_VALUE_IS_DYNAMIC&gt;False&lt;/TT_VALUE_IS_DYNAMIC&gt;
+				&lt;TOOLTIP_TITLE_IS_DYNAMIC&gt;False&lt;/TOOLTIP_TITLE_IS_DYNAMIC&gt;
+				&lt;TT_DESCRIPTION_IS_DYNAMIC&gt;True&lt;/TT_DESCRIPTION_IS_DYNAMIC&gt;
+				&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+				&lt;CREATE_COMPONENT&gt;False&lt;/CREATE_COMPONENT&gt;
+				&lt;SET_STATE_EXTERNAL&gt;
+					1 == if{ #HTML_EVENT# }
+				&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	
+	&lt;!--
+	Simple knob sending 2 event : one for each direction (inc/dec)
+	--&gt;
+	&lt;Template Name=&quot;ASNAV_Knob_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt; &lt;!-- required, need to be defined --&gt;
+			&lt;NODE_ID&gt;&lt;/NODE_ID&gt;
+			&lt;ANIM_NAME&gt;&lt;/ANIM_NAME&gt;
+			&lt;ID&gt;&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt; &lt;!-- optionnal, should be good --&gt;
+			&lt;HTML_EVENT_INC&gt;(&amp;gt;H:#MODEL_PREFIX#_#ID#KnobInc)&lt;/HTML_EVENT_INC&gt;
+			&lt;HTML_EVENT_DEC&gt;(&amp;gt;H:#MODEL_PREFIX#_#ID#KnobDec)&lt;/HTML_EVENT_DEC&gt;
+			&lt;TOOLTIP_TITLE&gt;(R:1:@TT_Package.GT_STATE_NA)&lt;/TOOLTIP_TITLE&gt;
+			&lt;TT_DESCRIPTION_ID&gt;@TT_Package.GT_STATE_NA&lt;/TT_DESCRIPTION_ID&gt;
+			&lt;TT_VALUE&gt;@TT_Package.GT_STATE_NA&lt;/TT_VALUE&gt;
+			&lt;TT_VALUE_IS_DYNAMIC&gt;False&lt;/TT_VALUE_IS_DYNAMIC&gt;
+		&lt;/Parameters&gt;
+		&lt;Component ID=&quot;#NODE_ID#_#ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_ASNAV_Base_Template&quot;&gt;
+				&lt;IE_NAME&gt;Knob_#ID#&lt;/IE_NAME&gt;
+				&lt;TOOLTIP_TITLE_IS_DYNAMIC&gt;True&lt;/TOOLTIP_TITLE_IS_DYNAMIC&gt;
+				&lt;TT_DESCRIPTION_IS_DYNAMIC&gt;False&lt;/TT_DESCRIPTION_IS_DYNAMIC&gt;
+				&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+				&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+				&lt;CREATE_COMPONENT&gt;False&lt;/CREATE_COMPONENT&gt;
+				&lt;SET_STATE_EXTERNAL&gt;
+					0 &amp;gt;= if{ #HTML_EVENT_INC# } els{ #HTML_EVENT_DEC# }
+				&lt;/SET_STATE_EXTERNAL&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;
+	&lt;/Template&gt;
+	
+	&lt;!--
+	The glasscockpit generic template ASOBO_ASNAV_SubTemplate
+	
+		- Required :
+	MODEL_PREFIX
+		- Optionnal :
+	ID (default 1)
+	SCREEN (default #MODEL_PREFIX#_SCREEN_#ID#)
+	
+		- To set a button :
+	node/anim is BUTTON_X (X starting from 0, increment by one for each additional button)
+	event sent will be (&gt;H:#MODEL_PREFIX#_SoftKey#ID#Push)
+	with ID in event equals to X
+	
+		- To set a knob :
+	node/anim is KNOB_X (X starting from 0, increment by one for each additional knob)
+	events sent will be (&gt;H:#MODEL_PREFIX#_#ID#KnobInc) and (&gt;H:#MODEL_PREFIX#_#ID#KnobDec)
+	with ID in event equals to KNOB_X_ID
+	
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_ASNAV_SubTemplate&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;!-- SoftKeys : each send HTLM_EVENT based on button ID number --&gt;
+		&lt;Loop&gt;
+			&lt;Setup&gt;
+				&lt;Param&gt;LOOP_ID&lt;/Param&gt; &lt;From&gt;0&lt;/From&gt; &lt;Inc&gt;1&lt;/Inc&gt;
+				&lt;While&gt;
+					&lt;Arg NotEmpty=&quot;BUTTON_#LOOP_ID#&quot;/&gt;
+				&lt;/While&gt;
+			&lt;/Setup&gt;
+			&lt;Do&gt;
+				&lt;UseTemplate Name=&quot;ASNAV_SoftKey_Template&quot;&gt;
+					&lt;NODE_ID Process=&quot;Param&quot;&gt;BUTTON_#LOOP_ID#&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME Process=&quot;Param&quot;&gt;BUTTON_#LOOP_ID#&lt;/ANIM_NAME&gt;
+					&lt;ID Process=&quot;Param&quot;&gt;LOOP_ID&lt;/ID&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Do&gt;
+		&lt;/Loop&gt;
+		&lt;!-- Knobs : each send HTML_EVENT_INC and HTML_EVENT_DEC based on knob ID name --&gt;
+		&lt;Loop&gt;
+			&lt;Setup&gt;
+				&lt;Param&gt;LOOP_ID&lt;/Param&gt; &lt;From&gt;0&lt;/From&gt; &lt;Inc&gt;1&lt;/Inc&gt;
+				&lt;While&gt;
+					&lt;And&gt;
+						&lt;Arg NotEmpty=&quot;KNOB_#LOOP_ID#&quot;/&gt;
+						&lt;Arg NotEmpty=&quot;KNOB_#LOOP_ID#_ID&quot;/&gt;
+					&lt;/And&gt;
+				&lt;/While&gt;
+			&lt;/Setup&gt;
+			&lt;Do&gt;
+				&lt;UseTemplate Name=&quot;ASNAV_Knob_Template&quot;&gt;
+					&lt;NODE_ID Process=&quot;Param&quot;&gt;KNOB_#LOOP_ID#&lt;/NODE_ID&gt;
+					&lt;ANIM_NAME Process=&quot;Param&quot;&gt;KNOB_#LOOP_ID#&lt;/ANIM_NAME&gt;
+					&lt;ID Process=&quot;Param&quot;&gt;KNOB_#LOOP_ID#_ID&lt;/ID&gt;
+					&lt;Condition Valid=&quot;TT_TITLE_#LOOP_ID#&quot;&gt;
+						&lt;TOOLTIP_TITLE Process=&quot;Param&quot;&gt;TT_TITLE_#LOOP_ID#&lt;/TOOLTIP_TITLE&gt;
+					&lt;/Condition&gt;
+					&lt;Condition Valid=&quot;TT_DESCR_#LOOP_ID#&quot;&gt;
+						&lt;TT_DESCRIPTION_ID Process=&quot;Param&quot;&gt;TT_DESCR_#LOOP_ID#&lt;/TT_DESCRIPTION_ID&gt;
+					&lt;/Condition&gt;
+					&lt;Condition NotEmpty=&quot;TT_VALUE_#LOOP_ID#&quot;&gt;
+						&lt;TT_VALUE Process=&quot;Param&quot;&gt;TT_VALUE_#LOOP_ID#&lt;/TT_VALUE&gt;
+					&lt;/Condition&gt;
+					&lt;Condition Valid=&quot;TT_VALUE_IS_DYNAMIC_#LOOP_ID#&quot;&gt;
+						&lt;TT_VALUE_IS_DYNAMIC&gt;True&lt;/TT_VALUE_IS_DYNAMIC&gt;
+					&lt;/Condition&gt;
+				&lt;/UseTemplate&gt;
+			&lt;/Do&gt;
+		&lt;/Loop&gt;
+		&lt;!-- Screen --&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;SCREEN&gt;#MODEL_PREFIX#_SCREEN_#ID#&lt;/SCREEN&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+			&lt;NODE_ID&gt;#SCREEN#&lt;/NODE_ID&gt;
+			&lt;EMISSIVE_CODE&gt;0.7 (A:CIRCUIT AVIONICS ON, Bool) *&lt;/EMISSIVE_CODE&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Template&gt;
+	
+	
+	&lt;!--
+		AS8030
+	[VCockpit00] (panel.cfg)
+	size_mm				=		480,480
+	pixel_size			=		480,480
+	texture				=		SCREEN
+	htmlgauge00			=		Gliders/ASNAV/AS8030/dist/AS8030.html, 0,0, 480,480
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_AS8030_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;MODEL_PREFIX&gt;AS8030&lt;/MODEL_PREFIX&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;BUTTON_0&gt;Button_Power_#ID#&lt;/BUTTON_0&gt;
+			&lt;BUTTON_1&gt;Button2_#ID#&lt;/BUTTON_1&gt;
+			&lt;BUTTON_2&gt;Button3_#ID#&lt;/BUTTON_2&gt;
+			&lt;BUTTON_3&gt;Button4_#ID#&lt;/BUTTON_3&gt;
+			&lt;BUTTON_4&gt;Button5_#ID#&lt;/BUTTON_4&gt;
+			&lt;BUTTON_5&gt;Button6_#ID#&lt;/BUTTON_5&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;KNOB_0&gt;Knob_Sound_#ID#&lt;/KNOB_0&gt;
+			&lt;KNOB_1&gt;Knob_Display_#ID#&lt;/KNOB_1&gt;
+			&lt;KNOB_2&gt;Knob_Search_#ID#&lt;/KNOB_2&gt;
+			&lt;KNOB_3&gt;Knob_Move_#ID#&lt;/KNOB_3&gt;
+			&lt;KNOB_0_ID&gt;UpperLeft&lt;/KNOB_0_ID&gt;
+			&lt;KNOB_1_ID&gt;UpperRight&lt;/KNOB_1_ID&gt;
+			&lt;KNOB_2_ID&gt;BottomLeft&lt;/KNOB_2_ID&gt;
+			&lt;KNOB_3_ID&gt;BottomRight&lt;/KNOB_3_ID&gt;
+			&lt;TT_TITLE_0&gt;(R:1:@TT_Package.GT_STATE_VOLUME) (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_0&gt;
+			&lt;TT_TITLE_1&gt;(R:1:@TT_Package.GT_STATE_MODE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_1&gt;
+			&lt;TT_TITLE_2&gt;(R:1:@TT_Package.GT_STATE_ZOOM)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_2&gt;
+			&lt;TT_TITLE_3&gt;(R:1:@TT_Package.GT_STATE_PAGE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_3&gt;
+			&lt;TT_DESCR_0&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_0&gt;
+			&lt;TT_DESCR_1&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_1&gt;
+			&lt;TT_DESCR_2&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_2&gt;
+			&lt;TT_DESCR_3&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_3&gt;
+			&lt;TT_VALUE_0&gt;(L:XMLVAR_VARIOMETER_VOLUME) &#39;%d%%&#39; @sprintf&lt;/TT_VALUE_0&gt;
+			&lt;TT_VALUE_IS_DYNAMIC_0&gt;True&lt;/TT_VALUE_IS_DYNAMIC_0&gt;
+			&lt;TT_VALUE_2&gt;(L:XMLVAR_ASNAV_ZOOM) &#39;%.1fNM&#39; @sprintf&lt;/TT_VALUE_2&gt;
+			&lt;TT_VALUE_IS_DYNAMIC_2&gt;True&lt;/TT_VALUE_IS_DYNAMIC_2&gt;
+			&lt;COUNT&gt;36&lt;/COUNT&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;SCREEN&gt;LX8030_Screen_#ID#&lt;/SCREEN&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ASNAV_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	
+		
+	&lt;!--
+		AS9070
+	[VCockpit00] (panel.cfg)
+	size_mm				=		480,800
+	pixel_size			=		480,800
+	texture				=		LX9000_SCREEN
+	htmlgauge00			=		Gliders/ASNAV/AS8030/dist/AS9070.html, 0,0, 480,800
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_AS9070_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;MODEL_PREFIX&gt;AS9070&lt;/MODEL_PREFIX&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;BUTTON_0&gt;Button1_#ID#&lt;/BUTTON_0&gt;
+			&lt;BUTTON_1&gt;Button2_#ID#&lt;/BUTTON_1&gt;
+			&lt;BUTTON_2&gt;Button3_#ID#&lt;/BUTTON_2&gt;
+			&lt;BUTTON_3&gt;Button_Power_#ID#&lt;/BUTTON_3&gt;
+			&lt;BUTTON_4&gt;Button5_#ID#&lt;/BUTTON_4&gt;
+			&lt;BUTTON_5&gt;Button6_#ID#&lt;/BUTTON_5&gt;
+			&lt;BUTTON_6&gt;Button7_#ID#&lt;/BUTTON_6&gt;
+			&lt;BUTTON_7&gt;Button8_#ID#&lt;/BUTTON_7&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;KNOB_0&gt;Knob_VOLUME_#ID#&lt;/KNOB_0&gt;
+			&lt;KNOB_1&gt;Knob_MODE_#ID#&lt;/KNOB_1&gt;
+			&lt;KNOB_2&gt;Knob_PAGE_#ID#&lt;/KNOB_2&gt;
+			&lt;KNOB_3&gt;Knob_ZOOM_#ID#&lt;/KNOB_3&gt;
+			&lt;KNOB_0_ID&gt;UpperRight&lt;/KNOB_0_ID&gt;
+			&lt;KNOB_1_ID&gt;BottomRight&lt;/KNOB_1_ID&gt;
+			&lt;KNOB_2_ID&gt;BottomLeft&lt;/KNOB_2_ID&gt;
+			&lt;KNOB_3_ID&gt;UpperLeft&lt;/KNOB_3_ID&gt;
+			&lt;TT_TITLE_0&gt;(R:1:@TT_Package.GT_STATE_MODE) (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_0&gt;
+			&lt;TT_TITLE_1&gt;(R:1:@TT_Package.GT_STATE_PAGE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_1&gt;
+			&lt;TT_TITLE_2&gt;(R:1:@TT_Package.GT_STATE_ZOOM)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_2&gt;
+			&lt;TT_TITLE_3&gt;(R:1:@TT_Package.GT_STATE_VOLUME)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_3&gt;
+			&lt;TT_DESCR_0&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_0&gt;
+			&lt;TT_DESCR_1&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_1&gt;
+			&lt;TT_DESCR_2&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_2&gt;
+			&lt;TT_DESCR_3&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_3&gt;
+			&lt;COUNT&gt;33&lt;/COUNT&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;SCREEN&gt;SCREEN_#ID#&lt;/SCREEN&gt;
+		&lt;/Parameters&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ASNAV_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+	
+	&lt;!--
+		VSI V8 vario
+	[VCockpit00]
+	size_mm				=		320,320
+	pixel_size			=		320,320
+	texture				=		VSI_Digital_01_FRAME
+	htmlgauge00			=		Gliders/ASNAV/AS8/dist/AS8.html, 0,0,320,320
+	--&gt;
+	&lt;Template Name=&quot;ASOBO_Vario_AS8_Template&quot;&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;MODEL_PREFIX&gt;Vario_V8&lt;/MODEL_PREFIX&gt;
+			&lt;ID&gt;1&lt;/ID&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;BUTTON_0&gt;VSI_V8_Button1_#ID#&lt;/BUTTON_0&gt;
+			&lt;BUTTON_1&gt;VSI_V8_Button2_#ID#&lt;/BUTTON_1&gt;
+			&lt;BUTTON_2&gt;VSI_V8_Button3_#ID#&lt;/BUTTON_2&gt;
+		&lt;/Parameters&gt;
+		&lt;Parameters Type=&quot;Default&quot;&gt;
+			&lt;SCREEN&gt;VSI_V8_Screen_#ID#&lt;/SCREEN&gt;
+		&lt;/Parameters&gt;	
+		&lt;Component ID=&quot;INOP&quot;&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Interaction_Tooltip&quot;&gt;
+				&lt;NODE_ID&gt;#BUTTON_0#&lt;/NODE_ID&gt;
+			&lt;/UseTemplate&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Interaction_Tooltip&quot;&gt;
+				&lt;NODE_ID&gt;#BUTTON_1#&lt;/NODE_ID&gt;
+			&lt;/UseTemplate&gt;
+			&lt;UseTemplate Name=&quot;ASOBO_GT_Interaction_Tooltip&quot;&gt;
+				&lt;NODE_ID&gt;#BUTTON_2#&lt;/NODE_ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Component&gt;		
+		&lt;UseTemplate Name=&quot;ASOBO_ASNAV_SubTemplate&quot;/&gt;
+	&lt;/Template&gt;
+
+&lt;/ModelBehaviors&gt;
+
+</div>
+		<h3>Includes</h3>
+		<ul>
+			<li>
+				ModelBehaviorFile: 
+				<a href="../Inputs/Helpers.html">Asobo\Inputs\Helpers.xml</a>
+			</li>
+		</ul>
+		<h3>Templates</h3>
+		<div class="collapsible">Template list</div>
+		<div class="collapsibleContent">
+			<ol class="minitoc-list">
+				<li>
+					<a href="#ASOBO_ASNAV_Base_Template">ASOBO_ASNAV_Base_Template </a>
+				</li>
+				<li>
+					<a href="#ASNAV_SoftKey_Template">ASNAV_SoftKey_Template </a>
+				</li>
+				<li>
+					<a href="#ASNAV_Knob_Template">ASNAV_Knob_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_ASNAV_SubTemplate">ASOBO_ASNAV_SubTemplate </a>
+				</li>
+				<li>
+					<a href="#ASOBO_AS8030_Template">ASOBO_AS8030_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_AS9070_Template">ASOBO_AS9070_Template </a>
+				</li>
+				<li>
+					<a href="#ASOBO_Vario_AS8_Template">ASOBO_Vario_AS8_Template </a>
+				</li>
+			</ol>
+		</div>
+		<ul>
+			<li>
+				<h4 id="ASOBO_ASNAV_Base_Template">ASOBO_ASNAV_Base_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ASNAV_Base_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;INPUT_EVENT_ID_SOURCE&gt;#MODEL_PREFIX#&lt;/INPUT_EVENT_ID_SOURCE&gt;
+		&lt;USE_INPUT_EVENT_ID&gt;AXNAV&lt;/USE_INPUT_EVENT_ID&gt;
+		&lt;WWISE_PREFIX&gt;AXNAV&lt;/WWISE_PREFIX&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_Interaction_Base_Template&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>INPUT_EVENT_ID_SOURCE (using MODEL_PREFIX)</li>
+								<li>USE_INPUT_EVENT_ID</li>
+								<li>WWISE_PREFIX</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="../Inputs/Templates.html#ASOBO_Interaction_Base_Template">ASOBO_Interaction_Base_Template</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASNAV_SoftKey_Template">ASNAV_SoftKey_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASNAV_SoftKey_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID/&gt;
+		&lt;ANIM_NAME/&gt;
+		&lt;ID/&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;HTML_EVENT&gt;(&amp;gt;H:#MODEL_PREFIX#_SoftKey#ID#Push)&lt;/HTML_EVENT&gt;
+		&lt;TOOLTIP_TITLE&gt;@TT_Package.AS3X_PUSH_SOFTKEY_TITLE&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;&amp;apos;#ID#&amp;apos; (R:1:@TT_Package.AS3X_PUSH_SOFTKEY_ACTION) @sprintf&lt;/TT_DESCRIPTION_ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#_#ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ASNAV_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;SoftKey_#ID#&lt;/IE_NAME&gt;
+			&lt;TT_VALUE&gt;@TT_Package.GT_STATE_NA&lt;/TT_VALUE&gt;
+			&lt;TT_VALUE_IS_DYNAMIC&gt;False&lt;/TT_VALUE_IS_DYNAMIC&gt;
+			&lt;TOOLTIP_TITLE_IS_DYNAMIC&gt;False&lt;/TOOLTIP_TITLE_IS_DYNAMIC&gt;
+			&lt;TT_DESCRIPTION_IS_DYNAMIC&gt;True&lt;/TT_DESCRIPTION_IS_DYNAMIC&gt;
+			&lt;INTERACTION_TYPE&gt;Push&lt;/INTERACTION_TYPE&gt;
+			&lt;CREATE_COMPONENT&gt;False&lt;/CREATE_COMPONENT&gt;
+			&lt;SET_STATE_EXTERNAL&gt;
+					1 == if{ #HTML_EVENT# }
+				&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>HTML_EVENT (using MODEL_PREFIX, ID)</li>
+								<li>TOOLTIP_TITLE</li>
+								<li>TT_DESCRIPTION_ID (using ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+						<li>ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID#_#ID# (Node: #NODE_ID#)</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="ASNAV.html#ASOBO_ASNAV_Base_Template">ASOBO_ASNAV_Base_Template</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>IE_NAME (using ID)</li>
+												<li>TT_VALUE</li>
+												<li>TT_VALUE_IS_DYNAMIC</li>
+												<li>TOOLTIP_TITLE_IS_DYNAMIC</li>
+												<li>TT_DESCRIPTION_IS_DYNAMIC</li>
+												<li>INTERACTION_TYPE</li>
+												<li>CREATE_COMPONENT</li>
+												<li>SET_STATE_EXTERNAL (using HTML_EVENT)</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASNAV_Knob_Template">ASNAV_Knob_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASNAV_Knob_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;NODE_ID/&gt;
+		&lt;ANIM_NAME/&gt;
+		&lt;ID/&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;HTML_EVENT_INC&gt;(&amp;gt;H:#MODEL_PREFIX#_#ID#KnobInc)&lt;/HTML_EVENT_INC&gt;
+		&lt;HTML_EVENT_DEC&gt;(&amp;gt;H:#MODEL_PREFIX#_#ID#KnobDec)&lt;/HTML_EVENT_DEC&gt;
+		&lt;TOOLTIP_TITLE&gt;(R:1:@TT_Package.GT_STATE_NA)&lt;/TOOLTIP_TITLE&gt;
+		&lt;TT_DESCRIPTION_ID&gt;@TT_Package.GT_STATE_NA&lt;/TT_DESCRIPTION_ID&gt;
+		&lt;TT_VALUE&gt;@TT_Package.GT_STATE_NA&lt;/TT_VALUE&gt;
+		&lt;TT_VALUE_IS_DYNAMIC&gt;False&lt;/TT_VALUE_IS_DYNAMIC&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;#NODE_ID#_#ID#&quot; Node=&quot;#NODE_ID#&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_ASNAV_Base_Template&quot;&gt;
+			&lt;IE_NAME&gt;Knob_#ID#&lt;/IE_NAME&gt;
+			&lt;TOOLTIP_TITLE_IS_DYNAMIC&gt;True&lt;/TOOLTIP_TITLE_IS_DYNAMIC&gt;
+			&lt;TT_DESCRIPTION_IS_DYNAMIC&gt;False&lt;/TT_DESCRIPTION_IS_DYNAMIC&gt;
+			&lt;INTERACTION_TYPE&gt;Knob&lt;/INTERACTION_TYPE&gt;
+			&lt;IS_INFINITE&gt;True&lt;/IS_INFINITE&gt;
+			&lt;CREATE_COMPONENT&gt;False&lt;/CREATE_COMPONENT&gt;
+			&lt;SET_STATE_EXTERNAL&gt;
+					0 &amp;gt;= if{ #HTML_EVENT_INC# } els{ #HTML_EVENT_DEC# }
+				&lt;/SET_STATE_EXTERNAL&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>NODE_ID</li>
+								<li>ANIM_NAME</li>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>HTML_EVENT_INC (using MODEL_PREFIX, ID)</li>
+								<li>HTML_EVENT_DEC (using MODEL_PREFIX, ID)</li>
+								<li>TOOLTIP_TITLE</li>
+								<li>TT_DESCRIPTION_ID</li>
+								<li>TT_VALUE</li>
+								<li>TT_VALUE_IS_DYNAMIC</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>NODE_ID</li>
+						<li>ID</li>
+					</ul>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>#NODE_ID#_#ID# (Node: #NODE_ID#)</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="ASNAV.html#ASOBO_ASNAV_Base_Template">ASOBO_ASNAV_Base_Template</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>IE_NAME (using ID)</li>
+												<li>TOOLTIP_TITLE_IS_DYNAMIC</li>
+												<li>TT_DESCRIPTION_IS_DYNAMIC</li>
+												<li>INTERACTION_TYPE</li>
+												<li>IS_INFINITE</li>
+												<li>CREATE_COMPONENT</li>
+												<li>SET_STATE_EXTERNAL (using HTML_EVENT_INC, HTML_EVENT_DEC)</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_ASNAV_SubTemplate">ASOBO_ASNAV_SubTemplate</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_ASNAV_SubTemplate&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Loop&gt;
+		&lt;Setup&gt;
+			&lt;Param&gt;LOOP_ID&lt;/Param&gt;
+			&lt;From&gt;0&lt;/From&gt;
+			&lt;Inc&gt;1&lt;/Inc&gt;
+			&lt;While&gt;
+				&lt;Arg NotEmpty=&quot;BUTTON_#LOOP_ID#&quot;/&gt;
+			&lt;/While&gt;
+		&lt;/Setup&gt;
+		&lt;Do&gt;
+			&lt;UseTemplate Name=&quot;ASNAV_SoftKey_Template&quot;&gt;
+				&lt;NODE_ID Process=&quot;Param&quot;&gt;BUTTON_#LOOP_ID#&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME Process=&quot;Param&quot;&gt;BUTTON_#LOOP_ID#&lt;/ANIM_NAME&gt;
+				&lt;ID Process=&quot;Param&quot;&gt;LOOP_ID&lt;/ID&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Do&gt;
+	&lt;/Loop&gt;
+	&lt;Loop&gt;
+		&lt;Setup&gt;
+			&lt;Param&gt;LOOP_ID&lt;/Param&gt;
+			&lt;From&gt;0&lt;/From&gt;
+			&lt;Inc&gt;1&lt;/Inc&gt;
+			&lt;While&gt;
+				&lt;And&gt;
+					&lt;Arg NotEmpty=&quot;KNOB_#LOOP_ID#&quot;/&gt;
+					&lt;Arg NotEmpty=&quot;KNOB_#LOOP_ID#_ID&quot;/&gt;
+				&lt;/And&gt;
+			&lt;/While&gt;
+		&lt;/Setup&gt;
+		&lt;Do&gt;
+			&lt;UseTemplate Name=&quot;ASNAV_Knob_Template&quot;&gt;
+				&lt;NODE_ID Process=&quot;Param&quot;&gt;KNOB_#LOOP_ID#&lt;/NODE_ID&gt;
+				&lt;ANIM_NAME Process=&quot;Param&quot;&gt;KNOB_#LOOP_ID#&lt;/ANIM_NAME&gt;
+				&lt;ID Process=&quot;Param&quot;&gt;KNOB_#LOOP_ID#_ID&lt;/ID&gt;
+				&lt;Condition Valid=&quot;TT_TITLE_#LOOP_ID#&quot;&gt;
+					&lt;TOOLTIP_TITLE Process=&quot;Param&quot;&gt;TT_TITLE_#LOOP_ID#&lt;/TOOLTIP_TITLE&gt;
+				&lt;/Condition&gt;
+				&lt;Condition Valid=&quot;TT_DESCR_#LOOP_ID#&quot;&gt;
+					&lt;TT_DESCRIPTION_ID Process=&quot;Param&quot;&gt;TT_DESCR_#LOOP_ID#&lt;/TT_DESCRIPTION_ID&gt;
+				&lt;/Condition&gt;
+				&lt;Condition NotEmpty=&quot;TT_VALUE_#LOOP_ID#&quot;&gt;
+					&lt;TT_VALUE Process=&quot;Param&quot;&gt;TT_VALUE_#LOOP_ID#&lt;/TT_VALUE&gt;
+				&lt;/Condition&gt;
+				&lt;Condition Valid=&quot;TT_VALUE_IS_DYNAMIC_#LOOP_ID#&quot;&gt;
+					&lt;TT_VALUE_IS_DYNAMIC&gt;True&lt;/TT_VALUE_IS_DYNAMIC&gt;
+				&lt;/Condition&gt;
+			&lt;/UseTemplate&gt;
+		&lt;/Do&gt;
+	&lt;/Loop&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;SCREEN&gt;#MODEL_PREFIX#_SCREEN_#ID#&lt;/SCREEN&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_GT_Component_Emissive_Gauge&quot;&gt;
+		&lt;NODE_ID&gt;#SCREEN#&lt;/NODE_ID&gt;
+		&lt;EMISSIVE_CODE&gt;0.7 (A:CIRCUIT AVIONICS ON, Bool) *&lt;/EMISSIVE_CODE&gt;
+	&lt;/UseTemplate&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SCREEN (using MODEL_PREFIX, ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Parameters read:</p>
+					<ul>
+						<li>LOOP_ID</li>
+					</ul>
+					<p class="fakeh5">Parameters set:</p>
+					<ul>
+						<li>LOOP_ID</li>
+					</ul>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="ASNAV.html#ASNAV_SoftKey_Template">ASNAV_SoftKey_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using LOOP_ID)</li>
+									<li>ANIM_NAME (using LOOP_ID)</li>
+									<li>ID</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="ASNAV.html#ASNAV_Knob_Template">ASNAV_Knob_Template</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using LOOP_ID)</li>
+									<li>ANIM_NAME (using LOOP_ID)</li>
+									<li>ID (using LOOP_ID)</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(TT_TITLE_#LOOP_ID#)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>TOOLTIP_TITLE (using LOOP_ID)</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(TT_DESCR_#LOOP_ID#)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>TT_DESCRIPTION_ID (using LOOP_ID)</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+								<p class="fakeh5">Condition: NotEmpty(TT_VALUE_#LOOP_ID#)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>TT_VALUE (using LOOP_ID)</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+								<p class="fakeh5">Condition: Valid(TT_VALUE_IS_DYNAMIC_#LOOP_ID#)</p>
+								<ul>
+									
+									<li>
+										<div>
+											<div class="collapsible">Case: True</div>
+											<div class="collapsibleContent">
+												<p class="fakeh5">Parameters set:</p>
+												<ul>
+													<li>TT_VALUE_IS_DYNAMIC</li>
+												</ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a href="../Generic/Emissive.html#ASOBO_GT_Component_Emissive_Gauge">ASOBO_GT_Component_Emissive_Gauge</a>
+							<div>
+								<p class="fakeh5">Parameters set:</p>
+								<ul>
+									<li>NODE_ID (using SCREEN)</li>
+									<li>EMISSIVE_CODE</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_AS8030_Template">ASOBO_AS8030_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_AS8030_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;MODEL_PREFIX&gt;AS8030&lt;/MODEL_PREFIX&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;BUTTON_0&gt;Button_Power_#ID#&lt;/BUTTON_0&gt;
+		&lt;BUTTON_1&gt;Button2_#ID#&lt;/BUTTON_1&gt;
+		&lt;BUTTON_2&gt;Button3_#ID#&lt;/BUTTON_2&gt;
+		&lt;BUTTON_3&gt;Button4_#ID#&lt;/BUTTON_3&gt;
+		&lt;BUTTON_4&gt;Button5_#ID#&lt;/BUTTON_4&gt;
+		&lt;BUTTON_5&gt;Button6_#ID#&lt;/BUTTON_5&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;KNOB_0&gt;Knob_Sound_#ID#&lt;/KNOB_0&gt;
+		&lt;KNOB_1&gt;Knob_Display_#ID#&lt;/KNOB_1&gt;
+		&lt;KNOB_2&gt;Knob_Search_#ID#&lt;/KNOB_2&gt;
+		&lt;KNOB_3&gt;Knob_Move_#ID#&lt;/KNOB_3&gt;
+		&lt;KNOB_0_ID&gt;UpperLeft&lt;/KNOB_0_ID&gt;
+		&lt;KNOB_1_ID&gt;UpperRight&lt;/KNOB_1_ID&gt;
+		&lt;KNOB_2_ID&gt;BottomLeft&lt;/KNOB_2_ID&gt;
+		&lt;KNOB_3_ID&gt;BottomRight&lt;/KNOB_3_ID&gt;
+		&lt;TT_TITLE_0&gt;(R:1:@TT_Package.GT_STATE_VOLUME) (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_0&gt;
+		&lt;TT_TITLE_1&gt;(R:1:@TT_Package.GT_STATE_MODE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_1&gt;
+		&lt;TT_TITLE_2&gt;(R:1:@TT_Package.GT_STATE_ZOOM)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_2&gt;
+		&lt;TT_TITLE_3&gt;(R:1:@TT_Package.GT_STATE_PAGE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_3&gt;
+		&lt;TT_DESCR_0&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_0&gt;
+		&lt;TT_DESCR_1&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_1&gt;
+		&lt;TT_DESCR_2&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_2&gt;
+		&lt;TT_DESCR_3&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_3&gt;
+		&lt;TT_VALUE_0&gt;(L:XMLVAR_VARIOMETER_VOLUME) &amp;apos;%d%%&amp;apos; @sprintf&lt;/TT_VALUE_0&gt;
+		&lt;TT_VALUE_IS_DYNAMIC_0&gt;True&lt;/TT_VALUE_IS_DYNAMIC_0&gt;
+		&lt;TT_VALUE_2&gt;(L:XMLVAR_ASNAV_ZOOM) &amp;apos;%.1fNM&amp;apos; @sprintf&lt;/TT_VALUE_2&gt;
+		&lt;TT_VALUE_IS_DYNAMIC_2&gt;True&lt;/TT_VALUE_IS_DYNAMIC_2&gt;
+		&lt;COUNT&gt;36&lt;/COUNT&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;SCREEN&gt;LX8030_Screen_#ID#&lt;/SCREEN&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ASNAV_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>MODEL_PREFIX</li>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>BUTTON_0 (using ID)</li>
+								<li>BUTTON_1 (using ID)</li>
+								<li>BUTTON_2 (using ID)</li>
+								<li>BUTTON_3 (using ID)</li>
+								<li>BUTTON_4 (using ID)</li>
+								<li>BUTTON_5 (using ID)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>KNOB_0 (using ID)</li>
+								<li>KNOB_1 (using ID)</li>
+								<li>KNOB_2 (using ID)</li>
+								<li>KNOB_3 (using ID)</li>
+								<li>KNOB_0_ID</li>
+								<li>KNOB_1_ID</li>
+								<li>KNOB_2_ID</li>
+								<li>KNOB_3_ID</li>
+								<li>TT_TITLE_0</li>
+								<li>TT_TITLE_1</li>
+								<li>TT_TITLE_2</li>
+								<li>TT_TITLE_3</li>
+								<li>TT_DESCR_0</li>
+								<li>TT_DESCR_1</li>
+								<li>TT_DESCR_2</li>
+								<li>TT_DESCR_3</li>
+								<li>TT_VALUE_0</li>
+								<li>TT_VALUE_IS_DYNAMIC_0</li>
+								<li>TT_VALUE_2</li>
+								<li>TT_VALUE_IS_DYNAMIC_2</li>
+								<li>COUNT</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SCREEN (using ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="ASNAV.html#ASOBO_ASNAV_SubTemplate">ASOBO_ASNAV_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_AS9070_Template">ASOBO_AS9070_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_AS9070_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;MODEL_PREFIX&gt;AS9070&lt;/MODEL_PREFIX&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;BUTTON_0&gt;Button1_#ID#&lt;/BUTTON_0&gt;
+		&lt;BUTTON_1&gt;Button2_#ID#&lt;/BUTTON_1&gt;
+		&lt;BUTTON_2&gt;Button3_#ID#&lt;/BUTTON_2&gt;
+		&lt;BUTTON_3&gt;Button_Power_#ID#&lt;/BUTTON_3&gt;
+		&lt;BUTTON_4&gt;Button5_#ID#&lt;/BUTTON_4&gt;
+		&lt;BUTTON_5&gt;Button6_#ID#&lt;/BUTTON_5&gt;
+		&lt;BUTTON_6&gt;Button7_#ID#&lt;/BUTTON_6&gt;
+		&lt;BUTTON_7&gt;Button8_#ID#&lt;/BUTTON_7&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;KNOB_0&gt;Knob_VOLUME_#ID#&lt;/KNOB_0&gt;
+		&lt;KNOB_1&gt;Knob_MODE_#ID#&lt;/KNOB_1&gt;
+		&lt;KNOB_2&gt;Knob_PAGE_#ID#&lt;/KNOB_2&gt;
+		&lt;KNOB_3&gt;Knob_ZOOM_#ID#&lt;/KNOB_3&gt;
+		&lt;KNOB_0_ID&gt;UpperRight&lt;/KNOB_0_ID&gt;
+		&lt;KNOB_1_ID&gt;BottomRight&lt;/KNOB_1_ID&gt;
+		&lt;KNOB_2_ID&gt;BottomLeft&lt;/KNOB_2_ID&gt;
+		&lt;KNOB_3_ID&gt;UpperLeft&lt;/KNOB_3_ID&gt;
+		&lt;TT_TITLE_0&gt;(R:1:@TT_Package.GT_STATE_MODE) (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_0&gt;
+		&lt;TT_TITLE_1&gt;(R:1:@TT_Package.GT_STATE_PAGE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_1&gt;
+		&lt;TT_TITLE_2&gt;(R:1:@TT_Package.GT_STATE_ZOOM)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_2&gt;
+		&lt;TT_TITLE_3&gt;(R:1:@TT_Package.GT_STATE_VOLUME)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf&lt;/TT_TITLE_3&gt;
+		&lt;TT_DESCR_0&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_0&gt;
+		&lt;TT_DESCR_1&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_1&gt;
+		&lt;TT_DESCR_2&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_2&gt;
+		&lt;TT_DESCR_3&gt;@TT_Package.AXNAV_KNOB_SELECTOR_ACTION&lt;/TT_DESCR_3&gt;
+		&lt;COUNT&gt;33&lt;/COUNT&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;SCREEN&gt;SCREEN_#ID#&lt;/SCREEN&gt;
+	&lt;/Parameters&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ASNAV_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>MODEL_PREFIX</li>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>BUTTON_0 (using ID)</li>
+								<li>BUTTON_1 (using ID)</li>
+								<li>BUTTON_2 (using ID)</li>
+								<li>BUTTON_3 (using ID)</li>
+								<li>BUTTON_4 (using ID)</li>
+								<li>BUTTON_5 (using ID)</li>
+								<li>BUTTON_6 (using ID)</li>
+								<li>BUTTON_7 (using ID)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>KNOB_0 (using ID)</li>
+								<li>KNOB_1 (using ID)</li>
+								<li>KNOB_2 (using ID)</li>
+								<li>KNOB_3 (using ID)</li>
+								<li>KNOB_0_ID</li>
+								<li>KNOB_1_ID</li>
+								<li>KNOB_2_ID</li>
+								<li>KNOB_3_ID</li>
+								<li>TT_TITLE_0</li>
+								<li>TT_TITLE_1</li>
+								<li>TT_TITLE_2</li>
+								<li>TT_TITLE_3</li>
+								<li>TT_DESCR_0</li>
+								<li>TT_DESCR_1</li>
+								<li>TT_DESCR_2</li>
+								<li>TT_DESCR_3</li>
+								<li>COUNT</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SCREEN (using ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="ASNAV.html#ASOBO_ASNAV_SubTemplate">ASOBO_ASNAV_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+			<li>
+				<h4 id="ASOBO_Vario_AS8_Template">ASOBO_Vario_AS8_Template</h4>
+				<div class="collapsible">Definition from XML</div>
+				<div class="xmlSource collapsibleContent">&lt;Template Name=&quot;ASOBO_Vario_AS8_Template&quot;&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;MODEL_PREFIX&gt;Vario_V8&lt;/MODEL_PREFIX&gt;
+		&lt;ID&gt;1&lt;/ID&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;BUTTON_0&gt;VSI_V8_Button1_#ID#&lt;/BUTTON_0&gt;
+		&lt;BUTTON_1&gt;VSI_V8_Button2_#ID#&lt;/BUTTON_1&gt;
+		&lt;BUTTON_2&gt;VSI_V8_Button3_#ID#&lt;/BUTTON_2&gt;
+	&lt;/Parameters&gt;
+	&lt;Parameters Type=&quot;Default&quot;&gt;
+		&lt;SCREEN&gt;VSI_V8_Screen_#ID#&lt;/SCREEN&gt;
+	&lt;/Parameters&gt;
+	&lt;Component ID=&quot;INOP&quot;&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Interaction_Tooltip&quot;&gt;
+			&lt;NODE_ID&gt;#BUTTON_0#&lt;/NODE_ID&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Interaction_Tooltip&quot;&gt;
+			&lt;NODE_ID&gt;#BUTTON_1#&lt;/NODE_ID&gt;
+		&lt;/UseTemplate&gt;
+		&lt;UseTemplate Name=&quot;ASOBO_GT_Interaction_Tooltip&quot;&gt;
+			&lt;NODE_ID&gt;#BUTTON_2#&lt;/NODE_ID&gt;
+		&lt;/UseTemplate&gt;
+	&lt;/Component&gt;
+	&lt;UseTemplate Name=&quot;ASOBO_ASNAV_SubTemplate&quot;/&gt;
+&lt;/Template&gt;
+</div>
+				<p class="fakeh5">Parameters initialization:</p>
+				<ul>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>MODEL_PREFIX</li>
+								<li>ID</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>BUTTON_0 (using ID)</li>
+								<li>BUTTON_1 (using ID)</li>
+								<li>BUTTON_2 (using ID)</li>
+							</ul>
+						</div>
+					</li>
+					<li>
+						<span class="templateParametersDefault">Default</span>
+						<div>
+							<p class="fakeh5">Parameters set:</p>
+							<ul>
+								<li>SCREEN (using ID)</li>
+							</ul>
+						</div>
+					</li>
+				</ul>
+				<div>
+					<p class="fakeh5">Components:</p>
+					<ul>
+						<li>
+							<span>INOP</span>
+							<div>
+								<p class="fakeh5">Templates used:</p>
+								<ul>
+									<li>
+										<a href="../Generic/Interactions.html#ASOBO_GT_Interaction_Tooltip">ASOBO_GT_Interaction_Tooltip</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID (using BUTTON_0)</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<a href="../Generic/Interactions.html#ASOBO_GT_Interaction_Tooltip">ASOBO_GT_Interaction_Tooltip</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID (using BUTTON_1)</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<a href="../Generic/Interactions.html#ASOBO_GT_Interaction_Tooltip">ASOBO_GT_Interaction_Tooltip</a>
+										<div>
+											<p class="fakeh5">Parameters set:</p>
+											<ul>
+												<li>NODE_ID (using BUTTON_2)</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					<p class="fakeh5">Templates used:</p>
+					<ul>
+						<li>
+							<a href="ASNAV.html#ASOBO_ASNAV_SubTemplate">ASOBO_ASNAV_SubTemplate</a>
+						</li>
+					</ul>
+				</div>
+				<div class="link_back_container">
+					<a href="#top" class="link_back">[Go back to top]</a>
+					<a href="..\..\Template_Explorer.html" class="link_back">[Go back to index]</a>
+				</div>
+			</li>
+		</ul>
+	
+
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../../../.."
+    gCommonRootRelPath = "../../../../../.."
+    gTopicId = "5.6.1.1.9.1_3"
+  
+//]]></script>
+
+
+  <script src="../../../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

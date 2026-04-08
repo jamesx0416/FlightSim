@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>The Blender Plugin</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="3DS Max"/>
+  <meta name="rh-index-keywords" content="Asset Creation,Blender"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>THE BLENDER PLUGIN</h2>
+  <p>This section of the SDK documentation is for help with the support for <a href="https://www.blender.org/" target="_blank">Blender</a>. This software is partially supported by the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> SDK and can be used when creating models, animations and materials for your add-ons. The plugin is supplied as a ZIP file with the SDK installation, available from the &quot;Blender&quot; folder in the Core SDK install location (which you can get from the <a href="../../Developer_Mode/Menus/Help.htm">Help</a> menu), eg:</p>
+  <p><img alt="The Blender Plugin Folder In The SDK Core Install Location" class="center" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_10_location.png" title="The Blender Plugin Folder In The SDK Core Install Location"/></p>
+  <p> </p>
+  <p>Alternatively, you can get the plugin from the following GitHub repository:</p>
+  <ul>
+    <li><a href="https://github.com/AsoboStudio/glTF-Blender-IO-MSFS" title="MSFS Blender Plugin">https://github.com/AsoboStudio/glTF-Blender-IO-MSFS</a></li>
+  </ul>
+  <p> </p>
+  <h5>IMPORTANT!</h5>
+  <ul>
+    <li>The Blender plugin cannot import <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> files that have been built for a <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> package using the Package Builder within the simulation.</li>
+    <li>The Blender plugin is <em><strong>not</strong></em> compatible with the legacy exporter developed for <span data-keyref="game_fx_short">FSX</span> and other simulations. You should remove this legacy plugin if you have it, or at least disable it (we recommend that you remove it, see here for more details: <a href="The_Blender_Plugin.htm#uninstall">Uninstalling The Blender Add-on</a>).</li>
+    <li>This plugin is only compatible with Blender 3.3.x <span>LTS</span>, 3.6.x <span>LTS</span>, 4.2.x <span>LTS</span>, and 4.5.x <span>LTS</span>. <strong>Other versions are not supported</strong>.</li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="installing">Installing</h3>
+  <p>There are two ways to install the MSFS Blender exporter. Either using the <strong>Edit Preferences Menu</strong> and <strong>Install</strong> tab, or copy/paste the add-on files to your <code class="inline">%APPDATA%</code> folder. Both these installation steps are explained bellow.</p>
+  <p><span class="note"><strong>NOTE</strong>: You may need to restart Blender again after activating the plugin (using either of the methods listed below) for all the options to be visible in the IDE.</span></p>
+  <p> </p>
+  <h4 id="install">Install The ASOBO Blender Add-on Using Blender</h4>
+  <p>This guide assumes you are getting the plugin from the official GitHub repository. However, <strong>if you are using the version supplied with the SDK installer, you can skip to point (3) in the guide</strong>.</p>
+  <p> </p>
+  <ol class="AlphaNumeric">
+    <li>Go to the <a href="https://github.com/AsoboStudio/glTF-Blender-IO-MSFS/releases" target="_blank" title="glTF-Blender-IO-MSFS Releases">Releases</a> section of the Blender repository.</li>
+    <li>Download the zip file <code class="inline">io_scene_gltf2_msfs.zip</code>.<br/>
+      <img alt="The Blender Plugin Zip On Github" class="center" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_1_download.png" title="The Blender Plugin Zip On Github"/>
+    </li>
+    <li>After downloading, open Blender and go to: <em>Edit</em> &gt; <em>Preferences</em>.<br/>
+      <img alt="The Preferences Option In Blender" class="center" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_2_Prefs.png" title="The Preferences Option In Blender"/>
+    </li>
+    <li>Go to <code class="button_grey">Add-ons</code> and click on <code class="button_grey">Install...</code>.<br/>
+      <img alt="Installing An Addon In Blender" class="center" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_3_install.png" title="Installing An Addon In Blender"/>
+    </li>
+    <li>This will bring up the Blender file dialog, where you should navigate to the folder where you have your <code class="inline">io_scene_gltf2_msfs.zip</code> downloaded file, select it, and then click the <code class="button_grey">Install add-on</code> button.<br/>
+      <img alt="The Blender File Dialog" class="center" height="492" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_4_addon.png" title="The Blender File Dialog" width="890"/>
+    </li>
+    <li>Back in the Preferences window, click on the checkbox beside the listed plugin to enable it.<br/>
+      <img alt="Enabling The Plugin After Installing It" class="center" height="216" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_5_enable.png" title="Enabling The Plugin After Installing It" width="702"/>
+    </li>
+  </ol>
+  <p> </p>
+  <h4 id="copy">Installing The ASOBO Blender Add-on Using AppData</h4>
+  <p>This guide assumes you are getting the plugin from the official GitHub repository. However, <strong>if you are using the version supplied with the SDK installer, you can skip to point (3) in the guide</strong>. Regardless of where you got the plugin from, please ensure that you have closed Blender before proceeding.</p>
+  <p> </p>
+  <ol class="AlphaNumeric">
+    <li>Go to the <a href="https://github.com/AsoboStudio/glTF-Blender-IO-MSFS/releases" target="_blank" title="glTF-Blender-IO-MSFS Releases">Releases</a> section of the<span> B</span>lender repository.</li>
+    <li>Download the zip file <code class="inline">io_scene_gltf2_msfs.zip</code>.<br/>
+      <img alt="The Blender Plugin Zip On Github" class="center" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_1_download.png" title="The Blender Plugin Zip On Github"/>
+    </li>
+    <li>Unzip the contents of the file to a temporary location, then browse to that location.</li>
+    <li>Select the <code class="inline">io_scene_gltf2_msfs</code> folder and then copy it to the clipboard (<code class="button_grey">Ctrl</code> + <code class="button_grey">C</code>).<br/>
+      <img alt="The Unzipped Blender Plugin Folder" class="center" height="356" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_6_folder.png" title="The Unzipped Blender Plugin Folder" width="930"/>
+    </li>
+    <li>Now you need to browse to the Blender add-ons folder, which - by default - can be found in one of the following locations:
+      <ul>
+        <li><strong>Windows</strong>: This will usually be in <code class="inline">%AppData%\Blender Foundation\Blender\&lt;blender-version&gt;\scripts\add-ons\</code></li>
+        <li><strong>Mac OS X</strong>: This will be in your Library (Press the <code class="button_grey">Option</code> key when in Finder&#39;s Go menu to open your Library folder) - <code class="inline">\Users\&lt;username&gt;\Library\Application Support\Blender\&lt;blender-version&gt;\scripts\add-ons\</code></li>
+      </ul>
+    </li>
+    <li>Paste the <code class="inline">io_scene_gltf2_msfs</code> folder here (<code class="button_grey">Ctrl</code> + <code class="button_grey">V</code>).</li>
+    <li>After completing this process, you will need to start Blender and then activate the plugin. Activation is done from the Preferences (<em>Edit</em> &gt; <em>Preferences</em>). In the Preferences window, click on the checkbox beside the listed plugin to enable it.<br/>
+      <img alt="Enabling The Plugin After Installing It" class="center" height="216" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_5_enable.png" title="Enabling The Plugin After Installing It" width="702"/>
+    </li>
+  </ol>
+  <p><span class="note"><strong>NOTE</strong>: You may need to restart Blender again after activating the plugin for all the options to be visible in the IDE.</span></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="uninstall">Uninstalling The Blender Add-on</h3>
+  <p>If you previously installed the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> add-on for Blender and wish to remove it before installing an updated version, you need to go ahead and do the following:</p>
+  <p> </p>
+  <ol class="AlphaNumeric">
+    <li>Start by opening Blender and go to: <em>Edit</em> &gt; <em>Preferences</em>.<br/>
+      <img alt="The Preferences Option In Blender" class="center" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_2_Prefs.png" title="The Preferences Option In Blender"/>
+    </li>
+    <li>In the Preferences, you need to go to the add-ons tab, then use the Search function using &quot;gltf&quot;. This will bring up a few plugins, and from them you can delete the<em> Import-Export: Microsoft Flight Simulator gltf Extension</em> using the <code class="button_grey">Remove</code> button.<img alt="Removing The Asobo Add-on From Blender" class="center" height="464" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_7_remove.png" title="Removing The Asobo Add-on From Blender" width="702"/><span class="note">IMPORTANT! Do <strong>not</strong> delete the &quot;Import-Export: gltf 2.0 format&quot; add-on.<span style="background-color: rgb(33, 33, 33); color: rgb(208, 208, 208); font-size: 18px;"></span></span></li>
+  </ol>
+  <p> </p>
+  <p> </p>
+  <h3 id="legacy">Migration of Legacy Blend File Material Types/Modes</h3>
+  <p>Blend files that were made using any version/iteration of the Blender add-on previous to the 1.3.x version, are now considered legacy blend files. This is because legacy blend files had the extensions that are used to create <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> 2.0 files for use in the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> hard-coded into them. However, the <span data-keyref="game_studio">Asobo</span> version of the exporter uses the Khronos default code and adds hooks to this code for the extensions used in the <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> files.</p>
+  <p> </p>
+  <p>The <span data-keyref="game_studio">Asobo</span> exporter also has a much more complex and versatile material node structure that can be seen in the Shader Tab/Window in Blender. Your legacy Flight Simulator material mode/types should be migrated to the new <span data-keyref="game_studio">Asobo</span> <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> material mode/types with the click of the &quot;Migrate Material Data&quot; button in the <strong>MSFS Material Parameters</strong> panel (under the Blender Material Properties).</p>
+  <p><img alt="The Migrate Material Data Button In Blender" class="center" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_8_migrate.png" title="The Migrate Material Data Button In Blender"/></p>
+  <p> </p>
+  <p>Every effort possible has been made to ensure that legacy blend files can be easily and fully migrated to use this add-on and exporter, and we recommend you migrate to add-on version 1.3.x (or above) as soon as possible to ensure future compatibility as this add-on evolves and is updated.</p>
+  <p> </p>
+  <p>Once you have performed a migration, you should look at the shader nodes in your original blend file and make sure the BSDF node parameters are the same as the panel values. This is an important check to make as these can get out of sync when you modify the parameters in the <strong>Surface</strong> section of the <strong>Material Properties</strong> panel instead of modifying them in the <strong>MSFS Material Parameters</strong> section. In particular, pay attention to the <em>Metallic</em> and <em>Roughness</em> Scale and Factor values.</p>
+  <p> </p>
+  <p>The full steps to successfully migrate your blend files are as follows:</p>
+  <ol class="AlphaNumeric">
+    <li>Open your blend file.</li>
+    <li>Select a node/mesh</li>
+    <li>Open the <strong>MSFS Material Params</strong> panel in the <strong>Material Properties</strong>:
+      <ul>
+        <li>You will see a <code class="button_grey">Migrate Material Data</code> button above the MSFS Material Params type drop down list.</li>
+        <li><strong>DO NOT Select a MSFS Material from the drop down</strong>, as this will erase the existing legacy data and you will lose all your material settings.</li>
+      </ul>
+    </li>
+    <li>Click on the <code class="button_grey">Migrate Material Data</code> button</li>
+    <li>Your existing legacy material type/mode will be converted to the new <span data-keyref="game_studio">Asobo</span> MSFS material type shader node structure.</li>
+  </ol>
+  <p> </p>
+  <p>The image below shows before the migration, and if you mouse over it you can see after the migration:</p>
+  <center>
+    <div class="card"><img alt="Card Back" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_9_before.png"/><img alt="Card Front" class="img-top" src="../../assets/images/Additional_Information/blender/plugin/blenderplug_9_after.png"/></div>
+  </center>
+  <p> </p>
+  <p><span class="note"><strong>IMPORTANT!</strong> After migration SAVE YOUR FILE AS A NEW FILE and keep your legacy blend file for future reference.</span></p>
+  <p> </p>
+  <p>All the settings from the legacy node structure are copied to the <span data-keyref="game_studio">Asobo</span> exporter shader node structure. As you can see from the images above, the <span data-keyref="game_studio">Asobo</span> node structure is more complex and there are a lot more nodes. Sometimes some model developers have made changes to the legacy BSDF node that are not reflected in the MSFS Material Params panel data - the variables that are migrated come instead from the legacy panel data, so there may be situations where your material will <em>not</em> look correct. This means that you will need to compare your legacy blend file materials to the new blend file Materials after migration to see if there are any issues like this one. You can do this by opening another Blender instance and opening the legacy file in that, then comparing the MSFS Material Params panel values with the legacy parameter values and adjusting them accordingly.</p>
+  <p> </p>
+  <p>Note that each <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> material will need to be migrated, but any mesh/nodes associated to that material will also have its MSFS Material Parameters migrated.</p>
+  <p> </p>
+  <p>Finally, you may also notice that some MSFS Material Parameters show data but cannot be adjusted. This is in keeping with the <span data-keyref="game_studio">Asobo</span> <a href="../3DS_Max_Plugin/The_3DS_Max_Plugin.htm">3DS Max exporter</a> material parameters.</p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../.."
+    gCommonRootRelPath = "../.."
+    gTopicId = "4.4"
+  
+//]]></script>
+
+
+  <script src="../../template/scripts/topicpage.js"></script>
+  <script src="../../whxdata/layoutconfig.js"></script>
+  <script src="../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

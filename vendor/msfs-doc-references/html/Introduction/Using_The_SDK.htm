@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../assets/css/Prism/prism.js?version=20_4"></script><script src="../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Using The SDK</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content=""/>
+  <meta name="rh-index-keywords" content="SDK,Tutorials"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../assets/css/Prism/prism.js?version=20_4"></script><script src="../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>USING THE SDK</h2>
+  <p>This section of the SDK documentation is designed to give you an insight into the different tools available to you as well as other important information about how to use the SDK to create your <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> add-ons. As such it is really a continuation of the <a href="SDK_Overview.htm">SDK Overview</a> page and, if you haven&#39;t read that yet, then we suggest you do that now then come back to this page and continue.</p>
+  <p> </p>
+  <p> </p>
+  <h3>Projects, Packages and Asset Groups</h3>
+  <p>Add-ons for <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> are developed in the form of <strong>Projects</strong>, and a single project will have one or more independent <strong>packages</strong> within it. A package can contain any type of content supported by the simulation, for example aircraft, scenery or missions and these are defined by adding one or more <strong>Asset Groups</strong> to the package. Asset groups contain the base assets that are used to create the content, like models, or visual effects or combinations of different things.</p>
+  <p> </p>
+  <p>When a package has been built it needs to be added to the simulation, and so it needs to be placed into a specific folder for it to be detected and used. The location that these packages are installed to is set upon installation of <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, and is actually split over <em>two</em> locations:</p>
+  <ul>
+    <li><strong>Official</strong> (for packages downloaded by the game)</li>
+    <li><strong>Community</strong> (where you can install your own packages)</li>
+  </ul>
+  <p>In reality, you only need to worry about the Community folder, as that&#39;s where <em>all </em>user-created Add-On packages will be placed, including any that you make yourself.</p>
+  <p><span class="note"> <strong>NOTE</strong>: Finding the Community folder is explained in the section on <a href="SDK_Overview.htm#community">The Community Folder</a> on the SDK Overview page.</span></p>
+  <p> </p>
+  <p>The &quot;package&quot; itself is a single unit of redistributable content. It consists of a directory containing the <a href="../Developer_Mode/Project_Editor/Asset_Types.htm">asset groups</a> compiled and ready for direct consumption by the simulator in various formats, plus some special files at the top level:</p>
+  <ul>
+    <li><code class="inline">layout.json</code>: This file contains a list of all the other files present in the package</li>
+    <li><code class="inline">manifest.json</code>: This file contains meta-data about the package (e.g: the package name and version number).</li>
+  </ul>
+  <p> </p>
+  <p>The packages concept relies on a system called the <strong>Virtual File System</strong> (or <a href="#" data-popovertext="A &#39;Virtual File System&#39; is programming that forms an interface between an operating system&#39;s kernel and a more concrete file system. The VFS serves as an abstraction layer that gives applications access to different types of file systems and local and network storage devices." data-rhwidget="TextPopOver">VFS</a> for short). In the <a href="#" data-popovertext="A &#39;Virtual File System&#39; is programming that forms an interface between an operating system&#39;s kernel and a more concrete file system. The VFS serves as an abstraction layer that gives applications access to different types of file systems and local and network storage devices." data-rhwidget="TextPopOver">VFS</a>, a package has to be <em>mounted</em> to be accessible to the game - in which case all files present in the package become accessible and can be referenced by files present in other packages. In the case where 2 packages feature file sharing - ie: they have the same <em>relative </em>path inside the package - the <strong>version of the file in the package mounted last will take precedence</strong>. For example:</p>
+  <pre class="codeblock">Packages
++-- package-01
+|   |-- manifest.json
+|   |-- layout.json
+|   +-- MyDirectory
+|       |-- myfile.cfg
++-- package-02
+|   |-- manifest.json
+|   |-- layout.json
+|   +-- MyDirectory
+|       |-- myfile.cfg</pre>
+  <p>In this example, the path <code class="inline">MyDirectory\myfile.cfg</code> will refer to <code class="inline">package-01\MyDirectory\myfile.cfg</code> if <em>package-01</em> was mounted last, or to <code class="inline">package-02\MyDirectory\myfile.cfg</code> in the case <em>package-02</em> was mounted last. Note that files present in a package mounted in the <a href="#" data-popovertext="A &#39;Virtual File System&#39; is programming that forms an interface between an operating system&#39;s kernel and a more concrete file system. The VFS serves as an abstraction layer that gives applications access to different types of file systems and local and network storage devices." data-rhwidget="TextPopOver">VFS</a> can <em>also be referenced by files that are present in other packages</em>.</p>
+  <p> </p>
+  <p> </p>
+  <h3>Creating Your First Package</h3>
+  <p>If you are starting a new project from scratch you will need to make your own package and supply the contents that go within it. For that the general workflow would be as follows:</p>
+  <p> </p>
+  <ul>
+    <li>Open the <a href="../Developer_Mode/Project_Editor/The_Project_Editor.htm">Project Editor</a>.</li>
+    <li>Select <em>Project</em> &gt; <em>New Project</em></li>
+    <li>Click the <code class="button">Add Package</code> button at the bottom</li>
+    <li>Select which kind of package you want to make, either an <strong>Airport</strong> or a <strong>Custom</strong> package:<br/>
+      <img alt="The Add Package Window In The Project Editor" class="center" src="../assets/images/Developer_Mode/project_editor/projed_2_addpackage.png"/>
+    </li>
+    <li>The window will update based on your selection and you can then fill in the detials for the new package:<br/>
+      <img alt="Adding A Custom Package" class="center" src="../assets/images/Developer_Mode/project_editor/projed_3_custom.png"/>
+    </li>
+    <li>Once you have filled in the required data and selected the package type you would click on the <code class="button">Create</code> button.</li>
+    <li>Next you will be prompted to add the first <strong>Asset Group</strong> to the package. Each package will require one or more asset group to be a valid package. For example, an Aircraft may have several asset groups: <a href="../Developer_Mode/Project_Editor/Asset_Types.htm#h3">SimObject</a>, <a href="../Developer_Mode/Project_Editor/Asset_Types.htm#h2">ModelLib</a>, and <a href="../Developer_Mode/Project_Editor/Asset_Types.htm#h1">MaterialLib</a>. So, you should fill in the required details and select an asset group type then click on <code class="button">Create</code>:<img alt="Adding An Asset Group To A Package" class="center" height="311" src="../assets/images/Introduction/add_asset_group.png" width="460"/></li>
+    <li>In the Project Editor you will now see the Package listed and under the package the asset group that you&#39;ve just added. Here you would select the asset group and then in the Inspector window click the <code class="button">Load In Editor</code> button (if available for the selected asset group).</li>
+  </ul>
+  <p> </p>
+  <p>Your new package has been created, and you can start to edit the contents of the asset group it contains, either using the built in editor, or browsing to the <code class="inline">PackageSources</code> location and adding the required files.</p>
+  <p> </p>
+  <p>For a more in-depth explanation of creating packages and asset groups, please see the page on <a href="../Developer_Mode/Project_Editor/The_Project_Editor.htm">The Project Editor</a>.</p>
+  <p> </p>
+  <h4>General Package Folder Structure</h4>
+  <p>When you are creating your add-ons, it&#39;s good practice to get into the habit of maintaining a strict and organised folder hierarchy for each asset. The recommended formatting for the various folders that your package will require is as follows:</p>
+  <pre class="codeblock">&lt;General Packages Folder&gt;
+    + &lt;Package Name&gt;
+        + PackageDefinitions (for package meta-data)
+        + PackageSources (for the different package source files
+            + data
+            + scenery
+            + vegetation
+            + etc...
+        + Sources (for code and/or art resources)</pre>
+  <p>Other folders will be created within this hierarchy by the SDK when you build the Add-on package you are creating, but the above is a good general &quot;rule of thumb&quot; for add-on folder structure. You can see actual working examples of this general structure by examining the different <a href="../Samples_And_Tutorials/Samples_And_Tutorials.htm">Samples, Schemas, Tutorials and Primers</a> supplied with the SDK.</p>
+  <p> </p>
+  <p> </p>
+  <h3>Developer Tools</h3>
+  <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span> departs from its predecessor, <span data-keyref="game_fx_long">Microsoft Flight Simulator X</span> (or <span data-keyref="game_fx_short">FSX</span> for short), in the way that the developer tools are integrated. Where <span data-keyref="game_fx_short">FSX</span> used to provide <em>separate </em>compilers for each type of resource (eg: <code class="inline">bglcompiler.exe</code>, <code class="inline">SimPropCompiler.exe</code> etc...), the compilers for <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> assets are integrated into the simulator executable under the umbrella of a build automation tool called the <strong>Package Tool</strong> (similar in spirit to a <a href="#" data-popovertext="A &#39;makefile&#39; is basically a script that guides an application to choose the appropriate program files that are to be compiled and linked together." data-rhwidget="TextPopOver">Makefile</a> system).</p>
+  <p> </p>
+  <p>Below is an illustration of the process that goes into building two packages that are part of the same project file. Note how <code class="inline">*.<a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a></code> files get compiled to <code class="inline">*.glb</code>, <code class="inline">*.png</code> files get compiled to <code class="inline">*.dds</code> and <code class="inline">*.xml</code> files get compiled to <code class="inline">*.bgl</code>:</p>
+  <p><img alt="Package Creation Process" class="center" src="../assets/images/Introduction/package_creation_process.png"/></p>
+  <p> </p>
+  <p>The Package Tool is part of <a href="../Developer_Mode/Project_Editor/The_Project_Editor.htm">The Project Editor</a> which is part of the internal <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> tool chain. In general the tools you&#39;ll need to make Add-Ons for the sim are as follows:</p>
+  <ul>
+    <li><strong>external tools</strong>: These are tools you&#39;ll need to create some of the content you&#39;ll use, like aircraft models, and there are additional tools distributed as part of the SDK (e.g. the 3D Studio Max <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> exporter plug-in - see the <a href="SDK_Overview.htm">SDK Overview</a> page for more information) to help you use them.</li>
+    <li><strong>in-sim tools</strong>: These are available under the <a href="SDK_Overview.htm">Developer Mode</a> (e.g. <a href="../Developer_Mode/Project_Editor/The_Project_Editor.htm">The Project Editor</a>, <a href="../Developer_Mode/Scenery_Editor/The_Scenery_Editor.htm">The Scenery Editor</a>, <a href="../Developer_Mode/Aircraft_Editor/The_Aircraft_Editor.htm">The Aircraft Editor</a>, etc...).</li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="h">GUIDs</h3>
+  <p>An important part of <em>many</em> of the assets and files that you&#39;ll be creating for Add-Ons is the use of <a href="#" data-popovertext="GUID stands for &#39;Globally Unique IDentifier&#39; which is a 128-bit value used to identify information in computer systems." data-rhwidget="TextPopOver">GUID</a>s for identifying them. For example, in the <code class="inline">cameras.cfg</code> file there is a key like this:</p>
+  <p class="codeblock">Guid = &quot;{195EAB58-9E4A-1E2A-A34C-A8D9D948F078}&quot; ; Camera definition unique identifier. This GUID must be unique.</p>
+  <p>As the comment for that key says, these are <em>unique</em> identifiers for each and every thing that requires it, and it&#39;s up to you to generate them.</p>
+  <p> </p>
+  <p>To make things a little easier, this can be done from within <a href="https://visualstudio.microsoft.com/" target="_blank">Microsoft Visual Studio</a> using the <strong>Create GUID</strong> tool:</p>
+  <p><img alt="Visual Studio Create GUID Tool" class="center" src="../assets/images/Introduction/create_guid_tool.png"/></p>
+  <p>This is available from the <strong>Tools</strong> menu in Visual Studio and will generate a GUID in multiple formats each time you click the <strong>New GUID</strong> button. We recommend using the <strong>Registry Format</strong>, as you can copy and paste that into most files without having to edit anything.</p>
+  <p> </p>
+  <p> </p>
+  <h3>3D Models</h3>
+  <p>In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, 3D models, scenes and animations are stored following the <code class="inline"><a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a></code> file format. <code class="inline">glTF</code> is a <a href="https://www.khronos.org/" target="_blank">Khronos</a>-backed standard file format consisting of a <code class="inline">JSON</code> file and referencing accompanying binary files. In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, <code class="inline">glTF</code> support relies on custom <code class="inline">glTF</code> extensions, whose schemas can be found as part of the SDK installation in the <code class="inline">Schemas</code> subfolder.</p>
+  <p><span class="note"> <strong>NOTE</strong>: The old <code class="inline">MDL</code> file format from <span data-keyref="game_fx_short">FSX</span> is now deprecated and should not be used when developing add-ons for <span data-keyref="game_name">Microsoft Flight Simulator 2020</span></span></p>
+  <p>You can find more information on the creation of 3D models from the <a href="../Asset_Creation/3D_Models/3D_Models.htm">3D Models</a> section of this document.</p>
+  <p> </p>
+  <p> </p>
+  <h3>Textures And Materials</h3>
+  <p>Materials for 3D models are specified in <code class="inline"> <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a></code> files, and the referenced textures are in <code class="inline">*.png</code> format. The materials comply with <a href="#" data-popovertext="This stands for &#39;Physically Based Rendering&#39;, which is a way to render textures that is based on real world lighting values, making it more accurate and consistent under all lighting conditions." data-rhwidget="TextPopOver">PBR</a> (Physically Based Rendering). Upon compilation by the <code class="inline">glTF</code> compiler (invoked by the <strong>Package Tool</strong>), <code class="inline">*.gltf</code> files get compiled to <code class="inline">*.glb</code> and <code class="inline">*.png</code> files get compiled to <code class="inline">*.dds</code> files. The resulting <code class="inline">*.glb</code> file makes use of several <code class="inline">glTF</code> extensions, including <code class="inline">MSFT_texture_dds</code> as well as <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> specific ones.</p>
+  <p> </p>
+  <p>Materials for usage in the scenery tool are edited via <a href="../Developer_Mode/Material_Editor/The_Material_Editor.htm">The Material Editor</a>, which is part of the <strong>Developer Mode</strong>, and are stored in <code class="inline">*.xml</code> format. The source textures are also edited in <code class="inline">*.png</code> format and converted to <code class="inline">*.dds</code> for direct consumption by the simulator runtime.</p>
+  <p> </p>
+  <p>You can find more information on the creation of Textures from the <a href="../Asset_Creation/Textures/Textures.htm">Textures</a> section of this document.</p>
+  <p> </p>
+  <p> </p>
+  <h3>SimObjects</h3>
+  <p>In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> <strong>SimObjects</strong> are entities which have a simulation attached. The main use case for SimObjects is in making aircraft, but they are also used for certain other things like ground vehicles.</p>
+  <p> </p>
+  <h4>Structure</h4>
+  <p>SimObjects are comprised of several files:</p>
+  <ul>
+    <li>meshes and textures, using the <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> file format</li>
+    <li>configuration files, in the form of <code class="inline">*.cfg</code> and <code class="inline">*.xml</code> files</li>
+    <li>checklists, in the form of <code class="inline">*.xml</code> files</li>
+  </ul>
+  <p><span class="note"> <strong>NOTE</strong>: <code class="inline">*.air</code> files (<span data-keyref="game_fx_short">FSX</span> flight model configuration files) have been removed in favor of exposing all flight model parameters in plain text <code class="inline">*.cfg</code> files.</span></p>
+  <h4>Edition</h4>
+  <p>Aircraft configuration files can be edited through the <a href="../Developer_Mode/Aircraft_Editor/The_Aircraft_Editor.htm">Aircraft Editor</a>, which is part of the <strong>Developer Mode</strong>. You can find a tutorial on how to setup the flight model for aircraft using the Aircraft Editor or directly editing the <code class="inline">*.cfg</code> files <a href="../Samples_And_Tutorials/Tutorials/Defining_A_Flight_Model.htm">here</a>.</p>
+  <p> </p>
+  <h4>Model Behaviors</h4>
+  <p><a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> files support animations, but those animations need to be linked to <a href="../Programming_Tools/SimVars/Simulation_Variables.htm">Simulation Variables</a>. This link is done through an <code class="inline">*.xml</code> file which is named after the name of its accompanying <code class="inline">*.gltf</code> file, and the XML has various different sectiopns defining the model behavior and - for the interior of the aircraft - the different input event interactions available.</p>
+  <p> </p>
+  <p>Model behaviors can reuse a library of <code class="inline">XML</code> templates which are stored in the <code class="inline">ModelBehaviorDefs</code> folder in the <a href="#" data-popovertext="A &#39;Virtual File System&#39; is programming that forms an interface between an operating system&#39;s kernel and a more concrete file system. The VFS serves as an abstraction layer that gives applications access to different types of file systems and local and network storage devices." data-rhwidget="TextPopOver">VFS</a> of the package <code class="inline">fs-base-aircrafts-common</code>. This is included as part of the standard SDK installation, and can be found in the <code class="inline">Official</code> folder which resides beside the <a href="SDK_Overview.htm#community">The Community Folder</a>.</p>
+  <p><span class="note"> <strong>NOTE</strong>: This file is the modern equivalent to the <code class="inline">modeldef.xml</code> file that was distributed as part of <span data-keyref="game_fx_short">FSX</span> SDK, which was part of the <code class="inline">*.mdl</code> compilation process.</span></p>
+  <p>You can find more information on model behaviours and the templates available from the following section:</p>
+  <ul>
+    <li><a href="../Content_Configuration/Models/ModelBehaviors/Model_Behaviors.htm">Model Behaviors</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3>Scenery And Airports</h3>
+  <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span> add-ons can feature <strong>scenery</strong> as part of the package, which can be not only areas or <a href="#" data-popovertext="This means a cartographic &#39;Point Of Interest&#39;, which is a specific point location that someone may find useful or interesting. For example, the Eiffel Tower or the Taj Mahal." data-rhwidget="TextPopOver">POI</a> within the world, but also airports. In general these scenery packages are comprised of the following:</p>
+  <ul>
+    <li>3D models, stored in model libraries</li>
+    <li>materials and textures</li>
+    <li>model placement</li>
+    <li>vector data (allowing for trees placement or removal, terra-forming, biome changes...)</li>
+    <li>airports data</li>
+  </ul>
+  <p> </p>
+  <p>Scenery and airports are primarily edited using <a href="../Developer_Mode/Scenery_Editor/The_Scenery_Editor.htm">The Scenery Editor</a> and <a href="../Developer_Mode/Material_Editor/The_Material_Editor.htm">The Material Editor</a>, both of which are available as part of the <strong>Developer Mode</strong>.</p>
+  <p> </p>
+  <p>Scenery object placement and airport data are saved in <code class="inline">*.xml</code> format and vector data is saved in the form of <strong>shapefiles </strong>( <code class="inline">*.shp</code>). Both are compiled to <code class="inline">*.bgl</code> files using the BGL compiler invoked by the <strong>Package Tool</strong> in <a href="../Developer_Mode/Project_Editor/The_Project_Editor.htm">The Project Editor</a>.</p>
+  <p><span class="note"> <strong>NOTE</strong>: <code class="inline">*.xml</code> and shapefiles compilation to <code class="inline">*.bgl</code> files is similar to how the <span data-keyref="game_fx_short">FSX</span> assets pipeline worked. The file formats are similar but have been extended with new features.</span></p>
+  <p> </p>
+  <p> </p>
+  <h3>Missions</h3>
+  <p>Missions can be edited using <a href="../Developer_Mode/Script_Editor/The_Script_Editor.htm">The Script Editor</a>, which is available through the <strong>Developer Mode</strong>. The editor allows for real-time edition of missions, triggers placement and logic edition, and uses a node-based visual display to make it easier to create complex missions for users.</p>
+  <p> </p>
+  <p> </p>
+  <h3>Procedural World Generation</h3>
+  <p>In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> the world is generated using various sources of data, and the world generation supports 3 different quality levels:</p>
+  <ul>
+    <li><strong>Level #1</strong>: Photogrammetry, where meshes are downloaded for each tile</li>
+    <li><strong>Level #2</strong>: Digital Elevation Model (<a href="#" data-popovertext="A &#39;Digital Elevation Model&#39; is a 3D computer graphics representation of elevation data used to represent actual terrain. " data-rhwidget="TextPopOver">DEM</a>) + aerial imagery combination</li>
+    <li><strong>Level #3</strong>: Digital Elevation Model (<a href="#" data-popovertext="A &#39;Digital Elevation Model&#39; is a 3D computer graphics representation of elevation data used to represent actual terrain. " data-rhwidget="TextPopOver">DEM</a>) + texture synthesized ground textures</li>
+  </ul>
+  <p> </p>
+  <p>Level #3 is used for the <em>offline </em>version of the world and/or in cases where the aerial image quality is judged inadequate. As a result, some data is stored locally as part of the installation of the simulator:</p>
+  <ul>
+    <li>Building footprints (stored in <code class="inline"><a href="#" data-popovertext="CGL is a container file format used by the game to hold compressed imagery, elevation and/or vector data. The data is stored following a quadtree scheme, on a mercator projection of the Earth." data-rhwidget="TextPopOver">CGL</a></code> files)</li>
+    <li>Biome information (stored in <code class="inline"><a href="#" data-popovertext="CGL is a container file format used by the game to hold compressed imagery, elevation and/or vector data. The data is stored following a quadtree scheme, on a mercator projection of the Earth." data-rhwidget="TextPopOver">CGL</a></code> files)</li>
+    <li>Vector data (e.g: water and roads, is stored in <code class="inline"><a href="#" data-popovertext="CGL is a container file format used by the game to hold compressed imagery, elevation and/or vector data. The data is stored following a quadtree scheme, on a mercator projection of the Earth." data-rhwidget="TextPopOver">CGL</a></code> files)</li>
+    <li>Textures for procedural ground texture synthesis (stored in <code class="inline"><a href="#" data-popovertext="This refers to the &#39;DirectDraw Surface&#39; container file format, which is a Microsoft format for storing  image data compressed with the S3 Texture Compression (S3TC) algorithm, which can be decompressed directly by the GPUs" data-rhwidget="TextPopOver">DDS</a></code> files)</li>
+    <li>Variations for the vegetation (stored in <code class="inline">XML</code> files)</li>
+    <li>etc...</li>
+  </ul>
+  <p> </p>
+  <p>At the moment this data <strong>cannot be edited by add-ons</strong>, but in the future it may be possible to edit <code class="inline">CGL</code> files. For more information on how the map tile data contained in <code class="inline">CGL</code> files is obtained, see the following Microsoft article:</p>
+  <ul>
+    <li><a href="https://docs.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system" target="_blank">Bing Maps Tile System</a></li>
+  </ul>
+  <p><span class="note"> <strong>NOTE</strong>: The Autogen technology from <span data-keyref="game_fx_short">FSX</span> has effectively been removed in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>.</span></p>
+  <p><span class="note"> <strong>NOTE</strong>: <code class="inline"><a href="#" data-popovertext="CGL is a container file format used by the game to hold compressed imagery, elevation and/or vector data. The data is stored following a quadtree scheme, on a mercator projection of the Earth." data-rhwidget="TextPopOver">CGL</a></code> files are the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> equivalent of <code class="inline"><a href="#" data-popovertext="A BGL file is a type of compressed file format used for efficiently storing multiple files of different types to be used in packages to create elements in the game world." data-rhwidget="TextPopOver">BGL</a></code> files, only for storing imagery, elevation data, vector data and footprints. <code class="inline"><a href="#" data-popovertext="A BGL file is a type of compressed file format used for efficiently storing multiple files of different types to be used in packages to create elements in the game world." data-rhwidget="TextPopOver">BGL</a></code> files are still used when it comes to airport data or edited vector data (in the form of polygons).</span></p>
+  <p> </p>
+  <p> </p>
+  <h3>Effects</h3>
+  <p>Visual effects can be created using <a href="../Developer_Mode/VFX_Editor/The_Visual_Effects_Editor.htm">The Visual Effects Editor</a> while DevMode is active. This editor uses a visual coding system of &quot;nodes&quot; that are connected to create the required visual effect which can then be attached to a SimObject or generated using the appropriate <a href="../Content_Configuration/Models/ModelBehaviors/Model_Behaviors.htm">Model Behaviors</a>. A sample project for the VFX editor is included with the SDK and you can find more information on it here:</p>
+  <ul>
+    <li><a href="../Samples_And_Tutorials/Samples/Misc/SimpleFX.htm">SimpleFX</a></li>
+  </ul>
+  <p> </p>
+  <p>For information on the XML that is generated by the VFX Editor - along with examples of each of the different VFX nodes - please see the following page:</p>
+  <ul>
+    <li><a href="../Content_Configuration/VisualEffects/Visual_Effects.htm">Visual Effects</a></li>
+  </ul>
+  <p> </p>
+  <h4>Legacy FX</h4>
+  <p>Legacy <code class="inline">*.fx</code> files have rudimentary support within <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> but there is no dedicated editor for them and we recommend that you use the VFX editor to create all effects for you add-ons, and only have these legacy format files for legacy add-ons. You can find more information on these legacy effects from the following page:</p>
+  <ul>
+    <li><a href="../Content_Configuration/SimObjects/Aircraft_SimO/Aircraft.htm#h1">Legacy Visual Effects For Lights</a></li>
+  </ul>
+  <p><span class="note"><strong style="font-size: 0.85em;">NOTE</strong><span style="font-size: 0.85em;">: </span><code class="inline">*.fx</code><span style="font-size: 0.85em;"> files are similar to the ones found in </span><span data-keyref="game_fx_short" style="font-size: 0.85em;">FSX</span><span style="font-size: 0.85em;">, but the main difference is that texture links are made to materials defined by the <a href="../Developer_Mode/Material_Editor/The_Material_Editor.htm">Materials Editor</a> instead of links to single albedo textures.</span></span></p>
+  <p> </p>
+  <p> </p>
+  <h3>Sound</h3>
+  <p>The sound engine used in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> is <a href="https://www.audiokinetic.com/products/wwise/" target="_blank">Audiokinetic Wwise</a>, which allows for easy edition of advanced sound effects by sound designers using the Wwise editor. Sound banks are packaged and distributed as part of Wwise file packages ( <code class="inline">*.PC.PCK</code>).</p>
+  <p> </p>
+  <p>Linking Wwise Runtime Parameter Control ( <a href="#" data-popovertext="RTPC stands for &#39;Real-time Parameter Control&#39;, which is a system within Wwise that allows you to map a Wwise property value to an in-game parameter." data-rhwidget="TextPopOver">RTPC</a> for short) to <a href="../Programming_Tools/SimVars/Simulation_Variables.htm">Simulation Variables</a> is done through a file named <a href="../Content_Configuration/Sounds/Sound_Definitions.htm"> <code class="inline">sound.xml</code></a> in the SimObject&#39;s sound folder. You can find more information on creating sound effects for the game from the following section:</p>
+  <ul>
+    <li><a href="../Asset_Creation/Sounds/Sounds.htm">Asset Creation - Sounds</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3>UI</h3>
+  <p><a href="#" data-popovertext="UI stands for &quot;User Interface&quot; and is used to describe the overlays that appear in-game where the player can change settings and interact with the game interface." data-rhwidget="TextPopOver">UI</a> in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> is developed using modern HTML5 technologies (HTML, JavaScript, CSS). However, at the moment UI is <em>not </em>customisable as part of add-ons, although there are plans to make it possible to include UI elements as part of packages sometime in the future.</p>
+  <p> </p>
+  <p> </p>
+  <h3>Gauges</h3>
+  <p>The various aircraft instruments can be created and customised as <strong>gauges</strong> using different techniques depending on what you want to achieve. Broadly these fall into the following two categories:</p>
+  <ul>
+    <li><strong>2D gauges</strong> - Glass cockpits are developed using HTML technologies (similar to <a href="#" data-popovertext="UI stands for &quot;User Interface&quot; and is used to describe the overlays that appear in-game where the player can change settings and interact with the game interface." data-rhwidget="TextPopOver">UI</a>). HTML pages are referenced from the <a href="../Content_Configuration/SimObjects/Aircraft_SimO/Instruments/panel_cfg.htm"> <code class="inline">panel.cfg</code></a> file in the panel folder of a SimObject.</li>
+    <li><strong>3D gauges</strong> - These are part of the <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> model for an aircraft and are essentially made of a mesh, textures and the accompanying animations.</li>
+  </ul>
+  <p><span class="note"> <strong>NOTE</strong>: the old <span data-keyref="game_fx_short">FSX</span> <code class="inline">XML</code> gauges system is still supported but is deprecated in favor of HTML.</span></p>
+  <p><span class="note"><strong>NOTE</strong>: Previously, in <span data-keyref="game_fx_short">FSX</span>, you could use CAB files to store files - primarily used for XML gauges. However, with <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> this is not possible and has been deprecated. CAB files are not supported on Xbox and, as such, they cannot be used for any aircraft packages for that platform. If you have a legacy aircraft that you have updated for <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> and it still uses CAB files, then you will need to resolve this before these aircraft will be available for the Xbox. The simple solution is to simply extract the files from the CAB file into a folder with the same name as the CAB file (minus the extension).</span></p>
+  <p>You can find the following samples included with the SDK to show you how gauges can be created as part of an aircraft package:</p>
+  <ul>
+    <li><a href="../Samples_And_Tutorials/Samples/SimObjects_Aircraft/GaugeAircraft.htm">GaugeAircraft</a> - creating and building custom <a href="#" data-popovertext="WASM is short for &#39;WebAssembly&#39; which is an open standard that defines a portable binary-code format for executable programs. It has a corresponding textual assembly language, as well as interfaces for facilitating interactions between such programs and their host environment." data-rhwidget="TextPopOver">WASM</a> gauges, and linking them to the aircraft</li>
+    <li><a href="../Samples_And_Tutorials/Samples/SimObjects_Aircraft/GdiplusAircraft.htm">GdiplusAircraft</a> - using a static library to extend the graphic capabilities via a <a href="#" data-popovertext="This is a graphics device interface that allows programmers to write device-independent applications." data-rhwidget="TextPopOver">GDI+</a> wrapper of the low level <a href="#" data-popovertext="API stands for &#39;Application Programming Interface&#39; which is a software interface application that defines interactions between multiple intermediary applications." data-rhwidget="TextPopOver">API</a></li>
+    <li><a href="../Samples_And_Tutorials/Samples/SimObjects_Aircraft/MapViewAircraft.htm">MapViewAircraft</a> - A <a href="#" data-popovertext="WASM is short for &#39;WebAssembly&#39; which is an open standard that defines a portable binary-code format for executable programs. It has a corresponding textual assembly language, as well as interfaces for facilitating interactions between such programs and their host environment." data-rhwidget="TextPopOver">WASM</a> example showing how to make glass cockpit screens showing weather/terrain.</li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3>C++ Support</h3>
+  <p>C++ support is provided in the form of <a href="#" data-popovertext="WASM is short for &#39;WebAssembly&#39; which is an open standard that defines a portable binary-code format for executable programs. It has a corresponding textual assembly language, as well as interfaces for facilitating interactions between such programs and their host environment." data-rhwidget="TextPopOver">WASM</a> modules. In particular, this can be used for implementing complex gauges and porting from legacy code. The following <a href="#" data-popovertext="API stands for &#39;Application Programming Interface&#39; which is a software interface application that defines interactions between multiple intermediary applications." data-rhwidget="TextPopOver">API</a>s are currently available:</p>
+  <ul>
+    <li><a href="../Programming_Tools/WASM/Low_Level_API/NanoVG_API.htm">2D vector graphics drawing API</a> ( <a href="../Samples_And_Tutorials/Samples/SimObjects_Aircraft/GaugeAircraft.htm">for gauges</a>)</li>
+    <li><a href="../Programming_Tools/SimConnect/SimConnect_API_Reference.htm">SimConnect</a></li>
+  </ul>
+  <p>More <a href="#" data-popovertext="API stands for &#39;Application Programming Interface&#39; which is a software interface application that defines interactions between multiple intermediary applications." data-rhwidget="TextPopOver">API</a>s may be authored depending on community feedback.</p>
+  <p> </p>
+  <p> </p>
+  <h3>DRM</h3>
+  <p>Digital Rights Management (<a href="#" data-popovertext="&#39;Digital Rights Management&#39; is a set of access control technologies that try to control the use, modification, and/or distribution of copyrighted works (such as software and multimedia content)." data-rhwidget="TextPopOver">DRM</a> for short) functionality is currently applied automatically to all Marketplace packages. However it should be noted that HTML/javascript <strong>can not be encrypted</strong> and additionally, javascript can not read encrypted data at all (even if it&#39;s from your own package), only with <a href="#" data-popovertext="WASM is short for &#39;WebAssembly&#39; which is an open standard that defines a portable binary-code format for executable programs. It has a corresponding textual assembly language, as well as interfaces for facilitating interactions between such programs and their host environment." data-rhwidget="TextPopOver">WASM</a> can you read encrypted data from your own package.</p>
+  <p> </p>
+  <p>A more comprehensive and customisable DRM solution is in development and will be provided through the official marketplace framework when it&#39;s ready.</p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = ".."
+    gCommonRootRelPath = ".."
+    gTopicId = "1.0_3"
+  
+//]]></script>
+
+
+  <script src="../template/scripts/topicpage.js"></script>
+  <script src="../whxdata/layoutconfig.js"></script>
+  <script src="../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

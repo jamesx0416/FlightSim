@@ -1,0 +1,589 @@
+{
+  "docs": [
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/AircraftTypes/Gliders.html",
+      "path": "msfs-template-explorer-html/Asobo/AircraftTypes/Gliders.html",
+      "label": "AircraftTypes\\Gliders.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/AircraftTypes/Rotorcrafts.html",
+      "path": "msfs-template-explorer-html/Asobo/AircraftTypes/Rotorcrafts.html",
+      "label": "AircraftTypes\\Rotorcrafts.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Airliner/Airbus.html",
+      "path": "msfs-template-explorer-html/Asobo/Airliner/Airbus.html",
+      "label": "Airliner\\Airbus.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Airliner/AirlinerCommon.html",
+      "path": "msfs-template-explorer-html/Asobo/Airliner/AirlinerCommon.html",
+      "label": "Airliner\\AirlinerCommon.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Airliner/AS02A.html",
+      "path": "msfs-template-explorer-html/Asobo/Airliner/AS02A.html",
+      "label": "Airliner\\AS02A.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Airliner/Boeing.html",
+      "path": "msfs-template-explorer-html/Asobo/Airliner/Boeing.html",
+      "label": "Airliner\\Boeing.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Airliner/FMC.html",
+      "path": "msfs-template-explorer-html/Asobo/Airliner/FMC.html",
+      "label": "Airliner\\FMC.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Airliner/GlassCockpit.html",
+      "path": "msfs-template-explorer-html/Asobo/Airliner/GlassCockpit.html",
+      "label": "Airliner\\GlassCockpit.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Airliner/Inputs/Airliner_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Airliner/Inputs/Airliner_Inputs.html",
+      "label": "Airliner\\Inputs\\Airliner_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Aircraft.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Aircraft.html",
+      "label": "Common\\Aircraft.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Autopilot.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Autopilot.html",
+      "label": "Common\\Autopilot.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Deice.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Deice.html",
+      "label": "Common\\Deice.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Electrical.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Electrical.html",
+      "label": "Common\\Electrical.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Engine.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Engine.html",
+      "label": "Common\\Engine.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Fuel.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Fuel.html",
+      "label": "Common\\Fuel.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Handling.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Handling.html",
+      "label": "Common\\Handling.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Index.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Index.html",
+      "label": "Common\\Index.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Aircraft_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Aircraft_Inputs.html",
+      "label": "Common\\Inputs\\Aircraft_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Autopilot_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Autopilot_Inputs.html",
+      "label": "Common\\Inputs\\Autopilot_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Common_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Common_Inputs.html",
+      "label": "Common\\Inputs\\Common_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Deice_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Deice_Inputs.html",
+      "label": "Common\\Inputs\\Deice_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Electrical_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Electrical_Inputs.html",
+      "label": "Common\\Inputs\\Electrical_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Engine_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Engine_Inputs.html",
+      "label": "Common\\Inputs\\Engine_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Fuel_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Fuel_Inputs.html",
+      "label": "Common\\Inputs\\Fuel_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Handling_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Handling_Inputs.html",
+      "label": "Common\\Inputs\\Handling_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Instrument_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Instrument_Inputs.html",
+      "label": "Common\\Inputs\\Instrument_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/LandingGear_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/LandingGear_Inputs.html",
+      "label": "Common\\Inputs\\LandingGear_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Lighting_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Lighting_Inputs.html",
+      "label": "Common\\Inputs\\Lighting_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Passenger_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Passenger_Inputs.html",
+      "label": "Common\\Inputs\\Passenger_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Pressurization_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Pressurization_Inputs.html",
+      "label": "Common\\Inputs\\Pressurization_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Inputs/Safety_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Inputs/Safety_Inputs.html",
+      "label": "Common\\Inputs\\Safety_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Instrument.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Instrument.html",
+      "label": "Common\\Instrument.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/LandingGear.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/LandingGear.html",
+      "label": "Common\\LandingGear.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Lighting.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Lighting.html",
+      "label": "Common\\Lighting.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Passenger.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Passenger.html",
+      "label": "Common\\Passenger.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Pilot.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Pilot.html",
+      "label": "Common\\Pilot.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Pressurization.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Pressurization.html",
+      "label": "Common\\Pressurization.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Safety.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Safety.html",
+      "label": "Common\\Safety.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Aircraft_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Aircraft_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Aircraft_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Autopilot_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Autopilot_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Autopilot_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Deice_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Deice_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Deice_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Electrical_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Electrical_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Electrical_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Engine_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Engine_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Engine_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Fuel_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Fuel_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Fuel_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Handling_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Handling_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Handling_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Instrument_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Instrument_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Instrument_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/LandingGear_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/LandingGear_Subtemplates.html",
+      "label": "Common\\Subtemplates\\LandingGear_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Lighting_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Lighting_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Lighting_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Passenger_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Passenger_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Passenger_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Pressurization_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Pressurization_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Pressurization_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common/Subtemplates/Safety_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Common/Subtemplates/Safety_Subtemplates.html",
+      "label": "Common\\Subtemplates\\Safety_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Common.html",
+      "path": "msfs-template-explorer-html/Asobo/Common.html",
+      "label": "Common.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Exterior.html",
+      "path": "msfs-template-explorer-html/Asobo/Exterior.html",
+      "label": "Exterior.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Animations.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Animations.html",
+      "label": "Generic\\Animations.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/AnimationTriggers.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/AnimationTriggers.html",
+      "label": "Generic\\AnimationTriggers.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Complex/Index.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Complex/Index.html",
+      "label": "Generic\\Complex\\Index.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Complex/Joystick.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Complex/Joystick.html",
+      "label": "Generic\\Complex\\Joystick.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Complex/Knob.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Complex/Knob.html",
+      "label": "Generic\\Complex\\Knob.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Complex/Lever.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Complex/Lever.html",
+      "label": "Generic\\Complex\\Lever.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Complex/Misc.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Complex/Misc.html",
+      "label": "Generic\\Complex\\Misc.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Complex/PushButton.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Complex/PushButton.html",
+      "label": "Generic\\Complex\\PushButton.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Complex/Switch.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Complex/Switch.html",
+      "label": "Generic\\Complex\\Switch.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Emissive.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Emissive.html",
+      "label": "Generic\\Emissive.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/FX.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/FX.html",
+      "label": "Generic\\FX.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Helpers.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Helpers.html",
+      "label": "Generic\\Helpers.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Index.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Index.html",
+      "label": "Generic\\Index.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Interactions.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Interactions.html",
+      "label": "Generic\\Interactions.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Subtemplates/Animations_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Subtemplates/Animations_Subtemplates.html",
+      "label": "Generic\\Subtemplates\\Animations_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Subtemplates/Interactions_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Subtemplates/Interactions_Subtemplates.html",
+      "label": "Generic\\Subtemplates\\Interactions_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Subtemplates/Updates_Subtemplates.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Subtemplates/Updates_Subtemplates.html",
+      "label": "Generic\\Subtemplates\\Updates_Subtemplates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Updates.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Updates.html",
+      "label": "Generic\\Updates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic/Visibility.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic/Visibility.html",
+      "label": "Generic\\Visibility.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Generic.html",
+      "path": "msfs-template-explorer-html/Asobo/Generic.html",
+      "label": "Generic.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS1000.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS1000.html",
+      "label": "GlassCockpit\\AS1000.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS3000.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS3000.html",
+      "label": "GlassCockpit\\AS3000.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS307.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS307.html",
+      "label": "GlassCockpit\\AS307.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS3X.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS3X.html",
+      "label": "GlassCockpit\\AS3X.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS3X_Touch.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS3X_Touch.html",
+      "label": "GlassCockpit\\AS3X_Touch.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS5.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS5.html",
+      "label": "GlassCockpit\\AS5.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS580.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS580.html",
+      "label": "GlassCockpit\\AS580.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/AS650.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/AS650.html",
+      "label": "GlassCockpit\\AS650.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/Inputs/AS1000_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/Inputs/AS1000_Inputs.html",
+      "label": "GlassCockpit\\Inputs\\AS1000_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/Inputs/AS3X_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/Inputs/AS3X_Inputs.html",
+      "label": "GlassCockpit\\Inputs\\AS3X_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GlassCockpit/Inputs/AS5_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/GlassCockpit/Inputs/AS5_Inputs.html",
+      "label": "GlassCockpit\\Inputs\\AS5_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GPS/Aera.html",
+      "path": "msfs-template-explorer-html/Asobo/GPS/Aera.html",
+      "label": "GPS\\Aera.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GPS/AS430.html",
+      "path": "msfs-template-explorer-html/Asobo/GPS/AS430.html",
+      "label": "GPS\\AS430.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GPS/AS530.html",
+      "path": "msfs-template-explorer-html/Asobo/GPS/AS530.html",
+      "label": "GPS\\AS530.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GPS/Inputs/Aera_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/GPS/Inputs/Aera_Inputs.html",
+      "label": "GPS\\Inputs\\Aera_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/GPS/Inputs/AS430_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/GPS/Inputs/AS430_Inputs.html",
+      "label": "GPS\\Inputs\\AS430_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Inputs/Generic.html",
+      "path": "msfs-template-explorer-html/Asobo/Inputs/Generic.html",
+      "label": "Inputs\\Generic.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Inputs/Helpers.html",
+      "path": "msfs-template-explorer-html/Asobo/Inputs/Helpers.html",
+      "label": "Inputs\\Helpers.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Inputs/Index.html",
+      "path": "msfs-template-explorer-html/Asobo/Inputs/Index.html",
+      "label": "Inputs\\Index.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Inputs/Templates.html",
+      "path": "msfs-template-explorer-html/Asobo/Inputs/Templates.html",
+      "label": "Inputs\\Templates.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/Accelerometer.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/Accelerometer.html",
+      "label": "Misc\\Accelerometer.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/ASDigiflo.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/ASDigiflo.html",
+      "label": "Misc\\ASDigiflo.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/ASDigitalFuelMeter_FP5L.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/ASDigitalFuelMeter_FP5L.html",
+      "label": "Misc\\ASDigitalFuelMeter_FP5L.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/ASPropeller.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/ASPropeller.html",
+      "label": "Misc\\ASPropeller.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/ASVigilus.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/ASVigilus.html",
+      "label": "Misc\\ASVigilus.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/AS_EPM.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/AS_EPM.html",
+      "label": "Misc\\AS_EPM.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/Clock.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/Clock.html",
+      "label": "Misc\\Clock.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/GroundVehicles.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/GroundVehicles.html",
+      "label": "Misc\\GroundVehicles.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/GX2.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/GX2.html",
+      "label": "Misc\\GX2.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/Inputs/Misc_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/Inputs/Misc_Inputs.html",
+      "label": "Misc\\Inputs\\Misc_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/Pl463.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/Pl463.html",
+      "label": "Misc\\Pl463.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/SimObjects.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/SimObjects.html",
+      "label": "Misc\\SimObjects.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Misc/VoltsAmps.html",
+      "path": "msfs-template-explorer-html/Asobo/Misc/VoltsAmps.html",
+      "label": "Misc\\VoltsAmps.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/ADF.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/ADF.html",
+      "label": "NAVCOM\\ADF.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/AS92.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/AS92.html",
+      "label": "NAVCOM\\AS92.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/ASNAV.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/ASNAV.html",
+      "label": "NAVCOM\\ASNAV.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/Inputs/NavComSystem_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/Inputs/NavComSystem_Inputs.html",
+      "label": "NAVCOM\\Inputs\\NavComSystem_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/Inputs/SimpleCom_Inputs.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/Inputs/SimpleCom_Inputs.html",
+      "label": "NAVCOM\\Inputs\\SimpleCom_Inputs.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/KAP140.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/KAP140.html",
+      "label": "NAVCOM\\KAP140.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/NavComSystem.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/NavComSystem.html",
+      "label": "NAVCOM\\NavComSystem.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/NAVCOM/SimpleCom.html",
+      "path": "msfs-template-explorer-html/Asobo/NAVCOM/SimpleCom.html",
+      "label": "NAVCOM\\SimpleCom.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Transponder/AS21.html",
+      "path": "msfs-template-explorer-html/Asobo/Transponder/AS21.html",
+      "label": "Transponder\\AS21.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Transponder/AS330.html",
+      "path": "msfs-template-explorer-html/Asobo/Transponder/AS330.html",
+      "label": "Transponder\\AS330.xml"
+    },
+    {
+      "url": "https://docs.flightsimulator.com/html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Asobo/Transponder/Transponder.html",
+      "path": "msfs-template-explorer-html/Asobo/Transponder/Transponder.html",
+      "label": "Transponder\\Transponder.xml"
+    }
+  ]
+}

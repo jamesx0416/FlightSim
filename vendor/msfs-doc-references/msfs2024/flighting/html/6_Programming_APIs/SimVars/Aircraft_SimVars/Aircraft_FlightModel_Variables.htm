@@ -1,0 +1,1578 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Aircraft Flight Model Variables</title>
+  <meta name="generator" content="Adobe RoboHelp 2026"/>
+  <link rel="stylesheet" href="../../../assets/css/default.css" type="text/css" id="style"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="rh-index-keywords" content="SimVars,Aircraft,Flight Model"/>
+<meta name="rh-version" content="2026.01.11"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2026.01.11"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="generator" content="Adobe RoboHelp 2022"/>
+    <meta name="rh-authors" content="Mark Alexander"/>
+  </div>
+  <link href="../../../assets/css/extra_symbols.css" rel="stylesheet" type="text/css"/>
+  <link href="../../../assets/css/mathjax/mathjax.css" rel="stylesheet" type="text/css"/><!-- <link href="../css/Prism/prism.css" rel="stylesheet" type="text/css" /> -->
+  <script src="../../../assets/css/Prism/prism.js"></script>
+  <script src="../../../assets/css/mathjax/es5/tex-chtml.js" type="text/javascript"></script>
+  <script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js" charset="UTF-8"></script>
+  <script type="text/x-mathjax-config">
+    <![CDATA[
+          // MATHJAX
+          MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+              tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno|inline" },
+              TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+              messageStyle: "none"
+      svg: {
+          scale: 1,                      // global scaling factor for all expressions
+          minScale: .5,                  // smallest scaling factor to use
+          mtextInheritFont: false,       // true to make mtext elements use surrounding font
+          merrorInheritFont: true,       // true to make merror text use surrounding font
+          mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+          skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+          exFactor: .5,                  // default size of ex in em units
+          displayAlign: 'center',        // default for indentalign when set to 'auto'
+          displayIndent: '0',            // default for indentshift when set to 'auto'
+          fontCache: 'local',            // or 'global' or 'none'
+          localID: null,                 // ID to use for local font cache (for single equation processing)
+          internalSpeechTitles: true,    // insert <title> tags with speech content
+          titleID: 0                     // initial id number to use for aria-labeledby titles
+        },
+		skipTags: ["script","noscript","style","textarea","pre","code"]
+          });
+        ]]>
+  </script>
+  <div>
+  <h2>AIRCRAFT FLIGHT MODEL VARIABLES</h2>
+  <p>The tables below indicate the properties for the <a href="../Simulation_Variables.htm">Simulation Variables</a> that can be used to get and set properties related to the physical properties and flight model of an aircraft. For information on the units listed for each variable, please see here: <a href="../Simulation_Variable_Units.htm">Simulation Variable Units</a></p>
+  <p><span class="note"><strong>NOTE</strong>: When <span data-keyref="game_name">Microsoft Flight Simulator 2024</span> is running in multiplayer mode, only a small number of variables are communicated between aircraft. Those variables that are available will say so in the description as being either for &quot;All Aircraft&quot; or for &quot;Shared Cockpit&quot;.</span></p>
+  <p>You can find a complete index of all available SimVars here: <a href="../Simulation_Variables.htm#h">SimVar Index</a></p>
+  <p> </p>
+  <p> </p>
+  <h3>General</h3>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 20%;"/>
+      <col style="width: 10%;"/>
+      <col style="width: 50%"/>
+      <col style="width: 15%"/>
+      <col style="width: 5%;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Simulation Variable</th>
+        <th>Index</th>
+        <th>Description</th>
+        <th>Units</th>
+        <th>Settable</th>
+      </tr>
+      <tr>
+        <td><a id="BETA DOT"></a><code class="inline">BETA DOT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Beta dot</td>
+        <td>Radians per second</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DECISION_ALTITUDE_MSL"></a><code class="inline">DECISION ALTITUDE MSL</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Design decision altitude above mean sea level</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DECISION HEIGHT"></a><code class="inline">DECISION HEIGHT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Design decision height. This can be set for the aircraft in the FLT file using the <code class="inline"><a href="../../../5_Content_Configuration/FLT_Files/FLT_Properties.htm#DecisionHeight">DecisionHeight</a></code> parameter. If not set it will default to 200.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_CRUISE_ALT"></a><code class="inline">DESIGN CRUISE ALT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the optimal altitude the aircraft should maintain when in cruise. It is derived from the <code class="inline">cruise_alt</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. Default is 1500ft.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_SPAWN_ALTITUDE_CRUISE"></a><code class="inline">DESIGN SPAWN ALTITUDE CRUISE</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the spawn altitude for the aircraft when spawning in cruise. It is derived from the <code class="inline">spawn_cruise_altitude</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. Default is 1500ft.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_SPAWN_ALTITUDE_DESCENT"></a><code class="inline">DESIGN SPAWN ALTITUDE DESCENT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the spawn altitude for the aircraft when spawning in descent. It is derived from the <code class="inline">spawn_descent_altitude</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. Default is 500ft.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_SPEED_CLIMB"></a><code class="inline">DESIGN SPEED CLIMB</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the optimal climb speed for the aircraft. It is derived from the <code class="inline">climb_speed</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. Default value is -1.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) per second</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_SPEED_MIN_ROTATION"></a><code class="inline">DESIGN SPEED MIN ROTATION</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the minimum speed required for aircraft rotation. It is derived from the <code class="inline">rotation_speed_min</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. Default value is -1.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) per second</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_SPEED_VC"></a><code class="inline">DESIGN SPEED VC</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the aircraft ideal cruising speed. It is derived from the <code class="inline">cruise_speed</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. The default value is computed an internal function that uses the estimated cruise altitude and estimated cruise percent power, according of the engine type, the number of engines, the density, the wing area and some drag parameters. Normally this value is set in the CFG file and the default value is never used.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) per second</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_SPEED_VS0"></a><code class="inline">DESIGN SPEED VS0</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the the stall speed when flaps are fully extended. It is derived from the <code class="inline">full_flaps_stall_speed</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. Default value is 0.8 x VS.</td>
+        <td><a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_SPEED_VS1"></a><code class="inline">DESIGN SPEED VS1</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the stall speed when flaps are fully retracted. It is derived from the <code class="inline">flaps_up_stall_speed</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>. Default value is 0.</td>
+        <td><a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DESIGN_TAKEOFF_SPEED"></a><code class="inline">DESIGN TAKEOFF SPEED</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This design constant represents the aircraft ideal takoff speed. It is derived from the <code class="inline">takeoff_speed</code> setting in the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#h2"> </a> section of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm">flightmodel.cfg</a>.</td>
+        <td><a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knots</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="DYNAMIC_PRESSURE"></a><code class="inline">DYNAMIC PRESSURE</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Dynamic pressure</td>
+        <td>Pounds per square foot (<a href="#" data-popovertext="Stands for &#39;Pound per Square Foot&#39; which is a unit of pressure or of stress based on imperial units. It is the pressure resulting from a force of one pound-force applied to an area of one square foot. 1 pound per square foot equals 47.8803 pascals in metric units." data-rhwidget="TextPopOver">psf</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="ESTIMATED_CRUISE_SPEED"></a><code class="inline">ESTIMATED CRUISE SPEED</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Estimated cruise speed</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) per second</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="G FORCE"></a><code class="inline">G FORCE</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Current <a href="#" data-popovertext="Stands for &quot;G-Force&quot;, which is the  force of gravity OR acceleration acting on a physical object." data-rhwidget="TextPopOver">G</a> force</td>
+        <td>GForce</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle"></span> <span class="checkmark_stem"></span> <span class="checkmark_kick"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="G_LIMITER_SETTING"></a><code class="inline">G LIMITER SETTING</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>This returns the setting of the G-limiter, as set using the <code class="inline"><a href="../../../5_Content_Configuration/FLT_Files/FLT_Properties.htm#GLimiterSetting">GLimiterSetting</a></code> parameter.</td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = Off</li>
+            <li>1 = On</li>
+            <li>2 = Override</li>
+          </ol>
+        </td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INCIDENCE ALPHA"></a><code class="inline">INCIDENCE ALPHA</code></td>
+        <td>
+          <p><span class="smallfont">Group ID<br/>
+              (0, 1 or 2)</span></p>
+        </td>
+        <td>The angle of attack based on the polling point selected using the group ID. For more information please see here: <a href="../../../5_Content_Configuration/CFG_Files/Flight_Model/flight_model_physics_obj.htm#physics_groups">Note On Physics Groups</a></td>
+        <td>Radians</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INCIDENCE_BETA"></a><code class="inline">INCIDENCE BETA</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Sideslip angle</td>
+        <td>Radians</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="IS_TAIL_DRAGGER"></a><code class="inline">IS TAIL DRAGGER</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>True if the aircraft is a taildragger</td>
+        <td>Bool</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="LINEAR_CL_ALPHA"></a><code class="inline">LINEAR CL ALPHA</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Linear CL alpha</td>
+        <td>Per radian</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MACH_MAX_OPERATE"></a><code class="inline">MACH MAX OPERATE</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Maximum design mach</td>
+        <td><a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MAX G FORCE"></a><code class="inline">MAX G FORCE</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Maximum <a href="#" data-popovertext="Stands for &quot;G-Force&quot;, which is the  force of gravity OR acceleration acting on a physical object." data-rhwidget="TextPopOver">G</a> force attained</td>
+        <td>Gforce</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MIN_DRAG_VELOCITY"></a><code class="inline">MIN DRAG VELOCITY</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Minimum drag velocity, in clean, with no input and no gears, when at 10000ft.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) per second</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MIN_G_FORCE"></a><code class="inline">MIN G FORCE</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Minimum <a href="#" data-popovertext="Stands for &quot;G-Force&quot;, which is the  force of gravity OR acceleration acting on a physical object." data-rhwidget="TextPopOver">G</a> force attained</td>
+        <td>Gforce</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="REFERENCE SPEED MAX IAS"></a><code class="inline">REFERENCE SPEED MAX IAS</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>The maximum <a href="#" data-popovertext="This stands for &quot;Indicated Air Speed&quot; and simply refers to the airspeed read directly from the airspeed indicator in an aircraft, driven by the pitot-static system." data-rhwidget="TextPopOver">IAS</a> that the aircraft can fly at.</td>
+        <td><a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knots</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="REFERENCE SPEED MAX IAS GEAR DOWN"></a><code class="inline">REFERENCE SPEED MAX IAS GEAR DOWN</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>The maximum <a href="#" data-popovertext="This stands for &quot;Indicated Air Speed&quot; and simply refers to the airspeed read directly from the airspeed indicator in an aircraft, driven by the pitot-static system." data-rhwidget="TextPopOver">IAS</a> that the aircraft can fly at with the landing gear extended.</td>
+        <td><a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knots</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><a id="SEMIBODY_LOADFACTOR_X"></a><code class="inline">SEMIBODY LOADFACTOR X</code> <span class="legacy"></span></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><strong>Deprecated, do not use!</strong></td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);">Number</td>
+        <td style="text-align: center; background-color: rgba(255, 0, 0, 0.1);"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="SEMIBODY_LOADFACTOR_Y"></a><code class="inline">SEMIBODY LOADFACTOR Y</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Acceleration along the axis Y divided by the gravity constant <a href="#" data-popovertext="Stands for &quot;G-Force&quot;, which is the  force of gravity OR acceleration acting on a physical object." data-rhwidget="TextPopOver">G</a> (usually around 9.81m.s²)</td>
+        <td>Number</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="SEMIBODY_LOADFACTOR_YDOT"></a><code class="inline">SEMIBODY LOADFACTOR YDOT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Derivative of <code class="inline">SEMIBODY LOADFACTOR Y</code> in relation to time.</td>
+        <td>Per second</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><a id="SEMIBODY_LOADFACTOR_Z"></a><code class="inline">SEMIBODY LOADFACTOR Z</code> <span class="legacy"></span></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><strong>Deprecated, do not use!</strong></td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);">Number</td>
+        <td style="text-align: center; background-color: rgba(255, 0, 0, 0.1);"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="SIGMA_SQRT"></a><code class="inline">SIGMA SQRT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Sigma sqrt</td>
+        <td>Number</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="SIMULATED_RADIUS"></a><code class="inline">SIMULATED RADIUS</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Simulated radius</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="STALL_ALPHA"></a><code class="inline">STALL ALPHA</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>The angle of attack which produces the maximum lift coefficient before entering into stall conditions.</td>
+        <td>Radians</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="STATIC_PITCH"></a><code class="inline">STATIC PITCH</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>The angle at which static pitch stability is achieved.</td>
+        <td>Radians</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="TYPICAL_DESCENT_RATE"></a><code class="inline">TYPICAL DESCENT RATE</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>the typical (normal) descent rate for the aircraft.</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) per minute</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="WING_AREA"></a><code class="inline">WING AREA</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Total wing area</td>
+        <td>Square feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="WING_FLEX_PCT"></a><code class="inline">WING FLEX PCT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>The current wing flex. Different values can be set for each wing (for example, during banking). Set an index of 1 for the left wing, and 2 for the right wing.</td>
+        <td><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle"></span> <span class="checkmark_stem"></span> <span class="checkmark_kick"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="WING_SPAN"></a><code class="inline">WING SPAN</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Total wing span</td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="YAW STRING ANGLE"></a><code class="inline">YAW STRING ANGLE</code> <span class="legacy"></span></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);">The yaw string angle. Yaw strings are attached to gliders as visible indicators of the yaw angle. Will only work when the <code class="inline"><a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#yaw_string_available">yaw_string_available</a></code> parameter is set to 1 (True).</td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">Radians</td>
+        <td style="text-align: center;background-color: rgba(255, 0, 0, 0.10)"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="YAW STRING PCT EXTENDED"></a><code class="inline">YAW STRING PCT EXTENDED</code> <span class="legacy"></span></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);">Yaw string angle as a percentage. Will only work when the <code class="inline"><a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#yaw_string_available">yaw_string_available</a></code> parameter is set to 1 (True).</td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td style="text-align: center;background-color: rgba(255, 0, 0, 0.10)"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="ZERO_LIFT_ALPHA"></a><code class="inline">ZERO LIFT ALPHA</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>The angle of attack at which the wing has zero lift.</td>
+        <td>Radians</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3>Center Of Gravity</h3>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 20%;"/>
+      <col style="width: 10%;"/>
+      <col style="width: 50%"/>
+      <col style="width: 15%"/>
+      <col style="width: 5%;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Simulation Variable</th>
+        <th>Index</th>
+        <th>Description</th>
+        <th>Units</th>
+        <th>Settable</th>
+      </tr>
+      <tr>
+        <td><a id="CG_AFT_LIMIT"></a><code class="inline">CG AFT LIMIT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>Most backward authorized position of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> according to the <a href="#" data-popovertext="Stands for &#39;Pilots Operating Handbook&#39; and is a manual that explains everything about the aircraft it is for. It usually includes the Aircraft Flight Manual (AFM), as well as other technical and operational information and is FAA (Federal Aviation Administration) approved." data-rhwidget="TextPopOver">POH</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>airplanes</strong>.</span></p>
+        </td>
+        <td><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG FEET"></a><code class="inline">CG FEET</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The longitudinal <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG FEET AFT LIMIT"></a><code class="inline">CG FEET AFT LIMIT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The aft <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> limit position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG FEET LATERAL"></a><code class="inline">CG FEET LATERAL</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The lateral <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG FEET LATERAL LEFT LIMIT"></a><code class="inline">CG FEET LATERAL LEFT LIMIT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The left hand lateral <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG FEET LATERAL RIGHT LIMIT"></a><code class="inline">CG FEET LATERAL RIGHT LIMIT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The right hand lateral <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG FEET FWD LIMIT"></a><code class="inline">CG FEET FWD LIMIT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The forward <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> limit position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG FWD LIMIT"></a><code class="inline">CG FWD LIMIT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>Most forward authorized position of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> according to the <a href="#" data-popovertext="Stands for &#39;Pilots Operating Handbook&#39; and is a manual that explains everything about the aircraft it is for. It usually includes the Aircraft Flight Manual (AFM), as well as other technical and operational information and is FAA (Federal Aviation Administration) approved." data-rhwidget="TextPopOver">POH</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>airplanes</strong>.</span></p>
+        </td>
+        <td><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><a id="CG MAX MACH"></a><code class="inline">CG MAX MACH</code> <span class="legacy"></span></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><strong>Deprecated, do not use!</strong></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a></td>
+        <td style="text-align: center;background-color: rgba(255, 0, 0, 0.10)"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><a id="CG MIN MACH"></a><code class="inline">CG MIN MACH</code> <span class="legacy"></span></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td style="background-color: rgba(255, 0, 0, 0.1);"><strong>Deprecated, do not use!</strong></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a></td>
+        <td style="text-align: center;background-color: rgba(255, 0, 0, 0.10)"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG PERCENT"></a><code class="inline">CG PERCENT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>Longitudinal <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position as a percent of reference <a href="#" data-popovertext="The Chord is the line stretching from the leading edge of the wing to the trailing edge, parallel to the centerline." data-rhwidget="TextPopOver">Chord</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>airplanes</strong>.</span></p>
+        </td>
+        <td><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="CG PERCENT LATERAL"></a><code class="inline">CG PERCENT LATERAL</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>Lateral <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position as a percent of reference <a href="#" data-popovertext="The Chord is the line stretching from the leading edge of the wing to the trailing edge, parallel to the centerline." data-rhwidget="TextPopOver">Chord</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>airplanes</strong>.</span></p>
+        </td>
+        <td><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="STATIC_CG_TO_GROUND"></a><code class="inline">STATIC CG TO GROUND</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>Static <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position with reference to the ground.</p>
+          <p><span class="note"><strong>NOTE</strong>: This is only valid for <strong>airplanes</strong>.</span></p>
+        </td>
+        <td>Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="points">Interactive Points</h3>
+  <p>These SimVars are used in relation to the values of the <a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#INTERACTIVEPOINTS">Interactive Points</a> that have been defined for the aircraft. Each of these SimVars requires a <em>name</em> (or an <em>index</em> value) to be supplied, and this is the name (or index) of the corresponding <code class="inline"><a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#interactive_point.N">interactive_point.N</a></code> defined in the appropriate CFG file. This name can be given using the following format:</p>
+  <pre class="language-xml"><code class="language-xml">[SimVar]:&#39;[COMPONENT_NAME]&#39;_n</code></pre>
+  <p>For example:</p>
+  <pre class="language-xml"><code class="language-xml">(A:INTERACTIVE POINT BANK:&#39;Door_1&#39;_n, Volts)</code></pre>
+  <p>It should be noted that there are two versions of these SimVars, and for all aircraft developed specifically for <span data-keyref="game_name_short">MSFS 2024</span> you should be using the EX1 versions. The legacy versions do not work well with the <code class="inline">&#39;[COMPONENT_NAME]&#39;_n</code> format, and will fall back to index 0 when given an invalid index/name parameter. The EX1 versions will instead either return default values or simply do nothing.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 20%;"/>
+      <col style="width: 10%;"/>
+      <col style="width: 50%"/>
+      <col style="width: 15%"/>
+      <col style="width: 5%;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Simulation Variable</th>
+        <th>Parameters</th>
+        <th>Description</th>
+        <th>Units</th>
+        <th>Settable</th>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT BANK"></a><code class="inline">INTERACTIVE POINT BANK</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2">
+          <p><span class="smallfont">Point Name (or index)</span></p>
+        </td>
+        <td colspan="1" rowspan="2">Interactive Point orientation: Bank.</td>
+        <td colspan="1" rowspan="2">Degrees</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT BANK EX1"></a><code class="inline">INTERACTIVE POINT BANK EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT HEADING"></a><code class="inline">INTERACTIVE POINT HEADING</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point orientation: Heading.</td>
+        <td colspan="1" rowspan="2">Degrees</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT HEADING EX1"></a><code class="inline">INTERACTIVE POINT HEADING EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT JETWAY LEFT BEND"></a><code class="inline">INTERACTIVE POINT JETWAY LEFT BEND</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Jetway constant, determining the desired left bend ratio of jetway hood.</td>
+        <td colspan="1" rowspan="2">Percent</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT JETWAY LEFT BEND EX1"></a><code class="inline">INTERACTIVE POINT JETWAY LEFT BEND EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT JETWAY LEFT DEPLOYMENT"></a><code class="inline">INTERACTIVE POINT JETWAY LEFT DEPLOYMENT</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Jetway constant, determining the desired left deployment angle of jetway hood.</td>
+        <td colspan="1" rowspan="2">Degrees</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT JETWAY LEFT DEPLOYMENT EX1"></a><code class="inline">INTERACTIVE POINT JETWAY LEFT DEPLOYMENT EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT JETWAY RIGHT BEND"></a><code class="inline">INTERACTIVE POINT JETWAY RIGHT BEND</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Jetway constant, determining the desired right bend ratio of jetway hood.</td>
+        <td colspan="1" rowspan="2">Percent</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT JETWAY RIGHT BEND EX1"></a><code class="inline">INTERACTIVE POINT JETWAY RIGHT BEND EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT JETWAY RIGHT DEPLOYMENT"></a><span style="background-color:rgba(255, 0, 0, 0.10);"><code class="inline">INTERACTIVE POINT JETWAY RIGHT DEPLOYMENT</code></span> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Jetway constant, determining the desired right deployment angle of jetway hood.</td>
+        <td colspan="1" rowspan="2">Degrees</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT JETWAY RIGHT DEPLOYMENT EX1"></a><code class="inline">INTERACTIVE POINT JETWAY RIGHT DEPLOYMENT EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT JETWAY TOP HORIZONTAL"></a><code class="inline">INTERACTIVE POINT JETWAY TOP HORIZONTAL</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Jetway constant, determining the desired top horizontal ratio of displacement of jetway hood.</td>
+        <td colspan="1" rowspan="2">Percent</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT JETWAY TOP HORIZONTAL EX1"></a><code class="inline">INTERACTIVE POINT JETWAY TOP HORIZONTAL EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT JETWAY TOP VERTICAL"></a><code class="inline">INTERACTIVE POINT JETWAY TOP VERTICAL</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Jetway constant, determining the desired top vertical ratio of displacement of jetway hood.</td>
+        <td colspan="1" rowspan="2">Percent</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT JETWAY TOP VERTICAL EX1"></a><code class="inline">INTERACTIVE POINT JETWAY TOP VERTICAL EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT GOAL"></a><code class="inline">INTERACTIVE POINT GOAL</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2">
+          <p><span class="smallfont">Point Name (or index)</span></p>
+        </td>
+        <td colspan="1" rowspan="2">The Interactive Point goal percentage of opening (if it&#39;s for a door) or percentage of deployment (if it&#39;s for a hose or cable).</td>
+        <td colspan="1" rowspan="2"><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle"></span> <span class="checkmark_stem"></span> <span class="checkmark_kick"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT GOAL EX1"></a><code class="inline">INTERACTIVE POINT GOAL EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT OPEN"></a><code class="inline">INTERACTIVE POINT OPEN</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2">
+          <p><span class="smallfont">Point Name (or index)</span></p>
+        </td>
+        <td colspan="1" rowspan="2">Interactive Point current percentage of opening (if door) or deployment (if hose/cable).</td>
+        <td colspan="1" rowspan="2"><a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a></td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle"></span> <span class="checkmark_stem"></span> <span class="checkmark_kick"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT OPEN EX1"></a><code class="inline">INTERACTIVE POINT OPEN EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT PITCH"></a><code class="inline">INTERACTIVE POINT PITCH</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point orientation: Pitch.</td>
+        <td colspan="1" rowspan="2">Degrees</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT PITCH EX1"></a><code class="inline">INTERACTIVE POINT PITCH EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT POSX"></a><code class="inline">INTERACTIVE POINT POSX</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point X position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</td>
+        <td colspan="1" rowspan="2">Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT POSX EX1"></a><code class="inline">INTERACTIVE POINT POSX EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT POSY"></a><code class="inline">INTERACTIVE POINT POSY</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Y position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</td>
+        <td colspan="1" rowspan="2">Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT POSY EX1"></a><code class="inline">INTERACTIVE POINT POSY EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT POSZ"></a><code class="inline">INTERACTIVE POINT POSZ</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">Interactive Point Z position relative to the <a href="../../../5_Content_Configuration/Modular_SimObjects/Aircraft/Aircraft.htm#DRP">Datum Reference Point</a>.</td>
+        <td colspan="1" rowspan="2">Feet (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT POSZ EX1"></a><code class="inline">INTERACTIVE POINT POSZ EX1</code></td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><a id="INTERACTIVE POINT TYPE"></a><code class="inline">INTERACTIVE POINT TYPE</code> <span class="legacy"></span></td>
+        <td colspan="1" rowspan="2"><span class="smallfont">Point Name (or index)</span></td>
+        <td colspan="1" rowspan="2">The type of interactive point.</td>
+        <td colspan="1" rowspan="2">
+          <p>Enum:</p>
+          <p><span class="smallfont">0: Main exit</span></p>
+          <p><span class="smallfont">1: Cargo exit/door</span></p>
+          <p><span class="smallfont">2: Emergency exit</span></p>
+          <p><span class="smallfont">3: Fuel hose</span></p>
+          <p><span class="smallfont">4: Ground Power cable</span></p>
+          <p><span class="smallfont">5: Air Start Unit</span></p>
+          <p><span class="smallfont">6: Tailhook</span></p>
+          <p><span class="smallfont">7 Drop Exit (for skydiving)</span></p>
+          <p><span class="smallfont">8 Window</span></p>
+          <p><span class="smallfont">99: Unknown (for error handling)</span></p>
+        </td>
+        <td colspan="1" rowspan="2" style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="INTERACTIVE POINT TYPE EX1"></a><code class="inline">INTERACTIVE POINT TYPE EX1</code></td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3>Weight</h3>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 20%;"/>
+      <col style="width: 10%;"/>
+      <col style="width: 50%"/>
+      <col style="width: 15%"/>
+      <col style="width: 5%;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Simulation Variable</th>
+        <th>Index</th>
+        <th>Description</th>
+        <th>Units</th>
+        <th>Settable</th>
+      </tr>
+      <tr>
+        <td><a id="EMPTY_WEIGHT"></a><code class="inline">EMPTY WEIGHT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Empty weight of the aircraft</td>
+        <td>Pounds (<a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="EMPTY_WEIGHT_CROSS_COUPLED_MOI"></a><code class="inline">EMPTY WEIGHT CROSS COUPLED MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Empty weight cross coupled moment of inertia</td>
+        <td>Slugs per feet squared (<a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="EMPTY_WEIGHT_PITCH_MOI"></a><code class="inline">EMPTY WEIGHT PITCH MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Empty weight pitch moment of inertia</td>
+        <td>Slugs per feet squared (<a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="EMPTY_WEIGHT_ROLL_MOI"></a><code class="inline">EMPTY WEIGHT ROLL MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Empty weight roll moment of inertia</td>
+        <td>Slugs per feet squared (<a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="EMPTY_WEIGHT_YAW_MOI"></a><code class="inline">EMPTY WEIGHT YAW MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Empty weight yaw moment of inertia</td>
+        <td>Slugs per feet squared (<a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MAX GROSS WEIGHT"></a><code class="inline">MAX GROSS WEIGHT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Maximum gross weight of the aircraft as defined by the <code class="inline"><a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#max_gross_weight">max_gross_weight</a></code> parameter.</td>
+        <td>Pounds (<a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MAX LANDING WEIGHT"></a><code class="inline">MAX LANDING WEIGHT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The maximum weight at which the aircraft is certified to land safely.</p>
+          <p>Default value will be equal to the <code class="inline"><a href="Aircraft_FlightModel_Variables.htm#MAX TAKEOFF WEIGHT">MAX TAKEOFF WEIGHT</a></code> if available, otherwise it will be the <code class="inline"><a href="Aircraft_FlightModel_Variables.htm#MAX GROSS WEIGHT">MAX GROSS WEIGHT</a></code>.</p>
+        </td>
+        <td>Pounds (<a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MAX TAKEOFF WEIGHT"></a><code class="inline">MAX TAKEOFF WEIGHT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>
+          <p>The maximum weight at which the aircraft is certified to comply with all airworthiness requirements.</p>
+          <p>Default value is the <code class="inline"><a href="#MAX GROSS WEIGHT">MAX GROSS WEIGHT</a></code>.</p>
+        </td>
+        <td>Pounds (<a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="MAX ZERO FUEL WEIGHT"></a><code class="inline">MAX ZERO FUEL WEIGHT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>The maximum weight of the aircraft when fully loaded but with empty fuel tanks as defined by the <code class="inline"><a href="../../../5_Content_Configuration/CFG_Files/flight_model_cfg.htm#max_zero_fuel_weight">max_zero_fuel_weight</a></code> parameter.</td>
+        <td>Pounds (<a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="TOTAL_WEIGHT"></a><code class="inline">TOTAL WEIGHT</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Total weight of the aircraft</td>
+        <td>Pounds (<a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>)</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="TOTAL_WEIGHT_CROSS_COUPLED_MOI"></a><code class="inline">TOTAL WEIGHT CROSS COUPLED MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Total weight cross coupled moment of inertia</td>
+        <td>Slugs per feet squared</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="TOTAL_WEIGHT_PITCH_MOI"></a><code class="inline">TOTAL WEIGHT PITCH MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Total weight pitch moment of inertia</td>
+        <td>Slugs per feet squared</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="TOTAL_WEIGHT_ROLL_MOI"></a><code class="inline">TOTAL WEIGHT ROLL MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Total weight roll moment of inertia</td>
+        <td>Slugs per feet squared</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+      <tr>
+        <td><a id="TOTAL_WEIGHT_YAW_MOI"></a><code class="inline">TOTAL WEIGHT YAW MOI</code></td>
+        <td>
+          <p><span class="smallfont">N/A</span></p>
+        </td>
+        <td>Total weight yaw moment of inertia</td>
+        <td>Slugs per feet squared</td>
+        <td style="text-align: center;"><span class="checkmark"> <span class="checkmark_circle_red"></span> <span class="checkmark_right"></span> <span class="checkmark_left"></span></span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <div class="reltopics">
+    <p class="reltopics-caption">Related Topics</p>
+    <ol class="reltopics-list" data-topics="../Simulation_Variables.htm|../Simulation_Variable_Units.htm|../SimvarWatcher.htm">
+      
+    <li><a href="../Simulation_Variables.htm" class="reltopics-list-item" style="">Simulation Variables</a></li><li><a href="../Simulation_Variable_Units.htm" class="reltopics-list-item" style="">Simulation Variable Units</a></li><li><a href="../SimvarWatcher.htm" class="reltopics-list-item" style="">SimvarWatcher</a></li></ol>
+  </div>
+  <p><button id="selection-button">Report An Issue</button></p>
+  <div id="issue-form"><label for="issue-input">Please explain the issue:</label><textarea id="issue-input" maxlength="255"></textarea>
+    <div id="char-counter">0/255</div>
+    <div id="error-message"></div>
+    <button id="send-button">Send</button><button id="cancel-button">Cancel</button>
+  </div>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        // Prism
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded');
+        // MATHJAX
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        }
+        // SKIN CHANGER
+        setTimeout(
+          () => {
+            const event = new Event("change");
+            document.getElementById('status').dispatchEvent(event);
+          }, 250);
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+      
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+      
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+    <!-- <button id="selection-button">Report An Issue</button>
+
+    <div id="issue-form">
+        <label for="issue-input">Please explain the issue:</label>
+        <textarea id="issue-input" maxlength="255"></textarea>
+        <div id="char-counter">0/255</div>
+        <div id="error-message"></div>
+        <button id="send-button">Send</button>
+        <button id="cancel-button">Cancel</button>
+    </div> -->
+  <div class="rh-layout-footer-outer-box">
+    <div class="rh-layout-footer-inner-left-box">
+      <!--REMEMEBER TO FIX THE <label> tags!!!! 
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox" /> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div> -->
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox"/> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div>
+      <div class="custom-checkbox"><button class="button_flighting" id="button_flighting" onclick="return get_URL();" role="button">Docs</button></div>
+    </div>
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2026 Microsoft</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box5">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://docs.flightsimulator.com/html/Introduction/Introduction.htm" style="color: #A0A0A0; text-decoration: none;">MSFS2020 SDK Documentation</a></p>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    //<![CDATA[
+    // function to set a given theme/color-scheme
+    function setTheme(checked) { // False is dark/default, true is light
+      let themeName = checked ? 'light' : 'dark';
+      localStorage.setItem('theme', themeName);
+      const divElement = document.getElementById("style");
+      var position = divElement.getAttribute("href").search("assets");
+      /*console.log(position);*/
+      let _substr = divElement.getAttribute("href").substring(0, position);
+      /*console.log("Relative path:", _substr);*/
+      var links = document.querySelectorAll('link[rel="StyleSheet"]');
+      for (let index = 0; index < links.length; index++) {
+        let href = links[index].href;
+        let fileName = href.substring(href.lastIndexOf('/') + 1);
+        console.log('FileName:', fileName);
+        if (typeof fileName === 'string' || fileName instanceof String) {
+          if (fileName == 'default.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/default.css';
+            } else {
+              links[index].href = _substr + 'assets/css/default.css';
+            }
+          }
+          if (fileName == 'layout.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/layout.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/layout.css';
+            }
+          }
+          if (fileName == 'userstyles.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/userstyles.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/userstyles.css'; /*?rnd=' + (new Date().valueOf())*/
+            }
+          }
+        }
+      }
+    }
+    window.onload = async function() {
+      // THEME SETTER
+      if (localStorage.getItem('theme') === 'light') {
+        document.getElementById('status').checked = true;
+      } else {
+        document.getElementById('status').checked = false;
+      }
+      document.getElementById('status').addEventListener("change", (event) => {
+        setTheme(event.target.checked);
+      });
+      // SET FLIGHTING BUTTON NAME
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let btn = document.getElementById('button_flighting');
+      if (currentLocation.includes('flighting/')) {
+        btn.innerHTML = 'Retail Docs';
+      } else {
+        btn.innerHTML = 'Flighting Docs';
+      }
+    };
+    // FLIGHTING / SIMUPDATE DOCS SWITCHER
+    get_URL = async function() {
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let new_URL = '';
+      let fail_URL = '';
+      if (currentLocation.includes('flighting/')) {
+        new_URL = currentLocation.replace('flighting/', '');
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+      } else {
+        new_URL = currentLocation.slice(0, 42) + "flighting/" + currentLocation.slice(42);
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/flighting/html/1_Introduction/Introduction.htm'
+      }
+      console.log(new_URL);
+      console.log(fail_URL);
+
+      function checkAndLoadUrl(url, fallback, callback) {
+          try {
+              // Validate URL format
+              new URL(url);
+              new URL(fallback)
+              
+              const xhr = new XMLHttpRequest();
+              
+              // Set timeout to 5 seconds
+              xhr.timeout = 5000;
+              
+              xhr.onreadystatechange = function() {
+                  if (xhr.readyState === XMLHttpRequest.DONE) {
+                      if (xhr.status >= 200 && xhr.status < 400) {
+                          // URL is valid, load the page
+                          window.location.href = url;
+                          callback({
+                              resolvable: true,
+                              status: xhr.status,
+                              statusText: xhr.statusText
+                          });
+                      } else {
+                          window.location.href = fallback;
+                          callback({
+                              resolvable: false,
+                              error: `Request failed with status ${xhr.status}`
+                          });
+                      }
+                  }
+              };
+              
+              xhr.ontimeout = function() {
+                  callback({
+                      resolvable: false,
+                      error: 'Request timed out'
+                  });
+              };
+              
+              xhr.onerror = function() {
+                  callback({
+                      resolvable: false,
+                      error: 'Network error'
+                  });
+              };
+              
+              // Use HEAD method to check URL
+              xhr.open('HEAD', url, true);
+              xhr.send();
+              
+          } catch (error) {
+              window.location.href = fallback;
+              callback({
+                  resolvable: false,
+                  error: 'Invalid URL format'
+              });
+          }
+      }
+    checkAndLoadUrl(new_URL, fail_URL, result => {
+        console.log(`URL: ${url}`);
+        console.log(`Fallback URL: ${url}`);
+        console.log('Result:', result);
+        }
+      );
+    };
+// REPORT AN ISSUE BUTTON AND INPUT BOX
+/*	document.addEventListener('DOMContentLoaded', () => {
+		const container = document.querySelector('.RH-LAYOUT-CENTERPANEL-topic-box');
+		if (!container) {
+			console.error('Container not found');
+			return;
+		}
+
+		const button = document.getElementById('selection-button');
+		const form = document.getElementById('issue-form');
+		const input = document.getElementById('issue-input');
+		const sendBtn = document.getElementById('send-button');
+		const cancelBtn = document.getElementById('cancel-button');
+		const charCounter = document.getElementById('char-counter');
+		const errorMsg = document.getElementById('error-message');
+
+		// Update character counter
+		input.addEventListener('input', () => {
+			const len = input.value.length;
+			charCounter.textContent = `${len}/255`;
+		});
+
+		// Function to apply robust highlight to a range (handles multi-element selections)
+		const applyHighlight = (originalRange) => {
+			const highlights = [];
+			const range = originalRange.cloneRange(); // Work on a copy
+			const ancestor = range.commonAncestorContainer;
+			const textNodes = [];
+
+			// Collect all text nodes within the range
+			const walker = document.createTreeWalker(ancestor, NodeFilter.SHOW_TEXT, null);
+			let node;
+			while (node = walker.nextNode()) {
+				if (range.intersectsNode(node)) {
+					textNodes.push(node);
+				}
+			}
+
+			textNodes.forEach(textNode => {
+				const nodeRange = document.createRange();
+				nodeRange.selectNodeContents(textNode);
+
+				// Adjust for partial selection in start/end containers
+				if (textNode === range.startContainer) {
+					nodeRange.setStart(textNode, range.startOffset);
+				}
+				if (textNode === range.endContainer) {
+					nodeRange.setEnd(textNode, range.endOffset);
+				}
+
+				// Only surround if there's content to highlight
+				if (!nodeRange.collapsed) {
+					const span = document.createElement('span');
+					span.className = 'custom-highlight';
+					nodeRange.surroundContents(span);
+					highlights.push(span);
+				}
+			});
+
+			return highlights;
+		};
+
+		// Function to remove custom highlights
+		const removeHighlights = () => {
+			const highlights = document.querySelectorAll('.custom-highlight');
+			highlights.forEach(span => {
+				const parent = span.parentNode;
+				while (span.firstChild) {
+					parent.insertBefore(span.firstChild, span);
+				}
+				parent.removeChild(span);
+				parent.normalize(); // Merge adjacent text nodes
+			});
+		};
+
+		// Function to update button visibility and position
+		const updateButton = () => {
+			// Do not show button if form is visible
+			if (form.style.display === 'block') {
+				button.style.display = 'none';
+				return;
+			}
+
+			const selection = window.getSelection();
+			if (!selection.rangeCount || selection.isCollapsed) {
+				button.style.display = 'none';
+				return;
+			}
+
+			const range = selection.getRangeAt(0);
+
+			// Check if selection is within the container
+			const commonAncestor = range.commonAncestorContainer;
+			if (!container.contains(commonAncestor)) {
+				button.style.display = 'none';
+				return;
+			}
+
+			// Get bounding rects relative to viewport
+			const rangeRect = range.getBoundingClientRect();
+			const containerRect = container.getBoundingClientRect();
+
+			// Compute positions relative to container
+			const relativeLeft = rangeRect.left - containerRect.left;
+			const relativeTop = rangeRect.top - containerRect.top;
+			const relativeBottom = rangeRect.bottom - containerRect.top;
+			const selectionWidth = rangeRect.width;
+
+			// Position button centered under the selection
+			// Left: midpoint of selection minus half button width (measure button width after display)
+			// Top: below the selection's bottom
+			button.style.display = 'block'; // Show temporarily to measure width
+			const buttonWidth = button.offsetWidth;
+			button.style.left = `${relativeLeft + (selectionWidth / 2) - (buttonWidth / 2)}px`;
+			button.style.top = `${relativeBottom + 10}px`; // 10px padding below selection
+		};
+
+		// Listen for selection changes
+		document.addEventListener('selectionchange', updateButton);
+
+		// Also listen for mouseup as a fallback, in case selectionchange doesn't fire
+		document.addEventListener('mouseup', updateButton);
+
+		// Hide button and form on click elsewhere or when selection is cleared
+		document.addEventListener('mousedown', (event) => {
+			if (event.target !== button && !form.contains(event.target)) {
+				button.style.display = 'none';
+				form.style.display = 'none';
+				removeHighlights();
+			}
+		});
+
+		// Action for the selection button: show the issue form
+		button.addEventListener('click', (event) => {
+			event.preventDefault(); // Prevent any default click behavior
+			const selection = window.getSelection();
+			if (selection.rangeCount > 0) {
+				const range = selection.getRangeAt(0).cloneRange();
+				const selectedText = selection.toString();
+				if (selectedText) {
+					// Remove any existing highlights first
+					removeHighlights();
+
+					// Apply robust highlight
+					applyHighlight(range);
+
+					// Clear actual selection to allow typing in input
+					selection.removeAllRanges();
+
+					// Hide button and show form below where the button was
+					button.style.display = 'none';
+					form.style.display = 'block';
+					form.style.top = `${parseFloat(button.style.top) + button.offsetHeight + 10}px`;
+					form.style.left = button.style.left;
+					input.value = ''; // Clear input
+					charCounter.textContent = '0/255'; // Reset counter
+					errorMsg.style.display = 'none'; // Hide error
+					errorMsg.textContent = ''; // Clear error
+					input.focus(); // Focus on the input for user convenience
+
+					// Store selectedText for use in send
+					sendBtn.onclick = () => {
+						const explanation = input.value.trim();
+						if (!explanation) {
+							errorMsg.textContent = 'Please enter an explanation.';
+							errorMsg.style.display = 'block';
+							return; // Keep form open
+						}
+						const pageURL = window.location.href;
+						// Example action: alert or send data (replace with actual logic, e.g., API call)
+						var trimmedSelectedText = selectedText;
+						if (selectedText.length > 255)
+							{
+							trimmedSelectedText = selectedText.substring(0, 252) + "...";
+							}
+						alert(`Page URL: ${pageURL}\nSelected Text: ${trimmedSelectedText}\nIssue Explanation: ${explanation}`);
+						// Alternatively: console.log({ pageURL, selectedText, explanation });
+						// Or send to server: fetch('/report-issue', { method: 'POST', body: JSON.stringify({ pageURL, selectedText, explanation }) });
+						form.style.display = 'none';
+						input.value = '';
+						removeHighlights();
+						// Optionally clear selection after send: window.getSelection().removeAllRanges();
+					};
+				}
+			}
+		});
+
+		// Action for cancel button: hide form, clear input, remove highlight
+		cancelBtn.addEventListener('click', () => {
+			form.style.display = 'none';
+			input.value = '';
+			removeHighlights();
+			// Optionally clear selection after cancel: window.getSelection().removeAllRanges();
+		});
+	});*/
+    //]]>
+  </script>
+
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "6.1.1.0_6"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

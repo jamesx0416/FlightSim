@@ -1,0 +1,1230 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>FlightSim Materials</title>
+  <meta name="generator" content="Adobe RoboHelp 2026"/>
+  <link rel="stylesheet" href="../../../assets/css/default.css" type="text/css" id="style"/>
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="rh-index-keywords" content="Materials"/>
+<meta name="rh-version" content="2026.01.11"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2026.01.11"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="generator" content="Adobe RoboHelp 2022"/>
+    <meta name="rh-authors" content="Mark Alexander"/>
+  </div>
+  <link href="../../../assets/css/extra_symbols.css" rel="stylesheet" type="text/css"/>
+  <link href="../../../assets/css/mathjax/mathjax.css" rel="stylesheet" type="text/css"/><!-- <link href="../css/Prism/prism.css" rel="stylesheet" type="text/css" /> -->
+  <script src="../../../assets/css/Prism/prism.js"></script>
+  <script src="../../../assets/css/mathjax/es5/tex-chtml.js" type="text/javascript"></script>
+  <script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js" charset="UTF-8"></script>
+  <script type="text/x-mathjax-config">
+    <![CDATA[
+          // MATHJAX
+          MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+              tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno|inline" },
+              TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+              messageStyle: "none"
+      svg: {
+          scale: 1,                      // global scaling factor for all expressions
+          minScale: .5,                  // smallest scaling factor to use
+          mtextInheritFont: false,       // true to make mtext elements use surrounding font
+          merrorInheritFont: true,       // true to make merror text use surrounding font
+          mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+          skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+          exFactor: .5,                  // default size of ex in em units
+          displayAlign: 'center',        // default for indentalign when set to 'auto'
+          displayIndent: '0',            // default for indentshift when set to 'auto'
+          fontCache: 'local',            // or 'global' or 'none'
+          localID: null,                 // ID to use for local font cache (for single equation processing)
+          internalSpeechTitles: true,    // insert <title> tags with speech content
+          titleID: 0                     // initial id number to use for aria-labeledby titles
+        },
+		skipTags: ["script","noscript","style","textarea","pre","code"]
+          });
+        ]]>
+  </script>
+  <div>
+  <h2>FLIGHTSIM MATERIALS</h2>
+  <p><span data-keyref="game_name">Microsoft Flight Simulator 2024</span> materials can be one of several material types. These include things like geometry decals and ice. They each have varying support for different blend modes and component textures. If parameters are not supported for the current type, they will be grayed out in the material plugin.</p>
+  <p><span class="note"><strong>NOTE</strong>: <span data-keyref="game_name">Microsoft Flight Simulator 2024</span> uses PBR materials, and you can debug these using the <a href="../../../2_DevMode/Menus/Options/Channel_Display.htm">Channel Display</a> window in the simulation.</span></p>
+  <p> </p>
+  <p>All materials have the same <a href="FlightSim_Materials.htm#parameters">General Parameters</a> but may also require additional parameters, which are listed separately here:</p>
+  <ul>
+    <li><a href="FlightSim_Material_Parameters.htm">FlightSim Material Parameters</a></li>
+  </ul>
+  <p> </p>
+  <p><span class="note"><strong>Note for 3DS Max Users</strong>: Make sure that your renderer is set up correctly otherwise some materials will not show correctly. See the <a href="../../Plugins/3DS_Max_Plugin/The_3DS_Max_Plugin.htm#Renderer">3DS Max Renderer</a> section for details.</span></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="material_types">Material Types</h3>
+  <p>The available FlightSim Material types are as follows:</p>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="standard">Standard</h4>
+      The default material type. Meshes with this type will be rendered in the deferred rendering pass (Alpha Mode = OPAQUE) or in the transparent pass (Alpha Mode = MASK or BLEND).
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#pearl-params">Pearl Parameters (Standard)</a><a href="FlightSim_Materials.htm#pearl-params"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a><a href="FlightSim_Materials.htm#standard-decal-porthole-glass-faketerrain"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="decal">Decal</h4>
+      The Decal material type is for geometry decals, which are shapes rendered on top of another mesh. If several decals are to be rendered on top of each other, they have to be in the same sub-mesh, or it will cause rendering artifacts. The order of the sub-materials will determine the order in which they are rendered (first sub-material is rendered first). Meshes with this type will be rendered in a special pass between the deferred and the transparent pass.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#decal-blend-factor">Decal Per Component Blend Factors (Decal)</a><a href="#decal-blend-factor"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a></li>
+        <li>Further Information: <a href="../../Modeling/Aircraft/Airframe/Airframe_Details.htm">Airframe Details</a></li>
+      </ul>
+      <span class="note"><strong>IMPORTANT!</strong> Currently Decal materials will only be rendered over the following material types: <a href="FlightSim_Materials.htm#standard">Standard</a>, <a href="FlightSim_Materials.htm#clearcoat">ClearCoat</a>, <a href="FlightSim_Materials.htm#anisotropic">Anisotropic</a>, <a href="FlightSim_Materials.htm#faketerrain">FakeTerrain</a> and <a href="FlightSim_Materials.htm#sss">Sub-Surface Scattering / SSS</a>.</span>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="windshield">Windshield</h4>
+      The Windshield material type is used to identify the windshields of the aircraft. It is used mainly for rain effects, otherwise similar to the Glass material type. Meshes with this type will be rendered after the transparent pass. You can find more information here: <a href="../../Modeling/Aircraft/Airframe/Windshield_And_Windows.htm">Windshield Materials</a>.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#windshield-parameters">Windshield Parameters</a>, <a href="FlightSim_Material_Parameters.htm#windshield-parameters-rain">Windshield / Clearcoat Parameters (Rain)</a>, <a href="FlightSim_Material_Parameters.htm#windshield-parameters-iridescent">Windshield Parameters (Iridescent)</a>, <a href="FlightSim_Material_Parameters.htm#windshield-parameters-wipers">Windshield Parameters (Wipers)</a>, <a href="FlightSim_Material_Parameters.htm#windshield-parameters-debug">Windshield Parameters (Debug Shader Windshield)</a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#windshield">Windshield</a></li>
+        <li>Further Information: <a href="../../Modeling/Aircraft/Airframe/Windshield_And_Windows.htm">Windshield And Windows</a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="porthole">Porthole</h4>
+      This material type will be used for fake views through portholes using parallax scrolling. You can find a complete description of how this can be set up from the following page: <a href="../../Modeling/Aircraft/Airframe/Parallax_Windows.htm">Parallax Windows</a>.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a></li>
+        <li>Further Information: <a href="../../Modeling/Aircraft/Airframe/Parallax_Windows.htm">Parallax Windows</a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="glass">Glass</h4>
+      This material type will be used for generic glass surfaces. Glass <em>and</em> windshield materials are rendered on the same layer, and any number of glass materials can overlap on screen without masking each other. Note that it&#39;s more convenient to have each glass part <em>as separate objects</em> for the draw order sorting to work correctly (for more information see <a href="#draw-order">Draw Order</a>).
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#glass-parameters">Glass Parameters (glass)</a><a href="FlightSim_Materials.htm#glass-parameters"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a></li>
+        <li>Further Information: <a href="../../Modeling/Aircraft/Cockpit/Textures/Translucent_Elements.htm">Translucent Elements</a>,</li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="geodecalfrosted">GeoDecalFrosted</h4>
+      The GeoDecalFrosted material type is for geometry decals used to add the frost effect, which are shapes rendered on top of another mesh. If several decals are to be rendered on top of each other, they have to be in the same sub-mesh, or it will cause rendering artifacts. The order of the sub-materials will determine the order in which they are rendered (first sub-material is rendered first). Meshes with this type will be rendered in a special pass between the deferred and the transparent pass.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#decal-blend-factor-geo">Decal Per Component Blend Factors (GeoDecalFrosted)</a><a href="FlightSim_Materials.htm#decal-blend-factor-geo"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#geodecalfrosted">GeoDecalFrosted</a></li>
+        <li>Further Information: <a href="../../Modeling/Aircraft/Airframe/Ice.htm">Ice</a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="clearcoat">ClearCoat</h4>
+      This material type will be used to simulate the clearcoat paint that is used as a type of varnish, creating a lacquered effect over coloured paint and decals that have been applied to an aircraft. This material is normally used for the aircraft fuselage, and the main textures are those which you would use in a material to define the look of the fuselage, with a few additional textures/parameters to define how the clearcoat finish will be applied over the supplied base textures/colours.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#clearcoat-parameters">ClearCoat Parameters [ClearCoat]</a>, <a href="FlightSim_Material_Parameters.htm#windshield-parameters-rain">Windshield / Clearcoat Parameters (Rain)</a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#clear-coat">ClearCoat</a></li>
+        <li>Further Information: <a href="../../Modeling/Aircraft/Airframe/Clearcoat.htm">Clearcoat</a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="parallaxwindow">ParallaxWindow</h4>
+      This material type will be used to fake building interiors through parallax effects and a special texture mapping.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#parallax-parameters">Parallax Parameters (ParallaxWindow)</a><a href="FlightSim_Materials.htm#parallax-parameters"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#parallax-window">ParallaxWindow</a></li>
+        <li>Further Information:</li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="anisotropic">Anisotropic</h4>
+      This material aims to model the light behavior seen in striped micro-surfaces. Such cases may be brushed metal or many types of fabrics. The specular on the material is offset by the two roughness maps following a custom direction in tangent space.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#ansiotropic">Anisotropic</a><a href="FlightSim_Materials.htm#ansiotropic"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="hair">Hair</h4>
+      This material type will be used to simulate characters hair.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#hair">Hair</a><a href="FlightSim_Materials.htm#hair-1"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="sss">Sub-Surface Scattering / SSS</h4>
+      This material type will be used to simulate skin.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#sss">SSS</a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#hair">Hair</a><a href="FlightSim_Materials.htm#sss-1"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="invisible">Invisible</h4>
+      This material will be used for non visible objects.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: N/A</li>
+        <li>Further Information: <a href="../../Modeling/Aircraft/Airframe/Airframe_Collision_Meshes.htm">Airframe Collision Meshes</a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="faketerrain">FakeTerrain</h4>
+      The terrain material type. Meshes with this type will have the same shading system as the terrain in <span data-keyref="game_name">Microsoft Flight Simulator 2024</span>.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a><a href="FlightSim_Materials.htm#standard-decal-porthole-glass-faketerrain"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="fresnelfade">FresnelFade</h4>
+      This material will be used to make an object visible based on the camera angle.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#fresnel-parameters">Fresnel Parameters (FresnelFade)</a><a href="FlightSim_Materials.htm#fresnel-parameters"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#fresnel-fade">FresnelFade</a><a href="FlightSim_Materials.htm#fresnel-fade"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="environmentoccluder">EnvironmentOccluder</h4>
+      This material will be used to hide environmental meshes that eventually penetrate with a mesh with this material assigned.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: N/A</li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="ghost">Ghost</h4>
+      This material is designed specifically for use with UI elements in VR (for example &quot;hands&quot;), but could be applied to SimObjects or Scenery elements if required.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#ghost_params">Ghost Parameters (Ghost)</a><a href="FlightSim_Materials.htm#ghost_params"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a><a href="FlightSim_Materials.htm#standard-decal-porthole-glass-faketerrain"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="geodecalblendedmask">GeoDecal BlendMasked / GeoDecal Blended Mask</h4>
+      This material is very similar to the <a href="FlightSim_Materials.htm#decal">Decal</a> material - it is designed for adding additional dynamic details over another mesh - with the addition of parameters to change the sharpness of the blend between materials.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#geo-blend-factors">Decal Per Component Blend Factors (GeoDecal Blended Mask)</a><a href="FlightSim_Materials.htm#decal-blend-factor-blended"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#geodecal-blended-mask">GeoDecal Blended Mask</a><a href="FlightSim_Materials.htm#geodecal-blended-mask"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="sail">Sail</h4>
+      This material is designed for use when making the envelope of a hot air balloon or the wing of a para-glider. Note that when using this material, you will normally want to enable the <a href="FlightSim_Materials.htm#double-sided">Double Sided</a> render parameter.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#sail-parameters">Sail Parameters [Sail]</a><a href="FlightSim_Materials.htm#sail-parameters"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a><a href="#standard-decal-porthole-glass-faketerrain"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="propeller">Propeller</h4>
+      This material is only to be used for those elements that rotate as propellers, turbine fans, or rotor-craft blades (helicopters, drones, etc...). Before using this material, the aircraft model requires some very specific setting up, which is explained here: <a href="../../Modeling/Aircraft/Airframe/Propellers_Turbines_And_Blades.htm">Propellers, Turbines And Blades</a>.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a><a href="#standard-decal-porthole-glass-faketerrain"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="windflex">Windflex</h4>
+      This material is not currently used in <span data-keyref="game_name">Microsoft Flight Simulator 2024</span>.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#windflex-parameters">WindFlex Parameters [Windflex]</a><a href="FlightSim_Materials.htm#windflex-parameters"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#standard-decal-porthole-glass-faketerrain">Standard, Decal, PortHole, Glass, FakeTerrain, Ghost, Sail, Propeller, Windflex</a><a href="#standard-decal-porthole-glass-faketerrain"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="tree">Tree</h4>
+      This material is not currently used in <span data-keyref="game_name">Microsoft Flight Simulator 2024</span>.
+      <ul>
+        <li>Additional Parameters: N/A</li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#tree">Tree, Vegetation</a><a href="#tree-1"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h4 id="vegetation">Vegetation</h4>
+      This material is not currently used in <span data-keyref="game_name">Microsoft Flight Simulator 2024</span>.
+      <ul>
+        <li>Additional Parameters: <a href="FlightSim_Material_Parameters.htm#vegetation-parameters">Vegetation Parameters [Vegetation]</a><a href="FlightSim_Materials.htm#vegetation-parameters"> </a></li>
+        <li>Textures: <a href="FlightSim_Material_Textures.htm#tree">Tree, Vegetation</a><a href="#tree-1"> </a></li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <p>The rest of this document explains the different parameters and textures that the various materials can use, starting with the <em>general</em> parameters that are available to almost all the FlightSim materials:</p>
+  <p> </p>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab1" name="tabGroup1" type="radio"/> <label for="tab1"><strong>Blender</strong></label> <input class="tab" id="tab2" name="tabGroup1" type="radio"/> <label for="tab2"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="General FlightSim Material Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/blender_material_params.png" title="General FlightSim Material Parameters"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="General FlightSim Material Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/3dsmax_material_params.png" title="General FlightSim Material Parameters"/></div>
+    </div>
+  </div>
+  <p> </p>
+  <p> </p>
+  <h3 id="avoid-duplicate">Avoid Duplicate Materials When Using Inheritance (3DS Max Only)</h3>
+  <p>This option is for when you are using <a href="../../Plugins/3DS_Max_Plugin/Containers.htm">Containers</a> in your scene, and these containers are using FlightSim materials. Selecting this option will ensure that there is no conflict between the <a href="#" data-popovertext="GUID stands for &#39;Globally Unique IDentifier&#39; which is a 128-bit value used to identify information in computer systems." data-rhwidget="TextPopOver">GUID</a>s used by the containers and the scene.</p>
+  <p> </p>
+  <p>When checked, the option will make sure the name of the material remains unique when importing materials from a container, by adding a suffix in the form of <code class="inline">[MaterialName]_[ContainerID]</code>, where <code class="inline">[MaterialName]</code> and <code class="inline">[ContainerID]</code> are replaced by the material name and the container ID respectively.</p>
+  <p><span class="note"><strong>NOTE</strong>: This is currently not supported when using <a href="../../Plugins/Blender_Plugin/The_Blender_Plugin.htm">The Blender Plugin</a>.</span></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="albedo">Albedo / Base Colour</h3>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab3" name="tabGroup2" type="radio"/> <label for="tab3"><strong>Blender</strong></label> <input class="tab" id="tab4" name="tabGroup2" type="radio"/> <label for="tab4"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="The Base Colour Swatch Parameter" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_1_param_albedo_blender.png" title="The Albedo Colour Swatch Parameter"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="The Albedo Colour Swatch Parameter" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_1_param_albedo_max.png" title="The Albedo Colour Swatch Parameter"/></div>
+      <div class="tab__text"> </div>
+    </div>
+  </div>
+  <p>The base color and alpha of the material. These values are linear and can be set by simply clicking on the colour swatch. If a <a href="FlightSim_Material_Textures.htm#base-color-texture">Base Color (Albedo)</a> texture is specified, this value is multiplied with the texel values.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="emissive">Emissive / Emissive Colour</h3>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab5" name="tabGroup3" type="radio"/> <label for="tab5"><strong>Blender</strong></label> <input class="tab" id="tab6" name="tabGroup3" type="radio"/> <label for="tab6"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="The Emission Swatch Colour Settings" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_2_param_emissive_blender.png" title="The Emission Swatch Colour Settings"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="The Emission Swatch Colour Settings" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_2_param_emissive_max.png" title="The Emission Swatch Colour Settings"/>
+        <p>Note that to help you get the correct emissive multiplier, you can click on the <code class="button_grey">Calc</code> button to open the <strong>Emissive Calculator</strong>:</p>
+        <p><img alt="The Emissive Calculator Window" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_3_param_calc.png" title="The Emissive Calculator Window"/></p>
+        <p>This window permits you to calculate the following:</p>
+        <ul>
+          <li>When <strong>Lock Luminance</strong> is checked - how much total light (the luminous intensity calculated in <a href="#" data-popovertext="The SI unit of measurement for light intensity. A candela measures the amount of luminance intensity from any point in a single direction." data-rhwidget="TextPopOver">cd</a>) a surface area of <em>X</em> m² and a luminance of <em>N</em> <a href="#" data-popovertext="The SI unit of measurement for light intensity. A candela measures the amount of luminance intensity from any point in a single direction." data-rhwidget="TextPopOver">cd</a>/m².</li>
+          <li>When <strong>Lock Intensity</strong> is checked - how many <a href="#" data-popovertext="The SI unit of measurement for light intensity. A candela measures the amount of luminance intensity from any point in a single direction." data-rhwidget="TextPopOver">cd</a>/m² a surface area of <em>X</em> m² needs to have to provide <em>N</em> <a href="#" data-popovertext="The SI unit of measurement for light intensity. A candela measures the amount of luminance intensity from any point in a single direction." data-rhwidget="TextPopOver">cd</a> of total luminous intensity.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <p> </p>
+  <p>The emissive colour is the colour that will be used for things like lights to create the &quot;glow&quot; effect. If an <a href="FlightSim_Material_Textures.htm#emissive">Emissive Texture</a> is used, this colour is multiplied with the texel values of the texture.</p>
+  <p> </p>
+  <ul>
+    <li><strong>Emissive Scale</strong> / <strong>Multiplier</strong> - This value is used to adjust the luminosity of the emissive colour. For further information on the emissive scale/multiplier, please see the section on <a href="../../Modeling/Aircraft/Airframe/Exterior_Lights.htm#h">Light Materials And Textures</a>.</li>
+    <li><strong>Day Multiplier</strong> - This value is a multiplier that can be used to adapt the brightness of the emissive material during the day time.</li>
+    <li><strong>Night Multiplier</strong> - This value is a multiplier that can be used to adapt the brightness of the emissive material during the night time.</li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="alpha_mode">Alpha Mode</h3>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab7" name="tabGroup4" type="radio"/> <label for="tab7"><strong>Blender</strong></label> <input class="tab" id="tab8" name="tabGroup4" type="radio"/> <label for="tab8"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="Alpha Mode Parameter Options" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_4_param_alpha_blender.png" title="Alpha Mode Parameter Options"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="Alpha Mode Parameter Options" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_4_param_alpha_max.png" title="Alpha Mode Parameter Options"/></div>
+    </div>
+  </div>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="opaque">OPAQUE</h5>
+      The material is fully opaque and any alpha values are ignored.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="mask">MASK</h5>
+      The material is either fully opaque or fully transparent depending on the alpha value and the specified alpha cutoff value. This mode can be used to simulate geometry such as tree leaves or wire fences. Pixels with an alpha above the alpha cutoff parameter value are discarded, the others are opaque.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="blend">BLEND</h5>
+      The output is blended with the background using a traditional blend operation (i.e. the Porter and Duff over operator). This mode can be used to simulate geometry such as gauze cloth or animal fur.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="dither">DITHER</h5>
+      The output is blended with the background using a dithering pattern.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="render-params">Render Parameters</h3>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab9" name="tabGroup5" type="radio"/> <label for="tab9"><strong>Blender</strong></label> <input class="tab" id="tab10" name="tabGroup5" type="radio"/> <label for="tab10"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="Render Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_5_param_render_blender.png" title="Render Parameters"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="Render Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_5_param_render_max.png" title="Render Parameters"/></div>
+    </div>
+  </div>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="draw-order">Draw Order</h5>
+      This value modifies the sorting order, and the value can range from from -999 to 999. In the simulation, <span style="text-align: justify;">objects are sorted from back to front <em>using the mesh center</em>. B</span>y &quot;mesh center&quot; we mean the actual mesh bounding box center, <em>not</em> the pivot position itself (pivot position does not affect the draw order sort algorithm). As such, the <strong>Draw Order</strong> parameter can be used to offset the distance used to sort the rendering order, for cases where the meshes center doesn&#39;t provide the correct order. This can be used to avoid rendering artifacts such as flickering when multiple transparent or decal material types are on top of each other in the rendered output. This parameter is effective for <a href="#decal">Decal</a>, <a href="#glass">Glass</a> and <a href="#windshield">Windshield</a> materials. In the case of decals, the value strictly specifies the order in which decals are rendered, where a higher value will be drawn above and a lower value will be drawn below. In the case of Glass and Windshield materials, the value is added as an offset to the distance used to sort the objects for rendering.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="no-cast-shadow">Don&#39;t Cast Shadows</h5>
+      When checked, objects with this material will not cast shadows.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="double-sided">Double Sided</h5>
+      When checked, back-face culling is disabled and double-sided lighting is enabled. Be aware that the normal of the back-side face is not flipped by default, so you would normally also check the <a href="FlightSim_Materials.htm#flip-backface-normals">Flip Backface Normal (3DS Max Only)</a> option (3DS Max only). If correct lighting is required without flipping the backface normals the you should use double-sided geometry instead.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="daynightcycle">Day Night Cycle</h5>
+      When checked, the emissive will be linked to the day/night cycle
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="disable-motion-blur">Disable Motion Blur</h5>
+      This option is made available for those rare cases when the motion blur applied by the simulation is considered undesirable, for example when the material is already being animated to blur it, for example when the material is for tires or propellers.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="flip-backface-normals">Flip Backface Normal (3DS Max Only)</h5>
+      This option will only be available when you have checked the <a href="FlightSim_Materials.htm#double-sided">Double Sided</a> option and - when enabled - it will flip the normals of the backface.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="gameplay-parameters">Gameplay Parameters</h3>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab11" name="tabGroup6" type="radio"/> <label for="tab11"><strong>Blender</strong></label> <input class="tab" id="tab12" name="tabGroup6" type="radio"/> <label for="tab12"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="Gameplay Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_6_param_gameplay_blender.png" title="Gameplay Parameters"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="Gameplay Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_6_param_gameplay_max.png" title="Gameplay Parameters"/></div>
+    </div>
+  </div>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="collision-material">Collision Material</h5>
+      When checked, meshes with this material will have collidable faces. This can be used to create precise colliders, for example for mouse interaction. Use this with low-resolution meshes. You can find more information here: <a href="../../Modeling/Landscape/Scenery_Collision_Meshes.htm">Collision Handling</a>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="road-material">Road Collision Material</h5>
+      When checked, meshes with this material are considered to be a road. This can be used to define which part of an asset can be used by cars, for example. Use this with low-resolution meshes.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="ground-material">Ground Collision Material</h5>
+      When checked, meshes with this material are considered to be on the ground, but not specifically a road. This can be used to define which part of an asset can be used by flora and fauna, for example. Use this with low-resolution meshes.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="uv-options">UV Options</h3>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab13" name="tabGroup7" type="radio"/> <label for="tab13"><strong>Blender</strong></label> <input class="tab" id="tab14" name="tabGroup7" type="radio"/> <label for="tab14"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="UV Options" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_7_param_uv_blender.png" title="UV Options"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="UV Options" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_7_param_uv_max.png" title="UV Options"/></div>
+    </div>
+  </div>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="uv-offset">Offset U/V</h5>
+      Set the UV offset values. Note this option can be animated, for more information see: <a href="../Materials.htm#animated_materials"> </a>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="uv-tiling">Tiling U/V</h5>
+      Set how the UVs will be tiled. Note this option can be animated, for more information see: <a href="../Materials.htm#animated_materials"> </a>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="uv-rotation">Rotation / UV Rotation</h5>
+      Set an angle to rotate the UVs by. Note this option can be animated, for more information see: <a href="../Materials.htm#animated_materials"> </a>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="uv-clamp">Clamp U/V</h5>
+      Clamps UVs on the U and/or V axis.
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="parameters">General Parameters</h3>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab15" name="tabGroup8" type="radio"/> <label for="tab15"><strong>Blender</strong></label> <input class="tab" id="tab16" name="tabGroup8" type="radio"/> <label for="tab16"><strong>3Ds Max</strong></label>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="General Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_8_param_general_blender.png"/></div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text"><img alt="General Parameters" class="center" src="../../../assets/images/3_Models_And_Textures/Materials/Materials/Parameters/mat_8_param_general_max.png"/></div>
+    </div>
+  </div>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="metallic">Metallic Factor / Metallic</h5>
+      The metalness of the material. A value of 1.0 means the material is a metal. A value of 0.0 means the material is a dielectric. Values in between are for blending between metals and dielectrics such as dirty metallic surfaces. This value is linear. If an &quot;Occlusion (R) Roughness(G) Metallic(B)&quot; texture is specified, this value is multiplied with the metallic texel values. Note this option can be animated, for more information see: <a href="../Materials.htm#animated_materials"> </a>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="roughness">Roughness Factor / Roughness</h5>
+      The roughness of the material. A value of 1.0 means the material is completely rough. A value of 0.0 means the material is completely smooth. This value is linear. If an &quot;Occlusion (R) Roughness(G) Metallic(B)&quot; texture is specified, this value is multiplied with the roughness texel values. Note this option can be animated, for more information see: <a href="../Materials.htm#animated_materials"> </a>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="ao-strength">Occlusion Strength / AO Strength</h5>
+      This option gives you the ability to tweak the occlusion map without breaking the AO map. With this option, you can modify the occlusion strength applied to each pixel of the texture. A value of 0.0 means no occlusion. A value of 1.0 means full texture occlusion, a value of 2.0 means complete dark occlusion, if no texture is specified the default AO texture will be white.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="normal-scale">Normal Scale / Normal Strength</h5>
+      The scalar multiplier applied to each normal vector of the texture. This value is ignored if the &quot;Normal&quot; texture is not specified.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="alpha-cutoff">Alpha Cutoff</h5>
+      When <a href="FlightSim_Materials.htm#alpha_mode">Alpha Mode</a> is set to <code class="inline">MASK</code>, the <em>Alpha Cutoff</em> property specifies the cutoff threshold. If the alpha value is greater than or equal to the Alpha Cutoff value then it is rendered as fully opaque, otherwise, it is rendered as fully transparent. The Alpha Cutoff value is ignored for other modes.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="detail-uv-scale"><a name="detailuvscale"></a>Detail UV Scale / Detail UV Tiling</h5>
+      UV tiling factor for the detail map.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="detail-normal-scale">Detail Normal Scale / Detail Normal Strength</h5>
+      The strength factor for the detail normal map.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="blend-threshold">Blend Mask Threshold / Detail Threshold</h5>
+      Defines the sharpness of the detail blending. T<span id="cke_bm_73888E" style="display: none;"> </span>he lower the value, the sharper the blending.
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="wear-uv-scale"><a name="detailuvscale"></a>Wear Overlay UV Scale</h5>
+      <em>Not currently used in the simulation.</em>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="wear-blend-sharpness">Wear Blend Sharpness</h5>
+      <em>Not currently used in the simulation.</em>
+    </li>
+  </ul>
+  <p> </p>
+  <ul>
+    <li>
+      <h5 id="wear-amount">Wear Amount</h5>
+      <em>Not currently used in the simulation.</em>
+    </li>
+  </ul>
+  <p> </p>
+  <div class="reltopics">
+    <p class="reltopics-caption">Related Topics</p>
+    <ol class="reltopics-list" data-topics="../../Models_And_Textures.htm|../Textures_And_Materials.htm|../Aircraft/Airframe/Airframe_Materials.htm|../Aircraft/Cockpit/Cockpit_Materials.htm|../../../2_DevMode/Menus/Options/Channel_Display.htm">
+      
+    <li><a href="../../Models_And_Textures.htm" class="reltopics-list-item" style="">Models And Textures</a></li><li><a href="../Textures_And_Materials.htm" class="reltopics-list-item" style="">Textures_And_Materials</a></li><li><a href="../Aircraft/Airframe/Airframe_Materials.htm" class="reltopics-list-item" style="">Airframe_Materials</a></li><li><a href="../Aircraft/Cockpit/Cockpit_Materials.htm" class="reltopics-list-item" style="">Cockpit_Materials</a></li><li><a href="../../../2_DevMode/Menus/Options/Channel_Display.htm" class="reltopics-list-item" style="">Channel Display</a></li></ol>
+  </div>
+  <p><button id="selection-button">Report An Issue</button></p>
+  <div id="issue-form"><label for="issue-input">Please explain the issue:</label><textarea id="issue-input" maxlength="255"></textarea>
+    <div id="char-counter">0/255</div>
+    <div id="error-message"> </div>
+    <button id="send-button">Send</button><button id="cancel-button">Cancel</button>
+  </div>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        // Prism
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded');
+        // MATHJAX
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        }
+        // SKIN CHANGER
+        setTimeout(
+          () => {
+            const event = new Event("change");
+            document.getElementById('status').dispatchEvent(event);
+          }, 250);
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+      
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+      
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+    <!-- <button id="selection-button">Report An Issue</button>
+
+    <div id="issue-form">
+        <label for="issue-input">Please explain the issue:</label>
+        <textarea id="issue-input" maxlength="255"></textarea>
+        <div id="char-counter">0/255</div>
+        <div id="error-message"></div>
+        <button id="send-button">Send</button>
+        <button id="cancel-button">Cancel</button>
+    </div> -->
+  <div class="rh-layout-footer-outer-box">
+    <div class="rh-layout-footer-inner-left-box">
+      <!--REMEMEBER TO FIX THE <label> tags!!!! 
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox" /> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div> -->
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox"/> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div>
+      <div class="custom-checkbox"><button class="button_flighting" id="button_flighting" onclick="return get_URL();" role="button">Docs</button></div>
+    </div>
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2026 Microsoft</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box5">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://docs.flightsimulator.com/html/Introduction/Introduction.htm" style="color: #A0A0A0; text-decoration: none;">MSFS2020 SDK Documentation</a></p>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    //<![CDATA[
+    // function to set a given theme/color-scheme
+    function setTheme(checked) { // False is dark/default, true is light
+      let themeName = checked ? 'light' : 'dark';
+      localStorage.setItem('theme', themeName);
+      const divElement = document.getElementById("style");
+      var position = divElement.getAttribute("href").search("assets");
+      /*console.log(position);*/
+      let _substr = divElement.getAttribute("href").substring(0, position);
+      /*console.log("Relative path:", _substr);*/
+      var links = document.querySelectorAll('link[rel="StyleSheet"]');
+      for (let index = 0; index < links.length; index++) {
+        let href = links[index].href;
+        let fileName = href.substring(href.lastIndexOf('/') + 1);
+        console.log('FileName:', fileName);
+        if (typeof fileName === 'string' || fileName instanceof String) {
+          if (fileName == 'default.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/default.css';
+            } else {
+              links[index].href = _substr + 'assets/css/default.css';
+            }
+          }
+          if (fileName == 'layout.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/layout.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/layout.css';
+            }
+          }
+          if (fileName == 'userstyles.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/userstyles.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/userstyles.css'; /*?rnd=' + (new Date().valueOf())*/
+            }
+          }
+        }
+      }
+    }
+    window.onload = async function() {
+      // THEME SETTER
+      if (localStorage.getItem('theme') === 'light') {
+        document.getElementById('status').checked = true;
+      } else {
+        document.getElementById('status').checked = false;
+      }
+      document.getElementById('status').addEventListener("change", (event) => {
+        setTheme(event.target.checked);
+      });
+      // SET FLIGHTING BUTTON NAME
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let btn = document.getElementById('button_flighting');
+      if (currentLocation.includes('flighting/')) {
+        btn.innerHTML = 'Retail Docs';
+      } else {
+        btn.innerHTML = 'Flighting Docs';
+      }
+    };
+    // FLIGHTING / SIMUPDATE DOCS SWITCHER
+    get_URL = async function() {
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let new_URL = '';
+      let fail_URL = '';
+      if (currentLocation.includes('flighting/')) {
+        new_URL = currentLocation.replace('flighting/', '');
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+      } else {
+        new_URL = currentLocation.slice(0, 42) + "flighting/" + currentLocation.slice(42);
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/flighting/html/1_Introduction/Introduction.htm'
+      }
+      console.log(new_URL);
+      console.log(fail_URL);
+
+      function checkAndLoadUrl(url, fallback, callback) {
+          try {
+              // Validate URL format
+              new URL(url);
+              new URL(fallback)
+              
+              const xhr = new XMLHttpRequest();
+              
+              // Set timeout to 5 seconds
+              xhr.timeout = 5000;
+              
+              xhr.onreadystatechange = function() {
+                  if (xhr.readyState === XMLHttpRequest.DONE) {
+                      if (xhr.status >= 200 && xhr.status < 400) {
+                          // URL is valid, load the page
+                          window.location.href = url;
+                          callback({
+                              resolvable: true,
+                              status: xhr.status,
+                              statusText: xhr.statusText
+                          });
+                      } else {
+                          window.location.href = fallback;
+                          callback({
+                              resolvable: false,
+                              error: `Request failed with status ${xhr.status}`
+                          });
+                      }
+                  }
+              };
+              
+              xhr.ontimeout = function() {
+                  callback({
+                      resolvable: false,
+                      error: 'Request timed out'
+                  });
+              };
+              
+              xhr.onerror = function() {
+                  callback({
+                      resolvable: false,
+                      error: 'Network error'
+                  });
+              };
+              
+              // Use HEAD method to check URL
+              xhr.open('HEAD', url, true);
+              xhr.send();
+              
+          } catch (error) {
+              window.location.href = fallback;
+              callback({
+                  resolvable: false,
+                  error: 'Invalid URL format'
+              });
+          }
+      }
+    checkAndLoadUrl(new_URL, fail_URL, result => {
+        console.log(`URL: ${url}`);
+        console.log(`Fallback URL: ${url}`);
+        console.log('Result:', result);
+        }
+      );
+    };
+// REPORT AN ISSUE BUTTON AND INPUT BOX
+/*	document.addEventListener('DOMContentLoaded', () => {
+		const container = document.querySelector('.RH-LAYOUT-CENTERPANEL-topic-box');
+		if (!container) {
+			console.error('Container not found');
+			return;
+		}
+
+		const button = document.getElementById('selection-button');
+		const form = document.getElementById('issue-form');
+		const input = document.getElementById('issue-input');
+		const sendBtn = document.getElementById('send-button');
+		const cancelBtn = document.getElementById('cancel-button');
+		const charCounter = document.getElementById('char-counter');
+		const errorMsg = document.getElementById('error-message');
+
+		// Update character counter
+		input.addEventListener('input', () => {
+			const len = input.value.length;
+			charCounter.textContent = `${len}/255`;
+		});
+
+		// Function to apply robust highlight to a range (handles multi-element selections)
+		const applyHighlight = (originalRange) => {
+			const highlights = [];
+			const range = originalRange.cloneRange(); // Work on a copy
+			const ancestor = range.commonAncestorContainer;
+			const textNodes = [];
+
+			// Collect all text nodes within the range
+			const walker = document.createTreeWalker(ancestor, NodeFilter.SHOW_TEXT, null);
+			let node;
+			while (node = walker.nextNode()) {
+				if (range.intersectsNode(node)) {
+					textNodes.push(node);
+				}
+			}
+
+			textNodes.forEach(textNode => {
+				const nodeRange = document.createRange();
+				nodeRange.selectNodeContents(textNode);
+
+				// Adjust for partial selection in start/end containers
+				if (textNode === range.startContainer) {
+					nodeRange.setStart(textNode, range.startOffset);
+				}
+				if (textNode === range.endContainer) {
+					nodeRange.setEnd(textNode, range.endOffset);
+				}
+
+				// Only surround if there's content to highlight
+				if (!nodeRange.collapsed) {
+					const span = document.createElement('span');
+					span.className = 'custom-highlight';
+					nodeRange.surroundContents(span);
+					highlights.push(span);
+				}
+			});
+
+			return highlights;
+		};
+
+		// Function to remove custom highlights
+		const removeHighlights = () => {
+			const highlights = document.querySelectorAll('.custom-highlight');
+			highlights.forEach(span => {
+				const parent = span.parentNode;
+				while (span.firstChild) {
+					parent.insertBefore(span.firstChild, span);
+				}
+				parent.removeChild(span);
+				parent.normalize(); // Merge adjacent text nodes
+			});
+		};
+
+		// Function to update button visibility and position
+		const updateButton = () => {
+			// Do not show button if form is visible
+			if (form.style.display === 'block') {
+				button.style.display = 'none';
+				return;
+			}
+
+			const selection = window.getSelection();
+			if (!selection.rangeCount || selection.isCollapsed) {
+				button.style.display = 'none';
+				return;
+			}
+
+			const range = selection.getRangeAt(0);
+
+			// Check if selection is within the container
+			const commonAncestor = range.commonAncestorContainer;
+			if (!container.contains(commonAncestor)) {
+				button.style.display = 'none';
+				return;
+			}
+
+			// Get bounding rects relative to viewport
+			const rangeRect = range.getBoundingClientRect();
+			const containerRect = container.getBoundingClientRect();
+
+			// Compute positions relative to container
+			const relativeLeft = rangeRect.left - containerRect.left;
+			const relativeTop = rangeRect.top - containerRect.top;
+			const relativeBottom = rangeRect.bottom - containerRect.top;
+			const selectionWidth = rangeRect.width;
+
+			// Position button centered under the selection
+			// Left: midpoint of selection minus half button width (measure button width after display)
+			// Top: below the selection's bottom
+			button.style.display = 'block'; // Show temporarily to measure width
+			const buttonWidth = button.offsetWidth;
+			button.style.left = `${relativeLeft + (selectionWidth / 2) - (buttonWidth / 2)}px`;
+			button.style.top = `${relativeBottom + 10}px`; // 10px padding below selection
+		};
+
+		// Listen for selection changes
+		document.addEventListener('selectionchange', updateButton);
+
+		// Also listen for mouseup as a fallback, in case selectionchange doesn't fire
+		document.addEventListener('mouseup', updateButton);
+
+		// Hide button and form on click elsewhere or when selection is cleared
+		document.addEventListener('mousedown', (event) => {
+			if (event.target !== button && !form.contains(event.target)) {
+				button.style.display = 'none';
+				form.style.display = 'none';
+				removeHighlights();
+			}
+		});
+
+		// Action for the selection button: show the issue form
+		button.addEventListener('click', (event) => {
+			event.preventDefault(); // Prevent any default click behavior
+			const selection = window.getSelection();
+			if (selection.rangeCount > 0) {
+				const range = selection.getRangeAt(0).cloneRange();
+				const selectedText = selection.toString();
+				if (selectedText) {
+					// Remove any existing highlights first
+					removeHighlights();
+
+					// Apply robust highlight
+					applyHighlight(range);
+
+					// Clear actual selection to allow typing in input
+					selection.removeAllRanges();
+
+					// Hide button and show form below where the button was
+					button.style.display = 'none';
+					form.style.display = 'block';
+					form.style.top = `${parseFloat(button.style.top) + button.offsetHeight + 10}px`;
+					form.style.left = button.style.left;
+					input.value = ''; // Clear input
+					charCounter.textContent = '0/255'; // Reset counter
+					errorMsg.style.display = 'none'; // Hide error
+					errorMsg.textContent = ''; // Clear error
+					input.focus(); // Focus on the input for user convenience
+
+					// Store selectedText for use in send
+					sendBtn.onclick = () => {
+						const explanation = input.value.trim();
+						if (!explanation) {
+							errorMsg.textContent = 'Please enter an explanation.';
+							errorMsg.style.display = 'block';
+							return; // Keep form open
+						}
+						const pageURL = window.location.href;
+						// Example action: alert or send data (replace with actual logic, e.g., API call)
+						var trimmedSelectedText = selectedText;
+						if (selectedText.length > 255)
+							{
+							trimmedSelectedText = selectedText.substring(0, 252) + "...";
+							}
+						alert(`Page URL: ${pageURL}\nSelected Text: ${trimmedSelectedText}\nIssue Explanation: ${explanation}`);
+						// Alternatively: console.log({ pageURL, selectedText, explanation });
+						// Or send to server: fetch('/report-issue', { method: 'POST', body: JSON.stringify({ pageURL, selectedText, explanation }) });
+						form.style.display = 'none';
+						input.value = '';
+						removeHighlights();
+						// Optionally clear selection after send: window.getSelection().removeAllRanges();
+					};
+				}
+			}
+		});
+
+		// Action for cancel button: hide form, clear input, remove highlight
+		cancelBtn.addEventListener('click', () => {
+			form.style.display = 'none';
+			input.value = '';
+			removeHighlights();
+			// Optionally clear selection after cancel: window.getSelection().removeAllRanges();
+		});
+	});*/
+    //]]>
+  </script>
+
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "3.2.1.1"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

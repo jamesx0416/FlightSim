@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "download:msfs-doc-xmls": "bun scripts/download-msfs-doc-xmls.mjs",
-    "download:msfs-doc-cfgs": "bun scripts/download-msfs-doc-cfgs.mjs"
+    "download:msfs-doc-cfgs": "bun scripts/download-msfs-doc-cfgs.mjs",
+    "download:msfs-doc-references": "bun scripts/download-msfs-doc-references.mjs",
+    "download:msfs-template-explorer-html": "bun scripts/download-msfs-template-explorer-html.mjs"
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.21",

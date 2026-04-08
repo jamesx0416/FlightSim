@@ -1,0 +1,938 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Model Animation Definitions</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <!-- <link href="../../assets/css/Prism/prism.css" rel="stylesheet" /> -->
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="Models,XML Files"/>
+  <!-- <script src="../../assets/css/Prism/prism.js"></script> -->
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>MODEL ANIMATION DEFINITIONS</h2>
+  <p>This section is dedicated to the XML elements related to model animation. These elements can be used as part of the <code class="inline"><a href="Model_Definitions.htm">[model].xml</a></code> file, or as a separate <code class="inline">animations.xml</code> file. If any animations are being defined for a single model then you would normally include these elements within the actual <code class="inline">[model].xml</code>, but if you wish to share animations across multiple models, then you would set up an <code class="inline">animations.xml</code> file, formatted as follows:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;ModelInfo version=&quot;1.1&quot; guid=&quot;&lt;!-- GUID HERE --&gt;&quot;&gt;
+    &lt;Animation&gt;
+        &lt;Event time=&quot;1&quot; name=&quot;Event_Name&quot;/&gt;
+    &lt;/Animation&gt;
+    &lt;!-- FURTHER ANIMATION EVENT DATA HERE --&gt;
+    &lt;AnimGraph&gt;
+        &lt;DefaultState name=&quot;Default_State_Name&quot;/&gt;
+        &lt;BlendTreeState name=&quot;Idle&quot;&gt;
+          &lt;Animations&gt;
+            &lt;Animation guid=&quot;&lt;!-- GUID HERE --&gt;&quot; loop =&quot;True/False&quot; speed=&quot;1&quot;/&gt;
+          &lt;/Animations&gt;
+          &lt;Events&gt;
+            &lt;Event time=&quot;1&quot; name=&quot;Event_Name&quot;/&gt;
+          &lt;/Events&gt;      
+        &lt;/BlendTreeState&gt;
+        &lt;!-- FURTHER BLENDTREE STATES HERE --&gt;
+        &lt;Transition start=&quot;Start_Animation&quot; end =&quot;End_Animation&quot;&gt;
+          &lt;Condition&gt; &lt;!-- RPN CONDITION HERE --&gt; &lt;/Condition&gt;
+        &lt;/Transition&gt;
+        &lt;!-- FURTHER TRANSITIONS HERE --&gt;
+    &lt;AnimGraph&gt;
+&lt;/ModelInfo&gt;</code></pre>
+  <p>This file would be placed in the same location as the <code class="inline">sim.cfg</code> file or <code class="inline">aircraft.cfg</code> that will be using the animations, and there should be an &quot;animations&quot; folder in the same directory, for example:<br/>
+    <img alt="Files And Folders Required For Shared Model Animations" class="center" src="../../assets/images/Content_Config/Models/model_anim_folders.png"/> Note that the elements listed here can also be used within the <code class="inline"><a href="Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> element of the <code class="inline">[model].xml</code> to define animations as part of the <a href="ModelBehaviors/Model_Behaviors.htm">Model Behaviors</a>, or as part of a <code class="inline"><a href="ModelBehaviors/General_Template_Definitions.htm#Component">&lt;Component&gt;</a></code> definition.
+  </p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Animation"><code class="inline">&lt;Animation&gt;</code></h3>
+  <p>This element is the root entry of any behavior. It defines the name the of the model animation and the behavior it should be linked to. It can contain the <code class="inline"><a href="#Event">&lt;Event /&gt;</a></code> sub-element and has the following parameters:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">name</code></td>
+        <td>A unique name for the new animation. It should not contain any spaces or punctuation, but can contain underscores and numeric digits.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">guid</code></td>
+        <td>The unique <a href="#" data-popovertext="GUID stands for &#39;Globally Unique IDentifier&#39; which is a 128-bit value used to identify information in computer systems." data-rhwidget="TextPopOver">GUID</a> for the animation. This is the reference the simulation will use to identify the animation, and must be in the format &quot;<code class="inline">{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx}</code>&quot;, all lower case, e.g: &quot;<code class="inline">{12f06ee8-11ce-4e7b-a715-a9c5deb5352f}</code>&quot;.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">length</code></td>
+        <td>This is used only for &quot;Sim&quot; animations, and exists for backwards compatibility. It is not necessary to specify this if you specify the <code class="inline">&lt;AnimLength&gt;</code> element of a <code class="inline">&lt;PartInfo&gt;</code> animation.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">type</code></td>
+        <td>Defines the type of animation. Standard animations are simpler to define and not typically driven by aircraft controls. Sim animations are usually linked to Simulation Variables, see the section on <code class="inline"><a href="#PartInfo">&lt;PartInfo&gt;</a></code> below for more information.</td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <p>&quot;<strong>Standard</strong>&quot;<br/>
+            &quot;<strong>Sim</strong>&quot;</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">typeParam</code></td>
+        <td>
+          <p>This is used to set the animation play property for the different animation types. You can uses either or both of the available options, eg:</p>
+          <p class="codeblock">typeParam = &quot;Autoplay&quot;<br/>
+            typeParam = &quot;Autoplay,Random&quot;</p>
+        </td>
+        <td>
+          <p><u>String</u> :</p>
+          <p>&quot;<strong>AutoPlay</strong>&quot; - the animation will run when the object is rendered</p>
+          <p>&quot;<strong>Random</strong>&quot; - the animation will be started at a random point along its timeline</p>
+          <p>&quot;<strong>FrameRate</strong>&quot; - The FrameRate <em>reference</em> value, where the default value is 18fps. This is essentially a scalar of 1, so if you set the FrameRate to 36fps the animation would be played at double the speed, or at 9fps to play at half speed.</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><code class="inline">typeParam2</code></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">This parameter is used for &quot;Sim&quot; animations only and specifies which <code class="inline"><a href="Model_Animation_Definitions.htm#PartInfo">&lt;PartInfo&gt;</a></code> to use for this animation. This is a <strong>legacy</strong> parameter, and as such <em>should not be used</em>.</td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">String</td>
+        <td style="text-align: center;background-color: rgba(255, 0, 0, 0.10)">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="NodeAnimation"><code class="inline">&lt;NodeAnimation&gt;</code></h3>
+  <p>This element is currently used for advanced &quot;wingflex&quot; bone animation. It animates the positions of several nodes in three dimensions. For this to have the desired effect, the nodes should be the joints of a skeleton that skins the wings and the nodes are hard-coded to a limit of 12 with the following order:</p>
+  <p> </p>
+  <table style="table-layout:auto;width:50%;">
+    <colgroup>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Order</th>
+        <th>Node Position</th>
+      </tr>
+      <tr>
+        <td style="text-align: center">0</td>
+        <td>the left wing bone closest to the center</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">1</td>
+        <td>in between</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">2</td>
+        <td>in between</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">3</td>
+        <td>the left wing bone furthest from the center</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">4</td>
+        <td>the right wing bone closest to the center</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">5</td>
+        <td>in between</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">6</td>
+        <td>in between</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">7</td>
+        <td>the right wing bone furthest from the center</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">8</td>
+        <td>the left wing engine pivot node closest to the center</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">9</td>
+        <td>the left wing engine pivot node furthest from the center</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">10</td>
+        <td>the right wing engine pivot node closest to the center</td>
+      </tr>
+      <tr>
+        <td style="text-align: center">11</td>
+        <td>the right wing engine pivot node furthest from the center</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>The element has the sub-element <code class="inline">&lt;Node /&gt;</code> and takes the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">type</code></td>
+        <td>The type of node animation to use (currently only 1 type is available)</td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <p>&quot;WingFlex&quot;</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="Node"><code class="inline">&lt;Node /&gt;</code></h4>
+  <p>This self-closing element is a sub-element of <code class="inline"><a href="Model_Animation_Definitions.htm#NodeAnimation">&lt;NodeAnimation&gt;</a></code> and is used to define the 12 different wingflex nodes on the model for the aircraft (one <code class="inline">&lt;Node /&gt;</code> element per wingflex node).</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="AnimationEvent"><code class="inline">&lt;AnimationEvent&gt;</code></h3>
+  <p>This element describes a moment in time when the animation reaches a certain point. Note that it is sensitive to the direction in which the animation changes, and by default an event only fires when an animation value <em>increases</em>. It can have <code class="inline"><a href="Model_Animation_Definitions.htm#Time">&lt;Time&gt;</a></code> and <code class="inline"><a href="Model_Animation_Definitions.htm#NormalPlayback">&lt;IsNormalPlayback&gt;</a></code> sub-elements, and takes the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">EventName</code></td>
+        <td>The name of the event, which can be used by other parts of <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, like missions.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">AnimationName</code></td>
+        <td>The name of the animation this event links to.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="Time"><code class="inline">&lt;Time&gt;</code></h4>
+  <p>This is a sub-event of <code class="inline"><a href="Model_Animation_Definitions.htm#AnimationEvent">&lt;AnimationEvent&gt;</a></code> and is used for setting the time - as a percentage of the animation duration - at which this event should trigger. An animation can have several <code class="inline">&lt;Time&gt;</code> elements, in which case the event will fire on all those occasions. Note that some animations contain several parts. For example, the gear animations have the retraction in the first half and the suspension in the second half. This element has no attributes.</p>
+  <p> </p>
+  <h4 id="NormalPlayback"><code class="inline">&lt;IsNormalPlayback&gt;</code></h4>
+  <p>This is a sub-event of <code class="inline"><a href="#AnimationEvent">&lt;AnimationEvent&gt;</a></code>. If this is set to False (0), the animation event will trigger when the animation value <em>decreases</em> instead. The default value is True (1).</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="AnimGraph"><code class="inline">&lt;AnimGraph&gt;</code></h3>
+  <p>This element is a container element that is used to hold the various elements used to define one or more animations for a model, as well as how those animations should transition together based on specific conditions. It can contain the following sub-elements: <code class="inline"><a href="Model_Animation_Definitions.htm#DefaultState">&lt;DefaultState /&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#BlendTreeState">&lt;BlendTreeState&gt;</a></code>, and <code class="inline"><a href="Model_Animation_Definitions.htm#Transition">&lt;Transition&gt;</a></code>. Additionally you may also provide one or more <code class="inline"><a href="Model_Animation_Definitions.htm#layer">&lt;Layer&gt;</a></code> elements, <strong>but this is a beta feature and so should be extensively tested if used</strong>.</p>
+  <p> </p>
+  <p>The AnimGraph system is mostly used by <a href="../SimObjects/Living_Things/Living_Things.htm">Living Thing</a> SimObjects: a complex example would the airport Marshaller, while a more simple example would be an animal walking around. The <code class="inline">&lt;AnimGraph&gt;</code> will contain at least two or more <code class="inline">&lt;BlendTreeState&gt;</code> elements, each with a unique name. It will also contain a <code class="inline">&lt;DefaultState /&gt;</code> (that references a <code class="inline">&lt;BlendTreeState&gt;</code>), and one or more <code class="inline">&lt;Transition&gt;</code> elements to control the change between two blendtree states.</p>
+  <p> </p>
+  <p>Each <code class="inline">&lt;BlendTreeState&gt;</code> has at least one animation - but can have more - and these animations can be used by several <code class="inline">&lt;BlendTreeState&gt;</code> elements if required. A <code class="inline">&lt;BlendTreeState&gt;</code> element also specifies whether an animation should loop or not, which means you can have two <code class="inline">&lt;BlendTreeState&gt;</code> elements for the same animation, with one looping while the other does not. Switching between these blendtree states is done using the <code class="inline">&lt;Transition&gt;</code> element, which <strong>must</strong> be specified for it to be possible to go from one blendtree state animation to another.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="DefaultState"><code class="inline">&lt;DefaultState /&gt;</code></h3>
+  <p>This is a self closing element that sets a default model animation state. The element should be included as part of an <code class="inline"><a href="Model_Animation_Definitions.htm#AnimGraph">&lt;AnimGraph&gt;</a></code> or a <code class="inline"><a href="#layer">&lt;Layer&gt;</a></code> and has a single attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>The name of the blendtree state that should be used as the default animation state for the model.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="BlendTreeState"><code class="inline">&lt;BlendTreeState&gt;</code></h3>
+  <p>This element is used to define one or more animation states that can be used for animating the model. These states can be blended together using the <code class="inline"><a href="#Transition">&lt;Transition&gt;</a></code> element, and can have <code class="inline"><a href="Model_Animation_Definitions.htm#Animations">&lt;Animations&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#Events">&lt;Events&gt;</a></code> and <code class="inline"><a href="Model_Animation_Definitions.htm#Value">&lt;Value&gt;</a></code> elements used as sub-elements to further control how and when the animation will be played. This element is used within the main <code class="inline"><a href="#AnimGraph">&lt;AnimGraph&gt;</a></code> container or within a <code class="inline"><a href="#layer">&lt;Layer&gt;</a></code> and has the following attribute:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Name</code></td>
+        <td>The name of the animation state that is being defined.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="Value"><code class="inline">&lt;Value&gt;</code></h4>
+  <p>This element is used to set a value for the animation state. This is done using <a href="../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation</a>, for example:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Value&gt;(A:GROUND VELOCITY, METERS PER SECOND)&lt;/Value&gt;</code></pre>
+  <p> </p>
+  <h3 id="Animations"><code class="inline">&lt;Animations&gt;</code></h3>
+  <p>This is a container element for one or more of the <code class="inline">&lt;Animation&gt;</code> sub-elements and is used inside a <code class="inline"><a href="#BlendTreeState">&lt;BlendTreeState&gt;</a></code> element. It has no attributes.</p>
+  <p> </p>
+  <h4 id="Animation(Blend)"><code class="inline">&lt;Animation&gt;</code></h4>
+  <p>This sub-element defines how a single animation - based on the supplied animation GUID - should be performed. The attributes that control the animation within this element are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">guid</code></td>
+        <td>The animation GUID to reference (as defined by the main <code class="inline"><a href="#Animation">&lt;Animation&gt;</a></code> element).</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">loop</code></td>
+        <td>Whether the animation should loop (True) or not (False).</td>
+        <td>Bool</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">speed</code></td>
+        <td>The animation speed scalar. When set to 1 the animation will play at the original speed. Lower values will slow the animation and higher values will speed it up, eg: 0.5 would play it at half speed and 2.0 would play it at double speed.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">threshold</code></td>
+        <td>
+          <p>This is the threshold value for choosing an animation based on the returned <code class="inline"><a href="Model_Animation_Definitions.htm#Value">&lt;Value&gt;</a></code> for the <code class="inline"><a href="#BlendTreeState">&lt;BlendTreeState&gt;</a></code> element. If the value is between 2 consecutive thresholds, the 2 corresponding animations are blended together with weight depending on how close the value is to each threshold. If the value is more than the last threshold, the last animation is used. See the <a href="Model_Examples.htm#BlendTreeState">&lt;BlendTreeState&gt; Example</a>.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">FireEventOnEnd</code></td>
+        <td>This is used to notify the end of an animation for a <code class="inline">&lt;SimMission.PlayBlendTreeStateAction&gt;</code> to become &quot;complete&quot;. This means that if the <code class="inline">&lt;SimMission.PlayBlendTreeStateAction&gt;</code> is set with <code class="inline">&lt;Immediate&gt;False&lt;/Immediate&gt;</code>, it will wait until the end of the animations from the <code class="inline"><a href="#BlendTreeState">&lt;BlendTreeState&gt;</a></code> element that do have this set to &quot;True&quot;, before continuing to the next action.</td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Transition"><code class="inline">&lt;Transition&gt;</code></h3>
+  <p>The <code class="inline">&lt;Transition&gt;</code> element is a container element for the <code class="inline"><a href="Model_Animation_Definitions.htm#Condition">&lt;Condition&gt;</a></code> sub-element and is designed to create a transition between two different <code class="inline"><a href="#BlendTreeState">&lt;BlendTreeState&gt;</a></code> animations. This element is a child of the main <code class="inline"><a href="Model_Animation_Definitions.htm#AnimGraph">&lt;AnimGraph&gt;</a></code> or <code class="inline"><a href="#layer">&lt;Layer&gt;</a></code> elements.</p>
+  <p> </p>
+  <p>When creating transitions between states, <span>you can have them work in four different ways depending on the attributes and elements that are set for it:</span></p>
+  <ul>
+    <li>A transition <em>without</em> any <code class="inline">&lt;Condition&gt;</code> element <em>nor</em> an <code class="inline">ExitTime</code> attribute will be considered as &quot;<strong>manual</strong>&quot;. This means that it will <em>only</em> be executed when some code or script requests a different <code class="inline">&lt;BlendTreeState&gt;</code> and the following conditions are met: the requested state is the defined <code class="inline">end</code> state of the transition, and the currently playing animation matches the <code class="inline">start</code> state animation.</li>
+    <li>The following are all considered as &quot;<strong>automatic</strong>&quot; transitions:
+      <ul>
+        <li>A transition <em>with</em> a <code class="inline">&lt;Condition&gt;</code> but <em>without</em> an <code class="inline">ExitTime</code> attribute will be automatically executed if the <code class="inline">&lt;Condition&gt;</code> resolves as true and the <code class="inline">start</code> state is the current one.</li>
+        <li>A transition <em>with</em> an <code class="inline">ExitTime</code> attribute and <em>no</em> <code class="inline">&lt;Condition&gt;</code> will be automatically executed when the animation from the <code class="inline">start</code> state reaches a certain ratio of the animation. For example, an <code class="inline">ExitTime</code> of 1.0 will start the transition immediately at the end of the current animation. A value of 0.5 will start at half the duration of the current animation. A value of 2.5 will start after two and a half (looped) iterations of the current animation.</li>
+        <li>A transition with <em>both</em> an <code class="inline">ExitTime</code> <em>and</em> a <code class="inline">&lt;Condition&gt;</code> will be automatically executed when both the <code class="inline">&lt;Condition&gt;</code> resolves as true and the <code class="inline">ExitTime</code> value has been reached.</li>
+      </ul>
+    </li>
+  </ul>
+  <p> </p>
+  <p><span class="note"><strong>NOTE</strong>: &quot;Automatic&quot; transitions cannot be controlled by code or script, and should only be used when the transition is expected to <strong>always</strong> happen after some time/condition, no matter what the circumstances.</span></p>
+  <p> </p>
+  <p>Some notes on triggering transitions:</p>
+  <ol class="Decimal">
+    <li>when using the <code class="inline">&lt;Condition&gt;</code> element, if the current state is the <code class="inline">start</code> one from the transition, the code in the <code class="inline">&lt;Condition&gt;</code> is evaluated every frame, and if it resolves as true, then the transition triggers.</li>
+    <li>using a <code class="inline">&lt;SimMission.PlayBlendTreeStateAction&gt;</code> in a mission/script file to ask an animation to go to state <em>X</em>. This will search for a transition going from the current state to state <em>X</em>, and will trigger that transition if it is found (if no such transition exists, the action will do nothing).</li>
+    <li>When using an <code class="inline">ExitTime</code> greater than 0, you are setting a &quot;ratio&quot; that will trigger the transition automatically once the animation from the <code class="inline">start</code> state has reached that far in the animation. For example:
+      <ul>
+        <li>if you set <code class="inline">ExitTime=&quot;0.5&quot;</code>, the transition will trigger when the animation is halfway through, and the animation keeps going - blended with the new one - during the transition duration as usual.</li>
+        <li>if you set <code class="inline">ExitTime=&quot;3.0&quot;</code> - and the animation is set to loop - then the transition will automatically trigger after 3 loops.</li>
+      </ul>
+    </li>
+  </ol>
+  <p> </p>
+  <p>The element has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">start</code></td>
+        <td>The name of the start animation (the one to transition <em>from</em>), as defined by the <code class="inline"><a href="#BlendTreeState">&lt;BlendTreeState&gt;</a></code> &quot;Name&quot; attribute.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">end</code></td>
+        <td>The name of the end animation (the one to transition <em>to</em>), as defined by the <code class="inline"><a href="#BlendTreeState">&lt;BlendTreeState&gt;</a></code> &quot;Name&quot; attribute.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">duration</code></td>
+        <td>The duration of the transition, in seconds.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">ExitTime</code></td>
+        <td>The time ratio for when the transition should trigger (see the information given above for more details)</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="Condition"><code class="inline">&lt;Condition&gt;</code></h4>
+  <p>This element is for defining a conditional expression that will be evaluated every frame to see if the parent <code class="inline"><a href="#Transition">&lt;Transition&gt;</a></code> should be triggered or not. The condition should be written using <a href="../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation</a>, for example:</p>
+  <pre class="language-xml"><code class="language-xml">&lt;Condition&gt;(A:SURFACE RELATIVE GROUND SPEED, METERS PER SECOND) 0.1 &amp;gt;&lt;/Condition&gt;</code></pre>
+  <p> </p>
+  <p> </p>
+  <h3 id="layer"><code class="inline">&lt;Layer&gt;</code></h3>
+  <p><span class="note"><strong>IMPORTANT!</strong> This is a <strong>Beta</strong> feature and as such should be used with caution. If you have issues, please <a href="https://devsupport.flightsimulator.com/">contact the developers</a>.</span></p>
+  <p>This is an advanced feature that can be used to assign different blendtree states to different layers within the model and as such have various animations playing independently of each other. The intended use of the layers system is to have each layer corresponding to an independent part of the model, so that their animations do not conflict. For example, you could have a layer controlling the legs and lower body of a Human model, another layer for the arms and upper body, and a third layer for the head. Each layer could then be in a different state : legs walking or not, arms idle or doing some animation, face looking happy or sad or talking, etc...</p>
+  <p> </p>
+  <p>This element can contain the following sub-elements: <code class="inline"><a href="#DefaultState">&lt;DefaultState /&gt;</a></code>, <code class="inline"><a href="#BlendTreeState">&lt;BlendTreeState&gt;</a></code>, and <code class="inline"><a href="#Transition">&lt;Transition&gt;</a></code>, and it has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">name</code></td>
+        <td>The name of the layer.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">weight</code></td>
+        <td>This can can be used to determine how to blend several layers together if they happen to conflict with one another or with Model Behavior animations. Default value is 1.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Events"><code class="inline" id="events">&lt;Events&gt;</code></h3>
+  <p>This is a container element for the <code class="inline"><a href="Model_Animation_Definitions.htm#Event">&lt;Event /&gt;</a></code> sub-element which is used to define animation events within a <code class="inline"><a href="Model_Animation_Definitions.htm#BlendTreeState">&lt;BlendTreeState&gt;</a></code> element. It has no attributes.</p>
+  <p> </p>
+  <h4 id="Event"><code class="inline" id="event">&lt;Event /&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="Model_Animation_Definitions.htm#Events">&lt;Events&gt;</a></code> container element - and also the <code class="inline"><a href="#Animation">&lt;Animation&gt;</a></code> element - and is used to set the timing of specific animation events that are used in world scripts (usually for flora/fauna SimObjects in the world), or as events to be performed when an animation has ended (as used in <code class="inline"><a href="Model_Animation_Definitions.htm#BlendTreeState">&lt;BlendTreeState&gt;</a></code> elements). It is a self-closing element that has the following attributes:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">time</code></td>
+        <td>The time that the event should trigger. This is a <strong>frame number</strong>, and should start from 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">name</code></td>
+        <td>The name of the animation this event links to.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="PartInfo"><code class="inline">&lt;PartInfo&gt;</code></h3>
+  <p>This element is used to link animations and there should be one of these elements for every <code class="inline"><a href="Model_Animation_Definitions.htm#Animation">&lt;Animation&gt;</a></code> of the type &quot;<code class="inline">Sim</code>&quot;. The element takes no parameters, and is a container for multiple sub-elements: <code class="inline"><a href="Model_Animation_Definitions.htm#Name">&lt;Name&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#Copy">&lt;Copy&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#AnimLength">&lt;AnimLength&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#PartAnimation">&lt;Animation&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#Parameter">&lt;Parameter&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code>. Please see the page <a href="model_cfg_Examples.htm">model.cfg Examples</a> for examples of how this element is used.</p>
+  <p><span class="note"><strong>IMPORTANT!</strong> This - and the sub-elements it contains - is a <strong>legacy</strong> element and should not be used, nor is it required, for custom SimObjects made for <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>.</span></p>
+  <p> </p>
+  <h4 id="Name"><code class="inline">&lt;Name&gt;</code></h4>
+  <p>This is a sub-element of <code class="inline"><a href="Model_Animation_Definitions.htm#PartInfo">&lt;PartInfo&gt;</a></code> and is the name of the animation from the <code class="inline"><a href="Model_Animation_Definitions.htm#Animation">&lt;Animation&gt;</a></code> element. This element has no attributes.</p>
+  <p> </p>
+  <h4 id="Copy"><code class="inline">&lt;Copy&gt;</code></h4>
+  <p>This is a sub-element of <code class="inline"><a href="#PartInfo">&lt;PartInfo&gt;</a></code>. One <code class="inline"><a href="#PartInfo">&lt;PartInfo&gt;</a></code> entry can serve as a template for another. For example if the two have very similar animations but reference a different variable, the second can copy the first, but a new <code class="inline"><a href="Model_Animation_Definitions.htm#Variable">&lt;Variable&gt;</a></code> entry will override the first. This element has no attributes.</p>
+  <p> </p>
+  <h4 id="AnimLength"><code class="inline">&lt;AnimLength&gt;</code></h4>
+  <p>This is a sub-element of <code class="inline"><a href="#PartInfo">&lt;PartInfo&gt;</a></code>. In <span data-keyref="game_fx_short">FSX</span>, this was the length of the animation in frames. In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, this variable is only used to scale the output of <code class="inline"><a href="Model_Animation_Definitions.htm#Parameter">&lt;Parameter&gt;</a></code> blocks that contain either <code class="inline"><a href="#Code">&lt;Code&gt;</a></code> or <code class="inline"><a href="#Sim">&lt;Sim&gt;</a></code> sub-elements. The output divided by the <code class="inline">&lt;AnimLength&gt;</code> should be a value between 0 and 1, which is then multiplied with the length of the model animation to get the correct animation position. If the divided output value is not between 0 and 1, it will be clamped. This element has no attributes.</p>
+  <p> </p>
+  <h4 id="PartAnimation"><code class="inline">&lt;Animation&gt;</code></h4>
+  <p>This is a sub-element of <code class="inline"><a href="#PartInfo">&lt;PartInfo&gt;</a></code> and describes how the part will animate. It can contain the <code class="inline"><a href="#Parameter">&lt;Parameter&gt;</a></code> sub-element and has no attributes.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Parameter"><code class="inline">&lt;Parameter&gt;</code></h3>
+  <p>This is a sub-element of either the <code class="inline"><a href="Model_Animation_Definitions.htm#PartAnimation">&lt;Animation&gt;</a></code> or <code class="inline"><a href="ModelBehaviors/General_Template_Definitions.htm#Component">&lt;Component&gt;</a></code> elements and is a container element for <code class="inline"><a href="#Code">&lt;Code&gt;</a></code> or <code class="inline"><a href="#Sim">&lt;Sim&gt;</a></code> sub-elements, with the optional <code class="inline"><a href="Model_Animation_Definitions.htm#Lag">&lt;Lag&gt;</a></code> elements being available too. It has no attributes.</p>
+  <p> </p>
+  <h4 id="Lag"><code class="inline">&lt;Lag&gt;</code></h4>
+  <p>This sub-element of <code class="inline"><a href="#Parameter">&lt;Parameter&gt;</a></code> can be used to introduce a lag amount. A lag can be used so that a part will not jump instantaneously from one state to the next. Lag is measured in the maximum number of keyframes per second. So, for example: if the animation frame length is 50, and the lag is set to 400, the animation will take a minimum of 50/400 or one eighth of a second to complete.</p>
+  <p> </p>
+  <h4 id="Code"><code class="inline">&lt;Code&gt;</code></h4>
+  <p>This sub element of <code class="inline"><a href="#Parameter">&lt;Parameter&gt;</a></code> can contain a reference to a script for evaluation.</p>
+  <p> </p>
+  <h4 id="Sim"><code class="inline">&lt;Sim&gt;</code></h4>
+  <p>This sub-element of <code class="inline"><a href="#Parameter">&lt;Parameter&gt;</a></code> must contain a <code class="inline"><a href="#Variable">&lt;Variable&gt;</a></code> entry for the animation to reference, along with <code class="inline"><a href="Model_Animation_Definitions.htm#Units">&lt;Units&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#Scale">&lt;Scale&gt;</a></code>, and <code class="inline"><a href="Model_Animation_Definitions.htm#Bias">&lt;Bias&gt;</a></code> entries.</p>
+  <p> </p>
+  <h5 id="Variable"><code class="inline">&lt;Variable&gt;</code></h5>
+  <p>This is a sub-element of <code class="inline"><a href="#Sim">&lt;Sim&gt;</a></code> (and also <code class="inline"><a href="Model_Animation_Definitions.htm#CallbackDragging">&lt;CallbackDragging&gt;</a></code>) and takes the name of the simulation variable being referenced. Note that the usual notation (<code class="inline">A:Variable name</code>) is simplified to just the variable name for this entry.</p>
+  <p> </p>
+  <h5 id="Units"><code class="inline">&lt;Units&gt;</code></h5>
+  <p>This is a sub-element of <code class="inline"><a href="#Sim">&lt;Sim&gt;</a></code> (and also <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code>) and sets the units of the variable. The page on Simulation Variables lists all the available units: <a href="../../Programming_Tools/SimVars/Simulation_Variable_Units.htm">Simulation Variable Units</a></p>
+  <p> </p>
+  <h5 id="Scale"><code class="inline">&lt;Scale&gt;</code></h5>
+  <p>This is a sub-element of <code class="inline"><a href="#Sim">&lt;Sim&gt;</a></code> (and also <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code>) and is used to scale the value returned by the variable. The result is the offset into the keyframes, for example: a boolean value of 0 or 1 scaled by 50, will result in keyframe 0 being used for the <code class="inline">FALSE</code> state, and keyframe 50 for the <code class="inline">TRUE</code> state.</p>
+  <p> </p>
+  <h5 id="Bias"><code class="inline">&lt;Bias&gt;</code></h5>
+  <p>This is a sub-element of <code class="inline"><a href="#Sim">&lt;Sim&gt;</a></code> (and also <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code>). If the value returned and scaled does not fall into the desired range for the keyframes (for example, the range -50 to +50), then a bias can be added to all values to indicate which keyframe to use. A bias of 50 in this example will adjust the range to 0 - 100.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="MouseRect"><code class="inline">&lt;MouseRect&gt;</code></h3>
+  <p>This is used within the model behavior <code class="inline"><a href="ModelBehaviors/General_Template_Definitions.htm#Template">&lt;Template&gt;</a></code> and <code class="inline"><a href="ModelBehaviors/General_Template_Definitions.htm#Component">&lt;Component&gt;</a></code> elements, and can also be seen as a sub-element of the deprecated <code class="inline"><a href="#PartInfo">&lt;PartInfo&gt;</a></code>. It is a container element used to define how the user interacts with an animated part. It has no attributes and can contain the following elements:</p>
+  <p><code class="inline"><a href="Model_Animation_Definitions.htm#Cursor">&lt;Cursor&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#HelpID">&lt;HelpID&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#ToolTipID">&lt;ToolTipID&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#MouseFlags">&lt;MouseFlags&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#CallbackCode">&lt;CallbackCode&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#CallbackDragging">&lt;CallbackDragging&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#CallbackJumpDragging">&lt;CallbackJumpDragging&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#EventID">&lt;EventID&gt;</a></code>.</p>
+  <p> </p>
+  <h4 id="Cursor"><code class="inline">&lt;Cursor&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="Model_Animation_Definitions.htm#MouseRect">&lt;MouseRect&gt;</a></code> element, and has no attributes. It is used to define the shape of the cursor when the mouse is over the rectangle. The contents of this element should be one of the following strings:</p>
+  <ul>
+    <li><code class="inline">None</code></li>
+    <li><code class="inline">Normal</code></li>
+    <li><code class="inline">UpArrow</code></li>
+    <li><code class="inline">DownArrow</code></li>
+    <li><code class="inline">LeftArrow</code></li>
+    <li><code class="inline">RightArrow</code></li>
+    <li><code class="inline">Hand</code></li>
+    <li><code class="inline">Crosshair</code></li>
+    <li><code class="inline">Grab</code></li>
+    <li><code class="inline">GrabOpen</code></li>
+    <li><code class="inline">TurnLeft</code></li>
+    <li><code class="inline">TurnRight</code></li>
+    <li><code class="inline">TurnLeft_Small</code></li>
+    <li><code class="inline">TurnRight_Small</code></li>
+    <li><code class="inline">TurnLeft_UpSideDown</code></li>
+    <li><code class="inline">TurnRight_UpSideDown</code></li>
+    <li><code class="inline">UpDownArrows</code></li>
+    <li><code class="inline">LeftRightArrows</code></li>
+    <li><code class="inline">DiagonalArrows</code></li>
+    <li><code class="inline">Lock</code></li>
+    <li><code class="inline">Dynamic</code></li>
+    <li><code class="inline">AnimTip</code></li>
+  </ul>
+  <p> </p>
+  <h4 id="HelpID"><code class="inline">&lt;HelpID&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element, and has no attributes. It takes the ID of the help string to display when the cursor is over the mouse rectangle. For more information, see the page on <a href="ModelBehaviors/Help_Text_IDs.htm">Help Text IDs</a>.</p>
+  <p> </p>
+  <h4 id="ToolTipID"><code class="inline">&lt;ToolTipID&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element, and has no attributes. It takes the ID of the tooltip string to display when the cursor is over the mouse rectangle. For more information, see the page on <a href="ModelBehaviors/ToolTip_Text_IDs.htm">ToolTip Text IDs</a>.</p>
+  <p> </p>
+  <h4 id="MouseFlags"><code class="inline">&lt;MouseFlags&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element and holds one or more case-insensitive mouse flags that indicate when the <code class="inline"><a href="Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> is to be triggered. The element has no attributes and will take one of the following strings:</p>
+  <ul>
+    <li><code class="inline">LEFTALL</code></li>
+    <li><code class="inline">RIGHTALL</code></li>
+    <li><code class="inline">MIDDLEALL</code></li>
+    <li><code class="inline">RIGHTSINGLE</code></li>
+    <li><code class="inline">MIDDLESINGLE</code></li>
+    <li><code class="inline">LEFTSINGLE</code></li>
+    <li><code class="inline">RIGHTDOUBLE</code></li>
+    <li><code class="inline">MIDDLEDOUBLE</code></li>
+    <li><code class="inline">LEFTDOUBLE</code></li>
+    <li><code class="inline">RIGHTDRAG</code></li>
+    <li><code class="inline">MIDDLEDRAG</code></li>
+    <li><code class="inline">LEFTDRAG</code></li>
+    <li><code class="inline">MOVE</code></li>
+    <li><code class="inline">RIGHTRELEASE</code></li>
+    <li><code class="inline">MIDDLERELEASE</code></li>
+    <li><code class="inline">LEFTRELEASE</code></li>
+    <li><code class="inline">WHEELUP</code></li>
+    <li><code class="inline">WHEELDOWN</code></li>
+    <li><code class="inline">WHEEL</code></li>
+    <li><code class="inline">DOWNREPEAT</code></li>
+    <li><code class="inline">MOVEREPEAT</code></li>
+    <li><code class="inline">LEAVE</code></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="CallbackCode"><code class="inline">&lt;CallbackCode&gt;</code></h3>
+  <p>This is a sub-element of the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element and allows for a range of calculations, assignments and the sending of key events to take place. This element can contain the following sub-elements and has no attributes: <code class="inline"><a href="#XScale">&lt;XScale&gt; / &lt;YScale&gt; / &lt;ZScale&gt;</a></code>, <code class="inline"><a href="#MinValue">&lt;MinValue&gt; / &lt;MaxValue&gt;</a></code>, <code class="inline"><a href="#IsRelative">&lt;IsRelative&gt;</a></code>, <code class="inline"><a href="#DragAnimName">&lt;DragAnimName&gt;</a></code>, <code class="inline"><a href="#DragNodeName">&lt;DragNodeName&gt;</a></code>, <code class="inline"><a href="#DragAnimSynced">&lt;DragAnimSynced&gt;</a></code>, <code class="inline"><a href="#DragUseAnimLag">&lt;DragUseAnimLag&gt;</a></code>, <code class="inline"><a href="#DragMode">&lt;DragMode&gt;</a></code>, <code class="inline"><a href="#DragScalar">&lt;DragScalar&gt;</a></code>, <code class="inline"><a href="#DragFlagsLockable">&lt;DragFlagsLockable&gt;</a></code><code class="inline"></code>.</p>
+  <p> </p>
+  <p> </p>
+  <h4 id="XScale"><code class="inline">&lt;XScale&gt;</code> / <code class="inline">&lt;YScale&gt;</code> / <code class="inline">&lt;ZScale&gt;</code></h4>
+  <p>These are sub-elements of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and can be used to scales the delta X, Y or Z value for the mouse. The delta is the difference in screen co-ordinates between the current position of the mouse and the position when the dragging started.</p>
+  <p> </p>
+  <h4 id="MinValue"><code class="inline">&lt;MinValue&gt;</code> / <code class="inline">&lt;MaxValue&gt;</code></h4>
+  <p>These are sub-elements of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and can be used to set the lower and upper limits of the value that will actually be sent with the key event.</p>
+  <p> </p>
+  <h4 id="IsRelative"><code class="inline">&lt;IsRelative&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes.</p>
+  <p> </p>
+  <h4 id="DragAnimName"><code class="inline">&lt;DragAnimName&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes.</p>
+  <p> </p>
+  <h4 id="DragNodeName"><code class="inline">&lt;DragNodeName&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes.</p>
+  <p> </p>
+  <h4 id="DragAnimSynced"><code class="inline">&lt;DragAnimSynced&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes.</p>
+  <p> </p>
+  <h4 id="DragUseAnimLag"><code class="inline">&lt;DragUseAnimLag&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> element and has no attributes.</p>
+  <p> </p>
+  <h4 id="DragMode"><code class="inline">&lt;DragMode&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes. Will be one of the following:</p>
+  <ul>
+    <li><code class="inline">Trajectory</code></li>
+    <li><code class="inline">Default</code></li>
+  </ul>
+  <p> </p>
+  <h4 id="DragAxis"><code class="inline">&lt;DragAxis&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes.</p>
+  <p> </p>
+  <h4 id="DragScalar"><code class="inline">&lt;DragScalar&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes.</p>
+  <p> </p>
+  <h4 id="DragFlagsLockable"><code class="inline">&lt;DragFlagsLockable&gt;</code></h4>
+  <p>This is a sub-element of the <code class="inline"><a href="#CallbackCode">&lt;CallbackCode&gt;</a></code> and <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> elements and has no attributes.</p>
+  <p> </p>
+  
+  
+  
+  
+  
+  
+  
+  <p> </p>
+  <h3 id="CallbackDragging"><code class="inline">&lt;CallbackDragging&gt;</code></h3>
+  <p>This is a sub-element of the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element and adding this entry allows for a more complex interaction with the part. The location where the user clicked and the current simulation value related to this part are captured, then when the user drags the mouse a set key event is triggered. The value passed with this key event is determined by the simulation <code class="inline"><a href="#Variable">&lt;Variable&gt;</a></code>, and the <code class="inline"><a href="#Scale">&lt;Scale&gt;</a></code> and <code class="inline"><a href="#Bias">&lt;Bias&gt;</a></code> values. This element can contain the following sub-elements and has no attributes: <code class="inline"><a href="#XScale">&lt;XScale&gt; / &lt;YScale&gt; / &lt;ZScale&gt;</a></code>, <code class="inline"><a href="#MinValue">&lt;MinValue&gt; / &lt;MaxValue&gt;</a></code>, <code class="inline"><a href="#IsRelative">&lt;IsRelative&gt;</a></code>, <code class="inline"><a href="#DragAnimName">&lt;DragAnimName&gt;</a></code>, <code class="inline"><a href="#DragNodeName">&lt;DragNodeName&gt;</a></code>, <code class="inline"><a href="#DragAnimSynced">&lt;DragAnimSynced&gt;</a></code>, <code class="inline"><a href="#DragUseAnimLag">&lt;DragUseAnimLag&gt;</a></code>, <code class="inline"><a href="#DragMode">&lt;DragMode&gt;</a></code>, <code class="inline"><a href="#DragScalar">&lt;DragScalar&gt;</a></code>, <code class="inline"><a href="#DragFlagsLockable">&lt;DragFlagsLockable&gt;</a></code>,<code class="inline"></code>.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="CallbackJumpDragging"><code class="inline">&lt;CallbackJumpDragging&gt;</code></h3>
+  <p>This is a sub-element of the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element and adding this entry allows for mouse interactions when an increment and decrement key event are required. It has the following sub-elements and takes no parameters: <code class="inline"><a href="Model_Animation_Definitions.htm#XMovement">&lt;XMovement&gt; / &lt;YMovement&gt;</a></code>.</p>
+  <p> </p>
+  <h4 id="XMovement"><code class="inline">&lt;XMovement&gt;</code> / <code class="inline">&lt;YMovement&gt;</code></h4>
+  <p>These are sub-elements of the <code class="inline"><a href="#CallbackJumpDragging">&lt;CallbackJumpDragging&gt;</a></code> element and have no attributes. These elements contain the definition of the required mouse movement (in the X and Y directions), and can also contain the following sub-elements: <code class="inline"><a href="Model_Animation_Definitions.htm#EventValueInc">&lt;EventValueInc&gt; / &lt;EventValueDec&gt;</a></code>, <code class="inline"><a href="Model_Animation_Definitions.htm#Delta">&lt;Delta&gt;</a></code>.</p>
+  <p> </p>
+  <h4 id="EventValueInc"><code class="inline">&lt;EventValueInc&gt;</code> / <code class="inline">&lt;EventValueDec&gt;</code></h4>
+  <p>These are sub-elements of the <code class="inline"><a href="#XMovement">&lt;XMovement&gt; / &lt;YMovement&gt;</a></code> elements and have no attributes. They can be used to define the value to be sent as the increment or decrement.</p>
+  <p> </p>
+  <h4 id="Delta"><code class="inline">&lt;Delta&gt;</code></h4>
+  <p>This is a sub-elements of the <code class="inline"><a href="#XMovement">&lt;XMovement&gt; / &lt;YMovement&gt;</a></code> elements and has no attributes. It takes a value which is the mouse movement in screen co-ordinates required for one increment or one decrement key event to be triggered. By default movement to the <em>right </em>or <em>up</em> increments, but this can be reversed by entering a negative delta.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="EventID"><code class="inline">&lt;EventID&gt;</code></h3>
+  <p>This is a sub-element of the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element and can also be a sub-element of the <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> element.</p>
+  <p> </p>
+  <p>When used with the <code class="inline"><a href="#MouseRect">&lt;MouseRect&gt;</a></code> element, it stores the ID of the event that will be triggered if the mouse is clicked over the mouse rectangle. Alternatively a custom numeric event can be defined (in the range 0x11000 to 0x1FFFF), to be picked up by a gauge handler written in C++. The element has no attributes.</p>
+  <p> </p>
+  <p>When used with the <code class="inline"><a href="#CallbackDragging">&lt;CallbackDragging&gt;</a></code> element, this should be a set key event and not a key event that toggles or increments or decrements.</p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../.."
+    gCommonRootRelPath = "../.."
+    gTopicId = "5.6.0_4"
+  
+//]]></script>
+
+
+  <script src="../../template/scripts/topicpage.js"></script>
+  <script src="../../whxdata/layoutconfig.js"></script>
+  <script src="../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

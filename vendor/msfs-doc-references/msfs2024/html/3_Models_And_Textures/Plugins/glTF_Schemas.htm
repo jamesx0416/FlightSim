@@ -1,0 +1,1305 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>glTF Schemas</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  <link rel="stylesheet" href="../../assets/css/default.css" type="text/css" id="style"/>
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="rh-index-keywords" content="Modeling,Plugins,Schemas,Texturing"/>
+<meta name="rh-version" content="2022.4.179"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.4.179"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="generator" content="Adobe RoboHelp 2022"/>
+    <meta name="rh-authors" content="Mark Alexander"/>
+  </div>
+  <link href="../../assets/css/extra_symbols.css" rel="stylesheet" type="text/css"/>
+  <link href="../../assets/css/mathjax/mathjax.css" rel="stylesheet" type="text/css"/>
+  <!-- <link href="../css/Prism/prism.css" rel="stylesheet" type="text/css" /> -->
+  <script src="../../assets/css/Prism/prism.js"></script>
+  <script src="../../assets/css/mathjax/es5/tex-chtml.js" type="text/javascript"></script>
+  <script src="../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js" charset="UTF-8"></script>
+  <script type="text/x-mathjax-config">
+    <![CDATA[
+          MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+              tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+              TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+              messageStyle: "none"
+      svg: {
+          scale: 1,                      // global scaling factor for all expressions
+          minScale: .5,                  // smallest scaling factor to use
+          mtextInheritFont: false,       // true to make mtext elements use surrounding font
+          merrorInheritFont: true,       // true to make merror text use surrounding font
+          mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+          skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+          exFactor: .5,                  // default size of ex in em units
+          displayAlign: 'center',        // default for indentalign when set to 'auto'
+          displayIndent: '0',            // default for indentshift when set to 'auto'
+          fontCache: 'local',            // or 'global' or 'none'
+          localID: null,                 // ID to use for local font cache (for single equation processing)
+          internalSpeechTitles: true,    // insert <title> tags with speech content
+          titleID: 0                     // initial id number to use for aria-labeledby titles
+        }
+          });
+        ]]>
+  </script>
+  <div>
+  <h2 id="GLTF_SCHEMAS">GLTF SCHEMAS</h2>
+  <p>When you install the <a href="../../1_Introduction/SDK_Contents.htm">SDK</a> it will add a folder that contains a number of <strong><a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a> schema</strong> files. These files are JSON formatted and can be used with tools other than 3Ds Max or Blender to create your own import/export tools and other plugins. You can find more information about the glTF schema format from the following link:</p>
+  <ul>
+    <li><a href="https://github.com/KhronosGroup/glTF">https://github.com/KhronosGroup/glTF</a></li>
+  </ul>
+  <p> </p>
+  <p>If you are using 3Ds Max, then installing the SDK should also have installed a plugin for the version of 3Ds Max that you are using, and this permits you to use the schemas listed here without having to do anything further. You can find more information on the plugin contents, here:</p>
+  <ul>
+    <li><a href="3DS_Max_Plugin/The_3DS_Max_Plugin.htm">The 3DS Max Plugin</a></li>
+  </ul>
+  <p> </p>
+  <p>For information on how to use the Blender plugin that uses these material schemas, please see here:</p>
+  <ul>
+    <li><a href="Blender_Plugin/The_Blender_Plugin.htm">The Blender Plugin</a></li>
+  </ul>
+  <p> </p>
+  <p>The schemas available are as follows:</p>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab1" name="tabGroup1" type="radio"/> <label for="tab1" style="width:45%;"><strong>ASOBO_collision_object</strong></label> <input class="tab" id="tab2" name="tabGroup1" type="radio"/> <label for="tab2"><strong>Files</strong></label> <input class="tab" id="tab3" name="tabGroup1" type="radio"/> <label for="tab3"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to add the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#collision-material">Collision Material</a> parameter to materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">boxcollision.schema.json</code></li>
+          <li><code class="inline">collision.schema.json</code></li>
+          <li><code class="inline">cylindercollision.schema.json</code></li>
+          <li><code class="inline">gltf.ASOBO_collision_object.schema.json</code></li>
+          <li><code class="inline">spherecollision.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">	&quot;ASOBO_collision_object&quot; : {
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab4" name="tabGroup2" type="radio"/> <label for="tab4" style="width:45%;"><strong>ASOBO_extra_occlusion</strong></label> <input class="tab" id="tab5" name="tabGroup2" type="radio"/> <label for="tab5"><strong>Files</strong></label> <input class="tab" id="tab6" name="tabGroup2" type="radio"/> <label for="tab6"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to add a second Occlusion Texture sampled on the UV2 (UVMap2 in Blender) of a material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_extra_occlusion_texture.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_extra_occlusion&quot; : {
+    &quot;extraOcclusionTexture&quot; : {
+        &quot;index&quot; : 1,
+        &quot;texCoord&quot;: 1
+    }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab7" name="tabGroup3" type="radio"/> <label for="tab7" style="width:45%;"><strong>ASOBO_gizmo_object</strong></label> <input class="tab" id="tab8" name="tabGroup3" type="radio"/> <label for="tab8"><strong>Files</strong></label> <input class="tab" id="tab9" name="tabGroup3" type="radio"/> <label for="tab9"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to describe gizmos for collisions. It could be Box, Cylinder or Sphere.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">boxgizmo.schema.json</code></li>
+          <li><code class="inline">cylindergizmo.schema.json</code></li>
+          <li><code class="inline">gizmo.schema.json</code></li>
+          <li><code class="inline">gltf.ASOBO_gizmo_object.schema.json</code></li>
+          <li><code class="inline">gltf.ASOBO_tags.schema.json</code></li>
+          <li><code class="inline">spheregizmo.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_gizmo_object&quot;: {
+    &quot;gizmo_objects&quot;: [
+        {
+        &quot;translation&quot;: [
+            &lt;x&gt;,
+            &lt;y&gt;,
+            &lt;z&gt;
+            ],
+        &quot;type&quot;: &quot;sphere&quot;,
+        &quot;params&quot;: {
+            &quot;radius&quot;: &lt;radius&gt;
+            },
+        &quot;extensions&quot;: {
+            &quot;ASOBO_tags&quot;: {
+                &quot;tags&quot;: [
+                    &quot;Collision&quot;
+                    ]
+                }
+            }
+        }
+    ]
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab10" name="tabGroup4" type="radio"/> <label for="tab10" style="width:45%;"><strong>ASOBO_macro_light</strong></label> <input class="tab" id="tab11" name="tabGroup4" type="radio"/> <label for="tab11"><strong>Files</strong></label> <input class="tab" id="tab12" name="tabGroup4" type="radio"/> <label for="tab12"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to describe some functionality related to lighting.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_macro_light.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_macro_light&quot; : {
+    &quot;color&quot; : [
+        1,
+        1,
+        1
+        ],
+    &quot;intensity&quot; : 1000,
+    &quot;cone_angle&quot; : 74.99999867197056,
+    &quot;has_symmetry&quot; : true,
+    &quot;flash_frequency&quot; : 0.7199999690055847,
+    &quot;flash_duration&quot; : 0.08999999612569809,
+    &quot;flash_phase&quot; : 0,
+    &quot;rotation_speed&quot; : 0,
+    &quot;day_night_cycle&quot; : false
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab13" name="tabGroup5" type="radio"/> <label for="tab13" style="width:45%;"><strong>ASOBO_material_alphamode_dither</strong></label> <input class="tab" id="tab14" name="tabGroup5" type="radio"/> <label for="tab14"><strong>Files</strong></label> <input class="tab" id="tab15" name="tabGroup5" type="radio"/> <label for="tab15"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable/disable the alpha component <a data-xref="{bookmarkText}" href="../Textures/Materials/FlightSim_Materials.htm#dither">dither</a> property for the material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_alphamode_dither.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_alphamode_dither&quot;: {
+    &quot;enabled&quot;: true
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab16" name="tabGroup6" type="radio"/> <label for="tab16" style="width:45%;"><strong>ASOBO_material_anisotropic_v2</strong></label> <input class="tab" id="tab17" name="tabGroup6" type="radio"/> <label for="tab17"><strong>Files</strong></label> <input class="tab" id="tab18" name="tabGroup6" type="radio"/> <label for="tab18"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to define an <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#anisotropic">Anisotropic</a> material. The specular on the material is offset by the two roughness components following a custom direction in tangent space.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_anisotropic_v2.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_anisotropic&quot; : {
+    &quot;anisoDirectionRoughnessTexture&quot; : {
+        &quot;index&quot; : 0
+    }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab19" name="tabGroup7" type="radio"/> <label for="tab19" style="width:45%;"><strong>ASOBO_material_blend_gbuffer</strong></label> <input class="tab" id="tab20" name="tabGroup7" type="radio"/> <label for="tab20"><strong>Files</strong></label> <input class="tab" id="tab21" name="tabGroup7" type="radio"/> <label for="tab21"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set a factor to blend the base color, metallic, roughness, normal, emissive, and occlusion textures with. Only required by <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#decal">Decal</a>, <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#geodecalfrosted">GeoDecalFrosted</a>, and <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#geodecalblendedmask">GeoDecal Blended Mask</a> materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_blend_gbuffer.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_blend_gbuffer&quot; : {
+    &quot;enabled&quot; : true,
+    &quot;baseColorBlendFactor&quot; : 1,
+    &quot;metallicBlendFactor&quot; : 0,
+    &quot;roughnessBlendFactor&quot; : 1,
+    &quot;normalBlendFactor&quot; : 1,
+    &quot;emissiveBlendFactor&quot; : 1,
+    &quot;occlusionBlendFactor&quot; : 1
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab22" name="tabGroup8" type="radio"/> <label for="tab22" style="width:45%;"><strong>ASOBO_material_clear_coat_v2</strong></label> <input class="tab" id="tab23" name="tabGroup8" type="radio"/> <label for="tab23"><strong>Files</strong></label> <input class="tab" id="tab24" name="tabGroup8" type="radio"/> <label for="tab24"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to describe <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#clearcoat">ClearCoat</a> material parameters.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_clear_coat_v2.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_clear_coat_v2&quot;: {
+    &quot;clearcoatRoughnessFactor&quot;: 0.25,
+										    &quot;clearcoatNormalFactor&quot;: 0.5,
+										    &quot;clearcoatColorNormalTiling&quot;: 2.0
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab25" name="tabGroup9" type="radio"/> <label for="tab25" style="width:45%;"><strong>ASOBO_material_clear_coat_v2</strong></label> <input class="tab" id="tab26" name="tabGroup9" type="radio"/> <label for="tab26"><strong>Files</strong></label> <input class="tab" id="tab27" name="tabGroup9" type="radio"/> <label for="tab27"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to describe <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#clearcoat">ClearCoat</a> material parameters.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_clear_coat_v2.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_clear_coat_v2&quot;: {
+    &quot;clearcoatRoughnessFactor&quot;: 0.25,
+										    &quot;clearcoatNormalFactor&quot;: 0.5,
+										    &quot;clearcoatColorNormalTiling&quot;: 2.0
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab28" name="tabGroup10" type="radio"/> <label for="tab28" style="width:45%;"><strong>ASOBO_material_detail_map</strong></label> <input class="tab" id="tab29" name="tabGroup10" type="radio"/> <label for="tab29"><strong>Files</strong></label> <input class="tab" id="tab30" name="tabGroup10" type="radio"/> <label for="tab30"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to describe parameters used in the creation of <a data-xref="{text}" href="../Modeling/Aircraft/Cockpit/Textures/Decals.htm#detail">Detail Maps</a>.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_detail_map.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_detail_map&quot;: {
+    &quot;UVScale&quot;: 10.0,
+    &quot;blendThreshold&quot;: 0.25,
+    &quot;detailColorTexture&quot;: {
+        &quot;index&quot;: 2
+    },
+    &quot;detailNormalTexture&quot;: {
+        &quot;scale&quot;: 0.4,
+        &quot;index&quot;: 3
+    },
+    &quot;detailMetalRoughAOTexture&quot;: {
+        &quot;index&quot;: 4
+    },
+    &quot;blendMaskTexture&quot;: {
+        &quot;index&quot;: 5
+    }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab31" name="tabGroup11" type="radio"/> <label for="tab31" style="width:45%;"><strong>ASOBO_material_dirt</strong></label> <input class="tab" id="tab32" name="tabGroup11" type="radio"/> <label for="tab32"><strong>Files</strong></label> <input class="tab" id="tab33" name="tabGroup11" type="radio"/> <label for="tab33"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to add a wear and tear or dirt/grime overlay to the standard and clear-coat materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_dirt.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_dirt&quot;: {
+    &quot;dirtUvScale&quot;: 10.0,
+    &quot;dirtBlendSharpness&quot;: 1.0,
+    &quot;dirtBlendAmount&quot;: 0.1,
+    &quot;dirtTexture&quot;: {
+        &quot;index&quot;: 0
+    },
+    &quot;dirtOcclusionRoughnessMetallicTexture&quot;: {
+        &quot;index&quot;: 1
+    }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab34" name="tabGroup12" type="radio"/> <label for="tab34" style="width:45%;"><strong>ASOBO_material_disable_motion_blur</strong></label> <input class="tab" id="tab35" name="tabGroup12" type="radio"/> <label for="tab35"><strong>Files</strong></label> <input class="tab" id="tab36" name="tabGroup12" type="radio"/> <label for="tab36"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable or disable motion blur for a material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_disable_motion_blur.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_disable_motion_blur&quot; : {
+    &quot;enabled&quot; : true
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab37" name="tabGroup13" type="radio"/> <label for="tab37" style="width:45%;"><strong>ASOBO_material_draw_order</strong></label> <input class="tab" id="tab38" name="tabGroup13" type="radio"/> <label for="tab38"><strong>Files</strong></label> <input class="tab" id="tab39" name="tabGroup13" type="radio"/> <label for="tab39"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#draw-order">Draw Order</a> for a material, ie: set what has to be draw in front of (or underneath) other materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_draw_order.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_draw_order&quot; : {
+    &quot;drawOrderOffset&quot; : 5
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab40" name="tabGroup14" type="radio"/> <label for="tab40" style="width:45%;"><strong>ASOBO_material_environment_occluder</strong></label> <input class="tab" id="tab41" name="tabGroup14" type="radio"/> <label for="tab41"><strong>Files</strong></label> <input class="tab" id="tab42" name="tabGroup14" type="radio"/> <label for="tab42"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable or disable the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#environmentoccluder">EnvironmentOccluder</a> material property.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_environment_occluder.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_environment_occluder&quot; : {
+    &quot;enabled&quot; : true
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab43" name="tabGroup15" type="radio"/> <label for="tab43" style="width:45%;"><strong>ASOBO_material_fake_terrain</strong></label> <input class="tab" id="tab44" name="tabGroup15" type="radio"/> <label for="tab44"><strong>Files</strong></label> <input class="tab" id="tab45" name="tabGroup15" type="radio"/> <label for="tab45"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable or disable the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#faketerrain">FakeTerrain</a> material property.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_fake_terrain.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_fake_terrain&quot; : {
+    &quot;enabled&quot; : true
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <!--  <div class="tab-wrap"><input checked="true" class="tab" id="tab46" name="tabGroup16" type="radio" /> <label for="tab46" style="width:45%;"><strong>ASOBO_material_fake_terrain</strong></label> <input class="tab" id="tab47" name="tabGroup16" type="radio" /> <label for="tab47"><strong>Files</strong></label> <input class="tab" id="tab48" name="tabGroup16" type="radio" /> <label for="tab48"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable or disable the fake terrain material property.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_fake_terrain.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_fake_terrain&quot; : {
+    &quot;enabled&quot; : true
+}</code></pre>
+      </div>
+    </div>
+  </div> -->
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab49" name="tabGroup17" type="radio"/> <label for="tab49" style="width:45%;"><strong>ASOBO_material_fresnel_fade</strong></label> <input class="tab" id="tab50" name="tabGroup17" type="radio"/> <label for="tab50"><strong>Files</strong></label> <input class="tab" id="tab51" name="tabGroup17" type="radio"/> <label for="tab51"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set the fresnel factor and the fresnel opacity factor properties of the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#fresnelfade">FresnelFade</a> material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_fresnel_fade.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_fresnel_fade&quot; : {
+    &quot;fresnelFactor&quot; : 1.4199999570846558,
+    &quot;fresnelOpacityOffset&quot; : 0.7000000476837158
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab52" name="tabGroup18" type="radio"/> <label for="tab52" style="width:45%;"><strong>ASOBO_material_geometry_decal</strong></label> <input class="tab" id="tab53" name="tabGroup18" type="radio"/> <label for="tab53"><strong>Files</strong></label> <input class="tab" id="tab54" name="tabGroup18" type="radio"/> <label for="tab54"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set the mode and sharpness factor for the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#geodecalblendedmask">GeoDecal Blended Mask</a> material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_geometry_decal.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_geometry_decal&quot;: {
+    &quot;blendSharpnessFactor&quot;: 1.0,
+    &quot;mode&quot;: &quot;default&quot;
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab55" name="tabGroup19" type="radio"/> <label for="tab55" style="width:45%;"><strong>ASOBO_material_ghost_effect</strong></label> <input class="tab" id="tab56" name="tabGroup19" type="radio"/> <label for="tab56"><strong>Files</strong></label> <input class="tab" id="tab57" name="tabGroup19" type="radio"/> <label for="tab57"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable/disable the ghost effect of the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#ghost">Ghost</a> material, as well as set its bias, scale, and power.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_ghost_effect.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_ghost_effect&quot; : {
+    &quot;bias&quot; : 1,
+    &quot;scale&quot; : 1,
+    &quot;power&quot; : 1
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab58" name="tabGroup20" type="radio"/> <label for="tab58" style="width:45%;"><strong>ASOBO_material_glass</strong></label> <input class="tab" id="tab59" name="tabGroup20" type="radio"/> <label for="tab59"><strong>Files</strong></label> <input class="tab" id="tab60" name="tabGroup20" type="radio"/> <label for="tab60"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set the deformation factor for <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#glass">Glass</a> materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_glass.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_glass&quot; : {
+    &quot;glassDeformationFactor&quot; : 0.32999998331069946
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab61" name="tabGroup21" type="radio"/> <label for="tab61" style="width:45%;"><strong>ASOBO_material_invisible</strong></label> <input class="tab" id="tab62" name="tabGroup21" type="radio"/> <label for="tab62"><strong>Files</strong></label> <input class="tab" id="tab63" name="tabGroup21" type="radio"/> <label for="tab63"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable or disable the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#invisible">Invisible</a> material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_invisible.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_invisible&quot; : {
+    &quot;enabled&quot; : true
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab64" name="tabGroup22" type="radio"/> <label for="tab64" style="width:45%;"><strong>ASOBO_material_parallax_window</strong></label> <input class="tab" id="tab65" name="tabGroup22" type="radio"/> <label for="tab65"><strong>Files</strong></label> <input class="tab" id="tab66" name="tabGroup22" type="radio"/> <label for="tab66"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set parameters for the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#parallaxwindow">ParallaxWindow</a> material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_parallax_window.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_parallax_window&quot; : {
+    &quot;parallaxScale&quot; : 1,
+    &quot;roomSizeXScale&quot; : 0.3400000333786011,
+    &quot;roomSizeYScale&quot; : 1.5699999332427979,
+    &quot;roomNumberXY&quot; : 5,
+    &quot;corridor&quot; : true,
+    &quot;behindWindowMapTexture&quot; : {
+        &quot;index&quot; : 1
+    }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab67" name="tabGroup23" type="radio"/> <label for="tab67" style="width:45%;"><strong>ASOBO_material_pearlescent</strong></label> <input class="tab" id="tab68" name="tabGroup23" type="radio"/> <label for="tab68"><strong>Files</strong></label> <input class="tab" id="tab69" name="tabGroup23" type="radio"/> <label for="tab69"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set parameters for the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#parallaxwindow">ParallaxWindow</a> material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_pearlescent.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_pearlescent&quot; : {
+    &quot;pearlShift&quot; : 1.4399999380111694,
+    &quot;pearlRange&quot; : 1.2300000190734863,
+    &quot;pearlBrightness&quot; : 1
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab70" name="tabGroup24" type="radio"/> <label for="tab70" style="width:45%;"><strong>ASOBO_material_rain_options</strong></label> <input class="tab" id="tab71" name="tabGroup24" type="radio"/> <label for="tab71"><strong>Files</strong></label> <input class="tab" id="tab72" name="tabGroup24" type="radio"/> <label for="tab72"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set rain parameters for the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#clearcoat">ClearCoat</a> and <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#windshield">Windshield</a> materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_rain_options.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_rain_options&quot;: {
+    &quot;rainDropScale&quot;: 2.0,
+										    &quot;rainDropSide&quot;: false
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab73" name="tabGroup25" type="radio"/> <label for="tab73" style="width:45%;"><strong>ASOBO_material_sail</strong></label> <input class="tab" id="tab74" name="tabGroup25" type="radio"/> <label for="tab74"><strong>Files</strong></label> <input class="tab" id="tab75" name="tabGroup25" type="radio"/> <label for="tab75"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#sail">Sail</a> material parameters.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_sail.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_sail&quot;: {
+    &quot;sailLightAbsorption&quot;: 0.3
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab76" name="tabGroup26" type="radio"/> <label for="tab76" style="width:45%;"><strong>ASOBO_material_shadow_options</strong></label> <input class="tab" id="tab77" name="tabGroup26" type="radio"/> <label for="tab77"><strong>Files</strong></label> <input class="tab" id="tab78" name="tabGroup26" type="radio"/> <label for="tab78"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to add the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#no-cast-shadow">Don&#39;t Cast Shadows</a> option to a material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_shadow_options.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_shadow_options&quot; : {
+    &quot;noCastShadow&quot; : true
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab79" name="tabGroup27" type="radio"/> <label for="tab79" style="width:45%;"><strong>ASOBO_material_SSS</strong></label> <input class="tab" id="tab80" name="tabGroup27" type="radio"/> <label for="tab80"><strong>Files</strong></label> <input class="tab" id="tab81" name="tabGroup27" type="radio"/> <label for="tab81"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to enable and set parameters for <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#sss">SSS</a> (Sub-Surface Scattering) materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_SSS.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_SSS&quot; : {
+    &quot;SSSColor&quot; : [
+        0.01829090155661106,
+        0.8000000715255737,
+        0.029998445883393288,
+        1
+        ],
+										    &quot;opacityTexture&quot;: {
+         &quot;index&quot;: 3
+    }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab82" name="tabGroup28" type="radio"/> <label for="tab82" style="width:45%;"><strong>ASOBO_material_UV_options</strong></label> <input class="tab" id="tab83" name="tabGroup28" type="radio"/> <label for="tab83"><strong>Files</strong></label> <input class="tab" id="tab84" name="tabGroup28" type="radio"/> <label for="tab84"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to add and set various parameters related to the material texture <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#uv-options">UV Options</a>.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_UV_options.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_UV_options&quot; : {
+    &quot;AOUseUV2&quot; : false,
+    &quot;clampUVX&quot; : true,
+    &quot;clampUVY&quot; : true,
+    &quot;clampUVZ&quot; : false,
+    &quot;UVOffsetU&quot; : -0.47999998927116394,
+    &quot;UVOffsetV&quot; : 1.4399999380111694,
+    &quot;UVTilingU&quot; : 2.0199999809265137,
+    &quot;UVTilingV&quot; : 2.2899999618530273,
+    &quot;UVRotation&quot; : 1.8299999237060547
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab85" name="tabGroup29" type="radio"/> <label for="tab85" style="width:45%;"><strong>ASOBO_material_wind_flex</strong></label> <input class="tab" id="tab86" name="tabGroup29" type="radio"/> <label for="tab86"><strong>Files</strong></label> <input class="tab" id="tab87" name="tabGroup29" type="radio"/> <label for="tab87"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to add <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#windflex">Windflex</a> effects to materials.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_wind_flex.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_wind_flex &quot; : {
+    &quot;windFlexNormal&quot; : false
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab88" name="tabGroup30" type="radio"/> <label for="tab88" style="width:45%;"><strong>ASOBO_material_windshield_v3</strong></label> <input class="tab" id="tab89" name="tabGroup30" type="radio"/> <label for="tab89"><strong>Files</strong></label> <input class="tab" id="tab90" name="tabGroup30" type="radio"/> <label for="tab90"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to define the parameters required by the <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#windshield">Windshield</a> material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_material_windshield_v3.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_material_windshield_v3&quot;: {
+    &quot;wiperMaskTexture&quot;: {
+        &quot;index&quot;: 6
+    },
+    &quot;windshieldDetailNormalTexture&quot;: {
+        &quot;index&quot;: 7
+    },
+    &quot;scratchesNormalTexture&quot;: {
+        &quot;index&quot;: 8
+    },
+    &quot;windshieldInsectsTexture&quot;: {
+        &quot;index&quot;: 9
+    },
+    &quot;windshieldInsectsMaskTexture&quot;: {
+        &quot;index&quot;: 10
+    },
+    &quot;detail1Rough&quot;: 1.0,
+    &quot;detail2Rough&quot;: 1.0,
+    &quot;detail1Opacity&quot;: 1.0,
+    &quot;detail2Opacity&quot;: 1.0,
+    &quot;microScratchesTiling&quot;: 0.5,
+    &quot;microScratchesStrength&quot;: 0.5,
+    &quot;detailNormalRefractScale&quot;: 0.5,
+    &quot;wiperLines&quot;: true,
+    &quot;wiperLinesTiling&quot;: 0.5,
+    &quot;wiperLinesStrength&quot;: 0.5,
+    &quot;rainDropScale&quot;: 100.0,
+    &quot;wiper1State&quot;: 0.5
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab91" name="tabGroup31" type="radio"/> <label for="tab91" style="width:45%;"><strong>ASOBO_normal_map_convention</strong></label> <input class="tab" id="tab92" name="tabGroup31" type="radio"/> <label for="tab92"><strong>Files</strong></label> <input class="tab" id="tab93" name="tabGroup31" type="radio"/> <label for="tab93"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to add support for the DirectX normal map convention</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_normal_map_convention.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_normal_map_convention&quot;: {
+    &quot;tangent_space_convention&quot;: &quot;DirectX&quot;
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab94" name="tabGroup32" type="radio"/> <label for="tab94" style="width:45%;"><strong>ASOBO_occlusion_strength</strong></label> <input class="tab" id="tab95" name="tabGroup32" type="radio"/> <label for="tab95"><strong>Files</strong></label> <input class="tab" id="tab96" name="tabGroup32" type="radio"/> <label for="tab96"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to set <a data-xref="{text}" href="../Textures/Materials/FlightSim_Materials.htm#ao-strength">AO Strength</a> parameter for the material.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_occlusion_strength.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_occlusion_strength&quot;: {
+    &quot;strength&quot;: 0.0
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab97" name="tabGroup33" type="radio"/> <label for="tab97" style="width:45%;"><strong>ASOBO_property_animation</strong></label> <input class="tab" id="tab98" name="tabGroup33" type="radio"/> <label for="tab98"><strong>Files</strong></label> <input class="tab" id="tab99" name="tabGroup33" type="radio"/> <label for="tab99"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to describe material animation in the <a href="#" data-popovertext="glTF is the acronym for &#39;Graphics Language Transmission Format&#39; which is an industry standard file format for three-dimensional scenes and models. " data-rhwidget="TextPopOver">glTF</a>. See here for more information: <a href="../Textures/Materials/Animated_Materials.htm">Animated Materials</a></p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_property_animation.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_property_animation&quot;: {
+    &quot;channels&quot;: [
+        {
+        &quot;sampler&quot;: 1,
+        &quot;target&quot;: &quot;materials/14/extensions/ASOBO_material_UV_options/UVOffsetV&quot;
+        }
+    ]
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <div class="tab-wrap"><input checked="true" class="tab" id="tab100" name="tabGroup34" type="radio"/> <label for="tab100" style="width:45%;"><strong>ASOBO_softbody_mesh</strong></label> <input class="tab" id="tab101" name="tabGroup34" type="radio"/> <label for="tab101"><strong>Files</strong></label> <input class="tab" id="tab102" name="tabGroup34" type="radio"/> <label for="tab102"><strong>Example</strong></label>
+    <div class="tab__content">
+      <div class="tab__text">
+        <p>Used to specify meshes which need to be deformed, following a physical mesh.</p>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <ul>
+          <li><code class="inline">gltf.ASOBO_softbody_mesh.schema.json</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="tab__content">
+      <div class="tab__text">
+        <pre class="language-json"><code class="language-json">&quot;ASOBO_softbody_mesh&quot;: {
+}</code></pre>
+      </div>
+    </div>
+  </div>
+  <p> </p>
+  <div class="reltopics">
+    <p class="reltopics-caption">Related Topics</p>
+    <ol class="reltopics-list" data-topics="Plugins.htm|3DS_Max_Plugin/The_3DS_Max_Plugin.htm|Blender_Plugin/The_Blender_Plugin.htm">
+      
+    <li><a href="Plugins.htm" class="reltopics-list-item" style="">Plugins</a></li><li><a href="3DS_Max_Plugin/The_3DS_Max_Plugin.htm" class="reltopics-list-item" style="">The 3DS Max Plugin</a></li><li><a href="Blender_Plugin/The_Blender_Plugin.htm" class="reltopics-list-item" style="">The Blender Plugins</a></li></ol>
+  </div>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        // Prism
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded');
+        // MATHJAX
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        }
+        // SKIN CHANGER
+        setTimeout(
+          () => {
+            const event = new Event("change");
+            document.getElementById('status').dispatchEvent(event);
+          }, 250);
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+      
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+      
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box">
+    <div class="rh-layout-footer-inner-left-box">
+      <!--REMEMEBER TO FIX THE <label> tags!!!! 
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox" /> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div> -->
+      <div class="custom-checkbox"><input checked="checked" id="status" name="status" type="checkbox"/> <label for="status">
+        <div class="status-switch" data-checked="Light" data-unchecked="Dark"></div>
+        </label>
+      </div>
+      <div class="custom-checkbox"><button class="button_flighting" id="button_flighting" onclick="return get_URL();" role="button">Docs</button></div>
+    </div>
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2025 Microsoft</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    //<![CDATA[
+    // function to set a given theme/color-scheme
+    function setTheme(checked) { // False is dark/default, true is light
+      let themeName = checked ? 'light' : 'dark';
+      localStorage.setItem('theme', themeName);
+      const divElement = document.getElementById("style");
+      var position = divElement.getAttribute("href").search("assets");
+      /*console.log(position);*/
+      let _substr = divElement.getAttribute("href").substring(0, position);
+      /*console.log("Relative path:", _substr);*/
+      var links = document.querySelectorAll('link[rel="StyleSheet"]');
+      for (let index = 0; index < links.length; index++) {
+        let href = links[index].href;
+        let fileName = href.substring(href.lastIndexOf('/') + 1);
+        console.log('FileName:', fileName);
+        if (typeof fileName === 'string' || fileName instanceof String) {
+          if (fileName == 'default.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/default.css';
+            } else {
+              links[index].href = _substr + 'assets/css/default.css';
+            }
+          }
+          if (fileName == 'layout.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/layout.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/layout.css';
+            }
+          }
+          if (fileName == 'userstyles.css') {
+            if (themeName == "light") {
+              links[index].href = _substr + 'assets/css/LightSkin/userstyles.css';
+            } else {
+              links[index].href = _substr + 'template/Frameless-MSFS-Dark/userstyles.css'; /*?rnd=' + (new Date().valueOf())*/
+            }
+          }
+        }
+      }
+    }
+    window.onload = async function() {
+      // THEME SETTER
+      if (localStorage.getItem('theme') === 'light') {
+        document.getElementById('status').checked = true;
+      } else {
+        document.getElementById('status').checked = false;
+      }
+      document.getElementById('status').addEventListener("change", (event) => {
+        setTheme(event.target.checked);
+      });
+      // SET FLIGHTING BUTTON NAME
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let btn = document.getElementById('button_flighting');
+      if (currentLocation.includes('flighting/')) {
+        btn.innerHTML = 'Retail Docs';
+      } else {
+        btn.innerHTML = 'Flighting Docs';
+      }
+    };
+    // FLIGHTING / SIMUPDATE DOCS SWITCHER
+    get_URL = async function() {
+      let currentLocation = window.location.toString(); /*'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';*/
+      let new_URL = '';
+      let fail_URL = '';
+      if (currentLocation.includes('flighting/')) {
+        new_URL = currentLocation.replace('flighting/', '');
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+      } else {
+        new_URL = currentLocation.slice(0, 42) + "flighting/" + currentLocation.slice(42);
+        fail_URL = 'https://docs.flightsimulator.com/msfs2024/flighting/html/1_Introduction/Introduction.htm'
+      }
+      console.log(new_URL);
+      var url_check = new XMLHttpRequest();
+      url_check.open('get', new_URL, true);
+      url_check.onreadystatechange = await checkReadyState;
+      function checkReadyState() {
+        if (url_check.readyState === 4) {
+          if ((url_check.status == 200) || (url_check.status == 0)) {
+            console.log(new_URL + ' exists.');
+          } else {
+            console.log(new_URL + ' does not exist.');
+            new_URL = fail_URL
+          }
+        }
+      }
+      url_check.send(null);
+      window.location = new_URL;
+      return true;
+    };
+
+    /*
+    window.onload = async function() {
+	    // THEME SETTER
+		if (localStorage.getItem('theme') === 'light') {
+			document.getElementById('status').checked = true;
+			}
+		else {
+			document.getElementById('status').checked = false;
+			}
+		document.getElementById('status').addEventListener("change", (event) => {
+			setTheme(event.target.checked);
+			});
+		// FLIGHTING / SIMUPDATE DOCS SWITCHER
+		let currentLocation = window.location.toString(); //'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+		let new_URL = '';
+		let fail_URL = '';
+		let btn = document.getElementById('button_flighting');
+		if (currentLocation.includes('flighting/')) {
+			new_URL = currentLocation.replace('flighting/', '');
+			fail_URL = 'https://docs.flightsimulator.com/msfs2024/html/1_Introduction/Introduction.htm';
+			btn.innerHTML = 'SimUpdate Docs';
+			}
+		else {
+			new_URL = currentLocation.slice(0, 42) + "flighting/" + currentLocation.slice(42);
+			fail_URL = 'https://docs.flightsimulator.com/msfs2024/flighting/html/1_Introduction/Introduction.htm'
+			btn.innerHTML = 'Flighting Docs';
+			}
+		console.log(new_URL);
+		var url_check = new XMLHttpRequest();
+		url_check.open('get', new_URL, true);
+		url_check.onreadystatechange = checkReadyState;
+		function checkReadyState() {
+			if (url_check.readyState === 4) {
+			if ((url_check.status == 200) || (url_check.status == 0)) {
+				console.log(new_URL + ' exists.');
+				}
+			else {
+				console.log(new_URL + ' does not exist.');
+				new_URL = fail_URL
+				}
+			}
+		}
+	url_check.send(null);
+	//return new_URL;
+	document.getElementById('link_flighting').setAttribute("href", new_URL);
+	}*/
+    //]]>
+  </script>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../.."
+    gCommonRootRelPath = "../.."
+    gTopicId = "4.5.2_1"
+  
+//]]></script>
+
+
+  <script src="../../template/scripts/topicpage.js"></script>
+  <script src="../../whxdata/layoutconfig.js"></script>
+  <script src="../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

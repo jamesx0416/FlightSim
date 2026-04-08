@@ -1,4 +1,4 @@
-import { compileRpnExpression } from './rpn'
+import { compileRpnExpression, evaluateCompiledExpression } from './rpn'
 import type {
   CompiledAnimationBinding,
   CompiledBehaviorSet,
@@ -40,7 +40,9 @@ interface TraversalState {
   readonly currentNode: string | null
 }
 
-const ANIMATION_TEMPLATE_NAMES = new Set(['ASOBO_GT_ANIM', 'ASOBO_GT_ANIM_CODE'])
+type ParameterBlockKind = 'default' | 'override'
+
+const ANIMATION_TEMPLATE_NAMES = new Set(['ASOBO_GT_ANIM_CODE'])
 const NOOP_TEMPLATE_NAMES = new Set([
   'ASOBO_DOOR_INTERACTIVEPOINT_TEMPLATE',
   'ASOBO_GT_ANIMTRIGGERS_2SOUNDEVENTS'
@@ -48,6 +50,16 @@ const NOOP_TEMPLATE_NAMES = new Set([
 const VISIBILITY_TEMPLATE_NAMES = new Set([
   'ASOBO_GT_VISIBILITY',
   'ASOBO_GT_VISIBILITY_CODE'
+])
+const BUILTIN_PREFERRED_TEMPLATE_NAMES = new Set([
+  'ASOBO_GT_HELPER_RECURSIVE_ID',
+  'ASOBO_HANDLING_LEFTRIGHTANIM_TEMPLATE',
+  'ASOBO_HANDLING_TRIM_BASE_TEMPLATE',
+  'ASOBO_HANDLING_AILERON_TEMPLATE',
+  'ASOBO_HANDLING_RUDDER_TEMPLATE',
+  'ASOBO_HANDLING_ELEVATOR_TEMPLATE',
+  'ASOBO_HANDLING_SLATS_TEMPLATE',
+  'ASOBO_HANDLING_FLAPS_TEMPLATE'
 ])
 
 export async function compileMsfs2020Behaviors(
@@ -380,6 +392,16 @@ function traverseElement(
     return
   }
 
+  if (element.tagName === 'Switch') {
+    const branch = selectSwitchBranch(element, scopedState.params)
+    if (branch != null) {
+      for (const child of Array.from(branch.children)) {
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings)
+      }
+    }
+    return
+  }
+
   if (element.tagName === 'Component') {
     const nodeName = substituteParameters(
       element.getAttribute('Node') ?? '',
@@ -397,6 +419,14 @@ function traverseElement(
         continue
       }
       traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
+    }
+    return
+  }
+
+  if (element.tagName === 'Update') {
+    const updateBinding = buildUpdateNodeBinding(element, scopedState.params, state.path, context.diagnostics)
+    if (updateBinding != null) {
+      updateBindings.push(updateBinding)
     }
     return
   }
@@ -445,6 +475,25 @@ function expandTemplateUse(
   }
 
   const normalizedTemplateName = templateName.toUpperCase()
+  if (normalizedTemplateName === 'ASOBO_GT_ANIM') {
+    const animationBinding =
+      mergedParams.get('ANIM_CODE')?.trim()
+        ? buildAnimationBinding(
+            mergedParams,
+            state.path,
+            context.diagnostics
+          )
+        : buildAnimationSimBinding(
+            mergedParams,
+            state.path,
+            context.diagnostics
+          )
+    if (animationBinding != null) {
+      animationBindings.push(animationBinding)
+    }
+    return
+  }
+
   if (ANIMATION_TEMPLATE_NAMES.has(normalizedTemplateName)) {
     const animationBinding = buildAnimationBinding(
       mergedParams,
@@ -475,6 +524,7 @@ function expandTemplateUse(
   }
 
   if (
+    BUILTIN_PREFERRED_TEMPLATE_NAMES.has(normalizedTemplateName) &&
     handleBuiltInTemplate(
       normalizedTemplateName,
       templateName,
@@ -491,6 +541,21 @@ function expandTemplateUse(
 
   const templateNode = context.templateMap.get(normalizedTemplateName)
   if (templateNode == null) {
+    if (
+      handleBuiltInTemplate(
+        normalizedTemplateName,
+        templateName,
+        mergedParams,
+        state,
+        context,
+        animationBindings,
+        visibilityBindings,
+        updateBindings
+      )
+    ) {
+      return
+    }
+
     context.diagnostics.push({
       code: 'template_missing',
       message: `Template ${templateName} is not available in the imported package.`,
@@ -501,25 +566,11 @@ function expandTemplateUse(
   }
 
   const templateParams = new Map<string, string>(state.params)
-  for (const [key, value] of collectParameterBlock(
-    templateNode,
-    'DefaultTemplateParameters',
-    templateParams
-  )) {
-    if (!templateParams.has(key)) {
-      templateParams.set(key, value)
-    }
-  }
+  applyParameterBlocks(templateNode, 'default', templateParams, state.path, context.diagnostics)
   for (const [key, value] of childParams) {
     templateParams.set(key, value)
   }
-  for (const [key, value] of collectParameterBlock(
-    templateNode,
-    'OverrideTemplateParameters',
-    templateParams
-  )) {
-    templateParams.set(key, value)
-  }
+  applyParameterBlocks(templateNode, 'override', templateParams, state.path, context.diagnostics)
 
   const nextState: TraversalState = {
     ...state,
@@ -611,6 +662,10 @@ function handleBuiltInTemplate(
       )
       return true
     case 'ASOBO_HANDLING_ELEVATOR_TEMPLATE':
+      if ((params.get('TYPE') ?? '').trim() === 'AS04F' || (params.get('TYPE') ?? '').trim() === 'AS05P') {
+        expandHandlingSeparatedElevatorTemplate(params, state.path, context.diagnostics, animationBindings)
+        return true
+      }
       expandHandlingTrimBaseTemplate(
         withFallbackParams(params, [
           ['ANIM_NAME', 'HANDLING_Elevator'],
@@ -641,9 +696,23 @@ function handleBuiltInTemplate(
         ['USE_DIFFERENT_ANIM_FOR_L_R', 'True'],
         ['USE_INTEGRATED_TRIM', 'False'],
         ['TRIM_ONLY', 'False'],
+        ['MIN_FLAPS_VALUE', '0'],
+        ['MAX_FLAPS_VALUE', '0'],
+        ['ANIM_LENGTH', '100'],
         ['ANIM_SIMVAR_LEFT', 'TRAILING EDGE FLAPS LEFT PERCENT'],
         ['ANIM_SIMVAR_RIGHT', 'TRAILING EDGE FLAPS RIGHT PERCENT'],
       ])
+
+      const minFlapsValue = parseNumber(expandedParams.get('MIN_FLAPS_VALUE'), 0)
+      const maxFlapsValue = parseNumber(expandedParams.get('MAX_FLAPS_VALUE'), 0)
+      if (minFlapsValue < 0 && maxFlapsValue !== 0) {
+        expandedParams.set(
+          'ANIM_SIMVAR_SCALE',
+          String(1 / (1 + Math.abs(minFlapsValue) / maxFlapsValue))
+        )
+      } else if (!expandedParams.has('ANIM_SIMVAR_SCALE')) {
+        expandedParams.set('ANIM_SIMVAR_SCALE', '1')
+      }
 
       const scale = parseNumber(expandedParams.get('ANIM_SIMVAR_SCALE'), 1)
       const animLength = parseNumber(expandedParams.get('ANIM_LENGTH'), 100)
@@ -656,6 +725,39 @@ function handleBuiltInTemplate(
     }
     default:
       return false
+  }
+}
+
+function expandHandlingSeparatedElevatorTemplate(
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[],
+  animationBindings: CompiledAnimationBinding[]
+): void {
+  const expandedParams = withFallbackParams(params, [
+    ['ANIM_NAME', 'HANDLING_Elevator'],
+    ['ANIM_SIMVAR_SCALE', '0.5'],
+    ['ANIM_SIMVAR_BIAS', '50'],
+    ['AILERON_DEFLECTION_SCALE', '0.2'],
+    ['ANIM_LENGTH', '100']
+  ])
+  const type = (expandedParams.get('TYPE') ?? '').trim()
+  const leftMultiplier = type === 'AS04F' ? '-1 *' : ''
+  const rightMultiplier = type === 'AS05P' ? '-1 *' : ''
+  const leftParams = withOverrideParams(expandedParams, [
+    ['ANIM_NAME', expandedParams.get('ANIM_NAME_LEFT') ?? `${expandedParams.get('ANIM_NAME') ?? 'HANDLING_Elevator'}_L`],
+    ['ANIM_CODE', `(A:ELEVATOR DEFLECTION PCT, Percent) ${expandedParams.get('ANIM_SIMVAR_SCALE') ?? '0.5'} * ${expandedParams.get('ANIM_SIMVAR_BIAS') ?? '50'} + (A:AILERON LEFT DEFLECTION PCT, Percent) ${leftMultiplier} ${expandedParams.get('AILERON_DEFLECTION_SCALE') ?? '0.2'} * + 0 max ${expandedParams.get('ANIM_LENGTH') ?? '100'} min`]
+  ])
+  const rightParams = withOverrideParams(expandedParams, [
+    ['ANIM_NAME', expandedParams.get('ANIM_NAME_RIGHT') ?? `${expandedParams.get('ANIM_NAME') ?? 'HANDLING_Elevator'}_R`],
+    ['ANIM_CODE', `(A:ELEVATOR DEFLECTION PCT, Percent) ${expandedParams.get('ANIM_SIMVAR_SCALE') ?? '0.5'} * ${expandedParams.get('ANIM_SIMVAR_BIAS') ?? '50'} + (A:AILERON RIGHT DEFLECTION PCT, Percent) ${rightMultiplier} ${expandedParams.get('AILERON_DEFLECTION_SCALE') ?? '0.2'} * + 0 max ${expandedParams.get('ANIM_LENGTH') ?? '100'} min`]
+  ])
+
+  for (const sideParams of [leftParams, rightParams]) {
+    const binding = buildAnimationBinding(sideParams, sourcePath, diagnostics)
+    if (binding != null) {
+      animationBindings.push(binding)
+    }
   }
 }
 
@@ -689,9 +791,16 @@ function expandRecursiveTemplateIds(
     iterationParams.set('CURRENT_ID', String(currentId))
     iterationParams.set('RECURSIVE_ID', String(currentId))
 
-    for (let paramIndex = 1; paramIndex <= 8; paramIndex += 1) {
+    for (let paramIndex = 1; paramIndex <= 256; paramIndex += 1) {
       const targetParam = params.get(`PARAM${paramIndex}`)?.trim()
       if (!targetParam) {
+        if (
+          params.get(`PARAM${paramIndex}_PREFIX`) == null &&
+          params.get(`PARAM${paramIndex}_SUFFIX`) == null &&
+          params.get(`PROCESS_PARAM${paramIndex}`) == null
+        ) {
+          break
+        }
         continue
       }
 
@@ -768,17 +877,29 @@ function expandHandlingLeftRightTemplate(
   diagnostics: ImportDiagnostic[],
   animationBindings: CompiledAnimationBinding[]
 ): void {
+  const maxValue = params.get('MAX_VALUE')?.trim() ?? ''
+  const minValue = params.get('MIN_VALUE')?.trim() || '0'
   const leftParams = new Map<string, string>(params)
   leftParams.set('ANIM_NAME', params.get('ANIM_NAME_LEFT') ?? '')
   leftParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_LEFT') ?? '')
-  if (params.get('ANIM_CODE_LEFT') != null) {
+  if (maxValue) {
+    leftParams.set(
+      'ANIM_CODE',
+      `(A:${params.get('ANIM_SIMVAR_LEFT') ?? ''}, ${params.get('ANIM_SIMVAR_UNITS') ?? 'percent'}) ${minValue} - ${maxValue} ${minValue} - / 100 *`
+    )
+  } else if (params.get('ANIM_CODE_LEFT') != null) {
     leftParams.set('ANIM_CODE', params.get('ANIM_CODE_LEFT') ?? '')
   }
 
   const rightParams = new Map<string, string>(params)
   rightParams.set('ANIM_NAME', params.get('ANIM_NAME_RIGHT') ?? '')
   rightParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_RIGHT') ?? '')
-  if (params.get('ANIM_CODE_RIGHT') != null) {
+  if (maxValue) {
+    rightParams.set(
+      'ANIM_CODE',
+      `(A:${params.get('ANIM_SIMVAR_RIGHT') ?? ''}, ${params.get('ANIM_SIMVAR_UNITS') ?? 'percent'}) ${minValue} - ${maxValue} ${minValue} - / 100 *`
+    )
+  } else if (params.get('ANIM_CODE_RIGHT') != null) {
     rightParams.set('ANIM_CODE', params.get('ANIM_CODE_RIGHT') ?? '')
   }
 
@@ -799,10 +920,76 @@ function expandHandlingTrimBaseTemplate(
   diagnostics: ImportDiagnostic[],
   animationBindings: CompiledAnimationBinding[]
 ): void {
+  const normalizedParams = withFallbackParams(params, [
+    ['DEFAULT_TRIM_IMPACT_ON_DEFLECTION', '0.25'],
+    ['ANIM_SIMVAR_UNITS', 'percent']
+  ])
+  if (
+    parseBoolean(normalizedParams.get('USE_DIFFERENT_ANIM_FOR_L_R')) &&
+    !normalizedParams.has('ANIM_NAME_TRIM')
+  ) {
+    normalizedParams.set('ANIM_NAME_TRIM', normalizedParams.get('ANIM_NAME') ?? '')
+  }
+
+  const trimImpact = Math.min(
+    1,
+    Math.max(0, parseNumber(normalizedParams.get('DEFAULT_TRIM_IMPACT_ON_DEFLECTION'), 0.25))
+  )
+  const impactOfDeflection = 1 - trimImpact
+
+  if (parseBoolean(normalizedParams.get('USE_INTEGRATED_TRIM'))) {
+    if (parseBoolean(normalizedParams.get('USE_DIFFERENT_ANIM_FOR_L_R'))) {
+      const leftParams = new Map<string, string>(normalizedParams)
+      leftParams.set('ANIM_NAME', normalizedParams.get('ANIM_NAME_LEFT') ?? '')
+      leftParams.set(
+        'ANIM_CODE',
+        `(A:${normalizedParams.get('ANIM_SIMVAR_TRIM') ?? ''}, percent) ${trimImpact} * (A:${normalizedParams.get('ANIM_SIMVAR_LEFT') ?? ''}, percent) ${impactOfDeflection} * + 0.5 * 50 +`
+      )
+      const rightParams = new Map<string, string>(normalizedParams)
+      rightParams.set('ANIM_NAME', normalizedParams.get('ANIM_NAME_RIGHT') ?? '')
+      rightParams.set(
+        'ANIM_CODE',
+        `(A:${normalizedParams.get('ANIM_SIMVAR_TRIM') ?? ''}, percent) ${trimImpact} * (A:${normalizedParams.get('ANIM_SIMVAR_RIGHT') ?? ''}, percent) ${impactOfDeflection} * + 0.5 * 50 +`
+      )
+
+      for (const sideParams of [leftParams, rightParams]) {
+        const binding = buildAnimationBinding(sideParams, sourcePath, diagnostics)
+        if (binding != null) {
+          animationBindings.push(binding)
+        }
+      }
+      return
+    }
+
+    const integratedParams = new Map<string, string>(normalizedParams)
+    integratedParams.set(
+      'ANIM_CODE',
+      `(A:${normalizedParams.get('ANIM_SIMVAR_TRIM') ?? ''}, percent) ${trimImpact} * (A:${normalizedParams.get('ANIM_SIMVAR') ?? ''}, percent) ${impactOfDeflection} * + 0.5 * 50 +`
+    )
+    const binding = buildAnimationBinding(integratedParams, sourcePath, diagnostics)
+    if (binding != null) {
+      animationBindings.push(binding)
+    }
+    return
+  }
+
+  if (parseBoolean(normalizedParams.get('MERGED_TRIM'))) {
+    const mergedParams = new Map<string, string>(normalizedParams)
+    mergedParams.set(
+      'ANIM_CODE',
+      `(A:${normalizedParams.get('ANIM_SIMVAR_TRIM') ?? ''}, percent over 100) (A:${normalizedParams.get('ANIM_SIMVAR') ?? ''}, percent over 100) + 1 min -1 max 50 * 50 +`
+    )
+    const binding = buildAnimationBinding(mergedParams, sourcePath, diagnostics)
+    if (binding != null) {
+      animationBindings.push(binding)
+    }
+    return
+  }
+
   if (parseBoolean(params.get('TRIM_ONLY'))) {
-    const trimOnlyParams = new Map<string, string>(params)
-    trimOnlyParams.set('ANIM_NAME', params.get('ANIM_NAME_TRIM') ?? params.get('ANIM_NAME') ?? '')
-    trimOnlyParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_TRIM') ?? '')
+    const trimOnlyParams = new Map<string, string>(normalizedParams)
+    trimOnlyParams.set('ANIM_NAME', normalizedParams.get('ANIM_NAME_TRIM') ?? normalizedParams.get('ANIM_NAME') ?? '')
+    trimOnlyParams.set('ANIM_SIMVAR', normalizedParams.get('ANIM_SIMVAR_TRIM') ?? '')
     const binding = buildAnimationSimBinding(trimOnlyParams, sourcePath, diagnostics)
     if (binding != null) {
       animationBindings.push(binding)
@@ -810,14 +997,14 @@ function expandHandlingTrimBaseTemplate(
     return
   }
 
-  if (parseBoolean(params.get('USE_DIFFERENT_ANIM_FOR_L_R'))) {
-    expandHandlingLeftRightTemplate(params, sourcePath, diagnostics, animationBindings)
+  if (parseBoolean(normalizedParams.get('USE_DIFFERENT_ANIM_FOR_L_R'))) {
+    expandHandlingLeftRightTemplate(normalizedParams, sourcePath, diagnostics, animationBindings)
     return
   }
 
-  const singleParams = new Map<string, string>(params)
+  const singleParams = new Map<string, string>(normalizedParams)
   if (!singleParams.has('ANIM_SIMVAR')) {
-    singleParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_LEFT') ?? '')
+    singleParams.set('ANIM_SIMVAR', normalizedParams.get('ANIM_SIMVAR_LEFT') ?? '')
   }
   const binding = buildAnimationSimBinding(singleParams, sourcePath, diagnostics)
   if (binding != null) {
@@ -834,6 +1021,17 @@ function withFallbackParams(
     if (!nextParams.has(key)) {
       nextParams.set(key, value)
     }
+  }
+  return nextParams
+}
+
+function withOverrideParams(
+  params: ReadonlyMap<string, string>,
+  overrideEntries: readonly (readonly [string, string])[]
+): Map<string, string> {
+  const nextParams = new Map<string, string>(params)
+  for (const [key, value] of overrideEntries) {
+    nextParams.set(key, value)
   }
   return nextParams
 }
@@ -994,22 +1192,8 @@ function applyScopedParameters(
   state: TraversalState
 ): TraversalState {
   const scopedParams = new Map<string, string>(state.params)
-  for (const [key, value] of collectParameterBlock(
-    element,
-    'DefaultTemplateParameters',
-    scopedParams
-  )) {
-    if (!scopedParams.has(key)) {
-      scopedParams.set(key, value)
-    }
-  }
-  for (const [key, value] of collectParameterBlock(
-    element,
-    'OverrideTemplateParameters',
-    scopedParams
-  )) {
-    scopedParams.set(key, value)
-  }
+  applyParameterBlocks(element, 'default', scopedParams, state.path, [])
+  applyParameterBlocks(element, 'override', scopedParams, state.path, [])
 
   if (scopedParams.size === state.params.size) {
     let changed = false
@@ -1031,20 +1215,19 @@ function applyScopedParameters(
 }
 
 function collectParameterBlock(
-  templateNode: Element,
-  tagName: 'DefaultTemplateParameters' | 'OverrideTemplateParameters',
-  params: ReadonlyMap<string, string>
+  blockNode: Element,
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
 ): Map<string, string> {
   const values = new Map<string, string>()
-  const block = Array.from(templateNode.children).find(child => getElementTagName(child) === tagName)
-  if (!block) return values
-
-  for (const child of Array.from(block.children)) {
-    if (child.children.length > 0) continue
-    const value = substituteParameters(child.textContent ?? '', params).trim()
-    values.set(getElementTagName(child), value)
-  }
-
+  collectParameterEntries(
+    Array.from(blockNode.children),
+    params,
+    values,
+    sourcePath,
+    diagnostics
+  )
   return values
 }
 
@@ -1054,17 +1237,87 @@ function selectConditionBranch(
 ): Element | null {
   const notEmpty = conditionNode.getAttribute('NotEmpty')
   if (notEmpty) {
-    const value = substituteParameters(`#${notEmpty}#`, params).trim()
+    const value = resolveNotEmptyValue(notEmpty, params)
     return value ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
   }
 
   const empty = conditionNode.getAttribute('Empty')
   if (empty) {
-    const value = substituteParameters(`#${empty}#`, params).trim()
+    const value = resolveNotEmptyValue(empty, params)
     return value ? conditionNode.querySelector(':scope > False') : conditionNode.querySelector(':scope > True')
   }
 
+  const valid = conditionNode.getAttribute('Valid')
+  if (valid) {
+    const value = resolveParameterReference(valid, params)
+    return value ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
+  }
+
+  const check = conditionNode.getAttribute('Check')
+  if (check) {
+    const value = resolveParameterReference(check, params)
+    const match = conditionNode.getAttribute('Match')
+    const matches = match == null
+      ? value.length > 0
+      : value === substituteParameters(match, params).trim()
+    return matches ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
+  }
+
+  const testNode = conditionNode.querySelector(':scope > Test')
+  if (testNode != null) {
+    return evaluateTestElement(testNode, params)
+      ? conditionNode.querySelector(':scope > True')
+      : conditionNode.querySelector(':scope > False')
+  }
+
   return conditionNode.querySelector(':scope > True')
+}
+
+function selectSwitchBranch(
+  switchNode: Element,
+  params: ReadonlyMap<string, string>
+): Element | null {
+  const switchParam = switchNode.getAttribute('Param')
+  const switchValue =
+    switchParam == null ? '' : resolveParameterReference(switchParam, params)
+
+  for (const child of Array.from(switchNode.children)) {
+    if (child.tagName !== 'Case') {
+      continue
+    }
+
+    const value = child.getAttribute('Value')
+    if (value != null) {
+      if (switchValue === substituteParameters(value, params).trim()) {
+        return child
+      }
+      continue
+    }
+
+    const valid = child.getAttribute('Valid')
+    if (valid != null && resolveParameterReference(valid, params)) {
+      return child
+    }
+
+    const check = child.getAttribute('Check')
+    if (check != null) {
+      const resolvedValue = resolveParameterReference(check, params)
+      const match = child.getAttribute('Match')
+      const matches = match == null
+        ? resolvedValue.length > 0
+        : resolvedValue === substituteParameters(match, params).trim()
+      if (matches) {
+        return child
+      }
+    }
+
+    const notEmpty = child.getAttribute('NotEmpty')
+    if (notEmpty != null && resolveNotEmptyValue(notEmpty, params)) {
+      return child
+    }
+  }
+
+  return switchNode.querySelector(':scope > Default')
 }
 
 function substituteParameters(
@@ -1082,6 +1335,310 @@ function substituteParameters(
   }
 
   return currentValue
+}
+
+function applyParameterBlocks(
+  templateNode: Element,
+  kind: ParameterBlockKind,
+  targetParams: Map<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): void {
+  for (const block of Array.from(templateNode.children)) {
+    if (getParameterBlockKind(block) !== kind) {
+      continue
+    }
+
+    const values = collectParameterBlock(block, targetParams, sourcePath, diagnostics)
+    for (const [key, value] of values) {
+      if (kind === 'default') {
+        if (!targetParams.has(key)) {
+          targetParams.set(key, value)
+        }
+      } else {
+        targetParams.set(key, value)
+      }
+    }
+  }
+}
+
+function getParameterBlockKind(element: Element): ParameterBlockKind | null {
+  const tagName = getElementTagName(element)
+  if (tagName === 'DefaultTemplateParameters') {
+    return 'default'
+  }
+  if (tagName === 'OverrideTemplateParameters') {
+    return 'override'
+  }
+  if (tagName !== 'Parameters') {
+    return null
+  }
+
+  const type = (element.getAttribute('Type') ?? '').trim().toLowerCase()
+  if (type === 'default') {
+    return 'default'
+  }
+  if (type === 'override') {
+    return 'override'
+  }
+
+  return null
+}
+
+function collectParameterEntries(
+  children: readonly Element[],
+  params: ReadonlyMap<string, string>,
+  values: Map<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): void {
+  const scopedParams = new Map<string, string>(params)
+  for (const [key, value] of values) {
+    scopedParams.set(key, value)
+  }
+
+  for (const child of children) {
+    if (getParameterBlockKind(child) != null) {
+      continue
+    }
+
+    if (child.tagName === 'Condition') {
+      const branch = selectConditionBranch(child, scopedParams)
+      if (branch != null) {
+        collectParameterEntries(
+          Array.from(branch.children),
+          scopedParams,
+          values,
+          sourcePath,
+          diagnostics
+        )
+        for (const [key, value] of values) {
+          scopedParams.set(key, value)
+        }
+      }
+      continue
+    }
+
+    if (child.tagName === 'Switch') {
+      const branch = selectSwitchBranch(child, scopedParams)
+      if (branch != null) {
+        collectParameterEntries(
+          Array.from(branch.children),
+          scopedParams,
+          values,
+          sourcePath,
+          diagnostics
+        )
+        for (const [key, value] of values) {
+          scopedParams.set(key, value)
+        }
+      }
+      continue
+    }
+
+    const key = substituteParameters(getElementTagName(child), scopedParams).trim()
+    if (!key) {
+      continue
+    }
+
+    const value = resolveProcessedParameterValue(child, scopedParams, sourcePath, diagnostics)
+    values.set(key, value)
+    scopedParams.set(key, value)
+  }
+}
+
+function resolveProcessedParameterValue(
+  node: Element,
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): string {
+  const substituted = substituteParameters(node.textContent ?? '', params).trim()
+  const process = (node.getAttribute('Process') ?? '').trim().toLowerCase()
+  if (!process) {
+    return substituted
+  }
+
+  if (process === 'param') {
+    return params.get(substituted) ?? ''
+  }
+
+  if (process === 'int' || process === 'float') {
+    const expression = compileRpnExpression(substituted, { sourcePath, diagnostics })
+    if (expression == null) {
+      return substituted
+    }
+
+    const value = evaluateCompiledExpression(expression, {
+      readVariable: () => 0
+    })
+    if (!Number.isFinite(value)) {
+      return substituted
+    }
+
+    return process === 'int' ? String(Math.trunc(value)) : String(value)
+  }
+
+  return substituted
+}
+
+function buildUpdateNodeBinding(
+  updateNode: Element,
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledUpdateBinding | null {
+  const source = substituteParameters(updateNode.textContent ?? '', params).trim()
+  if (!source) {
+    diagnostics.push({
+      code: 'update_params_missing',
+      message: 'Update element did not produce UPDATE_CODE.',
+      severity: 'warning',
+      sourcePath
+    })
+    return null
+  }
+
+  const expression = compileRpnExpression(source, { sourcePath, diagnostics })
+  if (expression == null) {
+    return null
+  }
+
+  const frequency = parseNumber(
+    substituteParameters(updateNode.getAttribute('Frequency') ?? '1', params).trim(),
+    1
+  )
+  const once = parseBoolean(
+    substituteParameters(updateNode.getAttribute('Once') ?? '0', params).trim()
+  )
+
+  return {
+    expression,
+    sourcePath,
+    frequency: Math.max(frequency, 0),
+    once
+  }
+}
+
+function resolveParameterReference(
+  expression: string,
+  params: ReadonlyMap<string, string>
+): string {
+  const substituted = substituteParameters(expression, params).trim()
+  return substituted ? (params.get(substituted) ?? '') : ''
+}
+
+function resolveNotEmptyValue(
+  expression: string,
+  params: ReadonlyMap<string, string>
+): string {
+  const substituted = substituteParameters(expression, params).trim()
+  if (!substituted) {
+    return ''
+  }
+  if (params.has(substituted)) {
+    return params.get(substituted) ?? ''
+  }
+  return expression.includes('#') ? substituted : ''
+}
+
+function evaluateTestElement(
+  testNode: Element,
+  params: ReadonlyMap<string, string>
+): boolean {
+  const child = Array.from(testNode.children).find(node => node instanceof Element) ?? null
+  if (child == null || !(child instanceof Element)) {
+    return false
+  }
+  return evaluateTestOperator(child, params)
+}
+
+function evaluateTestOperator(
+  node: Element,
+  params: ReadonlyMap<string, string>
+): boolean {
+  switch (node.tagName) {
+    case 'Lower': {
+      const [left, right] = Array.from(node.children)
+      return resolveTestNumericValue(left, params) < resolveTestNumericValue(right, params)
+    }
+    case 'Greater': {
+      const [left, right] = Array.from(node.children)
+      return resolveTestNumericValue(left, params) > resolveTestNumericValue(right, params)
+    }
+    case 'Equal': {
+      const [left, right] = Array.from(node.children)
+      return resolveTestStringValue(left, params) === resolveTestStringValue(right, params)
+    }
+    case 'Different': {
+      const [left, right] = Array.from(node.children)
+      return resolveTestStringValue(left, params) !== resolveTestStringValue(right, params)
+    }
+    case 'And':
+      return Array.from(node.children).every(child => evaluateTestOperator(child, params))
+    case 'Or':
+      return Array.from(node.children).some(child => evaluateTestOperator(child, params))
+    case 'Not': {
+      const child = Array.from(node.children).find(element => element instanceof Element) ?? null
+      return child instanceof Element ? !evaluateTestOperator(child, params) : false
+    }
+    case 'Arg': {
+      const notEmpty = node.getAttribute('NotEmpty')
+      if (notEmpty != null) {
+        return resolveNotEmptyValue(notEmpty, params).length > 0
+      }
+      const empty = node.getAttribute('Empty')
+      if (empty != null) {
+        return resolveNotEmptyValue(empty, params).length === 0
+      }
+      const valid = node.getAttribute('Valid')
+      if (valid != null) {
+        return resolveParameterReference(valid, params).length > 0
+      }
+      const check = node.getAttribute('Check')
+      if (check != null) {
+        const value = resolveParameterReference(check, params)
+        const match = node.getAttribute('Match')
+        return match == null
+          ? value.length > 0
+          : value === substituteParameters(match, params).trim()
+      }
+      return false
+    }
+    default:
+      return false
+  }
+}
+
+function resolveTestNumericValue(
+  node: Element | undefined,
+  params: ReadonlyMap<string, string>
+): number {
+  if (node == null) {
+    return 0
+  }
+
+  if (node.tagName === 'Number') {
+    return parseNumber(substituteParameters(node.textContent ?? '', params).trim(), 0)
+  }
+
+  return parseNumber(resolveTestStringValue(node, params), 0)
+}
+
+function resolveTestStringValue(
+  node: Element | undefined,
+  params: ReadonlyMap<string, string>
+): string {
+  if (node == null) {
+    return ''
+  }
+
+  const substituted = substituteParameters(node.textContent ?? '', params).trim()
+  if (node.tagName === 'Value') {
+    return params.get(substituted) ?? substituted
+  }
+
+  return substituted
 }
 
 function preprocessBehaviorXml(source: string): string {
