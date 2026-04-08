@@ -9,8 +9,15 @@ Rules:
 - Stock XML items can only be checked when the relevant official docs/reference pages have been read for that area and the implementation has been updated or confirmed against them.
 - Reference-doc items can only be checked when they have actually been reviewed during implementation, not merely downloaded.
 - No item can be checked off unless an `agent-browser` verification pass has been run on both the A330 and A320 routes, screenshots have been taken, and those screenshots indicate nothing is broken and the change likely works.
+- Continue the implementation until every checklist item that is in scope for this repo is either completed and checked off or explicitly blocked with a documented reason; do not stop early just because a subset is finished.
 
-## Core Plumbing
+## 1. Create A Granular Stock-Support Checklist
+
+- [x] Create a granular stock-support checklist covering each mounted XML family and each targeted CFG file.
+
+## 2. Implement Deeper Generic Stock Behavior Support Across Mounted Asobo XML Families
+
+### Core Plumbing
 
 - [x] Support mounted stock `layout.json` for behavior-root resolution.
 - [x] Mount public stock Asobo XML root by default.
@@ -23,14 +30,14 @@ Rules:
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
 - [ ] Replace remaining mirrored stock-template fallbacks where the general XML evaluator can do so safely.
 
-## Stock XML Files
+### Stock XML Files
 
-### AircraftTypes
+#### AircraftTypes
 
 - [ ] `AircraftTypes/Gliders.xml`
 - [ ] `AircraftTypes/Rotorcrafts.xml`
 
-### Airliner
+#### Airliner
 
 - [ ] `Airliner/AS02A.xml`
 - [ ] `Airliner/Airbus.xml`
@@ -40,7 +47,7 @@ Rules:
 - [ ] `Airliner/GlassCockpit.xml`
 - [ ] `Airliner/Inputs/Airliner_Inputs.xml`
 
-### Common
+#### Common
 
 - [ ] `Common.xml`
 - [ ] `Common/Aircraft.xml`
@@ -59,7 +66,7 @@ Rules:
 - [ ] `Common/Pressurization.xml`
 - [ ] `Common/Safety.xml`
 
-### Common Inputs
+#### Common Inputs
 
 - [ ] `Common/Inputs/Aircraft_Inputs.xml`
 - [ ] `Common/Inputs/Autopilot_Inputs.xml`
@@ -76,7 +83,7 @@ Rules:
 - [ ] `Common/Inputs/Pressurization_Inputs.xml`
 - [ ] `Common/Inputs/Safety_Inputs.xml`
 
-### Common Subtemplates
+#### Common Subtemplates
 
 - [ ] `Common/Subtemplates/Aircraft_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Autopilot_Subtemplates.xml`
@@ -92,11 +99,11 @@ Rules:
 - [ ] `Common/Subtemplates/Pressurization_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Safety_Subtemplates.xml`
 
-### Exterior
+#### Exterior
 
 - [ ] `Exterior.xml`
 
-### GPS
+#### GPS
 
 - [ ] `GPS/AS430.xml`
 - [ ] `GPS/AS530.xml`
@@ -104,7 +111,7 @@ Rules:
 - [ ] `GPS/Inputs/AS430_Inputs.xml`
 - [ ] `GPS/Inputs/Aera_Inputs.xml`
 
-### Generic
+#### Generic
 
 - [ ] `Generic.xml`
 - [ ] `Generic/AnimationTriggers.xml`
@@ -117,7 +124,7 @@ Rules:
 - [ ] `Generic/Updates.xml`
 - [ ] `Generic/Visibility.xml`
 
-### Generic Complex
+#### Generic Complex
 
 - [ ] `Generic/Complex/Index.xml`
 - [ ] `Generic/Complex/Joystick.xml`
@@ -127,13 +134,13 @@ Rules:
 - [ ] `Generic/Complex/PushButton.xml`
 - [ ] `Generic/Complex/Switch.xml`
 
-### Generic Subtemplates
+#### Generic Subtemplates
 
 - [ ] `Generic/Subtemplates/Animations_Subtemplates.xml`
 - [ ] `Generic/Subtemplates/Interactions_Subtemplates.xml`
 - [ ] `Generic/Subtemplates/Updates_Subtemplates.xml`
 
-### GlassCockpit
+#### GlassCockpit
 
 - [ ] `GlassCockpit/AS1000.xml`
 - [ ] `GlassCockpit/AS3000.xml`
@@ -147,14 +154,14 @@ Rules:
 - [ ] `GlassCockpit/Inputs/AS3X_Inputs.xml`
 - [ ] `GlassCockpit/Inputs/AS5_Inputs.xml`
 
-### Inputs
+#### Inputs
 
 - [ ] `Inputs/Generic.xml`
 - [ ] `Inputs/Helpers.xml`
 - [ ] `Inputs/Index.xml`
 - [ ] `Inputs/Templates.xml`
 
-### Misc
+#### Misc
 
 - [ ] `Misc/ASDigiflo.xml`
 - [ ] `Misc/ASDigitalFuelMeter_FP5L.xml`
@@ -170,7 +177,7 @@ Rules:
 - [ ] `Misc/VoltsAmps.xml`
 - [ ] `Misc/Inputs/Misc_Inputs.xml`
 
-### NAVCOM
+#### NAVCOM
 
 - [ ] `NAVCOM/ADF.xml`
 - [ ] `NAVCOM/AS92.xml`
@@ -181,13 +188,13 @@ Rules:
 - [ ] `NAVCOM/Inputs/NavComSystem_Inputs.xml`
 - [ ] `NAVCOM/Inputs/SimpleCom_Inputs.xml`
 
-### Transponder
+#### Transponder
 
 - [ ] `Transponder/AS21.xml`
 - [ ] `Transponder/AS330.xml`
 - [ ] `Transponder/Transponder.xml`
 
-## CFG Reference Targets
+### CFG Reference Targets
 
 - [ ] `Additional_Information/File_Formats/CFG_Files.htm`
 - [ ] `Content_Configuration/Cameras/Cameras_CFG/cameras_cfg.htm`
@@ -204,7 +211,7 @@ Rules:
 - [ ] `Content_Configuration/SimObjects/Living_Things/Living_Things_sim_cfg.htm`
 - [ ] `Content_Configuration/Textures/texture_cfg.htm`
 
-## Reference Docs Pack
+### Reference Docs Pack
 
 - [ ] `html/Introduction/Using_The_SDK.htm`
 - [ ] `html/Introduction/Introduction.htm`
@@ -228,14 +235,32 @@ Rules:
 - [ ] `msfs2024/flighting/html/6_Programming_APIs/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm`
 - [ ] `html/mergedProjects/How_To_Make_An_Aircraft/Contents/Modelling/Airframe/Texturing/Surface_Detail__agt_index.htm`
 
-## Template Explorer HTML Pack
+### Template Explorer HTML Pack
 
 - [ ] Download the rendered Template Explorer HTML pages for the mounted stock XML set.
 - [ ] Keep the rendered HTML pack separate from the mounted runtime XML pack.
 - [ ] Use the rendered HTML pages as reference/debug support only, not as runtime behavior sources.
 
-## Verification
+## 3. Implement Broader Generic CFG Support For Targeted MSFS CFG Files
 
-- [ ] A330 route stays clean while stock support expands.
-- [ ] A320 route stays clean while stock support expands.
+- [ ] Expand runtime and importer support beyond the current `aircraft.cfg`, `model.cfg`, and `texture.cfg` scope using the targeted CFG docs above.
+- [ ] Keep the CFG implementation authoritative to the mirrored docs and actual package data.
+
+## 4. Verify A330 And A320 Routes After Each Completed Batch
+
+- [ ] Keep the A330 route clean after each completed batch.
+- [ ] Keep the A320 route clean after each completed batch.
 - [ ] Replace mirrored fallbacks only when the official mounted XML path matches or exceeds current behavior.
+
+## 5. Fix Lighting Issue Where Surfaces Look Too White When Viewed Directly
+
+- [ ] Reproduce and fix the direct-view lighting/whitening issue with a generic MSFS-compatible renderer or material change.
+
+## 6. Fix The WebGPU Wing Lighting/Reflection Jitter During Camera Motion
+
+- [ ] Reproduce and fix the WebGPU wing lighting/reflection jitter with a generic renderer or material change.
+
+## 7. Revisit The A320 Wing Structure / Transform Issue
+
+- [ ] Revisit the A320 wing structure/transform issue after stock XML and CFG coverage is expanded.
+- [ ] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.
