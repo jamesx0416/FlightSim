@@ -79,6 +79,7 @@ export interface CompiledAnimationBinding {
   readonly expression: CompiledExpression
   readonly length: number
   readonly wrap: boolean
+  readonly delta: boolean
   readonly sourcePath: string
 }
 
@@ -88,11 +89,19 @@ export interface CompiledVisibilityBinding {
   readonly sourcePath: string
 }
 
+export interface CompiledUpdateBinding {
+  readonly expression: CompiledExpression
+  readonly sourcePath: string
+  readonly frequency: number
+  readonly once: boolean
+}
+
 export interface CompiledBehaviorSet {
   readonly irVersion: 'msfs-behavior/v1'
   readonly aircraftId: string
   readonly animationBindings: readonly CompiledAnimationBinding[]
   readonly visibilityBindings: readonly CompiledVisibilityBinding[]
+  readonly updateBindings: readonly CompiledUpdateBinding[]
   readonly variableKeys: readonly string[]
   readonly diagnostics: readonly ImportDiagnostic[]
 }

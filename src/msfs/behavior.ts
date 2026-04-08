@@ -2,6 +2,7 @@ import { compileRpnExpression } from './rpn'
 import type {
   CompiledAnimationBinding,
   CompiledBehaviorSet,
+  CompiledUpdateBinding,
   CompiledVisibilityBinding,
   ImportDiagnostic,
   ImportedAircraft,
@@ -39,6 +40,10 @@ interface TraversalState {
 }
 
 const ANIMATION_TEMPLATE_NAMES = new Set(['ASOBO_GT_ANIM', 'ASOBO_GT_ANIM_CODE'])
+const NOOP_TEMPLATE_NAMES = new Set([
+  'ASOBO_DOOR_INTERACTIVEPOINT_TEMPLATE',
+  'ASOBO_GT_ANIMTRIGGERS_2SOUNDEVENTS'
+])
 const VISIBILITY_TEMPLATE_NAMES = new Set([
   'ASOBO_GT_VISIBILITY',
   'ASOBO_GT_VISIBILITY_CODE'
@@ -65,6 +70,7 @@ export async function compileMsfs2020Behaviors(
       aircraftId: aircraft.id,
       animationBindings: [],
       visibilityBindings: [],
+      updateBindings: [],
       variableKeys: [],
       diagnostics
     }
@@ -84,6 +90,7 @@ export async function compileMsfs2020Behaviors(
 
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
+  const updateBindings: CompiledUpdateBinding[] = []
   for (const loadedDocument of loadedDocuments.values()) {
     collectTemplates(loadedDocument.document, templateMap)
   }
@@ -101,7 +108,8 @@ export async function compileMsfs2020Behaviors(
       },
       context,
       animationBindings,
-      visibilityBindings
+      visibilityBindings,
+      updateBindings
     )
   }
 
@@ -116,12 +124,18 @@ export async function compileMsfs2020Behaviors(
       variableKeys.add(key)
     }
   }
+  for (const binding of updateBindings) {
+    for (const key of binding.expression.variableKeys) {
+      variableKeys.add(key)
+    }
+  }
 
   return {
     irVersion: 'msfs-behavior/v1',
     aircraftId: aircraft.id,
     animationBindings,
     visibilityBindings,
+    updateBindings,
     variableKeys: [...variableKeys].sort(),
     diagnostics
   }
@@ -317,7 +331,8 @@ function traverseElement(
   state: TraversalState,
   context: CompileContext,
   animationBindings: CompiledAnimationBinding[],
-  visibilityBindings: CompiledVisibilityBinding[]
+  visibilityBindings: CompiledVisibilityBinding[],
+  updateBindings: CompiledUpdateBinding[]
 ): void {
   if (element.tagName === 'Template') {
     return
@@ -327,11 +342,13 @@ function traverseElement(
     return
   }
 
+  const scopedState = applyScopedParameters(element, state)
+
   if (element.tagName === 'Condition') {
-    const branch = selectConditionBranch(element, state.params)
+    const branch = selectConditionBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, state, context, animationBindings, visibilityBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings)
       }
     }
     return
@@ -340,14 +357,20 @@ function traverseElement(
   if (element.tagName === 'Component') {
     const nodeName = substituteParameters(
       element.getAttribute('Node') ?? '',
-      state.params
+      scopedState.params
     ).trim()
     const nextState: TraversalState = {
-      ...state,
+      ...scopedState,
       currentNode: nodeName || state.currentNode
     }
     for (const child of Array.from(element.children)) {
-      traverseElement(child, nextState, context, animationBindings, visibilityBindings)
+      if (
+        child.tagName === 'DefaultTemplateParameters' ||
+        child.tagName === 'OverrideTemplateParameters'
+      ) {
+        continue
+      }
+      traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
     }
     return
   }
@@ -355,16 +378,23 @@ function traverseElement(
   if (element.tagName === 'UseTemplate') {
     expandTemplateUse(
       element,
-      state,
+      scopedState,
       context,
       animationBindings,
-      visibilityBindings
+      visibilityBindings,
+      updateBindings
     )
     return
   }
 
   for (const child of Array.from(element.children)) {
-    traverseElement(child, state, context, animationBindings, visibilityBindings)
+    if (
+      child.tagName === 'DefaultTemplateParameters' ||
+      child.tagName === 'OverrideTemplateParameters'
+    ) {
+      continue
+    }
+    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings)
   }
 }
 
@@ -373,7 +403,8 @@ function expandTemplateUse(
   state: TraversalState,
   context: CompileContext,
   animationBindings: CompiledAnimationBinding[],
-  visibilityBindings: CompiledVisibilityBinding[]
+  visibilityBindings: CompiledVisibilityBinding[],
+  updateBindings: CompiledUpdateBinding[]
 ): void {
   const templateName = substituteParameters(
     useTemplateNode.getAttribute('Name') ?? '',
@@ -400,6 +431,10 @@ function expandTemplateUse(
     return
   }
 
+  if (NOOP_TEMPLATE_NAMES.has(normalizedTemplateName)) {
+    return
+  }
+
   if (VISIBILITY_TEMPLATE_NAMES.has(normalizedTemplateName)) {
     const visibilityBinding = buildVisibilityBinding(
       mergedParams,
@@ -410,6 +445,21 @@ function expandTemplateUse(
     if (visibilityBinding != null) {
       visibilityBindings.push(visibilityBinding)
     }
+    return
+  }
+
+  if (
+    handleBuiltInTemplate(
+      normalizedTemplateName,
+      templateName,
+      mergedParams,
+      state,
+      context,
+      animationBindings,
+      visibilityBindings,
+      updateBindings
+    )
+  ) {
     return
   }
 
@@ -457,8 +507,309 @@ function expandTemplateUse(
     ) {
       continue
     }
-    traverseElement(child, nextState, context, animationBindings, visibilityBindings)
+    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
   }
+}
+
+function handleBuiltInTemplate(
+  normalizedTemplateName: string,
+  templateName: string,
+  params: Map<string, string>,
+  state: TraversalState,
+  context: CompileContext,
+  animationBindings: CompiledAnimationBinding[],
+  visibilityBindings: CompiledVisibilityBinding[],
+  updateBindings: CompiledUpdateBinding[]
+): boolean {
+  switch (normalizedTemplateName) {
+    case 'ASOBO_GT_ANIM_SIM': {
+      const animationBinding = buildAnimationSimBinding(params, state.path, context.diagnostics)
+      if (animationBinding != null) {
+        animationBindings.push(animationBinding)
+      }
+      return true
+    }
+    case 'ASOBO_GT_UPDATE': {
+      const updateBinding = buildUpdateBinding(params, state.path, context.diagnostics)
+      if (updateBinding != null) {
+        updateBindings.push(updateBinding)
+      }
+      return true
+    }
+    case 'ASOBO_GT_HELPER_RECURSIVE_ID':
+      expandRecursiveTemplateIds(
+        params,
+        state,
+        context,
+        animationBindings,
+        visibilityBindings,
+        updateBindings
+      )
+      return true
+    case 'ASOBO_FUELHOSE_INTERACTIVEPOINT_TEMPLATE': {
+      const visibilityBinding = buildFuelHoseVisibilityBinding(params, state.path, context.diagnostics)
+      if (visibilityBinding != null) {
+        visibilityBindings.push(visibilityBinding)
+      }
+      return true
+    }
+    case 'ASOBO_HANDLING_LEFTRIGHTANIM_TEMPLATE':
+      expandHandlingLeftRightTemplate(params, state.path, context.diagnostics, animationBindings)
+      return true
+    case 'ASOBO_HANDLING_TRIM_BASE_TEMPLATE':
+      expandHandlingTrimBaseTemplate(params, state.path, context.diagnostics, animationBindings)
+      return true
+    case 'ASOBO_HANDLING_AILERON_TEMPLATE':
+      expandHandlingTrimBaseTemplate(
+        withFallbackParams(params, [
+          ['USE_DIFFERENT_ANIM_FOR_L_R', 'True'],
+          ['ANIM_SIMVAR_LEFT', 'AILERON LEFT DEFLECTION PCT'],
+          ['ANIM_SIMVAR_RIGHT', 'AILERON RIGHT DEFLECTION PCT'],
+          ['ANIM_SIMVAR_TRIM', 'AILERON TRIM PCT'],
+        ]),
+        state.path,
+        context.diagnostics,
+        animationBindings
+      )
+      return true
+    case 'ASOBO_HANDLING_RUDDER_TEMPLATE':
+      expandHandlingTrimBaseTemplate(
+        withFallbackParams(params, [
+          ['ANIM_NAME', 'HANDLING_Rudder'],
+          ['ANIM_SIMVAR', 'RUDDER DEFLECTION PCT'],
+          ['ANIM_SIMVAR_TRIM', 'RUDDER TRIM PCT'],
+        ]),
+        state.path,
+        context.diagnostics,
+        animationBindings
+      )
+      return true
+    case 'ASOBO_HANDLING_ELEVATOR_TEMPLATE':
+      expandHandlingTrimBaseTemplate(
+        withFallbackParams(params, [
+          ['ANIM_NAME', 'HANDLING_Elevator'],
+          ['ANIM_SIMVAR', 'ELEVATOR DEFLECTION PCT'],
+          ['ANIM_SIMVAR_TRIM', 'ELEVATOR TRIM PCT'],
+        ]),
+        state.path,
+        context.diagnostics,
+        animationBindings
+      )
+      return true
+    case 'ASOBO_HANDLING_SLATS_TEMPLATE':
+      expandHandlingTrimBaseTemplate(
+        withFallbackParams(params, [
+          ['USE_DIFFERENT_ANIM_FOR_L_R', 'True'],
+          ['USE_INTEGRATED_TRIM', 'False'],
+          ['TRIM_ONLY', 'False'],
+          ['ANIM_SIMVAR_LEFT', 'LEADING EDGE FLAPS LEFT PERCENT'],
+          ['ANIM_SIMVAR_RIGHT', 'LEADING EDGE FLAPS RIGHT PERCENT'],
+        ]),
+        state.path,
+        context.diagnostics,
+        animationBindings
+      )
+      return true
+    case 'ASOBO_HANDLING_FLAPS_TEMPLATE': {
+      const expandedParams = withFallbackParams(params, [
+        ['USE_DIFFERENT_ANIM_FOR_L_R', 'True'],
+        ['USE_INTEGRATED_TRIM', 'False'],
+        ['TRIM_ONLY', 'False'],
+        ['ANIM_SIMVAR_LEFT', 'TRAILING EDGE FLAPS LEFT PERCENT'],
+        ['ANIM_SIMVAR_RIGHT', 'TRAILING EDGE FLAPS RIGHT PERCENT'],
+      ])
+
+      const scale = parseNumber(expandedParams.get('ANIM_SIMVAR_SCALE'), 1)
+      const animLength = parseNumber(expandedParams.get('ANIM_LENGTH'), 100)
+      if (scale < 1) {
+        expandedParams.set('ANIM_SIMVAR_BIAS', String((1 - scale) * animLength))
+      }
+
+      expandHandlingTrimBaseTemplate(expandedParams, state.path, context.diagnostics, animationBindings)
+      return true
+    }
+    default:
+      return false
+  }
+}
+
+function expandRecursiveTemplateIds(
+  params: ReadonlyMap<string, string>,
+  state: TraversalState,
+  context: CompileContext,
+  animationBindings: CompiledAnimationBinding[],
+  visibilityBindings: CompiledVisibilityBinding[],
+  updateBindings: CompiledUpdateBinding[]
+): void {
+  const exitTemplate = params.get('EXIT_TEMPLATE')?.trim()
+  if (!exitTemplate) {
+    context.diagnostics.push({
+      code: 'template_params_missing',
+      message: 'ASOBO_GT_Helper_Recursive_ID requires EXIT_TEMPLATE.',
+      severity: 'warning',
+      sourcePath: state.path
+    })
+    return
+  }
+
+  const firstId = parseInteger(params.get('FIRST_ID'), 1)
+  const maxId = parseInteger(params.get('MAX_ID'), 0)
+  if (!Number.isFinite(maxId) || maxId < firstId) {
+    return
+  }
+
+  for (let currentId = firstId; currentId <= maxId; currentId += 1) {
+    const iterationParams = new Map<string, string>(params)
+    iterationParams.set('CURRENT_ID', String(currentId))
+    iterationParams.set('RECURSIVE_ID', String(currentId))
+
+    for (let paramIndex = 1; paramIndex <= 8; paramIndex += 1) {
+      const targetParam = params.get(`PARAM${paramIndex}`)?.trim()
+      if (!targetParam) {
+        continue
+      }
+
+      const generatedValue = [
+        params.get(`PARAM${paramIndex}_PREFIX`) ?? '',
+        String(currentId),
+        params.get(`PARAM${paramIndex}_SUFFIX`) ?? '',
+      ].join('')
+
+      const shouldProcess = parseBoolean(params.get(`PROCESS_PARAM${paramIndex}`))
+      iterationParams.set(
+        targetParam,
+        shouldProcess ? (params.get(generatedValue) ?? '') : generatedValue
+      )
+    }
+
+    handleBuiltInTemplate(
+      exitTemplate.toUpperCase(),
+      exitTemplate,
+      iterationParams,
+      {
+        ...state,
+        params: iterationParams
+      },
+      context,
+      animationBindings,
+      visibilityBindings,
+      updateBindings
+    ) || expandReferencedTemplate(
+      exitTemplate,
+      iterationParams,
+      state,
+      context,
+      animationBindings,
+      visibilityBindings,
+      updateBindings
+    )
+  }
+}
+
+function expandReferencedTemplate(
+  templateName: string,
+  params: Map<string, string>,
+  state: TraversalState,
+  context: CompileContext,
+  animationBindings: CompiledAnimationBinding[],
+  visibilityBindings: CompiledVisibilityBinding[],
+  updateBindings: CompiledUpdateBinding[]
+): boolean {
+  const templateNode = context.templateMap.get(templateName.toUpperCase())
+  if (templateNode == null) {
+    return false
+  }
+
+  const nextState: TraversalState = {
+    ...state,
+    params
+  }
+  for (const child of Array.from(templateNode.children)) {
+    if (
+      child.tagName === 'DefaultTemplateParameters' ||
+      child.tagName === 'OverrideTemplateParameters'
+    ) {
+      continue
+    }
+    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
+  }
+  return true
+}
+
+function expandHandlingLeftRightTemplate(
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[],
+  animationBindings: CompiledAnimationBinding[]
+): void {
+  const leftParams = new Map<string, string>(params)
+  leftParams.set('ANIM_NAME', params.get('ANIM_NAME_LEFT') ?? '')
+  leftParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_LEFT') ?? '')
+  if (params.get('ANIM_CODE_LEFT') != null) {
+    leftParams.set('ANIM_CODE', params.get('ANIM_CODE_LEFT') ?? '')
+  }
+
+  const rightParams = new Map<string, string>(params)
+  rightParams.set('ANIM_NAME', params.get('ANIM_NAME_RIGHT') ?? '')
+  rightParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_RIGHT') ?? '')
+  if (params.get('ANIM_CODE_RIGHT') != null) {
+    rightParams.set('ANIM_CODE', params.get('ANIM_CODE_RIGHT') ?? '')
+  }
+
+  for (const sideParams of [leftParams, rightParams]) {
+    const binding =
+      sideParams.get('ANIM_CODE')?.trim()
+        ? buildAnimationBinding(sideParams, sourcePath, diagnostics)
+        : buildAnimationSimBinding(sideParams, sourcePath, diagnostics)
+    if (binding != null) {
+      animationBindings.push(binding)
+    }
+  }
+}
+
+function expandHandlingTrimBaseTemplate(
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[],
+  animationBindings: CompiledAnimationBinding[]
+): void {
+  if (parseBoolean(params.get('TRIM_ONLY'))) {
+    const trimOnlyParams = new Map<string, string>(params)
+    trimOnlyParams.set('ANIM_NAME', params.get('ANIM_NAME_TRIM') ?? params.get('ANIM_NAME') ?? '')
+    trimOnlyParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_TRIM') ?? '')
+    const binding = buildAnimationSimBinding(trimOnlyParams, sourcePath, diagnostics)
+    if (binding != null) {
+      animationBindings.push(binding)
+    }
+    return
+  }
+
+  if (parseBoolean(params.get('USE_DIFFERENT_ANIM_FOR_L_R'))) {
+    expandHandlingLeftRightTemplate(params, sourcePath, diagnostics, animationBindings)
+    return
+  }
+
+  const singleParams = new Map<string, string>(params)
+  if (!singleParams.has('ANIM_SIMVAR')) {
+    singleParams.set('ANIM_SIMVAR', params.get('ANIM_SIMVAR_LEFT') ?? '')
+  }
+  const binding = buildAnimationSimBinding(singleParams, sourcePath, diagnostics)
+  if (binding != null) {
+    animationBindings.push(binding)
+  }
+}
+
+function withFallbackParams(
+  params: ReadonlyMap<string, string>,
+  fallbackEntries: readonly (readonly [string, string])[]
+): Map<string, string> {
+  const nextParams = new Map<string, string>(params)
+  for (const [key, value] of fallbackEntries) {
+    if (!nextParams.has(key)) {
+      nextParams.set(key, value)
+    }
+  }
+  return nextParams
 }
 
 function buildAnimationBinding(
@@ -489,6 +840,7 @@ function buildAnimationBinding(
     expression,
     length,
     wrap,
+    delta: parseBoolean(params.get('ANIM_DELTA')),
     sourcePath
   }
 }
@@ -523,6 +875,81 @@ function buildVisibilityBinding(
   }
 }
 
+function buildAnimationSimBinding(
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledAnimationBinding | null {
+  const animName = params.get('ANIM_NAME')?.trim()
+  const simVar = params.get('ANIM_SIMVAR')?.trim()
+  if (!animName || !simVar) {
+    diagnostics.push({
+      code: 'animation_params_missing',
+      message: 'Animation sim template expansion did not produce ANIM_NAME and ANIM_SIMVAR.',
+      severity: 'warning',
+      sourcePath
+    })
+    return null
+  }
+
+  const units = params.get('ANIM_SIMVAR_UNITS')?.trim() || 'percent'
+  const scale = params.get('ANIM_SIMVAR_SCALE')?.trim() || '1'
+  const bias = params.get('ANIM_SIMVAR_BIAS')?.trim() || '0'
+
+  return buildAnimationBinding(
+    new Map([
+      ['ANIM_NAME', animName],
+      ['ANIM_CODE', `(A:${simVar}, ${units}) ${scale} * ${bias} +`],
+      ['ANIM_LENGTH', params.get('ANIM_LENGTH')?.trim() || '100'],
+      ['ANIM_WRAP', params.get('ANIM_WRAP')?.trim() || '0']
+    ]),
+    sourcePath,
+    diagnostics
+  )
+}
+
+function buildUpdateBinding(
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledUpdateBinding | null {
+  const source = params.get('UPDATE_CODE')?.trim() ?? ''
+  if (!source) {
+    diagnostics.push({
+      code: 'update_params_missing',
+      message: 'Update template expansion did not produce UPDATE_CODE.',
+      severity: 'warning',
+      sourcePath
+    })
+    return null
+  }
+
+  const expression = compileRpnExpression(source, { sourcePath, diagnostics })
+  if (expression == null) {
+    return null
+  }
+
+  return {
+    expression,
+    sourcePath,
+    frequency: Math.max(parseNumber(params.get('FREQUENCY'), 1), 0),
+    once: parseBoolean(params.get('UPDATE_ONCE'))
+  }
+}
+
+function buildFuelHoseVisibilityBinding(
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledVisibilityBinding | null {
+  const bindingParams = new Map<string, string>(params)
+  bindingParams.set(
+    'VISIBILITY_CODE',
+    `(A:INTERACTIVE POINT OPEN:${params.get('ID')?.trim() || '1'}, percent) 0 > if{ 1 } els{ 0 }`
+  )
+  return buildVisibilityBinding(bindingParams, params.get('NODE_ID')?.trim() ?? null, sourcePath, diagnostics)
+}
+
 function collectImmediateParameters(
   element: Element,
   inheritedParams: ReadonlyMap<string, string>
@@ -534,6 +961,47 @@ function collectImmediateParameters(
     params.set(child.tagName, value)
   }
   return params
+}
+
+function applyScopedParameters(
+  element: Element,
+  state: TraversalState
+): TraversalState {
+  const scopedParams = new Map<string, string>(state.params)
+  for (const [key, value] of collectParameterBlock(
+    element,
+    'DefaultTemplateParameters',
+    scopedParams
+  )) {
+    if (!scopedParams.has(key)) {
+      scopedParams.set(key, value)
+    }
+  }
+  for (const [key, value] of collectParameterBlock(
+    element,
+    'OverrideTemplateParameters',
+    scopedParams
+  )) {
+    scopedParams.set(key, value)
+  }
+
+  if (scopedParams.size === state.params.size) {
+    let changed = false
+    for (const [key, value] of scopedParams) {
+      if (state.params.get(key) !== value) {
+        changed = true
+        break
+      }
+    }
+    if (!changed) {
+      return state
+    }
+  }
+
+  return {
+    ...state,
+    params: scopedParams
+  }
 }
 
 function collectParameterBlock(
@@ -594,6 +1062,16 @@ function parseBoolean(value: string | undefined): boolean {
   if (!value) return false
   const normalizedValue = value.trim().toLowerCase()
   return normalizedValue === '1' || normalizedValue === 'true'
+}
+
+function parseNumber(value: string | undefined, fallbackValue: number): number {
+  const parsedValue = Number.parseFloat(value ?? '')
+  return Number.isFinite(parsedValue) ? parsedValue : fallbackValue
+}
+
+function parseInteger(value: string | undefined, fallbackValue: number): number {
+  const parsedValue = Number.parseInt(value ?? '', 10)
+  return Number.isFinite(parsedValue) ? parsedValue : fallbackValue
 }
 
 function dirname(path: string): string {

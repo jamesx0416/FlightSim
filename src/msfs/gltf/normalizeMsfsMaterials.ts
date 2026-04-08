@@ -108,6 +108,9 @@ type GltfAssociation = {
 
 type GltfMaterialDef = {
   readonly extensions?: MsfsMaterialExtensions
+  readonly extras?: {
+    readonly ASOBO_material_code?: string
+  }
 }
 
 type GltfParserLike = {
@@ -298,6 +301,11 @@ async function normalizeMsfsMaterial(
 ): Promise<MsfsMaterial> {
   let outputMaterial = material
   const blendFactors = getMsfsBlendFactors(outputMaterial)
+  const materialDef =
+    parser != null && materialIndex != null
+      ? parser.json.materials?.[materialIndex]
+      : null
+  const asoboMaterialCode = materialDef?.extras?.ASOBO_material_code
 
   // MSFS exports DirectX-convention normal maps, while stock glTF assumes OpenGL.
   if (outputMaterial.normalMap != null && outputMaterial.normalScale != null) {
@@ -330,6 +338,17 @@ async function normalizeMsfsMaterial(
     outputMaterial.needsUpdate = true
   }
 
+  if (
+    asoboMaterialCode === 'Porthole' &&
+    outputMaterial.map != null &&
+    outputMaterial.transparent !== true
+  ) {
+    outputMaterial.transparent = true
+    outputMaterial.depthWrite = false
+    outputMaterial.premultipliedAlpha = false
+    outputMaterial.needsUpdate = true
+  }
+
   if (usesBlendGBufferMaterial(outputMaterial)) {
     outputMaterial.depthWrite = false
     outputMaterial.alphaTest = 0.02
@@ -344,8 +363,7 @@ async function normalizeMsfsMaterial(
   }
 
   if (parser != null && materialIndex != null) {
-    const detailMapExtension =
-      parser.json.materials?.[materialIndex]?.extensions?.ASOBO_material_detail_map
+    const detailMapExtension = materialDef?.extensions?.ASOBO_material_detail_map
     if (detailMapExtension != null) {
       const detailTextures = await loadMsfsDetailTextures(
         parser,

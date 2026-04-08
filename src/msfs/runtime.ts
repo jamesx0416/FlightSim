@@ -3,6 +3,7 @@ import { AnimationMixer, type Object3D } from 'three'
 import { evaluateCompiledExpression } from './rpn'
 import type {
   CompiledBehaviorSet,
+  CompiledUpdateBinding,
   ImportDiagnostic,
   RuntimeHostServices,
   RuntimeState
@@ -14,6 +15,7 @@ export class AircraftRuntime {
   private readonly nodes = new Map<string, Object3D>()
   private readonly animationValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
+  private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
 
   constructor(
     private readonly compiled: CompiledBehaviorSet,
@@ -25,6 +27,7 @@ export class AircraftRuntime {
     sceneRoot.traverse(node => {
       if (node.name) {
         this.nodes.set(node.name, node)
+        this.nodes.set(node.name.toLowerCase(), node)
       }
     })
   }
@@ -43,12 +46,15 @@ export class AircraftRuntime {
 
   update(dtSeconds: number): RuntimeState {
     this.hostServices.tick(dtSeconds)
+    this.runUpdateBindings(dtSeconds)
 
     for (const binding of this.compiled.animationBindings) {
-      const value = evaluateCompiledExpression(binding.expression, {
+      const evaluatedValue = evaluateCompiledExpression(binding.expression, {
         readVariable: key => this.hostServices.readVariable(key),
         writeVariable: (key, nextValue) => this.hostServices.writeVariable(key, nextValue)
       })
+      const previousValue = this.animationValues.get(binding.target) ?? 0
+      const value = binding.delta ? previousValue + evaluatedValue : evaluatedValue
       this.animationValues.set(binding.target, value)
 
       const action = this.actions.get(binding.target)
@@ -71,7 +77,9 @@ export class AircraftRuntime {
         }) !== 0
 
       this.nodeVisibilities.set(binding.target, isVisible)
-      const node = this.nodes.get(binding.target)
+      const node =
+        this.nodes.get(binding.target) ??
+        this.nodes.get(binding.target.toLowerCase())
       if (node != null) {
         node.visible = isVisible
       }
@@ -82,6 +90,36 @@ export class AircraftRuntime {
       animationValues: new Map(this.animationValues),
       nodeVisibilities: new Map(this.nodeVisibilities),
       diagnostics: this.compiled.diagnostics
+    }
+  }
+
+  private runUpdateBindings(dtSeconds: number): void {
+    for (const binding of this.compiled.updateBindings) {
+      const state = this.updateState.get(binding) ?? { elapsedSeconds: 0, ranOnce: false }
+      if (binding.once && state.ranOnce) {
+        continue
+      }
+
+      state.elapsedSeconds += dtSeconds
+      const updateInterval = binding.frequency > 0 ? 1 / binding.frequency : 0
+      if (!binding.once && updateInterval > 0 && state.elapsedSeconds + 1e-9 < updateInterval) {
+        this.updateState.set(binding, state)
+        continue
+      }
+
+      if (!binding.once && updateInterval > 0) {
+        state.elapsedSeconds %= updateInterval
+      } else {
+        state.elapsedSeconds = 0
+      }
+
+      evaluateCompiledExpression(binding.expression, {
+        readVariable: key => this.hostServices.readVariable(key),
+        writeVariable: (key, nextValue) => this.hostServices.writeVariable(key, nextValue)
+      })
+
+      state.ranOnce = true
+      this.updateState.set(binding, state)
     }
   }
 }
