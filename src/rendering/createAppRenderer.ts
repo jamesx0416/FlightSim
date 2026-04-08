@@ -141,7 +141,20 @@ export function createNodeMaterialFactory(
     return null
   }
 
-  return material => renderer.library.fromMaterial(material)
+  return material => {
+    if (
+      material.type !== 'MeshStandardMaterial' &&
+      material.type !== 'MeshPhysicalMaterial'
+    ) {
+      return null
+    }
+
+    try {
+      return renderer.library.fromMaterial(material)
+    } catch {
+      return null
+    }
+  }
 }
 
 function finalizeRenderer(

@@ -176,8 +176,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
 
     const header = new Int32Array(buffer, 0, headerLengthInt)
     if (header[offMagic] !== DDS_MAGIC) {
-      console.error('THREE.MSFSDDSLoader.parse: Invalid magic number in DDS header.')
-      return dds
+      throw new Error('THREE.MSFSDDSLoader.parse: Invalid magic number in DDS header.')
     }
 
     let blockBytes = 0
@@ -262,11 +261,9 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
             dds.format = RGBA_BPTC_Format
             break
           default:
-            console.error(
-              'THREE.MSFSDDSLoader.parse: Unsupported DXGI_FORMAT code',
-              dxgiFormat
+            throw new Error(
+              `THREE.MSFSDDSLoader.parse: Unsupported DXGI_FORMAT code ${dxgiFormat}.`
             )
-            return dds
         }
         break
       }
@@ -291,11 +288,9 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
           blockBytes = 64
           dds.format = RGBAFormat
         } else {
-          console.error(
-            'THREE.MSFSDDSLoader.parse: Unsupported FourCC code',
-            int32ToFourCC(fourCC)
+          throw new Error(
+            `THREE.MSFSDDSLoader.parse: Unsupported FourCC code ${int32ToFourCC(fourCC)}.`
           )
-          return dds
         }
     }
 
@@ -314,8 +309,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
         (caps2 & DDSCAPS2_CUBEMAP_POSITIVEZ) === 0 ||
         (caps2 & DDSCAPS2_CUBEMAP_NEGATIVEZ) === 0)
     ) {
-      console.error('THREE.MSFSDDSLoader.parse: Incomplete cubemap faces.')
-      return dds
+      throw new Error('THREE.MSFSDDSLoader.parse: Incomplete cubemap faces.')
     }
 
     dds.width = header[offWidth]

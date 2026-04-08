@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, SkinnedMesh } from 'three'
+import { BufferAttribute, BufferGeometry, Mesh } from 'three'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 type GltfAccessorDef = {
@@ -89,7 +89,7 @@ export async function repairMsfsSkinnedAttributes(gltf: GLTF): Promise<void> {
   const repairTasks: Array<Promise<void>> = []
 
   gltf.scene.traverse(object => {
-    if (!(object instanceof SkinnedMesh)) {
+    if (!(object instanceof Mesh)) {
       return
     }
 
@@ -178,8 +178,14 @@ function isCorruptedInterleavedAttribute(
   sourceBuffer: ArrayBuffer,
   expectedOffset: number
 ): boolean {
+  const interleavedStride =
+    attribute.isInterleavedBufferAttribute &&
+    attribute.data?.stride != null &&
+    attribute.array?.BYTES_PER_ELEMENT != null
+      ? attribute.data.stride * attribute.array.BYTES_PER_ELEMENT
+      : 0
   const byteLength = Math.min(
-    32,
+    Math.max(32, interleavedStride * 2),
     attribute.array.byteLength,
     Math.max(0, sourceBuffer.byteLength - expectedOffset)
   )

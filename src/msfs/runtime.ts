@@ -45,9 +45,10 @@ export class AircraftRuntime {
     this.hostServices.tick(dtSeconds)
 
     for (const binding of this.compiled.animationBindings) {
-      const value = evaluateCompiledExpression(binding.expression, key =>
-        this.hostServices.readVariable(key)
-      )
+      const value = evaluateCompiledExpression(binding.expression, {
+        readVariable: key => this.hostServices.readVariable(key),
+        writeVariable: (key, nextValue) => this.hostServices.writeVariable(key, nextValue)
+      })
       this.animationValues.set(binding.target, value)
 
       const action = this.actions.get(binding.target)
@@ -64,9 +65,10 @@ export class AircraftRuntime {
 
     for (const binding of this.compiled.visibilityBindings) {
       const isVisible =
-        evaluateCompiledExpression(binding.expression, key =>
-          this.hostServices.readVariable(key)
-        ) !== 0
+        evaluateCompiledExpression(binding.expression, {
+          readVariable: key => this.hostServices.readVariable(key),
+          writeVariable: (key, nextValue) => this.hostServices.writeVariable(key, nextValue)
+        }) !== 0
 
       this.nodeVisibilities.set(binding.target, isVisible)
       const node = this.nodes.get(binding.target)

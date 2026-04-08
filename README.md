@@ -17,6 +17,7 @@ This slice is intentionally generic:
 - `aircraft.cfg` parsing, including `base_container` inheritance
 - `model.cfg` and exterior model XML resolution
 - Behavior include loading from package-local `ModelBehaviorDefs`
+- Optional additional package-root mounting for stock/shared behavior and texture lookup
 - Generic compilation of supported `ASOBO_GT_Anim*` and `ASOBO_GT_Visibility*` template outputs
 - Deterministic demo host variables for behavior-driven animation and visibility
 - Diagnostics overlay for missing includes, unsupported templates, and unsupported RPN tokens
@@ -65,6 +66,16 @@ VITE_MSFS_PACKAGE_ROOT=/tmp/your-built-package/
 ```
 
 The package must be a built MSFS 2020 package inside the repo so Vite can serve it.
+
+Optional additional built-package roots can also be mounted for stock/shared assets:
+
+```dotenv
+VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS=/tmp/fs-base-aircraft-common/,/tmp/asobo-vcockpits-instruments-airliners/
+```
+
+Those extra roots are searched generically for:
+- simulator-provided `ModelBehaviorDefs/...` includes such as `Asobo/Exterior.xml`
+- shared texture fallback paths discovered through `texture.cfg`
 
 ## Project Layout
 
