@@ -36,7 +36,9 @@ Secondary corroborating reference currently in use:
 
 - Tighten stock behavior include resolution.
   - Generic additional package-root support is now in place through `VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS`.
-  - Next step is to validate against real stock package roots so simulator-provided `Asobo/...` definitions resolve end-to-end.
+  - Public stock Asobo XMLs from the official Template Explorer are now mounted locally at `/vendor/msfs-stock/`.
+  - Package-level stock include resolution is working through that mounted root.
+  - Next step is to broaden generic parsing/compiler coverage for stock XML syntax that still does not parse under a plain DOM pass.
 
 - Tighten stock/shared texture fallback resolution.
   - Generic additional package-root support is now in place for texture fallback lookup as well.
@@ -51,9 +53,8 @@ Secondary corroborating reference currently in use:
 ## Current Fixture State
 
 - Current A330 and A320 fixture imports are clean:
-  - no package diagnostics
-  - no compiled behavior diagnostics
-- This means the next loader gaps are more likely to surface when real stock/shared MSFS dependency packages are mounted, not from the two current standalone fixtures alone.
+  - no package diagnostics on the A330 route after mounting the public stock XML root
+- The remaining loader gaps are now more clearly in stock XML parsing/compiler coverage and runtime semantics, not just missing include roots.
 
 ## Current Material Focus
 

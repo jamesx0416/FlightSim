@@ -13,6 +13,7 @@ interface LoadedDocument {
   readonly rootUrl: string
   readonly path: string
   readonly document: Document
+  readonly rootElement: Element
 }
 
 interface BehaviorSourceRoot {
@@ -100,7 +101,7 @@ export async function compileMsfs2020Behaviors(
     : null
   if (rootDocument != null) {
     traverseElement(
-      rootDocument.document.documentElement,
+      rootDocument.rootElement,
       {
         path: rootDocument.path,
         params: new Map<string, string>(),
@@ -172,8 +173,8 @@ async function loadBehaviorDocument(
   }
 
   const text = await response.text()
-  const document = new DOMParser().parseFromString(text, 'text/xml')
-  if (document.querySelector('parsererror')) {
+  const parsedDocument = parseBehaviorDocument(text)
+  if (parsedDocument == null) {
     context.diagnostics.push({
       code: 'behavior_document_invalid_xml',
       message: `Behavior document ${resolvedDocument.path} could not be parsed.`,
@@ -186,10 +187,11 @@ async function loadBehaviorDocument(
   context.loadedDocuments.set(documentKey, {
     rootUrl: resolvedDocument.root.rootUrl,
     path: resolvedDocument.path,
-    document
+    document: parsedDocument.document,
+    rootElement: parsedDocument.rootElement
   })
 
-  for (const includeNode of document.querySelectorAll('Include')) {
+  for (const includeNode of parsedDocument.rootElement.querySelectorAll('Include')) {
     const includedPath = resolveIncludePath(resolvedDocument.path, includeNode)
     if (!includedPath) continue
     await loadBehaviorDocument(includedPath, context, resolvedDocument.root)
@@ -326,6 +328,30 @@ function collectTemplates(document: Document, templateMap: Map<string, Element>)
   }
 }
 
+function parseBehaviorDocument(
+  source: string
+): { readonly document: Document; readonly rootElement: Element } | null {
+  const preprocessed = preprocessBehaviorXml(source)
+  const xmlDocument = new DOMParser().parseFromString(preprocessed, 'text/xml')
+  if (!xmlDocument.querySelector('parsererror') && xmlDocument.documentElement != null) {
+    return {
+      document: xmlDocument,
+      rootElement: xmlDocument.documentElement
+    }
+  }
+
+  const htmlDocument = new DOMParser().parseFromString(preprocessed, 'text/html')
+  const rootElement = htmlDocument.querySelector('modelbehaviors')
+  if (rootElement == null) {
+    return null
+  }
+
+  return {
+    document: htmlDocument,
+    rootElement
+  }
+}
+
 function traverseElement(
   element: Element,
   state: TraversalState,
@@ -365,8 +391,8 @@ function traverseElement(
     }
     for (const child of Array.from(element.children)) {
       if (
-        child.tagName === 'DefaultTemplateParameters' ||
-        child.tagName === 'OverrideTemplateParameters'
+        getElementTagName(child) === 'DefaultTemplateParameters' ||
+        getElementTagName(child) === 'OverrideTemplateParameters'
       ) {
         continue
       }
@@ -375,7 +401,7 @@ function traverseElement(
     return
   }
 
-  if (element.tagName === 'UseTemplate') {
+  if (getElementTagName(element) === 'UseTemplate') {
     expandTemplateUse(
       element,
       scopedState,
@@ -389,8 +415,8 @@ function traverseElement(
 
   for (const child of Array.from(element.children)) {
     if (
-      child.tagName === 'DefaultTemplateParameters' ||
-      child.tagName === 'OverrideTemplateParameters'
+      getElementTagName(child) === 'DefaultTemplateParameters' ||
+      getElementTagName(child) === 'OverrideTemplateParameters'
     ) {
       continue
     }
@@ -502,8 +528,8 @@ function expandTemplateUse(
 
   for (const child of Array.from(templateNode.children)) {
     if (
-      child.tagName === 'DefaultTemplateParameters' ||
-      child.tagName === 'OverrideTemplateParameters'
+      getElementTagName(child) === 'DefaultTemplateParameters' ||
+      getElementTagName(child) === 'OverrideTemplateParameters'
     ) {
       continue
     }
@@ -726,8 +752,8 @@ function expandReferencedTemplate(
   }
   for (const child of Array.from(templateNode.children)) {
     if (
-      child.tagName === 'DefaultTemplateParameters' ||
-      child.tagName === 'OverrideTemplateParameters'
+      getElementTagName(child) === 'DefaultTemplateParameters' ||
+      getElementTagName(child) === 'OverrideTemplateParameters'
     ) {
       continue
     }
@@ -958,7 +984,7 @@ function collectImmediateParameters(
   for (const child of Array.from(element.children)) {
     if (child.children.length > 0) continue
     const value = substituteParameters(child.textContent ?? '', inheritedParams).trim()
-    params.set(child.tagName, value)
+    params.set(getElementTagName(child), value)
   }
   return params
 }
@@ -1010,13 +1036,13 @@ function collectParameterBlock(
   params: ReadonlyMap<string, string>
 ): Map<string, string> {
   const values = new Map<string, string>()
-  const block = Array.from(templateNode.children).find(child => child.tagName === tagName)
+  const block = Array.from(templateNode.children).find(child => getElementTagName(child) === tagName)
   if (!block) return values
 
   for (const child of Array.from(block.children)) {
     if (child.children.length > 0) continue
     const value = substituteParameters(child.textContent ?? '', params).trim()
-    values.set(child.tagName, value)
+    values.set(getElementTagName(child), value)
   }
 
   return values
@@ -1056,6 +1082,25 @@ function substituteParameters(
   }
 
   return currentValue
+}
+
+function preprocessBehaviorXml(source: string): string {
+  return source
+    .replace(
+      /<\s*([A-Za-z_#][^>\s/]*#[^>\s/]*)((?:\s[^>]*?)?)\/>/gu,
+      (_match, tagName: string, attributes: string) =>
+        `<MSFSDynamicTag msfsTagName="${tagName.trim()}"${attributes}/>`
+    )
+    .replace(
+      /<\s*([A-Za-z_#][^>\s/]*#[^>\s/]*)((?:\s[^>]*?)?)>/gu,
+      (_match, tagName: string, attributes: string) =>
+        `<MSFSDynamicTag msfsTagName="${tagName.trim()}"${attributes}>`
+    )
+    .replace(/<\/\s*([A-Za-z_#][^>\s/]*#[^>\s/]*)\s*>/gu, '</MSFSDynamicTag>')
+}
+
+function getElementTagName(element: Element): string {
+  return element.getAttribute('msfsTagName') ?? element.tagName
 }
 
 function parseBoolean(value: string | undefined): boolean {

@@ -118,6 +118,7 @@ export type Instruction =
   | { readonly op: 'pushVariable'; readonly key: string }
   | { readonly op: 'pushParameter'; readonly index: number }
   | { readonly op: 'writeVariable'; readonly key: string }
+  | { readonly op: 'invokeKeyEvent'; readonly name: string; readonly argCount: number }
   | { readonly op: 'duplicate' | 'popDiscard' | 'swap' | 'increment' | 'decrement' | 'quit' }
   | { readonly op: 'storeRegister'; readonly index: number; readonly pop: boolean }
   | { readonly op: 'loadRegister'; readonly index: number }

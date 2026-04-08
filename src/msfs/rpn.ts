@@ -175,6 +175,16 @@ function compileInstructionBlock(
       continue
     }
 
+    const keyEventWrite = extractKeyEventWrite(normalized)
+    if (keyEventWrite != null) {
+      instructions.push({
+        op: 'invokeKeyEvent',
+        name: keyEventWrite.name,
+        argCount: keyEventWrite.argCount
+      })
+      continue
+    }
+
     const registerStore = extractRegisterStore(normalized)
     if (registerStore != null) {
       instructions.push({
@@ -250,6 +260,7 @@ export function evaluateCompiledExpression(
   services: {
     readVariable: (key: string) => number
     writeVariable?: (key: string, value: number) => void
+    invokeKeyEvent?: (name: string, args: readonly number[]) => void
     parameterValues?: readonly number[]
   }
 ): number {
@@ -264,6 +275,7 @@ function executeInstructions(
   services: {
     readVariable: (key: string) => number
     writeVariable?: (key: string, value: number) => void
+    invokeKeyEvent?: (name: string, args: readonly number[]) => void
     parameterValues?: readonly number[]
   },
   context: EvaluationContext
@@ -282,6 +294,14 @@ function executeInstructions(
       case 'writeVariable': {
         const value = stack.pop() ?? 0
         services.writeVariable?.(instruction.key, value)
+        break
+      }
+      case 'invokeKeyEvent': {
+        const args = new Array<number>(Math.max(0, instruction.argCount))
+        for (let index = args.length - 1; index >= 0; index -= 1) {
+          args[index] = stack.pop() ?? 0
+        }
+        services.invokeKeyEvent?.(instruction.name, args)
         break
       }
       case 'duplicate': {
@@ -540,6 +560,30 @@ function extractVariableWriteKey(token: string): string | null {
   const variableMatch = /^>(A|L|O):([^,]+?)(?=,|$)/iu.exec(content)
   if (!variableMatch) return null
   return `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`
+}
+
+function extractKeyEventWrite(
+  token: string
+): { readonly name: string; readonly argCount: number } | null {
+  if (!token.startsWith('(') || !token.endsWith(')')) return null
+  const content = token.slice(1, -1).trim()
+  const explicitCountMatch = /^>K:(\d+):(.+)$/iu.exec(content)
+  if (explicitCountMatch != null) {
+    return {
+      argCount: Number.parseInt(explicitCountMatch[1], 10),
+      name: explicitCountMatch[2].trim()
+    }
+  }
+
+  const simpleMatch = /^>K:(.+)$/iu.exec(content)
+  if (simpleMatch == null) {
+    return null
+  }
+
+  return {
+    argCount: 0,
+    name: simpleMatch[1].trim()
+  }
 }
 
 function extractParameterIndex(token: string): number | null {
