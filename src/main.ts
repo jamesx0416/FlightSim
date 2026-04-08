@@ -44,22 +44,37 @@ type AssetRoot = {
 async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'init:start' })
   const backgroundColor = new Color('#405264')
-  const packageRoot = ensureTrailingSlash(
-    import.meta.env.VITE_MSFS_PACKAGE_ROOT || DEFAULT_PACKAGE_ROOT
-  )
+  const searchParams = new URLSearchParams(window.location.search)
+  const packageRoot = resolveRequestedPackageRoot(searchParams)
   const additionalPackageRoots = parseConfiguredPackageRoots(
     import.meta.env.VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS
   )
   const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
   setGlobalLoadStage({ stage: 'import:package', packageRoot })
   const packageData = await importBuiltMsfs2020Package(packageRoot)
+  const requestedAircraftId = searchParams.get('aircraft')
   const aircraft = selectAircraft(
     packageData.aircraft,
-    new URLSearchParams(window.location.search).get('aircraft')
+    requestedAircraftId
   )
   ;(globalThis as Record<string, unknown>).__lastImportedPackage = packageData
   ;(globalThis as Record<string, unknown>).__lastSelectedAircraft = aircraft
   if (aircraft == null || aircraft.model == null) {
+    if (requestedAircraftId != null) {
+      const availableAircraft = packageData.aircraft
+        .filter(candidate => candidate.model != null)
+        .map(candidate => candidate.id)
+        .sort()
+      throw new Error(
+        [
+          `Requested aircraft "${requestedAircraftId}" was not found in package root ${packageRoot}.`,
+          availableAircraft.length > 0
+            ? `Available aircraft IDs:\n- ${availableAircraft.join('\n- ')}`
+            : 'The selected package does not contain any importable aircraft models.'
+        ].join('\n\n')
+      )
+    }
+
     throw new Error('No importable aircraft model was found in the configured package.')
   }
 
@@ -71,7 +86,7 @@ async function init(): Promise<void> {
   const scene = new Scene()
 
   setGlobalLoadStage({ stage: 'renderer:create', aircraftId: aircraft.id })
-  const rendererInfo = await createAppRenderer(new URLSearchParams(window.location.search))
+  const rendererInfo = await createAppRenderer(searchParams)
   const { renderer } = rendererInfo
   renderer.setClearColor(backgroundColor, 1)
   const aircraftEnvironment = createAircraftEnvironment(renderer)
@@ -387,11 +402,7 @@ function selectAircraft(
   requestedId: string | null
 ): ImportedAircraft | null {
   if (requestedId != null) {
-    const requestedAircraft =
-      aircraft.find(candidate => candidate.id === requestedId && candidate.model != null) ?? null
-    if (requestedAircraft != null) {
-      return requestedAircraft
-    }
+    return aircraft.find(candidate => candidate.id === requestedId && candidate.model != null) ?? null
   }
 
   const rankedAircraft = [...aircraft].sort((left, right) => {
@@ -638,6 +649,14 @@ function formatRendererLabel(rendererInfo: RendererInfo): string {
 
 function ensureTrailingSlash(value: string): string {
   return value.endsWith('/') ? value : `${value}/`
+}
+
+function resolveRequestedPackageRoot(searchParams: URLSearchParams): string {
+  return ensureTrailingSlash(
+    searchParams.get('package') ||
+      import.meta.env.VITE_MSFS_PACKAGE_ROOT ||
+      DEFAULT_PACKAGE_ROOT
+  )
 }
 
 function parseConfiguredPackageRoots(value: string | undefined): string[] {
