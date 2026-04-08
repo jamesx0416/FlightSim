@@ -16,6 +16,7 @@ import {
 } from 'three'
 import {
   WebGPURenderer,
+  PMREMGenerator as WebGpuPMREMGenerator,
   type NodeMaterial
 } from 'three/webgpu'
 
@@ -93,7 +94,10 @@ async function getWebGpuRequiredLimits(): Promise<Record<string, number> | undef
 }
 
 export function createAircraftEnvironment(renderer: AppRenderer): AircraftEnvironmentInfo {
-  const pmremGenerator = new PMREMGenerator(renderer as never)
+  const pmremGenerator =
+    renderer instanceof WebGLRenderer
+      ? new PMREMGenerator(renderer)
+      : new WebGpuPMREMGenerator(renderer)
   const toneMapping = renderer.toneMapping
   const toneMappingExposure = renderer.toneMappingExposure
   const outputColorSpace = renderer.outputColorSpace

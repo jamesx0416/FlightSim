@@ -46,9 +46,7 @@ async function init(): Promise<void> {
   const backgroundColor = new Color('#405264')
   const searchParams = new URLSearchParams(window.location.search)
   const packageRoot = resolveRequestedPackageRoot(searchParams)
-  const additionalPackageRoots = parseConfiguredPackageRoots(
-    import.meta.env.VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS
-  )
+  const additionalPackageRoots = resolveAdditionalPackageRoots(searchParams)
   const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
   setGlobalLoadStage({ stage: 'import:package', packageRoot })
   const packageData = await importBuiltMsfs2020Package(packageRoot)
@@ -657,6 +655,22 @@ function resolveRequestedPackageRoot(searchParams: URLSearchParams): string {
       import.meta.env.VITE_MSFS_PACKAGE_ROOT ||
       DEFAULT_PACKAGE_ROOT
   )
+}
+
+function resolveAdditionalPackageRoots(searchParams: URLSearchParams): string[] {
+  const urlConfiguredRoots = [
+    ...searchParams.getAll('packages'),
+    ...searchParams.getAll('deps')
+  ]
+
+  const combinedRoots = [
+    ...urlConfiguredRoots,
+    import.meta.env.VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS ?? ''
+  ]
+
+  return combinedRoots
+    .flatMap(parseConfiguredPackageRoots)
+    .filter((rootUrl, index, values) => values.indexOf(rootUrl) === index)
 }
 
 function parseConfiguredPackageRoots(value: string | undefined): string[] {

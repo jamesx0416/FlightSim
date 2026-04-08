@@ -1,4 +1,7 @@
 import {
+  CompressedTexture,
+  FileLoader,
+  LinearFilter,
   CompressedTextureLoader,
   RED_GREEN_RGTC2_Format,
   RED_RGTC1_Format,
@@ -28,6 +31,127 @@ type DdsParseResult = {
 }
 
 export class MSFSDDSLoader extends CompressedTextureLoader {
+  override load(
+    url: string | string[],
+    onLoad?: (texture: CompressedTexture) => void,
+    onProgress?: (event: ProgressEvent<EventTarget>) => void,
+    onError?: (error: unknown) => void
+  ): CompressedTexture {
+    const texture = new CompressedTexture()
+    const loader = new FileLoader(this.manager)
+    loader.setPath(this.path)
+    loader.setResponseType('arraybuffer')
+    loader.setRequestHeader(this.requestHeader)
+    loader.setWithCredentials(this.withCredentials)
+
+    const handleParsedTexture = (texDatas: DdsParseResult): void => {
+      if (texDatas.isCubemap) {
+        const images: Array<{
+          width: number
+          height: number
+          format: number | null
+          mipmaps: DdsParseResult['mipmaps']
+        }> = []
+        const faces = texDatas.mipmaps.length / texDatas.mipmapCount
+
+        for (let faceIndex = 0; faceIndex < faces; faceIndex += 1) {
+          images[faceIndex] = {
+            mipmaps: [],
+            format: texDatas.format,
+            width: texDatas.width,
+            height: texDatas.height
+          }
+
+          for (let mipIndex = 0; mipIndex < texDatas.mipmapCount; mipIndex += 1) {
+            images[faceIndex]!.mipmaps.push(
+              texDatas.mipmaps[faceIndex * texDatas.mipmapCount + mipIndex]!
+            )
+          }
+        }
+
+        texture.image = images as never
+      } else {
+        texture.image.width = texDatas.width
+        texture.image.height = texDatas.height
+        texture.mipmaps = texDatas.mipmaps as never
+      }
+
+      if (texDatas.mipmapCount === 1) {
+        texture.minFilter = LinearFilter
+      }
+
+      texture.format = texDatas.format as never
+      texture.needsUpdate = true
+      onLoad?.(texture)
+    }
+
+    const loadSingle = (requestUrl: string): void => {
+      loader.load(
+        requestUrl,
+        buffer => {
+          try {
+            handleParsedTexture(this.parse(buffer as ArrayBuffer, true))
+          } catch (error) {
+            onError?.(error)
+            this.manager.itemError(requestUrl)
+          }
+        },
+        onProgress,
+        onError
+      )
+    }
+
+    if (Array.isArray(url)) {
+      let loadedFaces = 0
+      const faceImages: Array<{
+        width: number
+        height: number
+        format: number | null
+        mipmaps: DdsParseResult['mipmaps']
+      }> = new Array(url.length)
+
+      url.forEach((requestUrl, index) => {
+        loader.load(
+          requestUrl,
+          buffer => {
+            try {
+              const texDatas = this.parse(buffer as ArrayBuffer, true)
+              faceImages[index] = {
+                width: texDatas.width,
+                height: texDatas.height,
+                format: texDatas.format,
+                mipmaps: texDatas.mipmaps
+              }
+              loadedFaces += 1
+              if (loadedFaces !== url.length) {
+                return
+              }
+
+              if (texDatas.mipmapCount === 1) {
+                texture.minFilter = LinearFilter
+              }
+
+              texture.image = faceImages as never
+              texture.format = texDatas.format as never
+              texture.needsUpdate = true
+              onLoad?.(texture)
+            } catch (error) {
+              onError?.(error)
+              this.manager.itemError(requestUrl)
+            }
+          },
+          onProgress,
+          onError
+        )
+      })
+
+      return texture
+    }
+
+    loadSingle(url)
+    return texture
+  }
+
   parse(buffer: ArrayBuffer, loadMipmaps = true): DdsParseResult {
     const dds: DdsParseResult = {
       mipmaps: [],
