@@ -10,9 +10,11 @@ const BINARY_OPERATORS = new Map<string, Instruction['op']>([
   ['-', 'sub'],
   ['*', 'mul'],
   ['/', 'div'],
+  ['div', 'integerDiv'],
   ['%', 'mod'],
   ['min', 'min'],
   ['max', 'max'],
+  ['pow', 'pow'],
   ['>', 'gt'],
   ['<', 'lt'],
   ['>=', 'gte'],
@@ -20,27 +22,117 @@ const BINARY_OPERATORS = new Map<string, Instruction['op']>([
   ['==', 'eq'],
   ['!=', 'neq'],
   ['and', 'and'],
-  ['or', 'or']
+  ['or', 'or'],
+  ['&&', 'and'],
+  ['||', 'or']
 ])
 
 const UNARY_OPERATORS = new Map<string, Instruction['op']>([
   ['abs', 'abs'],
   ['!', 'not'],
   ['not', 'not'],
-  ['neg', 'neg']
+  ['neg', 'neg'],
+  ['/-/', 'neg'],
+  ['ceil', 'ceil'],
+  ['flr', 'floor'],
+  ['near', 'roundNearest'],
+  ['sign', 'sign'],
+  ['sqrt', 'sqrt'],
+  ['sin', 'sin'],
+  ['cos', 'cos'],
+  ['dgrd', 'degreesToRadians'],
+  ['rddg', 'radiansToDegrees'],
+  ['dnor', 'normalizeDegrees'],
+  ['rnor', 'normalizeRadians']
 ])
 
 export function compileRpnExpression(
   source: string,
   options: CompileOptions
 ): CompiledExpression | null {
-  const instructions: Instruction[] = []
   const variableKeys = new Set<string>()
   const tokens = tokenizeRpn(source)
+  const compiled = compileInstructionBlock(tokens, 0, options, variableKeys)
+  if (compiled == null || compiled.nextIndex !== tokens.length) {
+    return null
+  }
 
-  for (const token of tokens) {
+  return {
+    source,
+    instructions: compiled.instructions,
+    variableKeys: [...variableKeys]
+  }
+}
+
+function compileInstructionBlock(
+  tokens: readonly string[],
+  startIndex: number,
+  options: CompileOptions,
+  variableKeys: Set<string>,
+  stopTokens: readonly string[] = []
+): { readonly instructions: Instruction[]; readonly nextIndex: number } | null {
+  const instructions: Instruction[] = []
+
+  for (let index = startIndex; index < tokens.length; index += 1) {
+    const token = tokens[index]
     const normalized = token.trim()
     if (!normalized) continue
+
+    if (stopTokens.includes(normalized)) {
+      return {
+        instructions,
+        nextIndex: index
+      }
+    }
+
+    if (normalized === 'if{') {
+      const thenBlock = compileInstructionBlock(tokens, index + 1, options, variableKeys, ['}', 'els{'])
+      if (thenBlock == null) {
+        return null
+      }
+
+      let elseInstructions: Instruction[] = []
+      let nextIndex = thenBlock.nextIndex
+      const branchTerminator = tokens[nextIndex]?.trim()
+      let closingBraceIndex = nextIndex
+
+      if (branchTerminator === '}') {
+        const explicitElseToken = tokens[nextIndex + 1]?.trim()
+        if (explicitElseToken === 'els{') {
+          const elseBlock = compileInstructionBlock(tokens, nextIndex + 2, options, variableKeys, ['}'])
+          if (elseBlock == null) {
+            return null
+          }
+          elseInstructions = elseBlock.instructions
+          closingBraceIndex = elseBlock.nextIndex
+        }
+      } else if (branchTerminator === 'els{') {
+        const elseBlock = compileInstructionBlock(tokens, nextIndex + 1, options, variableKeys, ['}'])
+        if (elseBlock == null) {
+          return null
+        }
+        elseInstructions = elseBlock.instructions
+        closingBraceIndex = elseBlock.nextIndex
+      }
+
+      if (tokens[closingBraceIndex]?.trim() !== '}') {
+        options.diagnostics.push({
+          code: 'rpn_token_unsupported',
+          message: 'Unsupported RPN control-flow structure prevented compilation.',
+          severity: 'warning',
+          sourcePath: options.sourcePath
+        })
+        return null
+      }
+
+      instructions.push({
+        op: 'if',
+        thenInstructions: thenBlock.instructions,
+        elseInstructions
+      })
+      index = closingBraceIndex
+      continue
+    }
 
     if (normalized === 'True') {
       instructions.push({ op: 'pushNumber', value: 1 })
@@ -49,6 +141,11 @@ export function compileRpnExpression(
 
     if (normalized === 'False') {
       instructions.push({ op: 'pushNumber', value: 0 })
+      continue
+    }
+
+    if (normalized === 'pi') {
+      instructions.push({ op: 'pushPi' })
       continue
     }
 
@@ -63,6 +160,62 @@ export function compileRpnExpression(
       variableKeys.add(variableKey)
       instructions.push({ op: 'pushVariable', key: variableKey })
       continue
+    }
+
+    const parameterIndex = extractParameterIndex(normalized)
+    if (parameterIndex != null) {
+      instructions.push({ op: 'pushParameter', index: parameterIndex })
+      continue
+    }
+
+    const variableWriteKey = extractVariableWriteKey(normalized)
+    if (variableWriteKey != null) {
+      variableKeys.add(variableWriteKey)
+      instructions.push({ op: 'writeVariable', key: variableWriteKey })
+      continue
+    }
+
+    const registerStore = extractRegisterStore(normalized)
+    if (registerStore != null) {
+      instructions.push({
+        op: 'storeRegister',
+        index: registerStore.index,
+        pop: registerStore.pop
+      })
+      continue
+    }
+
+    const registerLoad = extractRegisterLoad(normalized)
+    if (registerLoad != null) {
+      instructions.push({ op: 'loadRegister', index: registerLoad })
+      continue
+    }
+
+    switch (normalized) {
+      case 'd':
+        instructions.push({ op: 'duplicate' })
+        continue
+      case 'p':
+        instructions.push({ op: 'popDiscard' })
+        continue
+      case 'r':
+        instructions.push({ op: 'swap' })
+        continue
+      case '++':
+        instructions.push({ op: 'increment' })
+        continue
+      case '--':
+        instructions.push({ op: 'decrement' })
+        continue
+      case '?':
+        instructions.push({ op: 'ternary' })
+        continue
+      case 'case':
+        instructions.push({ op: 'case' })
+        continue
+      case 'quit':
+        instructions.push({ op: 'quit' })
+        continue
     }
 
     const binaryOperator = BINARY_OPERATORS.get(normalized)
@@ -87,25 +240,111 @@ export function compileRpnExpression(
   }
 
   return {
-    source,
     instructions,
-    variableKeys: [...variableKeys]
+    nextIndex: tokens.length
   }
 }
 
 export function evaluateCompiledExpression(
   expression: CompiledExpression,
-  readVariable: (key: string) => number
+  services: {
+    readVariable: (key: string) => number
+    writeVariable?: (key: string, value: number) => void
+    parameterValues?: readonly number[]
+  }
 ): number {
   const stack: number[] = []
+  executeInstructions(expression.instructions, stack, services, createEvaluationContext())
+  return stack.at(-1) ?? 0
+}
 
-  for (const instruction of expression.instructions) {
+function executeInstructions(
+  instructions: readonly Instruction[],
+  stack: number[],
+  services: {
+    readVariable: (key: string) => number
+    writeVariable?: (key: string, value: number) => void
+    parameterValues?: readonly number[]
+  },
+  context: EvaluationContext
+): boolean {
+  for (const instruction of instructions) {
     switch (instruction.op) {
       case 'pushNumber':
         stack.push(instruction.value)
         break
       case 'pushVariable':
-        stack.push(readVariable(instruction.key))
+        stack.push(services.readVariable(instruction.key))
+        break
+      case 'pushParameter':
+        stack.push(services.parameterValues?.[instruction.index] ?? 0)
+        break
+      case 'writeVariable': {
+        const value = stack.pop() ?? 0
+        services.writeVariable?.(instruction.key, value)
+        break
+      }
+      case 'duplicate': {
+        stack.push(stack.at(-1) ?? 0)
+        break
+      }
+      case 'popDiscard':
+        stack.pop()
+        break
+      case 'swap': {
+        const right = stack.pop() ?? 0
+        const left = stack.pop() ?? 0
+        stack.push(right, left)
+        break
+      }
+      case 'increment':
+        stack.push((stack.pop() ?? 0) + 1)
+        break
+      case 'decrement':
+        stack.push((stack.pop() ?? 0) - 1)
+        break
+      case 'storeRegister': {
+        const value = instruction.pop ? stack.pop() ?? 0 : stack.at(-1) ?? 0
+        context.registers[instruction.index] = value
+        break
+      }
+      case 'loadRegister':
+        stack.push(context.registers[instruction.index] ?? 0)
+        break
+      case 'if': {
+        const condition = stack.pop() ?? 0
+        const shouldContinue = executeInstructions(
+          condition !== 0 ? instruction.thenInstructions : instruction.elseInstructions,
+          stack,
+          services,
+          context
+        )
+        if (!shouldContinue) {
+          return false
+        }
+        break
+      }
+      case 'ternary': {
+        const condition = stack.pop() ?? 0
+        const falseValue = stack.pop() ?? 0
+        const trueValue = stack.pop() ?? 0
+        stack.push(condition !== 0 ? trueValue : falseValue)
+        break
+      }
+      case 'case': {
+        const selector = Math.trunc(stack.pop() ?? 0)
+        const count = Math.max(0, Math.trunc(stack.pop() ?? 0))
+        const values = new Array<number>(count)
+        for (let valueIndex = count - 1; valueIndex >= 0; valueIndex -= 1) {
+          values[valueIndex] = stack.pop() ?? 0
+        }
+        stack.push(values[selector] ?? 0)
+        break
+      }
+      case 'quit':
+        return false
+      case 'pushPi':
+        stack.push(Math.PI)
         break
       case 'add':
         stack.push((stack.pop() ?? 0) + (stack.pop() ?? 0))
@@ -125,10 +364,22 @@ export function evaluateCompiledExpression(
         stack.push(right === 0 ? 0 : left / right)
         break
       }
+      case 'integerDiv': {
+        const right = stack.pop() ?? 0
+        const left = stack.pop() ?? 0
+        stack.push(right === 0 ? 0 : Math.trunc(left / right))
+        break
+      }
       case 'mod': {
         const right = stack.pop() ?? 0
         const left = stack.pop() ?? 0
         stack.push(right === 0 ? 0 : left % right)
+        break
+      }
+      case 'pow': {
+        const right = stack.pop() ?? 0
+        const left = stack.pop() ?? 0
+        stack.push(left ** right)
         break
       }
       case 'min': {
@@ -194,16 +445,49 @@ export function evaluateCompiledExpression(
       case 'abs':
         stack.push(Math.abs(stack.pop() ?? 0))
         break
+      case 'ceil':
+        stack.push(Math.ceil(stack.pop() ?? 0))
+        break
+      case 'floor':
+        stack.push(Math.floor(stack.pop() ?? 0))
+        break
+      case 'roundNearest':
+        stack.push(Math.round(stack.pop() ?? 0))
+        break
+      case 'sign':
+        stack.push((stack.pop() ?? 0) < 0 ? -1 : 1)
+        break
       case 'neg':
         stack.push(-(stack.pop() ?? 0))
         break
       case 'not':
         stack.push((stack.pop() ?? 0) === 0 ? 1 : 0)
         break
+      case 'sqrt':
+        stack.push(Math.sqrt(stack.pop() ?? 0))
+        break
+      case 'sin':
+        stack.push(Math.sin(stack.pop() ?? 0))
+        break
+      case 'cos':
+        stack.push(Math.cos(stack.pop() ?? 0))
+        break
+      case 'degreesToRadians':
+        stack.push(((stack.pop() ?? 0) * Math.PI) / 180)
+        break
+      case 'radiansToDegrees':
+        stack.push(((stack.pop() ?? 0) * 180) / Math.PI)
+        break
+      case 'normalizeDegrees':
+        stack.push(normalizeAngleDegrees(stack.pop() ?? 0))
+        break
+      case 'normalizeRadians':
+        stack.push(normalizeAngleRadians(stack.pop() ?? 0))
+        break
     }
   }
 
-  return stack.at(-1) ?? 0
+  return true
 }
 
 function tokenizeRpn(source: string): string[] {
@@ -248,4 +532,69 @@ function extractVariableKey(token: string): string | null {
   const variableMatch = /^(A|L|O):([^,]+?)(?=,|$)/iu.exec(content)
   if (!variableMatch) return null
   return `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`
+}
+
+function extractVariableWriteKey(token: string): string | null {
+  if (!token.startsWith('(') || !token.endsWith(')')) return null
+  const content = token.slice(1, -1).trim()
+  const variableMatch = /^>(A|L|O):([^,]+?)(?=,|$)/iu.exec(content)
+  if (!variableMatch) return null
+  return `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`
+}
+
+function extractParameterIndex(token: string): number | null {
+  const match = /^p(\d{1,2})$/iu.exec(token)
+  if (!match) return null
+  const index = Number.parseInt(match[1], 10)
+  if (!Number.isInteger(index) || index < 0 || index > 99) {
+    return null
+  }
+  return index
+}
+
+interface EvaluationContext {
+  readonly registers: number[]
+}
+
+function createEvaluationContext(): EvaluationContext {
+  return {
+    registers: new Array<number>(50).fill(0)
+  }
+}
+
+function extractRegisterStore(
+  token: string
+): { readonly index: number; readonly pop: boolean } | null {
+  const match = /^sp?(\d{1,2})$/iu.exec(token)
+  if (!match) return null
+  const index = Number.parseInt(match[1], 10)
+  if (!Number.isInteger(index) || index < 0 || index > 49) {
+    return null
+  }
+
+  return {
+    index,
+    pop: token.toLowerCase().startsWith('sp')
+  }
+}
+
+function extractRegisterLoad(token: string): number | null {
+  const match = /^l(\d{1,2})$/iu.exec(token)
+  if (!match) return null
+  const index = Number.parseInt(match[1], 10)
+  if (!Number.isInteger(index) || index < 0 || index > 49) {
+    return null
+  }
+  return index
+}
+
+function normalizeAngleDegrees(value: number): number {
+  const normalized = value % 360
+  return normalized < 0 ? normalized + 360 : normalized
+}
+
+function normalizeAngleRadians(value: number): number {
+  const turn = Math.PI * 2
+  const normalized = value % turn
+  return normalized < 0 ? normalized + turn : normalized
 }

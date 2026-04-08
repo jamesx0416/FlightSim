@@ -19,6 +19,11 @@ Secondary corroborating reference currently in use:
 
 ## Next Work
 
+- Keep broadening authoritative RPN/operator coverage.
+  - Recent passes added official MSFS stack/control operators used by model XML: `if/els`, `quit`, `case`, `?`, `d`, `p`, `r`, `sN`, `spN`, `lN`, `pN`, plus a growing set of numeric operators.
+  - Next RPN work should continue from official SDK operator semantics, not from aircraft-specific trial-and-error.
+  - Prioritize operators/functions that appear in official Asobo templates and built package behavior XML.
+
 - Extend generic `ASOBO_material_*` rendering support.
   - Implement more of `ASOBO_material_blend_gbuffer`.
   - Complete `ASOBO_material_detail_map` fidelity.
@@ -30,13 +35,25 @@ Secondary corroborating reference currently in use:
   - Confirm blend/decal behavior on multiple aircraft packages.
 
 - Tighten stock behavior include resolution.
-  - Resolve simulator-provided `Asobo/...` behavior definitions through a generic source path.
+  - Generic additional package-root support is now in place through `VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS`.
+  - Next step is to validate against real stock package roots so simulator-provided `Asobo/...` definitions resolve end-to-end.
+
+- Tighten stock/shared texture fallback resolution.
+  - Generic additional package-root support is now in place for texture fallback lookup as well.
+  - Next step is to validate against real dependency packages such as `fs-base-aircraft-common`.
 
 - Improve optimized/skinned mesh compatibility.
   - Keep using authoritative layout evidence from built assets and official exporter expectations.
 
 - Broaden validation fixtures.
   - Confirm generic loader behavior on more than the current A330 and A320 packages.
+
+## Current Fixture State
+
+- Current A330 and A320 fixture imports are clean:
+  - no package diagnostics
+  - no compiled behavior diagnostics
+- This means the next loader gaps are more likely to surface when real stock/shared MSFS dependency packages are mounted, not from the two current standalone fixtures alone.
 
 ## Current Material Focus
 

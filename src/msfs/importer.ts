@@ -298,7 +298,6 @@ async function importAircraftRecord(
     return []
   }
 
-  const resolvedSource = chain.at(-1) ?? record
   const inheritedFromPaths = chain.slice(1).map(item => item.path)
   const aircraftDirectoryName = dirname(record.path).split('/').at(-1) || record.path
   const importedAircraft: ImportedAircraft[] = []
@@ -306,7 +305,7 @@ async function importAircraftRecord(
   for (const fltsim of fltsimSections) {
     const section = fltsim.section
     const model = await importModelDefinition(
-      resolvedSource,
+      [fltsim.record, ...chain],
       section.values.get('model') ?? '',
       context
     )
@@ -317,7 +316,7 @@ async function importAircraftRecord(
       aircraftDirectoryName
     const variationName = section.values.get('ui_variation') || undefined
     const uiType = section.values.get('ui_type') || undefined
-    const textureDirectories = resolveTextureDirectories(chain, fltsim, context)
+    const textureDirectories = await resolveTextureDirectories(chain, fltsim, context)
 
     importedAircraft.push({
       id: `${normalizePath(dirname(record.path))}#${section.name.toLowerCase()}`,
@@ -340,22 +339,29 @@ async function importAircraftRecord(
 }
 
 async function importModelDefinition(
-  aircraftRecord: AircraftCfgRecord,
+  aircraftRecords: readonly AircraftCfgRecord[],
   modelSuffix: string,
   context: ImportContext
 ): Promise<ImportedModelDefinition | null> {
-  const aircraftDirectory = dirname(aircraftRecord.path)
-  const modelDirectory = modelSuffix
-    ? joinPath(aircraftDirectory, `model.${modelSuffix}`)
-    : joinPath(aircraftDirectory, 'model')
-  const modelCfgPath = resolveLayoutPath(joinPath(modelDirectory, 'model.cfg'), context)
+  const candidateModelDirectories = getModelDirectoryCandidates(
+    aircraftRecords,
+    modelSuffix
+  )
+  const modelCfgPath = candidateModelDirectories
+    .map(modelDirectory =>
+      resolveLayoutPath(joinPath(modelDirectory, 'model.cfg'), context)
+    )
+    .find((path): path is string => path != null)
 
   if (modelCfgPath == null) {
+    const attemptedModelDirectory =
+      candidateModelDirectories[0] ??
+      joinPath(dirname(aircraftRecords[0]?.path ?? ''), modelSuffix ? `model.${modelSuffix}` : 'model')
     context.diagnostics.push({
       code: 'model_cfg_missing',
-      message: `Model configuration ${joinPath(modelDirectory, 'model.cfg')} was not found.`,
+      message: `Model configuration ${joinPath(attemptedModelDirectory, 'model.cfg')} was not found.`,
       severity: 'warning',
-      sourcePath: aircraftRecord.path
+      sourcePath: aircraftRecords[0]?.path
     })
     return null
   }
@@ -376,7 +382,11 @@ async function importModelDefinition(
     return null
   }
 
-  const behaviorPath = resolveLayoutPath(joinPath(modelDirectory, behaviorFile), context)
+  const modelCfgDirectory = dirname(modelCfgPath)
+  const behaviorPath = resolveLayoutPath(
+    joinPath(modelCfgDirectory, behaviorFile),
+    context
+  )
   if (behaviorPath == null) {
     context.diagnostics.push({
       code: 'model_behavior_missing_file',
@@ -406,8 +416,11 @@ async function importModelDefinition(
       if (!modelFile) return null
       return {
         minSize: Number.parseFloat(lodNode.getAttribute('minSize') ?? '0') || 0,
-        path: joinPath(modelDirectory, modelFile),
-        url: resolvePackageUrl(context.rootUrl, joinPath(modelDirectory, modelFile))
+        path: joinPath(dirname(behaviorPath), modelFile),
+        url: resolvePackageUrl(
+          context.rootUrl,
+          joinPath(dirname(behaviorPath), modelFile)
+        )
       }
     })
     .filter((lod): lod is NonNullable<typeof lod> => lod != null)
@@ -510,43 +523,117 @@ function resolveFltsimSections(
     .map(section => ({ record: inheritedRecord, section }))
 }
 
-function resolveTextureDirectories(
+async function resolveTextureDirectories(
   chain: readonly AircraftCfgRecord[],
   primaryFltsim: FltsimSectionRef,
   context: ImportContext
-): string[] {
+): Promise<string[]> {
   const textureDirectories: string[] = []
+  const visitedDirectories = new Set<string>()
+
+  const addTextureDirectory = async (directoryCandidate: string): Promise<void> => {
+    const resolvedTextureDirectory =
+      resolveExistingDirectory(directoryCandidate, context) ??
+      normalizePath(directoryCandidate)
+
+    if (visitedDirectories.has(resolvedTextureDirectory.toLowerCase())) {
+      return
+    }
+
+    visitedDirectories.add(resolvedTextureDirectory.toLowerCase())
+    textureDirectories.push(resolvedTextureDirectory)
+
+    await addTextureFallbackDirectories(
+      resolvedTextureDirectory,
+      context,
+      textureDirectories,
+      visitedDirectories
+    )
+  }
 
   const primaryTextureValue = primaryFltsim.section.values.get('texture')?.trim() ?? ''
   const primaryDirectoryCandidate = primaryTextureValue
     ? joinPath(dirname(primaryFltsim.record.path), `texture.${primaryTextureValue}`)
     : joinPath(dirname(primaryFltsim.record.path), 'texture')
-  const resolvedPrimaryTextureDirectory = resolveExistingDirectory(
-    primaryDirectoryCandidate,
-    context
-  )
-
-  if (resolvedPrimaryTextureDirectory != null) {
-    textureDirectories.push(resolvedPrimaryTextureDirectory)
-  }
+  await addTextureDirectory(primaryDirectoryCandidate)
 
   for (const record of chain) {
     for (const directoryCandidate of getTextureDirectoryCandidates(record)) {
-      const resolvedTextureDirectory = resolveExistingDirectory(
-        directoryCandidate,
-        context
-      )
-
-      if (
-        resolvedTextureDirectory != null &&
-        !textureDirectories.includes(resolvedTextureDirectory)
-      ) {
-        textureDirectories.push(resolvedTextureDirectory)
-      }
+      await addTextureDirectory(directoryCandidate)
     }
   }
 
   return textureDirectories
+}
+
+async function addTextureFallbackDirectories(
+  directoryPath: string,
+  context: ImportContext,
+  textureDirectories: string[],
+  visitedDirectories: Set<string>
+): Promise<void> {
+  const textureCfgPath = resolveLayoutPath(joinPath(directoryPath, 'texture.cfg'), context)
+  if (textureCfgPath == null) {
+    return
+  }
+
+  const textureCfgText = await fetchText(textureCfgPath, context)
+  if (textureCfgText == null) {
+    return
+  }
+
+  const fltsimSection = getCfgSection(parseCfg(textureCfgText), 'fltsim')
+  if (fltsimSection == null) {
+    return
+  }
+
+  const fallbackDirectories = [...fltsimSection.values.entries()]
+    .filter(([key, value]) => /^fallback\.\d+$/iu.test(key) && value.trim() !== '')
+    .sort((left, right) => {
+      const leftIndex = Number.parseInt(left[0].split('.').at(-1) ?? '0', 10)
+      const rightIndex = Number.parseInt(right[0].split('.').at(-1) ?? '0', 10)
+      return leftIndex - rightIndex
+    })
+
+  for (const [, fallbackValue] of fallbackDirectories) {
+    const fallbackDirectory =
+      resolveExistingDirectory(joinPath(dirname(textureCfgPath), fallbackValue), context) ??
+      joinPath(dirname(textureCfgPath), fallbackValue)
+    const normalizedFallbackDirectory = normalizePath(fallbackDirectory)
+
+    if (visitedDirectories.has(normalizedFallbackDirectory.toLowerCase())) {
+      continue
+    }
+
+    visitedDirectories.add(normalizedFallbackDirectory.toLowerCase())
+    textureDirectories.push(normalizedFallbackDirectory)
+    await addTextureFallbackDirectories(
+      normalizedFallbackDirectory,
+      context,
+      textureDirectories,
+      visitedDirectories
+    )
+  }
+}
+
+function getModelDirectoryCandidates(
+  aircraftRecords: readonly AircraftCfgRecord[],
+  modelSuffix: string
+): string[] {
+  const modelDirectories: string[] = []
+
+  for (const record of aircraftRecords) {
+    const aircraftDirectory = dirname(record.path)
+    const modelDirectory = modelSuffix
+      ? joinPath(aircraftDirectory, `model.${modelSuffix}`)
+      : joinPath(aircraftDirectory, 'model')
+
+    if (!modelDirectories.includes(modelDirectory)) {
+      modelDirectories.push(modelDirectory)
+    }
+  }
+
+  return modelDirectories
 }
 
 function getTextureDirectoryCandidates(record: AircraftCfgRecord): string[] {

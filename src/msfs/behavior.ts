@@ -9,8 +9,14 @@ import type {
 } from './types'
 
 interface LoadedDocument {
+  readonly rootUrl: string
   readonly path: string
   readonly document: Document
+}
+
+interface BehaviorSourceRoot {
+  readonly rootUrl: string
+  readonly layoutPathIndex: ReadonlyMap<string, string>
 }
 
 interface CompileContext {
@@ -19,7 +25,11 @@ interface CompileContext {
   readonly diagnostics: ImportDiagnostic[]
   readonly templateMap: Map<string, Element>
   readonly loadedDocuments: Map<string, LoadedDocument>
-  readonly layoutPathIndex: ReadonlyMap<string, string>
+  readonly sourceRoots: readonly BehaviorSourceRoot[]
+}
+
+interface CompileBehaviorOptions {
+  readonly additionalPackageRoots?: readonly string[]
 }
 
 interface TraversalState {
@@ -36,7 +46,8 @@ const VISIBILITY_TEMPLATE_NAMES = new Set([
 
 export async function compileMsfs2020Behaviors(
   pkg: ImportedPackage,
-  aircraft: ImportedAircraft
+  aircraft: ImportedAircraft,
+  options: CompileBehaviorOptions = {}
 ): Promise<CompiledBehaviorSet> {
   const diagnostics = [...pkg.diagnostics]
   const templateMap = new Map<string, Element>()
@@ -59,18 +70,17 @@ export async function compileMsfs2020Behaviors(
     }
   }
 
+  const sourceRoots = await loadBehaviorSourceRoots(pkg, options.additionalPackageRoots ?? [], diagnostics)
   const context: CompileContext = {
     pkg,
     aircraft,
     diagnostics,
     templateMap,
     loadedDocuments,
-    layoutPathIndex: new Map(
-      pkg.layoutEntries.map(entry => [normalizePath(entry.path).toLowerCase(), normalizePath(entry.path)])
-    )
+    sourceRoots
   }
 
-  await loadBehaviorDocument(aircraft.model.behaviorPath, context)
+  await loadBehaviorDocument(aircraft.model.behaviorPath, context, sourceRoots[0] ?? null)
 
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
@@ -78,7 +88,9 @@ export async function compileMsfs2020Behaviors(
     collectTemplates(loadedDocument.document, templateMap)
   }
 
-  const rootDocument = loadedDocuments.get(aircraft.model.behaviorPath)
+  const rootDocument = sourceRoots.length > 0
+    ? loadedDocuments.get(`${sourceRoots[0]!.rootUrl}::${normalizePath(aircraft.model.behaviorPath)}`)
+    : null
   if (rootDocument != null) {
     traverseElement(
       rootDocument.document.documentElement,
@@ -117,10 +129,11 @@ export async function compileMsfs2020Behaviors(
 
 async function loadBehaviorDocument(
   path: string,
-  context: CompileContext
+  context: CompileContext,
+  preferredRoot: BehaviorSourceRoot | null = null
 ): Promise<void> {
-  const resolvedPath = resolveLayoutPath(path, context)
-  if (resolvedPath == null) {
+  const resolvedDocument = resolveBehaviorDocument(path, context, preferredRoot)
+  if (resolvedDocument == null) {
     context.diagnostics.push({
       code: 'behavior_document_missing',
       message: `Behavior document ${path} could not be resolved in the imported package.`,
@@ -130,15 +143,16 @@ async function loadBehaviorDocument(
     return
   }
 
-  if (context.loadedDocuments.has(resolvedPath)) return
+  const documentKey = `${resolvedDocument.root.rootUrl}::${resolvedDocument.path}`
+  if (context.loadedDocuments.has(documentKey)) return
 
-  const response = await fetch(new URL(resolvedPath, context.pkg.rootUrl))
+  const response = await fetch(new URL(resolvedDocument.path, resolvedDocument.root.rootUrl))
   if (!response.ok) {
     context.diagnostics.push({
       code: 'behavior_document_missing',
-      message: `Behavior document ${resolvedPath} could not be loaded.`,
+      message: `Behavior document ${resolvedDocument.path} could not be loaded.`,
       severity: 'warning',
-      sourcePath: resolvedPath
+      sourcePath: resolvedDocument.path
     })
     return
   }
@@ -148,19 +162,23 @@ async function loadBehaviorDocument(
   if (document.querySelector('parsererror')) {
     context.diagnostics.push({
       code: 'behavior_document_invalid_xml',
-      message: `Behavior document ${resolvedPath} could not be parsed.`,
+      message: `Behavior document ${resolvedDocument.path} could not be parsed.`,
       severity: 'warning',
-      sourcePath: resolvedPath
+      sourcePath: resolvedDocument.path
     })
     return
   }
 
-  context.loadedDocuments.set(resolvedPath, { path: resolvedPath, document })
+  context.loadedDocuments.set(documentKey, {
+    rootUrl: resolvedDocument.root.rootUrl,
+    path: resolvedDocument.path,
+    document
+  })
 
   for (const includeNode of document.querySelectorAll('Include')) {
-    const includedPath = resolveIncludePath(resolvedPath, includeNode)
+    const includedPath = resolveIncludePath(resolvedDocument.path, includeNode)
     if (!includedPath) continue
-    await loadBehaviorDocument(includedPath, context)
+    await loadBehaviorDocument(includedPath, context, resolvedDocument.root)
   }
 }
 
@@ -178,6 +196,109 @@ function resolveIncludePath(sourcePath: string, includeNode: Element): string | 
   const pathAttribute = includeNode.getAttribute('Path')
   if (pathAttribute) {
     return joinPath('ModelBehaviorDefs', pathAttribute)
+  }
+
+  return null
+}
+
+async function loadBehaviorSourceRoots(
+  pkg: ImportedPackage,
+  additionalPackageRoots: readonly string[],
+  diagnostics: ImportDiagnostic[]
+): Promise<readonly BehaviorSourceRoot[]> {
+  const roots: BehaviorSourceRoot[] = [
+    {
+      rootUrl: pkg.rootUrl,
+      layoutPathIndex: new Map(
+        pkg.layoutEntries.map(entry => [normalizePath(entry.path).toLowerCase(), normalizePath(entry.path)])
+      )
+    }
+  ]
+
+  const seenRoots = new Set<string>([pkg.rootUrl.toLowerCase()])
+  for (const rootCandidate of additionalPackageRoots) {
+    const normalizedRoot = toAbsolutePackageRoot(rootCandidate)
+    if (seenRoots.has(normalizedRoot.toLowerCase())) {
+      continue
+    }
+
+    seenRoots.add(normalizedRoot.toLowerCase())
+    const root = await tryLoadBehaviorSourceRoot(normalizedRoot, diagnostics)
+    if (root != null) {
+      roots.push(root)
+    }
+  }
+
+  return roots
+}
+
+async function tryLoadBehaviorSourceRoot(
+  rootUrl: string,
+  diagnostics: ImportDiagnostic[]
+): Promise<BehaviorSourceRoot | null> {
+  try {
+    const response = await fetch(new URL('layout.json', rootUrl))
+    if (!response.ok) {
+      diagnostics.push({
+        code: 'behavior_root_layout_missing',
+        message: `Additional behavior root ${rootUrl} is missing layout.json.`,
+        severity: 'info',
+        sourcePath: rootUrl
+      })
+      return null
+    }
+
+    const payload = (await response.json()) as {
+      readonly content?: readonly {
+        readonly path?: string
+      }[]
+    }
+
+    const layoutPathIndex = new Map<string, string>()
+    for (const entry of payload.content ?? []) {
+      if (typeof entry.path !== 'string') {
+        continue
+      }
+
+      const normalizedPath = normalizePath(entry.path)
+      layoutPathIndex.set(normalizedPath.toLowerCase(), normalizedPath)
+    }
+
+    return {
+      rootUrl,
+      layoutPathIndex
+    }
+  } catch (error) {
+    diagnostics.push({
+      code: 'behavior_root_layout_failed',
+      message: `Failed to load additional behavior root ${rootUrl}.`,
+      severity: 'info',
+      sourcePath: rootUrl,
+      details: error instanceof Error ? error.message : String(error)
+    })
+    return null
+  }
+}
+
+function resolveBehaviorDocument(
+  path: string,
+  context: CompileContext,
+  preferredRoot: BehaviorSourceRoot | null
+): { readonly root: BehaviorSourceRoot; readonly path: string } | null {
+  const normalizedPath = normalizePath(path).toLowerCase()
+  const candidateRoots =
+    preferredRoot == null
+      ? context.sourceRoots
+      : [preferredRoot, ...context.sourceRoots.filter(root => root !== preferredRoot)]
+
+  for (const root of candidateRoots) {
+    const resolvedPath = root.layoutPathIndex.get(normalizedPath)
+    if (resolvedPath != null) {
+      return {
+        root,
+        path: resolvedPath
+      }
+    }
   }
 
   return null
@@ -502,6 +623,15 @@ function normalizePath(path: string): string {
   return path.replaceAll('\\', '/').replace(/^\/+/u, '').replace(/\/+/gu, '/')
 }
 
-function resolveLayoutPath(path: string, context: CompileContext): string | null {
-  return context.layoutPathIndex.get(normalizePath(path).toLowerCase()) ?? null
+function ensureTrailingSlash(url: string): string {
+  return url.endsWith('/') ? url : `${url}/`
+}
+
+function toAbsolutePackageRoot(rootUrl: string): string {
+  const normalizedRootUrl = ensureTrailingSlash(rootUrl)
+  try {
+    return new URL(normalizedRootUrl).toString()
+  } catch {
+    return new URL(normalizedRootUrl, window.location.href).toString()
+  }
 }

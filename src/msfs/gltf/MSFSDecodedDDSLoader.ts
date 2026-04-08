@@ -1,12 +1,16 @@
 import {
+  CompressedTexture,
   DataTexture,
   FileLoader,
   LinearFilter,
   Loader,
   RGBAFormat,
+  Texture,
   UnsignedByteType,
   type LoadingManager
 } from 'three'
+
+import { MSFSDDSLoader } from './MSFSDDSLoader'
 
 type DecodedMipmap = {
   readonly data: Uint8Array
@@ -49,7 +53,7 @@ const FOURCC_DX10 = fourCCToInt32('DX10')
 const DXGI_FORMAT_BC5_UNORM = 83
 const DXGI_FORMAT_BC5_SNORM = 84
 
-export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
+export class MSFSDecodedDDSLoader extends Loader<Texture> {
   constructor(
     manager?: LoadingManager,
     private readonly options: {
@@ -61,11 +65,11 @@ export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
 
   override load(
     url: string,
-    onLoad?: (data: DataTexture) => void,
+    onLoad?: (data: Texture) => void,
     onProgress?: (event: ProgressEvent<EventTarget>) => void,
     onError?: (error: unknown) => void
-  ): DataTexture {
-    const texture = new DataTexture()
+  ): Texture {
+    const texture = new Texture()
     const fileLoader = new FileLoader(this.manager)
     fileLoader.setPath(this.path)
     fileLoader.setResponseType('arraybuffer')
@@ -80,23 +84,32 @@ export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
             buffer as ArrayBuffer,
             this.options.loadMipmaps !== false
           )
-          texture.image = {
+          const decodedTexture = new DataTexture()
+          decodedTexture.image = {
             data: parsed.mipmaps[0].data,
             width: parsed.width,
             height: parsed.height
           }
-          texture.mipmaps = [...parsed.mipmaps]
-          texture.format = RGBAFormat
-          texture.type = UnsignedByteType
-          texture.flipY = false
-          texture.generateMipmaps = false
-          texture.minFilter = parsed.mipmaps.length > 1 ? texture.minFilter : LinearFilter
-          texture.magFilter = LinearFilter
-          texture.needsUpdate = true
-          onLoad?.(texture)
-        } catch (error) {
-          onError?.(error)
-          this.manager.itemError(url)
+          decodedTexture.mipmaps = [...parsed.mipmaps]
+          decodedTexture.format = RGBAFormat
+          decodedTexture.type = UnsignedByteType
+          decodedTexture.flipY = false
+          decodedTexture.generateMipmaps = false
+          decodedTexture.minFilter =
+            parsed.mipmaps.length > 1 ? decodedTexture.minFilter : LinearFilter
+          decodedTexture.magFilter = LinearFilter
+          decodedTexture.needsUpdate = true
+          onLoad?.(decodedTexture)
+        } catch {
+          try {
+            const compressedTexture = createCompressedTexture(
+              new MSFSDDSLoader(this.manager).parse(buffer as ArrayBuffer, true)
+            )
+            onLoad?.(compressedTexture)
+          } catch (error) {
+            onError?.(error)
+            this.manager.itemError(url)
+          }
         }
       },
       onProgress,
@@ -258,6 +271,25 @@ export class MSFSDecodedDDSLoader extends Loader<DataTexture> {
       mipmaps
     }
   }
+}
+
+function createCompressedTexture(
+  parsed: ReturnType<MSFSDDSLoader['parse']>
+): CompressedTexture {
+  const texture = new CompressedTexture()
+
+  texture.image.width = parsed.width
+  texture.image.height = parsed.height
+  texture.mipmaps = parsed.mipmaps
+  texture.format = parsed.format
+  texture.flipY = false
+  texture.generateMipmaps = false
+  if (parsed.mipmapCount === 1) {
+    texture.minFilter = LinearFilter
+  }
+  texture.needsUpdate = true
+
+  return texture
 }
 
 function computeCompressedMipByteLength(width: number, height: number, blockBytes: number): number {

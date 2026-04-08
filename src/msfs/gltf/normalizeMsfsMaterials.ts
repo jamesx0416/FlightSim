@@ -365,16 +365,6 @@ async function normalizeMsfsMaterial(
     }
   }
 
-  if (
-    options.createNodeMaterial != null &&
-    usesBlendGBufferMaterial(outputMaterial) &&
-    hasNonDefaultBlendFactors(blendFactors)
-  ) {
-    outputMaterial =
-      (ensureNodeMaterial(outputMaterial, options.createNodeMaterial) as MsfsMaterial | null) ??
-      outputMaterial
-    outputMaterial.needsUpdate = true
-  }
   return outputMaterial
 }
 
@@ -657,17 +647,6 @@ function clampBlendFactor(value: number | undefined): number {
   }
 
   return Math.min(Math.max(value, 0), 1)
-}
-
-function hasNonDefaultBlendFactors(factors: MsfsBlendFactors): boolean {
-  return (
-    factors.baseColor !== 1 ||
-    factors.metallic !== 1 ||
-    factors.roughness !== 1 ||
-    factors.normal !== 1 ||
-    factors.emissive !== 1 ||
-    factors.occlusion !== 1
-  )
 }
 
 async function loadMsfsDetailTextures(

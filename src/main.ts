@@ -36,25 +36,44 @@ import {
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
+type AssetRoot = {
+  readonly rootUrl: string
+  readonly layoutPathIndex: ReadonlySet<string>
+}
+
 async function init(): Promise<void> {
+  setGlobalLoadStage({ stage: 'init:start' })
+  const backgroundColor = new Color('#405264')
   const packageRoot = ensureTrailingSlash(
     import.meta.env.VITE_MSFS_PACKAGE_ROOT || DEFAULT_PACKAGE_ROOT
   )
+  const additionalPackageRoots = parseConfiguredPackageRoots(
+    import.meta.env.VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS
+  )
+  const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
+  setGlobalLoadStage({ stage: 'import:package', packageRoot })
   const packageData = await importBuiltMsfs2020Package(packageRoot)
   const aircraft = selectAircraft(
     packageData.aircraft,
     new URLSearchParams(window.location.search).get('aircraft')
   )
+  ;(globalThis as Record<string, unknown>).__lastImportedPackage = packageData
+  ;(globalThis as Record<string, unknown>).__lastSelectedAircraft = aircraft
   if (aircraft == null || aircraft.model == null) {
     throw new Error('No importable aircraft model was found in the configured package.')
   }
 
-  const compiledBehaviors = await compileMsfs2020Behaviors(packageData, aircraft)
+  setGlobalLoadStage({ stage: 'compile:behaviors', aircraftId: aircraft.id })
+  const compiledBehaviors = await compileMsfs2020Behaviors(packageData, aircraft, {
+    additionalPackageRoots
+  })
+  ;(globalThis as Record<string, unknown>).__lastCompiledBehaviors = compiledBehaviors
   const scene = new Scene()
-  scene.background = new Color('#405264')
 
+  setGlobalLoadStage({ stage: 'renderer:create', aircraftId: aircraft.id })
   const rendererInfo = await createAppRenderer(new URLSearchParams(window.location.search))
   const { renderer } = rendererInfo
+  renderer.setClearColor(backgroundColor, 1)
   const aircraftEnvironment = createAircraftEnvironment(renderer)
   scene.environment = aircraftEnvironment.texture
   document.body.appendChild(renderer.domElement)
@@ -96,12 +115,15 @@ async function init(): Promise<void> {
     document.body.appendChild(selector)
   }
 
+  setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
   const gltf = await loadAircraftGltf(
     aircraft,
     packageData.rootUrl,
     packageData.layoutEntries.map(entry => entry.path),
+    additionalAssetRoots,
     rendererInfo
   )
+  setGlobalLoadStage({ stage: 'gltf:loaded', aircraftId: aircraft.id })
   ;(globalThis as Record<string, unknown>).__lastLoadedGltf = gltf
   const aircraftRoot = new Group()
   aircraftRoot.add(gltf.scene)
@@ -109,6 +131,7 @@ async function init(): Promise<void> {
   ;(globalThis as Record<string, unknown>).__lastAircraftRoot = aircraftRoot
   ;(globalThis as Record<string, unknown>).__lastScene = scene
 
+  setGlobalLoadStage({ stage: 'scene:ready', aircraftId: aircraft.id })
   centerObjectAtOrigin(aircraftRoot)
   fitCameraToObject(camera, controls, aircraftRoot)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
@@ -122,7 +145,7 @@ async function init(): Promise<void> {
   updateOverlay(
     overlay,
     packageRoot,
-    packageData.packageName,
+    packageData,
     aircraft,
     compiledBehaviors,
     runtimeState,
@@ -145,7 +168,7 @@ async function init(): Promise<void> {
     updateOverlay(
       overlay,
       packageRoot,
-      packageData.packageName,
+      packageData,
       aircraft,
       compiledBehaviors,
       runtimeState,
@@ -158,6 +181,7 @@ async function loadAircraftGltf(
   aircraft: ImportedAircraft,
   packageRootUrl: string,
   layoutPaths: readonly string[],
+  additionalAssetRoots: readonly AssetRoot[],
   rendererInfo: RendererInfo
 ): Promise<GLTF> {
   if (aircraft.model == null) {
@@ -167,7 +191,8 @@ async function loadAircraftGltf(
   const textureUrlResolver = createTextureUrlResolver(
     aircraft,
     packageRootUrl,
-    layoutPaths
+    layoutPaths,
+    additionalAssetRoots
   )
   const decodeNormalSources =
     rendererInfo.mode === 'webgpu' &&
@@ -182,16 +207,75 @@ async function loadAircraftGltf(
   const lods = [...aircraft.model.lods].sort((left, right) => right.minSize - left.minSize)
   for (const lod of lods) {
     try {
-      const gltf = await loadMsfsGltfLod(loader, lod.url)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:fetch',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
+      const gltf = await loadMsfsGltfLod(loader, lod.url, {
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
+      setGlobalLoadStage({
+        stage: 'gltf:lod:repair-skinned',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
       await repairMsfsSkinnedAttributes(gltf)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:normalize-skinning',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
       normalizeMsfsSkinning(gltf.scene)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:normalize-texcoords',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
       normalizeMsfsTexcoords(gltf.scene)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:normalize-colors',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
       normalizeMsfsVertexColors(gltf.scene)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:normalize-normals',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
       normalizeMsfsNormalsTangents(gltf.scene)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:normalize-materials',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
       await normalizeMsfsMaterials(gltf, { createNodeMaterial })
+      setGlobalLoadStage({
+        stage: 'gltf:lod:ready',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
       return gltf
     } catch (error) {
       lastError = error
+      setGlobalLoadStage({
+        stage: 'gltf:lod:error',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize,
+        error: error instanceof Error ? error.message : String(error)
+      })
     }
   }
 
@@ -200,22 +284,58 @@ async function loadAircraftGltf(
     : new Error('Failed to load any exterior model LOD.')
 }
 
-async function loadMsfsGltfLod(loader: GLTFLoader, url: string): Promise<GLTF> {
+async function loadMsfsGltfLod(
+  loader: GLTFLoader,
+  url: string,
+  loadContext: {
+    readonly aircraftId: string
+    readonly lodUrl: string
+    readonly lodMinSize: number
+  } | null = null
+): Promise<GLTF> {
   const response = await fetch(url)
+  if (loadContext != null) {
+    setGlobalLoadStage({
+      stage: 'gltf:lod:fetch:response',
+      ...loadContext,
+      httpStatus: response.status
+    })
+  }
   if (!response.ok) {
     throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
   }
 
   const gltfText = await response.text()
+  if (loadContext != null) {
+    setGlobalLoadStage({
+      stage: 'gltf:lod:text:loaded',
+      ...loadContext,
+      textLength: gltfText.length
+    })
+  }
   const baseUrl = url.slice(0, url.lastIndexOf('/') + 1)
   const sanitizedGltf = sanitizeMsfsGltf(JSON.parse(gltfText) as Record<string, unknown>)
-  return await loader.parseAsync(JSON.stringify(sanitizedGltf), baseUrl)
+  if (loadContext != null) {
+    setGlobalLoadStage({
+      stage: 'gltf:lod:parse:start',
+      ...loadContext
+    })
+  }
+  const gltf = await loader.parseAsync(JSON.stringify(sanitizedGltf), baseUrl)
+  if (loadContext != null) {
+    setGlobalLoadStage({
+      stage: 'gltf:lod:parse:done',
+      ...loadContext
+    })
+  }
+  return gltf
 }
 
 function createTextureUrlResolver(
   aircraft: ImportedAircraft,
   packageRootUrl: string,
-  layoutPaths: readonly string[]
+  layoutPaths: readonly string[],
+  additionalAssetRoots: readonly AssetRoot[]
 ): (url: string) => string {
   const textureDirectories = aircraft.textureDirectories
   const layoutPathIndex = new Set(layoutPaths.map(path => normalizePath(path).toLowerCase()))
@@ -231,13 +351,27 @@ function createTextureUrlResolver(
       return parsedUrl.toString()
     }
 
-    for (const textureDirectory of textureDirectories) {
-      const candidatePath = normalizePath(`${textureDirectory}/${fileName}`)
+    const textureCandidates = textureDirectories.map(textureDirectory =>
+      normalizePath(`${textureDirectory}/${fileName}`)
+    )
+
+    for (const candidatePath of textureCandidates) {
       if (!layoutPathIndex.has(candidatePath.toLowerCase())) {
+        for (const assetRoot of additionalAssetRoots) {
+          if (!assetRoot.layoutPathIndex.has(candidatePath.toLowerCase())) {
+            continue
+          }
+
+          return new URL(candidatePath, assetRoot.rootUrl).toString()
+        }
         continue
       }
 
       return new URL(candidatePath, packageRootUrl).toString()
+    }
+
+    if (textureCandidates.length > 0) {
+      return new URL(textureCandidates[0], packageRootUrl).toString()
     }
 
     return parsedUrl.toString()
@@ -424,7 +558,10 @@ function getAircraftDisplayName(aircraft: ImportedAircraft): string {
 function updateOverlay(
   overlay: HTMLDivElement,
   packageRoot: string,
-  packageName: string,
+  packageData: {
+    readonly packageName: string
+    readonly diagnostics: readonly { readonly severity: string; readonly message: string }[]
+  },
   aircraft: ImportedAircraft,
   compiledBehaviors: {
     readonly animationBindings: readonly unknown[]
@@ -435,7 +572,11 @@ function updateOverlay(
   runtimeState: RuntimeState,
   rendererInfo: RendererInfo
 ): void {
-  const diagnostics = runtimeState.diagnostics
+  const diagnostics = [
+    ...packageData.diagnostics,
+    ...compiledBehaviors.diagnostics,
+    ...runtimeState.diagnostics
+  ]
   const errors = diagnostics.filter(item => item.severity === 'error').length
   const warnings = diagnostics.filter(item => item.severity === 'warning').length
   const activeAnimations = [...runtimeState.animationValues.entries()]
@@ -452,7 +593,7 @@ function updateOverlay(
     .join('\n')
 
   overlay.textContent = [
-    `MSFS package: ${packageName}`,
+    `MSFS package: ${packageData.packageName}`,
     `Root: ${packageRoot}`,
     `Renderer: ${formatRendererLabel(rendererInfo)}`,
     `Aircraft: ${aircraft.title}`,
@@ -462,7 +603,10 @@ function updateOverlay(
     `Animations compiled: ${compiledBehaviors.animationBindings.length}`,
     `Visibility bindings: ${compiledBehaviors.visibilityBindings.length}`,
     `Variable symbols: ${compiledBehaviors.variableKeys.length}`,
-    `Diagnostics: ${errors} error / ${warnings} warning / ${compiledBehaviors.diagnostics.length - errors - warnings} info`,
+    `Diagnostics: ${errors} error / ${warnings} warning / ${diagnostics.length - errors - warnings} info`,
+    `Package diagnostics: ${packageData.diagnostics.length}`,
+    `Behavior diagnostics: ${compiledBehaviors.diagnostics.length}`,
+    `Runtime diagnostics: ${runtimeState.diagnostics.length}`,
     '',
     'Sample animation outputs:',
     activeAnimations || 'none',
@@ -496,7 +640,69 @@ function ensureTrailingSlash(value: string): string {
   return value.endsWith('/') ? value : `${value}/`
 }
 
+function parseConfiguredPackageRoots(value: string | undefined): string[] {
+  if (value == null || value.trim() === '') {
+    return []
+  }
+
+  return value
+    .split(/[\n,;]/u)
+    .map(entry => entry.trim())
+    .filter(Boolean)
+    .map(ensureTrailingSlash)
+}
+
+async function loadConfiguredAssetRoots(rootUrls: readonly string[]): Promise<readonly AssetRoot[]> {
+  const assetRoots: AssetRoot[] = []
+
+  for (const rootUrl of rootUrls) {
+    const assetRoot = await tryLoadAssetRoot(rootUrl)
+    if (assetRoot != null) {
+      assetRoots.push(assetRoot)
+    }
+  }
+
+  return assetRoots
+}
+
+async function tryLoadAssetRoot(rootUrl: string): Promise<AssetRoot | null> {
+  try {
+    const response = await fetch(new URL('layout.json', rootUrl))
+    if (!response.ok) {
+      return null
+    }
+
+    const payload = (await response.json()) as {
+      readonly content?: readonly {
+        readonly path?: string
+      }[]
+    }
+
+    return {
+      rootUrl,
+      layoutPathIndex: new Set(
+        (payload.content ?? [])
+          .map(entry => typeof entry.path === 'string' ? normalizePath(entry.path).toLowerCase() : null)
+          .filter((entry): entry is string => entry != null)
+      )
+    }
+  } catch {
+    return null
+  }
+}
+
+function setGlobalLoadStage(payload: Record<string, unknown>): void {
+  ;(globalThis as Record<string, unknown>).__msfsLoadStage = {
+    ...(payload),
+    timestamp: Date.now()
+  }
+}
+
 init().catch(error => {
+  setGlobalLoadStage({
+    stage: 'init:error',
+    error: error instanceof Error ? error.message : String(error)
+  })
   const overlay = createOverlay()
   overlay.style.pointerEvents = 'auto'
   overlay.textContent =

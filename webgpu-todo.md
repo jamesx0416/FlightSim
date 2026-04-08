@@ -23,6 +23,10 @@ Use sources in this order:
 - `ASOBO_material_detail_map` now has a WebGPU node-material path for detail color, ORM, blend-mask, vertex-alpha blending, and detail-normal composition.
 - `ASOBO_material_blend_gbuffer` factors are now wired into the WebGPU node-material path for opacity/color, roughness, metalness, occlusion, emissive, and normal intensity.
 - The renderer now has generic two-pass decal groundwork for `blend_gbuffer` materials, but this is still not full MSFS parity.
+- The viewer now forces a renderer clear color instead of relying on backend-specific `scene.background` handling, which removed a visible WebGPU/WebGL background mismatch on the A330.
+- WebGPU node-material conversion is now restricted to supported material classes, eliminating the prior `ShaderMaterial` compatibility spam on clean WebGPU loads.
+- On the current A330 and A320 fixtures, WebGPU is now effectively comparable to the current WebGL path for the exterior viewer.
+- Current focus can shift back to broader MSFS loader coverage while keeping WebGPU parity intact.
 
 ## Blocking Gaps
 

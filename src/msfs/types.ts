@@ -107,11 +107,25 @@ export interface RuntimeState {
 export type Instruction =
   | { readonly op: 'pushNumber'; readonly value: number }
   | { readonly op: 'pushVariable'; readonly key: string }
-  | { readonly op: 'add' | 'sub' | 'mul' | 'div' | 'mod' }
+  | { readonly op: 'pushParameter'; readonly index: number }
+  | { readonly op: 'writeVariable'; readonly key: string }
+  | { readonly op: 'duplicate' | 'popDiscard' | 'swap' | 'increment' | 'decrement' | 'quit' }
+  | { readonly op: 'storeRegister'; readonly index: number; readonly pop: boolean }
+  | { readonly op: 'loadRegister'; readonly index: number }
+  | {
+      readonly op: 'if'
+      readonly thenInstructions: readonly Instruction[]
+      readonly elseInstructions: readonly Instruction[]
+    }
+  | { readonly op: 'ternary' | 'case' }
+  | { readonly op: 'pushPi' }
+  | { readonly op: 'add' | 'sub' | 'mul' | 'div' | 'integerDiv' | 'mod' | 'pow' }
   | { readonly op: 'min' | 'max' }
   | { readonly op: 'gt' | 'lt' | 'gte' | 'lte' | 'eq' | 'neq' }
   | { readonly op: 'and' | 'or' }
-  | { readonly op: 'neg' | 'not' | 'abs' }
+  | { readonly op: 'neg' | 'not' | 'abs' | 'ceil' | 'floor' | 'roundNearest' | 'sign' }
+  | { readonly op: 'sqrt' | 'sin' | 'cos' | 'degreesToRadians' | 'radiansToDegrees' }
+  | { readonly op: 'normalizeDegrees' | 'normalizeRadians' }
 
 export interface RuntimeHostServices {
   tick(dtSeconds: number): void

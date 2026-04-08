@@ -28,8 +28,13 @@ type GltfSkinDef = {
   skeleton?: number
 }
 
+type GltfImageDef = {
+  extras?: unknown
+}
+
 type GltfJson = {
   accessors?: GltfAccessorDef[]
+  images?: GltfImageDef[]
   meshes?: GltfMeshDef[]
   skins?: GltfSkinDef[]
 }
@@ -52,6 +57,7 @@ export function sanitizeMsfsGltf(source: Record<string, unknown>): Record<string
   const clone = structuredClone(source) as GltfJson
 
   sanitizeSkins(clone)
+  sanitizeImages(clone)
   rewriteAsoboPrimitiveIndexSlices(clone)
 
   return clone as Record<string, unknown>
@@ -65,6 +71,18 @@ function sanitizeSkins(gltf: GltfJson): void {
   for (const skin of gltf.skins) {
     if (typeof skin.skeleton === 'number' && skin.skeleton < 0) {
       delete skin.skeleton
+    }
+  }
+}
+
+function sanitizeImages(gltf: GltfJson): void {
+  if (!Array.isArray(gltf.images)) {
+    return
+  }
+
+  for (const image of gltf.images) {
+    if (image.extras === 'ASOBO_image_converted_meta') {
+      delete image.extras
     }
   }
 }
