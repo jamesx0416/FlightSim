@@ -141,4 +141,5 @@ export interface RuntimeHostServices {
   tick(dtSeconds: number): void
   readVariable(key: string): number
   writeVariable(key: string, value: number): void
+  invokeKeyEvent?(name: string, args: readonly number[]): void
 }

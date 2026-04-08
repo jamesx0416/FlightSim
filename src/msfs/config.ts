@@ -7,6 +7,7 @@ export function parseCfg(text: string): ParsedCfgSection[] {
   const sections: ParsedCfgSection[] = []
   let currentName = ''
   let currentValues = new Map<string, string>()
+  let isFirstLine = true
 
   const pushCurrentSection = (): void => {
     if (!currentName) return
@@ -17,7 +18,9 @@ export function parseCfg(text: string): ParsedCfgSection[] {
   }
 
   for (const rawLine of text.split(/\r?\n/u)) {
-    const line = stripComment(rawLine).trim()
+    const normalizedLine = isFirstLine ? rawLine.replace(/^\uFEFF/u, '') : rawLine
+    isFirstLine = false
+    const line = stripComment(normalizedLine).trim()
     if (!line) continue
 
     if (line.startsWith('[') && line.endsWith(']')) {
@@ -60,9 +63,25 @@ export function getCfgSectionsByPrefix(
 }
 
 function stripComment(line: string): string {
-  const commentIndex = line.indexOf(';')
-  if (commentIndex < 0) return line
-  return line.slice(0, commentIndex)
+  let inSingleQuote = false
+  let inDoubleQuote = false
+
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index]
+    if (character === "'" && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote
+      continue
+    }
+    if (character === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote
+      continue
+    }
+    if (character === ';' && !inSingleQuote && !inDoubleQuote) {
+      return line.slice(0, index)
+    }
+  }
+
+  return line
 }
 
 function stripQuotes(value: string): string {

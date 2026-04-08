@@ -100,8 +100,16 @@ Use sources in this order:
 - Remove or adjust any approximation that does not match the official template contract.
 - Current state:
   - the official public stock XML set is now mounted locally
-  - some locally implemented stock-template behavior can now be compared against the official definitions directly
-  - the remaining blocker to deeper revalidation is generic parsing support for the stock XML files that still fail under a plain DOM parse even after basic dynamic-tag preprocessing
+  - the compiler now consumes the public stock XML path directly for the stock constructs that were previously blocking that:
+    - `<Parameters Type="Default|Override">`
+    - stock `Condition` / `Switch` parameter branches
+    - stock `Process="Int|Float|Param"`
+    - direct `<Update>` nodes
+    - `ASOBO_GT_Anim` in both simvar and code forms
+  - built-in stock shims remain only for the template families that are still cleaner as mirrored fallbacks than as fully general recursive XML evaluation:
+    - `ASOBO_GT_Helper_Recursive_ID`
+    - current handling template shims
+  - those remaining shims were tightened against the mounted official XML definitions during this pass
 
 ## Cross-Cutting Checks
 

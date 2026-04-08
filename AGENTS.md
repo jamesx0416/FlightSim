@@ -8,3 +8,9 @@ Always use `bun` as the package manager for this project.
 - Run dev server: `bun dev`
 - Build: `bun run build`
 - Add packages: `bun add <package>`
+
+## User Input Notes
+
+- The user may be using speech-to-text.
+- If a word appears misspelled, misrecognized, or phonetically substituted, infer the most likely intended meaning from context.
+- Do not waste turns correcting minor speech-to-text mistakes unless the ambiguity materially blocks the task.
