@@ -53,7 +53,7 @@ export function normalizeAsoboPrimitiveWinding(gltf: GLTF): void {
 
     const primitiveDef =
       parser.json.meshes?.[association.meshes]?.primitives?.[association.primitives]
-    if (!usesAsoboOptimizedTrianglePrimitive(primitiveDef)) {
+    if (!usesAsoboTrianglePrimitive(primitiveDef)) {
       return
     }
 
@@ -76,15 +76,14 @@ export function normalizeAsoboPrimitiveWinding(gltf: GLTF): void {
   })
 }
 
-function usesAsoboOptimizedTrianglePrimitive(
+function usesAsoboTrianglePrimitive(
   primitiveDef: GltfPrimitiveDef | undefined
 ): boolean {
   if (primitiveDef == null) {
     return false
   }
 
-  const asoboPrimitive = primitiveDef.extras?.ASOBO_primitive
-  if (asoboPrimitive?.VertexType !== 'VTX') {
+  if (primitiveDef.extras?.ASOBO_primitive == null) {
     return false
   }
 
