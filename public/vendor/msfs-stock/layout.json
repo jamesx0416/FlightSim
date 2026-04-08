@@ -1,0 +1,355 @@
+{
+  "content": [
+    {
+      "path": "ModelBehaviorDefs/Asobo/AircraftTypes/Gliders.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/AircraftTypes/Rotorcrafts.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Airliner/Airbus.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Airliner/AirlinerCommon.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Airliner/AS02A.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Airliner/Boeing.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Airliner/FMC.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Airliner/GlassCockpit.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Airliner/Inputs/Airliner_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Aircraft.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Autopilot.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Deice.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Electrical.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Engine.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Fuel.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Handling.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Index.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Aircraft_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Autopilot_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Common_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Deice_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Electrical_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Engine_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Fuel_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Handling_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Instrument_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/LandingGear_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Lighting_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Passenger_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Pressurization_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Inputs/Safety_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Instrument.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/LandingGear.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Lighting.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Passenger.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Pilot.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Pressurization.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Safety.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Aircraft_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Autopilot_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Deice_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Electrical_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Engine_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Fuel_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Handling_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Instrument_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/LandingGear_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Lighting_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Passenger_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Pressurization_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Common/Subtemplates/Safety_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Exterior.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Animations.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/AnimationTriggers.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Complex/Index.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Complex/Joystick.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Complex/Knob.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Complex/Lever.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Complex/Misc.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Complex/PushButton.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Complex/Switch.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Emissive.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/FX.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Helpers.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Index.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Interactions.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Subtemplates/Animations_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Subtemplates/Updates_Subtemplates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Updates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Generic/Visibility.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS1000.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS3000.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS307.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS3X_Touch.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS3X.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS5.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS580.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/AS650.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/Inputs/AS1000_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/Inputs/AS3X_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GlassCockpit/Inputs/AS5_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GPS/Aera.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GPS/AS430.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GPS/AS530.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GPS/Inputs/Aera_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/GPS/Inputs/AS430_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Inputs/Generic.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Inputs/Helpers.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Inputs/Index.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Inputs/Templates.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/Accelerometer.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/AS_EPM.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/ASDigiflo.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/ASDigitalFuelMeter_FP5L.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/ASPropeller.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/ASVigilus.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/Clock.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/GroundVehicles.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/GX2.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/Inputs/Misc_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/Pl463.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/SimObjects.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Misc/VoltsAmps.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/ADF.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/AS92.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/ASNAV.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/Inputs/NavComSystem_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/Inputs/SimpleCom_Inputs.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/KAP140.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/NavComSystem.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/NAVCOM/SimpleCom.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Transponder/AS21.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Transponder/AS330.xml"
+    },
+    {
+      "path": "ModelBehaviorDefs/Asobo/Transponder/Transponder.xml"
+    }
+  ]
+}

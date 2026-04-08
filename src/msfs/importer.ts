@@ -20,8 +20,19 @@ interface ImportContext {
   readonly layoutEntries: readonly PackageLayoutEntry[]
   readonly layoutPaths: ReadonlySet<string>
   readonly layoutPathIndex: ReadonlyMap<string, string>
+  readonly behaviorSourceRoots: readonly BehaviorSourceRoot[]
   readonly diagnostics: ImportDiagnostic[]
   readonly textCache: Map<string, Promise<string>>
+}
+
+interface BehaviorSourceRoot {
+  readonly rootUrl: string
+  readonly layoutPaths: ReadonlySet<string>
+  readonly layoutPathIndex: ReadonlyMap<string, string>
+}
+
+interface ImportPackageOptions {
+  readonly additionalPackageRoots?: readonly string[]
 }
 
 interface FltsimSectionRef {
@@ -30,7 +41,8 @@ interface FltsimSectionRef {
 }
 
 export async function importBuiltMsfs2020Package(
-  rootUrl: string
+  rootUrl: string,
+  options: ImportPackageOptions = {}
 ): Promise<ImportedPackage> {
   const normalizedRootUrl = toAbsolutePackageRoot(rootUrl)
   const diagnostics: ImportDiagnostic[] = []
@@ -42,11 +54,18 @@ export async function importBuiltMsfs2020Package(
   const layoutPathIndex = new Map(
     layoutEntries.map(entry => [normalizePath(entry.path).toLowerCase(), normalizePath(entry.path)])
   )
+  const behaviorSourceRoots = await loadBehaviorSourceRoots(
+    normalizedRootUrl,
+    layoutEntries,
+    options.additionalPackageRoots ?? [],
+    diagnostics
+  )
   const context: ImportContext = {
     rootUrl: normalizedRootUrl,
     layoutEntries,
     layoutPaths,
     layoutPathIndex,
+    behaviorSourceRoots,
     diagnostics,
     textCache
   }
@@ -140,6 +159,33 @@ function resolveLayoutPath(path: string, context: ImportContext): string | null 
   return context.layoutPathIndex.get(normalizePath(path).toLowerCase()) ?? null
 }
 
+function resolveBehaviorLayoutPath(
+  path: string,
+  context: ImportContext,
+  preferredRootUrl?: string
+): { readonly rootUrl: string; readonly path: string } | null {
+  const normalizedPath = normalizePath(path).toLowerCase()
+  const roots =
+    preferredRootUrl == null
+      ? context.behaviorSourceRoots
+      : [
+          ...context.behaviorSourceRoots.filter(root => root.rootUrl === preferredRootUrl),
+          ...context.behaviorSourceRoots.filter(root => root.rootUrl !== preferredRootUrl)
+        ]
+
+  for (const root of roots) {
+    const resolvedPath = root.layoutPathIndex.get(normalizedPath)
+    if (resolvedPath != null) {
+      return {
+        rootUrl: root.rootUrl,
+        path: resolvedPath
+      }
+    }
+  }
+
+  return null
+}
+
 async function tryLoadManifest(
   rootUrl: string,
   diagnostics: ImportDiagnostic[]
@@ -217,12 +263,65 @@ async function loadLayoutEntries(
   }
 }
 
+async function loadBehaviorSourceRoots(
+  primaryRootUrl: string,
+  primaryLayoutEntries: readonly PackageLayoutEntry[],
+  additionalPackageRoots: readonly string[],
+  diagnostics: ImportDiagnostic[]
+): Promise<readonly BehaviorSourceRoot[]> {
+  const roots: BehaviorSourceRoot[] = [
+    createBehaviorSourceRoot(primaryRootUrl, primaryLayoutEntries)
+  ]
+
+  const seenRoots = new Set<string>([primaryRootUrl.toLowerCase()])
+  for (const rootCandidate of additionalPackageRoots) {
+    const normalizedRoot = toAbsolutePackageRoot(rootCandidate)
+    if (seenRoots.has(normalizedRoot.toLowerCase())) {
+      continue
+    }
+
+    seenRoots.add(normalizedRoot.toLowerCase())
+    const layoutEntries = await loadLayoutEntries(normalizedRoot, diagnostics)
+    if (layoutEntries.length === 0) {
+      continue
+    }
+
+    roots.push(createBehaviorSourceRoot(normalizedRoot, layoutEntries))
+  }
+
+  return roots
+}
+
+function createBehaviorSourceRoot(
+  rootUrl: string,
+  layoutEntries: readonly PackageLayoutEntry[]
+): BehaviorSourceRoot {
+  const normalizedPaths = layoutEntries.map(entry => normalizePath(entry.path))
+
+  return {
+    rootUrl,
+    layoutPaths: new Set(normalizedPaths),
+    layoutPathIndex: new Map(
+      normalizedPaths.map(path => [path.toLowerCase(), path])
+    )
+  }
+}
+
 async function fetchText(
   path: string,
   context: ImportContext
 ): Promise<string | null> {
+  return fetchTextFromRoot(path, context.rootUrl, context)
+}
+
+async function fetchTextFromRoot(
+  path: string,
+  rootUrl: string,
+  context: ImportContext
+): Promise<string | null> {
   const normalizedPath = normalizePath(path)
-  const cached = context.textCache.get(normalizedPath)
+  const cacheKey = `${rootUrl}::${normalizedPath}`
+  const cached = context.textCache.get(cacheKey)
   if (cached != null) {
     try {
       return await cached
@@ -232,14 +331,14 @@ async function fetchText(
   }
 
   const pending = (async () => {
-    const response = await fetch(resolvePackageUrl(context.rootUrl, normalizedPath))
+    const response = await fetch(resolvePackageUrl(rootUrl, normalizedPath))
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
     }
     return await response.text()
   })()
 
-  context.textCache.set(normalizedPath, pending)
+  context.textCache.set(cacheKey, pending)
 
   try {
     return await pending
@@ -383,11 +482,12 @@ async function importModelDefinition(
   }
 
   const modelCfgDirectory = dirname(modelCfgPath)
-  const behaviorPath = resolveLayoutPath(
+  const resolvedBehavior = resolveBehaviorLayoutPath(
     joinPath(modelCfgDirectory, behaviorFile),
-    context
+    context,
+    context.rootUrl
   )
-  if (behaviorPath == null) {
+  if (resolvedBehavior == null) {
     context.diagnostics.push({
       code: 'model_behavior_missing_file',
       message: `Behavior XML ${behaviorFile} could not be resolved from ${modelCfgPath}.`,
@@ -396,7 +496,8 @@ async function importModelDefinition(
     })
     return null
   }
-  const behaviorText = await fetchText(behaviorPath, context)
+  const behaviorPath = resolvedBehavior.path
+  const behaviorText = await fetchTextFromRoot(behaviorPath, resolvedBehavior.rootUrl, context)
   if (behaviorText == null) return null
 
   const behaviorDocument = new DOMParser().parseFromString(behaviorText, 'text/xml')
@@ -431,40 +532,56 @@ async function importModelDefinition(
     .map(includeNode => {
       const relativeFile = includeNode.getAttribute('RelativeFile')
       if (relativeFile) {
-        const resolvedPath =
-          resolveLayoutPath(joinPath(dirname(behaviorPath), relativeFile), context) ??
-          joinPath(dirname(behaviorPath), relativeFile)
+        const resolvedBehaviorPath =
+          resolveBehaviorLayoutPath(
+            joinPath(dirname(behaviorPath), relativeFile),
+            context,
+            resolvedBehavior.rootUrl
+          )
         return {
           kind: 'RelativeFile' as const,
           value: relativeFile,
-          resolvedPath,
-          resolvedUrl: resolvePackageUrl(context.rootUrl, resolvedPath)
+          resolvedPath:
+            resolvedBehaviorPath?.path ?? joinPath(dirname(behaviorPath), relativeFile),
+          resolvedUrl: resolvePackageUrl(
+            resolvedBehaviorPath?.rootUrl ?? resolvedBehavior.rootUrl,
+            resolvedBehaviorPath?.path ?? joinPath(dirname(behaviorPath), relativeFile)
+          )
         }
       }
 
       const modelBehaviorFile = includeNode.getAttribute('ModelBehaviorFile')
       if (modelBehaviorFile) {
-        const resolvedPath =
-          resolveLayoutPath(joinPath('ModelBehaviorDefs', modelBehaviorFile), context) ??
-          joinPath('ModelBehaviorDefs', modelBehaviorFile)
+        const resolvedBehaviorPath =
+          resolveBehaviorLayoutPath(
+            joinPath('ModelBehaviorDefs', modelBehaviorFile),
+            context
+          )
         return {
           kind: 'ModelBehaviorFile' as const,
           value: modelBehaviorFile,
-          resolvedPath,
-          resolvedUrl: resolvePackageUrl(context.rootUrl, resolvedPath)
+          resolvedPath:
+            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', modelBehaviorFile),
+          resolvedUrl: resolvePackageUrl(
+            resolvedBehaviorPath?.rootUrl ?? context.rootUrl,
+            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', modelBehaviorFile)
+          )
         }
       }
 
       const pathAttribute = includeNode.getAttribute('Path')
       if (pathAttribute) {
-        const resolvedPath =
-          resolveLayoutPath(joinPath('ModelBehaviorDefs', pathAttribute), context) ??
-          joinPath('ModelBehaviorDefs', pathAttribute)
+        const resolvedBehaviorPath =
+          resolveBehaviorLayoutPath(joinPath('ModelBehaviorDefs', pathAttribute), context)
         return {
           kind: 'Path' as const,
           value: pathAttribute,
-          resolvedPath,
-          resolvedUrl: resolvePackageUrl(context.rootUrl, resolvedPath)
+          resolvedPath:
+            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', pathAttribute),
+          resolvedUrl: resolvePackageUrl(
+            resolvedBehaviorPath?.rootUrl ?? context.rootUrl,
+            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', pathAttribute)
+          )
         }
       }
 
@@ -475,10 +592,11 @@ async function importModelDefinition(
     )
 
   for (const reference of behaviorIncludes) {
-    if (!context.layoutPaths.has(normalizePath(reference.resolvedPath))) {
+    const resolvedInclude = resolveBehaviorLayoutPath(reference.resolvedPath, context)
+    if (resolvedInclude == null) {
       context.diagnostics.push({
         code: 'behavior_include_missing',
-        message: `Behavior include ${reference.value} could not be resolved within the package.`,
+        message: `Behavior include ${reference.value} could not be resolved within the available behavior roots.`,
         severity: 'warning',
         sourcePath: behaviorPath,
         details: reference.resolvedPath
@@ -490,7 +608,7 @@ async function importModelDefinition(
     cfgPath: modelCfgPath,
     cfgUrl: resolvePackageUrl(context.rootUrl, modelCfgPath),
     behaviorPath,
-    behaviorUrl: resolvePackageUrl(context.rootUrl, behaviorPath),
+    behaviorUrl: resolvePackageUrl(resolvedBehavior.rootUrl, behaviorPath),
     lods,
     behaviorIncludes
   }

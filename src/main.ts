@@ -38,6 +38,7 @@ import {
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
+const DEFAULT_STOCK_BEHAVIOR_ROOT = '/vendor/msfs-stock/'
 type AssetRoot = {
   readonly rootUrl: string
   readonly layoutPathIndex: ReadonlySet<string>
@@ -51,7 +52,9 @@ async function init(): Promise<void> {
   const additionalPackageRoots = resolveAdditionalPackageRoots(searchParams)
   const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
   setGlobalLoadStage({ stage: 'import:package', packageRoot })
-  const packageData = await importBuiltMsfs2020Package(packageRoot)
+  const packageData = await importBuiltMsfs2020Package(packageRoot, {
+    additionalPackageRoots
+  })
   const requestedAircraftId = searchParams.get('aircraft')
   const aircraft = selectAircraft(
     packageData.aircraft,
@@ -674,12 +677,18 @@ function resolveRequestedPackageRoot(searchParams: URLSearchParams): string {
 }
 
 function resolveAdditionalPackageRoots(searchParams: URLSearchParams): string[] {
+  const includeBundledStockBehaviorRoot =
+    searchParams.get('stockBehaviors') !== 'off' &&
+    import.meta.env.VITE_MSFS_STOCK_BEHAVIOR_ROOT !== 'off'
   const urlConfiguredRoots = [
     ...searchParams.getAll('packages'),
     ...searchParams.getAll('deps')
   ]
 
   const combinedRoots = [
+    ...(includeBundledStockBehaviorRoot
+      ? [import.meta.env.VITE_MSFS_STOCK_BEHAVIOR_ROOT || DEFAULT_STOCK_BEHAVIOR_ROOT]
+      : []),
     ...urlConfiguredRoots,
     import.meta.env.VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS ?? ''
   ]

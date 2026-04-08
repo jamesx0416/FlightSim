@@ -1,0 +1,307 @@
+<ModelBehaviors>
+	<Include ModelBehaviorFile="Asobo\Inputs\Helpers.xml"/>
+
+	<!-- For input event name -->
+	<InputEvent ID="AXNAV">
+		<Presets>
+			<Extend Target="ASOBO_GIE_Anim_Handling">
+				<Parameters Type="Default">
+					<INPUT_EVENT_ID_SOURCE>#MODEL_PREFIX#</INPUT_EVENT_ID_SOURCE>
+				</Parameters>
+			</Extend>
+		</Presets>
+	</InputEvent>
+	
+	<!--
+	Generic input event template
+	-->
+	<Template Name="ASOBO_ASNAV_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>#MODEL_PREFIX#</INPUT_EVENT_ID_SOURCE>
+			<USE_INPUT_EVENT_ID>AXNAV</USE_INPUT_EVENT_ID>
+			<WWISE_PREFIX>AXNAV</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template"/>
+	</Template>
+
+	<!--
+	Simple push button sending an HTML_EVENT on push
+	-->
+	<Template Name="ASNAV_SoftKey_Template">
+		<Parameters Type="Default"> <!-- required, need to be defined -->
+			<NODE_ID></NODE_ID>
+			<ANIM_NAME></ANIM_NAME>
+			<ID></ID>
+		</Parameters>
+		<Parameters Type="Default"> <!-- optionnal, should be good -->
+			<HTML_EVENT>(&gt;H:#MODEL_PREFIX#_SoftKey#ID#Push)</HTML_EVENT>
+			<TOOLTIP_TITLE>@TT_Package.AS3X_PUSH_SOFTKEY_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>'#ID#' (R:1:@TT_Package.AS3X_PUSH_SOFTKEY_ACTION) @sprintf</TT_DESCRIPTION_ID>
+		</Parameters>
+		<Component ID="#NODE_ID#_#ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_ASNAV_Base_Template">
+				<IE_NAME>SoftKey_#ID#</IE_NAME>
+				<TT_VALUE>@TT_Package.GT_STATE_NA</TT_VALUE>
+				<TT_VALUE_IS_DYNAMIC>False</TT_VALUE_IS_DYNAMIC>
+				<TOOLTIP_TITLE_IS_DYNAMIC>False</TOOLTIP_TITLE_IS_DYNAMIC>
+				<TT_DESCRIPTION_IS_DYNAMIC>True</TT_DESCRIPTION_IS_DYNAMIC>
+				<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+				<CREATE_COMPONENT>False</CREATE_COMPONENT>
+				<SET_STATE_EXTERNAL>
+					1 == if{ #HTML_EVENT# }
+				</SET_STATE_EXTERNAL>
+			</UseTemplate>
+		</Component>
+	</Template>
+	
+	<!--
+	Simple knob sending 2 event : one for each direction (inc/dec)
+	-->
+	<Template Name="ASNAV_Knob_Template">
+		<Parameters Type="Default"> <!-- required, need to be defined -->
+			<NODE_ID></NODE_ID>
+			<ANIM_NAME></ANIM_NAME>
+			<ID></ID>
+		</Parameters>
+		<Parameters Type="Default"> <!-- optionnal, should be good -->
+			<HTML_EVENT_INC>(&gt;H:#MODEL_PREFIX#_#ID#KnobInc)</HTML_EVENT_INC>
+			<HTML_EVENT_DEC>(&gt;H:#MODEL_PREFIX#_#ID#KnobDec)</HTML_EVENT_DEC>
+			<TOOLTIP_TITLE>(R:1:@TT_Package.GT_STATE_NA)</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.GT_STATE_NA</TT_DESCRIPTION_ID>
+			<TT_VALUE>@TT_Package.GT_STATE_NA</TT_VALUE>
+			<TT_VALUE_IS_DYNAMIC>False</TT_VALUE_IS_DYNAMIC>
+		</Parameters>
+		<Component ID="#NODE_ID#_#ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_ASNAV_Base_Template">
+				<IE_NAME>Knob_#ID#</IE_NAME>
+				<TOOLTIP_TITLE_IS_DYNAMIC>True</TOOLTIP_TITLE_IS_DYNAMIC>
+				<TT_DESCRIPTION_IS_DYNAMIC>False</TT_DESCRIPTION_IS_DYNAMIC>
+				<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+				<IS_INFINITE>True</IS_INFINITE>
+				<CREATE_COMPONENT>False</CREATE_COMPONENT>
+				<SET_STATE_EXTERNAL>
+					0 &gt;= if{ #HTML_EVENT_INC# } els{ #HTML_EVENT_DEC# }
+				</SET_STATE_EXTERNAL>
+			</UseTemplate>
+		</Component>
+	</Template>
+	
+	<!--
+	The glasscockpit generic template ASOBO_ASNAV_SubTemplate
+	
+		- Required :
+	MODEL_PREFIX
+		- Optionnal :
+	ID (default 1)
+	SCREEN (default #MODEL_PREFIX#_SCREEN_#ID#)
+	
+		- To set a button :
+	node/anim is BUTTON_X (X starting from 0, increment by one for each additional button)
+	event sent will be (>H:#MODEL_PREFIX#_SoftKey#ID#Push)
+	with ID in event equals to X
+	
+		- To set a knob :
+	node/anim is KNOB_X (X starting from 0, increment by one for each additional knob)
+	events sent will be (>H:#MODEL_PREFIX#_#ID#KnobInc) and (>H:#MODEL_PREFIX#_#ID#KnobDec)
+	with ID in event equals to KNOB_X_ID
+	
+	-->
+	<Template Name="ASOBO_ASNAV_SubTemplate">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<!-- SoftKeys : each send HTLM_EVENT based on button ID number -->
+		<Loop>
+			<Setup>
+				<Param>LOOP_ID</Param> <From>0</From> <Inc>1</Inc>
+				<While>
+					<Arg NotEmpty="BUTTON_#LOOP_ID#"/>
+				</While>
+			</Setup>
+			<Do>
+				<UseTemplate Name="ASNAV_SoftKey_Template">
+					<NODE_ID Process="Param">BUTTON_#LOOP_ID#</NODE_ID>
+					<ANIM_NAME Process="Param">BUTTON_#LOOP_ID#</ANIM_NAME>
+					<ID Process="Param">LOOP_ID</ID>
+				</UseTemplate>
+			</Do>
+		</Loop>
+		<!-- Knobs : each send HTML_EVENT_INC and HTML_EVENT_DEC based on knob ID name -->
+		<Loop>
+			<Setup>
+				<Param>LOOP_ID</Param> <From>0</From> <Inc>1</Inc>
+				<While>
+					<And>
+						<Arg NotEmpty="KNOB_#LOOP_ID#"/>
+						<Arg NotEmpty="KNOB_#LOOP_ID#_ID"/>
+					</And>
+				</While>
+			</Setup>
+			<Do>
+				<UseTemplate Name="ASNAV_Knob_Template">
+					<NODE_ID Process="Param">KNOB_#LOOP_ID#</NODE_ID>
+					<ANIM_NAME Process="Param">KNOB_#LOOP_ID#</ANIM_NAME>
+					<ID Process="Param">KNOB_#LOOP_ID#_ID</ID>
+					<Condition Valid="TT_TITLE_#LOOP_ID#">
+						<TOOLTIP_TITLE Process="Param">TT_TITLE_#LOOP_ID#</TOOLTIP_TITLE>
+					</Condition>
+					<Condition Valid="TT_DESCR_#LOOP_ID#">
+						<TT_DESCRIPTION_ID Process="Param">TT_DESCR_#LOOP_ID#</TT_DESCRIPTION_ID>
+					</Condition>
+					<Condition NotEmpty="TT_VALUE_#LOOP_ID#">
+						<TT_VALUE Process="Param">TT_VALUE_#LOOP_ID#</TT_VALUE>
+					</Condition>
+					<Condition Valid="TT_VALUE_IS_DYNAMIC_#LOOP_ID#">
+						<TT_VALUE_IS_DYNAMIC>True</TT_VALUE_IS_DYNAMIC>
+					</Condition>
+				</UseTemplate>
+			</Do>
+		</Loop>
+		<!-- Screen -->
+		<Parameters Type="Default">
+			<SCREEN>#MODEL_PREFIX#_SCREEN_#ID#</SCREEN>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#SCREEN#</NODE_ID>
+			<EMISSIVE_CODE>0.7 (A:CIRCUIT AVIONICS ON, Bool) *</EMISSIVE_CODE>
+		</UseTemplate>
+	</Template>
+	
+	
+	<!--
+		AS8030
+	[VCockpit00] (panel.cfg)
+	size_mm				=		480,480
+	pixel_size			=		480,480
+	texture				=		SCREEN
+	htmlgauge00			=		Gliders/ASNAV/AS8030/dist/AS8030.html, 0,0, 480,480
+	-->
+	<Template Name="ASOBO_AS8030_Template">
+		<Parameters Type="Default">
+			<MODEL_PREFIX>AS8030</MODEL_PREFIX>
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<BUTTON_0>Button_Power_#ID#</BUTTON_0>
+			<BUTTON_1>Button2_#ID#</BUTTON_1>
+			<BUTTON_2>Button3_#ID#</BUTTON_2>
+			<BUTTON_3>Button4_#ID#</BUTTON_3>
+			<BUTTON_4>Button5_#ID#</BUTTON_4>
+			<BUTTON_5>Button6_#ID#</BUTTON_5>
+		</Parameters>
+		<Parameters Type="Default">
+			<KNOB_0>Knob_Sound_#ID#</KNOB_0>
+			<KNOB_1>Knob_Display_#ID#</KNOB_1>
+			<KNOB_2>Knob_Search_#ID#</KNOB_2>
+			<KNOB_3>Knob_Move_#ID#</KNOB_3>
+			<KNOB_0_ID>UpperLeft</KNOB_0_ID>
+			<KNOB_1_ID>UpperRight</KNOB_1_ID>
+			<KNOB_2_ID>BottomLeft</KNOB_2_ID>
+			<KNOB_3_ID>BottomRight</KNOB_3_ID>
+			<TT_TITLE_0>(R:1:@TT_Package.GT_STATE_VOLUME) (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_0>
+			<TT_TITLE_1>(R:1:@TT_Package.GT_STATE_MODE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_1>
+			<TT_TITLE_2>(R:1:@TT_Package.GT_STATE_ZOOM)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_2>
+			<TT_TITLE_3>(R:1:@TT_Package.GT_STATE_PAGE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_3>
+			<TT_DESCR_0>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_0>
+			<TT_DESCR_1>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_1>
+			<TT_DESCR_2>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_2>
+			<TT_DESCR_3>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_3>
+			<TT_VALUE_0>(L:XMLVAR_VARIOMETER_VOLUME) '%d%%' @sprintf</TT_VALUE_0>
+			<TT_VALUE_IS_DYNAMIC_0>True</TT_VALUE_IS_DYNAMIC_0>
+			<TT_VALUE_2>(L:XMLVAR_ASNAV_ZOOM) '%.1fNM' @sprintf</TT_VALUE_2>
+			<TT_VALUE_IS_DYNAMIC_2>True</TT_VALUE_IS_DYNAMIC_2>
+			<COUNT>36</COUNT>
+		</Parameters>
+		<Parameters Type="Default">
+			<SCREEN>LX8030_Screen_#ID#</SCREEN>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ASNAV_SubTemplate"/>
+	</Template>
+	
+		
+	<!--
+		AS9070
+	[VCockpit00] (panel.cfg)
+	size_mm				=		480,800
+	pixel_size			=		480,800
+	texture				=		LX9000_SCREEN
+	htmlgauge00			=		Gliders/ASNAV/AS8030/dist/AS9070.html, 0,0, 480,800
+	-->
+	<Template Name="ASOBO_AS9070_Template">
+		<Parameters Type="Default">
+			<MODEL_PREFIX>AS9070</MODEL_PREFIX>
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<BUTTON_0>Button1_#ID#</BUTTON_0>
+			<BUTTON_1>Button2_#ID#</BUTTON_1>
+			<BUTTON_2>Button3_#ID#</BUTTON_2>
+			<BUTTON_3>Button_Power_#ID#</BUTTON_3>
+			<BUTTON_4>Button5_#ID#</BUTTON_4>
+			<BUTTON_5>Button6_#ID#</BUTTON_5>
+			<BUTTON_6>Button7_#ID#</BUTTON_6>
+			<BUTTON_7>Button8_#ID#</BUTTON_7>
+		</Parameters>
+		<Parameters Type="Default">
+			<KNOB_0>Knob_VOLUME_#ID#</KNOB_0>
+			<KNOB_1>Knob_MODE_#ID#</KNOB_1>
+			<KNOB_2>Knob_PAGE_#ID#</KNOB_2>
+			<KNOB_3>Knob_ZOOM_#ID#</KNOB_3>
+			<KNOB_0_ID>UpperRight</KNOB_0_ID>
+			<KNOB_1_ID>BottomRight</KNOB_1_ID>
+			<KNOB_2_ID>BottomLeft</KNOB_2_ID>
+			<KNOB_3_ID>UpperLeft</KNOB_3_ID>
+			<TT_TITLE_0>(R:1:@TT_Package.GT_STATE_MODE) (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_0>
+			<TT_TITLE_1>(R:1:@TT_Package.GT_STATE_PAGE)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_1>
+			<TT_TITLE_2>(R:1:@TT_Package.GT_STATE_ZOOM)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_2>
+			<TT_TITLE_3>(R:1:@TT_Package.GT_STATE_VOLUME)   (R:1:@TT_Package.AXNAV_KNOB_SELECTOR_TITLE) @sprintf</TT_TITLE_3>
+			<TT_DESCR_0>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_0>
+			<TT_DESCR_1>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_1>
+			<TT_DESCR_2>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_2>
+			<TT_DESCR_3>@TT_Package.AXNAV_KNOB_SELECTOR_ACTION</TT_DESCR_3>
+			<COUNT>33</COUNT>
+		</Parameters>
+		<Parameters Type="Default">
+			<SCREEN>SCREEN_#ID#</SCREEN>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ASNAV_SubTemplate"/>
+	</Template>
+	
+	<!--
+		VSI V8 vario
+	[VCockpit00]
+	size_mm				=		320,320
+	pixel_size			=		320,320
+	texture				=		VSI_Digital_01_FRAME
+	htmlgauge00			=		Gliders/ASNAV/AS8/dist/AS8.html, 0,0,320,320
+	-->
+	<Template Name="ASOBO_Vario_AS8_Template">
+		<Parameters Type="Default">
+			<MODEL_PREFIX>Vario_V8</MODEL_PREFIX>
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<BUTTON_0>VSI_V8_Button1_#ID#</BUTTON_0>
+			<BUTTON_1>VSI_V8_Button2_#ID#</BUTTON_1>
+			<BUTTON_2>VSI_V8_Button3_#ID#</BUTTON_2>
+		</Parameters>
+		<Parameters Type="Default">
+			<SCREEN>VSI_V8_Screen_#ID#</SCREEN>
+		</Parameters>	
+		<Component ID="INOP">
+			<UseTemplate Name="ASOBO_GT_Interaction_Tooltip">
+				<NODE_ID>#BUTTON_0#</NODE_ID>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Interaction_Tooltip">
+				<NODE_ID>#BUTTON_1#</NODE_ID>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Interaction_Tooltip">
+				<NODE_ID>#BUTTON_2#</NODE_ID>
+			</UseTemplate>
+		</Component>		
+		<UseTemplate Name="ASOBO_ASNAV_SubTemplate"/>
+	</Template>
+
+</ModelBehaviors>
+
+

@@ -1,0 +1,112 @@
+<ModelBehaviors>
+	<Include RelativeFile="Transponder.xml"/>
+	<Template Name="ASOBO_AS21_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<TRANSPONDER_INDEX>1</TRANSPONDER_INDEX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_AS21_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS21_SubTemplate">
+		<Parameters Type="Default">
+			<Condition NotEmpty="CIRCUIT_ID">
+				<True>
+					<FAILURE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool)</FAILURE>
+				</True>
+				<False>
+					<FAILURE>(A:CIRCUIT AVIONICS ON, Bool) (A:TRANSPONDER STATE:#TRANSPONDER_INDEX#, Enum) 0 &gt; and</FAILURE>
+				</False>
+			</Condition>
+			<BASE_EMISSIVE>1</BASE_EMISSIVE>
+			<BUTTON_EMISSIVE_FACTOR>0.5</BUTTON_EMISSIVE_FACTOR>
+		</Parameters>
+		<Parameters Type="Override">
+			<PUSH_ID_1>VFR</PUSH_ID_1>
+			<PUSH_ID_2>IDT</PUSH_ID_2>
+			<EVENT_TYPE_IDT>K</EVENT_TYPE_IDT>
+			<EVENT_PUSH_IDT>XPNDR_IDENT_ON</EVENT_PUSH_IDT>
+			<TT_VALUE_IDT>(A:TRANSPONDER IDENT:#TRANSPONDER_INDEX#, Bool) @TT_OnOff_Cond</TT_VALUE_IDT>
+			<TT_VALUE_IS_DYNAMIC_IDT>True</TT_VALUE_IS_DYNAMIC_IDT>
+			<PUSH_ID_3>FUNC</PUSH_ID_3>
+			<PUSH_ID_4>ENTER</PUSH_ID_4>
+		</Parameters>
+		<Parameters Type="Default">
+			<EMISSIVE_CODE>#BASE_EMISSIVE#</EMISSIVE_CODE>	
+			<NODE_ID_KNOB_SETTING>TRANSPONDER_Knob_Mode#SUFFIX_ID#</NODE_ID_KNOB_SETTING>
+			<ANIM_NAME_KNOB_SETTING>TRANSPONDER_Knob_Mode#SUFFIX_ID#</ANIM_NAME_KNOB_SETTING>	
+			<NODE_ID_KNOB_CODE>TRANSPONDER_Knob_Code#SUFFIX_ID#</NODE_ID_KNOB_CODE>
+			<ANIM_NAME_KNOB_CODE>TRANSPONDER_Knob_Code#SUFFIX_ID#</ANIM_NAME_KNOB_CODE>
+			<NODE_ID_SCREEN>TRANSPONDER_Screen#SUFFIX_ID#</NODE_ID_SCREEN>
+			<NODE_ID_FRAME>TRANSPONDER_Decals#SUFFIX_ID#</NODE_ID_FRAME>
+		</Parameters>
+			<Loop>
+				<Setup>
+					<Param>CUR_ID</Param>
+					<From>1</From>
+					<Inc>1</Inc>
+					<To>4</To>
+				</Setup>
+				<Do>
+					<Parameters Type="Override">
+						<ID Process="Param">PUSH_ID_#CUR_ID#</ID>
+					</Parameters>
+					<Parameters Type="Default">
+						<NODE_ID>TRANSPONDER_Push_#ID##SUFFIX_ID#</NODE_ID>
+						<ANIM_NAME>TRANSPONDER_Push_#ID##SUFFIX_ID#</ANIM_NAME>
+						<TT_DESCRIPTION_ID>@TT_Package.TRANSPONDER_PUSH_#ID#_ACTION</TT_DESCRIPTION_ID>
+						<TOOLTIP_TITLE>@TT_Package.TRANSPONDER_PUSH_#ID#_TITLE</TOOLTIP_TITLE>
+						<Condition NotEmpty="EVENT_TYPE_#ID#">
+							<True><EVENT_TYPE Process="Param">EVENT_TYPE_#ID#</EVENT_TYPE></True>
+							<False><EVENT_TYPE>H</EVENT_TYPE></False>
+						</Condition>
+						<Condition NotEmpty="EVENT_PUSH_#ID#">
+							<True><EVENT_PUSH Process="Param">EVENT_PUSH_#ID#</EVENT_PUSH></True>
+							<False><EVENT_PUSH>Transponder_#ID#</EVENT_PUSH></False>
+						</Condition>
+						<Condition NotEmpty="TT_VALUE_#ID#">
+							<True><TT_VALUE Process="Param">TT_VALUE_#ID#</TT_VALUE></True>
+						</Condition>
+						<Condition NotEmpty="TT_VALUE_IS_DYNAMIC_#ID#">
+							<True><TT_VALUE_IS_DYNAMIC Process="Param">TT_VALUE_IS_DYNAMIC_#ID#</TT_VALUE_IS_DYNAMIC></True>
+							<False><TT_VALUE_IS_DYNAMIC>False</TT_VALUE_IS_DYNAMIC></False>
+						</Condition>
+					</Parameters>
+					<UseTemplate Name="ASOBO_Transponder_Push_ID_Template"/>
+				</Do>
+				
+			</Loop>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_FRAME#</NODE_ID>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_SCREEN#</NODE_ID>
+			<EMISSIVE_CODE>0.5</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_Transponder_Knob_Setting_Template">
+			<NODE_ID>#NODE_ID_KNOB_SETTING#</NODE_ID>
+			<ANIM_NAME>#ANIM_NAME_KNOB_SETTING#</ANIM_NAME>
+			<ANIM_LAG>800</ANIM_LAG>
+			<TYPE>OFF_STBY_GRND_ON_ALT</TYPE>
+			<ANIM_NEVER_FAILS/>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_NAVCOM_Alternative_Base_Template">
+			<NODE_ID>#NODE_ID_KNOB_CODE#</NODE_ID>
+			<ANIM_NAME>#ANIM_NAME_KNOB_CODE#</ANIM_NAME>
+			<KNOB_ID>Transponder_Code</KNOB_ID>
+			<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+			<IS_INFINITE>True</IS_INFINITE>
+			<WWISE_EVENT>as21_transponder_code_knob</WWISE_EVENT>
+			<COUNT>36</COUNT>
+			<ANIM_LAG>300</ANIM_LAG>
+			<TT_DESCRIPTION_ID>@TT_Package.TRANSPONDER_KNOB_CODE_ACTION</TT_DESCRIPTION_ID>
+			<TOOLTIP_TITLE>@TT_Package.TRANSPONDER_KNOB_CODE_TITLE</TOOLTIP_TITLE>
+			<THRESHOLD_INPUT>0.00075</THRESHOLD_INPUT>
+			<THRESHOLD_MOUSE>0.005</THRESHOLD_MOUSE>
+			<SET_STATE_EXTERNAL>0 &gt; if{ (&gt;H:Transponder_Code_INC) } els{ (&gt;H:Transponder_Code_DEC) }</SET_STATE_EXTERNAL>
+			<GET_TT_VALUE_STATE>(A:TRANSPONDER CODE:#TRANSPONDER_INDEX#, Number)</GET_TT_VALUE_STATE>
+			<FORMAT_VALUE>'%d' @sprintf</FORMAT_VALUE>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

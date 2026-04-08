@@ -1,0 +1,139 @@
+<ModelBehaviors>
+	<Include ModelBehaviorFile="Asobo\Generic.xml"/>
+
+	<Template Name="ASOBO_Pl463_Template">
+		<DefaultTemplateParameters>
+			<ID>1</ID>
+			<Pl463>RPM_Meter_</Pl463>
+			<WWISE_EVENT_1>Pl463_button_push_on</WWISE_EVENT_1>
+			<NORMALIZED_TIME_1>0.1</NORMALIZED_TIME_1>
+			<WWISE_EVENT_2>Pl463_button_push_off</WWISE_EVENT_2>
+			<NORMALIZED_TIME_2>0.5</NORMALIZED_TIME_2>
+		</DefaultTemplateParameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_Pl463_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+
+	<Template Name="ASOBO_Pl463_SubTemplate">
+			<DefaultTemplateParameters>
+				<SCREEN_NODE_ID>RPM_Meter_Screen#SUFFIX_ID#</SCREEN_NODE_ID>
+				<CIRCUIT_ID>1</CIRCUIT_ID>
+				<DEFAULT_EMISSIVE>50</DEFAULT_EMISSIVE>
+				<KEY_PREFIX>Pl463</KEY_PREFIX>
+			</DefaultTemplateParameters>
+			<Component ID="#SCREEN_NODE_ID#" Node="#SCREEN_NODE_ID#">
+				<DefaultTemplateParameters>
+					<EMISSIVE_FAILURE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool)</EMISSIVE_FAILURE>
+				</DefaultTemplateParameters>
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>#DEFAULT_EMISSIVE# 100 / 0.95 * 0.05 +</EMISSIVE_CODE>
+					<FAILURE>#EMISSIVE_FAILURE#</FAILURE>
+				</UseTemplate>
+			</Component>
+			<Component ID="#Pl463#Interactions">
+				<OverrideTemplateParameters>
+					<RESET_SHUTDOWN_TIMER>
+						(E:SIMULATION TIME, seconds) 120 + (&gt;I:XMLVAR_Pl463_ShutdownTime)
+					</RESET_SHUTDOWN_TIMER>
+					<TOGGLE_CIRCUIT_STATE>#CIRCUIT_ID# (&gt;K:ELECTRICAL_CIRCUIT_TOGGLE)</TOGGLE_CIRCUIT_STATE>
+				</OverrideTemplateParameters>
+				<UseTemplate Name="ASOBO_PI463_Base_Template">
+					<IE_NAME>OnOff_Button</IE_NAME>
+					<NODE_ID>#Pl463#Push_OnOff#SUFFIX_ID#</NODE_ID>
+					<ANIM_NAME>#Pl463#Push_OnOff#SUFFIX_ID#</ANIM_NAME>
+					<TOOLTIP_TITLE>@TT_Package.PI463_BUTTON_ONOFF_TITLE</TOOLTIP_TITLE>
+					<TT_DESCRIPTION_ID>@TT_Package.PI463_BUTTON_ONOFF_ACTION</TT_DESCRIPTION_ID>
+					<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+					<SET_STATE_EXTERNAL>#TOGGLE_CIRCUIT_STATE#</SET_STATE_EXTERNAL>
+					<HIGHLIGHT_NODE_ID>#Pl463#Push_OnOff#SUFFIX_ID#</HIGHLIGHT_NODE_ID>
+				</UseTemplate>
+				<UseTemplate Name="ASOBO_GT_Update">
+					<UPDATE_CODE>
+						(A:GENERAL ENG COMBUSTION:1, Bool) if{
+							(A:CIRCUIT ON:#CIRCUIT_ID#, Bool) !
+							(I:XMLVAR_Pl463_ShutdownLastFrame) and if{
+								#TOGGLE_CIRCUIT_STATE#
+							} 
+							0 (&gt;I:XMLVAR_Pl463_ShutdownLastFrame)
+							#RESET_SHUTDOWN_TIMER#
+						} els{
+							1 (&gt;I:XMLVAR_Pl463_ShutdownLastFrame)
+							(A:CIRCUIT ON:#CIRCUIT_ID#, Bool) if{
+								(I:XMLVAR_Pl463_ShutdownTime) (E:SIMULATION TIME, seconds) &lt; if{
+									#TOGGLE_CIRCUIT_STATE#
+								}
+							}
+						}
+					</UPDATE_CODE>
+					<FREQUENCY>1</FREQUENCY>
+				</UseTemplate>
+				<UseTemplate Name="ASOBO_PI463_Base_Template">
+					<IE_NAME>Menu_Button</IE_NAME>
+					<EXTRA_OPTION>_Timed</EXTRA_OPTION>
+					<USE_INPUT_EVENT_TEMPLATE>push</USE_INPUT_EVENT_TEMPLATE>
+					<NODE_ID>#Pl463#Push_Menu#SUFFIX_ID#</NODE_ID>
+					<ANIM_NAME>#Pl463#Push_Menu#SUFFIX_ID#</ANIM_NAME>
+					<TOOLTIP_TITLE>@TT_Package.PI463_BUTTON_MENU_TITLE</TOOLTIP_TITLE>
+					<TT_DESCRIPTION_ID>@TT_Package.PI463_BUTTON_MENU_ACTION</TT_DESCRIPTION_ID>
+					<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+					<ON_PUSH_EVENT>(&gt;H:#KEY_PREFIX#_Push_Menu)</ON_PUSH_EVENT>
+					<ON_PUSH_EVENT_LONG>(&gt;H:#KEY_PREFIX#_Long_Push_Menu)</ON_PUSH_EVENT_LONG>
+					<HIGHLIGHT_NODE_ID>#Pl463#Push_Menu#SUFFIX_ID#</HIGHLIGHT_NODE_ID>
+				</UseTemplate>					
+				<UseTemplate Name="ASOBO_PI463_Base_Template">
+					<IE_NAME>Start_Button</IE_NAME>
+					<NODE_ID>#Pl463#Push_Start#SUFFIX_ID#</NODE_ID>
+					<ANIM_NAME>#Pl463#Push_Start#SUFFIX_ID#</ANIM_NAME>
+					<TOOLTIP_TITLE>@TT_Package.PI463_BUTTON_START_TITLE</TOOLTIP_TITLE>
+					<TT_DESCRIPTION_ID>@TT_Package.PI463_BUTTON_START_ACTION</TT_DESCRIPTION_ID>
+					<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+					<SET_STATE_EXTERNAL>#RESET_SHUTDOWN_TIMER#	(&gt;H:#KEY_PREFIX#_Push_Start)</SET_STATE_EXTERNAL>
+					<HIGHLIGHT_NODE_ID>#Pl463#Push_Start#SUFFIX_ID#</HIGHLIGHT_NODE_ID>
+				</UseTemplate>
+				<UseTemplate Name="ASOBO_PI463_Base_Template">
+					<IE_NAME>Stop_Button</IE_NAME>
+					<NODE_ID>#Pl463#Push_Stop#SUFFIX_ID#</NODE_ID>
+					<ANIM_NAME>#Pl463#Push_Stop#SUFFIX_ID#</ANIM_NAME>
+					<TOOLTIP_TITLE>@TT_Package.PI463_BUTTON_STOP_TITLE</TOOLTIP_TITLE>
+					<TT_DESCRIPTION_ID>@TT_Package.PI463_BUTTON_STOP_ACTION</TT_DESCRIPTION_ID>
+					<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+					<SET_STATE_EXTERNAL>#RESET_SHUTDOWN_TIMER#	(&gt;H:#KEY_PREFIX#_Push_Stop)</SET_STATE_EXTERNAL>
+					<HIGHLIGHT_NODE_ID>#Pl463#Push_Stop#SUFFIX_ID#</HIGHLIGHT_NODE_ID>
+				</UseTemplate>
+			</Component>
+			<Component ID="#Pl463#Emissives">
+				<DefaultTemplateParameters>
+					<EMISSIVE_FAILURE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool)</EMISSIVE_FAILURE>
+				</DefaultTemplateParameters>
+				<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+					<NODE_ID>RPM_Meter_Screen_ACTIVE</NODE_ID>
+					<FAILURE>#EMISSIVE_FAILURE#</FAILURE>
+					<EMISSIVE_CODE>1</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+			
+			
+	</Template>
+	
+	<!-- ########################################## -->
+	<!-- PI463 Interaction inputs setup template -->
+	<Template Name="ASOBO_PI463_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>PI463</INPUT_EVENT_ID_SOURCE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_INSTRUMENT_Base_Template">
+			<USE_INPUT_EVENT_ID>PI463</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_PI463_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_INSTRUMENT_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>PI463</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_PI463_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_INSTRUMENT_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>PI463</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

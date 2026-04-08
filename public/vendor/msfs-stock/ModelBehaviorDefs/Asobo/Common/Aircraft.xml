@@ -1,0 +1,305 @@
+<ModelBehaviors>
+	<Include RelativeFile="Subtemplates\\Aircraft_Subtemplates.xml"/>
+	<Include RelativeFile="Inputs\\Aircraft_Inputs.xml"/>
+	<!-- ################################## AIRCRAFT ################################## -->
+	<!-- ############################################################################## -->
+	<Template Name="ASOBO_AIRCRAFT_Lever_Canopy_Template">
+		<Parameters Type="Default">
+			<WWISE_PREFIX>Canopy</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Door_Template">
+			<ID>1</ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Lever_Door_Template">
+		<UseTemplate Name="ASOBO_AIRCRAFT_Door_Open_Close_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Door_Handle_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<WWISE_PREFIX>Door_Handle</WWISE_PREFIX>
+			<TT_DESCRIPTION_ID>@TT_Package.AIRCRAFT_CANOPY_HANDLE_ACTION</TT_DESCRIPTION_ID>
+			<TOOLTIP_TITLE>@TT_Package.AIRCRAFT_CANOPY_HANDLE_TITLE</TOOLTIP_TITLE>
+		</Parameters>
+		<Condition NotEmpty="NODE_ID_HANDLE">
+			<UseTemplate Name="ASOBO_AIRCRAFT_Door_Open_Close_Template">
+				<NODE_ID>#NODE_ID_HANDLE#</NODE_ID>
+			</UseTemplate>
+		</Condition>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Door_Open_Close_Template">
+		<Parameters Type="Default">
+			<NODE_ID>AIRCRAFT_#INTERACTION_TYPE#_Door_#ID#</NODE_ID>
+			<ANIM_NAME>AIRCRAFT_#INTERACTION_TYPE#_Door_#ID#</ANIM_NAME>
+			<WWISE_PREFIX>Door</WWISE_PREFIX>
+			<Switch Param="INTERACTION_TYPE">
+				<Case Value="Lever">
+					<Switch Param="TYPE">
+						<Case Value="LOCK"/>
+						<Default>
+							<INCREMENT>5</INCREMENT>
+							<ANIM_LAG>100</ANIM_LAG>
+						</Default>
+					</Switch>
+				</Case>
+			</Switch>
+			<INPUT_EVENT_ID_SOURCE>AIRCRAFT</INPUT_EVENT_ID_SOURCE>
+			<IE_DOOR_ID>Door_#ID#</IE_DOOR_ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<Switch>
+				<Case Valid="INTEGRATED_LOCK">
+					<IE_NAME_LOCK_UNLOCK_SHORTCUTS>#IE_DOOR_ID#_Lock</IE_NAME_LOCK_UNLOCK_SHORTCUTS>
+					<EXTRA_ACTION_NAME>Lock</EXTRA_ACTION_NAME>
+					<ANIM_NAME_LOCK>AIRCRAFT_#INTERACTION_TYPE#_Door_Lock_#ID#</ANIM_NAME_LOCK>
+					<CHECK_LOCK>True</CHECK_LOCK>
+				</Case>
+				<Case Valid="NO_EXTRA_ACTION"/>
+				<Default>
+					<EXTRA_ACTION_NAME>Fast</EXTRA_ACTION_NAME>
+					<TT_DESCRIPTION_ID_TOGGLE>@TT_Package.AIRCRAFT_CANOPY_HANDLE_ACTION_TOGGLE</TT_DESCRIPTION_ID_TOGGLE>
+					<IE_NAME_OPEN_CLOSE_SHORTCUTS>#IE_DOOR_ID#_Fast</IE_NAME_OPEN_CLOSE_SHORTCUTS>
+				</Default>
+			</Switch>
+		</Parameters>
+		<Parameters Type="Override">
+			<ID_SIMVAR Process="Int">#ID# 1 -</ID_SIMVAR>
+		</Parameters>
+		<Parameters Type="Override">
+			<Switch Param="TYPE">
+				<Case Value="LOCK">
+					<IE_NAME>#IE_DOOR_ID#_Lock</IE_NAME>
+					<TT_DESCRIPTION_ID>@TT_Package.AIRCRAFT_CANOPY_LOCK_ACTION</TT_DESCRIPTION_ID>
+					<TOOLTIP_TITLE>@TT_Package.AIRCRAFT_CANOPY_LOCK_TITLE</TOOLTIP_TITLE>
+					<SET_STATE_EXTERNAL>
+						(O:XMLVAR_Door_Locked) if{
+						0 (&gt;O:XMLVAR_Door_Locked)
+						} els{
+						(A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) 0 == (A:INTERACTIVE POINT OPEN:#ID_SIMVAR#, Percent) 0 == and if{ 1 (&gt;O:XMLVAR_Door_Locked) }
+						}
+					</SET_STATE_EXTERNAL>
+					<COMP_INIT_CODE>(&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)</COMP_INIT_CODE>
+					<!-- prevent starting with canopy unlocked -->
+					<GET_STATE_EXTERNAL>(A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) 0 == (A:INTERACTIVE POINT OPEN:#ID_SIMVAR#, Percent) 0 == and ! if{ 0 (&gt;O:XMLVAR_Door_Locked) } (O:XMLVAR_Door_Locked) sp0</GET_STATE_EXTERNAL>
+					<STR_STATE_ON>Set_Locked</STR_STATE_ON>
+					<STR_STATE_OFF>Set_Unlocked</STR_STATE_OFF>
+					<TT_VALUE_ON>(R:1:@TT_Package.GT_STATE_LOCKED)</TT_VALUE_ON>
+					<TT_VALUE_OFF>(R:1:@TT_Package.GT_STATE_UNLOCKED)</TT_VALUE_OFF>
+					<Switch Param="INTERACTION_TYPE">
+						<Case Value="Lever">
+							<UP_CODE>(&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)</UP_CODE>
+							<DOWN_CODE>(&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Unlocked)</DOWN_CODE>
+							<LEVER_TYPE>2_STATES</LEVER_TYPE>
+						</Case>
+					</Switch>
+					<SIMVAR_TO_WATCH_0>INTERACTIVE POINT OPEN:#ID_SIMVAR#</SIMVAR_TO_WATCH_0>
+					<SIMVAR_TO_WATCH_1>INTERACTIVE POINT GOAL:#ID_SIMVAR#</SIMVAR_TO_WATCH_1>
+				</Case>
+				<Default>
+					<IE_NAME>#IE_DOOR_ID#</IE_NAME>
+					<TT_DESCRIPTION_ID>@TT_Package.AIRCRAFT_CANOPY_HANDLE_ACTION</TT_DESCRIPTION_ID>
+					<TOOLTIP_TITLE>@TT_Package.AIRCRAFT_CANOPY_HANDLE_TITLE</TOOLTIP_TITLE>
+					<SIMVAR_TO_WATCH_0>INTERACTIVE POINT GOAL:#ID_SIMVAR#</SIMVAR_TO_WATCH_0>
+					<Switch Param="INTERACTION_TYPE">
+						<Case Value="Lever">
+							<ALWAYS_USE_ANIM_LAG>True</ALWAYS_USE_ANIM_LAG>
+							<SET_STATE_EXTERNAL>(&gt;A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, percent)</SET_STATE_EXTERNAL>
+							<GET_STATE_EXTERNAL>(A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent)</GET_STATE_EXTERNAL>
+							<NO_ANIM_VAR_UPDATE>True</NO_ANIM_VAR_UPDATE>
+							<INC_PARAM_0>#INCREMENT# p0 *</INC_PARAM_0>
+							<INC_PARAM_0_IS_DYNAMIC>True</INC_PARAM_0_IS_DYNAMIC>
+							<DEC_PARAM_0>#INCREMENT# p0 *</DEC_PARAM_0>
+							<DEC_PARAM_0_IS_DYNAMIC>True</DEC_PARAM_0_IS_DYNAMIC>
+							<DRAG_VALUE_TO_EVENT_SET>100 *</DRAG_VALUE_TO_EVENT_SET>
+							<Condition NotEmpty="IE_NAME_OPEN_CLOSE_SHORTCUTS">
+								<DOWN_CODE>@IsUsingRelativePos if{ (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_#EXTRA_ACTION_NAME#_Toggle) }</DOWN_CODE>
+							</Condition>
+							<Condition Valid="NO_EXTRA_ACTION">
+								<False>
+									<EXTRA_MOUSEFLAGS>+RightSingle</EXTRA_MOUSEFLAGS>
+									<EXTRA_EVENT_HANDLING>
+										els{
+										(M:Event) 'RightSingle' scmi 0 == @IsUsingRelativePos ! and if{
+										(&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_#EXTRA_ACTION_NAME#_Toggle)
+										}
+										}
+									</EXTRA_EVENT_HANDLING>
+								</False>
+							</Condition>
+							<Condition Valid="CHECK_LOCK">
+								<FORMAT_VALUE>(B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock, Bool) if{ (R:1:@TT_Package.GT_STATE_LOCKED) } els{ '%.1f%%' @sprintf }</FORMAT_VALUE>
+							</Condition>
+						</Case>
+						<Default>
+							<SET_STATE_EXTERNAL>p0 100 * near (A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) near != if{ p0 100 * (&gt;A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, percent) }</SET_STATE_EXTERNAL>
+							<GET_STATE_EXTERNAL>(A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) 0 &gt; sp0</GET_STATE_EXTERNAL>
+							<STR_STATE_ON>Open</STR_STATE_ON>
+							<STR_STATE_OFF>Closed</STR_STATE_OFF>
+							<TT_VALUE_ON>(R:1:@TT_Package.GT_STATE_OPEN)</TT_VALUE_ON>
+							<TT_VALUE_OFF>(R:1:@TT_Package.GT_STATE_CLOSED)</TT_VALUE_OFF>
+						</Default>
+					</Switch>
+				</Default>
+			</Switch>
+		</Parameters>
+		<Parameters Type="Override">
+			<Switch Param="TYPE">
+				<Case Value="LOCK"/>
+				<Default>
+					<Condition Valid="CHECK_LOCK">
+						<ON_BEFORE_SET_CODE>(B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock, Bool) ! if{ </ON_BEFORE_SET_CODE>
+						<ON_AFTER_SET_CODE> }</ON_AFTER_SET_CODE>
+					</Condition>
+				</Default>
+			</Switch>
+		</Parameters>
+		<Condition Valid="NO_EXTRA_ACTION">
+			<False>
+				<Condition NotEmpty="IE_NAME_OPEN_CLOSE_SHORTCUTS">
+					<UseTemplate Name="ASOBO_AIRCRAFT_Push_Event_Base_Template">
+						<IE_NAME>#IE_NAME_OPEN_CLOSE_SHORTCUTS#</IE_NAME>
+						<SET_STATE_EXTERNAL>p0 100 * near (A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) near != if{ p0 100 * (&gt;A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, percent) }</SET_STATE_EXTERNAL>
+						<GET_STATE_EXTERNAL>(A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) 0 &gt; sp0</GET_STATE_EXTERNAL>
+						<STR_STATE_ON>Open</STR_STATE_ON>
+						<STR_STATE_OFF>Closed</STR_STATE_OFF>
+						<TT_VALUE_ON>(R:1:@TT_Package.GT_STATE_OPEN)</TT_VALUE_ON>
+						<TT_VALUE_OFF>(R:1:@TT_Package.GT_STATE_CLOSED)</TT_VALUE_OFF>
+						<SIMVAR_TO_WATCH_0>INTERACTIVE POINT GOAL:#ID_SIMVAR#</SIMVAR_TO_WATCH_0>
+						<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_TOGGLE#</TT_DESCRIPTION_ID>
+					</UseTemplate>
+				</Condition>
+				<Condition NotEmpty="IE_NAME_LOCK_UNLOCK_SHORTCUTS">
+					<UseTemplate Name="ASOBO_GT_Anim_Code">
+						<ANIM_NAME>#ANIM_NAME_LOCK#</ANIM_NAME>
+						<ANIM_CODE>(I:XMLVAR_Door_#ID_SIMVAR#_Locked) ! 100 *</ANIM_CODE>
+					</UseTemplate>
+					<UseTemplate Name="ASOBO_AIRCRAFT_Push_Event_Base_Template">
+						<IE_NAME>#IE_NAME_LOCK_UNLOCK_SHORTCUTS#</IE_NAME>
+						<TT_DESCRIPTION_ID>@TT_Package.AIRCRAFT_CANOPY_LOCK_ACTION</TT_DESCRIPTION_ID>
+						<SET_STATE_EXTERNAL>
+							(I:XMLVAR_Door_#ID_SIMVAR#_Locked) if{
+							0 (&gt;I:XMLVAR_Door_#ID_SIMVAR#_Locked)
+							} els{
+							(A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) 0 == (A:INTERACTIVE POINT OPEN:#ID_SIMVAR#, Percent) 0 == and if{ 1 (&gt;I:XMLVAR_Door_#ID_SIMVAR#_Locked) }
+							}
+						</SET_STATE_EXTERNAL>
+						<COMP_INIT_CODE>(&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)</COMP_INIT_CODE>
+						<!-- prevent starting with canopy unlocked -->
+						<GET_STATE_EXTERNAL>(A:INTERACTIVE POINT GOAL:#ID_SIMVAR#, Percent) 0 == (A:INTERACTIVE POINT OPEN:#ID_SIMVAR#, Percent) 0 == and (&gt;I:XMLVAR_Door_#ID_SIMVAR#_Locked) (I:XMLVAR_Door_#ID_SIMVAR#_Locked) sp0</GET_STATE_EXTERNAL>
+						<STR_STATE_ON>Set_Locked</STR_STATE_ON>
+						<STR_STATE_OFF>Set_Unlocked</STR_STATE_OFF>
+						<TT_VALUE_ON>(R:1:@TT_Package.GT_STATE_LOCKED)</TT_VALUE_ON>
+						<TT_VALUE_OFF>(R:1:@TT_Package.GT_STATE_UNLOCKED)</TT_VALUE_OFF>
+						<SIMVAR_TO_WATCH_0>INTERACTIVE POINT OPEN:#ID_SIMVAR#</SIMVAR_TO_WATCH_0>
+						<SIMVAR_TO_WATCH_1>INTERACTIVE POINT GOAL:#ID_SIMVAR#</SIMVAR_TO_WATCH_1>
+						<ON_BEFORE_SET_CODE/>
+						<ON_AFTER_SET_CODE/>
+					</UseTemplate>
+				</Condition>
+			</False>
+		</Condition>
+		<UseTemplate Name="ASOBO_AIRCRAFT_Base_Template">
+			<Condition NotEmpty="IE_NAME_OPEN_CLOSE_SHORTCUTS">
+				<IE_ID_EXTERNAL_0>#IE_NAME_OPEN_CLOSE_SHORTCUTS#</IE_ID_EXTERNAL_0>
+			</Condition>
+			<Condition NotEmpty="IE_NAME_LOCK_UNLOCK_SHORTCUTS">
+				<IE_ID_EXTERNAL_0>#IE_NAME_LOCK_UNLOCK_SHORTCUTS#</IE_ID_EXTERNAL_0>
+			</Condition>
+		</UseTemplate>
+	</Template>
+	<!-- Cannot be more generic atm as ID is off by 1 between SIMVAR and KEY -->
+	<Template Name="ASOBO_AIRCRAFT_Lever_Exit_0_Template">
+		<Parameters Type="Default">
+			<NODE_ID>AIRCRAFT_Lever_Exit_0</NODE_ID>
+			<ANIM_CODE>(A:INTERACTIVE POINT OPEN:0, Percent)</ANIM_CODE>
+			<LEFT_SINGLE_CODE>0 (&gt;K:TOGGLE_AIRCRAFT_EXIT_FAST)</LEFT_SINGLE_CODE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Lever_Exit_1_Template">
+		<Parameters Type="Default">
+			<NODE_ID>AIRCRAFT_Lever_Exit_1</NODE_ID>
+			<ANIM_CODE>(A:INTERACTIVE POINT OPEN:0, Percent)</ANIM_CODE>
+			<LEFT_SINGLE_CODE>1 (&gt;K:TOGGLE_AIRCRAFT_EXIT_FAST)</LEFT_SINGLE_CODE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Lever_Exit_2_Template">
+		<Parameters Type="Default">
+			<NODE_ID>AIRCRAFT_Lever_Exit_2</NODE_ID>
+			<ANIM_CODE>(A:INTERACTIVE POINT OPEN:1, Percent)</ANIM_CODE>
+			<LEFT_SINGLE_CODE>2 (&gt;K:TOGGLE_AIRCRAFT_EXIT_FAST)</LEFT_SINGLE_CODE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Lever_Exit_3_Template">
+		<Parameters Type="Default">
+			<NODE_ID>AIRCRAFT_Lever_Exit_3</NODE_ID>
+			<ANIM_CODE>(A:INTERACTIVE POINT OPEN:2, Percent)</ANIM_CODE>
+			<LEFT_SINGLE_CODE>3 (&gt;K:TOGGLE_AIRCRAFT_EXIT_FAST)</LEFT_SINGLE_CODE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRFRAME_Warning_Door_Unlock_Template">
+		<Parameters Type="Default">
+			<TYPE>Front</TYPE>
+			<INDEX>0</INDEX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_AIRFRAME_Warning_Door_Unlock_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRFRAME_Warning_Door_Unlock_SubTemplate">
+		<Parameters Type="Default">
+			<NODE_ID>AIRFRAME_Warning_Door_Unlock_#TYPE#</NODE_ID>
+			<ANIM_NAME>AIRFRAME_Warning_Door_Unlock_#TYPE#</ANIM_NAME>
+			<ANIM_LENGTH>1</ANIM_LENGTH>
+		</Parameters>
+		<Component ID="#NODE_ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Anim_Code">
+				<ANIM_CODE>(A:INTERACTIVE POINT OPEN:#INDEX#, Percent over 100) 0 == </ANIM_CODE>
+			</UseTemplate>
+		</Component>
+	</Template>
+	<Template Name="ASOBO_AIRFRAME_Door_Template">
+		<Parameters Type="Default">
+			<INDEX>0</INDEX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_AIRFRAME_Door_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRFRAME_Door_SubTemplate">
+		<Parameters Type="Default">
+			<ANIM_NAME>AIRFRAME_Door_#INDEX#</ANIM_NAME>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_CODE>(A:INTERACTIVE POINT OPEN:#INDEX#, Percent)</ANIM_CODE>
+		</UseTemplate>
+	</Template>
+	<!-- ########################################## -->
+	<!-- AIRCRAFT Interaction inputs setup template -->
+	<Template Name="ASOBO_AIRCRAFT_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>AIRCRAFT</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>AIRCRAFT</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>AIRCRAFT</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AIRCRAFT</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AIRCRAFT_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AIRCRAFT</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

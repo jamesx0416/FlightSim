@@ -82,11 +82,11 @@ Use sources in this order:
 - Distinguish between:
   - missing official package roots that are not mounted in this environment
   - missing compiler coverage for stock templates that could be supported generically without those roots
-- Current finding:
-  - unresolved `Asobo\\Exterior.xml` / `Asobo\\Generic\\FX.xml` is primarily a missing stock-package-root problem in this environment
-  - unresolved stock template warnings are a mix of:
-    - missing official package content
-    - incomplete compiler support for some stock template families already referenced by local templates
+- Updated finding:
+  - public stock Asobo XMLs from the official Template Explorer are now downloaded locally and mounted by default from `/vendor/msfs-stock/`
+  - package-level `Behavior include Asobo\\... could not be resolved` warnings have dropped to `0`
+  - the remaining stock-behavior failures are no longer root-resolution failures; they are parser/compiler gaps against stock Asobo XML syntax and template coverage
+  - several official stock XMLs use template syntax such as dynamic parameterized tag names (`<#PARAM_NAME#>`) that is not plain XML and still needs broader generic preprocessing/support
 
 ### 7. Revalidate Local Stock-Template Implementations
 
@@ -98,6 +98,10 @@ Use sources in this order:
   - stock handling template shims
   - any stock gear/tire template support added before the official XMLs are mounted
 - Remove or adjust any approximation that does not match the official template contract.
+- Current state:
+  - the official public stock XML set is now mounted locally
+  - some locally implemented stock-template behavior can now be compared against the official definitions directly
+  - the remaining blocker to deeper revalidation is generic parsing support for the stock XML files that still fail under a plain DOM parse even after basic dynamic-tag preprocessing
 
 ## Cross-Cutting Checks
 

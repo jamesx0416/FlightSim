@@ -1,0 +1,727 @@
+<ModelBehaviors>
+	<Include RelativeFile="Subtemplates\\Handling_Subtemplates.xml"/>
+	<Include RelativeFile="Inputs\\Handling_Inputs.xml"/>
+	<!-- ################################## HANDLING ################################## -->
+	<!-- ############################################################################## -->
+	<!-- Yoke that cannot be hidden -->
+	<!-- 
+		NODE_ID: Node that should be highlighted during checklist
+		
+		optional: 
+		CREATE_TWO_NODES: create both yoke nodes and there respective highlight
+			NODE_ID2: other Node that should be highlighted during checklist (ex: copilot yoke)
+	-->
+	<Template Name="ASOBO_HANDLING_Yoke_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Yoke_SubTemplate"/>
+	</Template>
+	<!-- Yoke that can be hidden -->
+	<!-- 
+		NODE_ID: root node of Yoke and decorative elements (ex: cables, buttons)
+		YOKE_NODE_ID: Node that should be highlighted during checklist
+		YOKE_HIDER_NODE_ID: Node that is used to toggle the visibility of the yoke (often the base of the yoke, never the yoke itself)
+		by default (without any option) also create the animations for both yokes, 
+		- to create additional yokes (ex: copilot yoke) use the option ONLY_HIDEABLE (this will also make it highlightable)
+		- to hide unwanted features taht are not parented to the Yoke itself use the option ONLY_DECORATIVE
+		
+		subTemplate relevant options: 
+		CREATE_TWO_NODES: create both yoke nodes and there respective highlight in the same template
+			NODE_ID2: other Node that should be highlighted during checklist (ex: copilot yoke)
+	-->
+	<Template Name="ASOBO_HANDLING_Yoke_Hideable_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Yoke_Hideable_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Timer_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Timer_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_Timer_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Timer_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_StormClear_Template">
+		<UseTemplate Name="ASOBO_HANDLING_StormClear_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_StormClear_Template">
+		<UseTemplate Name="ASOBO_HANDLING_StormClear_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_CWS_Template">
+		<UseTemplate Name="ASOBO_HANDLING_CWS_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_CWS_Template">
+		<UseTemplate Name="ASOBO_HANDLING_CWS_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Ident_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Ident_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_Ident_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Ident_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Swap_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Swap_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_Swap_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Swap_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_AP_Trim_Disc_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_AP_Trim_Disc_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_AP_Trim_Disc_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AP_Trim_Disc_Template">
+			<INTERACTION_TYPE>PUSH</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_AP_Trim_Disc_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AP_Trim_Disc_Template">
+			<INTERACTION_TYPE>SWITCH</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Steering_Tiller_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Steering_Tiller_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_ElevatorTrim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_ElevatorTrim_Template">
+			<INTERACTION_TYPE>SWITCH</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Wheel_ElevatorTrim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_ElevatorTrim_Template">
+			<INTERACTION_TYPE>WHEEL</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Secondary_Trim_Available_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Secondary_Trim_Available_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_Secondary_ElevatorTrim_Available_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Secondary_Trim_Available_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+			<TRIM_NAME>Elevator</TRIM_NAME>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Joystick_YawPitch_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Joystick_YawPitch_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_AntiSkid_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AntiSkid_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_AntiSkid_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AntiSkid_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_GLimiter_Template">
+		<UseTemplate Name="ASOBO_HANDLING_GLimiter_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_GLimiter_Template">
+		<UseTemplate Name="ASOBO_HANDLING_GLimiter_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_GLimiter_Template">
+		<UseTemplate Name="ASOBO_HANDLING_GLimiter_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- InertSep -->
+	<Template name="ASOBO_HANDLING_InertSep_Template">
+		<UseTemplate Name="ASOBO_HANDLING_InertSep_SubTemplate"/>
+	</Template>
+	<Template name="ASOBO_HANDLING_Lever_InertSep_Template">
+		<UseTemplate Name="ASOBO_HANDLING_InertSep_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Rudder trim -->
+	<Template Name="ASOBO_HANDLING_Knob_RudderTrim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_RudderTrim_Template">
+			<INTERACTION_TYPE>KNOB</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_RudderTrim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_RudderTrim_Template">
+			<INTERACTION_TYPE>SWITCH</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Wheel_RudderTrim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_RudderTrim_Template">
+			<INTERACTION_TYPE>WHEEL</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Rudder pedals -->
+	<Template Name="ASOBO_HANDLING_RudderPedals_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<Condition Check="SPLIT_RUDDERS">
+				<True>
+					<RUDDERPEDALS_TYPE>SPLITTED</RUDDERPEDALS_TYPE>
+				</True>
+			</Condition>
+			<!-- <DIFFERENTIATE_BRAKE_ANIM_L_R>True</DIFFERENTIATE_BRAKE_ANIM_L_R> -->
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_RudderPedals_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_RudderPedals_Brake_Template">
+		<Parameters Type="Default">
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+			<ANIM_NAME_L>HANDLING_RudderPedals_Brake_L</ANIM_NAME_L>
+			<ANIM_NAME_R>HANDLING_RudderPedals_Brake_R</ANIM_NAME_R>
+		</Parameters>
+		<Parameters Type="Override">
+			<Condition Valid="DONT_BRAKE_ON_PARKINGBRAKE">
+				<True>
+					<SIMVAR_END> EX1</SIMVAR_END>
+				</True>
+				<False>
+					<SIMVAR_END/>
+				</False>
+			</Condition>
+		</Parameters>
+		<Condition Valid="DIFFERENTIATE_BRAKE_ANIM_L_R">
+			<True>
+				<UseTemplate Name="ASOBO_GT_Anim_Sim">
+					<ANIM_NAME>#ANIM_NAME_L#</ANIM_NAME>
+					<ANIM_SIMVAR>BRAKE LEFT POSITION#SIMVAR_END#</ANIM_SIMVAR>
+					<ANIM_SIMVAR_UNITS>percent</ANIM_SIMVAR_UNITS>
+				</UseTemplate>
+				<UseTemplate Name="ASOBO_GT_Anim_Sim">
+					<ANIM_NAME>#ANIM_NAME_R#</ANIM_NAME>
+					<ANIM_SIMVAR>BRAKE RIGHT POSITION#SIMVAR_END#</ANIM_SIMVAR>
+					<ANIM_SIMVAR_UNITS>percent</ANIM_SIMVAR_UNITS>
+				</UseTemplate>
+			</True>
+			<False>
+				<UseTemplate Name="ASOBO_GT_Anim_Sim">
+					<ANIM_SIMVAR>BRAKE LEFT POSITION#SIMVAR_END#</ANIM_SIMVAR>
+					<ANIM_SIMVAR_UNITS>percent</ANIM_SIMVAR_UNITS>
+				</UseTemplate>
+			</False>
+		</Condition>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Autobrakes_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Autobrakes_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_Autobrakes_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Autobrakes_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Knob_Autobrakes_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Autobrakes_Template">
+			<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Indicator_ElevatorTrim_Template">
+		<Parameters Type="Default">
+			<ANIM_NAME>HANDLING_Indicator_ElevatorTrim</ANIM_NAME>
+		</Parameters>
+		<Switch>
+			<Case Check="REF_VALUE_0">
+				<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code">
+					<SELECTION>(A:ELEVATOR TRIM POSITION, degrees)</SELECTION>
+				</UseTemplate>
+			</Case>
+			<Case Check="DISCRETE_STATES">
+				<UseTemplate Name="ASOBO_GT_Anim_Code">
+					<ANIM_CODE>(A:ELEVATOR TRIM PCT, Percent) 100 + 200 / #DISCRETE_STATES# * near</ANIM_CODE>
+					<ANIM_LENGTH>#DISCRETE_STATES#</ANIM_LENGTH>
+				</UseTemplate>
+			</Case>
+			<Case Check="ANIM_CODE">
+				<UseTemplate Name="ASOBO_GT_Anim_Code"/>
+			</Case>
+			<Default>
+				<UseTemplate Name="ASOBO_GT_Anim_Sim">
+					<ANIM_LENGTH>200</ANIM_LENGTH>
+					<ANIM_SIMVAR>ELEVATOR TRIM PCT</ANIM_SIMVAR>
+					<ANIM_SIMVAR_UNITS>percent</ANIM_SIMVAR_UNITS>
+					<!-- [-100, 100] -->
+					<ANIM_SIMVAR_BIAS>100</ANIM_SIMVAR_BIAS>
+					<!-- [-100, 100] + 100 => [0, 200] -->
+				</UseTemplate>
+			</Default>
+		</Switch>
+	</Template>
+	<Template Name="ASOBO_HANDLING_AutoSpoiler_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AutoSpoiler_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_AutoSpoiler_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AutoSpoiler_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_HANDLING_Spoilers_Int_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Spoilers_Int_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_Spoiler_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Spoilers_Int_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Lever_Spoilers_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Spoilers_Int_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_HANDLING_Lever_Flaps_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Flaps_SubTemplate">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Lever_Flaps_Continuous_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Flaps_SubTemplate">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+			<IS_CONTINUOUS>True</IS_CONTINUOUS>
+		</UseTemplate>
+	</Template>
+	<!--
+		Require SELECTED_FLAPS_DEGREE (default 0) and MAX_FLAPS_DEGREE (default 45)
+	-->
+	<Template Name="ASOBO_HANDLING_Button_Flaps_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Flaps_SubTemplate">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Lever_With_Button_Flaps_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Flaps_SubTemplate">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+			<HAS_BUTTON>True</HAS_BUTTON>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Indicator_Flaps_Template">
+		<Parameters Type="Default">
+			<ANIM_NAME>HANDLING_Indicator_Flaps</ANIM_NAME>
+			<NODE_ID>HANDLING_Indicator_Flaps</NODE_ID>
+			<PART_ID>HANDLING_Indicator_Flaps</PART_ID>
+		</Parameters>
+		<Component ID="#NODE_ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Anim_Sim">
+				<ANIM_LENGTH>100</ANIM_LENGTH>
+				<ANIM_SIMVAR>TRAILING EDGE FLAPS LEFT PERCENT</ANIM_SIMVAR>
+				<ANIM_SIMVAR_UNITS>percent</ANIM_SIMVAR_UNITS>
+			</UseTemplate>
+		</Component>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Switch_AerobaticsTrimFlaps_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_AileronTrim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AileronTrim_Template">
+			<INTERACTION_TYPE>SWITCH</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Knob_AileronTrim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_AileronTrim_Template">
+			<INTERACTION_TYPE>KNOB</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Light up when elevator trim is near 0% -->
+	<Template Name="ASOBO_HANDLING_Light_ElevatorTrim_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_Light_ElevatorTrim</NODE_ID>
+			<TRIM_TYPE>ELEVATOR</TRIM_TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Light_Trim_Subtemplate"/>
+	</Template>
+	<!-- Light up when rudder trim is near 0% -->
+	<Template Name="ASOBO_HANDLING_Light_RudderTrim_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_Light_RudderTrim</NODE_ID>
+			<TRIM_TYPE>RUDDER</TRIM_TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Light_Trim_Subtemplate"/>
+	</Template>
+	<!-- Light up when aileron trim is near 0% -->
+	<Template Name="ASOBO_HANDLING_Light_AileronTrim_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_Light_AileronTrim</NODE_ID>
+			<TRIM_TYPE>AILERON</TRIM_TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Light_Trim_Subtemplate"/>
+	</Template>
+	<!-- Trim combination in a switch -->
+	<Template Name="ASOBO_HANDLING_Combined_Trim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Combined_Trim_SubTemplate">
+			<INTERACTION_TYPE>Joystick</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Elevator_Aileron_Trim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Combined_Trim_Template">
+			<UP_DN_TRIM_TYPE>ELEVATOR</UP_DN_TRIM_TYPE>
+			<L_R_TRIM_TYPE>AILERON</L_R_TRIM_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Longitudinal_Lateral_Trim_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Combined_Trim_Template">
+			<UP_DN_TRIM_TYPE>LONGITUDINAL</UP_DN_TRIM_TYPE>
+			<L_R_TRIM_TYPE>LATERAL</L_R_TRIM_TYPE>
+		</UseTemplate>
+	</Template>
+	<!--
+	With default use case, you can set
+		TARGET_ANGLE_DEGREE: will light up when flaps reach this degree (default 0)
+		VALUE_RANGE: increase degree range for degree lighting (default 0.1)
+	-->
+	<Template Name="ASOBO_HANDLING_Light_Flaps_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<MAX_FLAPS_INDEX>(A:FLAPS NUM HANDLE POSITIONS, Number)</MAX_FLAPS_INDEX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Light_Flaps_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Light_Flaps_Transit_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_Light_Flaps_#ID#</NODE_ID>
+		</Parameters>
+		<Component ID="#NODE_ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+				<EMISSIVE_CODE>(A:CIRCUIT FLAP MOTOR ON, Bool)</EMISSIVE_CODE>
+			</UseTemplate>
+		</Component>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Water_Rudder_Controller_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Water_Rudder_Controller_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_Water_Rudder_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Water_Rudder_Controller_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Lever_Water_Rudder_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Water_Rudder_Controller_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+			<INVERT_INTERACTION>True</INVERT_INTERACTION>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_Wing_Fold_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_Switch_Wing_Fold</NODE_ID>
+			<ANIM_NAME>HANDLING_Switch_Wing_Fold</ANIM_NAME>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Handling_Base_Template">
+			<IE_NAME>Lever_WingFold</IE_NAME>
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TOOLTIP_TITLE>@TT_Package.WING_FOLD_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.WING_FOLD_ACTION</TT_DESCRIPTION_ID>
+			<TT_VALUE_ON>@TT_Package.GT_STATE_RETRACTED</TT_VALUE_ON>
+			<TT_VALUE_OFF>@TT_Package.GT_STATE_EXTENDED</TT_VALUE_OFF>
+			<TT_VALUE_ONOFF_IS_DYNAMIC>False</TT_VALUE_ONOFF_IS_DYNAMIC>
+			<SET_STATE_EXTERNAL>p0 (&gt;K:SET_WING_FOLD)</SET_STATE_EXTERNAL>
+			<GET_STATE_EXTERNAL>(A:FOLDING WING HANDLE POSITION, Boolean) sp0</GET_STATE_EXTERNAL>
+			<WWISE_EVENT_1>wing_fold_switch_on</WWISE_EVENT_1>
+			<WWISE_EVENT_2>wing_fold_switch_off</WWISE_EVENT_2>
+			<BINDING_SET_0>Toggle</BINDING_SET_0>
+			<BINDING_SET_0_PARAM_0>(B:HANDLING_Lever_WingFold) !</BINDING_SET_0_PARAM_0>
+			<BINDING_SET_0_PARAM_0_IS_DYNAMIC>True</BINDING_SET_0_PARAM_0_IS_DYNAMIC>
+			<BINDING_SET_0_EVENT_ID>TOGGLE_WING_FOLD</BINDING_SET_0_EVENT_ID>
+			<BINDING_SET_1>Set</BINDING_SET_1>
+			<BINDING_SET_1_PARAM_0>p0 0 !=</BINDING_SET_1_PARAM_0>
+			<BINDING_SET_1_PARAM_0_IS_DYNAMIC>True</BINDING_SET_1_PARAM_0_IS_DYNAMIC>
+			<BINDING_SET_1_EVENT_ID>SET_WING_FOLD</BINDING_SET_1_EVENT_ID>
+			<SIMVAR_TO_WATCH_0>FOLDING WING HANDLE POSITION</SIMVAR_TO_WATCH_0>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Wipers_Controller_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_Wipers_Controller_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Switch_Wipers_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Wipers_Controller_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Knob_Wipers_Template">
+		<UseTemplate Name="ASOBO_HANDLING_Wipers_Controller_Template">
+			<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Launch_Bar_Retract_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_Launch_Bar_Retract</NODE_ID>
+			<ANIM_NAME>HANDLING_Launch_Bar_Retract</ANIM_NAME>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Handling_Base_Template">
+			<IE_NAME>Lever_LaunchBar</IE_NAME>
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TOOLTIP_TITLE>@TT_Package.LAUNCH_BAR_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.LAUNCH_BAR_ACTION</TT_DESCRIPTION_ID>
+			<TT_VALUE_ON>@TT_Package.GT_STATE_EXTENDED</TT_VALUE_ON>
+			<TT_VALUE_OFF>@TT_Package.GT_STATE_RETRACTED</TT_VALUE_OFF>
+			<TT_VALUE_ONOFF_IS_DYNAMIC>False</TT_VALUE_ONOFF_IS_DYNAMIC>
+			<SET_STATE_EXTERNAL>p0 (&gt;K:SET_LAUNCH_BAR_SWITCH)</SET_STATE_EXTERNAL>
+			<GET_STATE_EXTERNAL>(A:LAUNCHBAR SWITCH, Boolean) sp0</GET_STATE_EXTERNAL>
+			<WWISE_EVENT_1>launchbar_switch_on</WWISE_EVENT_1>
+			<WWISE_EVENT_2>launchbar_switch_off</WWISE_EVENT_2>
+			<BINDING_SET_0>Toggle</BINDING_SET_0>
+			<BINDING_SET_0_PARAM_0>(B:HANDLING_Lever_LaunchBar) !</BINDING_SET_0_PARAM_0>
+			<BINDING_SET_0_PARAM_0_IS_DYNAMIC>True</BINDING_SET_0_PARAM_0_IS_DYNAMIC>
+			<BINDING_SET_0_EVENT_ID>TOGGLE_LAUNCH_BAR_SWITCH</BINDING_SET_0_EVENT_ID>
+			<BINDING_SET_1>Set</BINDING_SET_1>
+			<BINDING_SET_1_PARAM_0>p0 0 !=</BINDING_SET_1_PARAM_0>
+			<BINDING_SET_1_PARAM_0_IS_DYNAMIC>True</BINDING_SET_1_PARAM_0_IS_DYNAMIC>
+			<BINDING_SET_1_EVENT_ID>SET_LAUNCH_BAR_SWITCH</BINDING_SET_1_EVENT_ID>
+			<SIMVAR_TO_WATCH_0>LAUNCHBAR SWITCH</SIMVAR_TO_WATCH_0>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_TailHook_Lever_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_TailHook_Lever</NODE_ID>
+			<ANIM_NAME>HANDLING_TailHook_Lever</ANIM_NAME>
+		</Parameters>
+		
+		<UseTemplate Name="ASOBO_Handling_Base_Template">
+			<IE_NAME>Lever_TailHook</IE_NAME>
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TOOLTIP_TITLE>@TT_Package.TAIL_HOOK_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.TAIL_HOOK_ACTION</TT_DESCRIPTION_ID>
+			<TT_VALUE_ON>@TT_Package.GT_STATE_EXTENDED</TT_VALUE_ON>
+			<TT_VALUE_OFF>@TT_Package.GT_STATE_RETRACTED</TT_VALUE_OFF>
+			<TT_VALUE_ONOFF_IS_DYNAMIC>False</TT_VALUE_ONOFF_IS_DYNAMIC>
+			<SET_STATE_EXTERNAL>p0 (&gt;K:SET_TAIL_HOOK_HANDLE)</SET_STATE_EXTERNAL>
+			<GET_STATE_EXTERNAL>(A:TAILHOOK HANDLE, Boolean) sp0</GET_STATE_EXTERNAL>
+			<WWISE_EVENT_1>tailhook_switch_on</WWISE_EVENT_1>
+			<WWISE_EVENT_2>tailhook_switch_off</WWISE_EVENT_2>
+			<BINDING_SET_0>Toggle</BINDING_SET_0>
+			<BINDING_SET_0_PARAM_0>(B:HANDLING_Lever_TailHook) !</BINDING_SET_0_PARAM_0>
+			<BINDING_SET_0_PARAM_0_IS_DYNAMIC>True</BINDING_SET_0_PARAM_0_IS_DYNAMIC>
+			<BINDING_SET_0_EVENT_ID>TOGGLE_TAIL_HOOK_HANDLE</BINDING_SET_0_EVENT_ID>
+			<BINDING_SET_1>Set</BINDING_SET_1>
+			<BINDING_SET_1_PARAM_0>p0 0 !=</BINDING_SET_1_PARAM_0>
+			<BINDING_SET_1_PARAM_0_IS_DYNAMIC>True</BINDING_SET_1_PARAM_0_IS_DYNAMIC>
+			<BINDING_SET_1_EVENT_ID>SET_TAIL_HOOK_HANDLE</BINDING_SET_1_EVENT_ID>
+			<SIMVAR_TO_WATCH_0>TAILHOOK HANDLE</SIMVAR_TO_WATCH_0>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_HANDLING_Trim_Reset_Push_Template">
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_Push_Trim_Reset</NODE_ID>
+			<ANIM_NAME>HANDLING_Push_Trim_Reset</ANIM_NAME>
+			<RUDDER_RESET_VALUE>0</RUDDER_RESET_VALUE>
+			<ELEVATOR_RESET_VALUE>0</ELEVATOR_RESET_VALUE>
+			<AILERON_RESET_VALUE>0</AILERON_RESET_VALUE>
+			<RUDDER_RESET/>
+			<ELEVATOR_RESET/>
+			<AILERON_RESET/>
+			<WWISE_EVENT_1>trim_reset_push_button_on</WWISE_EVENT_1>
+			<WWISE_EVENT_2>trim_reset_push_button_off</WWISE_EVENT_2>
+		</Parameters>
+		<Parameters Type="Override">
+			<Condition Valid="NO_RUDDER_RESET">
+				<False>
+					<RUDDER_RESET>#RUDDER_RESET_VALUE# (&gt;K:RUDDER_TRIM_SET)</RUDDER_RESET>
+				</False>
+			</Condition>
+			<Condition Valid="NO_RUDDER_ELEVATOR">
+				<False>
+					<ELEVATOR_RESET>#ELEVATOR_RESET_VALUE# (&gt;K:ELEVATOR_TRIM_SET)</ELEVATOR_RESET>
+				</False>
+			</Condition>
+			<Condition Valid="NO_AILERON_RESET">
+				<False>
+					<AILERON_RESET>#AILERON_RESET_VALUE# (&gt;K:AILERON_TRIM_SET)</AILERON_RESET>
+				</False>
+			</Condition>
+		</Parameters>
+		
+		<UseTemplate Name="ASOBO_Handling_Base_Template">
+			<IE_NAME>HANDLING_Trim_Reset</IE_NAME>
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+			<TOOLTIP_TITLE>@TT_Package.HANDLING_PUSH_TRIMRESET_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.HANDLING_PUSH_TRIMRESET_ACTION</TT_DESCRIPTION_ID>
+			<SET_STATE_EXTERNAL>
+				#RUDDER_RESET#
+				#AILERON_RESET#
+				(A:SIM ON GROUND,Bool) if{ #ELEVATOR_RESET# }
+			</SET_STATE_EXTERNAL>
+		</UseTemplate>
+	</Template>
+	<!-- ########################################## -->
+	<!-- HANDLING Interaction inputs setup template -->
+	<Template Name="ASOBO_HANDLING_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>HANDLING</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>HANDLING</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>HANDLING</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>HANDLING</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>HANDLING</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Axis_Event_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>HANDLING</INPUT_EVENT_ID_SOURCE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Axis_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>HANDLING</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_HANDLING_Update_Unlock_Tailwheel">
+		<Parameters Type="Default">
+			<ID>0</ID>
+			<TAILWHEEL_LOCK_MAX_ANGLE>2</TAILWHEEL_LOCK_MAX_ANGLE>
+		</Parameters>
+		<Parameters Type="Override">
+			<LOCK_CODE>(&gt;K:TOGGLE_TAILWHEEL_LOCK)</LOCK_CODE>
+		</Parameters>
+		<Parameters Type="Override">
+			<Condition>
+				<Test>
+					<Greater>
+						<Value>TAILWHEEL_LOCK_MAX_ANGLE</Value>
+						<Number>0</Number>
+					</Greater>
+				</Test>
+				<True>
+					<LOCK_CODE>
+						l1 (A:GEAR STEER ANGLE:#ID#, degrees) abs #TAILWHEEL_LOCK_MAX_ANGLE# &lt; or if{
+						(* Tailwheel only relocks when  *)
+						#LOCK_CODE#
+						}
+					</LOCK_CODE>
+				</True>
+			</Condition>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Update">
+			<FREQUENCY>2</FREQUENCY>
+			<UPDATE_CODE>
+				(A:YOKE Y POSITION, percent) -90 &lt; (A:TAILWHEEL LOCK ON, Bool) s1 == if{
+				#LOCK_CODE#
+				}
+			</UPDATE_CODE>
+		</UseTemplate>
+	</Template>
+
+	<Template Name="ASOBO_HANDLING_Switch_Water_Ballast_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<NODE_ID>Switch_Water_Ballast_#ID#</NODE_ID>
+			<ANIM_NAME>Switch_Water_Ballast_#ID#</ANIM_NAME>
+			<IE_NAME>Glider_Switch_Water_Ballast_#ID#</IE_NAME>
+			<MIN_BALLAST_TO_TOGGLE>1</MIN_BALLAST_TO_TOGGLE>
+		</Parameters>
+		<Parameters Type="Override">
+			<GET_STATE_EXTERNAL/>
+			<SET_STATE_EXTERNAL/>
+		</Parameters>
+		<Parameters Type="Override">
+			<Condition NotEmpty="BALLAST_VALVE_ID_1">
+				<True>
+					<Loop>
+						<Setup>
+							<Param>CUR_ID</Param>
+							<From>1</From>
+							<Inc>1</Inc>
+							<While>
+								<Arg Valid="BALLAST_VALVE_ID_#CUR_ID#"/>
+							</While>
+						</Setup>
+						<Do>
+							<Parameters Type="Default" Lifetime="Loop">
+								<SET_STATE_EXTERNAL_T/>
+								<GET_STATE_EXTERNAL_T>1</GET_STATE_EXTERNAL_T>
+							</Parameters>
+							<Parameters Type="Override" Lifetime="Loop">
+								<CUR_BALLAST_ID Process="Param">BALLAST_VALVE_ID_#CUR_ID#</CUR_BALLAST_ID>
+							</Parameters>
+							<Parameters Type="Override" Lifetime="Loop">
+								<SET_STATE_EXTERNAL_T>#SET_STATE_EXTERNAL_T# (A:WATER BALLAST VALVE:#CUR_BALLAST_ID#, Boolean) (O:HANDLING_#IE_NAME#_Position) != if{ #CUR_BALLAST_ID# (&gt;K:TOGGLE_WATER_BALLAST_VALVE) }</SET_STATE_EXTERNAL_T>
+								<GET_STATE_EXTERNAL_T>#GET_STATE_EXTERNAL_T# (A:WATER BALLAST VALVE:#CUR_BALLAST_ID#, Boolean) and</GET_STATE_EXTERNAL_T>
+							</Parameters>
+						</Do>
+						<Then>
+							<SET_STATE_EXTERNAL>#SET_STATE_EXTERNAL_T# sp0</SET_STATE_EXTERNAL>
+							<GET_STATE_EXTERNAL>#GET_STATE_EXTERNAL_T#</GET_STATE_EXTERNAL>
+						</Then>
+					</Loop>
+				</True>
+				<False>
+					<GET_STATE_EXTERNAL>(A:WATER BALLAST VALVE:#ID#) sp0</GET_STATE_EXTERNAL>
+					<SET_STATE_EXTERNAL>(A:WATER BALLAST VALVE:#ID#, Boolean) (O:HANDLING_#IE_NAME#_Position) != if{ #ID# (&gt;K:TOGGLE_WATER_BALLAST_VALVE) }</SET_STATE_EXTERNAL>
+				</False>
+			</Condition>
+		</Parameters>
+		
+		<UseTemplate Name="ASOBO_Handling_Base_Template">					
+			<TOOLTIP_TITLE>@TT_Package.WATER_BALLAST_VALVE_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.WATER_BALLAST_VALVE_ACTION</TT_DESCRIPTION_ID>
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TT_VALUE_ON>@TT_Package.GT_STATE_OPEN</TT_VALUE_ON>
+			<TT_VALUE_OFF>@TT_Package.GT_STATE_CLOSED</TT_VALUE_OFF>
+			<TT_VALUE_ONOFF_IS_DYNAMIC>False</TT_VALUE_ONOFF_IS_DYNAMIC>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_HANDLING_Push_Tow_Release">
+		<Parameters Type="Default">
+			<NODE_ID></NODE_ID>
+			<ANIM_NAME></ANIM_NAME>
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<TOOLTIP_TITLE>@TT_Package.TOW_RELEASE_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.TOW_RELEASE_ACTION</TT_DESCRIPTION_ID>
+			<TT_VALUE>(A:TOW CONNECTION, Bool) if{ (R:1:@TT_Package.GT_STATE_CONNECTED) } els{ (R:1:@TT_Package.GT_STATE_RELEASED) }</TT_VALUE>
+			<TT_VALUE_IS_DYNAMIC>True</TT_VALUE_IS_DYNAMIC>
+		</Parameters>
+		<Parameters Type="Override">
+			<INPUT_EVENT_ID_SOURCE>HANDLING</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>Tow_Release</WWISE_PREFIX>
+			<IE_NAME>Tow_Release</IE_NAME>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Handling_Base_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+			<CREATE_COMPONENT>True</CREATE_COMPONENT>
+			<SET_STATE_EXTERNAL>(&gt;K:TOW_PLANE_RELEASE)</SET_STATE_EXTERNAL>
+			<GET_STATE_EXTERNAL>(A:TOW RELEASE HANDLE,percent over 100) (&gt;O:_ButtonAnimVar)</GET_STATE_EXTERNAL>
+			<SIMVAR_TO_WATCH_0>TOW RELEASE HANDLE</SIMVAR_TO_WATCH_0>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>
+

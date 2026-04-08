@@ -1,0 +1,97 @@
+<ModelBehaviors>
+	<Include RelativeFile="Inputs\\AS5_Inputs.xml"/>
+	<Template Name="ASOBO_AS5_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_AS5_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS5_SubTemplate">
+		<Parameters Type="Default">
+			<BASE_NAME>MFD_G5</BASE_NAME>
+		</Parameters>
+		<Parameters Type="Default">
+			<AS5>AS5#SUFFIX_ID#</AS5>
+			<NODE_ID_KNOB>#BASE_NAME#_Knob#SUFFIX_ID#</NODE_ID_KNOB>
+			<ANIM_NAME_KNOB>#BASE_NAME#_Knob#SUFFIX_ID#</ANIM_NAME_KNOB>
+			<ANIM_NAME_PUSH>#BASE_NAME#_Knob_Push#SUFFIX_ID#</ANIM_NAME_PUSH>
+			<NODE_ID_BUTTON>#BASE_NAME#_Switch_On_Off#SUFFIX_ID#</NODE_ID_BUTTON>
+			<ANIM_NAME_BUTTON>#BASE_NAME#_Switch_On_Off#SUFFIX_ID#</ANIM_NAME_BUTTON>
+			<NODE_ID_SCREEN>#BASE_NAME#_Screen#SUFFIX_ID#</NODE_ID_SCREEN>
+			<WWISE_PREFIX>as5</WWISE_PREFIX>
+			<COUNT>36</COUNT>
+			<TT_DESCRIPTION_ID_KNOB>@TT_Package.AS5_KNOB_ACTION</TT_DESCRIPTION_ID_KNOB>
+			<TT_DESCRIPTION_ID_KNOB_PUSH>@TT_Package.AS5_KNOB_ACTION_PUSH</TT_DESCRIPTION_ID_KNOB_PUSH>
+			<TT_DESCRIPTION_ID_BUTTON>@TT_Package.AS5_BUTTON_ACTION</TT_DESCRIPTION_ID_BUTTON>
+			<TOOLTIP_TITLE_KNOB>@TT_Package.AS5_KNOB_TITLE</TOOLTIP_TITLE_KNOB>
+			<TOOLTIP_TITLE_BUTTON>@TT_Package.AS5_BUTTON_TITLE</TOOLTIP_TITLE_BUTTON>
+			<CIRCUIT_ID>#ID#</CIRCUIT_ID>
+		</Parameters>
+		<Component ID="Attitude_Indicator_#AS5#">
+			<Component ID="Attitude_Indicator_#AS5#_Knob" Node="#NODE_ID_KNOB#">
+				<Parameters Type="Override">
+					<TOOLTIP_TITLE>#TOOLTIP_TITLE_KNOB#</TOOLTIP_TITLE>
+					<INPUT_EVENT_ID_SOURCE>#AS5#</INPUT_EVENT_ID_SOURCE>
+				</Parameters>
+				<UseTemplate Name="ASOBO_AS5_Push_Event_Base_Template">
+					<IE_NAME>Knob_Button</IE_NAME>
+					<IS_TIMED>True</IS_TIMED>
+					<ON_PUSH_EVENT>(&gt;H:#AS5#_Knob_Push)</ON_PUSH_EVENT>
+					<ON_PUSH_EVENT_LONG>(&gt;H:#AS5#_Knob_Long_Push)</ON_PUSH_EVENT_LONG>
+					<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_KNOB_PUSH#</TT_DESCRIPTION_ID>
+				</UseTemplate>
+				<UseTemplate Name="ASOBO_AS5_Base_Template">
+					<IE_NAME>Knob</IE_NAME>
+					<IE_ID_EXTERNAL_0>Knob_Button</IE_ID_EXTERNAL_0>
+					<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+					<IS_TIMED>True</IS_TIMED>
+					<IS_INFINITE>True</IS_INFINITE>
+					<SET_STATE_EXTERNAL>p0 0 &gt; if{ (&gt;H:#AS5#_Knob_Inc) } els{ (&gt;H:#AS5#_Knob_Dec) }</SET_STATE_EXTERNAL>
+					<NODE_ID>#NODE_ID_KNOB#</NODE_ID>
+					<PART_ID>#NODE_ID_KNOB#</PART_ID>
+					<CREATE_COMPONENT>False</CREATE_COMPONENT>
+					<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_KNOB#</TT_DESCRIPTION_ID>
+				</UseTemplate>
+			</Component>
+			<Condition Valid="NO_BUTTON">
+				<False>
+					<UseTemplate Name="ASOBO_ELECTRICAL_Push_Circuit_Template">
+						<TOOLTIP_TITLE>#TOOLTIP_TITLE_BUTTON#</TOOLTIP_TITLE>
+						<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_BUTTON#</TT_DESCRIPTION_ID>
+						<PART_ID>#NODE_ID_BUTTON#</PART_ID>
+						<NODE_ID>#NODE_ID_BUTTON#</NODE_ID>
+						<ANIM_NAME>#ANIM_NAME_BUTTON#</ANIM_NAME>
+					</UseTemplate>
+				</False>
+			</Condition>
+			<UseTemplate Name="ASOBO_GT_Screen_Template">
+				<AUTOMATIC_BRIGHTNESS>True</AUTOMATIC_BRIGHTNESS>	
+				<NODE_ID>#NODE_ID_SCREEN#</NODE_ID>
+				<SCREEN_PREFIX>#AS5#</SCREEN_PREFIX>
+			</UseTemplate>
+		</Component>
+	</Template>
+	<!-- ########################################## -->
+	<!-- AS5 Interaction inputs setup template -->
+	<Template Name="ASOBO_AS5_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>AS5</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>AS5</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>AS5</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS5_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS5</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS5_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS5</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

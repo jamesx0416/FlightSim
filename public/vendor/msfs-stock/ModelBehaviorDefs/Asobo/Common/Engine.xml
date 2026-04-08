@@ -1,0 +1,323 @@
+<ModelBehaviors>
+	<Include RelativeFile="Subtemplates\\Engine_Subtemplates.xml"/>
+	<Include RelativeFile="Inputs\\Engine_Inputs.xml"/>
+	<!-- ################################### ENGINE ################################### -->
+	<!-- ############################################################################## -->
+	<!-- Throttle -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Throttle_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<ID_NODE>#ID#</ID_NODE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Throttle_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_Throttle_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Throttle_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Propeller -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Propeller_Control_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<ID_NODE>#ID#</ID_NODE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Propeller_Control_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_Propeller_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Propeller_Control_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Starter -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Starter_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Starter_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Starter_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Starter_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Push_Starter_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Starter_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Ignition -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Ignition_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Ignition_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Ignition_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Ignition_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Push_Ignition_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Ignition_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Magneto -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Magneto_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Magneto_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Magneto_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Magneto_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Plasma_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Plasma_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Plasma_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Plasma_SubTemplate"/>
+	</Template>
+	<!-- Alias (used to be in the electrical templates -->
+	<Template Name="ASOBO_ELECTRICAL_Switch_Magneto_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Switch_Magneto_Template">
+			<USE_LEGACY_NAMES>True</USE_LEGACY_NAMES>
+		</UseTemplate>
+	</Template>
+	<!-- Master -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Master_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Master_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Master_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Master_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Choke -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Choke_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Choke_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_Choke_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Choke_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Primer -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Primer_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Primer_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_Primer_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Primer_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Primer_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Primer_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Alternate air -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_Alternate_Air_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Alternate_Air_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_AlternateAir_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Alternate_Air_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_AlternateAir_Template">
+		<UseTemplate Name="ASOBO_ENGINE_Alternate_Air_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- ECU -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_ENGINE_ECU_Swap_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_ECU_Swap_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_ECU_Test_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_ECU_Test_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Engine_Mode_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Switch_Engine_Mode_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Push_Starter_Disengage_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Push_Starter_Disengage_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_CowlFlaps_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Lever_CowlFlaps_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_TOGA_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_TOGA_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_TOGA_Template">
+		<UseTemplate Name="ASOBO_ENGINE_TOGA_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Push_TOGA_Template">
+		<UseTemplate Name="ASOBO_ENGINE_TOGA_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- ############################################################################## -->
+	<Template Name="ASOBO_ENGINE_Lever_Condition_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Lever_Condition_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_PropSync_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Switch_PropSync_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_Hydraulic_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Switch_Hydraulic_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<!--
+	Radiator opening control
+		This is a 3 pos switch : decrease|neutral|increase
+		with an up position maintained by a cover : neutral|auto
+		  FLAPS_TYPE : OIL|RADIATOR depend on the simvar you want
+		  NODE_ID_LOCK|ANIM_NAME_LOCK: for the auto mode (up pos)
+		  NODE_ID_SWITCH|ANIM_NAME_SWITCH: for the 3 pos switch (dec/inc pos)
+		  REPEAT_FREQUENCY: update frequency (10 [1/sec] default)
+		  INCREMENT: increment value for every frequency (256 [16k] default)
+		for auto pos :
+		  TEMPERATURE_CAP: value (celsius) when we need to start opening the radiator
+		  TEMPERATURE_MAX: value (celsius) when the radiator needs to be fully openned
+	-->
+	<Template Name="ASOBO_ENGINE_Switch_CoolingFlaps_Radiator_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<FLAPS_TYPE>RADIATOR</FLAPS_TYPE>
+			<TEMPERATURE_CAP>105</TEMPERATURE_CAP>
+			<TEMPERATURE_MAX>120</TEMPERATURE_MAX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_CoolingFlaps_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_CoolingFlaps_Oil_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<FLAPS_TYPE>OIL</FLAPS_TYPE>
+			<TEMPERATURE_CAP>75</TEMPERATURE_CAP>
+			<TEMPERATURE_MAX>90</TEMPERATURE_MAX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_CoolingFlaps_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_CoolingFlaps_Radiator_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+			<FLAPS_TYPE>RADIATOR</FLAPS_TYPE>
+			<TEMPERATURE_CAP>105</TEMPERATURE_CAP>
+			<TEMPERATURE_MAX>120</TEMPERATURE_MAX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_CoolingFlaps_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Lever_CoolingFlaps_Oil_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+			<FLAPS_TYPE>OIL</FLAPS_TYPE>
+			<TEMPERATURE_CAP>75</TEMPERATURE_CAP>
+			<TEMPERATURE_MAX>90</TEMPERATURE_MAX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_CoolingFlaps_SubTemplate"/>
+	</Template>
+	<!-- ######################################## -->
+	<Template Name="ASOBO_ENGINE_Switch_War_Emergency_Power_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_War_Emergency_Power_SubTemplate"/>
+	</Template>
+	<!-- ######################################## -->
+	<!-- ENGINE Interaction inputs setup template -->
+	<Template Name="ASOBO_ENGINE_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>ENGINE</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>ENGINE</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>ENGINE</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>ENGINE</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>ENGINE</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ENGINE_Switch_ADI_Template">
+		<DefaultTemplateParameters>
+			<ID>1</ID>
+		</DefaultTemplateParameters>
+		<UseTemplate Name="ASOBO_ENGINE_Switch_ADI_SubTemplate">
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

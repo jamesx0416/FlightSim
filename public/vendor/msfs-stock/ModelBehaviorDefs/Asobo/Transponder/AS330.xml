@@ -1,0 +1,156 @@
+<ModelBehaviors>
+	<Include ModelBehaviorFile="Asobo\Generic.xml"/>
+	<Include ModelBehaviorFile="Asobo\Transponder\Transponder.xml"/>
+
+	<Template Name="ASOBO_AS330_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_AS330_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS330_SubTemplate">
+		<Parameters Type="Default">
+			<AS330>TRANSPONDER</AS330>
+			<ANIM_NEVER_FAILS/>
+			<EMISSIVE_DEFAULT_VALUE>0.5</EMISSIVE_DEFAULT_VALUE>
+			<Condition Check="CIRCUIT_ID">
+				<True>
+					<FAILURE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool)</FAILURE>
+				</True>
+				<False>
+					<FAILURE>(A:TRANSPONDER STATE:1, Enum) 0 &gt; (A:CIRCUIT AVIONICS ON, Bool) and</FAILURE>
+				</False>
+			</Condition>
+		</Parameters>
+		<Parameters Type="Default">
+			<Switch>
+				<Case NotEmpty="SIMVAR_POWER_SETTING">
+					<EMISSIVE_CODE>(A:#SIMVAR_POWER_SETTING#, percent over 100) #EMISSIVE_DEFAULT_VALUE# *</EMISSIVE_CODE>
+				</Case>
+				<Case NotEmpty="POTENTIOMETER">
+					<EMISSIVE_CODE>(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, percent over 100) #EMISSIVE_DEFAULT_VALUE# *</EMISSIVE_CODE>
+				</Case>
+				<Default>
+					<EMISSIVE_CODE>#EMISSIVE_DEFAULT_VALUE#</EMISSIVE_CODE>
+				</Default>
+			</Switch>
+			<NODE_ID_FRAME>#AS330#_Screen#SUFFIX_ID#</NODE_ID_FRAME>
+		</Parameters>
+		<Parameters Type="Override">
+			<PUSH_ID_1>ALT</PUSH_ID_1>
+			<PUSH_ID_2>CLR</PUSH_ID_2>
+			<PUSH_ID_3>CRSR</PUSH_ID_3>
+			<PUSH_ID_4>FUNC</PUSH_ID_4>
+			<PUSH_ID_5>IDT</PUSH_ID_5>
+			<EVENT_TYPE_IDT>K</EVENT_TYPE_IDT>
+			<EVENT_PUSH_IDT>XPNDR_IDENT_ON</EVENT_PUSH_IDT>
+			<TT_VALUE_IDT>(A:TRANSPONDER IDENT:1, Bool) @TT_OnOff_Cond</TT_VALUE_IDT>
+			<TT_VALUE_IS_DYNAMIC_IDT>True</TT_VALUE_IS_DYNAMIC_IDT>
+			<PUSH_ID_6>ON</PUSH_ID_6>
+			<PUSH_ID_7>OFF</PUSH_ID_7>
+			<PUSH_ID_8>STARTSTOP</PUSH_ID_8>
+			<PUSH_ID_9>STBY</PUSH_ID_9>
+			<PUSH_ID_10>VFR</PUSH_ID_10>
+		</Parameters>
+		<Parameters Type="Default">
+			<Loop>
+				<Setup>
+					<Param>CUR_ID</Param>
+					<From>1</From>
+					<Inc>1</Inc>
+					<To>10</To>
+				</Setup>
+				<Do>
+					<Parameters Type="Override">
+						<ID Process="Param">PUSH_ID_#CUR_ID#</ID>
+					</Parameters>
+					<NODE_ID_#ID#>TRANSPONDER_Push_#ID##SUFFIX_ID#</NODE_ID_#ID#>
+					<ANIM_NAME_#ID#>TRANSPONDER_Push_#ID##SUFFIX_ID#</ANIM_NAME_#ID#>
+					<TT_DESCRIPTION_ID_#ID#>@TT_Package.TRANSPONDER_PUSH_#ID#_ACTION</TT_DESCRIPTION_ID_#ID#>
+					<TOOLTIP_TITLE_#ID#>@TT_Package.TRANSPONDER_PUSH_#ID#_TITLE</TOOLTIP_TITLE_#ID#>
+				</Do>
+			</Loop>
+			<Loop>
+				<Setup>
+					<Param>CUR_ID</Param>
+					<From>0</From>
+					<Inc>1</Inc>
+					<To>9</To>
+				</Setup>
+				<Do>
+					<NODE_ID_#CUR_ID#>TRANSPONDER_Push_#CUR_ID##SUFFIX_ID#</NODE_ID_#CUR_ID#>
+					<ANIM_NAME_#CUR_ID#>TRANSPONDER_Push_#CUR_ID##SUFFIX_ID#</ANIM_NAME_#CUR_ID#>
+				</Do>
+			</Loop>
+		</Parameters>
+		<Loop>
+			<Setup>
+				<Param>CUR_ID</Param>
+				<From>1</From>
+				<Inc>1</Inc>
+				<To>10</To>
+			</Setup>
+			<Do>
+				<Parameters Type="Override">
+					<ID Process="Param">PUSH_ID_#CUR_ID#</ID>
+				</Parameters>
+				<Parameters Type="Override">
+					<NODE_ID Process="Param">NODE_ID_#ID#</NODE_ID>
+					<ANIM_NAME Process="Param">ANIM_NAME_#ID#</ANIM_NAME>
+					<TT_DESCRIPTION_ID Process="Param">TT_DESCRIPTION_ID_#ID#</TT_DESCRIPTION_ID>
+					<TOOLTIP_TITLE Process="Param">TOOLTIP_TITLE_#ID#</TOOLTIP_TITLE>
+					<Condition NotEmpty="EVENT_TYPE_#ID#">
+						<EVENT_TYPE Process="Param">EVENT_TYPE_#ID#</EVENT_TYPE>
+					</Condition>
+					<Condition NotEmpty="EVENT_PUSH_#ID#">
+						<EVENT_PUSH Process="Param">EVENT_PUSH_#ID#</EVENT_PUSH>
+					</Condition>
+					<Condition NotEmpty="TT_VALUE_#ID#">
+						<TT_VALUE Process="Param">TT_VALUE_#ID#</TT_VALUE>
+					</Condition>
+					<Condition NotEmpty="TT_VALUE_IS_DYNAMIC_#ID#">
+						<TT_VALUE_IS_DYNAMIC Process="Param">TT_VALUE_IS_DYNAMIC_#ID#</TT_VALUE_IS_DYNAMIC>
+					</Condition>
+				</Parameters>
+				<UseTemplate Name="ASOBO_Transponder_Push_ID_Template"/>
+			</Do>
+		</Loop>
+		<Loop>
+			<Setup>
+				<Param>CUR_ID</Param>
+				<From>0</From>
+				<Inc>1</Inc>
+				<To>9</To>
+			</Setup>
+			<Do>
+				<Parameters Type="Override">
+					<ID>#CUR_ID#</ID>
+				</Parameters>
+				<Parameters Type="Override">
+					<NODE_ID Process="Param">NODE_ID_#ID#</NODE_ID>
+					<ANIM_NAME Process="Param">ANIM_NAME_#ID#</ANIM_NAME>
+					<TT_DESCRIPTION_ID>@TT_Package.TRANSPONDER_PUSH_DIGIT_ACTION</TT_DESCRIPTION_ID>
+					<TT_DESCRIPTION_INDEX>#ID#</TT_DESCRIPTION_INDEX>
+					<TOOLTIP_DISABLED>True</TOOLTIP_DISABLED>
+				</Parameters>
+				<UseTemplate Name="ASOBO_Transponder_Push_ID_Template"/>
+			</Do>
+		</Loop>
+		<Condition Valid="NO_SCREEN_EMISSIVE">
+			<False>
+				<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+					<NODE_ID>#NODE_ID_FRAME#</NODE_ID>
+					<EMISSIVE_CODE>#EMISSIVE_DEFAULT_VALUE# (A:TRANSPONDER STATE:1, Enum) 0 &gt; *</EMISSIVE_CODE>
+				</UseTemplate>				
+			</False>
+		</Condition>
+		<Condition Check="CIRCUIT_ID">
+			<UseTemplate Name="ASOBO_GT_Update">
+				<UPDATE_ONCE>True</UPDATE_ONCE>
+				<UPDATE_CODE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool) ! (A:CIRCUIT SWITCH ON:#CIRCUIT_ID#, Bool) and if{ #CIRCUIT_ID# (&gt;K:ELECTRICAL_CIRCUIT_TOGGLE) }</UPDATE_CODE>
+			</UseTemplate>
+		</Condition>
+	</Template>
+</ModelBehaviors>

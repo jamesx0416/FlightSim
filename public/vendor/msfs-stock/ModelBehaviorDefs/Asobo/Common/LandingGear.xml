@@ -1,0 +1,436 @@
+<ModelBehaviors>
+	<Include RelativeFile="Subtemplates\\LandingGear_Subtemplates.xml"/>
+	<Include RelativeFile="Inputs\\LandingGear_Inputs.xml"/>
+	<!-- ################################ LANDING_GEAR ################################ -->
+	<!-- ############################################################################## -->
+	<Template Name="ASOBO_LANDING_GEAR_Gear_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Gear_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Lever_Gear_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Gear_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Gear_Emergency_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Emergency_Template"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Lever_Gear_Emergency_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Gear_Emergency_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Switch_ParkingBrake_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>SWITCH</INTERACTION_TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_ParkingBrake_Template"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Knob_ParkingBrake_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>KNOB</INTERACTION_TYPE>
+			<COUNT>2</COUNT>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_ParkingBrake_Template"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Brake_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Brake_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Lever_Brake_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Brake_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- MISC -->
+	<Template Name="ASOBO_LANDING_GEAR_Light_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<GEAR_ID>0</GEAR_ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Transit_Template">
+		<Parameters Type="Default">
+			<NODE_ID>LANDING_GEAR_Light_Unsafe</NODE_ID>
+		</Parameters>
+		<Component ID="#NODE_ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+				<EMISSIVE_CODE>(A:CIRCUIT GEAR MOTOR ON, Bool)</EMISSIVE_CODE>
+			</UseTemplate>
+		</Component>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Warning_Template">
+		<Parameters Type="Default">
+			<ANIM_NAME>LANDING_GEAR_Warning</ANIM_NAME>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Anim">
+			<ANIM_CODE>(A:GEAR HANDLE POSITION, Bool) 0 == (A:INDICATED ALTITUDE, feet) 750 &lt; and 100 * </ANIM_CODE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_LowAltitude_Warning_Light_Template">
+		<Parameters Type="Default">
+			<NODE_ID>LANDING_GEAR_LowAltitude_Warning_Light</NODE_ID>
+		</Parameters>
+		<Component ID="#NODE_ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+				<EMISSIVE_CODE>
+					(A:GEAR POSITION:0, Percent) 100 &lt;
+					(A:INDICATED ALTITUDE:1, Feet) 750 &lt; and
+				</EMISSIVE_CODE>
+			</UseTemplate>
+		</Component>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Center_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_Template">
+			<SIMVAR>GEAR CENTER POSITION</SIMVAR>
+			<ID>Center</ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Left_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_Template">
+			<SIMVAR>GEAR LEFT POSITION</SIMVAR>
+			<ID>Left</ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Right_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_Template">
+			<SIMVAR>GEAR RIGHT POSITION</SIMVAR>
+			<ID>Right</ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Unsafe_Knob_Dimmer_Push_Test_Template">
+		<Parameters Type="Override">
+			<TYPE>UNSAFE</TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_Knob_Dimmer_Push_Test_Template">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Safe_Knob_Dimmer_Push_Test_Template">
+		<Parameters Type="Override">
+			<TYPE>SAFE</TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_Knob_Dimmer_Push_Test_Template">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Knob_Dimmer_Push_Test_Template">
+		<Parameters Type="Default">
+			<POTENTIOMETER>1</POTENTIOMETER>
+			<TYPE>ALT</TYPE>
+			<SIDE/>
+		</Parameters>
+		<Parameters Type="Default">
+			<NO_EMISSIVE>True</NO_EMISSIVE>
+			<TOOLTIP_TITLE_KNOB>@TT_Package.LANDING_GEAR_INDICATOR_KNOB_TITLE</TOOLTIP_TITLE_KNOB>
+			<TT_DESCRIPTION_ID>@TT_Package.LANDING_GEAR_INDICATOR_KNOB_ACTION</TT_DESCRIPTION_ID>
+			<TT_DESCRIPTION_ID_PUSH>@TT_Package.LANDING_GEAR_SWITCH_CHECK_LIGHT_TEST_ACTION</TT_DESCRIPTION_ID_PUSH>
+			<ANIM_CODE_KNOB>100 (A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent) -</ANIM_CODE_KNOB>
+			<Condition NotEmpty="SIDE">
+				<SIDE>_#SIDE#</SIDE>
+			</Condition>
+			<Switch Param="TYPE">
+				<Case Value="UNSAFE">
+					<IE_PREFIX>Unsafe_Gear#SIDE#</IE_PREFIX>
+					<NODE_ID>Knob_Landing_Gear_Unsafe#SIDE#</NODE_ID>
+					<ANIM_NAME_KNOB>Knob_Landing_Gear_Unsafe#SIDE#</ANIM_NAME_KNOB>
+					<ANIM_NAME_PUSH>Button_Landing_Gear_Unsafe#SIDE#</ANIM_NAME_PUSH>
+					<SET_STATE_EXTERNAL>
+						p0 (&gt;L:XML_Push_Unsafe#SIDE#, bool)
+						p0 0 == if{ 0 (&gt;O:_PressTime) 0 (&gt;O:_PressForDuration) }
+						p0 1 == if{ (E:SIMULATION TIME, second) (&gt;O:_PressTime) p1 (&gt;O:_PressForDuration) }
+					</SET_STATE_EXTERNAL>
+					<VALUE_CODE>(L:XML_Push_Unsafe#SIDE#, bool)</VALUE_CODE>
+				</Case>
+				<Case Value="SAFE">
+					<IE_PREFIX>safe_Gear#SIDE#</IE_PREFIX>
+					<NODE_ID>SAFETY_Indicator_LandingGear#SIDE#</NODE_ID>
+					<ANIM_NAME_KNOB>SAFETY_Indicator_LandingGear#SIDE#</ANIM_NAME_KNOB>
+					<ANIM_NAME_PUSH>SAFETY_Indicator_LandingGear#SIDE#</ANIM_NAME_PUSH>
+					<SET_STATE_EXTERNAL>
+						p0 (&gt;L:XML_Push_Safe#SIDE#, bool)
+						p0 0 == if{ 0 (&gt;O:_PressTime) 0 (&gt;O:_PressForDuration) }
+						p0 1 == if{ (E:SIMULATION TIME, second) (&gt;O:_PressTime) p1 (&gt;O:_PressForDuration) }
+					</SET_STATE_EXTERNAL>
+					<VALUE_CODE>(L:XML_Push_Safe#SIDE#, bool)</VALUE_CODE>
+				</Case>
+			</Switch>
+		</Parameters>
+		<UseTemplate Name="ASOBO_SAFETY_Indicator_Knob_LandingGear_Template">
+			<POTENTIOMETER>#POTENTIOMETER#</POTENTIOMETER>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Unsafe_Template">
+		<Parameters Type="Default">
+			<NODE_ID>LANDING_GEAR_Light_Unsafe</NODE_ID>
+			<PART_ID>LANDING_GEAR_Light</PART_ID>
+			<DEFAULT_TEST>
+				(A:GEAR HANDLE POSITION, Bool) 0 ==
+				(A:SIM ON GROUND, Bool) and
+			</DEFAULT_TEST>
+			<EMISSIVE_CODE/>
+			<CREATE_COMPONENT>True</CREATE_COMPONENT>
+			<Condition Check="CHECK_GEAR_CENTER_POSITION">
+				<True>
+					<GEAR_CENTER_POSITION_CHECK>
+						(A:GEAR CENTER POSITION, Percent) 0 &gt;
+						(A:GEAR CENTER POSITION, Percent) 100 &lt; and or
+					</GEAR_CENTER_POSITION_CHECK>
+				</True>
+				<False>
+					<GEAR_CENTER_POSITION_CHECK/>
+				</False>
+			</Condition>
+			<Condition Check="CHECK_GEAR_LEFT_POSITION">
+				<True>
+					<GEAR_LEFT_POSITION_CHECK>
+						(A:GEAR LEFT POSITION, Percent) 0 &gt;
+						(A:GEAR LEFT POSITION, Percent) 100 &lt; and or
+					</GEAR_LEFT_POSITION_CHECK>
+				</True>
+				<False>
+					<GEAR_LEFT_POSITION_CHECK/>
+				</False>
+			</Condition>
+			<Condition Check="CHECK_GEAR_RIGHT_POSITION">
+				<True>
+					<GEAR_RIGHT_POSITION_CHECK>
+						(A:GEAR RIGHT POSITION, Percent) 0 &gt;
+						(A:GEAR RIGHT POSITION, Percent) 100 &lt; and or
+					</GEAR_RIGHT_POSITION_CHECK>
+				</True>
+				<False>
+					<GEAR_RIGHT_POSITION_CHECK/>
+				</False>
+			</Condition>
+			<Condition Check="POTENTIOMETER">
+				<True>
+					<DIMMER_VALUE>
+						(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) *
+					</DIMMER_VALUE>
+				</True>
+				<False>
+					<DIMMER_VALUE/>
+				</False>
+			</Condition>
+		</Parameters>
+		<Condition Valid="CREATE_COMPONENT">
+			<False>
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>
+						#DEFAULT_TEST#
+						#GEAR_CENTER_POSITION_CHECK#
+						#GEAR_LEFT_POSITION_CHECK#
+						#GEAR_RIGHT_POSITION_CHECK#
+						#EMISSIVE_CODE#
+						#DIMMER_VALUE#
+					</EMISSIVE_CODE>
+				</UseTemplate>
+			</False>
+			<True>
+				<Component ID="#NODE_ID#" Node="#NODE_ID#">
+					<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+						<EMISSIVE_CODE>
+							#DEFAULT_TEST#
+							#GEAR_CENTER_POSITION_CHECK#
+							#GEAR_LEFT_POSITION_CHECK#
+							#GEAR_RIGHT_POSITION_CHECK#
+							#EMISSIVE_CODE#
+							#DIMMER_VALUE#
+						</EMISSIVE_CODE>
+					</UseTemplate>
+				</Component>
+			</True>
+		</Condition>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Indicator_Template">
+		<Parameters Type="Default">
+			<SIDE>CENTER</SIDE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Indicator_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Ski_Panel_Template">
+		<Parameters Type="Default">
+			<NODE_ID_LEVER>Box_Ski_Lever_1</NODE_ID_LEVER>
+			<ANIM_NAME_LEVER>Box_Ski_Lever0_1</ANIM_NAME_LEVER>
+			<TOOLTIP_LANDING_GEAR_TITLE>@TT_Package.LANDING_GEAR_LEVER_SKI_TITLE</TOOLTIP_LANDING_GEAR_TITLE>
+			<TOOLTIP_LANDING_GEAR_ACTION>@TT_Package.LANDING_GEAR_LEVER_SKI_ACTION</TOOLTIP_LANDING_GEAR_ACTION>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Lever_Gear_Template">
+			<NODE_ID>#NODE_ID_LEVER#</NODE_ID>
+			<ANIM_NAME>#ANIM_NAME_LEVER#</ANIM_NAME>
+			<INVERT_ANIM>True</INVERT_ANIM>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Floater_Panel_Template">
+		<Parameters Type="Default">
+			<NODE_ID_LEVER>Floaters_Box_Floaters_Lever_1</NODE_ID_LEVER>
+			<ANIM_NAME_LEVER>Floaters_Box_Floaters_Lever_1</ANIM_NAME_LEVER>
+			<NODE_ID_GEAR_ADVISORTY>Floaters_Box_Floaters_GearAdvisory_1</NODE_ID_GEAR_ADVISORTY>
+			<ANIM_NAME_GEAR_ADVISORTY>Floaters_Box_Floaters_GearAdvisory_1</ANIM_NAME_GEAR_ADVISORTY>
+			<NODE_ID_LIGHT_UP_FRONT_LEFT>Floaters_GearLight_NoseUp_TL_1</NODE_ID_LIGHT_UP_FRONT_LEFT>
+			<NODE_ID_LIGHT_UP_FRONT_RIGHT>Floaters_GearLight_NoseUp_TR_1</NODE_ID_LIGHT_UP_FRONT_RIGHT>
+			<NODE_ID_LIGHT_UP_BACK_LEFT>Floaters_GearLight_NoseUp_BL_1</NODE_ID_LIGHT_UP_BACK_LEFT>
+			<NODE_ID_LIGHT_UP_BACK_RIGHT>Floaters_GearLight_NoseUp_BR_1</NODE_ID_LIGHT_UP_BACK_RIGHT>
+			<NODE_ID_LIGHT_DOWN_FRONT_LEFT>Floaters_GearLight_NoseDown_TL_1</NODE_ID_LIGHT_DOWN_FRONT_LEFT>
+			<NODE_ID_LIGHT_DOWN_FRONT_RIGHT>Floaters_GearLight_NoseDown_TR_1</NODE_ID_LIGHT_DOWN_FRONT_RIGHT>
+			<NODE_ID_LIGHT_DOWN_BACK_LEFT>Floaters_GearLight_NoseDown_BL_1</NODE_ID_LIGHT_DOWN_BACK_LEFT>
+			<NODE_ID_LIGHT_DOWN_BACK_RIGHT>Floaters_GearLight_NoseDown_BR_1</NODE_ID_LIGHT_DOWN_BACK_RIGHT>
+			<NODE_ID_LIGHT_PUMP>Floaters_GearLight_Pump_1</NODE_ID_LIGHT_PUMP>
+			<NODE_ID_SWITCH_LIGHT>ELECTRICAL_Switch_Floaters_Dim_1</NODE_ID_SWITCH_LIGHT>
+			<ANIM_NAME_SWITCH_LIGHT>ELECTRICAL_Switch_Floaters_Dim_1</ANIM_NAME_SWITCH_LIGHT>
+			<GEAR_LEFT_FRONT_INDEX>0</GEAR_LEFT_FRONT_INDEX>
+			<GEAR_RIGHT_FRONT_INDEX>1</GEAR_RIGHT_FRONT_INDEX>
+			<GEAR_LEFT_BACK_INDEX>2</GEAR_LEFT_BACK_INDEX>
+			<GEAR_RIGHT_BACK_INDEX>3</GEAR_RIGHT_BACK_INDEX>
+			<INTENSITY_VAR>XMLVAR_DIM_Light_Switch</INTENSITY_VAR>
+		</Parameters>
+		<Parameters Type="Override">
+			<!-- 0 to 100 accepted -->
+			<INTESITY_CODE>(L:#INTENSITY_VAR#, bool) if{ 10 } els{ 100 }</INTESITY_CODE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Lever_Gear_Template">
+			<NODE_ID>#NODE_ID_LEVER#</NODE_ID>
+			<ANIM_NAME>#ANIM_NAME_LEVER#</ANIM_NAME>
+			<INVERT_ANIM>True</INVERT_ANIM>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_SAFETY_Push_Gear_Advisory_Template">
+			<NODE_ID>#NODE_ID_GEAR_ADVISORTY#</NODE_ID>
+			<ANIM_NAME>#ANIM_NAME_GEAR_ADVISORTY#</ANIM_NAME>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_SAFETY_Base_Template">		
+			<ANIM_NAME>#NODE_ID_SWITCH_LIGHT#</ANIM_NAME>
+			<NODE_ID>#NODE_ID_SWITCH_LIGHT#</NODE_ID>
+			<WWISE_EVENT_1>electrical_floaters_dim_switch_on</WWISE_EVENT_1>
+			<WWISE_EVENT_2>electrical_floaters_dim_switch_off</WWISE_EVENT_2>
+			<TOOLTIP_TITLE>@TT_Package.LIGHTING_KNOB_SUBPANEL_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.LIGHTING_KNOB_SUBPANEL_ACTION</TT_DESCRIPTION_ID>
+			<IE_NAME>Switch_Floaters_DimLights</IE_NAME>
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<SET_STATE_EXTERNAL>
+				p0 (&gt;L:#INTENSITY_VAR#, bool)
+			</SET_STATE_EXTERNAL>
+			<GET_STATE_EXTERNAL>
+				(L:#INTENSITY_VAR#, bool)
+			</GET_STATE_EXTERNAL>
+			<TT_VALUE_ON>(R:1:@TT_Package.GT_STATE_DIM)</TT_VALUE_ON>
+			<TT_VALUE_OFF>(R:1:@TT_Package.GT_STATE_BRIGHT)</TT_VALUE_OFF>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_PUMP#</NODE_ID>
+			<EMISSIVE_CODE>
+				1 399
+				(A:CONTACT POINT POSITION:#GEAR_LEFT_FRONT_INDEX#, Percent)
+				(A:CONTACT POINT POSITION:#GEAR_RIGHT_FRONT_INDEX#, Percent) +
+				(A:CONTACT POINT POSITION:#GEAR_LEFT_BACK_INDEX#, Percent)   +
+				(A:CONTACT POINT POSITION:#GEAR_RIGHT_BACK_INDEX#, Percent)  +
+				rng #INTESITY_CODE# *
+			</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_UP_FRONT_LEFT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_LEFT_FRONT_INDEX#, Percent) 0 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_UP_FRONT_RIGHT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_RIGHT_FRONT_INDEX#, Percent) 0 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_UP_BACK_LEFT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_LEFT_BACK_INDEX#, Percent) 0 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_UP_BACK_RIGHT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_RIGHT_BACK_INDEX#, Percent) 0 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_DOWN_FRONT_LEFT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_LEFT_FRONT_INDEX#, Percent) 100 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_DOWN_FRONT_RIGHT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_RIGHT_FRONT_INDEX#, Percent) 100 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_DOWN_BACK_LEFT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_LEFT_BACK_INDEX#, Percent) 100 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_LIGHT_DOWN_BACK_RIGHT#</NODE_ID>
+			<EMISSIVE_CODE>(A:CONTACT POINT POSITION:#GEAR_RIGHT_BACK_INDEX#, Percent) 100 == #INTESITY_CODE# *</EMISSIVE_CODE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Lever_Floater_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Floater_Template"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Check_Down_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Check_Down_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Push_Check_Down_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Check_Down_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Light_Test_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_Test_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Push_Light_Test_Template">
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Light_Test_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Brake_On_Off_Emergency_Template">
+		<Parameters Type="Default">
+			<POS_ON>0</POS_ON>
+			<POS_OFF>1</POS_OFF>
+			<POS_EMERGENCY>2</POS_EMERGENCY>
+			<NUM_STATES>3</NUM_STATES>
+			<NODE_ID>LANDING_GEAR_ParkingBrake</NODE_ID>
+			<ANIM_NAME>LANDING_GEAR_ParkingBrake</ANIM_NAME>
+			<WWISE_PREFIX>landing_gear_parkingbrake</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_LANDING_GEAR_Base_Template">
+			<IE_NAME>ParkingBrake</IE_NAME>
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<SET_STATE_#POS_ON#>0 (&gt;O:Emergency_Parking_Brake_On) 1 (&gt;K:PARKING_BRAKE_SET)</SET_STATE_#POS_ON#>
+			<SET_STATE_#POS_OFF#>0 (&gt;O:Emergency_Parking_Brake_On) 0 (&gt;K:PARKING_BRAKE_SET)</SET_STATE_#POS_OFF#>
+			<SET_STATE_#POS_EMERGENCY#>1 (&gt;O:Emergency_Parking_Brake_On) 1 (&gt;K:PARKING_BRAKE_SET)</SET_STATE_#POS_EMERGENCY#>
+			<STR_STATE_#POS_ON#>On</STR_STATE_#POS_ON#>
+			<STR_STATE_#POS_OFF#>Off</STR_STATE_#POS_OFF#>
+			<STR_STATE_#POS_EMERGENCY#>Emergency</STR_STATE_#POS_EMERGENCY#>
+			<TT_VALUE_#POS_ON#>@TT_Package.GT_STATE_ON</TT_VALUE_#POS_ON#>
+			<TT_VALUE_#POS_OFF#>@TT_Package.GT_STATE_OFF</TT_VALUE_#POS_OFF#>
+			<TT_VALUE_#POS_EMERGENCY#>@TT_Package.GT_STATE_EMERGENCY</TT_VALUE_#POS_EMERGENCY#>
+			<SIMVAR_TO_WATCH_0>BRAKE PARKING POSITION</SIMVAR_TO_WATCH_0>
+			<GET_STATE_EXTERNAL>(A:BRAKE PARKING POSITION, bool) sp0 (O:Emergency_Parking_Brake_On) sp1</GET_STATE_EXTERNAL>
+			<ENUM_VAL_TO_POS_EXTERNAL>
+				l0 ! if{ #POS_OFF# sp2 g1 }
+				els{ #POS_EMERGENCY# #POS_ON# l1 ? sp2 g1 } :1 l2
+			</ENUM_VAL_TO_POS_EXTERNAL>
+			<TT_DESCRIPTION_ID>@TT_Package.LANDING_GEAR_SWITCH_PARKING_BRAKE_ACTION_SET</TT_DESCRIPTION_ID>
+			<TOOLTIP_TITLE>@TT_Package.LANDING_GEAR_SWITCH_PARKING_BRAKE_TITLE</TOOLTIP_TITLE>
+		</UseTemplate>
+	</Template>
+	<!-- ############################################## -->
+	<!-- LANDING_GEAR Interaction inputs setup template -->
+	<Template Name="ASOBO_LANDING_GEAR_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>LANDING_GEAR</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>LANDING_GEAR</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>LANDING_GEAR</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>LANDING_GEAR</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_LANDING_GEAR_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>LANDING_GEAR</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>
+

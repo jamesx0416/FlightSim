@@ -90,7 +90,7 @@ async function ensureDir(path) {
 }
 
 async function main() {
-  const outDir = readOption("out", "vendor/msfs-stock/ModelBehaviorDefs/Asobo");
+  const outDir = readOption("out", "public/vendor/msfs-stock/ModelBehaviorDefs/Asobo");
   const matchText = readOption("match", "");
   const limitValue = readOption("limit");
   const limit = limitValue ? Number.parseInt(limitValue, 10) : Number.POSITIVE_INFINITY;
@@ -120,6 +120,7 @@ async function main() {
   console.log(`Found ${entries.length} XML page(s).`);
 
   let written = 0;
+  const writtenPaths = [];
 
   for (const entry of entries) {
     const pageUrl = new URL(entry.href, TEMPLATE_INDEX_URL).toString();
@@ -143,11 +144,31 @@ async function main() {
 
     await ensureDir(directory);
     await Bun.write(outputPath, `${xml}\n`);
+    writtenPaths.push(outputPath);
     written += 1;
   }
 
   if (!dryRun) {
+    const rootLayoutPath = `${outDir.replace(/\/ModelBehaviorDefs\/Asobo\/?$/u, "")}/layout.json`;
+    const content = writtenPaths
+      .map((path) => {
+        const relativePath = path
+          .replace(/^public\//u, "")
+          .replace(`${outDir.replace(/^public\//u, "").replace(/\/$/, "")}/`, "ModelBehaviorDefs/Asobo/");
+
+        return { path: relativePath.replaceAll("\\", "/") };
+      })
+      .sort((left, right) => left.path.localeCompare(right.path));
+
+    const layoutDirectory = rootLayoutPath.slice(0, rootLayoutPath.lastIndexOf("/"));
+    await ensureDir(layoutDirectory);
+    await Bun.write(
+      rootLayoutPath,
+      `${JSON.stringify({ content }, null, 2)}\n`,
+    );
+
     console.log(`Wrote ${written} XML file(s) to ${outDir}`);
+    console.log(`Wrote behavior-root layout to ${rootLayoutPath}`);
   }
 }
 
