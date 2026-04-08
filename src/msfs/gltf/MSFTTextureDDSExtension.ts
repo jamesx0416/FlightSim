@@ -1,4 +1,13 @@
-import type { LoadingManager } from 'three'
+import {
+  DataTexture,
+  LinearFilter,
+  NoColorSpace,
+  RGBAFormat,
+  SRGBColorSpace,
+  UnsignedByteType,
+  type LoadingManager,
+  type Texture
+} from 'three'
 
 import { MSFSDecodedDDSLoader } from './MSFSDecodedDDSLoader'
 import { MSFSDDSLoader } from './MSFSDDSLoader'
@@ -77,12 +86,33 @@ class MSFTTextureDDSExtension {
           })
         : new MSFSDDSLoader(this.parser.options.manager)
 
-    return this.parser.loadTextureImage(
-      textureIndex,
-      sourceIndex,
-      loader
-    )
+    return this.parser
+      .loadTextureImage(textureIndex, sourceIndex, loader)
+      .catch(() =>
+        createFallbackTexture({
+          transparent: decodeTransparentBaseColor,
+          normal: decodeNormalSource
+        })
+      )
   }
+}
+
+function createFallbackTexture(options: {
+  readonly transparent: boolean
+  readonly normal: boolean
+}): Texture {
+  const pixel = options.normal
+    ? new Uint8Array([128, 128, 255, 255])
+    : options.transparent
+      ? new Uint8Array([255, 255, 255, 0])
+      : new Uint8Array([255, 255, 255, 255])
+  const texture = new DataTexture(pixel, 1, 1, RGBAFormat, UnsignedByteType)
+  texture.colorSpace = options.normal ? NoColorSpace : SRGBColorSpace
+  texture.minFilter = LinearFilter
+  texture.magFilter = LinearFilter
+  texture.generateMipmaps = false
+  texture.needsUpdate = true
+  return texture
 }
 
 function shouldDecodeTransparentBaseColorSource(
