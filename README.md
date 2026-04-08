@@ -77,6 +77,24 @@ Those extra roots are searched generically for:
 - simulator-provided `ModelBehaviorDefs/...` includes such as `Asobo/Exterior.xml`
 - shared texture fallback paths discovered through `texture.cfg`
 
+The same additional roots can also be provided at runtime through the URL:
+
+```text
+?deps=/tmp/fs-base-aircraft-common/&deps=/tmp/asobo-vcockpits-instruments-airliners/
+```
+
+or as a single delimited query value:
+
+```text
+?packages=/tmp/fs-base-aircraft-common/;/tmp/asobo-vcockpits-instruments-airliners/
+```
+
+The main package root can also be selected from the URL:
+
+```text
+?package=/tmp/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0
+```
+
 ## Project Layout
 
 - [`plan.md`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/plan.md): implementation plan and phase boundaries
