@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "sh -c 'portless proxy start --port 3000 --https && trap \"portless proxy stop -p 3000\" EXIT INT TERM; portless run vite'",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "download:msfs-doc-xmls": "bun scripts/download-msfs-doc-xmls.mjs",
+    "download:msfs-doc-cfgs": "bun scripts/download-msfs-doc-cfgs.mjs"
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.21",

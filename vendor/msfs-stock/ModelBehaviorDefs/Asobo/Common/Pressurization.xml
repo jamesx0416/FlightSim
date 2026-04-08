@@ -1,0 +1,118 @@
+<ModelBehaviors>
+	<Include RelativeFile="Subtemplates\\Pressurization_Subtemplates.xml"/>
+	<Include RelativeFile="Inputs\\Pressurization_Inputs.xml"/>
+	<!-- ############################### PRESSURIZATION ############################### -->
+	<!-- ############################################################################## -->
+	<!-- Deploy -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_PRESSURIZATION_Passenger_Oxygen_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Passenger_Oxygen_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Switch_Passenger_Oxygen_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Passenger_Oxygen_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TT_ICON>MOVE_Y</TT_ICON>
+		</UseTemplate>
+	</Template>
+	<!-- Oxygen -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_PRESSURIZATION_Oxygen_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Oxygen_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Switch_Oxygen_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Oxygen_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TT_ICON>MOVE_Y</TT_ICON>
+		</UseTemplate>
+	</Template>
+	<!-- Suction needle -->
+	<Template Name="ASOBO_PRESSURIZATION_Needle_Suction_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_PRESSURIZATION_Needle_Suction_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	<!-- Micro/Mask -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_PRESSURIZATION_MicroMask_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_MicroMask_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Push_MicroMask_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_MicroMask_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Bleed -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_PRESSURIZATION_Bleed_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Bleed_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Switch_Bleed_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Bleed_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Dump -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_PRESSURIZATION_Dump_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Dump_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Push_Dump_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Dump_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Switch_Dump_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Dump_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Lever_Dump_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_Dump_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Climb rate -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_PRESSURIZATION_ClimbRate_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_ClimbRate_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Knob_ClimbRate_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_ClimbRate_Template">
+			<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Cabin altitude -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_PRESSURIZATION_CabinAlt_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_CabinAlt_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Knob_CabinAlt_Template">
+		<UseTemplate Name="ASOBO_PRESSURIZATION_CabinAlt_Template">
+			<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- ################################################ -->
+	<!-- PRESSURIZATION Interaction inputs setup template -->
+	<Template Name="ASOBO_PRESSURIZATION_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>PRESSURIZATION</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>PRESSURIZATION</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>PRESSURIZATION</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>PRESSURIZATION</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_PRESSURIZATION_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>PRESSURIZATION</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

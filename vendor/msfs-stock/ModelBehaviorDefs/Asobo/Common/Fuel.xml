@@ -1,0 +1,233 @@
+<ModelBehaviors>
+	<Include RelativeFile="Subtemplates\\Fuel_Subtemplates.xml"/>
+	<Include RelativeFile="Inputs\\Fuel_Inputs.xml"/>
+	<!-- #################################### FUEL #################################### -->
+	<!-- ############################################################################## -->
+	<!-- Mixture -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Mixture_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Mixture_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Lever_Mixture_Template">
+		<UseTemplate Name="ASOBO_FUEL_Mixture_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Switch_Mixture_Template">
+		<UseTemplate Name="ASOBO_FUEL_Mixture_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Turbine Run/Stop (using mixture) -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_RunStop_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_RunStop_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Push_RunStop_Template">
+		<Parameters Type="Default">
+			<HAS_COVER>True</HAS_COVER>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_RunStop_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel pump -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Pump_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Pump_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Push_Pump_Template">
+		<UseTemplate Name="ASOBO_FUEL_Pump_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Optionnal : set AUTOMATE_MOVEMENT to True to get a manual pump effect -->
+	<Template Name="ASOBO_FUEL_Lever_Pump_Template">
+		<UseTemplate Name="ASOBO_FUEL_Pump_Template">
+			<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Switch_Pump_Template">
+		<UseTemplate Name="ASOBO_FUEL_Pump_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Cutoff -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Cutoff_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Cutoff_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Switch_Cutoff_Template">
+		<UseTemplate Name="ASOBO_FUEL_Cutoff_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Push_Cutoff_Template">
+		<UseTemplate Name="ASOBO_FUEL_Cutoff_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel Valve -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Valve_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Valve_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Push_Valve_Template">
+		<UseTemplate Name="ASOBO_FUEL_Valve_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Switch_Valve_Template">
+		<UseTemplate Name="ASOBO_FUEL_Valve_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel Balance -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Balance_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Balance_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Push_Balance_Template">
+		<UseTemplate Name="ASOBO_FUEL_Balance_Template">
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel Selector -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Selector_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Selector_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Knob_Selector_Template">
+		<UseTemplate Name="ASOBO_FUEL_Selector_Template">
+			<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel Transfer -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Transfer_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Transfer_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Switch_Transfer_Template">
+		<UseTemplate Name="ASOBO_FUEL_Transfer_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TT_ICON>MOVE_Y</TT_ICON>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel Valve match mixture state -->
+	<Template Name="ASOBO_FUEL_Update_MatchValveToMixture">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<FREQUENCY>1</FREQUENCY>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Update">
+			<UPDATE_CODE>
+				(A:GENERAL ENG FUEL VALVE:#ID#, Bool)
+				(A:GENERAL ENG MIXTURE LEVER POSITION:#ID#, Percent) 0 &gt; != if{
+				(&gt;K:TOGGLE_FUEL_VALVE_ENG#ID#)
+				}
+			</UPDATE_CODE>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel Crossfeed -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Crossfeed_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Crossfeed_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Switch_Crossfeed_Template">
+		<UseTemplate Name="ASOBO_FUEL_Crossfeed_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Knob_Crossfeed_Template">
+		<UseTemplate Name="ASOBO_FUEL_Crossfeed_Template">
+			<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- Fuel Crossfeed/Cutoff -->
+	<!-- Required: INTERACTION_TYPE -->
+	<Template Name="ASOBO_FUEL_Cutoff_Crossfeed_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_FUEL_Cutoff_Crossfeed_SubTemplate"/>
+	</Template>
+	<Template Name="ASOBO_FUEL_Switch_Cutoff_Crossfeed_Template">
+		<UseTemplate Name="ASOBO_FUEL_Cutoff_Crossfeed_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<!-- MISC -->
+	<Template Name="ASOBO_FUEL_Ensure_Valve_Open">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseInputEvent ID="MODEL_BEHAVIOR">
+			<IE_NAME>Ensure_Fuel_Valve_Open</IE_NAME>
+			<SIMVAR_TO_WATCH_0>GENERAL ENG FUEL VALVE:#ID#</SIMVAR_TO_WATCH_0>
+			<INIT_CODE>(A:GENERAL ENG FUEL VALVE:#ID#, Bool) ! if{ (&gt;K:TOGGLE_FUEL_VALVE_ENG#ID#) }</INIT_CODE>
+		</UseInputEvent>
+	</Template>
+	<Template Name="ASOBO_FUEL_Condition_Lever_Template">
+		<UseTemplate Name="ASOBO_FUEL_Condition_Template">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Condition_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_AS_Fuel_Condition_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	
+	<!-- ###################################### -->
+	<!-- FUEL Interaction inputs setup template -->
+	<Template Name="ASOBO_FUEL_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>FUEL</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>FUEL</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>FUEL</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>FUEL</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_FUEL_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>FUEL</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>
+

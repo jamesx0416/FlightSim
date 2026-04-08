@@ -1,0 +1,691 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>Living Things sim.cfg</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <!-- <link href="../../../assets/css/Prism/prism.css" rel="stylesheet" /> -->
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="Living World,CFG Files"/>
+  <!-- <script src="../../../assets/css/Prism/prism.js"></script> -->
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>LIVING THINGS sim.cfg</h2>
+  <p>The different living things available in the simulation are also configured as SimObjects. These include humans (marshallers, tarmac workers, etc...), flying animals and ground animals. As with any other SimObject, the project for living things generally contain a <em>model</em> folder, a <em>texture</em> folder, and a <em>sound</em> folder, or possibly several of these for variants. Moreover, the model folder contains an <code class="inline">*.xml</code> file referencing <a href="#" data-popovertext="Stands for &#39;Level of Detail&#39; and refers to the complexity of a 3D model representation. In general this detail will be lower the further an object is from the viewer, and greater the closer it is." data-rhwidget="TextPopOver">LOD</a>s and model behaviors - as described in the corresponding section here: <code class="inline"><a href="../../Models/Model_Definitions.htm#Behaviors">&lt;Behaviors&gt;</a></code> - and may also contain animation data (explained here: <a href="../../Models/Model_Animation_Definitions.htm">Model Animation Definitions</a>). Living things have a single <code class="inline">*.cfg</code> file in their root folder, which is the file <code class="inline">sim.cfg</code>.</p>
+  <p><span class="note"><strong>NOTE</strong>: Any animal that goes in water, for example a whale, should be considered a <a href="../Boats/Boats.htm">Boat SimObject</a>, and not a living thing SimObject. You can see an example of the CFG file for this here: <a href="../Boats/Boats_sim_cfg_Examples.htm">Boats Config Examples</a>.</span></p>
+  <p> </p>
+  <p>Below you can find information on the different sections used in the <code class="inline">sim.cfg</code> file as well as what parameters and values are expected within them.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Version"><code class="inline">[VERSION]</code></h3>
+  <p>The <code class="inline">[VERSION]</code> section provides version information for the configuration file. <span>The version number of 1.0 is to ensure creatures/humans are up-to-date with the base version of <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>. Without any specified version number, 0.0 is assumed, and the living thing should keep some functionality. This is permitted for <span data-keyref="game_fx_short">FSX</span> backward-compatibility, but will mean the vehicle will lack some new improvements, such as model behaviors.</span></p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">major</code></td>
+        <td>Major CFG file version number.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minor</code></td>
+        <td>Minor CFG file version number.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="fltsim"><code class="inline">[fltsim.<em>N</em>]</code></h3>
+  <p>The <code class="inline">[fltsim.N]</code> section(s) are used to define the basics of the living thing. You can define multiple of these sections numbering them from 0, where each section is a variation of the creature/person. Note that you cannot &quot;skip&quot; numbers, so you can&#39;t have <code class="inline">[fltsim.0]</code> and then follow it with <code class="inline">[fltsim<span>.2]</span></code>. Each parameter listed below will take a default empty string &quot;&quot; which signifies the default folder, as explained in the descriptions for each parameter. However, should you wish to have variations, the name you give in each parameter will be appended onto the base folder name. For example, the base folder for a model is simply &quot;<code class="inline">model</code>&quot;, so any variations would be in folders called &quot;<code class="inline">model.&lt;variation&gt;</code>&quot;. The config file would then look like this:</p>
+  <pre class="language-xml"><code class="language-xml">[fltsim.0]
+title=MyCompany_Crab
+model=&quot;&quot;
+texture=&quot;&quot;
+ 
+[fltsim.1]
+title=MyCompany_Crab_Red
+model=&quot;Red&quot; ; folder would be &quot;model.Red&quot;
+texture=&quot;Red&quot; ; folder would be &quot;texture.Red&quot;</code></pre>
+  <p> </p>
+  <p>The following parameters exist for this section:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">title</code></td>
+        <td>The creature/human variation name. Names are a <strong>unique</strong> identifier of SimObjects and their variants. We recommend using your company name as a prefix, to guarantee the uniqueness of your SimObject even when included with objects produced by other 3rd party developers.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">model</code></td>
+        <td>The folder for the creature/human model (if it&#39;s the default &quot;model&quot; folder, leave as an empty string &quot;&quot;).</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">texture</code></td>
+        <td>The folder for the creature/human textures (if it&#39;s the default &quot;texture&quot; folder, leave as an empty string &quot;&quot;).</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">animation</code></td>
+        <td>The folder for the creature/human animation (if it&#39;s the default &quot;animation&quot; folder, leave as an empty string &quot;&quot;).</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">sound</code></td>
+        <td>The folder for the creature/human sounds (if it&#39;s the default &quot;sound&quot; folder, leave as an empty string &quot;&quot;).</td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="pilot_list">List Of Included Pilot/Copilot/Instructor SimObjects</h4>
+  <p>The following is a list of titles that can be used in the <code class="inline">pilot</code>, <code class="inline">copilot</code> and <code class="inline">instructor</code> parameters for the <code class="inline"><a href="../Aircraft_SimO/aircraft_cfg.htm#PILOT">[PILOT]</a></code> section of the <code class="inline">aircraft.cfg</code> file or as the <code class="inline">title</code> <em>and</em> <code class="inline">model</code> parameter in the <code class="inline"><a href="Living_Things_sim_cfg.htm#fltsim">[fltsim.N]</a></code> section of the <code class="inline">sim.cfg</code> file. If you use these titles, you have no need for further files to define the human model or SimObject as these all relate to ones already available. Also note that the list shows the corresponding relative path for the appropriate image to show in the <code class="inline">image</code> parameter of the <code class="inline"><a href="Living_Things_sim_cfg.htm#Pilot">[Pilot.N]</a></code> section.</p>
+  <ul>
+    <li>&quot;Pilot_Male_Casual&quot; - <code class="inline">images\Pilot_Male_Casual.png</code></li>
+    <li>&quot;Pilot_Female_Casual&quot;- <code class="inline">images\Pilot_Female_Casual.png</code></li>
+    <li>&quot;Pilot_Male_Uniform&quot;- <code class="inline">images\Pilot_Male_Uniform.png</code></li>
+    <li>&quot;Pilot_Female_Uniform&quot;- <code class="inline">images\Pilot_Female_Uniform.png</code></li>
+    <li>&quot;Pilot_Male_African&quot;- <code class="inline">images\Pilot_Male_African.png</code></li>
+    <li>&quot;Pilot_Female_African&quot;- <code class="inline">images\Pilot_Female_African.png</code></li>
+    <li>&quot;Pilot_Male_Uniform_African&quot;- <code class="inline">images\Pilot_Male_Uniform_African.png</code></li>
+    <li>&quot;Pilot_Female_Uniform_African&quot;- <code class="inline">images\Pilot_Female_Uniform_African.png</code></li>
+    <li>&quot;Pilot_Male_Arab&quot;- <code class="inline">images\Pilot_Male_Arab.png</code></li>
+    <li>&quot;Pilot_Female_Arab&quot;- <code class="inline">images\Pilot_Female_Arab.png</code></li>
+    <li>&quot;Pilot_Male_Uniform_Arab&quot;- <code class="inline">images\Pilot_Male_Uniform_Arab.png</code></li>
+    <li>&quot;Pilot_Female_Uniform_Arab&quot;- <code class="inline">images\Pilot_Female_Uniform_Arab.png</code></li>
+    <li>&quot;Pilot_Male_Asian&quot;- <code class="inline">images\Pilot_Male_Asian.png</code></li>
+    <li>&quot;Pilot_Female_Asian&quot;- <code class="inline">images\Pilot_Female_Asian.png</code></li>
+    <li>&quot;Pilot_Male_Uniform_Asian&quot;- <code class="inline">images\Pilot_Male_Uniform_Asian.png</code></li>
+    <li>&quot;Pilot_Female_Uniform_Asian&quot;- <code class="inline">images\Pilot_Female_Uniform_Asian.png</code></li>
+    <li>&quot;Pilot_Male_Hispanic&quot;- <code class="inline">images\Pilot_Male_Hispanic.png</code></li>
+    <li>&quot;Pilot_Female_Hispanic&quot;- <code class="inline">images\Pilot_Female_Hispanic.png</code></li>
+    <li>&quot;Pilot_Male_Uniform_Hispanic&quot;- <code class="inline">images\Pilot_Male_Uniform_Hispanic.png</code></li>
+    <li>&quot;Pilot_Female_Uniform_Hispanic&quot;- <code class="inline">images\Pilot_Female_Uniform_Hispanic.png</code></li>
+    <li>&quot;Pilot_Male_Indian&quot;- <code class="inline">images\Pilot_Male_Indian.png</code></li>
+    <li>&quot;Pilot_Female_Indian&quot;- <code class="inline">images\Pilot_Female_Indian.png</code></li>
+    <li>&quot;Pilot_Male_Uniform_Indian&quot;- <code class="inline">images\Pilot_Male_Uniform_Indian.png</code></li>
+    <li>&quot;Pilot_Female_Uniform_India&quot;- <code class="inline">images\Pilot_Female_Uniform_India.png</code></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="General"><code class="inline">[General]</code></h3>
+  <p>This section controls some general details relating to the creature/human SimObj. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">category</code></td>
+        <td>The category for the SimObject (in this case it will be either &quot;Animal&quot;, &quot;FlyingAnimal&quot;, &quot;Human&quot;, or &quot;AircraftPilot&quot;).</td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <ol class="minitoc-list">
+            <li>&quot;Airplane&quot;</li>
+            <li>&quot;Helicopter&quot;</li>
+            <li>&quot;Boat&quot;</li>
+            <li>&quot;GroundVehicle&quot;</li>
+            <li>&quot;Animal&quot;</li>
+            <li>&quot;FlyingAnimal&quot;</li>
+            <li>&quot;Human&quot;</li>
+            <li>&quot;StaticObject&quot;</li>
+            <li>&quot;AircraftPilot&quot;</li>
+            <li>&quot;GroundVehiclePilot&quot;</li>
+            <li>&quot;Winch&quot;</li>
+            <li>&quot;Parachute&quot;</li>
+          </ol>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">DistanceToNotAnimate</code></td>
+        <td>
+          <p>This is the distance (in meters) to turn off animation and model behavior systems, which lowers the processing overheads for the SimObjects. The approximate values by category would be:</p>
+          <ul>
+            <li>AircraftPilot = 100 meters</li>
+            <li>FlyingAnimals = 250 meters</li>
+            <li>All others = 1000 meters</li>
+          </ul>
+          <p>When the creature/human is farther away from the viewpoint of the camera, its model behaviors and other animations are not executed in order to improve general sim performance. If the camera gets farther than this distance during an animation then comes back closer, the animation will immediately skip to the frame it should have been without the interruption and, for model behaviors, the simvar <code class="inline">ANIMATION DELTA TIME</code> will contain the total time of interruption instead of the current frame delta time. This means that, as long as the animations/behaviors are not visible from this distance, this performance optimization will have no visible impact whatsoever for the user.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="DesignSpecs"><code class="inline">[DesignSpecs]</code></h3>
+  <p>This section controls the specification related to the ground creature/human, like movement speed. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col style="width:20%;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">max_speed_mph</code></td>
+        <td>
+          <p>The maximum speed of the creature/human, in <a href="#" data-popovertext="This stands for &#39;Miles Per Hour&#39;, which is an imperial unit of speed expressing the number of miles travelled in one hour. This is equal to 1.609 metric kilometers per hour." data-rhwidget="TextPopOver">mph</a>. If you have added the speed in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s this is not required, but <em>one</em> of the two must be present.</p>
+          <p>Value must be greater than 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_speed_knots</code></td>
+        <td>
+          <p>The maximum speed of the creature/human, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>. If you have added the speed in <a href="#" data-popovertext="This stands for &#39;Miles Per Hour&#39;, which is an imperial unit of speed expressing the number of miles travelled in one hour. This is equal to 1.609 metric kilometers per hour." data-rhwidget="TextPopOver">mph</a> this is not required, but <em>one</em> of the two must be present.</p>
+          <p>Value must be greater than 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">acceleration_constants</code></td>
+        <td>2 value table used to control the creature/human acceleration. The first value is a time constant of effect responsiveness (higher value for faster reactions), while the second one is a maximum acceleration in Gs.</td>
+        <td>
+          <p>1D table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">deceleration_constants</code></td>
+        <td>2 value table used to control the creature/human deceleration. The first value is a time constant of effect responsiveness (higher value for faster reactions), while the second one is a maximum acceleration in Gs.</td>
+        <td>
+          <p>1D table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">turning_constants</code></td>
+        <td>4 value table used to control how the creature/human turns. The first value is a time constant of effect responsiveness (higher value for faster reactions), the second value is the maximum number of degrees it can turn, third is the optimal turning speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s), and fourth is the maximum turning speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s).</td>
+        <td>
+          <p>1D table of 4 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Pilot"><code class="inline">[Pilot.<em>N</em>]</code></h3>
+  <p>This optional section sets details for an aircraft pilot and is only required when the <code class="inline"><a href="Living_Things_sim_cfg.htm#fltsim">[fltsim.N]</a></code> <code class="inline">title</code> is set to &quot;AircraftPilot&quot;. You can have multiple <code class="inline">[Pilot.N]</code> sections in a single <code class="inline">sim.cfg</code> file, and they should be numbered consecutively from 0. Note that you cannot &quot;skip&quot; numbers, so you can&#39;t have <code class="inline">[Pilot.0]</code> and then follow it with <code class="inline">[Pilot<span>.2]</span></code>. This setting is used to set which pilot is the default for the current aircraft, and any pilot defined here is also added in the pilots list that you can find in the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> options menu. The available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">name</code></td>
+        <td>This is a localisable string that gives the pilot a name.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">image</code></td>
+        <td>This defines the path (relative to the <code class="inline">sim.cfg</code> file) used to illustrate the pilot in the simulation menu.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">biography</code></td>
+        <td>Here you can give a short (localisable) text to describe the pilot.</td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">copilot</code></td>
+        <td>When set to 1, this pilot can also be selected as a copilot.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">instructor</code></td>
+        <td>When set to 1, this pilot can also be selected as an instructor.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">female</code></td>
+        <td>When set to 1, the pilot is flagged as female.</td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="ContactPoints"><code class="inline">[contact_points]</code></h3>
+  <p>This optional section controls the contact points for the living thing with the ground. Although the creature/human could work fine with the default values set when omitting this section, we recommend including this section explicitly. The available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">static_cg_height</code></td>
+        <td>The distance, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>, between the center of the creature/human model and the ground. This should be a positive value if the center of the model is above the ground. Note that with a major <code class="inline">[Version]</code> number <em>less </em>than 1.0 (or unspecified), <code class="inline">static_cg_height</code> should actually contain this distance +1, due to <span data-keyref="game_fx_short">FSX</span> backward-compatibility, even though this is rather counter-intuitive.</td>
+        <td colspan="1" rowspan="3">Float</td>
+        <td colspan="1" rowspan="3" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">static_pitch</code></td>
+        <td>The pitch of the human/creature when at rest on flat ground, in degrees.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">wheel_radius</code></td>
+        <td>While creatures/humans don&#39;t have wheels, this is still required for defining the way it connects with the ground. Generally this would be set to 1.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="Waypoint"><code class="inline">[WAYPOINT]</code></h3>
+  <p>This section contains various parameters controlling the way that the living thing will move along waypoints or in the world, all of which are optional due to default values. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 720px;"/>
+      <col style="width: 11px;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">SlowDownDistance</code></td>
+        <td>The distance, in meters, at which the creature/human start slowing down before a sharp turn or its destination. Default value is 50m.</td>
+        <td colspan="1" rowspan="3">Float</td>
+        <td colspan="1" rowspan="4" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">StopDistance</code></td>
+        <td>The distance, in meters, from the destination at which the creature/human considers it has reached its destination, and will start actually braking to reach a full stop.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">FrontRadiusMeters</code></td>
+        <td>The length, in meters, from the center of the creature/human to the front of it. It is used by the AI to better manage turns. The default is 0, which means an approximate exaggerated value is computed by using a bounding box on the model.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">CanReverse</code></td>
+        <td>Sets whether the creature/human can reverse (TRUE, 1) or not (FALSE, 0). Default is TRUE.</td>
+        <td colspan="1" rowspan="2">Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">SlowDownOnLastWayPoint</code></td>
+        <td>This determines if the creature/human should start really slowing down (but not trying to fully stop either), on the last 5 meters before its destination (TRUE, 1) or not (FALSE, 0). Default to TRUE.</td>
+        <td colspan="1" style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.3.4.0_1"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

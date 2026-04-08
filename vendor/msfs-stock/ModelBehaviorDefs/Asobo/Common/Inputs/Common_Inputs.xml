@@ -1,0 +1,217 @@
+<ModelBehaviors>
+	<Include ModelBehaviorFile="ASOBO\Inputs\Helpers.xml"/>
+	<InputEvent ID="COMMON">
+		<Presets>
+			<Extend Target="ASOBO_GIE_Anim_Handling">
+				<Parameters Type="Default">
+					<INPUT_EVENT_ID_SOURCE>COMMON</INPUT_EVENT_ID_SOURCE>
+				</Parameters>
+			</Extend>
+		</Presets>
+	</InputEvent>
+	<InputEvent ID="PROCEDURE">
+		<Presets>
+			<Switch Param="PROCEDURE_ID">
+				<Case Value="AUTOSTART">
+					<Extend Target="ASOBO_GIE_Base">
+						<Parameters Type="Default">
+							<INPUT_EVENT_ID_SOURCE>PROCEDURE</INPUT_EVENT_ID_SOURCE>
+							<ON_AUTOSTART/>
+							<ON_AUTOSTOP/>
+							<Condition NotEmpty="ON_COMBUSTION_STATE_CHANGED">
+								<COMBUSTION_SIMVAR>GENERAL ENG COMBUSTION:1</COMBUSTION_SIMVAR>
+							</Condition>
+							<IE_NAME>Autostart</IE_NAME>
+						</Parameters>
+						<Parameters Type="Default">
+							<SET_ARG_COUNT>1</SET_ARG_COUNT>
+							<Condition NotEmpty="ON_AUTOSTART">
+								<BINDING_SET_0>L0</BINDING_SET_0>
+								<BINDING_SET_0_PARAM_0>1</BINDING_SET_0_PARAM_0>
+								<BINDING_SET_0_EVENT_ID>ENGINE_AUTO_START</BINDING_SET_0_EVENT_ID>
+								<BINDING_SET_0_EVENT_ID_ONLY>True</BINDING_SET_0_EVENT_ID_ONLY>
+							</Condition>
+							<Condition NotEmpty="ON_AUTOSTOP">
+								<BINDING_SET_1>L1</BINDING_SET_1>
+								<BINDING_SET_1_PARAM_0>0</BINDING_SET_1_PARAM_0>
+								<BINDING_SET_1_EVENT_ID>ENGINE_AUTO_SHUTDOWN</BINDING_SET_1_EVENT_ID>
+								<BINDING_SET_1_EVENT_ID_ONLY>True</BINDING_SET_1_EVENT_ID_ONLY>
+							</Condition>
+							<INC_CODE>1 (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)</INC_CODE>
+							<DEC_CODE>0 (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)</DEC_CODE>
+							<SET_CODE>
+								p0 if{ 
+									#ON_AUTOSTART#
+								} els{
+									#ON_AUTOSTOP#
+								}
+							</SET_CODE>
+							<TT_ICON>PUSH</TT_ICON>
+							<TT_INTERACTION>PRIMARY_DOWN</TT_INTERACTION>
+							<TT_INTERACTION_LOCKABLE>LOCK</TT_INTERACTION_LOCKABLE>
+							<TT_DESCRIPTION>@TT_Package.GT_STATE_NA</TT_DESCRIPTION>
+							<TT_DESCRIPTION_IS_DYNAMIC>False</TT_DESCRIPTION_IS_DYNAMIC>
+							<TT_VALUE>@TT_Package.GT_STATE_NA</TT_VALUE>
+							<TT_VALUE_IS_DYNAMIC>False</TT_VALUE_IS_DYNAMIC>
+							<VALUE_UNITS>Bool</VALUE_UNITS>
+							<VALUE_CODE/>
+							<Condition NotEmpty="ON_COMBUSTION_STATE_CHANGED">
+								<True>
+									<SIMVAR_TO_WATCH_0>#COMBUSTION_SIMVAR#</SIMVAR_TO_WATCH_0>
+									<INIT_CODE>(A:#COMBUSTION_SIMVAR#, Bool) #ON_COMBUSTION_STATE_CHANGED#</INIT_CODE>									
+								</True>
+								<False>
+									<INIT_CODE/>
+								</False>
+							</Condition>
+						</Parameters>
+					</Extend>
+				</Case>
+				<Case Value="GEAR_CONTROLLED_CIRCUIT">
+					<Extend Target="ASOBO_GIE_Base">
+						<Parameters Type="Default">
+							<INPUT_EVENT_ID_SOURCE>PROCEDURE</INPUT_EVENT_ID_SOURCE>
+							<ON_GEAR_DOWN/>
+							<ON_GEAR_UP/>
+							<IE_NAME>GearControlledCircuit</IE_NAME>
+							<GEAR_SIMVAR>GEAR CENTER POSITION</GEAR_SIMVAR>
+							<BUS_INDEX>0</BUS_INDEX>
+						</Parameters>
+						<Parameters Type="Override">
+							<Loop>
+								<Setup>
+									<Param>CUR_ID</Param>
+									<From>0</From>
+									<Inc>1</Inc>
+									<While>
+										<Arg NotEmpty="CIRCUIT_#CUR_ID#"/>
+									</While>
+								</Setup>
+								<Do>
+									<Parameters Type="Override" Lifetime="Loop">
+										<CURRENT_CIRCUIT Process="Param">CIRCUIT_#CUR_ID#</CURRENT_CIRCUIT>
+										<Condition NotEmpty="CIRCUIT_BUS_#CUR_ID#">
+											<True>
+												<CURRENT_BUS_INDEX Process="Param">CIRCUIT_BUS_#CUR_ID#</CURRENT_BUS_INDEX>
+											</True>
+											<False>
+												<CURRENT_BUS_INDEX>#BUS_INDEX#</CURRENT_BUS_INDEX>
+											</False>
+										</Condition>
+										<SIMVAR_ID Process="Int">#CUR_ID# 1 +</SIMVAR_ID>
+									</Parameters>
+									<Parameters Type="Default" Lifetime="Loop">
+										<ON_GEAR_DOWN_T/>
+										<ON_GEAR_UP_T/>
+									</Parameters>
+									<Parameters Type="Override" Lifetime="Loop">
+										<ON_GEAR_DOWN_T>#ON_GEAR_DOWN_T#
+										#CURRENT_BUS_INDEX# (A:1:CIRCUIT CONNECTION ON:#CURRENT_CIRCUIT#, Bool) ! if{
+											#CURRENT_CIRCUIT# #CURRENT_BUS_INDEX# (&gt;K:2:ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE)
+										}
+										</ON_GEAR_DOWN_T>
+										<ON_GEAR_UP_T>#ON_GEAR_UP_T#
+										#CURRENT_BUS_INDEX# (A:1:CIRCUIT CONNECTION ON:#CURRENT_CIRCUIT#, Bool) if{
+											#CURRENT_CIRCUIT# #CURRENT_BUS_INDEX# (&gt;K:2:ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE)
+										}
+										</ON_GEAR_UP_T>
+									</Parameters>
+								</Do>
+								<Then>
+									<ON_GEAR_DOWN>#ON_GEAR_DOWN_T#</ON_GEAR_DOWN>
+									<ON_GEAR_UP>#ON_GEAR_UP_T#</ON_GEAR_UP>
+									<SIMVAR_TO_WATCH_#SIMVAR_ID#>CIRCUIT SWITCH ON:#CURRENT_CIRCUIT#</SIMVAR_TO_WATCH_#SIMVAR_ID#>
+								</Then>
+							</Loop>
+						</Parameters>
+						<Parameters Type="Default">
+							<INC_CODE>1 (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)</INC_CODE>
+							<DEC_CODE>0 (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)</DEC_CODE>
+							<SET_CODE>
+								p0 if{ 
+									#ON_GEAR_DOWN#
+								} els{
+									#ON_GEAR_UP#
+								}
+							</SET_CODE>
+							<SIMVAR_TO_WATCH_0>#GEAR_SIMVAR#</SIMVAR_TO_WATCH_0>
+							<INIT_CODE>(A:#GEAR_SIMVAR#, Percent over 100) 1 == (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)</INIT_CODE>
+							<SET_ARG_COUNT>1</SET_ARG_COUNT>
+							<TT_ICON>PUSH</TT_ICON>
+							<TT_INTERACTION>PRIMARY_DOWN</TT_INTERACTION>
+							<TT_INTERACTION_LOCKABLE>LOCK</TT_INTERACTION_LOCKABLE>
+							<TT_DESCRIPTION>@TT_Package.GT_STATE_NA</TT_DESCRIPTION>
+							<TT_DESCRIPTION_IS_DYNAMIC>False</TT_DESCRIPTION_IS_DYNAMIC>
+							<TT_VALUE>@TT_Package.GT_STATE_NA</TT_VALUE>
+							<TT_VALUE_IS_DYNAMIC>False</TT_VALUE_IS_DYNAMIC>
+							<VALUE_UNITS>Bool</VALUE_UNITS>
+							<VALUE_CODE/>
+						</Parameters>
+					</Extend>
+				</Case>
+				<Case Value="ALL_LIGHTS_TOGGLE">
+					<Extend Target="ASOBO_GIE_Base">
+						<Parameters Type="Default">
+							<INPUT_EVENT_ID_SOURCE>PROCEDURE</INPUT_EVENT_ID_SOURCE>
+							<TOGGLE_LIGHTS_CODE_EXTERNAL/>
+							<IE_NAME>ToggleAllLights</IE_NAME>
+						</Parameters>
+						<Parameters Type="Default">
+							<TOGGLE_LIGHTS_CODE>#TOGGLE_LIGHTS_CODE_EXTERNAL# (&gt;K:ALL_LIGHTS_TOGGLE)</TOGGLE_LIGHTS_CODE>
+						</Parameters>
+						<Parameters Type="Default">
+							<INC_CODE>1 (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)</INC_CODE>
+							<DEC_CODE>1 (&gt;B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)</DEC_CODE>
+							<SET_CODE>#TOGGLE_LIGHTS_CODE#</SET_CODE>
+							<INIT_CODE>1</INIT_CODE>
+							<TT_ICON>PUSH</TT_ICON>
+							<TT_INTERACTION>PRIMARY_DOWN</TT_INTERACTION>
+							<TT_INTERACTION_LOCKABLE>LOCK</TT_INTERACTION_LOCKABLE>
+							<TT_DESCRIPTION>@TT_Package.GT_STATE_NA</TT_DESCRIPTION>
+							<TT_DESCRIPTION_IS_DYNAMIC>False</TT_DESCRIPTION_IS_DYNAMIC>
+							<TT_VALUE>@TT_Package.GT_STATE_NA</TT_VALUE>
+							<TT_VALUE_IS_DYNAMIC>False</TT_VALUE_IS_DYNAMIC>
+							<VALUE_UNITS>Bool</VALUE_UNITS>
+							<VALUE_CODE/>
+							<SET_ARG_COUNT>1</SET_ARG_COUNT>
+							<BINDING_SET_0>KeyBind_Toggle</BINDING_SET_0>
+							<BINDING_SET_0_EVENT_ID_ONLY>True</BINDING_SET_0_EVENT_ID_ONLY>
+							<BINDING_SET_0_EVENT_ID>ALL_LIGHTS_TOGGLE</BINDING_SET_0_EVENT_ID>
+							<BINDING_SET_0_PARAM_0>1</BINDING_SET_0_PARAM_0>
+						</Parameters>
+					</Extend>
+				</Case>
+				<Default>
+					<Extend Target="ASOBO_GIE_Base">
+						<Parameters Type="Default">
+							<INPUT_EVENT_ID_SOURCE>PROCEDURE</INPUT_EVENT_ID_SOURCE>
+						</Parameters>
+					</Extend>					
+				</Default>
+			</Switch>
+		</Presets>
+	</InputEvent>
+	<!-- Inputs used by the model behavior only, not supposed to be exposed -->
+	<InputEvent ID="MODEL_BEHAVIOR">
+		<Presets>
+			<Extend Target="ASOBO_GIE_Base">
+				<Parameters Type="Default">
+					<INPUT_EVENT_ID_SOURCE>MB</INPUT_EVENT_ID_SOURCE>
+					<TT_ICON>PUSH</TT_ICON>
+					<TT_INTERACTION>PRIMARY_DOWN</TT_INTERACTION>
+					<TT_INTERACTION_LOCKABLE>LOCK</TT_INTERACTION_LOCKABLE>
+					<TT_DESCRIPTION>@TT_Package.GT_STATE_NA</TT_DESCRIPTION>
+					<TT_DESCRIPTION_IS_DYNAMIC>False</TT_DESCRIPTION_IS_DYNAMIC>
+					<TT_VALUE>@TT_Package.GT_STATE_NA</TT_VALUE>
+					<TT_VALUE_IS_DYNAMIC>False</TT_VALUE_IS_DYNAMIC>
+					<VALUE_UNITS>Bool</VALUE_UNITS>
+					<VALUE_CODE/>
+					<INIT_CODE/>
+					<INC_CODE>quit</INC_CODE>
+					<DEC_CODE>quit</DEC_CODE>
+					<SET_CODE>quit</SET_CODE>
+				</Parameters>
+			</Extend>
+		</Presets>
+	</InputEvent>
+</ModelBehaviors>

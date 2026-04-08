@@ -1,0 +1,134 @@
+<ModelBehaviors>
+	<Include RelativeFile="Inputs\\Misc_Inputs.xml"/>
+	<Template Name="ASOBO_ASDigitalFuelMeter_FP5L_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_ASDigitalFuelMeter_FP5L_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ASDigitalFuelMeter_FP5L_SubTemplate">
+		<Parameters Type="Default">
+			<NODE_ID_SCREEN>INSTRUMENT_FUEL_SCREEN#SUFFIX_ID#</NODE_ID_SCREEN>
+			<NODE_ID_SWITCH>BUTTON_DIGITALFUELMETER_STEP#SUFFIX_ID#</NODE_ID_SWITCH>
+			<ANIM_NAME_SWITCH>BUTTON_DIGITALFUELMETER_STEP#SUFFIX_ID#</ANIM_NAME_SWITCH>
+			<NODE_ID_LEFT_BUTTON>BUTTON_DIGITALFUELMETER_DES#SUFFIX_ID#</NODE_ID_LEFT_BUTTON>
+			<ANIM_NAME_LEFT_BUTTON>BUTTON_DIGITALFUELMETER_DES#SUFFIX_ID#</ANIM_NAME_LEFT_BUTTON>
+			<NODE_ID_RIGHT_BUTTON>BUTTON_DIGITALFUELMETER_RES#SUFFIX_ID#</NODE_ID_RIGHT_BUTTON>
+			<ANIM_NAME_RIGHT_BUTTON>BUTTON_DIGITALFUELMETER_RES#SUFFIX_ID#</ANIM_NAME_RIGHT_BUTTON>
+			<NODE_ID_LED_1>LIGHT_DIGITALFUELMETER_FLOW_HP#SUFFIX_ID#</NODE_ID_LED_1>
+			<NODE_ID_LED_2>LIGHT_DIGITALFUELMETER_REM#SUFFIX_ID#</NODE_ID_LED_2>
+			<NODE_ID_LED_3>LIGHT_DIGITALFUELMETER_FUEL_USED#SUFFIX_ID#</NODE_ID_LED_3>
+			<NODE_ID_LED_4>LIGHT_DIGITALFUELMETER_MPG#SUFFIX_ID#</NODE_ID_LED_4>
+			<NODE_ID_LED_5>LIGHT_DIGITALFUELMETER_AUX#SUFFIX_ID#</NODE_ID_LED_5>
+			<NODE_ID_WARNING_LED_LOWFUEL>LIGHT_DIGITALFUELMETER_LOWFUEL#SUFFIX_ID#</NODE_ID_WARNING_LED_LOWFUEL>
+			<NODE_ID_WARNING_LED_HL_AUX>LIGHT_DIGITALFUELMETER_HL_AUX#SUFFIX_ID#</NODE_ID_WARNING_LED_HL_AUX>
+			<!-- Switch Mode -->
+			<POS_LEFT>0</POS_LEFT>
+			<POS_MED>1</POS_MED>
+			<POS_RIGHT>2</POS_RIGHT>
+			<WWISE_PREFIX>asDigitalFuelMeterFP5L</WWISE_PREFIX>
+			<MOMENTARY_TIMER_SWITCH>0.1</MOMENTARY_TIMER_SWITCH>
+		</Parameters>
+		<Component ID="DigitalFuelMeter_FP5L">
+			<Component ID="#NODE_ID_SCREEN#" Node="#NODE_ID_SCREEN#">
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>0.5</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+			
+			<UseTemplate Name="ASOBO_AS_DigitalFuelMeter_FP5L_Base_Template">
+				<IE_NAME>Switch</IE_NAME>
+				<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+				<NUM_STATES>3</NUM_STATES>
+				<MOMENTARY_SWITCH>True</MOMENTARY_SWITCH>
+				<STATE_MAX_TIMER>#MOMENTARY_TIMER_SWITCH#</STATE_MAX_TIMER>
+				<STATE0_TIMER>#MOMENTARY_TIMER_SWITCH#</STATE0_TIMER>
+				<SWITCH_DIRECTION>Horizontal</SWITCH_DIRECTION>
+				<SET_STATE_#POS_LEFT#>(&gt;H:DigitalFuelMeter_FP5L_SwitchLeft)</SET_STATE_#POS_LEFT#>
+				<SET_STATE_#POS_MED#></SET_STATE_#POS_MED#>
+				<SET_STATE_#POS_RIGHT#>(&gt;H:DigitalFuelMeter_FP5L_SwitchRight)</SET_STATE_#POS_RIGHT#>
+				<GET_STATE_EXTERNAL>1</GET_STATE_EXTERNAL>
+				<ENUM_VAL_TO_POS_EXTERNAL>l0</ENUM_VAL_TO_POS_EXTERNAL>
+				<STR_STATE_#POS_LEFT#>Left</STR_STATE_#POS_LEFT#>
+				<STR_STATE_#POS_MED#>Center</STR_STATE_#POS_MED#>
+				<STR_STATE_#POS_RIGHT#>Right</STR_STATE_#POS_RIGHT#>
+				<TT_VALUE_#POS_LEFT#>@TT_Package.GT_STATE_LEFT</TT_VALUE_#POS_LEFT#>
+				<TT_VALUE_#POS_MED#>@TT_Package.GT_STATE_MED</TT_VALUE_#POS_MED#>
+				<TT_VALUE_#POS_RIGHT#>@TT_Package.GT_STATE_RIGHT</TT_VALUE_#POS_RIGHT#>
+				<NODE_ID>#NODE_ID_SWITCH#</NODE_ID>
+				<ANIM_NAME>#ANIM_NAME_SWITCH#</ANIM_NAME>
+				<TOOLTIP_TITLE>@TT_Package.DIGITALFUELMETER_FP5L_SWITCH_TITLE</TOOLTIP_TITLE>
+				<TT_DESCRIPTION_ID>@TT_Package.DIGITALFUELMETER_FP5L_SWITCH_ACTION</TT_DESCRIPTION_ID>
+			</UseTemplate>
+			
+			<UseTemplate Name="ASOBO_AS_DigitalFuelMeter_FP5L_Base_Template">
+				<IE_NAME>LeftButton</IE_NAME>
+				<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+				<SET_STATE_EXTERNAL>if{ (&gt;H:DigitalFuelMeter_FP5L_LeftButtonPush) }</SET_STATE_EXTERNAL>
+				<NODE_ID>#NODE_ID_LEFT_BUTTON#</NODE_ID>
+				<ANIM_NAME>#ANIM_NAME_LEFT_BUTTON#</ANIM_NAME>
+				<TOOLTIP_TITLE>@TT_Package.DIGITALFUELMETER_FP5L_LEFT_BUTTON_TITLE</TOOLTIP_TITLE>
+				<TT_DESCRIPTION_ID>@TT_Package.DIGITALFUELMETER_FP5L_LEFT_BUTTON_ACTION</TT_DESCRIPTION_ID>
+			</UseTemplate>
+			
+			<UseTemplate Name="ASOBO_AS_DigitalFuelMeter_FP5L_Base_Template">
+				<IE_NAME>RightButton</IE_NAME>
+				<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+				<SET_STATE_EXTERNAL>if{ (&gt;H:DigitalFuelMeter_FP5L_RightButtonPush) }</SET_STATE_EXTERNAL>
+				<NODE_ID>#NODE_ID_RIGHT_BUTTON#</NODE_ID>
+				<ANIM_NAME>#ANIM_NAME_RIGHT_BUTTON#</ANIM_NAME>
+				<TOOLTIP_TITLE>@TT_Package.DIGITALFUELMETER_FP5L_RIGHT_BUTTON_TITLE</TOOLTIP_TITLE>
+				<TT_DESCRIPTION_ID>@TT_Package.DIGITALFUELMETER_FP5L_RIGHT_BUTTON_ACTION</TT_DESCRIPTION_ID>
+			</UseTemplate>
+			
+			<Component ID="DigitalFuelMeter_FP5L_Switch_Leds">
+				<Loop>
+					<Setup>
+						<Param>LED_ID</Param>
+						<From>1</From>
+						<Inc>1</Inc>
+						<To>5</To>
+					</Setup>
+					<Do>
+						<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+							<NODE_ID Process="Param">NODE_ID_LED_#LED_ID#</NODE_ID>
+							<EMISSIVE_CODE>(L:DigitalFuelMeter_FP5L_PAGE_LED) #LED_ID# ==</EMISSIVE_CODE>						
+						</UseTemplate>
+					</Do>
+				</Loop>
+			</Component>
+			
+			<Component ID="DigitalFuelMeter_FP5L_Warning_Leds">
+				<UseTemplate Name="DigitalFuelMeter_FP5L_Warning_Led">
+					<NODE_ID>#NODE_ID_WARNING_LED_LOWFUEL#</NODE_ID>
+					<LVAR>DigitalFuelMeter_FP5L_LOW_FUEL_LIGHT</LVAR>
+				</UseTemplate>
+				
+				<UseTemplate Name="DigitalFuelMeter_FP5L_Warning_Led">
+					<NODE_ID>#NODE_ID_WARNING_LED_HL_AUX#</NODE_ID>
+					<LVAR>DigitalFuelMeter_FP5L_HL_AUX_LIGHT</LVAR>
+				</UseTemplate>
+			</Component>
+		</Component>
+	</Template>
+	
+	<Template Name="DigitalFuelMeter_FP5L_Warning_Led">
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<EMISSIVE_CODE>1</EMISSIVE_CODE>
+			<BLINK>True</BLINK>
+			<BLINK_DURATION>(L:#LVAR#) 50 *</BLINK_DURATION>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_AS_DigitalFuelMeter_FP5L_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>AS_DigitalFuelMeter_FP5L</INPUT_EVENT_ID_SOURCE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_DigitalFuelMeter_FP5L</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

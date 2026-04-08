@@ -1,0 +1,94 @@
+<ModelBehaviors>
+	<Include RelativeFile="Inputs\Misc_Inputs.xml"/>
+	<Template Name="ASOBO_AS_EPM_Template">
+		<Parameters Type="Default">
+			<NODE_ID_SCREEN>EPM_SCREEN</NODE_ID_SCREEN>
+			<SCREEN_MIN_EMISSIVE_PERCENT>0.05</SCREEN_MIN_EMISSIVE_PERCENT>
+			<MAX_EMISSIVE_PERCENT>1</MAX_EMISSIVE_PERCENT>
+			<Loop>
+				<Setup>
+					<Param>BTN_ID</Param>
+					<From>1</From>
+					<Inc>1</Inc>
+					<To>5</To>
+				</Setup>
+				<Do>
+					<NODE_ID#BTN_ID#>EPM_SOFTKEY_#BTN_ID#_VISUAL</NODE_ID#BTN_ID#>
+					<ANIM_NAME#BTN_ID#>EPM_SOFTKEY_#BTN_ID#</ANIM_NAME#BTN_ID#>
+					<TT_DESCRIPTION_ID#BTN_ID#>@TT_Package.AS_EPM_SOFTKEY#BTN_ID#_ACTION</TT_DESCRIPTION_ID#BTN_ID#>
+				</Do>
+			</Loop>
+		</Parameters>
+		<Component ID="ASOBO_AS_EPM">
+			<Component ID="#NODE_ID_SCREEN#" Node="#NODE_ID_SCREEN#">
+				<Parameters Type="Default">
+					<Condition Check="CIRCUIT_ID">
+						<True>
+							<FAILURE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool)</FAILURE>
+						</True>
+						<False>
+							<FAILURE>(A:CIRCUIT GENERAL PANEL ON:0, Bool)</FAILURE>
+						</False>
+					</Condition>
+				</Parameters>
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>#MAX_EMISSIVE_PERCENT# #SCREEN_MIN_EMISSIVE_PERCENT# - (A:GLASSCOCKPIT AUTOMATIC BRIGHTNESS, Percent over 100) * #SCREEN_MIN_EMISSIVE_PERCENT# +</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+			<Loop>
+				<Setup>
+					<Param>BTN_ID</Param>
+					<From>1</From>
+					<Inc>1</Inc>
+					<To>5</To>
+				</Setup>
+				<Do>
+					<Parameters Type="Default">
+						<NODE_ID Process="Param">NODE_ID#BTN_ID#</NODE_ID>
+						<IE_NAME>#BTN_ID#</IE_NAME>
+						<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+						<ANIM_NAME Process="Param">ANIM_NAME#BTN_ID#</ANIM_NAME>
+						<SET_STATE_EXTERNAL>if{ (&gt;H:AS_EPM_Softkey_#BTN_ID#_Press) }</SET_STATE_EXTERNAL>
+						<TOOLTIP_TITLE>@TT_Package.AS_EPM_SOFTKEY_TITLE</TOOLTIP_TITLE>
+						<TOOLTIP_TITLE_INDEX>#BTN_ID#</TOOLTIP_TITLE_INDEX>
+						<TT_DESCRIPTION_ID Process="Param">TT_DESCRIPTION_ID#BTN_ID#</TT_DESCRIPTION_ID>	
+						<Condition Check="BTN_ID" Match="3">
+							<True>
+								<EXTRA_OPTION>_Timed</EXTRA_OPTION>
+								<IS_TIMED>True</IS_TIMED>
+								<SET_STATE_EXTERNAL>p0 0 == if{ 0 (&gt;O:_PressTime) 0 (&gt;O:_PressForDuration) }
+									p0 1 == if{ (E:SIMULATION TIME, second) (&gt;O:_PressTime) p1 (&gt;O:_PressForDuration) }</SET_STATE_EXTERNAL>
+								<SHORT_CLICK_CODE>(&gt;H:AS_EPM_Softkey_#BTN_ID#_Press)</SHORT_CLICK_CODE>
+								<LONG_CLICK_CODE>(&gt;H:AS_EPM_Softkey_#BTN_ID#_LongPress)</LONG_CLICK_CODE>
+								<ANIM_CODE>100 (O:_ButtonAnimVar) *</ANIM_CODE>
+							</True>
+						</Condition>
+					</Parameters>
+					<UseTemplate Name="ASOBO_AS_EPM_Base_Template">
+					</UseTemplate>
+				</Do>
+			</Loop>
+		</Component>
+	</Template>
+	<!-- ########################################## -->
+	<!-- AS_EPM Interaction inputs setup template -->
+	<Template Name="ASOBO_AS_EPM_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>AS_EPM</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>AS_EPM</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_EPM</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS_EPM_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_EPM</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS_EPM_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_EPM</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

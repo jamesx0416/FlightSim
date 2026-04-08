@@ -1,0 +1,91 @@
+<ModelBehaviors>
+	<Include RelativeFile="Inputs\\Misc_Inputs.xml"/>
+	<Template Name="ASOBO_GX2_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_GX2_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_GX2_SubTemplate">
+		<Parameters Type="Default">
+			<NODE_ID_KNOB>MFD_GAUGEROUND_KNOB#SUFFIX_ID#</NODE_ID_KNOB>
+			<NODE_ID_PUSH_LEFT>MFD_GAUGEROUND_PUSH_LEFT#SUFFIX_ID#</NODE_ID_PUSH_LEFT>
+			<NODE_ID_PUSH_RIGHT>MFD_GAUGEROUND_PUSH_RIGHT#SUFFIX_ID#</NODE_ID_PUSH_RIGHT>
+			<NODE_ID_SCREEN>MFD_GAUGEROUND_Screen#SUFFIX_ID#</NODE_ID_SCREEN>
+			<TOOLTIP_TITLE_KNOB>@TT_Package.AS_GX2_KNOB_TITLE</TOOLTIP_TITLE_KNOB>
+			<TOOLTIP_TITLE_BUTTON_L>@TT_Package.AS_GX2_BUTTON_L_TITLE</TOOLTIP_TITLE_BUTTON_L>
+			<TOOLTIP_TITLE_BUTTON_R>@TT_Package.AS_GX2_BUTTON_R_TITLE</TOOLTIP_TITLE_BUTTON_R>
+			<TT_DESCRIPTION_ID_KNOB>@TT_Package.AS_GX2_KNOB_ACTION</TT_DESCRIPTION_ID_KNOB>
+			<TT_DESCRIPTION_ID_BUTTON_L>@TT_Package.AS_GX2_BUTTON_L_ACTION</TT_DESCRIPTION_ID_BUTTON_L>
+			<TT_DESCRIPTION_ID_BUTTON_R>@TT_Package.AS_GX2_BUTTON_R_ACTION</TT_DESCRIPTION_ID_BUTTON_R>
+			<FAILURE_CIRCUIT>38</FAILURE_CIRCUIT>
+			<WWISE_PREFIX>AS_GX2</WWISE_PREFIX>
+			<COUNT>36</COUNT>
+		</Parameters>
+		<Parameters Type="Override">
+			<AS_GX2>AS_GX2</AS_GX2>
+			<INPUT_EVENT_ID_SOURCE>AS_GX2#SUFFIX_ID#</INPUT_EVENT_ID_SOURCE>
+		</Parameters>
+		<Component ID="ASOBO_AS_GX2#SUFFIX_ID#">
+			<Component ID="#NODE_ID_KNOB#" Node="#NODE_ID_KNOB#">
+				<UseTemplate Name="ASOBO_AS_GX2_Base_Template">
+					<IE_NAME>Knob</IE_NAME>
+					<CREATE_COMPONENT>False</CREATE_COMPONENT>
+					<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+					<ANIM_NAME>#NODE_ID_KNOB#</ANIM_NAME>
+					<IS_INFINITE>True</IS_INFINITE>
+					<SET_STATE_EXTERNAL>0 &gt; if{ (&gt;H:#AS_GX2#_ROTATE_KNOB#SUFFIX_ID#_INC) } els{ (&gt;H:#AS_GX2#_ROTATE_KNOB#SUFFIX_ID#_DEC) }</SET_STATE_EXTERNAL>
+					<TOOLTIP_TITLE>#TOOLTIP_TITLE_KNOB#</TOOLTIP_TITLE>
+					<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_KNOB#</TT_DESCRIPTION_ID>
+				</UseTemplate>
+			</Component>
+			<UseTemplate Name="ASOBO_AS_GX2_Base_Template">
+				<IE_NAME>Left_Button</IE_NAME>
+				<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+				<NODE_ID>#NODE_ID_PUSH_LEFT#</NODE_ID>
+				<ANIM_NAME>#NODE_ID_PUSH_LEFT#</ANIM_NAME>
+				<SET_STATE_EXTERNAL>if{ (&gt;H:#AS_GX2#_PUSH_F1#SUFFIX_ID#) }</SET_STATE_EXTERNAL>
+				<TOOLTIP_TITLE>#TOOLTIP_TITLE_BUTTON_L#</TOOLTIP_TITLE>
+				<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_BUTTON_L#</TT_DESCRIPTION_ID>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_AS_GX2_Base_Template">
+				<IE_NAME>Right_Button</IE_NAME>
+				<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+				<NODE_ID>#NODE_ID_PUSH_RIGHT#</NODE_ID>
+				<ANIM_NAME>#NODE_ID_PUSH_RIGHT#</ANIM_NAME>
+				<SET_STATE_EXTERNAL>if{ (&gt;H:#AS_GX2#_PUSH_F2#SUFFIX_ID#) }</SET_STATE_EXTERNAL>
+				<TOOLTIP_TITLE>#TOOLTIP_TITLE_BUTTON_R#</TOOLTIP_TITLE>
+				<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_BUTTON_R#</TT_DESCRIPTION_ID>
+			</UseTemplate>
+			<Component ID="#NODE_ID_SCREEN#" Node="#NODE_ID_SCREEN#">
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>0.5</EMISSIVE_CODE>
+					<FAILURE_CIRCUIT>#FAILURE_CIRCUIT#</FAILURE_CIRCUIT>
+				</UseTemplate>
+			</Component>
+		</Component>
+	</Template>
+	<!-- ########################################## -->
+	<!-- AS_GX2 Interaction inputs setup template -->
+	<Template Name="ASOBO_AS_GX2_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>AS_GX2</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>AS_GX2</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_GX2</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS_GX2_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_GX2</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS_GX2_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_GX2</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

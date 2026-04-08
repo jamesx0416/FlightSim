@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>target_performance.cfg</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="Aircraft,CFG Files"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>target_performance.cfg</h2>
+  <p>The <code class="inline">target_performance.cfg</code> file is an optional aircraft file for defining performance characteristics of an aircraft. Below you can find information on the different sections used in the <code class="inline">target_performance.cfg</code> file as well as what parameters and values are expected within them. However it should be noted that that the information contained in this file <em>has no influence on the aircraft flight behavior</em>, and is instead used to compare computed performance versus expected performance (which can be found in the <a href="#" data-popovertext="Stands for &#39;Pilots Operating Handbook&#39; and is a manual that explains everything about the aircraft it is for. It usually includes the Aircraft Flight Manual (AFM), as well as other technical and operational information and is FAA (Federal Aviation Administration) approved." data-rhwidget="TextPopOver">POH</a> or from industrial or academic data).</p>
+  <p> </p>
+  <p>All parameters in this file can take one <em>or</em> two values where:</p>
+  <ul>
+    <li>The first value is the target value.</li>
+    <li>The second value is optional and is a <a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a> providing the error tolerance when comparing this target value and the value computed in game with the flight model.</li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[TARGET_PERFORMANCE]</code></h3>
+  <p>This section provides general information for the aircraft performance. The available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_full_weight_poweron_stall_speed</code></td>
+        <td>The full weight power on stall speed with full flaps, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+        <td colspan="1" rowspan="34">1 Float <em>or</em>
+          <p>1D Table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" rowspan="34" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_full_weight_poweron_stall_speed</code></td>
+        <td>The no weight power on stall speed with full flaps, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_max_lift_coef</code></td>
+        <td>The maximum lift coefficient with no flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">stall_aoa</code></td>
+        <td>The stall angle of attack, in degrees.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_zero_lift_aoa</code></td>
+        <td>The zero lift <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> with no flaps, in degrees.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_min_drag_aoa</code></td>
+        <td>The minimum drag <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> with no flaps, in degrees.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_min_drag_coef</code></td>
+        <td>The minimum drag coefficient with no flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_min_drag_lift_coef</code></td>
+        <td>The minimum drag lift coefficient with no flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_induced_drag_coef</code></td>
+        <td>The induced drag coefficient with no flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_max_lift_coef</code></td>
+        <td>The maximum lift coefficient with full flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_zero_lift_aoa</code></td>
+        <td>The zero lift <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> with full flaps, in degrees.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_min_drag_aoa</code></td>
+        <td>The minimum drag <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> with full flaps, in degrees.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_min_drag_coef</code></td>
+        <td>The minimum drag coefficient with full flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_min_drag_lift_coef</code></td>
+        <td>The minimum drag lift coefficient with full flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_induced_drag_coef</code></td>
+        <td>The induced drag coefficient with full flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_full_weight_glide_speed</code></td>
+        <td>The full weight glide speed with no flaps, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_full_weight_vert_glide_speed</code></td>
+        <td>The full weight vertical glide speed with no flaps, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_full_weight_best_glide_finesse</code></td>
+        <td>The full weight best glide finesse with no flaps.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_full_weight_glide_speed</code></td>
+        <td>The full weight glide speed with full flaps, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_full_weight_vert_glide_speed</code></td>
+        <td>The full weight vertical glide speed with full flaps, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">best_max_weight_climb_angle_speed</code></td>
+        <td>The maximum weight best climb angle speed, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">best_max_weight_angle_of_climb</code></td>
+        <td>The maximum weight best angle of climb, in degrees.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">best_max_weight_climb_rate_speed</code></td>
+        <td>The maximum weight best climb speed, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">best_max_weight_climb_rate</code></td>
+        <td>The maximum weight best climb rate, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_best_max_weight_climb_rate</code></td>
+        <td>The maximum weight best climb rate with full flaps, in ft per minute.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_endurance_speed</code></td>
+        <td>The best endurance speed, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_range_speed</code></td>
+        <td>The best range speed, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">optimum_cruise_speed</code></td>
+        <td>The optimum cruise speed, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_speed_level_flight_max_power</code></td>
+        <td>The maximum speed in level flight at maximum continuous power, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_max_speed_level_flight_max_power</code></td>
+        <td>
+          <p>The maximum speed in level flight at maximum continuous power with full flaps, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">cruise_speed_level_flight_75pctpower</code></td>
+        <td>The cruise speed in level flight at set power, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_max_vert_dive_speed_0pctpower</code></td>
+        <td>The maximum vertical dive speed with 0% power and no flaps, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">full_flap_max_vert_dive_speed_0pctpower</code></td>
+        <td>The maximum vertical dive speed with 0% power and full flaps, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_flap_max_flat_fall_speed_0pctpower</code></td>
+        <td>The maximum flat fall speed with 0% power and no flaps, in <a href="#" data-popovertext="This stands for &#39;Knots Calibrated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39; and corrected for instrument and position error." data-rhwidget="TextPopOver">kcas</a>.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[DOUBLE_CHECKS]</code></h3>
+  <p>This section is used to check the aircraft geometry. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">wing_area</code></td>
+        <td>The area of both wings and fuselage overlap, in <a href="#" data-popovertext="Stands for &#39;square feet&#39;, an Imperial unit of measurment for areas, where each side of a square area measures 1 foot. The metric value is approximately 0.3 meters." data-rhwidget="TextPopOver">sqft</a>.</td>
+        <td colspan="1" rowspan="9">1 Float <em>or</em>
+          <p>1D Table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" rowspan="9" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">wing_span</code></td>
+        <td>The wing span from wingtip to wingtip, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">htail_area</code></td>
+        <td>The area of the horizontal tail including elevator, in <a href="#" data-popovertext="Stands for &#39;square feet&#39;, an Imperial unit of measurment for areas, where each side of a square area measures 1 foot. The metric value is approximately 0.3 meters." data-rhwidget="TextPopOver">sqft</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">htail_span</code></td>
+        <td>The span of the horizontal tail including elevator, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vtail_area</code></td>
+        <td>The area of the vertical tail including elevator, in <a href="#" data-popovertext="Stands for &#39;square feet&#39;, an Imperial unit of measurment for areas, where each side of a square area measures 1 foot. The metric value is approximately 0.3 meters." data-rhwidget="TextPopOver">sqft</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vtail_span</code></td>
+        <td>The span of the vertical tail including elevator, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_gross_weight</code></td>
+        <td>The maximum gross weight, in <a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">empty_weight</code></td>
+        <td>The empty weight, in <a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>.</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_hp</code></td>
+        <td>The maximum piston engine power output, in <a href="#" data-popovertext="This stands for &#39;horse power&#39; which is a unit of measurement of power - or the rate at which work is done - in reference to the output of engines or motors. 1 Imperial horsepower is equivalent to 1.01387 metric horsepower." data-rhwidget="TextPopOver">hp</a>.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[PERFORMANCE_REPORT]</code></h3>
+  <p>This section permits you to give an output directory to save a <code class="inline">*.csv</code> file too that contains all the information from this configuration file. Available parameter is:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">file_path</code></td>
+        <td>
+          <p>The full file path (and file name) to save the CSV file, eg:</p>
+          <p><code class="inline">file_path=&quot;C:\Users\Desktop\perf_report.csv&quot;</code></p>
+        </td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>The output will look something like this:</p>
+  <p><img alt="CSV Output of Performance Data" class="center" src="../../../assets/images/Content_Config/SimObj/csv_output.png"/></p>
+  <p>Note that column &quot;B&quot; represents the target value for the parameter, while column &quot;C&quot; represents the actual computed value for the aircraft.</p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.3.1.3_1"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

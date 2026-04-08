@@ -1,0 +1,116 @@
+<ModelBehaviors>
+	<Include RelativeFile="Inputs\\Misc_Inputs.xml"/>
+	<Template Name="ASOBO_ASVigilus_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_ASVigilus_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ASVigilus_SubTemplate">
+		<Parameters Type="Default">
+			<NODE_ID_KNOB>ENGINE_MONITOR_KNOB_SELECT#SUFFIX_ID#</NODE_ID_KNOB>
+			<NODE_ID_KNOB_PUSH>ENGINE_MONITOR_KNOB_SELECT_PUSH#SUFFIX_ID#</NODE_ID_KNOB_PUSH>
+			<NODE_ID_PUSH_LEFT>ENGINE_MONITOR_PUSH_LEFT#SUFFIX_ID#</NODE_ID_PUSH_LEFT>
+			<NODE_ID_PUSH_RIGHT>ENGINE_MONITOR_PUSH_RIGHT#SUFFIX_ID#</NODE_ID_PUSH_RIGHT>
+			<NODE_ID_SCREEN>ENGINE_MONITOR_Screen#SUFFIX_ID#</NODE_ID_SCREEN>
+			<TOOLTIP_TITLE_KNOB>@TT_Package.AS_VIGILUS_KNOB_TITLE</TOOLTIP_TITLE_KNOB>
+			<TOOLTIP_TITLE_BUTTON_L>@TT_Package.AS_VIGILUS_BUTTON_L_TITLE</TOOLTIP_TITLE_BUTTON_L>
+			<TOOLTIP_TITLE_BUTTON_R>@TT_Package.AS_VIGILUS_BUTTON_R_TITLE</TOOLTIP_TITLE_BUTTON_R>
+			<TT_DESCRIPTION_ID_KNOB>@TT_Package.AS_VIGILUS_KNOB_ACTION</TT_DESCRIPTION_ID_KNOB>
+			<TT_DESCRIPTION_ID_KNOB_PUSH>@TT_Package.AS_VIGILUS_KNOB_ACTION_PUSH</TT_DESCRIPTION_ID_KNOB_PUSH>
+			<TT_DESCRIPTION_ID_BUTTON_L>@TT_Package.AS_VIGILUS_BUTTON_L_ACTION</TT_DESCRIPTION_ID_BUTTON_L>
+			<TT_DESCRIPTION_ID_BUTTON_R>@TT_Package.AS_VIGILUS_BUTTON_R_ACTION</TT_DESCRIPTION_ID_BUTTON_R>
+			<WWISE_PREFIX>asvigilus</WWISE_PREFIX>
+			<COUNT>36</COUNT>
+			<SCREEN_MIN_EMISSIVE_PERCENT>0.05</SCREEN_MIN_EMISSIVE_PERCENT>
+			<MAX_EMISSIVE_PERCENT>1</MAX_EMISSIVE_PERCENT>
+		</Parameters>
+		<Parameters Type="Default">
+			<ANIM_NAME_KNOB>#NODE_ID_KNOB#</ANIM_NAME_KNOB>
+			<ANIM_NAME_KNOB_PUSH>#NODE_ID_KNOB_PUSH#</ANIM_NAME_KNOB_PUSH>
+			<ANIM_NAME_PUSH_LEFT>#NODE_ID_PUSH_LEFT#</ANIM_NAME_PUSH_LEFT>
+			<ANIM_NAME_PUSH_RIGHT>#NODE_ID_PUSH_RIGHT#</ANIM_NAME_PUSH_RIGHT>
+		</Parameters>
+		<Parameters Type="Override">
+			<AS_VIGILUS>ASVigilus</AS_VIGILUS>
+			<Condition Check="IS_MINI">
+				<AS_VIGILUS>ASVigilus_Mini</AS_VIGILUS>
+			</Condition>
+		</Parameters>
+		<Component ID="ASOBO_ASVIGILUS">
+			<Component ID="#NODE_ID_SCREEN#" Node="#NODE_ID_SCREEN#">
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>(L:#AS_VIGILUS#_Brightness, number) 16 /</EMISSIVE_CODE>
+					<EMISSIVE_CODE>#MAX_EMISSIVE_PERCENT# #SCREEN_MIN_EMISSIVE_PERCENT# - (L:#AS_VIGILUS#_Brightness, number) 16 / * #SCREEN_MIN_EMISSIVE_PERCENT# + (A:GLASSCOCKPIT AUTOMATIC BRIGHTNESS, Percent over 100) *</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+			<Condition Check="NO_BUTTONS">
+				<False>
+					<Component ID="#NODE_ID_KNOB#" Node="#NODE_ID_KNOB#">
+						<UseTemplate Name="ASOBO_AS_Vigilus_Push_Event_Base_Template">
+							<IE_NAME>Knob_Button</IE_NAME>
+							<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+							<ON_PUSH_EVENT>(&gt;H:#AS_VIGILUS#_knob_Push)</ON_PUSH_EVENT>
+							<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_KNOB_PUSH#</TT_DESCRIPTION_ID>
+						</UseTemplate>
+						<UseTemplate Name="ASOBO_AS_Vigilus_Base_Template">
+							<IE_NAME>Knob</IE_NAME>
+							<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+							<CREATE_COMPONENT>False</CREATE_COMPONENT>
+							<ANIM_NAME_KNOB>#ANIM_NAME_KNOB#</ANIM_NAME_KNOB>
+							<ANIM_NAME_PUSH>#ANIM_NAME_KNOB_PUSH#</ANIM_NAME_PUSH>
+							<PART_ID>#NODE_ID_KNOB#</PART_ID>
+							<IS_INFINITE>True</IS_INFINITE>
+							<SET_STATE_EXTERNAL>0 &gt; if{ (&gt;H:#AS_VIGILUS#_knob_Inc) } els{ (&gt;H:#AS_VIGILUS#_knob_Dec) }</SET_STATE_EXTERNAL>
+							<IE_ID_EXTERNAL_0>Knob_Button</IE_ID_EXTERNAL_0>
+							<TOOLTIP_TITLE>#TOOLTIP_TITLE_KNOB#</TOOLTIP_TITLE>
+							<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_KNOB#</TT_DESCRIPTION_ID>
+						</UseTemplate>
+					</Component>
+					<UseTemplate Name="ASOBO_AS_Vigilus_Base_Template">
+						<IE_NAME>Left_Button</IE_NAME>
+						<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+						<NODE_ID>#NODE_ID_PUSH_LEFT#</NODE_ID>
+						<ANIM_NAME>#ANIM_NAME_PUSH_LEFT#</ANIM_NAME>
+						<SET_STATE_EXTERNAL>if{ (&gt;H:#AS_VIGILUS#_push_left) }</SET_STATE_EXTERNAL>
+						<TOOLTIP_TITLE>#TOOLTIP_TITLE_BUTTON_L#</TOOLTIP_TITLE>
+						<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_BUTTON_L#</TT_DESCRIPTION_ID>
+					</UseTemplate>
+					<UseTemplate Name="ASOBO_AS_Vigilus_Base_Template">
+						<IE_NAME>Right_Button</IE_NAME>
+						<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+						<NODE_ID>#NODE_ID_PUSH_RIGHT#</NODE_ID>
+						<ANIM_NAME>#ANIM_NAME_PUSH_RIGHT#</ANIM_NAME>
+						<SET_STATE_EXTERNAL>if{ (&gt;H:#AS_VIGILUS#_push_right) }</SET_STATE_EXTERNAL>
+						<TOOLTIP_TITLE>#TOOLTIP_TITLE_BUTTON_R#</TOOLTIP_TITLE>
+						<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_BUTTON_R#</TT_DESCRIPTION_ID>
+					</UseTemplate>
+				</False>
+			</Condition>
+		</Component>
+	</Template>
+	<!-- ########################################## -->
+	<!-- AS_Vigilus Interaction inputs setup template -->
+	<Template Name="ASOBO_AS_Vigilus_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>AS_Vigilus</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>AS_Vigilus</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_Vigilus</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS_Vigilus_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_Vigilus</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS_Vigilus_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS_Vigilus</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>
+

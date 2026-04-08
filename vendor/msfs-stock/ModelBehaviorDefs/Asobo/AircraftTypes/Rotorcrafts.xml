@@ -1,0 +1,367 @@
+<ModelBehaviors>
+	<Include RelativeFile="..\Common.xml"/>
+	<Include ModelBehaviorFile="Asobo\AircraftTypes\Gliders.xml"/>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Rotor_Rotation_Template">
+		<UseTemplate Name="ASOBO_GT_Update">
+			<UPDATE_ONCE>True</UPDATE_ONCE>
+			<UPDATE_CODE>1 (&gt;O:test_rotor)</UPDATE_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim">
+			<ANIM_CODE>(A:ROTOR RPM:#ID#, degrees per second) (A:ANIMATION DELTA TIME, seconds) * (O:test_rotor) *</ANIM_CODE>
+			<ANIM_LENGTH>360</ANIM_LENGTH>
+			<ANIM_WRAP>1</ANIM_WRAP>
+			<ANIM_DELTA>1</ANIM_DELTA>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ROTORCRAFT_Rotor_Still_Visibility_Template">
+		<UseTemplate Name="ASOBO_GT_Visibility">
+			<VISIBILITY_CODE>(A:ROTOR RPM:#ROTOR_ID#, rpm) #MIN_RPM_FOR_BLUR# &lt;</VISIBILITY_CODE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ROTORCRAFT_Rotor_Slow_Visibility_Template">
+		<UseTemplate Name="ASOBO_GT_Visibility">
+			<VISIBILITY_CODE>(A:ROTOR RPM:#ROTOR_ID#, rpm) s0 #MIN_RPM_FOR_BLUR# &gt; l0 #MIN_RPM_FOR_BLUR2# &lt; and</VISIBILITY_CODE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ROTORCRAFT_Rotor_Blurred_Visibility_Template">
+		<UseTemplate Name="ASOBO_GT_Visibility">
+			<VISIBILITY_CODE>(A:ROTOR RPM:#ROTOR_ID#, rpm) #MIN_RPM_FOR_BLUR2# &gt;</VISIBILITY_CODE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ROTORCRAFT_Rotor_Blade_Visibility_Base_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<ROTOR_ID>1</ROTOR_ID>
+			<STATE>STILL</STATE>
+			<MIN_RPM_FOR_BLUR>200</MIN_RPM_FOR_BLUR>
+			<MIN_RPM_FOR_BLUR2>400</MIN_RPM_FOR_BLUR2>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ROTORCRAFT_Rotor_Blade_Visibility_SubTemplate">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ROTORCRAFT_Rotor_Blade_Visibility_SubTemplate">
+		<Parameters Type="Default">
+			<NODE_ID>MAIN_BLADE_#ID#_#STATE#</NODE_ID>
+		</Parameters>
+		<Component ID="#NODE_ID#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_ROTORCRAFT_Rotor_#STATE#_Visibility_Template">
+			</UseTemplate>
+		</Component>
+	</Template>
+		
+	<Template Name="ASOBO_ROTORCRAFT_Longitudinal_Control_Rod_Template">
+		<UseTemplate Name="ASOBO_GT_Anim_Sim">
+			<ANIM_SIMVAR>DISK PITCH PCT:#ID#</ANIM_SIMVAR>
+			<ANIM_SIMVAR_UNITS>Percent</ANIM_SIMVAR_UNITS>
+			<ANIM_SIMVAR_SCALE>0.5</ANIM_SIMVAR_SCALE>
+			<ANIM_SIMVAR_BIAS>50</ANIM_SIMVAR_BIAS>
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+			<INVERT_ANIM>True</INVERT_ANIM>
+			<FAILURE>1</FAILURE>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Lateral_Control_Rod_Template">
+		<UseTemplate Name="ASOBO_GT_Anim_Sim">
+			<ANIM_SIMVAR>DISK BANK PCT:#ID#</ANIM_SIMVAR>
+			<ANIM_SIMVAR_UNITS>Percent</ANIM_SIMVAR_UNITS>
+			<ANIM_SIMVAR_SCALE>0.5</ANIM_SIMVAR_SCALE>
+			<ANIM_SIMVAR_BIAS>50</ANIM_SIMVAR_BIAS>
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+			<INVERT_ANIM>True</INVERT_ANIM>
+			<FAILURE>1</FAILURE>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Swashplate_Template">
+		<UseTemplate Name="ASOBO_GT_Anim_Sim">
+			<ANIM_SIMVAR>COLLECTIVE POSITION</ANIM_SIMVAR>
+			<ANIM_SIMVAR_UNITS>Percent</ANIM_SIMVAR_UNITS>
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+			<FAILURE>1</FAILURE>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Disk_Coning_Template">
+		<UseTemplate Name="ASOBO_GT_Anim_Sim">
+			<ANIM_SIMVAR>DISK CONING PCT:1</ANIM_SIMVAR>
+			<ANIM_SIMVAR_UNITS>Percent</ANIM_SIMVAR_UNITS>
+			<ANIM_LENGTH>200</ANIM_LENGTH>
+			<ANIM_SIMVAR_BIAS>100</ANIM_SIMVAR_BIAS>
+			<!-- <FAILURE>1</FAILURE> -->
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Tail_Prop_Pitch_Template">
+		<UseTemplate Name="ASOBO_GT_Anim_Sim">
+			<ANIM_SIMVAR>TAIL ROTOR BLADE PITCH PCT</ANIM_SIMVAR>
+			<ANIM_SIMVAR_UNITS>Percent</ANIM_SIMVAR_UNITS>
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+			<ANIM_SIMVAR_SCALE>0.5</ANIM_SIMVAR_SCALE>
+			<ANIM_SIMVAR_BIAS>50</ANIM_SIMVAR_BIAS>
+			<FAILURE>1</FAILURE>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Collective_Template">
+		<Parameters Type="Override">
+			<IE_NAME>Collective_Lever</IE_NAME>
+		</Parameters>
+		<Parameters Type="Override">
+			<LEVER_ID>#IE_NAME#</LEVER_ID>
+			<TOOLTIP_TITLE>@TT_Package.ROTORCRAFT_LEVER_COLLECTIVE_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION>@TT_Package.ROTORCRAFT_LEVER_COLLECTIVE_ACTION</TT_DESCRIPTION>
+			<TT_VALUE>(A:COLLECTIVE HANDLE POSITION, percent) '%.1f%%' (F:Format)</TT_VALUE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Base_Template">
+			<SET_STATE_EXTERNAL>(&gt;A:COLLECTIVE HANDLE POSITION, Percent over 100)</SET_STATE_EXTERNAL>
+			<GET_STATE_EXTERNAL>(A:COLLECTIVE HANDLE POSITION, Percent over 100)</GET_STATE_EXTERNAL>
+			<STATE_TO_POS_EXTERNAL>100 *</STATE_TO_POS_EXTERNAL>
+			<SIMVAR_TO_WATCH_0>COLLECTIVE HANDLE POSITION</SIMVAR_TO_WATCH_0>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Tail_Rotor_Pedal_Template">
+		<Parameters Type="Default">
+			<ANIM_SIMVAR>TAIL ROTOR PEDAL POSITION</ANIM_SIMVAR>
+			<RUDDERPEDALS_TYPE>SPLITTED</RUDDERPEDALS_TYPE>
+			<NODE_ID>HANDLING_RudderPedals_L</NODE_ID>
+			<NODE_ID2>HANDLING_RudderPedals_R</NODE_ID2>
+			<USE_BRAKE>False</USE_BRAKE>
+			<NO_BRAKES_HIGHLIGHT>True</NO_BRAKES_HIGHLIGHT>
+			<ENGINE_ID>1</ENGINE_ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_HANDLING_RudderPedals_Template">
+			<ID>#ENGINE_ID#</ID>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Governor_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+			<ENGINE_ID>1</ENGINE_ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<NODE_ID>HANDLING_TWIST_GOVERNOR_#ID#</NODE_ID>
+			<ANIM_NAME>HANDLING_TWIST_GOVERNOR_#ID#</ANIM_NAME>
+			<TYPE></TYPE>
+		</Parameters>			
+		<UseTemplate Name= "ASOBO_ENGINE_Lever_Propeller_Template">
+			<ID>#ENGINE_ID#</ID>
+			<PROPELLER_ANIM_CODE>(A:GENERAL ENG THROTTLE LEVER POSITION:#ENGINE_ID#,percent)</PROPELLER_ANIM_CODE>
+			<TOOLTIP_PROPELLER_TITLE>@TT_Package.ROTORCRAFT_KNOB_GOVERNOR_TITLE</TOOLTIP_PROPELLER_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.ROTORCRAFT_KNOB_GOVERNOR_ACTION</TT_DESCRIPTION_ID>
+			<GET_STATE>(A:GENERAL ENG THROTTLE LEVER POSITION:#ENGINE_ID#, position 16k)</GET_STATE>
+			<TOOLTIP_VALUE>(A:GENERAL ENG THROTTLE LEVER POSITION:#ENGINE_ID#,percent) '%.1f%%' (F:Format)</TOOLTIP_VALUE>
+			<HIGHLIGHT_NODE_ID>HANDLING_TWIST_GOVERNOR_#ID#_VISUAL</HIGHLIGHT_NODE_ID>
+		</UseTemplate>
+	</Template>
+		
+	<Template Name="ASOBO_ROTORCRAFT_Switch_Governor_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<NODE_ID>SWITCH_GOVERNOR_#ID#</NODE_ID>
+			<ANIM_NAME>SWITCH_GOVERNOR_#ID#</ANIM_NAME>
+			<TOOLTIP_TITLE>@TT_Package.ROTORCRAFT_SWITCH_GOVERNOR_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.ROTORCRAFT_SWITCH_GOVERNOR_ACTION</TT_DESCRIPTION_ID>
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			<TT_VALUE>(A:ROTOR GOV SWITCH POS,Bool) @TT_OnOff_Cond</TT_VALUE>
+			<TT_VALUE_IS_DYNAMIC>True</TT_VALUE_IS_DYNAMIC>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ENGINE_Base_Template">
+			<IE_NAME>Governor_Switch_#ID#</IE_NAME>
+			<COMP_INIT_CODE>(A:ROTOR GOV SWITCH POS,Bool) (&gt;B:Governor_Switch_#ID#)</COMP_INIT_CODE>
+			<SET_STATE_ON>(&gt;K:ROTOR_GOV_SWITCH_ON)</SET_STATE_ON>
+			<SET_STATE_OFF>(&gt;K:ROTOR_GOV_SWITCH_OFF)</SET_STATE_OFF>
+			<GET_STATE_EXTERNAL>(A:ROTOR GOV SWITCH POS,Bool) s0</GET_STATE_EXTERNAL>
+			<SIMVAR_TO_WATCH_0>ROTOR GOV SWITCH POS</SIMVAR_TO_WATCH_0>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Switch_Clutch_Template">
+		<Parameters Type="Default">
+			<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+		</Parameters>
+		<UseTemplate Name="ASOBO_ROTORCRAFT_Clutch_Template">
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_ROTORCRAFT_Clutch_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<Parameters Type="Default">
+			<ANIM_NAME>ROTORCRAFT_#INTERACTION_TYPE#_Clutch_#ID#</ANIM_NAME>
+			<NODE_ID>ROTORCRAFT_#INTERACTION_TYPE#_Clutch_#ID#</NODE_ID>
+			<PART_ID>ROTORCRAFT_#INTERACTION_TYPE#_Clutch</PART_ID>
+			<Condition Valid="COVERED">
+				<COVER_NODE_ID>ROTORCRAFT_#INTERACTION_TYPE#_Clutch_#ID#_Cover</COVER_NODE_ID>
+				<COVER_ANIM_NAME>ROTORCRAFT_#INTERACTION_TYPE#_Clutch_#ID#_Cover</COVER_ANIM_NAME>
+			</Condition>
+			<TOOLTIP_TITLE>@TT_Package.ROTORCRAFT_SWITCH_CLUTCH_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.ROTORCRAFT_SWITCH_CLUTCH_ACTION</TT_DESCRIPTION_ID>
+			<SWITCH_TT_VALUE>(A:ROTOR CLUTCH SWITCH POS,Bool) @TT_OnOff_Cond</SWITCH_TT_VALUE>
+			<TOOLTIP_ENTRY_0>ENGINE_Clutch_#ID#</TOOLTIP_ENTRY_0>
+			<TT_VALUE_IS_DYNAMIC>True</TT_VALUE_IS_DYNAMIC>
+			<CLUTCH_ID>#ID#</CLUTCH_ID>
+			<IE_CLUTCH_ID>#ID#</IE_CLUTCH_ID>
+		</Parameters>
+		<Condition Valid="COVERED">
+			<True>
+				<UseTemplate Name="ASOBO_GT_Switch_Covered">
+					<INPUT_EVENT_ID>ENGINE</INPUT_EVENT_ID>
+					<BTN_ID>Clutch</BTN_ID>
+					<INPUT_EVENT_ID_SOURCE>ENGINE</INPUT_EVENT_ID_SOURCE>
+					<COVER_IE_NAME>Clutch_#IE_CLUTCH_ID#_Cover</COVER_IE_NAME>
+					<COVER_IE_ID_SOURCE>ENGINE</COVER_IE_ID_SOURCE>
+					<!-- <COVER_USE_INPUT_EVENT>ENGINE</COVER_USE_INPUT_EVENT> -->
+					<SWITCH_NODE_ID>#NODE_ID#</SWITCH_NODE_ID>
+					<SWITCH_ANIM_NAME>#ANIM_NAME#</SWITCH_ANIM_NAME>
+					<COVER_VAR_NAME>XMLVAR_ROTORCRAFT_Clutch_Cover_Opened</COVER_VAR_NAME>
+					<TOGGLE_STATE>(&gt;K:ROTOR_CLUTCH_SWITCH_TOGGLE)</TOGGLE_STATE>
+					<COVER_VAR_TYPE>I</COVER_VAR_TYPE>
+					<SWITCH_ANIM_CODE>(A:ROTOR CLUTCH SWITCH POS,Bool) 100 *</SWITCH_ANIM_CODE>
+					<WWISE_EVENT_1>clutch_switch_on</WWISE_EVENT_1>
+					<WWISE_EVENT_2>clutch_switch_off</WWISE_EVENT_2>
+				</UseTemplate>
+			</True>
+			<False>
+				<Component ID="#NODE_ID#" Node="#NODE_ID#">
+					<UseInputEvent ID="ENGINE"/>
+					<UseTemplate Name="ASOBO_GT_Push_Button">
+						<OVERRIDE_ANIM_CODE>(B:ENGINE_Clutch, Bool) 100 *</OVERRIDE_ANIM_CODE>
+						<LEFT_SINGLE_CODE>(&gt;B:ENGINE_Clutch_On)</LEFT_SINGLE_CODE>
+						<LEFT_LEAVE_CODE>0 (&gt;B:ENGINE_Clutch_Off)</LEFT_LEAVE_CODE>
+						<WWISE_EVENT_1>clutch_switch_on</WWISE_EVENT_1>
+						<WWISE_EVENT_2>clutch_switch_off</WWISE_EVENT_2>
+					</UseTemplate>
+				</Component>
+			</False>
+		</Condition>
+	</Template>
+	
+	<Template Name="ASOBO_ROTORCRAFT_Lever_Rotor_Brake_Template">
+		<Parameters Type="Default">
+				<INTERACTION_TYPE>Lever</INTERACTION_TYPE>
+			</Parameters>
+			<Parameters Type="Default">
+				<ANIM_NAME>ROTOR_Brake_#INTERACTION_TYPE#</ANIM_NAME>
+				<NODE_ID>ROTOR_Brake_#INTERACTION_TYPE#</NODE_ID>
+				<PART_ID>ROTOR_Brake_#INTERACTION_TYPE#</PART_ID>
+				<WWISE_EVENT_1>rotor_brake_lever_on</WWISE_EVENT_1>
+				<WWISE_EVENT_2>rotor_brake_lever_off</WWISE_EVENT_2>
+			</Parameters>
+			<Parameters Type="Default">
+						<USE_TRAJECTORY_DRAG_MODE>true</USE_TRAJECTORY_DRAG_MODE>
+						<DRAG_AXIS_SCALE>-140</DRAG_AXIS_SCALE>
+						<CURSOR>Grab</CURSOR>
+						<NO_ARROWS/>
+			</Parameters>
+			<Parameters Type="Override">
+				<Condition Valid="USE_TRAJECTORY_DRAG_MODE">
+					<True>
+						<GET_VALUE_DRAG>(M:DragPercent)</GET_VALUE_DRAG>
+						<DRAG_ANIM_NAME>#ANIM_NAME#</DRAG_ANIM_NAME>
+					</True>
+					<False>
+						<GET_VALUE_DRAG>(A:ROTOR BRAKE HANDLE POS, percent) (O:DragScale) + 100 min 0 max 100 /</GET_VALUE_DRAG>
+					</False>
+				</Condition>
+			</Parameters>
+			<Component ID="#NODE_ID#" Node="#NODE_ID#">
+				<Parameters Type="Override">
+					<TOOLTIP_TITLE>@TT_Package.ROTOR_BRAKE_LEVER_TITLE</TOOLTIP_TITLE>
+					<TOOLTIP_ENTRY_0>ENGINE_ROTOR_Brake_#ID#</TOOLTIP_ENTRY_0>
+					<TT_DESCRIPTION_ID>@TT_Package.ROTOR_BRAKE_LEVER_ACTION</TT_DESCRIPTION_ID>
+				</Parameters>
+				<UseTemplate Name="ASOBO_GT_Update">
+					<FREQUENCY>35</FREQUENCY>
+					<UPDATE_CODE>(O:_Interacting) if{ (O:DragValue) (&gt;B:ENGINE_ROTOR_Brake_#ID#_Set) }</UPDATE_CODE>
+				</UseTemplate> 
+				<UseInputEvent ID="ENGINE">
+					<BRAKE_ID>#ID#</BRAKE_ID>
+				</UseInputEvent>
+				<UseTemplate Name="ASOBO_GT_Lever_DraggingWheelLeftDrag_Axis">
+					<ANIM_CODE>(B:ENGINE_ROTOR_Brake_#ID#, percent)</ANIM_CODE>
+					<DRAG_CODE>#GET_VALUE_DRAG# s0 l0 (&gt;B:ENGINE_ROTOR_Brake_#ID#_Set) l0 (&gt;O:DragValue)</DRAG_CODE>
+					<POSITIVE_AXIS_CODE>1 (&gt;B:ENGINE_ROTOR_Brake_#ID#_Inc)</POSITIVE_AXIS_CODE>
+					<NEGATIVE_AXIS_CODE>1 (&gt;B:ENGINE_ROTOR_Brake_#ID#_Dec)</NEGATIVE_AXIS_CODE>
+				</UseTemplate>
+			</Component>
+
+	</Template>
+	<Template Name="ASOBO_ROTORCRAFT_Yaw_String">
+		<Parameters Type="Default">
+			<ANIM_NAME_360>STRING_360</ANIM_NAME_360>
+			<ANIM_NAME_L_R_END>STRING_LR_NOISE</ANIM_NAME_L_R_END>
+			<ANIM_NAME_IDLE_TO_STAND>STRING_DOWNUP</ANIM_NAME_IDLE_TO_STAND>
+			<ANIM_NAME_L_R>STRING_LR</ANIM_NAME_L_R>
+			<ANIM_DISPLACEMENT>600</ANIM_DISPLACEMENT> <!-- Max %Anim per Sec -->
+			<MIN_AIRSPEED>9</MIN_AIRSPEED>
+			<EXTENDED_AIRSPEED>10</EXTENDED_AIRSPEED>
+			<MAX_AIRSPEED>80</MAX_AIRSPEED>
+			<MAX_AIRSPEED_ANIM_FACTOR>0.1</MAX_AIRSPEED_ANIM_FACTOR>
+			<ANGLE_FORWARD_FACTOR>0.5</ANGLE_FORWARD_FACTOR>
+			<ROTATION_LAG>150</ROTATION_LAG>
+			<REDUCE_RANGE_WITH_AIRSPEED>True</REDUCE_RANGE_WITH_AIRSPEED>
+		</Parameters>
+		<Parameters Type="Override">
+			<REVERSED_ANGLE_FORWARD_FACTOR Process="Float">1 #ANGLE_FORWARD_FACTOR# -</REVERSED_ANGLE_FORWARD_FACTOR>
+		</Parameters>
+	
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_360#</ANIM_NAME>
+			<ANIM_CODE>
+				(O:XMLVAR_YawStringExtended) 0 &gt; if{
+					(A:AIRSPEED TRUE, knots) #MAX_AIRSPEED# / 1 min #REVERSED_ANGLE_FORWARD_FACTOR# * sp0
+					(A:RELATIVE WIND VELOCITY BODY X, feet per second) (A:RELATIVE WIND VELOCITY BODY Z, feet per second) l0 * atg2 rddg dnor (&gt;O:XMLVAR_YawStringDir)
+				} els{
+					(A:AIRSPEED TRUE, knots) #MAX_AIRSPEED# / 1 min #REVERSED_ANGLE_FORWARD_FACTOR# * sp0
+					(A:RELATIVE WIND VELOCITY BODY X, feet per second) s2 0 l2 abs 0.1 &gt; ? (A:RELATIVE WIND VELOCITY BODY Z, feet per second) abs l0 * atg2 rddg dnor sp0
+					l0 (O:XMLVAR_YawStringDir) - abs 10 &gt; if{ l0 (&gt;O:XMLVAR_YawStringDir) }
+				}
+				(O:XMLVAR_YawStringDir)
+			</ANIM_CODE>
+			<ANIM_LENGTH>360</ANIM_LENGTH>
+			<ANIM_WRAP>True</ANIM_WRAP>
+			<ANIM_LAG>#ROTATION_LAG#</ANIM_LAG>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_L_R#</ANIM_NAME>
+			<ANIM_LAG>200</ANIM_LAG>
+			<ANIM_CODE>
+				(O:XMLVAR_YawStringExtended) 0 &gt; if{ (A:ROTATION VELOCITY BODY Z, radians per second) -1 * 1 min -1 max 1 + 50 * }
+				els{ 
+					(O:XMLVAR_YawStringDir) s0 90 pmod 45 - abs 45 / 50 * s1 
+					l0 0 180 rng if{ 100 l1 - } els{ l1 }
+					}
+				</ANIM_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_IDLE_TO_STAND#</ANIM_NAME>
+			<ANIM_CODE>(A:AIRSPEED TRUE, knots) (A:AMBIENT WIND VELOCITY, knots) max #MIN_AIRSPEED# max #EXTENDED_AIRSPEED# min #MIN_AIRSPEED# - 100 * (&gt;O:XMLVAR_YawStringExtended) (O:XMLVAR_YawStringExtended)</ANIM_CODE>
+		</UseTemplate>
+		<Component ID="Yaw_String_Noise">
+			<Parameters Type="Override">
+				<ANIM_LAG>800</ANIM_LAG>
+				<REDUCE_RANGE_WITH_AIRSPEED>True</REDUCE_RANGE_WITH_AIRSPEED>
+			</Parameters>
+			<UseTemplate Name="ASOBO_GT_Anim_Code">
+				<ANIM_NAME>#ANIM_NAME_L_R_END#</ANIM_NAME>
+				<UseParametersFn Name="Generate_Noise">
+					<SETUP_CODE>
+						1 (A:AIRSPEED TRUE, knots) (A:AMBIENT WIND VELOCITY, knots) max #MIN_AIRSPEED# - 0 max #MAX_AIRSPEED# / 1 #MAX_AIRSPEED_ANIM_FACTOR# - min 0 max - (&gt;O:XMLVAR_SpeedFactor)
+						50 (O:XMLVAR_SpeedFactor) 50 * - (&gt;O:XMLVAR_SpeedFactor_Min)
+						50 (O:XMLVAR_SpeedFactor) 50 * + (&gt;O:XMLVAR_SpeedFactor_Max)
+					</SETUP_CODE>
+					<VAR_NAME>XMLVAR_L_R_END</VAR_NAME>
+					<NOISE_WRAPS>True</NOISE_WRAPS>
+					<REST_RETURN_VALUE>rand 0.01 &gt; if{ (O:XMLVAR_L_R_END) rand 2 * 1 - + 100 pmod } els{ (O:XMLVAR_L_R_END) }</REST_RETURN_VALUE>
+				</UseParametersFn>
+				<ANIM_WRAP>True</ANIM_WRAP>
+			</UseTemplate>
+		</Component>
+	</Template>
+</ModelBehaviors>

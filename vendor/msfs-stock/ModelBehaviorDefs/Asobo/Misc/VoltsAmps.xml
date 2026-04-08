@@ -1,0 +1,70 @@
+<ModelBehaviors>
+	<Include ModelBehaviorFile="Asobo\Generic.xml"/>
+
+	<Template Name="ASOBO_INSTRUMENT_VoltsAmps_Template">
+		<TemplateAlias>ASOBO_VoltsAmps_template</TemplateAlias>
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_INSTRUMENT_VoltsAmps_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	
+	<Template Name="ASOBO_INSTRUMENT_VoltsAmps_SubTemplate">
+		<Parameters Type="Default">
+			<NODE_ID_BUTTON>VOLTSAMPS_BUTTON#SUFFIX_ID#</NODE_ID_BUTTON>
+			<ANIM_NAME_BUTTON>VOLTSAMPS_BUTTON#SUFFIX_ID#</ANIM_NAME_BUTTON>
+			<NODE_ID_LIGHT_HIGH_VOLT>VOLTSAMPS_LIGHT_1#SUFFIX_ID#</NODE_ID_LIGHT_HIGH_VOLT>
+			<NODE_ID_LIGHT_DISCHARGE>VOLTSAMPS_LIGHT_2#SUFFIX_ID#</NODE_ID_LIGHT_DISCHARGE>
+			<NODE_ID_SCREEN>VOLTSAMPS_SCREEN#SUFFIX_ID#</NODE_ID_SCREEN>
+			<SCREEN_EMISSIVE_CODE>1</SCREEN_EMISSIVE_CODE>
+			<Condition Valid="USE_12V">
+				<True>
+					<HIGH_VOLTAGE_THRESHOLD>15.3</HIGH_VOLTAGE_THRESHOLD>
+					<DISCHARGE_THRESHOLD>12.6</DISCHARGE_THRESHOLD>
+				</True>
+				<False>
+					<HIGH_VOLTAGE_THRESHOLD>30.6</HIGH_VOLTAGE_THRESHOLD>
+					<DISCHARGE_THRESHOLD>25.2</DISCHARGE_THRESHOLD>
+				</False>
+			</Condition>
+		</Parameters>
+		
+		<Component ID="#NODE_ID_SCREEN#" Node="#NODE_ID_SCREEN#">
+			<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+				<EMISSIVE_CODE>#SCREEN_EMISSIVE_CODE#</EMISSIVE_CODE>
+			</UseTemplate>
+		</Component>
+		<Component ID="#NODE_ID_BUTTON#">
+			<Parameters Type="Default">
+				<NODE_ID>#NODE_ID_BUTTON#</NODE_ID>
+				<ANIM_NAME>#ANIM_NAME_BUTTON#</ANIM_NAME>
+				<WWISE_PREFIX>VoltsAmps</WWISE_PREFIX>
+				<TOOLTIP_TITLE>@TT_Package.VOLTSAMPS_SWITCH_TITLE</TOOLTIP_TITLE>
+				<TT_DESCRIPTION_ID>@TT_Package.VOLTSAMPS_SWITCH_ACTION</TT_DESCRIPTION_ID>
+				<INTERACTION_TYPE>Switch</INTERACTION_TYPE>
+			</Parameters>
+			<UseTemplate Name="ASOBO_INSTRUMENT_Base_Template">
+				<IE_NAME>Digital_Voltmeter_Switch</IE_NAME>
+				<SET_STATE_EXTERNAL>p0 (&gt;L:Digital_Voltmeter_Switch_State)</SET_STATE_EXTERNAL>
+				<GET_STATE_EXTERNAL>(L:Digital_Voltmeter_Switch_State) sp0</GET_STATE_EXTERNAL>
+				<TT_VALUE_OFF>(R:1:@TT_Package.GT_STATE_VOLT)</TT_VALUE_OFF>
+				<TT_VALUE_ON>(R:1:@TT_Package.GT_STATE_AMPS)</TT_VALUE_ON>
+			</UseTemplate>
+		</Component>
+		<Component ID="#NODE_ID_LIGHT_HIGH_VOLT#" Node="#NODE_ID_LIGHT_HIGH_VOLT#">
+			<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">
+				<EMISSIVE_CODE>(A:ELECTRICAL MAIN BUS VOLTAGE, volt) #HIGH_VOLTAGE_THRESHOLD# &gt;</EMISSIVE_CODE>					
+			</UseTemplate>
+		</Component>
+		<Component ID="#NODE_ID_LIGHT_DISCHARGE#" Node="#NODE_ID_LIGHT_DISCHARGE#">
+			<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">
+				<EMISSIVE_CODE>(A:ELECTRICAL MAIN BUS VOLTAGE, volts) #DISCHARGE_THRESHOLD# &lt;</EMISSIVE_CODE>					
+			</UseTemplate>
+		</Component>
+	</Template>
+	
+</ModelBehaviors>
+	

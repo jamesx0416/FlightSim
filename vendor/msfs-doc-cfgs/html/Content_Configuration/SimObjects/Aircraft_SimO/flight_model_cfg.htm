@@ -1,0 +1,2053 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>flight_model.cfg</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="Flight Model,CFG Files,Aircraft"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>flight_model.cfg</h2>
+  <p>The <code class="inline">flight_model.cfg</code> file is an optional aircraft file for defining the flight model of the aircraft. In general, you&#39;ll want to prepare this file using the DevMode tools (see <a href="../../../Samples_And_Tutorials/Tutorials/Defining_A_Flight_Model.htm">here</a> for more information) and then tweak the values if required in the CFG file.</p>
+  <p> </p>
+  <p>Below you can find information on the different sections used in the <code class="inline">flight_model.cfg</code> file as well as what parameters and values are expected within them. You can also find an in-depth explanation of the physics behind the flight model from the following page:</p>
+  <ul>
+    <li><a href="../../../Samples_And_Tutorials/Primers/Flight_Model_Physics.htm">Flight Model Physics</a></li>
+  </ul>
+  <p><span class="note"><strong>NOTE</strong>: To help with the configuration of the Flight Model (and the <code class="inline"><a href="engines_cfg.htm">engines.cfg</a></code>) we have included an <code class="inline">*.xlsx</code> file with the documentation that can be used to generate the required values for many of the parameters based on a small number of inputs (these inputs are marked in blue in the file): <a href="../../../assets/Files/PlanePerformance.xlsx">PlanePerformance.xlsx</a></span></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="version"><code class="inline">[VERSION]</code></h3>
+  <p>The <code class="inline">[VERSION]</code> section provides version information for the configuration file. In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, major versions should <em>always</em> be at least equal to 1. Note that this section information is <strong>mandatory</strong> and should always be included.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">major</code></td>
+        <td>Major CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minor</code></td>
+        <td>Minor CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="weightandbalance"><code class="inline">[WEIGHT_AND_BALANCE]</code></h3>
+  <p>This section is used to define the weight and balance of the aircraft. Most position parameters in this section are given <strong>relative to the <a href="Aircraft.htm#h">Datum Reference Point</a></strong> for the aircraft, which is itself specified in this section. The convention for positions is that a positive value equals forward, to the right, or vertically upward, and note that all units are in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>, unless mentioned otherwise. Any 3D coordinates are given with respect to this referential in the following order:</p>
+  <ul>
+    <li><code>z</code> (longitudinal) coordinate</li>
+    <li><code>x</code> (lateral) coordinate</li>
+    <li><code>y</code> (vertical) coordinate</li>
+  </ul>
+  <p>The only parameters that are not relative to the datum reference are the parameters for the manual longitudinal positioning of the <a href="#" data-popovertext="The &#39;Center of Lift&#39; is the point where the sum total of all lift generated by parts - principally by wings, control surfaces, and aerodynamic fuselage parts - balances out and the aggregate direction their force will act on an aircraft while in the atmosphere." data-rhwidget="TextPopOver">CoL</a>, <code class="inline"><a href="flight_model/aerodynamics.htm#compute_aero_center">compute_aero_center</a></code> and <code class="inline"><a href="flight_model/aerodynamics.htm#aero_center_lift">aero_center_lift</a></code>.</p>
+  <p> </p>
+  <p>The available parameters for this section are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col style="width:15%;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><a id="max_gross_weight"></a><code class="inline">max_gross_weight</code></td>
+        <td>The maximum total weight of the aircraft when fully loaded, in <a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>.</td>
+        <td>Float</td>
+        <td colspan="1" rowspan="17" style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><a id="empty_weight"></a><code class="inline">empty_weight</code></td>
+        <td>The empty weight of the aircraft, in <a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">reference_datum_position</code></td>
+        <td>The position of the <a href="Aircraft.htm#h">Datum Reference Point</a> relative to the model center. A three value list - z, x, y - with values in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+        <td>
+          <p>1D Table of 3 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="empty_weight_CG_position"></a><code class="inline">empty_weight_CG_position</code></td>
+        <td>The position of airplane empty weight <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>. A three value list - z, x, y - with values in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+        <td>
+          <p>1D Table of 3 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">CG_forward_limit</code></td>
+        <td>
+          <p>Forward limit of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> as a <a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a>. For example, 0.11 is equal to 11% <a href="#" data-popovertext="This means the &#39;Mean Aerodynamic Chord&#39; which is a mathematical calculation that shows where the center of gravity is over the wing." data-rhwidget="TextPopOver">MAC</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This parameter is only valid for <strong>airplanes</strong>.</span></p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">CG_aft_limit</code></td>
+        <td>
+          <p>Aft limit of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> as a <a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a>. For example, 0.4 is equal to 40% <a href="#" data-popovertext="This means the &#39;Mean Aerodynamic Chord&#39; which is a mathematical calculation that shows where the center of gravity is over the wing." data-rhwidget="TextPopOver">MAC</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This parameter is only valid for <strong>airplanes</strong>.</span></p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">CG_feet_forward_limit</code></td>
+        <td>
+          <p>The forward limit (longitudinal offset) of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> expressed in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> from the <a href="Aircraft.htm#h">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This parameter is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">CG_feet_aft_limit</code></td>
+        <td>
+          <p>The aft limit (longitudinal offset) of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> expressed in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> from the <a href="Aircraft.htm#h">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This parameter is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">CG_feet_lateral_right_limit</code></td>
+        <td>
+          <p>The right-side (lateral offset) limit of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> expressed in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> from the <a href="Aircraft.htm#h">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This parameter is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">CG_feet_lateral_left_limit</code></td>
+        <td>
+          <p>The left-side (lateral offset) limit of the <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> expressed in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> from the <a href="Aircraft.htm#h">Datum Reference Point</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This parameter is only valid for <strong>helicopters</strong>.</span></p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><a id="empty_weight_pitch_MOI"></a><code class="inline">empty_weight_pitch_MOI</code></td>
+        <td>The empty pitch <a href="#" data-popovertext="This means the &#39;Moment Of Inertia&#39;,  and this is a quantity that determines the torque needed for a desired angular acceleration about a rotational axis - similar to how mass determines the force needed for a desired acceleration." data-rhwidget="TextPopOver">MOI</a>, in <a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><a id="empty_weight_roll_MOI"></a><code class="inline">empty_weight_roll_MOI</code></td>
+        <td>The empty roll <a href="#" data-popovertext="This means the &#39;Moment Of Inertia&#39;,  and this is a quantity that determines the torque needed for a desired angular acceleration about a rotational axis - similar to how mass determines the force needed for a desired acceleration." data-rhwidget="TextPopOver">MOI</a>, in <a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><a id="empty_weight_yaw_MOI"></a><code class="inline">empty_weight_yaw_MOI</code></td>
+        <td>The empty yaw <a href="#" data-popovertext="This means the &#39;Moment Of Inertia&#39;,  and this is a quantity that determines the torque needed for a desired angular acceleration about a rotational axis - similar to how mass determines the force needed for a desired acceleration." data-rhwidget="TextPopOver">MOI</a>, in <a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><a id="empty_weight_coupled_MOI"></a><code class="inline">empty_weight_coupled_MOI</code></td>
+        <td>The empty transverse <a href="#" data-popovertext="This means the &#39;Moment Of Inertia&#39;,  and this is a quantity that determines the torque needed for a desired angular acceleration about a rotational axis - similar to how mass determines the force needed for a desired acceleration." data-rhwidget="TextPopOver">MOI</a>, in <a href="#" data-popovertext="This stands for the &#39;Slug Square Foot&#39; which is a unit of moment of inertia in the Imperial unit system (1 Slug sqft is equal to approximately 1.35582 kilogram square meters)." data-rhwidget="TextPopOver">Slug sqft</a>.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">activate_mach_limit_based_on_cg</code></td>
+        <td>
+          <p>When set to TRUE (1) this activates mach limitation depending on <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> position.</p>
+          <p>Default for most aircraft is FALSE (0).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">activate_cg_limit_based_on_mach</code></td>
+        <td>
+          <p>When set to TRUE (1) this activate <a href="#" data-popovertext="This stands for the &#39;Center Of Gravity&#39;. The CG of an aircraft is the point over which the aircraft would balance. The center of gravity affects the stability of the aircraft and must fall within specified limits established by the aircraft manufacturer." data-rhwidget="TextPopOver">CG</a> limitation depending on the mach value.</p>
+          <p>Default for most aircraft is FALSE (0).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="max_number_of_stations"></a><code class="inline">max_number_of_stations</code></td>
+        <td>The maximum number of payload stations.</td>
+        <td>Integer</td>
+      </tr>
+      <tr class="rh-cursor-row">
+        <td><a id="station_load.N"></a><code class="inline">station_load.<em>N</em></code></td>
+        <td>
+          <p>This parameter can be used multiple times to define each of the payload stations up to the maximum defined by the <code class="inline"><a href="flight_model_cfg.htm#max_number_of_stations">max_number_of_stations</a></code> value (note that counting starts at 0, so for 15 stations <em>N</em> would be from 0 to 14). Parameter takes a comma separated list with the following format:</p>
+          <p><code class="inline">weight, x, y, z, name, type</code></p>
+          <p>The weight is in <a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>, (x, y, z) is offset from the <a href="Aircraft.htm#h">Datum Reference Point</a> and in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>, the name is a localisable string, and the type can be one of the following integer values:</p>
+          <ol class="minitoc-list">
+            <li>- 0 (Unknown)</li>
+            <li>- 1 (Pilot)</li>
+            <li>- 2 (Copilot)</li>
+            <li>- 3 (Passenger)</li>
+            <li>- 4 (Front Pax)</li>
+            <li>- 5 (Rear Pax)</li>
+            <li>- 6 (Baggage)</li>
+          </ol>
+        </td>
+        <td>
+          <p>1D Table of 6 Values</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" style="text-align: center">No<br/>
+          <span class="smallfont">(Unless <code class="inline"><a href="#max_number_of_stations">max_number_of_stations</a></code> is greater than 0)</span>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="station_name.N"></a><code class="inline">station_name.<em>N</em></code></td>
+        <td>
+          <p>This parameter defines a name that will be used in the payload dialog, and has a 15 character limit. Omission of this will result in a generic station name being used. This parameter can be used multiple times to define names for each of the payload stations up to the maximum defined by the <code class="inline"><a href="flight_model_cfg.htm#max_number_of_stations">max_number_of_stations</a></code> value (note that counting starts at 0, so for 15 stations <em>N</em> would be from 0 to 14).</p>
+        </td>
+        <td>String</td>
+        <td colspan="1" style="text-align: center">No<br/>
+          <span class="smallfont">(Unless <code class="inline"><a href="#max_number_of_stations">max_number_of_stations</a></code> is greater than 0)</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h"><code class="inline">[CONTACT_POINTS]</code></h3>
+  <p>This section is for defining the points on the aircraft body referential frame which are likely to come in contact with the ground. These parameters are used for aircraft positioning on the ground and also for crash simulations. Full information on the contents of this section can be found from the following page:</p>
+  <ul>
+    <li><a href="flight_model/contact_points.htm">flight_model.cfg - [CONTACT POINTS]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="h4"><code class="inline">[FUEL]</code></h3>
+  <p>This section is for defining a simplified fuel system that will reflect on the flight model. In general this section is where you&#39;d define fuel systems for basic aircraft, but for more complex aircraft you have the <a href="flight_model/fuel_system.htm"><code class="inline">[FUEL_SYSTEM]</code></a> section which permits you to setup how fuel will be distributed and used within the aircraft on a much more detailed level. Note that only the <code class="inline"><a href="flight_model_cfg.htm#fuel_type">fuel_type</a></code> parameter in this section is still relevant for complex aircraft, and all others can be omitted if you have set up the detailed fuel system.</p>
+  <p> </p>
+  <p>This section has the following parameters:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 458px;"/>
+      <col style="width: 163px;"/>
+      <col style="width: 61px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">LeftMain</code></td>
+        <td colspan="1" rowspan="11">
+          <p>Comma separated list of values that defines the tank. List values are:</p>
+          <p><code class="inline">z, x, y, total_fuel_capacity, unusable_fuel_capacity</code></p>
+          <p>(z, x, y) is offset from the <a href="Aircraft.htm#h">Datum Reference Point</a> and in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>, and the fuel capacity values are in <a href="#" data-popovertext="This is an imperial unit of measurement for volume, equivalent to 3785 cubic centimetres in the metric system." data-rhwidget="TextPopOver">Gallon</a>s. <span style="font-size: 0.9em;">If any tank is not used, simply supply the list with all values set to 0.</span></p>
+        </td>
+        <td colspan="1" rowspan="11">
+          <p>1D Table of 5 Values</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" rowspan="11" style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">RightMain</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">Center1</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">Center2</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">Center3</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">LeftAux</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">LeftTip</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">RightAux</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">RightTip</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">External1</code></td>
+      </tr>
+      <tr>
+        <td><code class="inline">External2</code></td>
+      </tr>
+      <tr>
+        <td><a id="fuel_type"></a><code class="inline">fuel_type</code></td>
+        <td>
+          <p>The fuel type for the engines.</p>
+          <p><span class="note"><strong>IMPORTANT!</strong> This parameter is the only one from the <code class="inline">[FUEL]</code> section that is still required for the modern <a href="flight_model/fuel_system.htm"><code class="inline">[FUEL_SYSTEM]</code></a>.</span></p>
+        </td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>1 = OCTANE 100</li>
+            <li>2 = JET A</li>
+            <li>3 = OCTANE 80</li>
+            <li>4 = AUTO GAS</li>
+            <li>5 = JET B</li>
+          </ol>
+        </td>
+        <td colspan="1" style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">number_of_tank_selectors</code></td>
+        <td>The number of tank selectors available, between 1 and 4 only.</td>
+        <td>Integer</td>
+        <td colspan="1" style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">electric_pump</code></td>
+        <td>Whether there is an electric pump (TRUE, 1) or not (FALSE, 0).</td>
+        <td>Bool</td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">engine_driven_pump</code></td>
+        <td>Whether there is an engine driven pump (TRUE, 1) or not (FALSE, 0).</td>
+        <td>Bool</td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">manual_transfer_pump</code></td>
+        <td>Whether there is a manual transfer pump (TRUE, 1) or not (FALSE, 0).</td>
+        <td>Bool</td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">manual_pump</code></td>
+        <td>Whether there is a manual pump (TRUE, 1) or not (FALSE, 0).</td>
+        <td>Bool</td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">anemometer_pump</code></td>
+        <td>Whether there is an anemometer pump (TRUE, 1) or not (FALSE, 0).</td>
+        <td>Bool</td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="fuel_dump_rate"></a><code class="inline">fuel_dump_rate</code></td>
+        <td>The fuel dump rate, as a <a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a>.</td>
+        <td>Float</td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pressure_auto_pump</code></td>
+        <td>The maximum pressure for the auto pump, in <a href="#" data-popovertext="The &#39;Pound per Square Inch&#39; is a unit of pressure or of stress based on the imperial measurement system. It is the pressure resulting from a one pound-force applied to an area of one square inch. In metric units, 1psi is approximately equal to 6895 newtons per meter squared." data-rhwidget="TextPopOver">psi</a>.</td>
+        <td>Float</td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="fuel_transfer_pump.N"></a><code class="inline">fuel_transfer_pump.<em>N</em></code></td>
+        <td>
+          <p>Defines a fuel transfer pump <em>N</em>, where <em>N</em> starts at 0. Table contents are:</p>
+          <p><code class="inline">Source, Destination, Rate in <a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a>/s, Pump ID</code></p>
+          <p>Source and Destination are one of the values given here for the different tanks: <a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_Fuel_Variables.htm#fuel-tank-selection">Fuel Tank Selection</a>. The Pump ID is an integer value used to identify the pump <em>and</em> link it to a circuit.</p>
+          <p>To toggle the pump on or off you need to have first created a circuit of the type <code class="inline">CIRCUIT_FUEL_TRANSFER_PUMP</code> using the <code class="inline"><a href="system/electrical.htm#circuit">circuit.N</a></code> parameter of the <a href="system/electrical.htm">systems.cfg</a> file, and the circuit <em>Type</em> index needs to be the same as the <em>Pump ID</em>.</p>
+          <p>The pump can then be toggled on/off using the <code class="inline"><a href="../../../Programming_Tools/Event_IDs/Aircraft_Fuel_System_Events.htm#FUEL_TRANSFER_CUSTOM_INDEX_TOGGLE">FUEL_TRANSFER_CUSTOM_INDEX_TOGGLE</a></code> key event, or using the <code class="inline"><a href="../../../Programming_Tools/Event_IDs/Aircraft_Electrical_Events.htm#ELECTRICAL_CIRCUIT_TOGGLE">ELECTRICAL_CIRCUIT_TOGGLE</a></code> key event.</p>
+        </td>
+        <td>
+          <p>1D Table of 4 Values</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">default_fuel_tank_selector</code></td>
+        <td>The default fuel selector used in case of autostart, which will override <code class="inline">default_fuel_tank_selector.<em>N</em></code>.</td>
+        <td colspan="1" rowspan="2">
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = Off</li>
+            <li>1 = All</li>
+            <li>2 = Left</li>
+            <li>3 = Right</li>
+            <li>4 = Left Aux.</li>
+            <li>5 = Right Aux.</li>
+            <li>6 = Center 1</li>
+            <li>7 = Center 2</li>
+            <li>8 = Center 3</li>
+            <li>9 = External 1</li>
+            <li>10 = External 2</li>
+            <li>11 = Right Tip</li>
+            <li>12 = Left Tip</li>
+            <li>13 = Crossfeed</li>
+            <li>14 = Crossfeed<br/>
+              <br/>
+              Left-to-Right
+            </li>
+            <li>15 = Crossfeed<br/>
+              <br/>
+              Right-to-Left
+            </li>
+            <li>16 = Both</li>
+            <li>17 = All External</li>
+            <li>18 = Isolate</li>
+            <li>19 = Left Main</li>
+            <li>20 = Right Main</li>
+          </ol>
+        </td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">default_fuel_tank_selector.<em>N</em></code></td>
+        <td>Default fuel selector used in case of autostart for engine <em>N</em>, where <em>N</em> corresponds to an engine (between 1 and 4). This will be ignored if <code class="inline">default_fuel_tank_selector</code> is defined.</td>
+        <td colspan="1" style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">fuel_tank_priority</code></td>
+        <td>
+          <p>This is a table of fuel tanks to indicate the order in which they should be used. You list the highest priority first, and thern subseqwuent priorities, for example:</p>
+          <pre class="codeblock">fuel_tank_priority = LeftMain-RightMain, Center1</pre>
+          <p>As you can see, dashes can be used to indicate 2 (or more) fuel tanks sharing the same priority, and in this example both the left and right main tanks are priority 1, then Center1 is priority 2. The following strings can be used to indicate the fuel tanks you want to assign a priority to:</p>
+          <ol class="minitoc-list">
+            <li>Center1</li>
+            <li>Center2</li>
+            <li>Center3</li>
+            <li>LeftMain</li>
+            <li>LeftTip</li>
+            <li>LeftAux</li>
+            <li>RightMain</li>
+            <li>RightTip</li>
+            <li>RightAux</li>
+            <li>External1</li>
+            <li>External2</li>
+          </ol>
+        </td>
+        <td>
+          <p>1D Table of Values</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" style="text-align: center;">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <p> </p>
+  <h3 id="h6"><code class="inline">[FUEL_SYSTEM]</code></h3>
+  <p>The <code class="inline">[FUEL_SYSTEM]</code> section is primarily for use in complex aircraft models where the simple <code class="inline"><a href="flight_model_cfg.htm#h4">[FUEL]</a></code> system doesn&#39;t give enough control or flexibility for the aircraft systems. The parameters within the <code class="inline"><a href="flight_model_cfg.htm#h4">[FUEL]</a></code> section should be used for simple aircraft or those that require a basic fuel system setup, or for maintaining old aircraft (like ones imported from <span data-keyref="game_fx_short">FSX</span>). You can find full details on the fuel system parameters from the following page:</p>
+  <ul>
+    <li><a href="flight_model/fuel_system.htm">flight_model.cfg - [FUEL_SYSTEM]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <p> </p>
+  <h3 id="h3"><code class="inline">[AIRPLANE_GEOMETRY]</code></h3>
+  <p>This section is for defining the geometry of an aircraft. This is a very important part of the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> flight model since the physics simulation will be based mainly on the actual physical geometry of the aircraft. You can find all the parameters related to the aircraft geometry from the following page:</p>
+  <ul>
+    <li><a href="flight_model/geometry.htm">flight_model.cfg - [AIRPLANE_GEOMETRY]</a></li>
+  </ul>
+  <p><span class="note"><strong>NOTE</strong>: This section is not required if you are creating a <a href="flight_model/helicopter.htm">Helicopter</a> SimObject.</span></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="aerodynamics"><code class="inline">[AERODYNAMICS]</code></h3>
+  <p>This section is where you can set up the various aerodynamic properties for the aircraft. You can find all the parameters related to this section from the following page:</p>
+  <ul>
+    <li><a href="flight_model/aerodynamics.htm">flight_model.cfg - [AERODYNAMICS]</a></li>
+  </ul>
+  <p><span class="note"><strong>NOTE</strong>: This section is not required if you are creating a <a href="flight_model/helicopter.htm">Helicopter</a> SimObject.</span></p>
+  <p> </p>
+  <p> </p>
+  <h3 id="h1"><code class="inline">[FLIGHT_TUNING]</code></h3>
+  <p>This section is for tuning various aspects of the flight model for an aircraft.</p>
+  <p><span class="note"><strong>NOTE</strong>: This section is not required if you are creating a <a href="flight_model/helicopter.htm">Helicopter</a> SimObject.</span></p>
+  <p> </p>
+  <p>The available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col style="width: 20%;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">modern_fm_only</code></td>
+        <td>
+          <p>This can be set to 1 (true) to force the aircraft to use the modern flight model, regardless of what the user may have selected in the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> options.</p>
+          <p>Default value is 0 (false).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">legacy_fm_only</code></td>
+        <td>
+          <p>This can be set to 1 (true) to force the aircraft to use the legacy flight model, regardless of what the user may have selected in the <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> options.</p>
+          <p>Default value is 0 (false).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">legacy_fm_new_integration</code></td>
+        <td>
+          <p>This is only applicable to those aircraft that are using the legacy Flight Model. It was discovered that there was an issue with the acceleration integration calculations for the legacy flight model, and so this parameter exists to fix that. When set to 1 (true) the calculations will be correct, which may affect the handling of aircraft that have been calibrated using the &quot;broken&quot; flight model. When set to 0, the flight model will be the original one without the fix.</p>
+          <p>Default value is 0 (false).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">empty_CG_deviation_limit</code></td>
+        <td>
+          <p>This value allows you to define - in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> - a limit to the maximum deviation that will be allowed in the weight &amp; balance UI menu (where users can change the empty CG position).</p>
+          <p>Default value is infinite, and it can also can accept 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">icing_scalar</code></td>
+        <td>
+          <p>With this value you can scale up or down the effects of icing on the plane. This will affects the effect of icing on lift and on the weight.</p>
+          <p>The default value is 1.0 (100% of the effect). Can accept 0.0 to remove all effects of icing.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">cruise_lift_scalar</code></td>
+        <td>
+          <p>Scales the target lift coefficient as looked up from <code class="inline"><a href="flight_model/aerodynamics.htm#lift_coef_aoa_table">lift_coef_aoa_table</a></code> over the entire range of <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a>s.</p>
+          <p>Default value is 1. </p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">parasite_drag_scalar</code></td>
+        <td>
+          <p>Scales the target drag coefficient as defined in <code class="inline"><a href="flight_model/aerodynamics.htm#drag_coef_zero_lift">drag_coef_zero_lift</a></code>.</p>
+          <p>Default value is 1. </p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="induced_drag_scalar"></a><code class="inline">induced_drag_scalar</code></td>
+        <td>
+          <p>Scales the induced drag target as defined by the target induced drag formula:</p>
+          <p>\({C}_{Di} = \frac {{C_l} ^{2}} {pi \times AR \times e}\) </p>
+          <p>This scalar applies to the FLAP 0 configuration (in clean configuration, ie: no propeller, no turbulence, no engine wash, no gears, no flaps, no spoilers, no deflections...).</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flap_induced_drag_scalar</code></td>
+        <td>
+          <p>Scales the induced drag target as defined by the target induced drag formula:</p>
+          <p>\({Cd}_{i} = \frac {Cl ^{2}} {pi \times AR \times e}\) </p>
+          <p>This scalar applies to the FULL FLAP configuration (ldg).</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">clcd_normalization_aoa_deg_low</code></td>
+        <td>
+          <p>Lower <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> at which the aircraft&#39;s lift &amp; drag is normalised to the theory curve.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">clcd_normalization_aoa_deg_high</code></td>
+        <td>
+          <p>Higher <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> at which the aircraft&#39;s lift &amp; drag is normalized to the theory curve.</p>
+          <p>Default value is 12.4.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="elevator_effectiveness"></a><code class="inline">elevator_effectiveness</code></td>
+        <td>
+          <p>This scalar scales the <code class="inline"><a href="flight_model/aerodynamics.htm#elevator_lift_coef">elevator_lift_coef</a></code> parameter in the <a href="flight_model/aerodynamics.htm"><code class="inline">[AERODYNAMICS]</code></a> section.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="elevator_maxangle_scalar"></a><code class="inline">elevator_maxangle_scalar</code></td>
+        <td>
+          <p>Scales the deflection angle of the elevator control surface up to the max deflection indicated in elevator_xxx_limit and already scaled by the <code class="inline"><a href="flight_model/geometry.htm#elevator_elasticity_table">elevator_elasticity_table</a></code>.</p>
+          <p>The default value is 1.0, yet if the limit angles are matching the real aircraft, this scalar should be smaller than one as the effective deflection will be aligned with the overall htail and elevator chord. A value between 0.5 and 0.75 will work with most airplanes.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">elevator_chordangle_scaler</code></td>
+        <td>
+          <p>Used to re-scale the elevator effectiveness using the following formula:</p>
+          <p class="codeblock">ratio = elevator_chordangle_scalar * elevator_area / (elevator_area + htail_area)</p>
+          <p>The ratio is then applied to the <code class="inline">Clde</code>, <code class="inline">Cmde</code>, <code class="inline">CmdTrim</code> and <code class="inline">CmdePropwash</code>.</p>
+          <p>Default value is -1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="aileron_effectiveness"></a><code class="inline">aileron_effectiveness</code></td>
+        <td>
+          <p>Scales the elevator lift coefficient slope as defined in <code class="inline"><a href="flight_model/aerodynamics.htm#elevator_lift_coef">elevator_lift_coef</a></code> in the <a href="flight_model/aerodynamics.htm"><code class="inline">[AERODYNAMICS]</code></a> section. Increases or decreases elevator authority or &quot;twitchyness&quot; without affecting the deflection angle.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="rudder_effectiveness"></a><code class="inline">rudder_effectiveness</code></td>
+        <td>
+          <p>This scalar scales the <code class="inline"><a href="flight_model/aerodynamics.htm#rudder_lift_coef">rudder_lift_coef</a></code> parameter in the <a href="flight_model/aerodynamics.htm"><code class="inline">[AERODYNAMICS]</code></a> section. Values will increase or decrease lift authority or &quot;twitchyness&quot; without affecting the deflection angle.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="rudder_maxangle_scalar"></a><code class="inline">rudder_maxangle_scalar</code></td>
+        <td>
+          <p>Scales the deflection angle of the rudder control surface up to the max deflection indicated in <code class="inline"><a href="flight_model/geometry.htm#rudder_limit">rudder_limit</a></code> and already scaled by the <code class="inline"><a href="flight_model/geometry.htm#rudder_elasticity_table">rudder_elasticity_table</a></code>.</p>
+          <p>The default value is 1, and if the limit angles are matching the real aircraft, this scalar should be less than 1 as the effective deflection will be aligned with the overall vtail and rudder chord. A value between 0.5 and 0.75 will work with most airplanes.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">rudder_chordangle_scalar</code></td>
+        <td>
+          <p>Used to re-scale the rudder effectiveness using the following formula:</p>
+          <p class="codeblock">ratio = elevator_chordangle_scalar * elevator_area / (elevator_area + htail_area)</p>
+          <p>The ratio is then applied to the <code class="inline">Cydr</code>, <code class="inline">Cldr</code>, <code class="inline">Cndr</code> and <code class="inline">CndrPropwash</code>.</p>
+          <p>Default value is -1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">htail_maxangle_scalar</code></td>
+        <td>
+          <p>
+            <font color="#e0e0e0">This scalar is used in the calculations that define the orientation of the elevator aerodynamic surfaces.</font>
+          </p>
+          <p>Default value is -1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vtail_maxangle_scalar</code></td>
+        <td>
+          <p>
+            <font color="#e0e0e0">This scalar is used in the calculations that define the orientation of the rudder aerodynamic surfaces.</font>
+          </p>
+          <p>Default value is -1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_stability</code></td>
+        <td>
+          <p>Sets a target value for aerodynamic resistance to pitch rotation for the plane. In the <em>legacy</em> flight model, this will scale the <code class="inline"><a href="flight_model/aerodynamics.htm#pitch_moment_pitch_damping">pitch_moment_pitch_damping</a></code> variable. In the <em>modern</em> flight model, this will set a target aerodynamic resistance value that the flight model will try to reach by adding more rotation resistance to each surface. As this system can only add more resistance, there will be a minimum native aerodynamic resistance below which the system can&#39;t go. By setting a low target, such as 0.1, the target is usually below the native aerodynamic rotation resistance which means that this parameter will have no effect. To add more aerodynamic resistance, use larger values.</p>
+          <p><span class="note"><strong>NOTE</strong>: Aerodynamic resistance to rotation is relative to the local air mass. If the local airmass is turbulent, increasing rotation resistance will make turbulence impact more on the aircraft.</span>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="roll_stability"></a><code class="inline">roll_stability</code></td>
+        <td>
+          <p>Sets a target value for aerodynamic resistance to roll rotation for the plane. In the <em>legacy</em> flight model, this will scale the <code class="inline"><a href="flight_model/aerodynamics.htm#roll_moment_roll_damping">roll_moment_roll_damping</a></code> variable. In the <em>modern</em> flight model, this will set a target aerodynamic resistance value that the modern flight model will try to reach by adding more rotation resistance to each surface. As this system can only add more resistance, there will be a minimum native aerodynamic resistance below which the system can&#39;t go. By setting a low target, such as 0.1, the target is usually below the native aerodynamic rotation resistance which means that this parameter will have no effect. To add more aerodynamic resistance, use larger values.</p>
+          <p><span class="note"><strong>NOTE</strong>: Aerodynamic resistance to rotation is relative to the local air mass. If the local airmass is turbulent, increasing rotation resistance will make turbulence impact more on the aircraft.</span>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="yaw_stability"></a><code class="inline">yaw_stability</code></td>
+        <td>
+          <p>Sets a target value for aerodynamic resistance to yaw rotation for the plane. In the <em>legacy</em> flight model, this will scale the <code class="inline"><a href="flight_model/aerodynamics.htm#yaw_moment_yaw_damping">yaw_moment_yaw_damping</a></code> variable. In the <em>modern</em> flight model, this will set a target aerodynamic resistance value that the modern flight model will try to reach by adding more rotation resistance to each surface. As this system can only add more resistance, there will be a minimum native aerodynamic resistance below which the system can&#39;t go. By setting a low target, such as 0.1, the target is usually below the native aerodynamic rotation resistance which means that this parameter will have no effect. To add more aerodynamic resistance, use larger values.</p>
+          <p><span class="note"><strong>NOTE</strong>: Aerodynamic resistance to rotation is relative to the local air mass. If the local airmass is turbulent, increasing rotation resistance will make turbulence more impacting on the aircraft.</span>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_gyro_stability</code></td>
+        <td>
+          <p>This variable controls pitch gyroscopic stability. Unlike aerodynamic stability - which is relative to the local airmass - gyroscopic stability is world relative and will <em>not </em>make the aircraft more sensitive to turbulence. It will have the opposite effect in reality: making the aircraft more stable relative to the world, it will become less sensitive to turbulent air. Gyroscopic stability in an aircraft is caused by turning parts such as the propellers or engine axis or turbines.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="roll_gyro_stability"></a><code class="inline">roll_gyro_stability</code></td>
+        <td>
+          <p>This variable controls roll gyroscopic stability. Unlike aerodynamic stability - which is relative to the local airmass - gyroscopic stability is world relative and will <em>not</em> make the aircraft more sensitive to turbulence. It will have the opposite effect in reality: making the aircraft more stable relative to the world, it will become less sensitive to turbulent air. Gyroscopic stability in an aircraft is caused by turning parts such as the propellers or engine axis or turbines.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="yaw_gyro_stability"></a><code class="inline">yaw_gyro_stability</code></td>
+        <td>
+          <p>This variable controls yaw gyroscopic stability. Unlike aerodynamic stability - which is relative to the local airmass - gyroscopic stability is world relative and will <em>not</em> make the aircraft more sensitive to turbulence. It will have the opposite effect in reality: making the aircraft more stable relative to the world, it will become less sensitive to turbulent air. Gyroscopic stability in an aircraft is caused by turning parts such as the propellers or engine axis or turbines.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="elevator_trim_effectiveness"></a><code class="inline">elevator_trim_effectiveness</code></td>
+        <td>
+          <p>Scales the elevator trim deflection angle and maximum trim deflection angle as defined in <code class="inline"><a href="flight_model/geometry.htm#elevator_trim_limit">elevator_trim_limit</a></code>.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="aileron_trim_effectiveness"></a><code class="inline">aileron_trim_effectiveness</code></td>
+        <td>
+          <p>Scales the aileron trim deflection angle and maximum trim deflection angle.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="rudder_trim_effectiveness"></a><code class="inline">rudder_trim_effectiveness</code></td>
+        <td>
+          <p>Scales the rudder trim deflection angle and maximum trim deflection angle as defined in <code class="inline"><a href="flight_model/geometry.htm#rudder_trim_limit">rudder_trim_limit</a></code>.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="aileron_up_drag_scalar"></a><code class="inline">aileron_up_drag_scalar</code></td>
+        <td>
+          <p>Scales the drag added by upwards aileron deflection as defined in <code class="inline"><a href="flight_model/aerodynamics.htm#aileron_up_drag_coef">aileron_up_drag_coef</a></code> parameter in the <a href="flight_model/aerodynamics.htm"><code class="inline">[AERODYNAMICS]</code></a> section. This parameter has a significant impact on adverse yaw. Reduce upward deflection drag to get more adverse yaw.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="aileron_down_drag_scalar"></a><code class="inline">aileron_down_drag_scalar</code></td>
+        <td>
+          <p>Scales the drag added by downwards aileron deflection as defined in <code class="inline"><a href="flight_model/aerodynamics.htm#aileron_down_drag_coef">aileron_down_drag_coef</a></code> parameter in the <a href="flight_model/aerodynamics.htm"><code class="inline">[AERODYNAMICS]</code></a> section. This parameter has a significant impact on adverse yaw. Increase downward deflection drag to get more adverse yaw.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hi_alpha_on_roll</code></td>
+        <td>
+          <p>Multiplier on the effects on roll at high angles of attack. This parameter is used in the <em>legacy</em> <span data-keyref="game_fx_short">FSX</span> flight model only to define the stall characteristics of the aircraft. It is not used anymore in the modern flight model.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hi_alpha_on_yaw</code></td>
+        <td>
+          <p>Multiplier on the effects on yaw at high angles of attack. This parameter is used in the <em>legacy</em> <span data-keyref="game_fx_short">FSX</span> flight model only to define the stall characteristics of the aircraft. It is not used anymore in the modern flight model.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">p_factor_on_yaw</code></td>
+        <td colspan="1">
+          <p>Scales the amount of p-factor induced yaw. P-factor is the result of the propeller providing asymmetric thrust when the propeller is not aligned with the trajectory.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">torque_on_roll</code></td>
+        <td colspan="1">
+          <p>Scales the amount of torque that is transmitted from the engine onto the aircraft. When the engine starts to roll into one direction, it will cause the aircraft to roll into the other direction.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gyro_precession_on_pitch</code></td>
+        <td colspan="1">
+          <p>Scales the amount of gyroscopic precession the engine causes on the aircraft&#39;s pitch.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gyro_precession_on_yaw</code></td>
+        <td colspan="1">
+          <p>Scales the amount of gyroscopic precession the engine causes on the aircraft&#39;s yaw.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">engine_wash_on_roll</code></td>
+        <td>
+          <p>Scales the impact that the engine wash will have on the control surfaces of the aircraft that causes the aircraft to roll.</p>
+          <p>The default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">wing_engine_wash</code></td>
+        <td>
+          <p>Scales the amount of propeller wash that will affect the lift of the part of the wing right behind the propeller.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">rudder_engine_wash_on_roll</code></td>
+        <td>
+          <p>Scales the amount of added rudder trim compensating engine wash impact on roll. This parameter is separated from the actual rudder trim because it will be disabled with the engine wash on roll depending on piloting assistance&#39;s.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">wingflex_scalar</code></td>
+        <td>
+          <p>Wingflex is based on realistic lift force and gravity computations and default elasticity parameters for a standard wing. This scalar allows to scale the amount of wingflex written to the <code class="inline"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#WING_FLEX_PCT">WING_FLEX_PCT</a></code> SimVar.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">wingflex_surface_scalar</code></td>
+        <td>
+          <p>This scalar can be used to modify how the actual aerodynamic surfaces are being flexed by the wingflex force. Set to 1, it should approximately do the correct wingflex, but it will depend on the aircraft wing stiffness.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">wingflex_offset</code></td>
+        <td>Wingflex is based on realistic lift force and gravity computations and default elasticity parameters for a standard wing. This offset allows to offset the amount of wingflex written to the <code class="inline" style="text-align: justify;"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm#WING_FLEX_PCT">WING_FLEX_PCT</a></code><span style="text-align: justify; font-size: 0.9em;"> </span>SimVar<span style="text-align: justify; font-size: 0.9em;">.</span>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">stallpitchscalar</code></td>
+        <td>
+          <p>This parameter cuts off some of the stalling ability in the modern flight model. In general we don&#39;t recommend using anything other than the default value for this parameter, <em>except</em> for aircraft that can fly at extreme <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a>s, like delta-wings, for example.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 5, 5, 0.10)"><code class="inline">stallliftscalar</code></td>
+        <td style="background-color: rgba(255, 5, 5, 0.10)">
+          <p><em>Not currently used in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span></em></p>
+          <p>Default value is 1.</p>
+        </td>
+        <td style="background-color: rgba(255, 5, 5, 0.10)">Float</td>
+        <td style="text-align: center;background-color: rgba(255, 5, 5, 0.10)">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">predicted_moi_density_scalar_fuselage</code></td>
+        <td>
+          <p>In the <a href="../../../Developer_Mode/Aircraft_Editor/Debug/Aircraft_Debug_Menu.htm#weight">Weight</a> debug window, this parameter will impact the predicted MOI that is displayed and can be used to help configure the MOI.</p>
+          <p><span class="note"><strong>IMPORTANT!</strong> This parameter is provided for debug information only and editing it will not affect the flight model.</span></p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">predicted_moi_density_scalar_wings</code></td>
+        <td>
+          <p>In the <a href="../../../Developer_Mode/Aircraft_Editor/Debug/Aircraft_Debug_Menu.htm#weight">Weight</a> debug window, this parameter will impact the predicted MOI that is displayed and can be used to help configure the MOI.</p>
+          <p><span class="note"><strong>IMPORTANT!</strong> This parameter is provided for debug information only and editing it will not affect the flight model.</span></p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">disable_assistances</code></td>
+        <td>
+          <p>When set to 1 (TRUE) this will disable all available assistance for the aircraft.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">prop_moment_transfer_on_roll</code></td>
+        <td>
+          <p>This parameter allows you to scale how much of the propeller acceleration moment is transferred back to the aircraft body. Note that this does not apply to the absorbed torque, only to the <a href="#" data-popovertext="This stands for &#39;Revolutions Per Minute&#39; and is used to measure engine speed and power." data-rhwidget="TextPopOver">RPM</a> acceleration moment.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">ground_crosswind_effect_zero_speed</code></td>
+        <td>
+          <p>This parameter represents the world speed (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second) at which 0% of the crosswind effect is applied to the aircraft. This parameter will work in two different ways:</p>
+          <ul>
+            <li><span>With the ground rudder assistance <em>enabled</em>, a</span>t the given speed and below, the lateral (x) component of the wind is set to zero.</li>
+            <li>With the ground rudder assistance <em>disabled</em>, crosswind is completely cancelled out below <code class="inline">ground_crosswind_effect_zero_speed</code> <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per seconds of <a href="#" data-popovertext="This stands for &quot;Indicated Air Speed&quot; and simply refers to the airspeed read directly from the airspeed indicator in an aircraft, driven by the pitot-static system." data-rhwidget="TextPopOver">IAS</a>, and it is gradually blended in up to 100% at <code class="inline">ground_crosswind_effect_max_speed</code> <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per seconds of <a href="#" data-popovertext="This stands for &quot;Indicated Air Speed&quot; and simply refers to the airspeed read directly from the airspeed indicator in an aircraft, driven by the pitot-static system." data-rhwidget="TextPopOver">IAS</a>.</li>
+          </ul>
+          <p>Note that this value can be set to -1000 to have a 100% realistic simulation where the crosswind is never cancelled out.</p>
+          <p>Default value is 5.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">ground_crosswind_effect_max_speed</code></td>
+        <td>
+          <p>This parameter represents the world speed (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second) at which 100% of the crosswind effect is applied to the aircraft.</p>
+          <p>Note that this value can be set to -1000 to have a 100% realistic simulation where the crosswind is never cancelled out.</p>
+          <p>Default value is 80.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">ground_high_speed_steeringwheel_static_friction_scalar</code></td>
+        <td>
+          <p>At high speeds, tires are rolling and - depending on their shape and width and how much they are inflated - they will more or less resist rotation or sideways motion. This parameter allows you to define how much a movable wheel <span>resists static friction which goes sideways or resists rotation around the vertical axis</span>. Essentially, it allows you to control how much the aircraft will move into the crosswind when rolling at higher speeds, and reducing the scalar will reduce the friction, so the aircraft is more likely to slide. Note that only the lateral forces are impacted by this value, so rolling friction and braking when your aircraft is rolling straight will not be influenced.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">ground_high_speed_otherwheel_static_friction_scalar</code></td>
+        <td>
+          <p>At high speeds, tires are rolling and - depending on their shape and width and how much they are inflated - they will more or less resist rotation or sideways motion. This parameter allows you to define how much a non-movable wheel <span>resists static friction which goes sideways or resists rotation around the vertical axis</span>. Essentially, it allows you to control how much the aircraft will move into the crosswind when rolling at higher speeds, and reducing the scalar will reduce the friction, so the aircraft is more likely to slide. Note that only the lateral forces are impacted by this value, so rolling friction and braking when your aircraft is rolling straight will not be influenced.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">stall_coef_at_min_weight</code></td>
+        <td>
+          <p>This coefficient is used as part of the calculations involved with defining the predicted stall speed that will be used to guide the auto-pilot and FBW systems. The actual calculation is as follows:</p>
+          <p class="codeblock">stallSpeed = flapStallSpeed * (stall_coef_at_min_weight + (1 - stall_coef_at_min_weight) * weightPercent)</p>
+          <p>Default value is 0.5.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="ground_new_contact_model_gear_flex"></a><code class="inline">ground_new_contact_model_gear_flex</code></td>
+        <td>
+          <p>This defines the added compliance (ie: the inverse of the &quot;stiffness&quot;) of the landing gears when the soft contact simulation physics is active. It is measured in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per pound of force.</p>
+          <p>For more information, please see the <a href="flight_model_cfg.htm#note_ground_contact">Note On New Ground Contact Model</a>.</p>
+          <p>Default value is 0.0</p>
+        </td>
+        <td>Float</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td><a id="ground_new_contact_model_gear_flex_damping"></a><code class="inline">ground_new_contact_model_gear_flex_damping</code></td>
+        <td>
+          <p>This defines the added damping (energy dispersion in heat) of the landing gears with the new soft contact simulation physics enabled. It is measured in <a href="#" data-popovertext="This stands for &#39;pounds&#39; and is a way of measuring the mass of an object using the Imperial system. In metric it is aproximately 0.45 kilograms." data-rhwidget="TextPopOver">lbs</a> per <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second.</p>
+          <p>For more information, please see the <a href="#note_ground_contact">Note On New Ground Contact Model</a>.</p>
+          <p>Default value is 0.0</p>
+        </td>
+        <td>Float</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td><a id="ground_new_contact_model_rolling_stickyness"></a><code class="inline">ground_new_contact_model_rolling_stickyness</code></td>
+        <td>
+          <p>This can be used to further reduce the sideways friction on wheels due to the effects of the rolling wheel. Value is expressed as a ratio between o and 1, where 1 is no effect.</p>
+          <p>For more information, please see the <a href="#note_ground_contact">Note On New Ground Contact Model</a>.</p>
+          <p>Default value is 1</p>
+        </td>
+        <td>Float</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td><a id="ground_new_contact_model_up_to_speed_lateral"></a><code class="inline">ground_new_contact_model_up_to_speed_lateral</code></td>
+        <td>
+          <p>This defines the speed, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second, up to which the new contact model will be used to calculate lateral friction on <strong>non-steering</strong> wheels. Speeds greater than this will revert to the legacy contact model.</p>
+          <p>For more information, please see the <a href="#note_ground_contact">Note On New Ground Contact Model</a>.</p>
+          <p>Default value is 0.1</p>
+        </td>
+        <td>Float</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td><a id="ground_new_contact_model_up_to_speed_lateral_steering"></a><code class="inline">ground_new_contact_model_up_to_speed_lateral_steering</code></td>
+        <td>
+          <p>This defines the speed, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second, up to which the new contact model will be used to calculate lateral friction on <strong>steering wheels</strong> only. Speeds greater than this will revert to the legacy contact model.</p>
+          <p>For more information, please see the <a href="#note_ground_contact">Note On New Ground Contact Model</a>.</p>
+          <p>Default value is 0.1</p>
+        </td>
+        <td> </td>
+        <td> </td>
+      </tr>
+      <tr>
+        <td><a id="ground_new_contact_model_up_to_speed_longitudinal"></a><code class="inline">ground_new_contact_model_up_to_speed_longitudinal</code></td>
+        <td>
+          <p>This defines the speed, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second, up to which the new contact model will be used to calculate longitudinal friction. Speeds greater than this will revert to the legacy contact model.</p>
+          <p>For more information, please see the <a href="#note_ground_contact">Note On New Ground Contact Model</a>.</p>
+          <p>Default value is 1.0</p>
+        </td>
+        <td>Float</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td><a id="enable_high_accuracy_integration"></a><code class="inline">enable_high_accuracy_integration</code></td>
+        <td>
+          <p>This option enables the high accuracy world physics integration for the aircraft. When enabled, the simulation will take into account multiple sources of physics interactions that create oscillating/vibrating micro-movements in the aircraft, for example engine shaking, wind resonance, etc... when the aircraft is on the ground. If this is disabled, then these micro-movements are not accounted for.</p>
+          <p>Default value is 0</p>
+        </td>
+        <td>Float</td>
+        <td>No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="note_ground_contact">Note On New Ground Contact Model</h4>
+  <p>The &quot;new contact model&quot; for landing gear can be disabled by simply omitting all of the relevant parameters from the CFG file. However, including them will tell the simulation to use this model, and you should set the parameter values appropriately.</p>
+  <p> </p>
+  <p>To correctly set up the new contact model, you should start by setting the <code class="inline"><a href="flight_model_cfg.htm#ground_new_contact_model_up_to_speed_lateral">ground_new_contact_model_up_to_speed_lateral</a></code> and <code class="inline"><a href="flight_model_cfg.htm#ground_new_contact_model_up_to_speed_longitudinal">ground_new_contact_model_up_to_speed_longitudinal</a></code> parameters. These parameters set the aircraft speed to be used to calculate the lateral and longitudinal friction for the landing gear when on the ground (whether stationary or moving). Lateral friction is for simulating sideways friction when turning, dealing with cross-winds, etc... while while longitudinal friction affects breaking, forward air resistance, ground friction on slopes, etc... <span>Setting <span>very high </span>values for these parameters will result in <em>only</em> the new contact model being used</span><span>.</span></p>
+  <p> </p>
+  <p>To effectively use these parameters you should do the following:</p>
+  <ul>
+    <li>Enable <code class="inline"><a href="flight_model_cfg.htm#enable_high_accuracy_integration">enable_high_accuracy_integration</a></code> to get the simulation to take micro movements into consideration.</li>
+    <li>Set <code class="inline"><a href="flight_model_cfg.htm#ground_new_contact_model_gear_flex">ground_new_contact_model_gear_flex</a></code> to 1 / aircraft weight and then fine tune the value through tests.</li>
+    <li>Set <code class="inline"><a href="flight_model_cfg.htm#ground_new_contact_model_gear_flex_damping">ground_new_contact_model_gear_flex_damping</a></code> to approximately 1% of the aircraft weight and then fine tune the value through tests.<br/>
+      <span class="note"><strong>NOTE</strong>: Using very large values will make the landing gear so flexible that it will become very unstable and generate extremely exaggerated/unrealistic results.</span>
+    </li>
+    <li>Set the <code class="inline"><a href="#ground_new_contact_model_up_to_speed_lateral">ground_new_contact_model_up_to_speed_lateral</a></code> and <code class="inline"><a href="#ground_new_contact_model_up_to_speed_longitudinal">ground_new_contact_model_up_to_speed_longitudinal</a></code> parameters to 10000 to ensure that the new contact model will always be enabled.</li>
+    <li>Setting the lateral and longitudinal friction will initially cause the aircraft to get very &quot;sticky&quot; at high rolling speeds. To resolve this, you should edit the <code class="inline"><a href="flight_model_cfg.htm#ground_new_contact_model_rolling_stickyness">ground_new_contact_model_rolling_stickyness</a></code> parameter. Start with a value of 0.5 and then reduce it if the rolling still feels too sticky, or increase it if the rolling does not feel sticky enough.<br/>
+      <span class="note"><strong>NOTE</strong>: You may wish to check that the <code class="inline"><a href="flight_model_cfg.htm#empty_weight_CG_position">empty_weight_CG_position</a></code> is at the correct height as it will heavily impact ground rolling.</span>
+    </li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="h2"><code class="inline">[REFERENCE SPEEDS]</code></h3>
+  <p>This section contains various reference speed values used in different systems across the sim like the Flight Assistant, the Aircraft Selection UI, notifications, or overspeed triggers. Most of these parameters will have no <em>direct</em> effect on the flight model.</p>
+  <p> </p>
+  <p>The available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col style="width: 20%;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><a id="full_flaps_stall_speed"></a><code class="inline">full_flaps_stall_speed</code></td>
+        <td>
+          <p>Speed at which the aircraft will stall when flaps are at full, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>. Used in the Flight Assistant.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="flaps_up_stall_speed"></a><code class="inline">flaps_up_stall_speed</code></td>
+        <td>
+          <p>Speed at which the aircraft will stall when flaps are up, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>. Used in the Flight Assistant.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">cruise_speed</code></td>
+        <td>
+          <p>The aircraft cruise speed, in <a href="#" data-popovertext="Stands for &#39;Knots True AirSpeed&#39; and is a measurement of the speed of an aircraft. It is defined as the speed of the aircraft relative to the air mass through which it is flying." data-rhwidget="TextPopOver">ktas</a>. Used in aircraft selection UI</p>
+          <p>Default value is 0.</p>
+          <p><span class="note"><strong>NOTE</strong>: For gliders, this value will also affect the launch winch speed. The winch will accelerate at 1G until the aircraft reaches 75% of the design cruise speed, and then progressively reduce power once the glider has passed 30°.</span></p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">cruise_mach</code></td>
+        <td>
+          <p>The aircraft cruise speed, in <a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">crossover_speed</code></td>
+        <td>
+          <p>The aircraft crossover speed, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_mach</code></td>
+        <td>
+          <p>The maximum speed for the aircraft, in <a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a>. Used in aircraft selection UI.</p>
+          <p><span class="note"><strong>NOTE</strong>: Only valid for <strong>Jet </strong>and <strong>Turboprop</strong> engines.</span></p>
+          <p>Default value is 0.9.</p>
+        </td>
+        <td style="text-align: left">Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_indicated_speed</code></td>
+        <td>
+          <p>The maximum speed indicated in the aircraft UI, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_flaps_extended</code></td>
+        <td>
+          <p>The maximum aircraft speed with flaps extended, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>. Used in the Flight Assistant.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">normal_operating_speed</code></td>
+        <td>
+          <p>The normal operating speed of the aircraft, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>. Used in aircraft selection UI.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">airspeed_indicator_max</code></td>
+        <td>
+          <p>The maximum airspeed indicator value in the UI, in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">rotation_speed_min</code></td>
+        <td>
+          <p>The minimum rotation speed required, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is -1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">climb_speed</code></td>
+        <td>
+          <p>The aircraft climb speed, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s. Used to define spawning conditions.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">cruise_alt</code></td>
+        <td>
+          <p>The aircraft cruise altitude, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</p>
+          <p>Default value is 1500.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">takeoff_speed</code></td>
+        <td>
+          <p>The aircraft takeoff speed, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is 55.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">spawn_altitude</code></td>
+        <td>
+          <p>The spawn altitude, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</p>
+          <p>Default value is 1500.</p>
+          <p> </p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">spawn_cruise_altitude</code></td>
+        <td>
+          <p>The spawn cruise altitude, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>. Used to define spawning conditions.</p>
+          <p>Default value is 1500.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">spawn_descent_altitude</code></td>
+        <td>
+          <p>The spawn descent altitude, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>. Used to define spawning conditions.</p>
+          <p>Default value is 500.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">best_angle_climb_speed</code></td>
+        <td>
+          <p>The best angle climb speed, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">approach_speed</code></td>
+        <td>
+          <p>The required approach speed, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">best_glide</code></td>
+        <td>
+          <p>The best glide speed, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_gear_extended</code></td>
+        <td>
+          <p>The maximum speed with landing gear extended, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">best_single_engine_rate_of_climb_speed</code></td>
+        <td>
+          <p>This is the best single-engine rate of climb speed (the Blue line speed, \(V_{yse}\) ), in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minimum_control_speed</code></td>
+        <td>
+          <p>This is the speed below which aircraft control cannot be maintained if the critical engine fails under a specific set of circumstances (generally known as the \(V_{mc}\) ). Value is in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">fly_assistant_use_dynamic_speeds</code></td>
+        <td>
+          <p>This parameter refers to how the UI will display the relevant reference speeds for takeoff, climb, etc... When set to 1 (TRUE), the values will by dynamically generated by the simulation, and when set to 0 (FALSE) the values in the CFG file will be used. Note that this has no effect on the flight model.</p>
+          <p>Default is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  
+  
+  
+  
+  
+  
+  <p> </p>
+  <h3 id="STALLPROTECTION"><code class="inline">[STALL PROTECTION]</code></h3>
+  <p>Stall protection is a system which prevents the <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> from getting too high. This is done by software monitoring the plane&#39;s angle of attack sensor, and when a high alpha situation is detected, the software lowers the nose of the plane to maintain a high - but still safe - <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a>. This system is designed to prevent pilots from stalling the aircraft and to allow them to get the best possible performance in emergency e.g. in a wind-shear.</p>
+  <p><span class="note"><strong>NOTE</strong>: This section is required when the <code class="inline"><a href="flight_model/geometry.htm#fly_by_wire">fly_by_wire</a></code> parameter is checked for active stall protection. However if <code class="inline">fly_by_wire</code> is not checked, the values here will still be used to generate the simulation stall warnings.</span></p>
+  <p><span class="note"><strong>NOTE</strong>: This section is not required if you are creating a <a href="flight_model/helicopter.htm">Helicopter</a> SimObject.</span></p>
+  <p>The following parameters can be used to control this system:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col style="width: 20%;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">stall_protection</code></td>
+        <td>
+          <p>Whether Stall Protection is enabled (TRUE, 1) or not (FALSE, 0).</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Bool</td>
+        <td colspan="1" rowspan="6" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">off_limit</code></td>
+        <td>
+          <p>Alpha below which the Stall Protection can be disabled, in degrees (if also below <code class="inline">off_yoke_limit</code>).</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">off_yoke_limit</code></td>
+        <td>
+          <p>Yoke position percentage below which the Stall Protection can be disabled (if also below <code class="inline">off_limit</code>).</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">on_limit</code></td>
+        <td>
+          <p>Alpha - in degrees - above which the Stall Protection timer starts.</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">on_goal</code></td>
+        <td>
+          <p>The alpha - in degrees - that the Stall Protection will attempt to reach when triggered.</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">timer_trigger</code></td>
+        <td>
+          <p>Duration, in seconds, that the alpha must be above <code class="inline">on_limit</code> before the Alpha Protection is triggered.</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="FLAPSN"><code class="inline">[FLAPS.<em>N</em>]</code></h3>
+  <p>This section is for tuning the different flaps for the aircraft. You can have multiple <code class="inline">[FLAPS.<em>N</em>]</code> sections where <code class="inline"><em>N</em></code> relates to the flap being defined from <code class="inline">0</code> up to the <code class="inline">number of flaps - 1</code>. For example, if you have two flaps you would have two sections, <code class="inline">[FLAPS.0]</code> and <code class="inline">[FLAPS.1]</code>.</p>
+  <p><span class="note"><strong>NOTE</strong>: This section is not required if you are creating a <a href="flight_model/helicopter.htm">Helicopter</a> SimObject.</span></p>
+  <p> </p>
+  <p>The available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 299px;"/>
+      <col style="width: 479px;"/>
+      <col style="width: 164px;"/>
+      <col style="width: 1px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">type</code></td>
+        <td>
+          <p>Defines the flaps type.</p>
+        </td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = none</li>
+            <li>1 = trailing edge</li>
+            <li>2 = leading edge</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">system_type</code></td>
+        <td>Defines the type of electrical system that drives the flaps to deflect.</td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = electrical</li>
+            <li>1 = hydraulic</li>
+            <li>2 = pneumatic</li>
+            <li>3 = manual</li>
+            <li>4 = none</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">system_type_index</code></td>
+        <td>
+          <p>If using electrical flaps, this parameter specifies the index of the flaps motor circuit.</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">span-outboard</code></td>
+        <td>
+          <p>Outboard span area, as a <a href="#" data-popovertext="The unit description &#39;percent over 100&#39; means that the units are calculated as a percentage value divided by 100, such that the progression of values always falls within the range of 0 and 1." data-rhwidget="TextPopOver">Percent Over 100</a> This is how far out from the wing-root that the flaps stretch (the total span is considered as the distance between wing root and wing tip). On most planes this will be <code class="inline">1.0 - <a href="flight_model/geometry.htm#aileron_span_outboard">aileron_span_outboard</a></code>. This value needs to be matching the lift and drag added by flaps. Small flap systems should add small amounts of lift.</p>
+          <p>Default value is 0.75, and note that any input value given is clamped between 0.4 and 1.0.</p>
+          <p><span class="note">IMPORTANT! Despite the flaps span being defined in each flap section, <strong>the span is common to all</strong> the simulation will take the <strong>maximum</strong> span value defined in flap sections and clamp it between 0.4 and 1.0</span></p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">extending-time</code></td>
+        <td>
+          <p>Time it takes for the flap set to extend to the fullest deflection angle specified (in seconds).</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-sequence-increasing</code></td>
+        <td>
+          <p>If set, this specifies that these flaps should only start moving towards the <em>down </em>position when the flaps with the corresponding index have finished moving.</p>
+          <p>Default is -1, which means no such restriction should be applied.</p>
+        </td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-sequence-decreasing</code></td>
+        <td>
+          <p>If set, this specifies that these flaps should only start moving towards the <em>up </em>position when the flaps with the corresponding index have finished moving.</p>
+          <p>Default is -1, which means no such restriction should be applied.</p>
+        </td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">damaging-speed</code></td>
+        <td>
+          <p>Speed above which the flaps begins to get damaged, if extended, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s. For more information please see here: <a href="../../../mergedProjects/How_To_Make_An_Aircraft/Contents/Files/Flight_Model/Testing_The_Aircraft.htm#flaps_damage">Flaps Damage and Blowout</a>.</p>
+          <p>Default value is 0, which means no damage will be applied, regardless of the speed.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">blowout-speed</code></td>
+        <td>
+          <p>Speed above which the flaps are blown out, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s. For more information please see here: <a href="../../../mergedProjects/How_To_Make_An_Aircraft/Contents/Files/Flight_Model/Testing_The_Aircraft.htm#flaps_damage">Flaps Damage and Blowout</a>.</p>
+          <p>Default value is 0, which means no blowouts will occur, regardless of the speed.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">maneuvering_flaps</code></td>
+        <td>
+          <p>Sets whether maneuvering flaps are available (TRUE, 1) or not (FALSE, 0).</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">delay_between_flap_index</code></td>
+        <td>
+          <p> </p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="lift_scalar"></a><code class="inline">lift_scalar</code></td>
+        <td>
+          <p>Scalar that allows you to scale the lift contribution of a specific flap system. This is necessary to compensate for the scale by the deflection angle in radians, in order to reach 100%, ie: the computed lift coefficient is multiplied by the surface deflection, so you need to compensate for this deflection if it&#39;s inferior to 1 radian to reach 100% of your lift coefficient.<br/>
+            The flap lift formula is the following:</p>
+          <p class="codeblock">total_flap_lift = lift_coef_flaps * (system1.lift_scalar * system1.deflectionangleradians + system2.lift_scalar * system 2.deflectionangleradians...)</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="drag_scalar"></a><code class="inline">drag_scalar</code></td>
+        <td>
+          <p>Scalar that allows you to scale the drag contribution of a specific flap system. It is necessary to compensate for the scale by the deflection angle in radians, in order to reach 100%, ie: the computed drag coefficient is multiplied by the surface deflection, so you need to compensate for this deflection if it&#39;s inferior to 1 radian to reach 100% of your drag coefficient.<br/>
+            The flap drag formula is the following:</p>
+          <p class="codeblock">total_flap_drag = drag_coef_flaps * (system1.drag_scalar * system1.deflectionangleradians + system2.drag_scalar * system 2.deflectionangleradians...)</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_scalar</code></td>
+        <td>
+          <p>The percentage of total pitch due to flap deflection that this flap set is responsible for at full deflection.</p>
+          <p><span class="smallfont">This is a <em>legacy</em> <span data-keyref="game_fx_short">FSX</span> parameter not used in the modern flight model. In the modern flight model, the pitch generated by flaps will depend on the lift added and the longitudinal position of the wings. The parameters of each flap level allow to move the wing longitudinally for each flap level to adjust the amount of pitch.</span></p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_on_ground_position</code></td>
+        <td>The maximal flap extension stage available when an aircraft is on the ground. This must be a value between 0 and the maximal stage described (see <code class="inline">flaps-position.<em>N</em></code>).</td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altitude-limit</code></td>
+        <td>
+          <p>Specifies an altitude (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) above which the flaps cannot be extended.</p>
+          <p>Default is -1, which disables the feature.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="flaps-position.i"></a><code class="inline">flaps-position.<em>i</em></code></td>
+        <td>
+          <p>This is a flap stage description, and you can have multiple definitions (starting at <code class="inline">flaps-position.0</code>) for each <code class="inline">[FLAPS.N]</code> section. The table of values takes the following 7 values in the given order:</p>
+          <ul>
+            <li><code class="inline">flap position</code> - sets the flaps angular position for the stage, in degrees.</li>
+            <li><code class="inline">airspeed limit</code> - sets the airspeed limit for the stage, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s.</li>
+            <li><code class="inline">drag scalar</code> - sets a scalar to add or remove drag for the stage.</li>
+            <li><code class="inline">lift scalar</code> - sets a scalar to add or remove lift for the stage.</li>
+            <li><code class="inline">area scalar</code> - sets a scalar to add or remove area to the flap for the stage.</li>
+            <li><code class="inline">add camber</code> - sets an increase in the flap camber, raising the maximum lift coefficient or the upper limit to the lift a wing can generate. The value here is expressed in <em>radians</em>.</li>
+            <li><code class="inline">add aft feet</code> - sets the center of lift for the flaps stage, where a positive value will move the center of lift forward (generating more pitch up) and a negative value will move it back (generating more pitch down).</li>
+            <li><code class="inline">add incidence</code> - a scalar that lets you define how much of the additional lift is applied at 0° <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a>. So, when set to 1 (100%), the additional lift is added constantly on the whole <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> range. When set to 0.5 (the default value), only 50% of the additional lift will be added at 0° of <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> and 100% at the stall <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a>. The values in between depend on the normalization process.<br/>
+              0.5 (50%) is the minimal value and you can go beyond 1.0, if required.</li>
+          </ul>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td>
+          <p><code class="inline">flaps-position-inhibit-or.<em>i</em></code></p>
+          <p>Alias<span class="deprecated"></span>:</p>
+          <p><code class="inline">flaps-position-inhibit.<em>i</em></code></p>
+        </td>
+        <td>
+          <p>This is a comma separated table of conditions which - if <strong><em>any</em></strong> of them are valid - will inhibit the flaps settings from affecting the flaps at position <code class="inline"><em>i</em></code>. There can be multiple entries for this parameter, one for each flaps position, with <code class="inline"><em>i</em></code> starting at <code class="inline">0</code> and up to <code class="inline">number of positions - 1</code>. Can be any of the following:</p>
+          <ol class="minitoc-list">
+            <li>&quot;air&quot; - plane is in the air</li>
+            <li>&quot;ground&quot; - plane is on the ground</li>
+            <li>&quot;increasing&quot; - inhibit only if rising flaps level</li>
+            <li>&quot;decreasing&quot; - inhibit only if decreasing flaps level</li>
+          </ol>
+          <p>By default this is set to <code class="inline">&quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;</code>.</p>
+        </td>
+        <td>
+          <p>1D Table of Strings</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-position-inhibit-and.i</code></td>
+        <td>
+          <p>This is a coma separated table of conditions which - if <strong><em>all</em></strong> of them are valid - will inhibit the flaps settings from affecting the flaps at position <code class="inline"><em>i</em></code>. There can be multiple entries for this parameter, one for each flaps position, with <code class="inline"><em>i</em></code> starting at <code class="inline">0</code> and up to <code class="inline">number of positions - 1</code>. Can be any of the following:</p>
+          <ol class="minitoc-list">
+            <li>&quot;air&quot; - plane is in the air</li>
+            <li>&quot;ground&quot; - plane is on the ground</li>
+            <li>&quot;increasing&quot; - inhibit only if rising flaps level</li>
+            <li>&quot;decreasing&quot; - inhibit only if decreasing flaps level</li>
+          </ol>
+          <p>By default this is set to <code class="inline">&quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;</code>.</p>
+        </td>
+        <td>
+          <p>1D Table of Strings</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-position-autoretract.<em>i</em></code></td>
+        <td>
+          <p>This parameter sets the auto-retract rules for flaps. There can be multiple entries for this parameter, one for each flaps position, with <code class="inline"><em>i</em></code> starting at <code class="inline">0</code> and up to <code class="inline">number of positions - 1</code>. The parameter requires a comma separated table of values in the following order:</p>
+          <ol class="minitoc-list">
+            <li>- the flaps angle in degrees</li>
+            <li>- the airspeed in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s at which the auto-retract triggers</li>
+            <li>- the new airspeed limit, in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s</li>
+          </ol>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-position-maneuvering.<em>i</em></code></td>
+        <td>
+          <p>When set to 1 (TRUE) flaps position <code class="inline"><em>i</em></code> will have a dynamic maneuvering flaps behavior rather than a static degree value. Set to 0 (FALSE) to disable this feature for the flaps. There can be multiple entries for this parameter, one for each flaps position, with <code class="inline"><em>i</em></code> starting at <code class="inline">0</code> and up to <code class="inline">number of positions - 1</code>.</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-position-speed-factor.<em>i</em></code></td>
+        <td>
+          <p>This parameter requires a table of values that set the correspondence between the speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s) of the plane and a factor (from 0 - 1) on the max angle of the flaps position <code class="inline"><em>i</em></code>. For example:</p>
+          <p><code class="inline">flaps-position-speed-factor.0 = 0:1, 150:1, 240:0 ;</code></p>
+          <p><span>Here, between 0 and 150 you get the full flaps position, but above 150 it starts getting reduced linearly until 240 at which point it&#39;s 0.</span></p>
+          <p>There can be multiple entries for this parameter, one for each flaps position, with <code class="inline"><em>i</em></code> starting at <code class="inline">0</code> and up to <code class="inline">number of positions - 1</code>.</p>
+        </td>
+        <td>
+          <p>2D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-position-speed-override-above.<em>i</em></code></td>
+        <td>
+          <p>This parameter sets the override rules for flaps at the given position when above a certain speed. There can be multiple entries for this parameter, one for each flaps position, with <code class="inline"><em>i</em></code> starting at <code class="inline">0</code> and up to <code class="inline">number of positions - 1</code>. The parameter requires the following two values, separated by a comma:</p>
+          <ul>
+            <li>the flaps position to use as the override</li>
+            <li>the speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s) <em>above </em>which the given flaps position is used instead of the current one.</li>
+          </ul>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps-position-speed-override-below.<em>i</em></code></td>
+        <td>
+          <p>This parameter sets the override rules for flaps at the given position when below a certain speed. There can be multiple entries for this parameter, one for each flaps position, with <code class="inline"><em>i</em></code> starting at <code class="inline">0</code> and up to <code class="inline">number of positions - 1</code>. The parameter requires the following two values, separated by a comma:</p>
+          <ul>
+            <li>the flaps position to use as the override</li>
+            <li>the speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s) <em>below </em>which the given flaps position is used instead of the current one.</li>
+          </ul>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h5"><code class="inline">[INTERACTIVE POINTS]</code></h3>
+  <p>Interactive Points are used to define the position of various doors of the aircraft as well as some other points to interact with Airport Services, such as the end of a fuel hose to interact with a FuelTruck. You can find full information on this section on the following page:</p>
+  <ul>
+    <li><a href="flight_model/interactive_points.htm">flight_model.cfg - [INTERACTIVE POINTS]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="helicopter"><code class="inline">[HELICOPTER]</code></h3>
+  <p>This section is for setting up the various helicopter-specific components of the flight model. If you are modelling a helicopter then this section is essential, and is used - along with the <code class="inline"><a href="flight_model_cfg.htm#fuselage_aerodynamics">[FUSELAGE_AERODYNAMICS]</a></code>, <code class="inline"><a href="flight_model_cfg.htm#mainrotor">[MAINROTOR]</a></code> and <code class="inline"><a href="flight_model_cfg.htm#secondaryrotor">[SECONDARYROTOR]</a></code> sections - to define the flight model, and including this usually means there is no need to include data for the <code class="inline"><a href="flight_model_cfg.htm#h1">[FLIGHT_TUNING]</a></code>, <code class="inline"><a href="flight_model_cfg.htm#aerodynamics">[AERODYNAMICS]</a></code> and <code class="inline"><a href="flight_model_cfg.htm#h3">[AIRPLANE_GEOMETRY]</a></code> sections. Full information can be found on the following page:</p>
+  <ul>
+    <li><a href="flight_model/helicopter.htm">flight_model.cfg - [HELICOPTER]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="fuselage_aerodynamics"><code class="inline">[FUSELAGE_AERODYNAMICS]</code></h3>
+  <p>This section is for setting up the aerodynamics of a helicopter fuselage, and as such should only be included in the CFG file when creating a helicopter SimObject. Full information can be found on the following page:</p>
+  <ul>
+    <li><a href="flight_model/helicopter.htm">flight_model.cfg - [HELICOPTER]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="mainrotor"><code class="inline">[MAINROTOR]</code></h3>
+  <p>This section is for setting up the main rotor of a helicopter, and as such should only be included in the CFG file when creating a helicopter SimObject. Full information can be found on the following page:</p>
+  <ul>
+    <li><a href="flight_model/helicopter.htm">flight_model.cfg - [HELICOPTER]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="secondaryrotor"><code class="inline">[SECONDARYROTOR]</code></h3>
+  <p>This section is for setting up the secondary rotor of a helicopter, and as such should only be included in the CFG file when creating a helicopter SimObject. Full information can be found on the following page:</p>
+  <ul>
+    <li><a href="flight_model/helicopter.htm">flight_model.cfg - [HELICOPTER]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.3.1.2"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

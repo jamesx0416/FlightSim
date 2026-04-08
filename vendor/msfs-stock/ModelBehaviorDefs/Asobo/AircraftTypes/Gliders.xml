@@ -1,0 +1,116 @@
+<ModelBehaviors>
+	<Include RelativeFile="..\Common.xml"/>
+	
+	<ParametersFn Name="Generate_Noise">
+		<Parameters Type="Default">
+			<SETUP_CODE/>
+			<MIN_AIRSPEED>10</MIN_AIRSPEED>
+			<REST_RETURN_VALUE>0</REST_RETURN_VALUE>
+			<VAR_NAME>XMLVAR_DEFAULT</VAR_NAME>
+			<Condition Valid="NOISE_WRAPS">
+				<True>
+					<CLAMP_CODE>100 pmod</CLAMP_CODE>
+				</True>
+				<False>
+					<Condition Valid="REDUCE_RANGE_WITH_AIRSPEED">
+						<True>
+							<CLAMP_CODE>(O:XMLVAR_SpeedFactor_Min) max (O:XMLVAR_SpeedFactor_Max) min</CLAMP_CODE>
+						</True>
+						<False>
+							<CLAMP_CODE>0 max 100 min</CLAMP_CODE>
+						</False>
+					</Condition>
+				</False>
+			</Condition>
+		</Parameters>
+		<ReturnParameters>
+			<ANIM_CODE>
+				(A:AIRSPEED TRUE, knots) (A:AMBIENT WIND VELOCITY, knots) max s1 #MIN_AIRSPEED# &gt; if{ 
+					#SETUP_CODE#
+					(O:#VAR_NAME#) (O:XMLVAR_SpeedFactor) #ANIM_DISPLACEMENT# (E:SIMULATION DELTA TIME, seconds) * * rand 2 * 1 - * + #CLAMP_CODE# (&gt;O:#VAR_NAME#)
+				}  els{ #REST_RETURN_VALUE# (&gt;O:#VAR_NAME#) }
+				(O:#VAR_NAME#)
+			</ANIM_CODE>
+		</ReturnParameters>
+	</ParametersFn>
+	
+	<Template Name="ASOBO_Yaw_String">
+		<Parameters Type="Default">
+			<ANIM_NAME_360>STRING_360</ANIM_NAME_360>
+			<ANIM_NAME_STICK>STRING_360STICK</ANIM_NAME_STICK>
+			<ANIM_NAME_IDLE_TO_STAND>STRING_IDLE_TO_STAND</ANIM_NAME_IDLE_TO_STAND>
+			<ANIM_NAME_L_R>STRING_LR</ANIM_NAME_L_R>
+			<ANIM_NAME_FLOW>STRING_NOISE</ANIM_NAME_FLOW>
+			<ANIM_NAME_L_R_END>STRING_NOISELR</ANIM_NAME_L_R_END>
+			<ANIM_NAME_L_R_SNAKE>STRING_NOISELR_SNAKE</ANIM_NAME_L_R_SNAKE>
+			<ANIM_NAME_UP>STRING_NOISEEND</ANIM_NAME_UP>
+			<ANIM_DISPLACEMENT>600</ANIM_DISPLACEMENT> <!-- Max %Anim per Sec -->
+			<MIN_AIRSPEED>10</MIN_AIRSPEED>
+			<EXTENDED_AIRSPEED>20</EXTENDED_AIRSPEED>
+			<MAX_AIRSPEED>80</MAX_AIRSPEED>
+			<MAX_AIRSPEED_ANIM_FACTOR>0.1</MAX_AIRSPEED_ANIM_FACTOR>
+			<ANGLE_FORWARD_FACTOR>0.5</ANGLE_FORWARD_FACTOR>
+			<ROTATION_LAG>50</ROTATION_LAG>
+			<SNAKE_MIN_ANGLE>150</SNAKE_MIN_ANGLE>
+			<SNAKE_MAX_ANGLE>30</SNAKE_MAX_ANGLE>
+		</Parameters>
+		<Parameters Type="Override">
+			<REVERSED_ANGLE_FORWARD_FACTOR Process="Float">1 #ANGLE_FORWARD_FACTOR# -</REVERSED_ANGLE_FORWARD_FACTOR>
+		</Parameters>
+	
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_360#</ANIM_NAME>
+			<ANIM_CODE>
+				(O:XMLVAR_YawStringExtended) 0 &gt; if{
+					1 l1 #MIN_AIRSPEED# - 0 max #MAX_AIRSPEED# / 1 min #REVERSED_ANGLE_FORWARD_FACTOR# * - sp0
+					(A:RELATIVE WIND VELOCITY BODY X, feet per second) (A:RELATIVE WIND VELOCITY BODY Z, feet per second) l0 * atg2 rddg dnor (&gt;O:XMLVAR_YawStringDir)
+				} els{
+					(O:XMLVAR_YawStringInit) ! if{
+						rand 360 * (&gt;O:XMLVAR_YawStringDir)
+						1 (&gt;O:XMLVAR_YawStringInit)
+					}
+				}
+
+				(O:XMLVAR_YawStringDir)
+			</ANIM_CODE>
+			<ANIM_LENGTH>360</ANIM_LENGTH>
+			<ANIM_WRAP>True</ANIM_WRAP>
+			<ANIM_LAG>#ROTATION_LAG#</ANIM_LAG>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_IDLE_TO_STAND#</ANIM_NAME>
+			<ANIM_CODE>(A:AIRSPEED TRUE, knots) (A:AMBIENT WIND VELOCITY, knots) max #MIN_AIRSPEED# max #MIN_AIRSPEED# - #EXTENDED_AIRSPEED# min 20 / 100 * (&gt;O:XMLVAR_YawStringExtended) (O:XMLVAR_YawStringExtended)</ANIM_CODE>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_STICK#</ANIM_NAME>
+			<ANIM_CODE>(O:XMLVAR_YawStringExtended) 0 == if{ (O:XMLVAR_YawStringDir) } els{ 0 }</ANIM_CODE>
+			<ANIM_LENGTH>360</ANIM_LENGTH>
+			<ANIM_WRAP>True</ANIM_WRAP>
+			<ANIM_LAG>#ROTATION_LAG#</ANIM_LAG>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_L_R#</ANIM_NAME>
+			<ANIM_LAG>200</ANIM_LAG>
+			<ANIM_CODE>(A:ROTATION VELOCITY BODY Z, radians per second) -1 * 1 min -1 max 1 + 50 *</ANIM_CODE>
+		</UseTemplate>
+		<Component ID="Yaw_String_Noise">
+			<Parameters Type="Override">
+				<ANIM_LAG>800</ANIM_LAG>
+				<REDUCE_RANGE_WITH_AIRSPEED>True</REDUCE_RANGE_WITH_AIRSPEED>
+			</Parameters>
+			<UseTemplate Name="ASOBO_GT_Anim_Code">
+				<ANIM_NAME>#ANIM_NAME_L_R_END#</ANIM_NAME>
+				<UseParametersFn Name="Generate_Noise">
+					<SETUP_CODE>
+						1 (A:AIRSPEED TRUE, knots) (A:AMBIENT WIND VELOCITY, knots) max #MIN_AIRSPEED# - 0 max #MAX_AIRSPEED# / 1 #MAX_AIRSPEED_ANIM_FACTOR# - min 0 max - (&gt;O:XMLVAR_SpeedFactor)
+						50 (O:XMLVAR_SpeedFactor) 50 * - (&gt;O:XMLVAR_SpeedFactor_Min)
+						50 (O:XMLVAR_SpeedFactor) 50 * + (&gt;O:XMLVAR_SpeedFactor_Max)
+					</SETUP_CODE>
+					<VAR_NAME>XMLVAR_L_R_END</VAR_NAME>
+					<NOISE_WRAPS>True</NOISE_WRAPS>
+				</UseParametersFn>
+				<ANIM_WRAP>True</ANIM_WRAP>
+			</UseTemplate>
+		</Component>
+	</Template>
+</ModelBehaviors>

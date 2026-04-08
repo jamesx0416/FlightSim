@@ -1,0 +1,2639 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>systems.cfg</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="Aircraft,CFG Files"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>systems.cfg</h2>
+  <p>The <code class="inline">systems.cfg</code> file is an optional aircraft file for defining different aircraft systems. Below you can find information on the different sections used in the <code class="inline">systems.cfg</code> file as well as what parameters and values are expected within them.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="Version"><code class="inline">[VERSION]</code></h3>
+  <p>The <code class="inline">[VERSION]</code> section provides version information for the configuration file. In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, major versions should <em>always</em> be at least equal to 1. Note that this section information is <strong>mandatory</strong> and should always be included.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">major</code></td>
+        <td>Major CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minor</code></td>
+        <td>Minor CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="BREAKS"><code class="inline">[BRAKES]</code></h3>
+  <p>This section controls the aircraft&#39;s brake systems. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 123px;"/>
+      <col style="width: 416px;"/>
+      <col style="width: 254px;"/>
+      <col style="width: 1px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">parking_brake</code></td>
+        <td>
+          <p>The type of parking brake available.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = none</li>
+            <li>1 = parking brake</li>
+            <li>2 = ground restraint brake</li>
+          </ol>
+        </td>
+        <td colspan="1" rowspan="15" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">differential_braking_scale</code></td>
+        <td>
+          <p>Differential braking is a function of using both brakes and the rudder pedal input. The amount of difference between the left and right brake is scaled by this value. Setting this to 0.0 means no differential braking is desired, while a setting of 1.0 is the normal setting for when differential braking is desired - which is particularly useful for tailwheel airplanes.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">toe_brakes_scale</code></td>
+        <td>
+          <p>Sets the scaling of the toe braking effectiveness. Note that a setting of 0.0 scales the brakes to no effectiveness.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">parking_brake_linked_to_toe_brakes</code></td>
+        <td>
+          <p>This parameter governs whether the parking brake will release upon application of the toe brakes.</p>
+          <p>Default value is 1 (TRUE), but a setting of 0 (FALSE) will prevent this behavior.</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hydraulic_system_scalar</code></td>
+        <td>
+          <p>On brakes dependent on the hydraulic system, this is the ratio of hydraulic system to maximum brake hydraulic pressure.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">show_brake_message</code></td>
+        <td>
+          <p>Whether to show the braking message (TRUE, 1) or not (FALSE, 0) in the UI.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="auto_brakes"></a><code class="inline">auto_brakes</code></td>
+        <td>
+          <p>The number of autobrakes available (0 means no autobrakes).</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Integer</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autobrakes_disabled_on_takeoff</code></td>
+        <td>
+          <p>Whether the autobrake is disabled (TRUE, 1) or not (FALSE, 0) for takeoff.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autobrakes_requires_antiskid</code></td>
+        <td>
+          <p>Whether the autobrake systems require anti-skid (TRUE, 1) or not (FALSE, 0).</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autobrakes_disabled_on_braking</code></td>
+        <td>
+          <p>Whether the autobrake is disabled (TRUE, 1) or not (FALSE, 0) when manually braking.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autobrakes_disabled_on_thrust</code></td>
+        <td>
+          <p>Whether the autobrake is disabled (TRUE, 1) or not (FALSE, 0) on reverse thrust.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autobrakes_disabled_on_stop</code></td>
+        <td>
+          <p>Whether the autobrake is disabled (TRUE, 1) or not (FALSE, 0) when the plane stops after a landing.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">rto_disabled_on_stop</code></td>
+        <td>
+          <p>Whether the autobrake is automatically disabled (TRUE, 1) or not (FALSE, 0) when the aircraft stops after an <a href="#" data-popovertext="This stands for &#39;Rejected TakeOff&#39;, which is the situation where it is decided to abort the takeoff of an airplane." data-rhwidget="TextPopOver">RTO</a>.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">rto_disabled_on_takeoff</code></td>
+        <td>
+          <p>Whether the autobrake is disabled (TRUE, 1) or not (FALSE, 0) for an <a href="#" data-popovertext="This stands for &#39;Rejected TakeOff&#39;, which is the situation where it is decided to abort the takeoff of an airplane." data-rhwidget="TextPopOver">RTO</a>.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_toe_brake_input_smoothing</code></td>
+        <td>
+          <p>Whether to disable (TRUE, 1) or not (FALSE, 0) input soothing for toe brakes.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="GEARWARNINGSYSTEM"><code class="inline">[GEAR_WARNING_SYSTEM]</code></h3>
+  <p>This section defines the functionality of the gear warning system for the aircraft. This is generally related to the throttle lever position and the flap deflection. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 539px;"/>
+      <col style="width: 202px;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">gear_warning_available</code></td>
+        <td>Sets the type of gear warning system available on the aircraft.</td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = None</li>
+            <li>1 = Normal</li>
+            <li>2 = Amphibian</li>
+            <li>(audible alert for water vs. land setting)</li>
+          </ol>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pct_throttle_limit</code></td>
+        <td>
+          <p>The throttle limit, below which the gear warning will activate if the gear is not down and locked while the flaps are deflected to at least the setting for <code class="inline">flap_limit_idle</code> below. This flap limit can be 0 so that the warning effectively is a function of the throttle. A value between: 0 (idle) and 1.0 (Max throttle).</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flap_limit_idle</code></td>
+        <td>
+          <p>This limit is the flap deflection above which the warning will activate if the gear is not down and locked while the throttle is below the limit specified by <code class="inline">pct_throttle_limit</code>. Setting this limit to a value greater than 0, the pilot can reduce the throttle to idle without activating the warning (this is often utilized in jets to decelerate/descend the aircraft).</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flap_limit_power</code></td>
+        <td>
+          <p>The flap limit, above which the warning will activate (regardless of throttle position).</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h"><code class="inline">[LIGHTS]</code></h3>
+  <p>This section controls the lights on the aircraft. The given index value can then be passed to the corresponding light simvar to apply a different behavior to different lights.</p>
+  <p> </p>
+  <p>Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td>
+          <pre><a id="lightdef"></a><code class="inline">lightdef.<em>N</em></code></pre>
+        </td>
+        <td>Each light has it&#39;s own definition as a hash map (explained below) where each item in the table has it&#39;s own definition. Lights are numbered from 0.</td>
+        <td>
+          <p>Hash Map</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>The hash map that each light takes is comprised of the following <code class="inline">key:value</code> pairs, separated by the <code class="inline">#</code> symbol:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 148px;"/>
+      <col style="width: 530px;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Key</th>
+        <th>Value</th>
+        <th>Description</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Type</code></td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>1 = Beacon</li>
+            <li>2 = Strobe</li>
+            <li>3 = Navigation or Position</li>
+            <li>4 = Panel</li>
+            <li>5 = Landing</li>
+            <li>6 = Taxi</li>
+            <li>7 = Recognition</li>
+            <li>8 = Wing</li>
+            <li>9 = Logo</li>
+            <li>10 = Cabin</li>
+            <li>11 = Pedestal</li>
+            <li>12 = Glareshield</li>
+            <li>13 = Ambient</li>
+          </ol>
+        </td>
+        <td>
+          <p>Tells the sim what type of light is being defined for the aircraft.</p>
+          <p> </p>
+          <p>Note that the <em>ambient</em> light type is <em>not</em> connected to a circuit type and you have to write to their <code class="inline"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_System_Variables.htm#LIGHT_POTENTIOMETER">LIGHT_POTENTIOMETER</a></code> SimVar to control them. These lights are also <em>only for use in the cockpit</em> and may not work elsewhere.</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Index</code></td>
+        <td>Integer</td>
+        <td>This is the index of the electrical <a href="system/electrical.htm#circuit">circuit.N</a> that controls the light. Note that the value is the <strong>type</strong> index for the circuit, not the circuit index itself. Note that if you set an index of 0 - or omit this key from the map - then the light will be part of the &quot;general&quot; circuit, meaning that a change to <strong>any</strong> light circuit will affect <em>all </em>lights with index 0 (or no defined index).</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">LocalPosition</code></td>
+        <td>
+          <p>1D Table of 3 values: z, x, y</p>
+        </td>
+        <td>The local position offset relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>. Values are in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">LocalRotation</code></td>
+        <td>1D Table of 3 values: x, y, z</td>
+        <td>The local angle of rotation for the light. Values are in degrees from -360° to 360°.</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">EffectFile</code></td>
+        <td>FX file ID</td>
+        <td>The FX file that describes the light. These files have <code class="inline">*.fx</code> extensions and should be placed in the root effects folder.</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Node</code></td>
+        <td>Node name</td>
+        <td>The aircraft node to which you attach the light.</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">PotentiometerIndex</code></td>
+        <td>Integer</td>
+        <td>This drives the intensity of the light indexed when using the SimVar <code class="inline"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_System_Variables.htm#LIGHT_POTENTIOMETER">LIGHT_POTENTIOMETER</a></code>.</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">EmMesh</code></td>
+        <td>File ID</td>
+        <td>The name of the emissive mesh to use. Note that the material used for the mesh must be named LIGHTS and use the <a href="../../../Asset_Creation/3DS_Max_Plugin/Materials.htm#standard">Standard</a> material type.</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Below you can see an example of a light definition:</p>
+  <p class="codeblock">lightdef.18 = Type:4#Index:0#LocalPosition:-1.2,0.65,14.0#LocalRotation:0,0,0#EffectFile:fx_cockpit_small_yellow,#PotentiometerIndex:2</p>
+  <p> </p>
+  <h4 id="LegacyLights">Legacy Lights</h4>
+  <p>When working with legacy aircraft from <span data-keyref="game_fx_short">FSX</span> (for example) you will find that lights were defined slightly differently. Here we explain the format used for those lights, but for new aircraft <strong>you should be using the <code class="inline">lightdef.<em>N</em></code> parameter</strong>.</p>
+  <p> </p>
+  <p>Legacy lights are defined using the following parameter:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td>
+          <pre><code class="inline">light.<em>N</em></code></pre>
+        </td>
+        <td>This is a light definition comprised of a 1D table of values. Lights are numbered from 0.</td>
+        <td>
+          <p>1D Table of Values</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>The table for these lights takes 8 entries, listed below:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 529px;"/>
+      <col style="width: 271px;"/>
+      <col style="width: 127px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Position</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td>0</td>
+        <td>This defines which circuit, or switch, the light is connected to. Multiple lights may be connected to a single switch.</td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <p>1 = Beacon<br/>
+            2 = Strobe<br/>
+            3 = Navigation or Position<br/>
+            4 = Panel<br/>
+            5 = Landing<br/>
+            6 = Taxi<br/>
+            7 = Recognition<br/>
+            8 = Wing<br/>
+            9 = Logo</p>
+          <p>10 = Cabin</p>
+          <p>11 = Pedestal</p>
+          <p>12 = Glareshield</p>
+          <p>13 = Ambient</p>
+        </td>
+        <td colspan="1" style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>The z position relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+        <td>Float</td>
+        <td colspan="1" rowspan="3" style="text-align: center;">
+          <p style="text-align: center">Yes</p>
+          <p>(unless a NODE is specified, see below)</p>
+        </td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>The x position relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td>The y position relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td>The X axis rotation, in degrees.</td>
+        <td>Float</td>
+        <td colspan="1" rowspan="3" style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td>The Y axis rotation, in degrees.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td>6</td>
+        <td>The Z axis rotation, in degrees.</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td>7</td>
+        <td>The FX file name that is used by this light (for example, fx_navred). These files have <code class="inline">*.fx</code> extensions and should be placed in the root effects folder.</td>
+        <td>String</td>
+        <td colspan="1" style="text-align: center;">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>When writing out a light definition, you may specify a node on the aircraft model instead of the (z/x/y) position, and omit or include the rotation parameters depending on requirements. Below are examples of various combinations of data you can use to define a light:</p>
+  <p class="codeblock">; light.n = CircuitType, NODE_HELPER_NAME, fxfile<br/>
+    light.0 = 3, light_navigation_node, fx_navred<br/>
+    <br/>
+    ; light.n = CircuitType, ZOffset, XOffset, YOffset, XRotationInDegrees, YRotationInDegrees, ZRotationInDegrees, fxfile<br/>
+    light.0 = 3, -2.6, -17.4, 3.6, 90.0, 0.0, 0.0, fx_navred<br/>
+    <br/>
+    ; light.n = CircuitType, NODE_HELPER_NAME, XRotationInDegrees, YRotationInDegrees, ZRotationInDegrees, fxfile<br/>
+    light.0 = 3, light_navigation_node, 90.0, 0.0, 0.0, fx_navred
+  </p>
+  <p> </p>
+  <p> </p>
+  <h3 id="h1"><code class="inline">[ELECTRICAL]</code></h3>
+  <p>This section controls everything related to the aircraft electrical systems. Given the complexity involved in setting up aircraft systems, the information for this section can be found on its own dedicated page here:</p>
+  <ul>
+    <li><a href="system/electrical.htm">systems.cfg - [ELECTRICAL]</a></li>
+  </ul>
+  <p> </p>
+  <p> </p>
+  <h3 id="HYDRAULICSYSTEM"><code class="inline">[HYDRAULIC_SYSTEM]</code></h3>
+  <p>This section controls the hydraulic pressure systems. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">normal_pressure</code></td>
+        <td>
+          <p>The normal hydraulic pressure, in <a href="#" data-popovertext="The &#39;Pound per Square Inch&#39; is a unit of pressure or of stress based on the imperial measurement system. It is the pressure resulting from a one pound-force applied to an area of one square inch. In metric units, 1psi is approximately equal to 6895 newtons per meter squared." data-rhwidget="TextPopOver">psi</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td colspan="1" rowspan="7" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">electric_pumps</code></td>
+        <td>
+          <p>The number of electric pumps for the hydraulics.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Integer</td>
+      </tr>
+      <tr>
+        <td><code class="inline">engine_map</code></td>
+        <td>
+          <p>This is a table of whether an engine has a hydraulic unit or not. For example:</p>
+          <p><code class="inline">1, 0, 0, 1, 0, 0, 0 ,0 ,0, 0, 0, 0, 0, 0, 0, 0, 0</code></p>
+          <p>This means there are pumps on engines 1 and 4, but not on any other.</p>
+          <p>Default value is 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.</p>
+        </td>
+        <td>
+          <p>1D Table of bools</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">ailerons_require_hydraulics</code></td>
+        <td>
+          <p>Sets whether the ailerons require hydraulics (TRUE, 1) or not (FALSE, 0).</p>
+          <p>Default is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">rudder_require_hydraulics</code></td>
+        <td>
+          <p>Sets whether the rudder requires hydraulics (TRUE, 1) or not (FALSE, 0).</p>
+          <p>Default is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">spoilers_require_hydraulics</code></td>
+        <td>
+          <p>Sets whether the spoilers require hydraulics (TRUE, 1) or not (FALSE, 0).</p>
+          <p>Default is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><code class="inline">elevator_require_hydraulics</code></td>
+        <td>
+          <p>Sets whether the elevator requires hydraulics (TRUE, 1) or not (FALSE, 0).</p>
+          <p>Default is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[PNEUMATIC_SYSTEM]</code></h3>
+  <p>This section controls the pneumatic system of the aircraft. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pressure</code></td>
+        <td>
+          <p>The maximum permitted pressure for the pneumatic system, in <a href="#" data-popovertext="The &#39;Pound per Square Inch&#39; is a unit of pressure or of stress based on the imperial measurement system. It is the pressure resulting from a one pound-force applied to an area of one square inch. In metric units, 1psi is approximately equal to 6895 newtons per meter squared." data-rhwidget="TextPopOver">psi</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">apu_max_pressure</code></td>
+        <td>
+          <p>The maximum pressure from the bleed permitted for the <a href="#" data-popovertext="This stands for &#39;Auxiliary Power Unit&#39;  which is a device on an aircraft that provides energy for functions other than propulsion." data-rhwidget="TextPopOver">APU</a>, in <a href="#" data-popovertext="The &#39;Pound per Square Inch&#39; is a unit of pressure or of stress based on the imperial measurement system. It is the pressure resulting from a one pound-force applied to an area of one square inch. In metric units, 1psi is approximately equal to 6895 newtons per meter squared." data-rhwidget="TextPopOver">psi</a>.</p>
+          <p>Default value is 18.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">bleed_air_scalar</code></td>
+        <td>
+          <p>Pneumatic pressure is a function of bleed air from the turbine engine. This scalar is used to multiply this bleed air pressure.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="VACUUM_SYSTEM"><code class="inline">[VACUUM_SYSTEM]</code></h3>
+  <p>This section controls the aircraft vacuum system. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pressure</code></td>
+        <td>
+          <p>The maximum suction pressure, in <a href="#" data-popovertext="This means &#39;Inch of Mercury&#39;, which is a unit of measurement for pressure. It is the pressure exerted by a column of mercury 1 inch (25.4 mm) in height at the standard acceleration of gravity. " data-rhwidget="TextPopOver">inHg</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vacuum_type</code></td>
+        <td>
+          <p>The type of vacuum system installed on the aircraft.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <p>1 = engine pump<br/>
+            2 = pneumatic<br/>
+            3 = venturi</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">electric_backup_pressure</code></td>
+        <td>
+          <p>The electrical backup pressure value, in <a href="#" data-popovertext="This means &#39;Inch of Mercury&#39;, which is a unit of measurement for pressure. It is the pressure exerted by a column of mercury 1 inch (25.4 mm) in height at the standard acceleration of gravity. " data-rhwidget="TextPopOver">inHg</a>.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">engine_map</code></td>
+        <td>
+          <p>This is a table of whether an engine has a vacuum pump unit or not. For example:</p>
+          <p><code class="inline">1, 0, 0, 1, 0, 0, 0 ,0 ,0, 0, 0, 0, 0, 0, 0, 0, 0</code></p>
+          <p>This means there are pumps on engines 1 and 4, but not on any other.</p>
+          <p>Default value is 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.</p>
+        </td>
+        <td>
+          <p>1D Table of bools</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">suction_gain</code></td>
+        <td>
+          <p>Speed at which suction grows.</p>
+          <p>Default value is 0.85.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">suction_min</code></td>
+        <td>
+          <p>Minimum suction value possible when system is operating.</p>
+          <p>Default value is 4.05.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[PITOT_STATIC]</code></h3>
+  <p>A pitot-static system is a system of pressure-sensitive instruments that is most often used in aviation to determine an aircraft&#39;s airspeed, Mach number, altitude, and altitude trend. This section permits you to set certain attributes for using this system. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">vertical_speed_time_constant</code></td>
+        <td>This is a speed-time constant, used for the vertical speed generation in gauges. Values in 1/seconds. Increasing will cause a more instantaneous reaction in the visual speed indicator</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitot_heat</code></td>
+        <td>Pitot heat scalar value used to weight temperature increase for pitot system.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[STALL_WARNING]</code></h3>
+  <p>This section controls the stall warning system. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">type</code></td>
+        <td>
+          <p>The warning system type.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <p>0 = normal<br/>
+            1 = electric</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">stick_shaker</code></td>
+        <td>Whether force feedback stick shaking is enabled (TRUE, 1) or not (FALSE, 0).</td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h2"><code class="inline">[DEICE_SYSTEM]</code></h3>
+  <p>This section controls the de-ice system. Available parameter is:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">structural_deice_type</code></td>
+        <td>
+          <p>The deice type on the aircraft.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = none</li>
+            <li>1 = bleed air heated leading edge</li>
+            <li>2 = bleed air boots</li>
+            <li>3 = engine vacuum pump boots</li>
+          </ol>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">windshield_deice_rate</code></td>
+        <td>
+          <p>Sets the rate at which the windshield will get deiced when the deice system is enabled. Value is in percent/second.</p>
+          <p>Default value is 0.00223 %/sec.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">structural_deice_rate</code></td>
+        <td>
+          <p>Sets the rate at which the a¡rcraft structure will get deiced when the deice system is enabled. Value is in percent/second.</p>
+          <p>Default value is 0.00128 %/sec.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="RADIOS"><code class="inline">[RADIOS]</code></h3>
+  <p>This section controls the aircraft radios. Note all systems listed here start at <code class="inline"><em>N</em></code> = 1, and the available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col style="width:20%;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">CollisionAvoidance</code></td>
+        <td>
+          <p>This parameter can be used to indicate the presence of <a href="#" data-popovertext="This stands for &quot;Traffic Collision Avoidance System&quot;, which is an aircraft collision avoidance system designed to reduce the incidence of mid-air collision between aircraft. It monitors the airspace around an aircraft for other aircraft equipped with a corresponding active transponder, independent of air traffic control, and warns pilots of the presence of other transponder-equipped aircraft which may present a threat of mid-air collisions. " data-rhwidget="TextPopOver">TCAS</a> and / or FLARM systems. If supplying this parameter you give two values separated with a comma (<code class="inline">val1, val2</code>) where the first corresponds to the <a href="#" data-popovertext="This stands for &quot;Traffic Collision Avoidance System&quot;, which is an aircraft collision avoidance system designed to reduce the incidence of mid-air collision between aircraft. It monitors the airspace around an aircraft for other aircraft equipped with a corresponding active transponder, independent of air traffic control, and warns pilots of the presence of other transponder-equipped aircraft which may present a threat of mid-air collisions. " data-rhwidget="TextPopOver">TCAS</a> and the second to the FLARM.</p>
+          <p> </p>
+          <p>For the <a href="#" data-popovertext="This stands for &quot;Traffic Collision Avoidance System&quot;, which is an aircraft collision avoidance system designed to reduce the incidence of mid-air collision between aircraft. It monitors the airspace around an aircraft for other aircraft equipped with a corresponding active transponder, independent of air traffic control, and warns pilots of the presence of other transponder-equipped aircraft which may present a threat of mid-air collisions. " data-rhwidget="TextPopOver">TCAS</a> you can give one of the following values:</p>
+          <ol class="minitoc-list">
+            <li>0 - No TCAS capability (no transponder)</li>
+            <li>1 - Only transponder responses</li>
+            <li>2 - Standard TCAS</li>
+            <li>3 - External TCAS</li>
+          </ol>
+          <p> </p>
+          <p>For the FLARM it can have the following values:</p>
+          <ol class="minitoc-list">
+            <li>0 - No Flarm</li>
+            <li>1 - Flarm installed</li>
+          </ol>
+        </td>
+        <td>
+          <p>1D Table of Integers</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">TransponderDefault</code></td>
+        <td>
+          <p>Default Frequency of the aircraft (will be overridden by FLT and ATC values).</p>
+          <p>Default value is 1234.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="Flarm"></a><code class="inline">Flarm</code></td>
+        <td>The distance below which the FLARM system will detect threat objects, in meters.</td>
+        <td>
+          <p>Float</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Audio.<em>N</em></code></td>
+        <td>Set whether audio system <code class="inline"><em>N</em></code> is available (TRUE, 1) or not (FALSE; 0). At least 1 audio system needs to be defined.</td>
+        <td>Bool</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Com.<em>N</em></code></td>
+        <td>Set whether the com receiver <code class="inline"><em>N</em></code> is available (TRUE, 1) or not (FALSE; 0) and whether it has a standby (TRUE, 1) or not (FALSE, 0). At least 1 com receiver needs to be defined, and you can have a maximum of 3.</td>
+        <td>
+          <p>1D Table of Bools</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Nav.<em>N</em></code></td>
+        <td>Set whether the navigation receiver <code class="inline"><em>N</em></code> is available (TRUE, 1) or not (FALSE; 0), whether it has a standby (TRUE, 1) or not (FALSE, 0), and whether it has glide-slope (TRUE, 1) or not (FALSE, 0). At least 1 navigation receiver needs to be defined, and you can have a maximum of 4.</td>
+        <td>
+          <p>1D Table of Bools</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Adf.<em>N</em></code></td>
+        <td>Set whether the <a href="#" data-popovertext="&#39;Automatic Direction Finding&#39; is an electronic aid to navigation that identifies the relative bearing of an aircraft from a radio beacon transmitting in the MF or LF bandwidth, such as an Non-Directional Beacon or commercial radio broadcast station." data-rhwidget="TextPopOver">ADF</a> system <code class="inline"><em>N</em></code> is available (TRUE, 1) or not (FALSE; 0) and whether it has a standby (TRUE, 1) or not (FALSE, 0). At least 1 <a href="#" data-popovertext="&#39;Automatic Direction Finding&#39; is an electronic aid to navigation that identifies the relative bearing of an aircraft from a radio beacon transmitting in the MF or LF bandwidth, such as an Non-Directional Beacon or commercial radio broadcast station." data-rhwidget="TextPopOver">ADF</a> system needs to be defined, and you can have a maximum of 2.</td>
+        <td>
+          <p>1D Table of Bools</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Transponder.<em>N</em></code></td>
+        <td>Set whether the transponder <code class="inline"><em>N</em></code> is available (TRUE, 1) or not (FALSE; 0). At least 1 transponder needs to be defined.</td>
+        <td>Bool</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Marker.<em>N</em></code></td>
+        <td>Set whether the marker system <code class="inline"><em>N</em></code> is available (TRUE, 1) or not (FALSE; 0). At least 1 marker system needs to be defined.</td>
+        <td>Bool</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><a id="Tacan.N"></a><code class="inline">Tacan.<em>N</em></code></td>
+        <td>
+          <p>Set whether <a href="#" data-popovertext="This stands for Tactical Air Navigation system, and is a navigation system generally used by military aircraft. It provides the user with bearing and distance (slant-range or hypotenuse) to a ground or ship-borne station. It is a more accurate version of the VOR/DME system that provides bearing and range information for civil aviation." data-rhwidget="TextPopOver">Tacan</a> <em><code class="inline">N</code></em> is available, where <code class="inline"><em>N</em></code> can be 1 or 2 (only a maximum of 2 <a href="#" data-popovertext="This stands for Tactical Air Navigation system, and is a navigation system generally used by military aircraft. It provides the user with bearing and distance (slant-range or hypotenuse) to a ground or ship-borne station. It is a more accurate version of the VOR/DME system that provides bearing and range information for civil aviation." data-rhwidget="TextPopOver">Tacan</a> systems can be on any aircraft).</p>
+          <p>When you add this parameter it requires two values where the first sets whether the <strong>active</strong> frequency is available (1, TRUE) or not (0, FALSE) and the second sets whether the <strong>standby</strong> frequency is available (1, TRUE) or not (0, FALSE). For example:</p>
+          <pre class="codeblock">Tacan.1 = 1, 0</pre>
+          <p>The line above adds the first <a href="#" data-popovertext="This stands for Tactical Air Navigation system, and is a navigation system generally used by military aircraft. It provides the user with bearing and distance (slant-range or hypotenuse) to a ground or ship-borne station. It is a more accurate version of the VOR/DME system that provides bearing and range information for civil aviation." data-rhwidget="TextPopOver">Tacan</a> receiver with an active frequency and no standby frequency.</p>
+        </td>
+        <td>
+          <p>1D Table of Bools</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="AUTOPILOT"><code class="inline">[AUTOPILOT]</code></h3>
+  <p>This section controls the aircraft autopilot systems.</p>
+  <p><span class="note"><strong>IMPORTANT!</strong> This section is not used currently for helicopters.</span></p>
+  <p>Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 248px;"/>
+      <col style="width: 500px;"/>
+      <col style="width: 164px;"/>
+      <col style="width: 87px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">autopilot_available</code></td>
+        <td>Setting this to 1 (TRUE) makes the autopilot system available to the aircraft, otherwise set it to 0 (FALSE) to disable autopilot.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flight_director_available</code></td>
+        <td>Setting this to 1 (TRUE) makes the flight director available to the aircraft, otherwise setting it to 0 (FALSE) will disable the flight director.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min_feet_for_ap </code></td>
+        <td>Set the height (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) below which the autopilot is automatically disabled. Default is -1000 (essentially disabled).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min_flight_time_for_ap</code></td>
+        <td>Set the time (in seconds) after takeoff until the autopilot can be enabled. Default is 0 (essentially disabled).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">default_vertical_speed</code></td>
+        <td>The default vertical speed, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per second, that the autopilot will command when selecting a large altitude change.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autothrottle_available</code></td>
+        <td>When this is set to 1 (TRUE) it makes available an autothrottle system on the aircraft. Set to 0 (FALSE) otherwise.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autothrottle_arming_required</code></td>
+        <td>When this is set to 1 (TRUE) the autothrottle is required to be armed prior to it being engaged. Setting it to 0 (FALSE) allows the autothrottle to be engaged directly.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autothrottle_does_not_move_lever</code></td>
+        <td>When this is set to 1 (TRUE) the autothrottle will not move the throttle lever. Set it to 0 (FALSE) if this is not the behavior you require.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autothrottle_managed_by_plane</code></td>
+        <td>When this is set to 1 (TRUE) the autothrottle will be managed automatically by the aircraft. Set it to 0 (FALSE) if this is not the behavior you require.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autothrottle_takeoff_ga</code></td>
+        <td>If this is set to 1 (TRUE) then takeoff / go-around operations with the autothrottle will be enabled. 0 (FALSE) disables this behavior.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">autothrottle_max_rpm</code></td>
+        <td>This sets the highest engine speed that the autothrottle will attempt to maintain as a percentage of the maximum engine speed.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_takeoff_ga</code></td>
+        <td>The default pitch that the Takeoff/Go-Around mode references, in degrees.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td style="background-color: rgba(255, 0, 0, 0.10)"><code class="inline">autoland_available</code><span class="deprecated"></span></td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">
+          <p>Setting this to 1 (TRUE) makes the autopilot autoland system available to the aircraft, otherwise set it to 0 (FALSE) to disable autoland.</p>
+          <p><span class="note"><strong>IMPORTANT!</strong> This is a legacy parameter that is no longer supported by the simulation and will do nothing if edited/included.</span></p>
+        </td>
+        <td style="background-color: rgba(255, 0, 0, 0.10)">Bool</td>
+        <td style="text-align: center;background-color: rgba(255, 0, 0, 0.10)">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altimeter_indicator</code></td>
+        <td>Indicates which altimeter indicator system on the aircraft is being referenced by the autopilot.</td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">attitude_indicator</code></td>
+        <td>Indicates which attitude indicator system on the aircraft is being referenced by the autopilot</td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">direction_indicator</code></td>
+        <td>Indicates which direction indicator system on the aircraft is being referenced by the autopilot, where 0 is the first (and default).</td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">use_no_default_pitch</code></td>
+        <td>Setting this to 1 (TRUE) tells the autopilot not to use the default pitch option. Set to 0 (FALSE) to use it.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="default_pitch_mode"></a><code class="inline">default_pitch_mode</code></td>
+        <td>This determines the default pitch mode when the autopilot is enabled.</td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = None</li>
+            <li>1 = Pitch</li>
+            <li>2 = Altitude</li>
+            <li>3 = Vertical Speed</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_use_trim</code></td>
+        <td>When set to 1 (TRUE) the autopilot will use the trim to hold pitch, and when set to 0 (FALSE) it will use the elevator directly.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="max_pitch"></a><code class="inline">max_pitch</code></td>
+        <td>The maximum pitch angle, in degrees, that the autopilot will command either up or down. </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pitch_acceleration</code></td>
+        <td>The maximum angular pitch acceleration, in degrees per second squared, that the autopilot will command up or down.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pitch_velocity_lo_alt</code></td>
+        <td>The maximum angular pitch velocity, in degrees per second, which the autopilot will command when at an altitude below that specified by the parameter <code class="inline">max_pitch_velocity_lo_alt_breakpoint</code>.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pitch_velocity_hi_alt</code></td>
+        <td>The maximum angular pitch velocity, in degrees per second, which the autopilot will command when at an altitude above the altitude specified by the parameter <code class="inline">max_pitch_velocity_hi_alt_breakpoint</code>. The maximum velocity is interpolated between the hi and lo altitude velocities when between the hi and lo altitude breakpoints.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pitch_velocity_lo_alt_breakpoint</code></td>
+        <td>The altitude below which the autopilot maximum pitch velocity is limited by the parameter <code class="inline">max_pitch_velocity_lo_alt</code>.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pitch_velocity_hi_alt_breakpoint</code></td>
+        <td>The altitude above which the autopilot maximum pitch velocity is limited by the parameter <code class="inline">max_pitch_velocity_hi_alt</code>. The maximum velocity is interpolated between the hi and lo altitude velocities when between the hi and lo altitude breakpoints.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pitch_velocity_lo_ang</code></td>
+        <td>
+          <p>This defines the fly-by-wire load factor hold system&#39;s max pitch velocity at low angle differences. This parameter - along with <code class="inline">max_pitch_velocity_hi_ang</code> - gives more control over the fly-by-wire pitch rate and therefore the maximum load factor achievable by the aircraft. </p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pitch_velocity_hi_ang</code></td>
+        <td>
+          <p>This defines the fly-by-wire load factor hold system&#39;s max pitch velocity at high angle differences. This parameter - along with <code class="inline">max_pitch_velocity_lo_ang</code> - gives more control over the fly-by-wire pitch rate and therefore the maximum load factor achievable by the aircraft. </p>
+          <p>Default value is 5.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">use_no_default_bank</code></td>
+        <td>Setting this to 1 (TRUE) tells the autopilot not to use the default bank option. Set to 0 (FALSE) to use it.</td>
+        <td>
+          <p>Bool</p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="default_bank_mode"></a><code class="inline">default_bank_mode</code></td>
+        <td>This determines the default bank mode when the autopilot is enabled.</td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = None</li>
+            <li>1 = Wing level</li>
+            <li>2 = Heading</li>
+            <li>3 = Roll Hold</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_bank_acceleration</code></td>
+        <td>
+          <p>The maximum angular bank acceleration, in degrees per second squared, that the autopilot will command left or right.</p>
+          <p>Default value is 1.8.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="max_bank_velocity"></a><code class="inline">max_bank_velocity</code></td>
+        <td>
+          <p>The maximum angular bank velocity, in degrees per second, which the autopilot will command left or right. This parameter takes a series of values, separated by commas, where each value corresponds to a specific bank switch position (see <code class="inline"><a href="../../../Programming_Tools/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm#AP_MAX_BANK_SET">AP_MAX_BANK_SET</a></code>). Example:</p>
+          <pre class="codeblock">max_bank_velocity = 225, 10</pre>
+          <p>Note that the number of entries given for this parameter should correspond with the number of values given for <code class="inline">max_bank</code>.</p>
+          <p>Default value is 3, and you can have a maximum of 6 values.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="max_bank"></a><code class="inline">max_bank</code></td>
+        <td>The maximum bank angle, in degrees, that the autopilot will command either left or right. 
+          <p>This parameter takes a series of values, separated by commas, where each value corresponds to a specific bank switch position (see <code class="inline"><a href="../../../Programming_Tools/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm#AP_MAX_BANK_SET">AP_MAX_BANK_SET</a></code>). Example:</p>
+          <pre class="codeblock">max_bank = 210, 30</pre>
+          <p>Note that the number of entries given for this parameter should correspond with the number of values given for <code class="inline">max_bank_velocity</code>.</p>
+          <p>Default value is 25, and you can have a maximum of 6 values.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="auto_max_bank"></a><code class="inline">auto_max_bank</code></td>
+        <td>
+          <p>If 1 (TRUE) it adds an extra max bank selection for the autopilot that automatically changes depending on the airspeed. For more information, please see <code class="inline"><a href="../../../Programming_Tools/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm#AP_MAX_BANK_SET">AP_MAX_BANK_SET</a></code>.</p>
+          <p>Set to 0 (FALSE) to disable the option.</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">auto_max_bank_table</code></td>
+        <td>
+          <p>Sets the correspondence between an airspeed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s) and a max bank value (in degrees), when <code class="inline"><a href="systems_cfg.htm#auto_max_bank">auto_max_bank</a></code> is enabled. For example:</p>
+          <p><code class="inline">auto_max_bank_table=0.000000:15.000000, 249.900000:15.000000, 250.000000:25.000000</code></p>
+        </td>
+        <td>
+          <p>2D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">auto_max_bank_velocity_table</code></td>
+        <td>
+          <p>Sets the correspondence between the angular bank velocity (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s) and a max bank value (in degrees / second). For example:</p>
+          <p><code class="inline">auto_max_bank_velocity_table=0:30, 200:30, 550:10</code></p>
+        </td>
+        <td>
+          <p>2D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">auto_max_bank_min_alt</code></td>
+        <td>Sets the altitude (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) above ground level below which the max bank angle is limited (see <code class="inline">auto_max_bank_min_alt_angle</code>) in feet.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">auto_max_bank_min_alt_angle</code></td>
+        <td>Sets the max bank angle (in degrees) when the plane is in auto max bank angle mode below the minimum altitude set by <code class="inline">auto_max_bank_min_alt</code>.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_throttle_rate</code></td>
+        <td>This value sets the maximum rate at which the autothrottle will move the throttle position.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_pid_reset_mode</code></td>
+        <td>
+          <p>This parameter can be used to set the way that the pitch PID calculations will be updated. It can have the following values:</p>
+          <ul>
+            <li><span class="smallfont">0 - <strong>The PID will be &quot;dirty&quot;, ie: it maintains the accumulated integral</strong>. The behavior of the autopilot will depend on what was happening when the autopilot was switched off previously. The autopilot will jump to the last pitch input and will start adjusting from there. This could mean there will be extremely exaggerated corrections.</span></li>
+            <li><span class="smallfont">1 - <strong>The PID will be reset to 0</strong>. <span>The autopilot will always go back to a 0 (neutral) input and start adjusting from there. If the current input is strong, a noticeable correction will be made. If not, the correction may not be noticeable.</span></span></li>
+            <li><span class="smallfont">2 - <strong>The PID will be reset to the current plane state.</strong> The autopilot will start adjusting from the current input position. There should be no correction felt and the transition to autopilot control should be smooth in all cases. <strong>This is the recommended mode</strong>.</span></li>
+          </ul>
+          <p><span class="note"><strong>NOTE</strong>: A PID reset is triggered if the PID controller is executed in a frame and was not executed for the previous 10 frames. Usually this happens when an autopilot mode using the PID is switched ON.</span></p>
+          <p>Default value is 0. </p>
+        </td>
+        <td>
+          <p>Integer:</p>
+          <ol class="minitoc-list">
+            <li>0 - Dirty</li>
+            <li>1 - Reset</li>
+            <li>2 - Current<br/>
+              (recommended)</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_pid_max_I_accumulation</code></td>
+        <td>
+          <p>This sets the maximum accumulation permitted for the integral of the pitch PID.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_proportional_control</code></td>
+        <td>Pitch proportional controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_integrator_control</code></td>
+        <td>Pitch integral controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_derivative_control</code></td>
+        <td>Pitch derivative controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_integrator_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the pitch integrator function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_derivative_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the pitch derivative function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">roll_pid_reset_mode</code></td>
+        <td>
+          <p>This parameter can be used to set the way that the roll PID calculations will be updated. It can have the following values:</p>
+          <ul>
+            <li><span class="smallfont">0 - <strong>The PID will be &quot;dirty&quot;, ie: it maintains the accumulated integral</strong>. The behavior of the autopilot will depend on what was happening when the autopilot was switched off previously. The autopilot will jump to the last pitch input and will start adjusting from there. This could mean there will be extremely exaggerated corrections.</span></li>
+            <li><span class="smallfont">1 - <strong>The PID will be reset to 0</strong>. <span>The autopilot will always go back to a 0 (neutral) input and start adjusting from there. If the current input is strong, a noticeable correction will be made. If not, the correction may not be noticeable.</span></span></li>
+            <li><span class="smallfont">2 - <strong>The PID will be reset to the current plane state.</strong> The autopilot will start adjusting from the current input position. There should be no correction felt and the transition to autopilot control should be smooth in all cases. <strong>This is the recommended mode</strong>.</span></li>
+          </ul>
+          <p><span class="note"><strong>NOTE</strong>: A PID reset is triggered if the PID controller is executed in a frame and was not executed for the previous 10 frames. Usually this happens when an autopilot mode using the PID is switched ON.</span></p>
+          <p>Default value is 0. </p>
+        </td>
+        <td>
+          <p>Integer:</p>
+          <ol class="minitoc-list">
+            <li>0 - Dirty</li>
+            <li>1 - Reset</li>
+            <li>2 - Current<br/>
+              (recommended)</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">roll_pid_max_I_accumulation</code></td>
+        <td>
+          <p>This sets the maximum accumulation permitted for the integral of the roll PID.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">roll_proportional_control</code></td>
+        <td>Roll proportional controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">roll_integrator_control</code></td>
+        <td>Roll integral controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">roll_derivative_control</code></td>
+        <td>Roll derivative controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">roll_integrator_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the roll integrator function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">roll_derivative_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the roll derivative function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">heading_pid_reset_mode</code></td>
+        <td>
+          <p>This parameter can be used to set the way that the heading PID calculations will be updated. It can have the following values:</p>
+          <ul>
+            <li><span class="smallfont">0 - <strong>The PID will be &quot;dirty&quot;, ie: it maintains the accumulated integral</strong>. The behavior of the autopilot will depend on what was happening when the autopilot was switched off previously. The autopilot will jump to the last pitch input and will start adjusting from there. This could mean there will be extremely exaggerated corrections.</span></li>
+            <li><span class="smallfont">1 - <strong>The PID will be reset to 0</strong>. <span>The autopilot will always go back to a 0 (neutral) input and start adjusting from there. If the current input is strong, a noticeable correction will be made. If not, the correction may not be noticeable.</span></span></li>
+            <li><span class="smallfont">2 - <strong>The PID will be reset to the current plane state.</strong> The autopilot will start adjusting from the current input position. There should be no correction felt and the transition to autopilot control should be smooth in all cases. <strong>This is the recommended mode</strong>.</span></li>
+          </ul>
+          <p><span class="note"><strong>NOTE</strong>: A PID reset is triggered if the PID controller is executed in a frame and was not executed for the previous 10 frames. Usually this happens when an autopilot mode using the PID is switched ON.</span></p>
+          <p>Default value is 0. </p>
+        </td>
+        <td>
+          <p>Integer:</p>
+          <ol class="minitoc-list">
+            <li>0 - Dirty</li>
+            <li>1 - Reset</li>
+            <li>2 - Current<br/>
+              (recommended)</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">heading_pid_max_I_accumulation</code></td>
+        <td>
+          <p>This sets the maximum accumulation permitted for the integral of the heading PID.</p>
+          <p>Default value is 0.05.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hdg_proportional_control</code></td>
+        <td>Heading proportional controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hdg_integrator_control</code></td>
+        <td>Heading integral controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hdg_derivative_control</code></td>
+        <td>Heading derivative controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hdg_integrator_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the heading integrator function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hdg_derivative_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the heading derivative function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vs_proportional_control</code></td>
+        <td>Vertical speed proportional controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vs_integrator_control</code></td>
+        <td>Vertical speed integral controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vs_derivative_control</code></td>
+        <td>Vertical speed derivative controller constant.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vs_integrator_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the vertical speed integrator function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vs_derivative_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the vertical speed derivative function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_proportional_control_ex1</code></td>
+        <td>Proportional controller constant in lateral navigation modes.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_integrator_control_ex1</code></td>
+        <td>Integral controller constant in lateral navigation modes.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_derivative_control_ex1</code></td>
+        <td>Derivative controller constant in lateral navigation modes.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_integrator_boundary_ex1</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the integrator function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_derivative_boundary_ex1</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the derivative function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_yaw_proportional_control</code></td>
+        <td>Proportional controller constant in yaw navigation modes.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_yaw_integrator_control</code></td>
+        <td>Integral controller constant in yaw navigation modes.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_yaw_derivative_control</code></td>
+        <td>Derivative controller constant in yawnavigation modes.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_yaw_integrator_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the yaw integrator function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">nav_yaw_derivative_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the yaw derivative function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gs_proportional_control</code></td>
+        <td>Proportional controller constant in glideslope mode.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gs_integrator_control</code></td>
+        <td>Integral controller constant in glideslope mode.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gs_derivative_control</code></td>
+        <td>Derivative controller constant in glideslope mode.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gs_integrator_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the glideslope integrator function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gs_derivative_boundary</code></td>
+        <td>The boundary, or maximum signal error, in degrees in which the derivative function is active.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">yaw_damper_gain</code></td>
+        <td>The proportional gain on the yaw dampers yaw rate error.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">head_hold_pid</code></td>
+        <td>
+          <p>The full heading hold <a href="#" data-popovertext="A &#39;Proportional–Integral–Derivative&#39; controller is a control loop mechanism employing feedback for systems requiring continuously modulated control. A PID controller continuously calculates an error value as the difference between a desired setpoint and a measured process variable and applies a correction based on proportional, integral, and derivative terms." data-rhwidget="TextPopOver">PID</a> definition for the propeller, as a table. Follows the format of:</p>
+          <p><code class="inline">P, I1, I2, D, I1-boundary, 12-Boundary, D-boundary</code></p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">airspeed_hold_pid</code></td>
+        <td>
+          <p>The full airspeed hold <a href="#" data-popovertext="A &#39;Proportional–Integral–Derivative&#39; controller is a control loop mechanism employing feedback for systems requiring continuously modulated control. A PID controller continuously calculates an error value as the difference between a desired setpoint and a measured process variable and applies a correction based on proportional, integral, and derivative terms." data-rhwidget="TextPopOver">PID</a> definition for the propeller, as a table. Follows the format of:</p>
+          <p><code class="inline">P, I1, I2, D, I1-boundary, 12-Boundary, D-boundary</code></p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min_altitude_ref</code></td>
+        <td>
+          <p>Sets the minimum altitude (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) that can be set in the Autopilot.</p>
+          <p>Defaults to -99900.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_altitude_ref</code></td>
+        <td>
+          <p>Sets the maximum altitude (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) that can be set in the Autopilot.</p>
+          <p>Defaults to 99900.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="min_vertical_speed_ref"></a><code class="inline">min_vertical_speed_ref</code></td>
+        <td>
+          <p>Sets the minimum vertical speed (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute) that can be set in the Autopilot.</p>
+          <p>Defaults to -9900.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="max_vertical_speed_ref"></a><code class="inline">max_vertical_speed_ref</code></td>
+        <td>
+          <p>Sets the maximum vertical speed (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute) that can be set in the Autopilot.</p>
+          <p>Defaults to 9900.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min_IAS_ref</code></td>
+        <td>
+          <p>Sets the minimum <a href="#" data-popovertext="This stands for &quot;Indicated Air Speed&quot; and simply refers to the airspeed read directly from the airspeed indicator in an aircraft, driven by the pitot-static system." data-rhwidget="TextPopOver">IAS</a> reference (in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>) that can be set in the Autopilot.</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_IAS_ref</code></td>
+        <td>
+          <p>Sets the maximum <a href="#" data-popovertext="This stands for &quot;Indicated Air Speed&quot; and simply refers to the airspeed read directly from the airspeed indicator in an aircraft, driven by the pitot-static system." data-rhwidget="TextPopOver">IAS</a> reference (in <a href="#" data-popovertext="This stands for &#39;Knots Indicated AirSpeed&#39; and is a unit of measurement for aircraft speed based on the &#39;knot&#39;. This value can vary depending on multiple factors and is not as good an indicator of speed as Knots Calibrated AirSpeed (KCAS)." data-rhwidget="TextPopOver">kias</a>) that can be set in the Autopilot.</p>
+          <p>Default is 990.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="min_Mach_ref"></a><code class="inline">min_Mach_ref</code></td>
+        <td>
+          <p>Sets the minimum <a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a> that can be set in the Autopilot.</p>
+          <p>Defaults to 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="max_Mach_ref"></a><code class="inline">max_Mach_ref</code></td>
+        <td>
+          <p>Sets the maximum <a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a> that can be set in the Autopilot.</p>
+          <p>Defaults to 3.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="alt_mode_slot_index"></a><code class="inline">alt_mode_slot_index</code></td>
+        <td>
+          <p>Set the default alt mode slot index (from 0 to 3). This is the index for the SimVar <code class="inline"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_AutopilotAssistant_Variables.htm#AUTOPILOT ALTITUDE LOCK VAR">AUTOPILOT ALTITUDE LOCK VAR</a></code> which the altitude hold mode will track when captured. You can change this using the <code class="inline"><a href="../../../Programming_Tools/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm#ALTITUDE_SLOT_INDEX_SET">ALTITUDE_SLOT_INDEX_SET</a></code> event ID or retrieve it using the <code class="inline"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_AutopilotAssistant_Variables.htm#AUTOPILOT ALTITUDE SLOT INDEX">AUTOPILOT ALTITUDE SLOT INDEX</a></code> SimVar.</p>
+          <p>When this parameter is set to 1, 2 or 3, the altitude capture will watch the altitude set at that index, unless overridden by changing the currently observed slot using the key event <code class="inline"><a href="../../../Programming_Tools/Event_IDs/Aircraft_Autopilot_Flight_Assist_Events.htm#ALTITUDE_SLOT_INDEX_SET">ALTITUDE_SLOT_INDEX_SET</a></code>. If the currently observed slot has been changed when altitude is captured, the set altitude in the currently observed slot will be copied to the <code class="inline">alt_mode_slot_index</code> slot and the currently observed slot will also be changed to that slot.</p>
+          <p>When this config parameter is set to 0, the altitude capture will always use whatever the currently observed slot is set to and will not change slots or write to any slots on capture.</p>
+        </td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flc_proportional_control</code></td>
+        <td>
+          <p>The <a href="#" data-popovertext="Stands for &quot;Flight Level Change&quot; and is an autopilot mode that attempts to maintain airspeed during a climb or descent." data-rhwidget="TextPopOver">FLC</a> proportional control mode value.</p>
+          <p>Default is 20.0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flc_integrator_control</code></td>
+        <td>
+          <p>The <a href="#" data-popovertext="Stands for &quot;Flight Level Change&quot; and is an autopilot mode that attempts to maintain airspeed during a climb or descent." data-rhwidget="TextPopOver">FLC</a> integrator control mode value.</p>
+          <p>Default is 1.0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flc_derivative_control</code></td>
+        <td>
+          <p>The <a href="#" data-popovertext="Stands for &quot;Flight Level Change&quot; and is an autopilot mode that attempts to maintain airspeed during a climb or descent." data-rhwidget="TextPopOver">FLC</a> derivative control mode value.</p>
+          <p>Default is 50.0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flc_integrator_boundary</code></td>
+        <td>
+          <p>The <a href="#" data-popovertext="Stands for &quot;Flight Level Change&quot; and is an autopilot mode that attempts to maintain airspeed during a climb or descent." data-rhwidget="TextPopOver">FLC</a> integrator control boundary.</p>
+          <p>Default is 100.0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flc_derivative_boundary</code></td>
+        <td>
+          <p>The <a href="#" data-popovertext="Stands for &quot;Flight Level Change&quot; and is an autopilot mode that attempts to maintain airspeed during a climb or descent." data-rhwidget="TextPopOver">FLC</a> derivative control boundary.</p>
+          <p>Default is 1000.0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flc_min_pitch_low_alt</code></td>
+        <td>Sets the minimum AP pitch (in degrees) when the plane is in <a href="#" data-popovertext="Stands for &quot;Flight Level Change&quot; and is an autopilot mode that attempts to maintain airspeed during a climb or descent." data-rhwidget="TextPopOver">FLC</a> mode and below <code class="inline">flc_min_low_alt_limit</code>.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flc_min_low_alt_limit</code></td>
+        <td>
+          <p>Sets the maximum height (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) below which the pitch in <a href="#" data-popovertext="Stands for &quot;Flight Level Change&quot; and is an autopilot mode that attempts to maintain airspeed during a climb or descent." data-rhwidget="TextPopOver">FLC</a> mode is limited. Disabled if &lt;=0.</p>
+          <p>Default is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min_feet_for_athr</code></td>
+        <td>
+          <p>Set the height (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) below which the auto-throttle is automatically disabled.</p>
+          <p>Disabled by default.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altitude_english_slow_increment</code></td>
+        <td>Sets the slow increments (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) of the autopilot&#39;s altitude when in english units.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altitude_english_fast_increment</code></td>
+        <td>Sets the fast increments (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) of the autopilot&#39;s altitude when in english units.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altitude_english_fastest_increment</code></td>
+        <td>Sets the fastest increments (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) of the autopilot&#39;s altitude when in english units.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altitude_metric_slow_increment</code></td>
+        <td>Sets the slow increments (in meters) of the autopilot&#39;s altitude when in metric units.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altitude_metric_fast_increment</code></td>
+        <td>Sets the fast increments (in meters) of the autopilot&#39;s altitude when in metric units.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altitude_metric_fastest_increment</code></td>
+        <td>Sets the fastest increments (in meters) of the autopilot&#39;s altitude when in metric units.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">metric_VS_increment</code></td>
+        <td>Sets the increments of the autopilot&#39;s vertical speed when in metric units (meters per minute).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">english_VS_increment</code></td>
+        <td>Sets the increments of the autopilot&#39;s vertical speed when in english units (<a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">IAS_slow_increment</code></td>
+        <td>Sets the slow increments of the autopilot&#39;s target speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">IAS_fast_increment</code></td>
+        <td>Sets the fast increments of the autopilot&#39;s target speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">IAS_fastest_increment</code></td>
+        <td>Sets the fastest increments of the autopilot&#39;s target speed (in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><a id="mach_increment"></a><code class="inline">mach_increment</code></td>
+        <td>Sets the increments of the autopilot&#39;s target speed (in <a href="#" data-popovertext="A mach number is the ratio of an aircraft&#39;s speed relative to the speed of sound. So, an aircraft travelling at the speed of sound is travelling at &#39;mach 1&#39;." data-rhwidget="TextPopOver">Mach</a>).</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hdg_ref_var</code></td>
+        <td>Set the compass variable to be used as the source of heading reference.</td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = Magnetic</li>
+            <li>1 = Gyro</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">auto_throttle_hold_vs</code></td>
+        <td>
+          <p>If set to 0 (FALSE), the auto throttle will not attempt to hold the VS when attempting to hold an airspeed. If set to 1 (TRUE) it will.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">auto_rudder_use_pedals</code></td>
+        <td>
+          <p>If set to 0 (FALSE), the auto rudder will not move the cockpit pedals. If set to 1 (TRUE) it will.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">auto_disengage_with_pilot_input</code></td>
+        <td>
+          <p>When this is set to 1 (TRUE) then the autopilot will be disengaged when any pilot action on inputs is greater than 50% of the axis for more than 1 second.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">basic_modes_disengage_with_FBW</code></td>
+        <td>
+          <p>If set to 1 (TRUE) and the fly-by-wire is set to &quot;ON&quot; and the auto-pilot is on, then the Pitch, Bank and Yaw dampening modes are disengaged.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">no_alt_capture_in_vs_mode</code></td>
+        <td>
+          <p>When set to 1 (TRUE), this will disable the altitude capture by autopilot when the VS mode is engaged.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pitch_use_elevator_only</code></td>
+        <td>
+          <p>If set to 1 (TRUE), the autopilot/fly-by-wire will <em>not</em> use trim for pitch inputs.</p>
+          <p>Default value is 0 (FALSE), so it uses trimming for pitch inputs.</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">FBWPitchTrimSpeedScalar</code></td>
+        <td>
+          <p>This value can be used to scale the speed at which pitch trim is applied using a fly-by-wire system.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">FBWHighSpeedRollSpeedScalar</code></td>
+        <td>
+          <p>This value can be used to scale the speed at which roll is applied using a fly-by-wire system.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[SMOKESYSTEM]</code></h3>
+  <p>This section controls the aircraft smoke system. Available parameter is:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">smoke.<em>N</em></code></td>
+        <td>
+          <p>Each parameter <em><code class="inline">N</code></em> defines a smoke point position, where <em><code class="inline">N</code></em> starts at 0. Points are defined as a table of values using the following order:</p>
+          <p><code class="inline">z, x, y, fx_name</code></p>
+          <p>The position values are the local position offset relative to the <a href="Aircraft.htm#h">Datum Reference Point</a> (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>) and the <code class="inline">fx_name</code> value is the name of one of the FX files that should be used.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[folding_wings]</code></h3>
+  <p>If the aircraft being defined has folding wings, this section should be included. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col style="width:20%"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">wing_fold_system_type</code></td>
+        <td>
+          <p>The type of system used to fold the wings.</p>
+          <p>Default value is 0.</p>
+        </td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = Hydraulic</li>
+            <li>1 = Electrical</li>
+            <li>2 = Pneumatic</li>
+            <li>3 = Manual</li>
+          </ol>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">fold_rates</code></td>
+        <td>
+          <p>The folding rates for the left wing and right wing, as a table of two values (left, right). Rates are expressed as 1/seconds.</p>
+          <p>Default values are 0.1, 0.12.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="tailhook"><code class="inline">[TailHook]</code></h3>
+  <p>This section controls the tailhook of the aircraft (if required). Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">has_tailhook</code></td>
+        <td>
+          <p>Sets whether the aircraft has a tailhook (1, TRUE) or not (0, FALSE). Note that you will need to have set up the <code class="inline"><a href="flight_model_cfg.htm#h5">[INTERACTIVE POINTS]</a></code> correctly for the aircraft - see here for details: <a href="flight_model/interactive_points.htm#carrier_landings">Carrier Landings</a>.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">cable_force_adjust</code></td>
+        <td>
+          <p>This is a scaling factor that can be used to adjust the cable spring force when an aircraft is hooked. The value acts as a multiplier, so a value of 2 would be double the spring force, while a value of 0.5 would half the spring force. You can change this value from the default if you&#39;re not satisfied with how the aircraft is arrested by the cables: for example, stopping a lightweight aircraft may require a lower force multiplier compared to stopping a very heavy one.</p>
+          <p>Default value is 1.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="launch_assist"><code class="inline">[launch_assistance]</code></h3>
+  <p>This section controls the launchbar (assisted takeoff) parameters for an aircraft that requires them. Available parameters are:</p>
+  <p><span class="note"><strong>NOTE</strong>: These parameters are currently purely visual as you cannot set an aircraft to take off from an aircraft carrier. Future updates may change this.</span></p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">launch_bar_pivot</code></td>
+        <td>
+          <p>Position of pivot attachment point relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>. Values are in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</p>
+          <p>Default value is 0, 0, 0.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">launch_bar_lug</code></td>
+        <td>
+          <p>Position of lug attachment point relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>. Values are in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</p>
+          <p>Default value is 0, 0, 0.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">launch_bar_moveable</code></td>
+        <td>
+          <p>Sets whether the launchbar is movable or not.</p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[VOICEALERTS]</code></h3>
+  <p>This section controls any voice alerts for the aircraft. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">LowFuelPct</code></td>
+        <td>
+          <p>Sets the low fuel warning voice alert, as a table of 3 values in the following order:</p>
+          <p><code class="inline">check_value, check_type, check_frequency</code></p>
+          <p>For check_type <code class="inline">+1</code>, <code class="inline">-1</code>, or <code class="inline">0</code>, representing greater than, less than or equal to.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">OverGLimit</code></td>
+        <td>
+          <p>Sets the over G limit, as a table of 3 values in the following order:</p>
+          <p><code class="inline">check_value, check_type, check_frequency</code></p>
+          <p>For check_type <code class="inline">+1</code>, <code class="inline">-1</code>, or <code class="inline">0</code>, representing greater than, less than or equal to.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[PRESSURIZATION]</code></h3>
+  <p>This section controls the cabin pressurization systems. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">design_cabin_pressure</code></td>
+        <td>The cabin pressure, as designed, in <a href="#" data-popovertext="The &#39;Pound per Square Inch&#39; is a unit of pressure or of stress based on the imperial measurement system. It is the pressure resulting from a one pound-force applied to an area of one square inch. In metric units, 1psi is approximately equal to 6895 newtons per meter squared." data-rhwidget="TextPopOver">psi</a>. This value is used to set the <code class="inline"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_System_Variables.htm#PRESSURIZATION_CABIN_ALTITUDE_GOAL">PRESSURIZATION_CABIN_ALTITUDE_GOAL</a></code> SimVar.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max_pressure_differential</code></td>
+        <td>The maximum pressure deferential permitted, in <a href="#" data-popovertext="The &#39;Pound per Square Inch&#39; is a unit of pressure or of stress based on the imperial measurement system. It is the pressure resulting from a one pound-force applied to an area of one square inch. In metric units, 1psi is approximately equal to 6895 newtons per meter squared." data-rhwidget="TextPopOver">psi</a>.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[AUXILIARY POWER UNIT]</code></h3>
+  <p>This section controls <a href="#" data-popovertext="This stands for &#39;Auxiliary Power Unit&#39;  which is a device on an aircraft that provides energy for functions other than propulsion." data-rhwidget="TextPopOver">APU</a> systems. Available parameter is:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Available</code></td>
+        <td>Indicates whether there is an <a href="#" data-popovertext="This stands for &#39;Auxiliary Power Unit&#39;  which is a device on an aircraft that provides energy for functions other than propulsion." data-rhwidget="TextPopOver">APU</a> system (TRUE, 1) or not (FALSE, 0).</td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h3"><code class="inline">[WATER BALLAST SYSTEM]</code></h3>
+  <p>This section controls the water balance system<span class="xmlComment"></span>. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 512px;"/>
+      <col style="width: 127px;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Version</code></td>
+        <td>
+          <p>The version of the water ballast system being used. This will impact how the <code class="inline"><a href="systems_cfg.htm#Tank.N">Tank.N</a></code> parameter is defined.</p>
+          <p>If not supplied then the version will be considered as 1. </p>
+        </td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><a id="NumberOfReleaseValves"></a><code class="inline">NumberOfReleaseValves</code></td>
+        <td>The number of ballast release valves available.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">DumpRate</code></td>
+        <td>The dump rate for the ballast, in <a href="#" data-popovertext="This is an imperial unit of measurement for volume, equivalent to 3785 cubic centimetres in the metric system." data-rhwidget="TextPopOver">Gallon</a>s per second.</td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td>
+          <p><a id="Tank.N"></a><code class="inline">Tank.<em>N</em></code></p>
+        </td>
+        <td>
+          <p><strong><u>Version 2 And Above</u></strong>:</p>
+          <p>Each parameter <em><code class="inline">N</code></em> defines a ballast tank, where <em><code class="inline">N</code></em> starts at 0. Tank details are defined as a hash map with the following format:</p>
+          <pre class="codeblock">Tank.N = #Name:&lt;string&gt; #Capacity:&lt;val&gt; #position: &lt;x&gt;,&lt;y&gt;,&lt;z&gt; #Valve:&lt;index&gt; #DefaultFillPct:&lt;val&gt;</pre>
+          <ul>
+            <li><code class="inline">Name</code>: The name of the tank</li>
+            <li><code class="inline">Capacity</code>: The tank capacity, in <a href="#" data-popovertext="This is an imperial unit of measurement for volume, equivalent to 3785 cubic centimetres in the metric system." data-rhwidget="TextPopOver">Gallon</a>s</li>
+            <li><code class="inline">Position</code>: The local position offset relative to the <a href="Aircraft.htm#h">Datum Reference Point</a> (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>)</li>
+            <li><code class="inline">Valve</code>: the valve index (from 1 to <code class="inline">NumberOfReleaseValves</code>).</li>
+            <li><code class="inline">DefaultFillPct</code>: The default percentage of the tank that should be filled.</li>
+          </ul>
+          <p> </p>
+          <p><strong><u>Versions before 2</u></strong>:</p>
+          <p>Each parameter <em><code class="inline">N</code></em> defines a ballast tank, where <em><code class="inline">N</code></em> starts at 0. Tank details are defined as a table of values in the following order:</p>
+          <pre class="codeblock">max_weight, z, x, y, valve_index</pre>
+          <p>The weight is in <a href="#" data-popovertext="This is an imperial unit of measurement for volume, equivalent to 3785 cubic centimetres in the metric system." data-rhwidget="TextPopOver">Gallon</a>s, the position values are the local position offset relative to the <a href="Aircraft.htm#h">Datum Reference Point</a> (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>, and the index is the valve index (from 1 to <code class="inline">NumberOfReleaseValves</code>). Tanks are numbered from 0 to 5 where:</p>
+          <ul>
+            <li>0 = Front Fuselage</li>
+            <li>1 = Rear Fuselage</li>
+            <li>2 = Left Outboard</li>
+            <li>3 = Left Inboard</li>
+            <li>4 = Right Inboard</li>
+            <li>5 = Right Outboard</li>
+          </ul>
+          <p><span class="note"><strong>NOTE</strong>: You can only define a maximum of 6 water ballast tanks using the legacy version.</span></p>
+        </td>
+        <td>
+          <p><u><strong>Version 2+</strong></u>:</p>
+          <p>Hash map</p>
+          <p> </p>
+          <p><u><strong>Previous Versions</strong></u>:</p>
+          <p>1D Table of Floats</p>
+          <p> </p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="LocalVars"><code class="inline">[LocalVars]</code></h3>
+  <p>This section can be used to set the initial value of <em>persistent</em> local variables to be used in the <a href="../../Models/ModelBehaviors/Model_Behaviors.htm">XML Model Behaviours templates</a> and <a href="Instruments/Instruments.htm">gauges</a>. These local vars are accessed using the &quot;<code class="inline">L:</code>&quot; var identifier in <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation,</a> and if you are using the <a href="../../../Programming_Tools/JavaScript/JavaScript.htm">JavaScript</a> API then it&#39;s done the same way as for SimVars, using the <code class="inline"><a href="../../../Programming_Tools/JavaScript/Simvar.htm#GetSimVarValue">GetSimVarValue(name, unit, dataSource = &quot;&quot;)</a></code> function.</p>
+  <p> </p>
+  <p>When an aircraft is selected by a user and the flight is first started, these &quot;<code class="inline">L:</code>&quot; vars are defined using the <code class="inline">LocalVar.<em>N</em></code> parameter and then initialised using a default value (done using the <code class="inline">LocalVarDefault.<em>N</em></code> parameter). Any changes to these variables that have been made will then be saved to a file (<code class="inline">state.cfg</code>) when the flight is exited. This file will be saved to a local location on the users computer using the following path schema:</p>
+  <pre class="codeblock">STEAM: C:\Users\&lt;USERNAME&gt;\AppData\Roaming\Microsoft Flight Simulator\SimObjects\&lt;AIRCRAFT_NAME&gt;\state.cfg
+MS STORE: C:\Users\&lt;USERNAME&gt;\AppData\Local\Packages\Microsoft.FlightSimulator_8wekyb3d8bbwe\LocalCache\SimObjects\&lt;AIRCRAFT_NAME&gt;\state.cfg
+</pre>
+  <p>The next time the aircraft is used, the local variables will be initialised as before, only now they will be set to the values stored in the <code class="inline">state.cfg</code>.</p>
+  <p><span class="note"><strong>IMPORTANT!</strong> The variables defined here take precedence over those stored in the <code class="inline">FLT</code> file, and will overwrite any with the same name that are saved to that file when an aircraft is loaded.</span></p>
+  <p>Note that if you define a variable here but don&#39;t initialise it with a default value, then the first time it is used it will be considered as having a value of 0.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">LocalVar.<em>N</em></code></td>
+        <td>
+          <p>This defines the name of one or more local variables that will have their value saved. Each variable should be defined as a string, and is indexed from 1. For example:</p>
+          <p><code class="inline">LocalVar.1 = myLocalVariable</code></p>
+        </td>
+        <td>String</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">LocalVarDefault.<em>N</em></code></td>
+        <td>
+          <p>This defines a local variable default value. Each variable defined using the parameter should have a corresponding default value and index, with the indexing starting at 1. For example:</p>
+          <p><code class="inline">LocalVarDefault.1 = 10</code></p>
+        </td>
+        <td>int/float/string, etc...</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Note that if you require <strong>non-persistent local variables</strong>, then you should be setting them up using the <code class="inline"><a href="../../Flights_And_Missions/Flight_Definitions.htm#LocalVars">[LocalVars.N]</a></code> section of the <a href="../../Flights_And_Missions/Flight_Definitions.htm">FLT file</a>.</p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.3.1.3"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

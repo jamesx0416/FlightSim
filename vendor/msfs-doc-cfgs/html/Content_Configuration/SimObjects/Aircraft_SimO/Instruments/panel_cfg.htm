@@ -1,0 +1,905 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>panel.cfg</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="Instruments,Gauges,CFG Files,Aircraft"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>panel.cfg</h2>
+  <p>The <code class="inline">panel.cfg</code> file is a critical file when it comes to defining aircraft, and would go in the <code class="inline">panel</code> folder in the root directory for the aircraft (along with the <code class="inline">model</code>, <code class="inline">sound</code>, etc... folders). This file is used to create the different <em>virtual cockpit</em> elements by referencing one or more <a href="panel_xml.htm">XML</a>, <a href="../../../../Programming_Tools/JavaScript/JavaScript.htm">HTML</a>, or <a>C/C++</a> gauges.</p>
+  <p> </p>
+  <p>If the <code class="inline">panel.cfg</code> file is for a livery or a variation, then it&#39;s worth noting that it should go in a folder that has been named using the following convention: <code class="inline">panel.&lt;name&gt;</code>, where <code class="inline">&lt;name&gt;</code> is an identifier for your livery/variation.</p>
+  <p><img class="center" src="../../../../assets/images/Content_Config/SimObj/panel_livery.png"/>This file will also need to be referenced in the <code class="inline"><a href="../aircraft_cfg.htm">aircraft.cfg</a></code> under the <code class="inline"><a href="../aircraft_cfg.htm#h2">[FLTSIM.N]</a></code> section <code class="inline">panel</code> parameter, eg:</p>
+  <pre class="language-cpp"><code class="language-cpp">[FLTSIM.0]
+title = &quot;My Aircraft Variant&quot;
+model = &quot;01&quot;
+panel = &quot;01&quot;
+sound = &quot;01&quot;</code></pre>
+  <p> </p>
+  <p>Below you can find information on the different sections used in the <code class="inline">panel.cfg</code> file as well as what parameters and values are expected within them.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="variation"><code class="inline">[VARIATION]</code></h3>
+  <p>This section is only used when you are creating an aircraft that references another &quot;base&quot; aircraft, for example when creating a livery. Basically the <code class="inline">panel.cfg</code> file for a livery/variation will follow these three rules:</p>
+  <ul>
+    <li>if the livery/variation doesn&#39;t include a <code class="inline">panel.cfg</code> file then the &quot;base&quot; <code class="inline">panel.cfg</code> file will be inherited and used.</li>
+    <li>if the livery <em>does</em> have a <code class="inline">panel.cfg</code> file, and <em>doesn&#39;t</em> have the <code class="inline">override_base_container</code> parameter (or the <code class="inline">override_base_container</code> parameter is set to 1) then it needs to contain ALL the required data as it will override everything in the &quot;base&quot; <code class="inline">panel.cfg</code>.</li>
+    <li>if the livery has a <code class="inline">panel.cfg</code> and <em>also</em> has <code class="inline">override_base_container</code> set to 0, then it will use the &quot;base&quot; file and add in the extra sections from the livery/variation (or overwrite any sections that already exist in the &quot;base&quot; file).</li>
+  </ul>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">override_base_container</code></td>
+        <td>Whether to override the &quot;base&quot; panel config file or not. By default this is 1 (TRUE).</td>
+        <td>
+          <p>Integer</p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="version"><code class="inline">[Window Titles]</code><span class="legacy"></span></h3>
+  <p><span class="note"><strong>IMPORTANT!</strong> This section is <strong>legacy</strong> only and has no effect on <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>. As such it can be omitted.</span></p>
+  <p>This section permits you to give a title to each of the different panel windows defined in the config file. Windows are numbered from 0, and each <code class="inline">[Window<em>N</em>]</code> section, should have it&#39;s own corresponding title parameter in <code class="inline">[Window Titles]</code>. The parameters available to this section are as follows:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Window<em>NN</em></code></td>
+        <td>The name (title) of the panel window defined in the config file for the aircraft. This string is used as the display name for the panel in various places within <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> so you should ensure that the label you use for each window is appropriate. Also note that the order in which you assign panel windows does not matter, so long as you start with <code class="inline">Window00</code>.</td>
+        <td>
+          <p>String</p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[Window<em>NN</em>]</code><span class="legacy"></span></h3>
+  <p><span class="note"><strong>IMPORTANT!</strong> This section is <strong>legacy</strong> only and has no effect on <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>. As such it can be omitted.</span>This section permits you define a panel window for gauges within an aircraft. <em><code class="inline">NN</code></em> is the window number (numbered from 00) and each new window section should increment by 1 (so <code class="inline">Window00</code>, <code class="inline">Window01</code>, <code class="inline">Window02</code>, etc...). Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 1px;"/>
+      <col style="width: 674.5px;"/>
+      <col style="width: 245px;"/>
+      <col style="width: 61px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">file_1024</code></td>
+        <td>The bitmap file to use when the screen width has been set by the user to more than 800.</td>
+        <td>String</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">size_mm</code></td>
+        <td>
+          <p>A definition of the unit size used for placing and sizing gauges on this panel. For example, if the <code class="inline">size_mm</code> is 200 x 200 and a gauge&#39;s size is 50, 50, it will take up 1/16th (¼ x ¼) of the panel window. If no <code class="inline">size_mm</code> is defined, the size of the panel&#39;s background bitmap (<em>not </em>the gauge&#39;s background bitmap) will be used. If no background bitmap is defined, a default size of 100 x 100 is used.</p>
+          <p>If <code class="inline">window_size</code> is not specified, the size of the window on screen will be <code class="inline">size_mm</code> divided by the <code class="inline">size_mm</code> for the first window specified in the <code class="inline">panel.cfg</code>. For example, if the <code class="inline">size_mm</code> for a given panel is 200, 200 and the <code class="inline">size_mm</code> for the first panel in the <code class="inline">panel.cfg</code> is 1024 x 768, the given panel would occupy 19% of the screen in the <code class="inline">x</code> dimension and 26% in the <code class="inline">y</code> dimension, or a total of 5% of the total screen area.</p>
+        </td>
+        <td>
+          <p>1D table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">window_size</code></td>
+        <td>The percentage of the screen to be taken up by window, from 0 to 1. If this is set, the size of the main panel is ignored for this panel and <code class="inline">size_mm</code> becomes irrelevant for determining the size of the panel window (note that <code class="inline">size_mm</code> is still used for calculating the relative sizes of the gauges within the window).</td>
+        <td>
+          <p>Float</p>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">windowsize_ratio</code></td>
+        <td>Determines the width of a panel window as a ratio of the client area of the main window. If not specified, 1.0 is the default.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">visible</code></td>
+        <td>Set to 0 if the panel is not visible by default. The default is 1 (visible).</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">update_rate</code></td>
+        <td><span>This parameter can be used to change the default update rate, in hertz. <span><span>The default update rate is 18hz, and note </span></span>that this is the default rate for the <em>whole</em> panel, and this can be overridden by the update rate for individual gauges. </span></td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">position</code></td>
+        <td>
+          <p>Specifies the relative position of a panel window to the main window, expressed as an integer value. Default value is 7.</p>
+        </td>
+        <td>
+          <p>Integer:</p>
+          <ol class="minitoc-list">
+            <li>0 = upper-left corner</li>
+            <li>1 = upper-middle side</li>
+            <li>2 = upper-right corner</li>
+            <li>3 = middle-left side</li>
+            <li>4 = middle</li>
+            <li>5 = middle-right side</li>
+            <li>6 = lower-left corner</li>
+            <li>7 = lower-middle side</li>
+            <li>8 = lower-right corner.</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">background_color</code></td>
+        <td>Use for a background created with no background bitmap. Use 0,0,0 for a transparent background.</td>
+        <td>
+          <p>1D table of 3 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">alpha_blend</code></td>
+        <td>The percentage (from 0.0 to 1.0) to blend the panel window with the background scene when the panel is docked.</td>
+        <td>Float</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">ident</code></td>
+        <td>
+          <p>Specifies a unique identifier to define the panel window. If your panel windows description does not fit any of the enum values listed, use any number between 10000 and 19999 (lower and higher numbers are used internally). There should be a <code class="inline">MAIN_PANEL</code> for every aircraft, otherwise other panels may not be rendered correctly.</p>
+        </td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <ol class="minitoc-list">
+            <li>MAIN_PANEL</li>
+            <li>MAIN_PANEL_ALT<em>N</em></li>
+            <li>(where <em>N</em> is 1 to 9)</li>
+            <li>THROTTLE_PANEL</li>
+            <li>RADIO_STACK_PANEL</li>
+            <li>COMPASS_PANEL</li>
+            <li>MINI_CONTROLS_PANEL</li>
+            <li>ANNUNCIATOR_PANEL</li>
+            <li>ANNUNCIATOR2_PANEL</li>
+            <li>IFR_MAIN_PANEL</li>
+            <li>COLLECTIVE_PANEL</li>
+            <li>GPS_PANEL</li>
+            <li>OVERHEAD_PANEL</li>
+            <li>PARKING_BRAKE_PANEL</li>
+            <li>FLAPS_TRIM_PANEL</li>
+            <li>FUEL_PANEL</li>
+            <li>ELECTRICAL_PANEL</li>
+            <li>TRIM_PANEL</li>
+            <li>LANDING_GEAR_PANEL</li>
+            <li>MISC_POPUP_<em>N</em></li>
+            <li>(where <em>N</em> is 1 to 10)</li>
+            <li>MINIPANEL</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gauge<em>NN</em></code></td>
+        <td>
+          <p>Specifies which gauge file to load and the X,Y position of the gauge. The Panel system starts loading gauges from gauge00 until it reaches gauge99. After that, it loads gauge100, gauge101, and so on until it finds a break in the progression. This comma-delimited parameter exists primarily to specify which gauge DLL file to load and the X, Y position of the gauge, in millimeters. This will override the <code class="inline">size_mm</code> setting.</p>
+          <p>The basic format is:<br/>
+            <code class="inline">gauge<em>NN</em>=gaugefile!gaugename, X, Y, W, H, parameters</code>
+          </p>
+          <p>where:</p>
+          <ul>
+            <li><code class="inline">gauge<em>NN</em></code> indicates the order in which the gauge is loaded</li>
+            <li><code class="inline">gaugefile!</code> indicates the specific *.xml file in which the gauge is found.</li>
+            <li><code class="inline">gaugename</code> displays the name of the gauge you assign in your gauge code via the <code class="inline">GAUGE_NAME</code> variable (C based), or the file name (XML based).</li>
+            <li><code class="inline">X</code>, <code class="inline">Y</code> indicates the X and Y position of the gauge, in millimeters, relative to the panel background.</li>
+            <li><code class="inline">W</code> indicates the width of the gauge in millimeters.</li>
+            <li><code class="inline">H</code> indicates the height of the gauge in millimeters.</li>
+            <li>Parameters are passed to the gauge as a text string argument.</li>
+          </ul>
+          <p>Note that if you have set <code class="inline">size_mm</code> to be <strong>1024</strong>, the above values are <em>also</em> the pixel values, which can be much easier to deal with.</p>
+        </td>
+        <td>
+          <p>1D table of mixed values</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">draw_order<em>NN</em></code></td>
+        <td>
+          <p>Instructs the renderer to draw certain sets of gauges in a specific order. In any draw order list, the gauges are drawn in that order.</p>
+          <p>For example:</p>
+          <p><code class="inline">draw_order00=gauge50, gauge60</code></p>
+          <p>This simply means gauge50 is drawn before gauge60.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">zorder</code></td>
+        <td>Determines the order of appearance of the panels on the screen. Takes values from 0 (bottom) to 100 (top).</td>
+        <td>Integer</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="vcockpit"><code class="inline">[VCockpit<em>N</em>]</code></h3>
+  <p>The <code class="inline">[VCockpit<em>N</em>]</code> sections provide you with a way to define the different virtual cockpit panels. Each panel should have a single <code class="inline">[VCockpit<em>N</em>]</code> entry, where N starts at 1 and each new entry increments it by one, without skipping any values. Note that for a correct VCockpit setup, each entry must have <em>at least</em> one <code class="inline">gauge<em>NN</em></code> or <code class="inline">htmlgauge<em>NN</em></code> parameter set up.</p>
+  <p> </p>
+  <p>The parameters available in this section are as follows:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 539px;"/>
+      <col style="width: 219px;"/>
+      <col style="width: 31px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">size_mm</code></td>
+        <td>
+          <p>A definition of the unit size used for placing and sizing gauges on this panel. For example, if the size_mm is 200 x 200 and a gauge&#39;s size is 50, 50, it will take up 1/16th (¼ x ¼) of the panel window. If no size_mm is defined, the size of the panel&#39;s background bitmap (not the gauge&#39;s background bitmap) will be used.</p>
+          <p>If no background bitmap is defined, a default size of 100 x 100 is used.</p>
+        </td>
+        <td>
+          <p>1D table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">pixel_size</code></td>
+        <td>Sets size of window in pixels. If not set, and sizeable is false, window pixel size will be set to background image size. If size y is set to 0, it will be generated from the aspect ratio of background file. If no background file is used y will be set equal to x.</td>
+        <td>
+          <p>1D table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">texture</code></td>
+        <td>
+          <p><span>This is the material ID of the screen where the instrument will be drawn. To create a gauge that has no render context use &quot;NO_TEXTURE&quot; as the material ID (see the <a href="panel_cfg.htm#invisible">Note For Invisible Gauges</a> for more information).</span></p>
+          <p><span class="note"><strong>IMPORTANT!</strong> Previously - in <span data-keyref="game_fx_short">FSX</span> - this string needed to be preceded with a <code class="inline">$</code> sign. However in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> <strong>this should not be used</strong> as it is now used to indicate to the engine that the material is a collision material, which is obviously not the case for gauges.</span></p>
+        </td>
+        <td>String</td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">background_color</code></td>
+        <td>Use for a background created with no background bitmap. Use 0,0,0 for a transparent background.</td>
+        <td>
+          <p>1D table of 3 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud</code></td>
+        <td>
+          <p>This parameter provides a way to offset the HUD texture UVs on the quad mesh that displays it. The parameter requires 5 input values in the following format:</p>
+          <pre class="codeblock">hud = is_hud, yaw_offset (or displace_x), pitch_offset (or <code>displace_y)</code>, width_angle (or width), height_angle (or height)</pre>
+          <ul>
+            <li><code class="inline">is_hud</code>: When set to 1 or 2, this specifies that the panel is a HUD. If it is 1 then it uses the <strong>legacy shader</strong> for rendering. When set to 2, it uses the <strong>modern shader</strong>. All new aircraft should set this value to 2 if using a HUD, and the legacy value is only there to preserve backwards compatibility with older aircraft.</li>
+          </ul>
+          <p>When the <code class="inline">is_hud</code> value is <strong>2</strong> the other values are:</p>
+          <ul>
+            <li><code class="inline">yaw_offset</code>: This can be used to displace the HUD texture around the X axis, (a float, in degrees).</li>
+            <li><code class="inline">pitch_offset</code>: This can be used to displace the HUD texture around the Y axis (a float, in degrees).</li>
+            <li><code class="inline">width_angle</code>: Set the angular width of the HUD element (a float, in degrees).</li>
+            <li><code class="inline">height_angle</code>: Set the angular height of the HUD element (a float, in degrees).</li>
+          </ul>
+          <p>When the <code class="inline">is_hud</code> value is <strong>1</strong> the other values are:</p>
+          <ul>
+            <li><code class="inline">displace_x</code>: displace the HUD texture along the X axis (a float).</li>
+            <li><code class="inline">displace_y</code>: displace the HUD texture along the Y axis (a float).</li>
+            <li><code class="inline">width</code>: the HUD texture width (in pixels, a float).</li>
+            <li><code class="inline">height</code>: the HUD texture height (in pixels, a float).</li>
+          </ul>
+        </td>
+        <td>
+          <p>1D table of 5 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">render_on_screen</code></td>
+        <td>
+          <p>This parameter provides - when supplied - a way to render the VCockpit panel directly to the screen at a given position. The parameter requires 7 input values in the following format:</p>
+          <pre class="codeblock">render_on_screen = posX, posY, width, height, xoffset, yoffset, cameraFlag, hideInVR</pre>
+          <ul>
+            <li><code class="inline">posX</code>: This is a float value between 0 and 1, where 0 is the left edge of the screen and 1 is the right.</li>
+            <li><code class="inline">posY</code>: This is a float value between 0 and 1, where 0 is the top edge of the screen and 1 is the bottom.</li>
+            <li><code class="inline">width</code>: This is a float value between 0 and 1 and is used to set the width of the panel as a percentage of the screen width. For example, 0.5 would set the panel to be 50% of the screen width.</li>
+            <li><code class="inline">height</code>: This is a float value between 0 and 1 and is used to set the height of the panel as a percentage of the screen height. For example, 0.5 would set the panel to be 50% of the screen height.</li>
+            <li><code class="inline">offsetX</code>: This is a float value between 0 and 1 and is the offset for the panel &quot;origin&quot;, where 0 is the left side of the panel and 1 is the right side.</li>
+            <li><code class="inline">offsetY</code>: This is a float value between 0 and 1 and is the offset for the panel &quot;origin&quot;, where 0 is the top of the panel and 1 is the bottom.</li>
+            <li><code class="inline">cameraFlag</code>: This is an integer value that sets on which camera set the panel should be displayed. The following values are permitted:
+              <ul>
+                <li>0 = none</li>
+                <li>1 = cockpit only</li>
+                <li>2 = outside only</li>
+                <li>3 = both cockpit and outside</li>
+              </ul>
+            </li>
+            <li><code class="inline">hideInVR</code>: This can be used to hide the panel when in VR by setting it to 1 (true). The default value is 0 (false), meaning the panel will be be visible and follow the camera in VR.</li>
+          </ul>
+          <p>The following example would be used to display a panel in the center of the screen when using the cockpit camera:</p>
+          <p class="codeblock">render_on_screen = 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1, 1</p>
+          <p><span class="note"><strong>NOTE</strong>: The width/height should be set to a 16:9 aspect ratio to ensure correct support in VR.</span></p>
+        </td>
+        <td>
+          <p>1D table of 6 Floats and 1 Integer</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">emissive</code></td>
+        <td>Specify whether the gauge is emissive or not. This is set to 1 (TRUE) by default, so use 0 (FALSE) to disable.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">backlight</code></td>
+        <td>Specify whether the gauge is back-lit or not. This is set to 0 (FALSE) by default, so use 1 (TRUE) to enable.</td>
+        <td>Bool</td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gauge<em>NN</em></code></td>
+        <td>
+          <p>Specifies which XML/<a href="#" data-popovertext="WASM is short for &#39;WebAssembly&#39; which is an open standard that defines a portable binary-code format for executable programs. It has a corresponding textual assembly language, as well as interfaces for facilitating interactions between such programs and their host environment." data-rhwidget="TextPopOver">WASM</a> gauge file to load and the X,Y position of the gauge. The Panel system starts loading gauges, starting from gauge00 until it reaches gauge99. After that, it loads gauge100, gauge101, and so on until it finds a break in the progression. This comma-delimited variable exists primarily to specify which gauge file to load and the X, Y position of the gauge, in millimeters. This will override the <code class="inline">size_mm</code> setting.</p>
+          <p>The basic format is:<br/>
+            <code class="inline">gauge<em>NN</em>=gaugefile!gaugename, X, Y, W, H, parameters</code>
+          </p>
+          <p>where:</p>
+          <ul>
+            <li><code class="inline">gauge<em>NN</em></code>: indicates the order in which the gauge is loaded</li>
+            <li><code class="inline">gaugefile!</code>: indicates the specific file in which the gauge is found.</li>
+            <li><code class="inline">gaugename</code>: displays the name of the gauge you assign in your gauge code via the <code class="inline">GAUGE_NAME</code> variable (C based), or the file name (XML based).</li>
+            <li><code class="inline">X</code>, <code class="inline">Y</code>: indicates the X and Y position of the gauge, in millimeters, relative to the panel background.</li>
+            <li><code class="inline">W</code>: indicates the width of the gauge in millimeters.</li>
+            <li><code class="inline">H</code>: indicates the height of the gauge in millimeters.</li>
+            <li><code class="inline">parameters</code>: these are passed to the gauge as a text string argument.</li>
+          </ul>
+          <p>Note that if you have set <code class="inline">size_mm</code> to be <strong>1024</strong>, the above values are <em>also</em> the pixel values, which can be much easier to deal with.</p>
+        </td>
+        <td>
+          <p>1D table of mixed values</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center;">
+          <p>No</p>
+          <p>(Yes if no <code class="inline">htmlgauge<em>NN</em></code> is specified)</p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">htmlgauge<em>NN</em></code></td>
+        <td>
+          <p>Specifies which HTML gauge file to load and the X,Y position of the gauge. The Panel system starts loading gauges, starting from htmlgauge00 until it reaches htmlgauge99. After that, it loads htmlgauge100, htmlgauge101, and so on until it finds a break in the progression. This comma-delimited variable exists primarily to specify which gauge file to load and the X, Y position of the gauge, in millimeters. This will override the <code class="inline">size_mm</code> setting.</p>
+          <p>The basic format is:</p>
+          <p class="codeblock"><code class="inline">htmlgauge<em>NN</em>=[html_file_path]?optionalParameter, X, Y, W, H, wasmParameter</code></p>
+          <p>where:</p>
+          <ul>
+            <li><code class="inline">htmlgauge<em>NN</em></code>: indicates the order in which the gauge is loaded</li>
+            <li><code class="inline">[html_file_path]</code>: indicates the specific *.html file in which the gauge is found.</li>
+            <li><code class="inline">?optionalParameter</code>: Additional HTML parameters are passed to the gauge.</li>
+            <li><code class="inline">X</code>, <code class="inline">Y</code>: indicates the X and Y position of the gauge, in millimeters, relative to the panel background.</li>
+            <li><code class="inline">W</code>: indicates the width of the gauge in millimeters.</li>
+            <li><code class="inline">H</code>: indicates the height of the gauge in millimeters.</li>
+            <li><code class="inline">wasmParameter</code>: if the gauge is part of a WASM module then you may also supply an additional parameter as the last argument. This parameter is a styring and will be passed to the gauge when it is created, where it is up to you what you do with it.</li>
+          </ul>
+          <p>Note that if you have set <code class="inline">size_mm</code> to be <strong>1024</strong>, the above values are <em>also</em> the pixel values, which can be much easier to deal with.</p>
+        </td>
+        <td>String</td>
+        <td style="text-align: center;">
+          <p>No</p>
+          <p>(Yes if no <code class="inline">gauge<em>NN</em></code> is specified)</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h4 id="invisible">Note For Invisible Gauges</h4>
+  <p>It is possible to create an &quot;invisible&quot; gauge context that will not be rendered - but will still run - by providing &quot;NO_TEXTURE&quot; as the material code for the texture and by setting the size to (1,1), as shown in the example below:</p>
+  <pre class="language-cpp"><code class="language-cpp">[Vcockpit<em>NN</em>]
+size_mm      = 1,1
+pixel_size   = 1,1
+texture      = NO_TEXTURE
+htmlgauge00  = MyGauges/MyGaugeManagers/Manager.html, 0, 0, 1, 1</code></pre>
+  <p>This is useful for creating &quot;manager&quot; or &quot;data&quot; gauges which only exist as a means to monitor something, or to move and process data, and which do not require any visual representation within the virtual cockpit displays.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="vpaint"><code class="inline">[VPainting<em>N</em>]</code></h3>
+  <p>This section controls the drawing of registration numbers by the aircraft livery. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">size_mm</code></td>
+        <td>The size of the texture to use, given as <code class="inline">width,height</code>. 1mm corresponds to 1 pixel of the texture image.</td>
+        <td>
+          <p>1D table of 2 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">texture</code></td>
+        <td>
+          <p><span>This is the material ID of the texture to use for the livery painting.</span></p>
+          <p><span class="note"><strong>IMPORTANT!</strong> Previously - in <span data-keyref="game_fx_short">FSX</span> - this string needed to be preceeded with a $ sign. However in <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> <strong>this should not be used</strong> as it is now used to indicate to the engine that the material is a collision material, which is obviously not the case for livery text.</span></p>
+        </td>
+        <td>String</td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">location</code></td>
+        <td>Where the texture should be located on the aircraft.</td>
+        <td>
+          <p><u>Enum</u>:</p>
+          <p>exterior</p>
+          <p>interior</p>
+        </td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">painting<em>NN</em></code></td>
+        <td>
+          <p>The path to the HTML that defines the number look/layout. To use the default settings, please use the following path:</p>
+          <p class="codeblock">Registration/Registration.html</p>
+          <p>At it&#39;s most basic the full path should look like this:</p>
+          <p class="codeblock">paintingNN=[html_file_path]?optionalParameter, X, Y, W, H</p>
+          <p>Here you give the path, then a comma separated list for the dimensions of the area to paint. The area is defined using the relative (x,y) coordinates to draw from, plus a width and a height . Note that the maximum for the width/height values should be the values defined in the <code class="inline">size_mm</code> parameter.</p>
+          <p> </p>
+          <p>Additional settings can be added to the path like this:</p>
+          <p class="codeblock">painting00=Registration/Registration.html?font_color=0xe6ed01&amp;stroke_size=120&amp;stroke_color=0x3be0db, 0, 0, 2048, 512</p>
+          <p>The full list of settings that can be added in this way are:</p>
+          <ul>
+            <li><code class="inline">font_style</code> - can be one of: &quot;bold&quot;, &quot;italic&quot;, &quot;bold-italic&quot;</li>
+            <li><code class="inline">font_color</code> - this is the color of the font</li>
+            <li><code class="inline">font_scale</code> - this is a scale multiplier to be applied to the text</li>
+            <li><code class="inline">stroke_size</code> - this is the text outline size</li>
+            <li><code class="inline">stroke_color</code> - this is the text outline color</li>
+            <li><code class="inline">back_color</code> - this is the color of a rectangular background under the text</li>
+          </ul>
+          <p>All colours can be either a CSS predefined color like &quot;red&quot;, &quot;black, &quot;blue&quot; or a hexadecimal color code like &quot;0xFF00FF&quot;.</p>
+          <p> </p>
+        </td>
+        <td>String</td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[Default View]</code></h3>
+  <p>This section controls the default view for the default 3D window. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">X</code></td>
+        <td>Specifies the X position of the default 3D window.</td>
+        <td>Float</td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Y</code></td>
+        <td>Specifies the Y position of the default 3D window.</td>
+        <td>Float</td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">SIZE_X</code></td>
+        <td>Specifies the width of the default 3D window.</td>
+        <td>Float</td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">SIZE_Y</code></td>
+        <td>Specifies the height of the default 3D window.</td>
+        <td>Float</td>
+        <td colspan="1" style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[Color]</code></h3>
+  <p>This section controls the default color lighting settings. The <code class="inline">Day</code> and <code class="inline">Night</code> colors effectively determine the maximum and minimum brightness of the panel. The <code class="inline">Luminous</code> value specifies the color that can be applied to the luminous sections of the gauges. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Day</code></td>
+        <td>The lighting color applied during daytime (comma separated list where each item is a colour component from 0 to 255: R,G,B).</td>
+        <td colspan="1" rowspan="3">
+          <p>1D table of 3 Floats</p>
+          <p><span class="smallfont">(see <a href="../../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td colspan="1" rowspan="3" style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Night</code></td>
+        <td>The lighting color applied at night (comma separated list where each item is a colour component from 0 to 255: R,G,B).</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Luminous</code></td>
+        <td>The lighting color applied to gauges that are luminous (comma separated list where each item is a colour component from 0 to 255: R,G,B).</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../../.."
+    gCommonRootRelPath = "../../../.."
+    gTopicId = "5.3.1.1.0_1"
+  
+//]]></script>
+
+
+  <script src="../../../../template/scripts/topicpage.js"></script>
+  <script src="../../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

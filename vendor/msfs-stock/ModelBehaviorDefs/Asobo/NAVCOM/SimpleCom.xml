@@ -1,0 +1,109 @@
+<ModelBehaviors>
+	<Include RelativeFile="NavComSystem.xml"/>
+	<Include RelativeFile="Inputs/SimpleCom_Inputs.xml"/>
+	<Template Name="ASOBO_SimpleCom_Template">
+		<Parameters Type="Default">
+			<ID>1</ID>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">
+			<TEMPLATE_TO_CALL>ASOBO_SimpleCom_SubTemplate</TEMPLATE_TO_CALL>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_SimpleCom_SubTemplate">
+		<Parameters Type="Default">
+			<SimpleCom>COM_SimpleCom</SimpleCom>
+			<ANIM_NEVER_FAILS/>
+			<Condition NotEmpty="CIRCUIT_ID">
+				<True>
+					<FAILURE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool)</FAILURE>
+				</True>
+				<False>
+					<FAILURE>(A:CIRCUIT AVIONICS ON, Bool) (A:COM VOLUME:#ID#, Percent) 0 &gt; and</FAILURE>
+				</False>
+			</Condition>
+			<BASE_EMISSIVE>1</BASE_EMISSIVE>
+		</Parameters>
+		<Parameters Type="Default">
+			<EMISSIVE_CODE>#BASE_EMISSIVE#</EMISSIVE_CODE>
+			<NODE_ID_SCREEN>COM_Screen#SUFFIX_ID#</NODE_ID_SCREEN>
+			<NODE_ID_ON_OFF>#SimpleCom#_ON_OFF_#SUFFIX_ID#</NODE_ID_ON_OFF>
+			<ANIM_NAME_ON_OFF>#SimpleCom#_ON_OFF_#SUFFIX_ID#</ANIM_NAME_ON_OFF>
+			<NODE_ID_COM_VOLUME>#SimpleCom#_Knob_Volume#SUFFIX_ID#</NODE_ID_COM_VOLUME>
+			<ANIM_NAME_COM_VOLUME>#SimpleCom#_Knob_Volume#SUFFIX_ID#</ANIM_NAME_COM_VOLUME>
+			<NODE_ID_COM_FREQ_KHZ>#SimpleCom#_Knob_KHZ#SUFFIX_ID#</NODE_ID_COM_FREQ_KHZ>
+			<ANIM_NAME_COM_FREQ_KHZ>#SimpleCom#_Knob_KHZ#SUFFIX_ID#</ANIM_NAME_COM_FREQ_KHZ>
+		</Parameters>
+		<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge">
+			<NODE_ID>#NODE_ID_SCREEN#</NODE_ID>
+			<EMISSIVE_CODE>0.5</EMISSIVE_CODE>
+		</UseTemplate>
+		<Component ID="On_Off_Switch" NODE="ELECTRICAL_SWITCH_COMM">
+			<Parameters Type="Default">
+				<TOOLTIP_TITLE_ID_KNOB_ON_OFF>@TT_Package.AS510_SWITCH_POWER_TITLE</TOOLTIP_TITLE_ID_KNOB_ON_OFF>
+				<TT_DESCRIPTION_ID_KNOB_ON_OFF>@TT_Package.AS510_SWITCH_POWER_ACTION</TT_DESCRIPTION_ID_KNOB_ON_OFF>
+			</Parameters>
+			<Parameters Type="Default">
+				<TOOLTIP_TITLE_INDEX>#ID#</TOOLTIP_TITLE_INDEX>
+				<TT_DESCRIPTION_INDEX>#ID#</TT_DESCRIPTION_INDEX>
+				<TOOLTIP_TITLE_ID>#TOOLTIP_TITLE_ID_KNOB_ON_OFF#</TOOLTIP_TITLE_ID>
+				<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_KNOB_ON_OFF#</TT_DESCRIPTION_ID>
+			</Parameters>
+			<UseTemplate Name="ASOBO_ELECTRICAL_Switch_Circuit_Template">
+				<NODE_ID>#NODE_ID_ON_OFF#</NODE_ID>
+				<ANIM_NAME>#ANIM_NAME_ON_OFF#</ANIM_NAME>
+				<CIRCUIT_ID>#CIRCUIT_ID#</CIRCUIT_ID>
+			</UseTemplate>
+		</Component>
+		<Component ID="Knob_Frequency_KHZ">
+			<Parameters Type="Default">
+				<TOOLTIP_TITLE_ID_KNOB_FREQ>@TT_Package.AUDIOPANEL_KNOB_COM_ACTIVE_FRENQUENCY_TITLE</TOOLTIP_TITLE_ID_KNOB_FREQ>
+				<TT_DESCRIPTION_ID_KNOB_FREQ_KHZ>@TT_Package.AUDIOPANEL_KNOB_COM_ACTIVE_FRENQUENCY_ACTION</TT_DESCRIPTION_ID_KNOB_FREQ_KHZ>
+			</Parameters>
+			<Parameters Type="Default">
+				<TOOLTIP_TITLE_INDEX>#ID#</TOOLTIP_TITLE_INDEX>
+				<TT_DESCRIPTION_INDEX>#ID#</TT_DESCRIPTION_INDEX>
+				<TOOLTIP_TITLE_ID>#TOOLTIP_TITLE_ID_KNOB_FREQ#</TOOLTIP_TITLE_ID>
+			</Parameters>
+			<UseTemplate Name="ASOBO_SimpleCom_Base_Template">
+				<IE_NAME>COM_Khz</IE_NAME>
+				<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+				<IS_INFINITE>True</IS_INFINITE>
+				<NODE_ID>#NODE_ID_COM_FREQ_KHZ#</NODE_ID>
+				<ANIM_NAME>#ANIM_NAME_COM_FREQ_KHZ#</ANIM_NAME>
+				<SET_STATE_EXTERNAL>p0 0 &gt; if{ (&gt;H:RADIO_COM_Knob_Small_Inc#SUFFIX_ID#) } els{ (&gt;H:RADIO_COM_Knob_Small_Dec#SUFFIX_ID#) }</SET_STATE_EXTERNAL>
+				<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_KNOB_FREQ_KHZ#</TT_DESCRIPTION_ID>
+				<GET_TT_VALUE_STATE>(A:COM ACTIVE FREQUENCY:#ID#, Megahertz) sp0 </GET_TT_VALUE_STATE>
+				<FORMAT_VALUE>l0 'COM#ID#:&lt;br/&gt;%.3f' @sprintf</FORMAT_VALUE>
+			</UseTemplate>
+		</Component>
+		<UseTemplate Name="ASOBO_NAVCOM_Knob_COM_Volume_Template">
+			<CIRCUIT_ID/>
+			<NODE_ID>#NODE_ID_COM_VOLUME#</NODE_ID>
+			<ANIM_NAME_KNOB>#ANIM_NAME_COM_VOLUME#</ANIM_NAME_KNOB>
+			<ANIM_LAG_SWITCH>500</ANIM_LAG_SWITCH>
+			<ANIM_LAG_KNOB>300</ANIM_LAG_KNOB>
+			<THRESHOLD_X_INPUT>0.05</THRESHOLD_X_INPUT>
+			<THRESHOLD_X_MOUSE>0.005</THRESHOLD_X_MOUSE>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_SimpleCom_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>SimpleCom</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>SimpleCom</WWISE_PREFIX>
+			<COUNT>36</COUNT>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>SimpleCom</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_MY_INSTRUMENT_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>SimpleCom</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_MY_INSTRUMENT_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>SimpleCom</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+</ModelBehaviors>

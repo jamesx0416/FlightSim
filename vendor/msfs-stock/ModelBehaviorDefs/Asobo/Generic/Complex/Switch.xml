@@ -1,0 +1,787 @@
+<ModelBehaviors>
+	<Include ModelBehaviorFile="ASOBO\Common\Inputs\Common_Inputs.xml"/>
+<!--
+	Simple switch (2 states) object.
+
+	Required parameter:
+		ANIM_NAME
+		ANIM_SIMVAR
+		EVENTID
+-->
+<Template Name = "ASOBO_GT_Switch">
+	<Parameters Type="Default">
+		<ANIMREF_ID>0</ANIMREF_ID>
+		<ANIMTIP_0_ON_PERCENT>0.0</ANIMTIP_0_ON_PERCENT>
+		<ANIMTIP_1_ON_PERCENT>1.0</ANIMTIP_1_ON_PERCENT>
+		<ANIM_LAG>400</ANIM_LAG>		
+		<IS_SWITCH>True</IS_SWITCH>
+	</Parameters>
+	<Parameters Type="Override">
+		<ANIM_SIMVAR_UNITS>Bool</ANIM_SIMVAR_UNITS>
+	</Parameters>
+	
+	<UseTemplate Name = "ASOBO_GT_Anim_Sim">
+		<ANIM_SIMVAR_SCALE>100</ANIM_SIMVAR_SCALE>
+	</UseTemplate>
+
+	<UseTemplate Name = "ASOBO_GT_AnimTriggers_2SoundEvents">
+	</UseTemplate>
+
+	<Condition Valid="IS_SWITCH">
+		<True>
+			<UseTemplate Name = "ASOBO_GT_Interaction_LeftSingle_Code">
+				<LEFT_SINGLE_CODE>(&gt;K:#EVENTID#)</LEFT_SINGLE_CODE>
+				<ANIM_CODE>(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) 100 *</ANIM_CODE>
+				<EVENTID/>
+			</UseTemplate>
+		</True>
+		<False>
+	<UseTemplate Name = "ASOBO_GT_Interaction_LeftSingle_Event">
+	</UseTemplate>
+		</False>
+	</Condition>
+</Template>
+
+<Template Name = "ASOBO_GT_Component_Switch">
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Switch">
+		</UseTemplate>
+	</Component>
+</Template>
+
+<!--
+	Simple switch (2 states) object which requires Up/Down interaction.
+	
+
+	Required parameter:
+		ANIM_NAME
+		CODE_POS_0
+		CODE_POS_1
+-->
+<Template Name = "ASOBO_GT_Switch_2States">
+	<UseTemplate Name = "ASOBO_GT_Switch_XStates">
+		<NUM_STATES>2</NUM_STATES>
+	</UseTemplate>
+</Template>
+
+<!--
+	Simple switch (3 states) object.
+
+	Required parameter:
+		ANIM_NAME
+		CODE_POS_0
+		CODE_POS_1
+		CODE_POS_2
+-->
+<Template Name = "ASOBO_GT_Switch_3States">
+	<UseTemplate Name = "ASOBO_GT_Switch_XStates">
+		<NUM_STATES>3</NUM_STATES>
+	</UseTemplate>
+</Template>
+
+<!--
+	Simple switch (4 states) object.
+
+	Required parameter:
+		ANIM_NAME
+		CODE_POS_0
+		CODE_POS_1
+		CODE_POS_2
+		CODE_POS_3
+-->
+<Template Name = "ASOBO_GT_Switch_4States">
+	<UseTemplate Name = "ASOBO_GT_Switch_XStates">
+		<NUM_STATES>4</NUM_STATES>
+	</UseTemplate>
+</Template>
+
+<!--
+	Simple switch (5 states) object.
+
+	Required parameter:
+		ANIM_NAME
+		CODE_POS_0
+		CODE_POS_1
+		CODE_POS_2
+		CODE_POS_3
+		CODE_POS_4
+-->
+<Template Name = "ASOBO_GT_Switch_5States">
+	<UseTemplate Name = "ASOBO_GT_Switch_XStates">
+		<NUM_STATES>5</NUM_STATES>
+	</UseTemplate>
+</Template>
+
+<!--
+	Simple switch (6 states) object.
+
+	Required parameter:
+		ANIM_NAME
+		CODE_POS_0
+		CODE_POS_1
+		CODE_POS_2
+		CODE_POS_3
+		CODE_POS_4
+		CODE_POS_5
+-->
+<Template Name = "ASOBO_GT_Switch_6States">
+	<UseTemplate Name = "ASOBO_GT_Switch_XStates">
+		<NUM_STATES>6</NUM_STATES>
+	</UseTemplate>
+</Template>
+
+<!--
+	Simple switch (7 states) object.
+
+	Required parameter:
+		ANIM_NAME
+		CODE_POS_0
+		CODE_POS_1
+		CODE_POS_2
+		CODE_POS_3
+		CODE_POS_4
+		CODE_POS_5
+		CODE_POS_6
+-->
+<Template Name = "ASOBO_GT_Switch_7States">
+	<UseTemplate Name = "ASOBO_GT_Switch_XStates">
+		<NUM_STATES>7</NUM_STATES>
+	</UseTemplate>
+</Template>
+
+
+<Template Name = "ASOBO_GT_Switch_XStates">
+	<Parameters Type="Default">
+		<NODE_ID>#ANIM_NAME#</NODE_ID> <!-- Used to create an unique Variable Name - having a specified NODE_ID is better but ANIM_NAME can be a fallback -->
+	</Parameters>
+	
+	<UseTemplate Name="ASOBO_GT_Switch_XStates_SubTemplate">
+	</UseTemplate>
+</Template>
+
+<Template Name = "ASOBO_GT_Switch_XStates_SubTemplate">
+	<Parameters Type="Default">
+		<SWITCH_POSITION_TYPE>O</SWITCH_POSITION_TYPE>
+		<SWITCH_POSITION_VAR>SwitchState</SWITCH_POSITION_VAR>
+		<DRAG_ANIMATION_VARIABLE_TYPE>O</DRAG_ANIMATION_VARIABLE_TYPE>
+		<DRAG_ANIMATION_VARIABLE_NAME>XMLVAR_#NODE_ID#_Animation_Position</DRAG_ANIMATION_VARIABLE_NAME>
+		<DRAG_ANIMATION_TARGET_VARIABLE_TYPE>O</DRAG_ANIMATION_TARGET_VARIABLE_TYPE>
+		<DRAG_ANIMATION_TARGET_VARIABLE_NAME>XMLVAR_#NODE_ID#_Animation_Target_Position</DRAG_ANIMATION_TARGET_VARIABLE_NAME>
+		<ANIM_LAG>400</ANIM_LAG>
+		<UPARROW_DRAG_IM/>
+		<DOWNARROW_DRAG_IM/>
+		<LEFTARROW_DRAG_IM/>
+		<RIGHTARROW_DRAG_IM/>
+		<CURSOR_CENTER_DRAG_IM/>
+		<CURSOR_DRAG_IM>Grab</CURSOR_DRAG_IM>
+		<ANIMREF_ID>0</ANIMREF_ID>
+		<ANIMCURSOR_MIN>0</ANIMCURSOR_MIN>
+		<ANIMCURSOR_MAX>1</ANIMCURSOR_MAX>
+		<INVERT_ANIM_PUSH>False</INVERT_ANIM_PUSH>
+		<Condition NotEmpty="ANIM_NAME_PUSH">
+			<ANIM_LENGTH_PUSH>100</ANIM_LENGTH_PUSH>
+		</Condition>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Check="IS_LOOPING">
+			<True>
+				<ANIM_WRAP>1</ANIM_WRAP>
+				<ANIM_LENGTH Process="Int">#NUM_STATES# 100 *</ANIM_LENGTH>
+			</True>
+			<False>
+				<ANIM_LENGTH Process="Int">#NUM_STATES# 1 - 100 *</ANIM_LENGTH>
+			</False>
+		</Condition>
+	</Parameters>
+
+	<UseTemplate Name = "ASOBO_GT_Anim_Code">
+		<Condition Valid="OVERRIDE_ANIM_CODE">
+			<True>
+				<ANIM_CODE>#OVERRIDE_ANIM_CODE#</ANIM_CODE>
+			</True>
+			<False>
+				<ANIM_CODE>
+					(#DRAG_ANIMATION_VARIABLE_TYPE#:#DRAG_ANIMATION_VARIABLE_NAME#) 
+				</ANIM_CODE>
+			</False>
+		</Condition>
+	</UseTemplate>
+	
+	<Condition>
+		<Test>
+			<And>
+				<Or>
+					<Arg NotEmpty="ON_PRIMARY_EVENT"/>
+					<Arg NotEmpty="ON_SECONDARY_EVENT"/>
+				</Or>
+				<Arg NotEmpty="ANIM_NAME_PUSH"/>
+			</And>
+		</Test>
+		<True>
+			<UseTemplate Name = "ASOBO_GT_Anim_Code">
+				<ANIM_NAME>#ANIM_NAME_PUSH#</ANIM_NAME>
+				<ANIM_CODE>#ANIM_CODE_PUSH#</ANIM_CODE>
+				<ANIM_LENGTH>#ANIM_LENGTH_PUSH#</ANIM_LENGTH>
+				<INVERT_ANIM>#INVERT_ANIM_PUSH#</INVERT_ANIM>
+				<ANIM_WRAP>0</ANIM_WRAP>
+			</UseTemplate>
+			<UseTemplate Name = "ASOBO_GT_AnimTriggers_2SoundEvents">
+				<ANIM_NAME>#ANIM_NAME_PUSH#</ANIM_NAME>
+				<Condition Check="WWISE_PUSH_EVENT_1">
+					<WWISE_EVENT_1>#WWISE_PUSH_EVENT_1#</WWISE_EVENT_1>
+				</Condition>
+				<Condition Check="WWISE_PUSH_EVENT_2">
+					<WWISE_EVENT_2>#WWISE_PUSH_EVENT_2#</WWISE_EVENT_2>
+				</Condition>
+			</UseTemplate>
+		</True>
+	</Condition>
+
+	<UseTemplate Name = "ASOBO_GT_AnimTriggers_SoundEvents_Same">
+			<Condition Check="IS_LOOPING">
+				<True>
+					<COUNT Process="Int">#NUM_STATES#</COUNT>
+				</True>
+				<False>
+					<COUNT Process="Int">#NUM_STATES# 1 -</COUNT>
+				</False>
+			</Condition>
+    </UseTemplate>
+
+	<Condition Valid="CONSISTENCY_CHECKED_BY_INPUT_EVENT">
+		<False>
+			<UseTemplate Name = "ASOBO_GT_Update_EnsureVariableConsistency_MultiStates"/>
+		</False>
+	</Condition>
+
+	<UseTemplate Name = "ASOBO_GT_Interaction_LeftSingle_MultiStates">
+	</UseTemplate>
+</Template>
+
+<!--
+	Simple switch (2 states) object,
+	using code for anim and interaction.
+
+	Required parameter:
+		ANIM_NAME : model animation name
+		ANIM_CODE : 0-100 animation value
+		LEFT_SINGLE_CODE : executed when you click on component
+-->
+<Template Name = "ASOBO_GT_Switch_Code">
+	<Parameters Type="Default">
+		<ANIMREF_ID>0</ANIMREF_ID>
+		<ANIMTIP_0_ON_PERCENT>0.0</ANIMTIP_0_ON_PERCENT>
+		<ANIMTIP_1_ON_PERCENT>1.0</ANIMTIP_1_ON_PERCENT>
+		<ANIM_LAG>400</ANIM_LAG>
+		<ANIM_LENGTH>100</ANIM_LENGTH>
+		<IS_SWITCH>True</IS_SWITCH>
+		<Condition Valid="FORCE_FULL_ANIM">
+			<True>
+				<ANIM_TIME_IN_SEC>1</ANIM_TIME_IN_SEC>
+			</True>
+		</Condition>
+		<Condition Check="ANIM_SIMVAR">
+			<ANIM_SIMVAR_SCALE>1</ANIM_SIMVAR_SCALE>
+			<ANIM_SIMVAR_BIAS>0</ANIM_SIMVAR_BIAS>
+			<ANIM_SIMVAR_UNITS>Bool</ANIM_SIMVAR_UNITS>
+		</Condition>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Valid="FORCE_FULL_ANIM">
+			<True>
+				<ANIM_TARGET_CODE>#ANIM_CODE#</ANIM_TARGET_CODE>
+			</True>
+		</Condition>
+	</Parameters>
+	
+	<UseTemplate Name = "ASOBO_GT_Anim">
+		<Condition Valid="FORCE_FULL_ANIM">
+			<True>
+				<ANIM_CODE>
+					#ANIM_TARGET_CODE# sp0
+					(O:XMLVAR_CurrentAnimPosition) 0 == 
+					(O:XMLVAR_CurrentAnimPosition) #ANIM_LENGTH# == or if{
+						l0 (&gt;O:XMLVAR_CurrentAnimTargetPosition) 
+					}
+					
+						#ANIM_LENGTH# #ANIM_TIME_IN_SEC# / (A:ANIMATION DELTA TIME, seconds) * s1
+					(O:XMLVAR_CurrentAnimPosition) (O:XMLVAR_CurrentAnimTargetPosition) - abs s2 &lt; if{
+						(O:XMLVAR_CurrentAnimPosition) (O:XMLVAR_CurrentAnimTargetPosition) &gt; if{
+							(O:XMLVAR_CurrentAnimPosition) l1 - (&gt;O:XMLVAR_CurrentAnimPosition)
+						} els{
+							(O:XMLVAR_CurrentAnimPosition) l1 + (&gt;O:XMLVAR_CurrentAnimPosition)
+						}
+					} els{
+						(O:XMLVAR_CurrentAnimTargetPosition) (&gt;O:XMLVAR_CurrentAnimPosition) 
+					}
+					(O:XMLVAR_CurrentAnimPosition)
+				</ANIM_CODE>
+			</True>
+		</Condition>
+	</UseTemplate>
+
+	<UseTemplate Name = "ASOBO_GT_AnimTriggers_2SoundEvents">
+	</UseTemplate>
+
+	<UseTemplate Name = "ASOBO_GT_Interaction_LeftSingle_Code">		
+		<Condition Valid="ANIM_SIMVAR">
+			<ANIM_CODE>(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +</ANIM_CODE>
+		</Condition>
+	</UseTemplate>
+</Template>
+<Template Name = "ASOBO_GT_Component_Switch_Code">
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Switch_Code">
+		</UseTemplate>
+	</Component>
+</Template>
+
+<!--
+	Three state switch momentary switch which increases/decreases a LocalVar while held.
+
+	Required parameters:
+		CONTROLLED_VAR
+-->
+
+<Template Name = "ASOBO_GT_Switch_3States_IncDec">
+	<Parameters Type="Default">
+		<MOMENTARY_REPEAT_FREQUENCY>5</MOMENTARY_REPEAT_FREQUENCY>
+		<VAR_CLAMP></VAR_CLAMP>
+		<INCREMENT>1</INCREMENT>
+		<INCREMENT_FAST>2</INCREMENT_FAST>
+		<INCREMENT_FASTEST>5</INCREMENT_FASTEST>
+		<CODE_POS_1></CODE_POS_1>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Valid="ACCELERATE_ON_HOLD">
+			<True>
+				<INCREMENT_VALUE>(O:XMLVAR_IncrementCount) 10 &gt; if{ (O:XMLVAR_IncrementCount) 25 &gt; if{ #INCREMENT_FASTEST# } els{ #INCREMENT_FAST# } } els{ #INCREMENT# }</INCREMENT_VALUE>
+			</True>
+			<False>
+				<INCREMENT_VALUE>#INCREMENT#</INCREMENT_VALUE>
+			</False>
+		</Condition>
+	</Parameters>
+
+	<UseTemplate Name="ASOBO_GT_Switch_3States">
+		<CODE_POS_0>(#CONTROLLED_VAR#) #INCREMENT_VALUE# - #VAR_CLAMP# (&gt;#CONTROLLED_VAR#) (O:XMLVAR_IncrementCount) 1 + (&gt;O:XMLVAR_IncrementCount)</CODE_POS_0>
+		<CODE_POS_1>#CODE_POS_1# 0 (&gt;O:XMLVAR_IncrementCount)</CODE_POS_1>
+		<CODE_POS_2>(#CONTROLLED_VAR#) #INCREMENT_VALUE# + #VAR_CLAMP# (&gt;#CONTROLLED_VAR#) (O:XMLVAR_IncrementCount) 1 + (&gt;O:XMLVAR_IncrementCount)</CODE_POS_2>
+		<MOMENTARY_SWITCH>True</MOMENTARY_SWITCH>
+		<STATE0_TIMER>0.01</STATE0_TIMER>
+		<STATE_MAX_TIMER>0.01</STATE_MAX_TIMER>
+	</UseTemplate>
+</Template>
+<!--
+	Simple dummy switch (2 states) object,
+	using code for anim and interaction.
+
+	Required parameter:
+		ANIM_NAME
+		NODE_ID
+-->
+<Template Name = "ASOBO_GT_Switch_Dummy">
+	<Parameters Type="Default">
+		<SWITCH_POSITION_TYPE>O</SWITCH_POSITION_TYPE>
+		<SWITCH_POSITION_VAR>SwitchState</SWITCH_POSITION_VAR>
+		<LEFT_SINGLE_CODE></LEFT_SINGLE_CODE>
+		<NUM_STATES>2</NUM_STATES>
+		<INIT_VALUE>0</INIT_VALUE>
+		<ANIMREF_ID>0</ANIMREF_ID>
+		<ANIMTIP_0_ON_PERCENT>0</ANIMTIP_0_ON_PERCENT>
+		<ANIMTIP_1_ON_PERCENT>1</ANIMTIP_1_ON_PERCENT>
+		<ANIM_LAG>400</ANIM_LAG>
+		<IS_SWITCH>True</IS_SWITCH>
+	</Parameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<Update Once="True">
+			#INIT_VALUE# (&gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)
+		</Update>
+		<Switch Param="NUM_STATES">
+			<Case Value="2">
+				<UseTemplate Name = "ASOBO_GT_Anim_Code">
+					<ANIM_CODE>(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 100 *</ANIM_CODE>
+				</UseTemplate>
+				<UseTemplate Name = "ASOBO_GT_AnimTriggers_2SoundEvents">
+				</UseTemplate>
+				<UseTemplate Name = "ASOBO_GT_Interaction_LeftSingle_Code">
+					<IS_SWITCH>True</IS_SWITCH>
+					<MouseFlags>LeftSingle+LeftRelease+LeftDrag</MouseFlags>
+					<LEFT_SINGLE_CODE>
+						(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) ! (&gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)
+						#LEFT_SINGLE_CODE#
+					</LEFT_SINGLE_CODE>
+					<ANIM_CODE>(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 100 *</ANIM_CODE>
+				</UseTemplate>
+			</Case>
+			<Case Value="3">
+				<UseTemplate Name = "ASOBO_GT_Switch_3States">
+					<CODE_POS_0>
+						0 (&gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)
+					</CODE_POS_0>
+					<CODE_POS_1>
+						1 (&gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)
+					</CODE_POS_1>
+					<CODE_POS_2>
+						2 (&gt;#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#)
+					</CODE_POS_2>
+					<STATE0_TEST>(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 0 ==</STATE0_TEST>
+					<STATE1_TEST>(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 1 ==</STATE1_TEST>
+					<STATE2_TEST>(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 1 ==</STATE2_TEST>
+				</UseTemplate>
+			</Case>
+		</Switch>
+	</Component>
+</Template>
+
+<!--
+	Three state switch where one frame corresponds to the true value of a boolean simvar.
+
+	Required parameters:
+		SIMVAR
+		SINGLE_ID
+		ANIM_NAME
+		KEY_TOGGLE
+		NONUNIQUE_DEFAULT
+-->
+
+<Template Name = "ASOBO_GT_Switch_3States_SingleTrue">
+	<UseTemplate Name = "ASOBO_GT_Switch_3States_SingleFalse">
+		<POTENTIAL_INVERSION> ! </POTENTIAL_INVERSION>
+	</UseTemplate>
+</Template>
+
+<!--
+	Three state switch where one frame corresponds to the false value of a boolean simvar.
+
+	Required parameters:
+		SIMVAR
+		SINGLE_ID
+		ANIM_NAME
+		KEY_TOGGLE
+		NONUNIQUE_DEFAULT
+-->
+
+<Template Name = "ASOBO_GT_Switch_3States_SingleFalse">
+	<Parameters Type="Default">
+		<SWITCH_POSITION_TYPE>O</SWITCH_POSITION_TYPE>
+		<SWITCH_POSITION_VAR>SwitchState</SWITCH_POSITION_VAR>
+		<POTENTIAL_INVERSION> </POTENTIAL_INVERSION>
+		<KEY_TOGGLE_PARAM></KEY_TOGGLE_PARAM>
+	</Parameters>
+	<UseTemplate Name = "ASOBO_GT_Switch_3States">
+		<INIT_VARS>
+			(A:#SIMVAR#, Bool) #POTENTIAL_INVERSION# (&gt;O:3States_2_1_SimvarValue)
+			(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) #SINGLE_ID# == (&gt;O:IsOnSingleID)
+			(O:IsOnSingleID) (O:3States_2_1_SimvarValue) == (&gt;O:NeedsToBeInverted)
+			0 #SINGLE_ID# == (&gt;O:IsState0Single)
+			1 #SINGLE_ID# == (&gt;O:IsState1Single)
+			2 #SINGLE_ID# == (&gt;O:IsState2Single)
+		</INIT_VARS>
+		<STATE0_TEST>
+			(O:NeedsToBeInverted)
+			(O:IsState0Single) (O:3States_2_1_SimvarValue) !=
+			(O:IsState0Single) (O:IsOnSingleID) or
+			(O:IsState0Single) 0 #NONUNIQUE_DEFAULT# == or
+			and and
+		</STATE0_TEST>
+		<STATE1_TEST>
+			(O:NeedsToBeInverted)
+			(O:IsState1Single) (O:3States_2_1_SimvarValue) !=
+			(O:IsState1Single) (O:IsOnSingleID) or
+			(O:IsState1Single) 1 #NONUNIQUE_DEFAULT# == or
+			and and
+		</STATE1_TEST>
+		<STATE2_TEST>
+			(O:NeedsToBeInverted)
+			(O:IsState2Single) (O:3States_2_1_SimvarValue) !=
+			(O:IsState2Single) (O:IsOnSingleID) or
+			(O:IsState2Single) 2 #NONUNIQUE_DEFAULT# == or
+			and and
+		</STATE2_TEST>
+
+		<CODE_POS_0>
+				(O:IsState0Single) (O:3States_2_1_SimvarValue) == if{ #KEY_TOGGLE_PARAM# (&gt;K:#KEY_TOGGLE#) }
+		</CODE_POS_0>
+		<CODE_POS_1>
+				(O:IsState1Single) (O:3States_2_1_SimvarValue) == if{ #KEY_TOGGLE_PARAM# (&gt;K:#KEY_TOGGLE#) }
+		</CODE_POS_1>
+		<CODE_POS_2>
+				(O:IsState2Single) (O:3States_2_1_SimvarValue) == if{ #KEY_TOGGLE_PARAM# (&gt;K:#KEY_TOGGLE#) }
+		</CODE_POS_2>
+
+	</UseTemplate>
+</Template>
+
+
+<!--
+	Toggle VAR_NAME bool value
+
+	[REQUIRED] VAR_NAME(bool): variable name
+	VAR_SCOPE(Text, default:O): Scope of the variable
+-->
+<Template Name="ASOBO_GT_Toggle_Variable">
+	<Parameters Type="Default">
+		<VAR_SCOPE>O</VAR_SCOPE>
+		<TOGGLE_CODE></TOGGLE_CODE>
+	</Parameters>
+	<UseTemplate Name="ASOBO_GT_Switch_Code">
+		<Condition Check="VERIF_STATE_CODE">
+			<True>
+				<LEFT_SINGLE_CODE>
+					#VERIF_STATE_CODE# if{
+						(#VAR_SCOPE#:#VAR_NAME#) ! (&gt;#VAR_SCOPE#:#VAR_NAME#)
+						#TOGGLE_CODE#
+					}
+				</LEFT_SINGLE_CODE>
+			</True>
+			<False>			
+				<LEFT_SINGLE_CODE>
+					(#VAR_SCOPE#:#VAR_NAME#) ! (&gt;#VAR_SCOPE#:#VAR_NAME#)
+					#TOGGLE_CODE#
+				</LEFT_SINGLE_CODE>
+			</False>
+		</Condition>
+	</UseTemplate>
+</Template>
+
+<!--
+	Toggle VAR_NAME bool value
+
+	[REQUIRED] VAR_NAME(bool): variable name
+	VAR_SCOPE(Text, default:L): Scope of the variable
+-->
+<Template Name="ASOBO_GT_Toggle_Variable_Anim">
+	<Parameters Type="Default">
+		<VAR_NAME>XMLVAR_Toggle</VAR_NAME>
+		<VAR_SCOPE>O</VAR_SCOPE>
+		<ANIM_CODE>(#VAR_SCOPE#:#VAR_NAME#) 100 *</ANIM_CODE>
+	</Parameters>
+	<UseTemplate Name="ASOBO_GT_Toggle_Variable">
+	</UseTemplate>
+</Template>
+
+<!--
+	Toggle VAR_NAME bool value for a set duration
+
+	VAR_NAME(bool): variable name
+	VAR_SCOPE(Text, default:L): Scope of the variable
+	
+	OPTION: 
+	CANCELLABLE: make the switch still work as a switch during duration
+-->
+<Template Name="ASOBO_GT_Toggle_Variable_ForDuration">
+	<Parameters Type="Default">
+		<VAR_NAME>XMLVAR_Toggle</VAR_NAME>
+		<VAR_SCOPE>O</VAR_SCOPE>
+		<DURATION>1</DURATION>
+		<CODE_START_TIMER></CODE_START_TIMER>
+		<CODE_AFTER_DURATION></CODE_AFTER_DURATION>
+		<Condition Check="CANCELLABLE">
+			<CODE_CANCELLING></CODE_CANCELLING>
+		</Condition>
+		<ANIMREF_ID>0</ANIMREF_ID>
+		<ANIMTIP_0_ON_PERCENT>0</ANIMTIP_0_ON_PERCENT>
+		<ANIMTIP_1_ON_PERCENT>1</ANIMTIP_1_ON_PERCENT>
+	</Parameters>
+	<Update Frequency = "5">
+		(#VAR_SCOPE#:#VAR_NAME#)
+		(E:SIMULATION TIME, second) (O:_ActivationTime) #DURATION# + &gt; and if{
+			0 (&gt;#VAR_SCOPE#:#VAR_NAME#)
+			#CODE_AFTER_DURATION#
+		}
+	</Update>
+	<UseTemplate Name="ASOBO_GT_Switch_Code">
+		<ANIM_CODE>(#VAR_SCOPE#:#VAR_NAME#) 100 *</ANIM_CODE>
+		<Condition Check="CANCELLABLE">
+			<True>
+				<LEFT_SINGLE_CODE>
+					(#VAR_SCOPE#:#VAR_NAME#) ! if{
+						1 (&gt;#VAR_SCOPE#:#VAR_NAME#)
+						(E:SIMULATION TIME, second) (&gt;O:_ActivationTime)
+						#CODE_START_TIMER#
+					} els{
+						0 (&gt;#VAR_SCOPE#:#VAR_NAME#)
+						0 (&gt;O:_ActivationTime)
+						#CODE_CANCELLING#
+					}
+				</LEFT_SINGLE_CODE>
+			</True>
+			<False>
+				<LEFT_SINGLE_CODE>
+					(#VAR_SCOPE#:#VAR_NAME#) ! if{
+						1 (&gt;#VAR_SCOPE#:#VAR_NAME#)
+						(E:SIMULATION TIME, second) (&gt;O:_ActivationTime)
+						#CODE_START_TIMER#
+					}
+				</LEFT_SINGLE_CODE>
+			</False>
+		</Condition>
+	</UseTemplate>
+</Template>
+
+<!-- For switch protected by a cover -->
+<Template Name="ASOBO_GT_Switch_Covered">
+	<Parameters Type="Default">
+		<NUM_STATES>2</NUM_STATES>
+		<WWISE_COVER_EVENT_OPEN>covered_open_switch</WWISE_COVER_EVENT_OPEN>
+		<WWISE_COVER_EVENT_CLOSE>covered_close_switch</WWISE_COVER_EVENT_CLOSE>
+		<COVER_INIT_VALUE>0</COVER_INIT_VALUE>
+		<COVER_IE_NAME>Cover</COVER_IE_NAME>
+		<COVER_IE_ID_SOURCE>COMMON</COVER_IE_ID_SOURCE>
+		<COVER_USE_INPUT_EVENT>COMMON</COVER_USE_INPUT_EVENT>
+		<COVER_INVERT_SWITCH_ON_CONDITION>False</COVER_INVERT_SWITCH_ON_CONDITION>
+		<TT_DESCRIPTION_ID_COVER>@TT_Package.COMMON_COVER_ACTION</TT_DESCRIPTION_ID_COVER>
+		<TOOLTIP_TITLE_COVER>@TT_Package.COMMON_COVER_TITLE</TOOLTIP_TITLE_COVER>
+		<ON_COVER_OPENED/>
+		<ON_COVER_CLOSED/>
+		<TT_ICON_COVER>MOVE_Y</TT_ICON_COVER>
+		<NO_INTERACTION_WHEN_COVERED>True</NO_INTERACTION_WHEN_COVERED>
+		<Condition NotEmpty="ANIM_CODE">
+			<SWITCH_ANIM_CODE>#ANIM_CODE#</SWITCH_ANIM_CODE>
+		</Condition>
+		<Condition NotEmpty="LEFT_SINGLE_CODE">
+			<TOGGLE_STATE>#LEFT_SINGLE_CODE#</TOGGLE_STATE>
+		</Condition>
+	</Parameters>
+	<Parameters Type="Default">
+		<OFF_POSITION Process="Int">#NUM_STATES# 1 -</OFF_POSITION>
+		<IS_COVER_OPENED>(B:#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#, Bool)</IS_COVER_OPENED>
+		<COVER_VAR_NAME>#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#_Position</COVER_VAR_NAME>
+		<COVER_VAR_TYPE>O</COVER_VAR_TYPE>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Valid="NO_INTERACTION_WHEN_COVERED">
+			<Condition Check="SWITCH_TYPE" Match="MOMENTARY">
+				<True>
+					<SET_SWITCH_ON>#IS_COVER_OPENED# if{ #SET_SWITCH_ON# }</SET_SWITCH_ON>
+				</True>
+				<False>
+					<Condition Check="NUM_STATES" Match="2">
+						<True>
+							<TOGGLE_STATE>#IS_COVER_OPENED# if{ #TOGGLE_STATE# }</TOGGLE_STATE>							
+						</True>
+						<False>
+							<CODE_POS_0_VERIF>(B:#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#, Bool)</CODE_POS_0_VERIF>
+							<CODE_POS_1_VERIF>(B:#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#, Bool)</CODE_POS_1_VERIF>
+							<CODE_POS_2_VERIF>(B:#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#, Bool)</CODE_POS_2_VERIF>
+						</False>
+					</Condition>
+				</False>
+			</Condition>
+		</Condition>
+	</Parameters>
+	<Component ID="#SWITCH_NODE_ID#" Node="#SWITCH_NODE_ID#">
+		<Parameters Type="Override">
+			<Condition NotEmpty="INVERT_SWITCH_ANIM">
+				<INVERT_ANIM>#INVERT_SWITCH_ANIM#</INVERT_ANIM>
+			</Condition>
+			<Condition NotEmpty="SWITCH_TT_VALUE">
+				<TT_VALUE>#SWITCH_TT_VALUE#</TT_VALUE>
+			</Condition>
+		</Parameters>
+		<Condition Check="INPUT_EVENT_ID">
+			<UseInputEvent ID="#INPUT_EVENT_ID#"/>	
+		</Condition>
+		<Switch Param="SWITCH_TYPE">
+			<Case Value="MOMENTARY">
+				<UseTemplate Name="ASOBO_GT_Push_Button">
+					<ANIM_NAME>#SWITCH_ANIM_NAME#</ANIM_NAME>
+					<OVERRIDE_ANIM_CODE>#SWITCH_ANIM_CODE#</OVERRIDE_ANIM_CODE>
+					<LEFT_SINGLE_CODE>#SET_SWITCH_ON#</LEFT_SINGLE_CODE>
+					<LEFT_LEAVE_CODE>#SET_SWITCH_OFF#</LEFT_LEAVE_CODE>
+				</UseTemplate>
+			</Case>
+			<Default>
+				<Condition Check="NUM_STATES" Match="2">
+					<True>
+						<UseTemplate Name="ASOBO_GT_Switch_Code">
+							<ANIM_NAME>#SWITCH_ANIM_NAME#</ANIM_NAME>
+							<ANIM_CODE>#SWITCH_ANIM_CODE#</ANIM_CODE>
+							<LEFT_SINGLE_CODE>#TOGGLE_STATE#</LEFT_SINGLE_CODE>
+						</UseTemplate>
+					</True>
+					<False>
+						<UseTemplate Name="ASOBO_GT_Switch_3States">
+							<ANIM_NAME>#SWITCH_ANIM_NAME#</ANIM_NAME>
+						</UseTemplate>
+					</False>
+				</Condition>
+			</Default>
+		</Switch>
+	</Component>
+	<Component ID="#COVER_NODE_ID#" Node="#COVER_NODE_ID#">
+		<Parameters Type="Override">
+			<Condition NotEmpty="INVERT_COVER_ANIM">
+				<INVERT_ANIM>#INVERT_COVER_ANIM#</INVERT_ANIM>
+			</Condition>
+			<INVERT_SWITCH_ON_CONDITION>#COVER_INVERT_SWITCH_ON_CONDITION#</INVERT_SWITCH_ON_CONDITION>
+			<ON_STATE_CHANGED_EXTERNAL_CODE/>
+		</Parameters>
+		<Condition NotEmpty="OPEN_COVER_CONDITION">
+			<UseTemplate Name="ASOBO_GT_Update">
+				<FREQUENCY>5</FREQUENCY>
+				<UPDATE_CODE>#OPEN_COVER_CONDITION# != if{ (&gt;B:#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#_Open) }</UPDATE_CODE>
+			</UseTemplate>
+		</Condition>
+		<UseTemplate Name="ASOBO_GT_Update">
+			<UPDATE_ONCE>True</UPDATE_ONCE>
+			<UPDATE_CODE>#COVER_INIT_VALUE# (&gt;B:#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#_Set)</UPDATE_CODE>
+		</UseTemplate>
+		<UseInputEvent ID="#COVER_USE_INPUT_EVENT#">
+			<BTN_ID>#COVER_IE_NAME#</BTN_ID>
+			<INPUT_EVENT_ID_SOURCE>#COVER_IE_ID_SOURCE#</INPUT_EVENT_ID_SOURCE>
+			<TT_ICON>#TT_ICON_COVER#</TT_ICON>
+			<Condition Check="NUM_STATES" Match="3">
+				<True>
+					<SET_STATE_1>1 (&gt;#COVER_VAR_TYPE#:#COVER_VAR_NAME#) #ON_COVER_OPENED#</SET_STATE_1>
+					<SET_STATE_0>0 (&gt;#COVER_VAR_TYPE#:#COVER_VAR_NAME#) #ON_COVER_CLOSED#</SET_STATE_0>
+					<SET_STATE_2/>
+				</True>
+				<False>
+					<SET_STATE_ON>1 (&gt;#COVER_VAR_TYPE#:#COVER_VAR_NAME#) #ON_COVER_OPENED#</SET_STATE_ON>
+					<SET_STATE_OFF>0 (&gt;#COVER_VAR_TYPE#:#COVER_VAR_NAME#) #ON_COVER_CLOSED#</SET_STATE_OFF>
+				</False>
+			</Condition>
+			<ON_BEFORE_INC_CODE/>
+			<ON_BEFORE_DEC_CODE/>
+			<ON_BEFORE_SET_CODE/>
+			<ON_AFTER_INC_CODE/>
+			<ON_AFTER_DEC_CODE/>
+			<ON_AFTER_SET_CODE/>
+			<GET_STATE_EXTERNAL>(#COVER_VAR_TYPE#:#COVER_VAR_NAME#) sp0</GET_STATE_EXTERNAL>
+			<SIM_STATE_IS_ON_EXTERNAL>l0</SIM_STATE_IS_ON_EXTERNAL>
+			<TT_DESCRIPTION_ID>#TT_DESCRIPTION_ID_COVER#</TT_DESCRIPTION_ID>
+			<STR_STATE_OFF>Close</STR_STATE_OFF>
+			<STR_STATE_ON>Open</STR_STATE_ON>
+			<TT_VALUE_OFF>@TT_Closed</TT_VALUE_OFF>
+			<TT_VALUE_ON>@TT_Open</TT_VALUE_ON>
+			<NUM_STATES>2</NUM_STATES>
+			<SIMVAR_TO_WATCH_0/>
+			<Condition Check="COVER_VAR_TYPE" Match="L">
+				<True>
+					<LOCAL_VAR_TO_WATCH_0>#COVER_VAR_NAME#</LOCAL_VAR_TO_WATCH_0>
+				</True>
+				<False>
+					<LOCAL_VAR_TO_WATCH_0/>
+				</False>
+			</Condition>
+		</UseInputEvent>
+		<UseTemplate Name="ASOBO_GT_Switch_Code">
+			<TOOLTIP_TITLE>#TOOLTIP_TITLE_COVER#</TOOLTIP_TITLE>
+			<TOOLTIP_ENTRY_0>#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#</TOOLTIP_ENTRY_0>
+			<ANIM_NAME>#COVER_ANIM_NAME#</ANIM_NAME>
+			<ANIM_CODE>#IS_COVER_OPENED# 100 *</ANIM_CODE>
+			<LEFT_SINGLE_CODE>(&gt;B:#COVER_IE_ID_SOURCE#_#COVER_IE_NAME#_Toggle)</LEFT_SINGLE_CODE>
+			<WWISE_EVENT_1>#WWISE_COVER_EVENT_OPEN#</WWISE_EVENT_1>
+			<WWISE_EVENT_2>#WWISE_COVER_EVENT_CLOSE#</WWISE_EVENT_2>
+			<Condition NotEmpty="COVER_PART_ID">
+				<PART_ID>#COVER_PART_ID#</PART_ID>
+			</Condition>
+			<Condition NotEmpty="COVER_HIGHLIGHT_NODE_ID">
+				<HIGHLIGHT_NODE_ID>#COVER_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+			</Condition>
+		</UseTemplate>
+	</Component>
+</Template>
+</ModelBehaviors>

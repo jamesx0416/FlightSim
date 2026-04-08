@@ -1,0 +1,2219 @@
+<ModelBehaviors>
+<Template Name="ASOBO_INSTRUMENT_Needle_Airspeed_SubTemplate">
+	<Parameters Type="Default">
+		<UNITS>knots</UNITS>
+		<MIN_VALUE>0</MIN_VALUE>
+		<MAX_VALUE>200</MAX_VALUE>
+		<ANIM_NAME>INSTRUMENT_Needle_Airspeed#SUFFIX_ID#</ANIM_NAME>
+		<NODE_ID>INSTRUMENT_Needle_Airspeed#SUFFIX_ID#</NODE_ID>
+		<PART_ID>INSTRUMENT_Needle_Airspeed_Highlight</PART_ID>
+		<Condition Valid="USE_TRUE_AIRSPEED_CALIBRATOR">
+			<KNOB_NODE_ID>INSTRUMENT_Knob_Airspeed#SUFFIX_ID#</KNOB_NODE_ID>
+			<KNOB_ANIM_NAME>INSTRUMENT_Knob_Airspeed#SUFFIX_ID#</KNOB_ANIM_NAME>
+			<STRIP_NODE_ID>INSTRUMENT_Strip_Airspeed#SUFFIX_ID#</STRIP_NODE_ID>
+			<STRIP_ANIM_NAME>INSTRUMENT_Strip_Airspeed#SUFFIX_ID#</STRIP_ANIM_NAME>
+			<MIN_AIRSPEED_CALIBRATOR_VALUE>0</MIN_AIRSPEED_CALIBRATOR_VALUE>
+			<MAX_AIRSPEED_CALIBRATOR_VALUE>30</MAX_AIRSPEED_CALIBRATOR_VALUE>
+			<INCREMENT>0.5</INCREMENT>
+		</Condition>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Valid="USE_TRUE_AIRSPEED_CALIBRATOR">
+			<CLAMP_VALUE>#MIN_AIRSPEED_CALIBRATOR_VALUE# max #MAX_AIRSPEED_CALIBRATOR_VALUE# min</CLAMP_VALUE>
+			<NORMALIZE_VALUE>#MIN_AIRSPEED_CALIBRATOR_VALUE# - #MAX_AIRSPEED_CALIBRATOR_VALUE# #MIN_AIRSPEED_CALIBRATOR_VALUE# - /</NORMALIZE_VALUE>
+			<KNOB_ID>Airspeed_Calibrator</KNOB_ID>
+		</Condition>
+	</Parameters>
+	<Component ID="INSTRUMENT_Airspeed_#ID#">
+		<UseTemplate Name="ASOBO_GT_Needle_Code">
+			<SIMVAR>AIRSPEED INDICATED</SIMVAR>
+		</UseTemplate>
+		<Condition Valid="USE_TRUE_AIRSPEED_CALIBRATOR">
+			<UseTemplate Name="ASOBO_GT_Update">
+				<UPDATE_ONCE>True</UPDATE_ONCE>
+				<UPDATE_CODE>(A:AIRSPEED TRUE CALIBRATE, degrees) #CLAMP_VALUE# (&gt;A:AIRSPEED TRUE CALIBRATE, degrees)</UPDATE_CODE>
+			</UseTemplate>
+			<Component ID="#STRIP_NODE_ID#" Node="#STRIP_NODE_ID#">
+				<UseTemplate Name="ASOBO_GT_Anim_Code">
+					<ANIM_CODE>(A:AIRSPEED TRUE CALIBRATE, degrees) #NORMALIZE_VALUE# 100 *</ANIM_CODE>
+					<ANIM_NAME>#STRIP_ANIM_NAME#</ANIM_NAME>
+				</UseTemplate>
+			</Component>
+			<Component ID="#KNOB_NODE_ID#" Node="#KNOB_NODE_ID#">
+				<Parameters Type="Default">
+					<TOOLTIP_AIRSPEED_TITLE>@TT_Package.INSTRUMENT_KNOB_TRUEAIRSPEED_TITLE</TOOLTIP_AIRSPEED_TITLE>
+				</Parameters>
+				<Parameters Type="Override">
+					<TOOLTIP_TITLE>#TOOLTIP_AIRSPEED_TITLE#</TOOLTIP_TITLE>
+					<TOOLTIP_ENTRY_0>INSTRUMENT_#KNOB_ID#</TOOLTIP_ENTRY_0>
+				</Parameters>
+				<UseInputEvent ID="INSTRUMENT">
+					<MIN_VALUE>#MIN_AIRSPEED_CALIBRATOR_VALUE#</MIN_VALUE>
+					<MAX_VALUE>#MAX_AIRSPEED_CALIBRATOR_VALUE#</MAX_VALUE>
+					<SET_STATE_EXTERNAL>(&gt;A:AIRSPEED TRUE CALIBRATE, degrees)</SET_STATE_EXTERNAL>
+					<GET_STATE_EXTERNAL>(A:AIRSPEED TRUE CALIBRATE, degrees)</GET_STATE_EXTERNAL>
+					<FORMAT_VALUE>'%d°C' @sprintf</FORMAT_VALUE>
+					<TT_DESCRIPTION_ID>@TT_Package.INSTRUMENT_KNOB_TRUEAIRSPEED_ACTION</TT_DESCRIPTION_ID>
+					<INC_PARAM_0>#INCREMENT# p0 *</INC_PARAM_0>
+					<INC_PARAM_0_IS_DYNAMIC>True</INC_PARAM_0_IS_DYNAMIC>
+					<DEC_PARAM_0>#INCREMENT# p0 *</DEC_PARAM_0>
+					<DEC_PARAM_0_IS_DYNAMIC>True</DEC_PARAM_0_IS_DYNAMIC>
+				</UseInputEvent>
+				<UseTemplate Name="ASOBO_GT_Knob_Infinite">
+					<ANIM_NAME>#KNOB_ANIM_NAME#</ANIM_NAME>
+					<CLOCKWISE_CODE>1 (&gt;B:INSTRUMENT_#KNOB_ID#_Inc)</CLOCKWISE_CODE>
+					<ANTICLOCKWISE_CODE>1 (&gt;B:INSTRUMENT_#KNOB_ID#_Dec)</ANTICLOCKWISE_CODE>
+					<Condition Valid="KNOB_HIGHLIGHT_NODE_ID">
+						<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+					</Condition>
+				</UseTemplate>
+			</Component>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Altimeter_SubTemplate">
+	<Parameters Type="Default">
+		<NODE_ID>INSTRUMENT_Needle_Altimeter_#FEET##SUFFIX_ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Needle_Altimeter_#FEET##SUFFIX_ID#</ANIM_NAME>
+		<PART_ID>INSTRUMENT_Needle_Altimeter</PART_ID>
+		<BARO_ID>0</BARO_ID>
+	</Parameters>
+	<Parameters Type="Default">
+		<UNITS>feet</UNITS>
+	</Parameters>
+	<EditableTemplateParameters>
+		<AddParams>
+			<FEET></FEET>
+			<ANIM_NAME></ANIM_NAME>
+			<NODE_ID></NODE_ID>
+		</AddParams>
+	</EditableTemplateParameters>
+	
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<!-- TODO : verifier le resultat pour altitude negative -->
+			<ANIM_CODE>
+				(A:INDICATED ALTITUDE:#BARO_ID#, #UNITS#) 0 &gt;=
+				 if{ (A:INDICATED ALTITUDE:#BARO_ID#, #UNITS#) #FEET# 10 / / 100 % }
+				els{ (A:INDICATED ALTITUDE:#BARO_ID#, #UNITS#) #FEET# 10 / / 100 % 100 + }
+			</ANIM_CODE>
+			<Condition Check="HIGHLIGHT_NODE_ID">
+				<PART_ID/>
+			</Condition>
+		</UseTemplate>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Altimeter_Strip_SubTemplate">
+	<DefaultTemplateParameters>
+		<NODE_ID>INSTRUMENT_Altimeter_Strip#SUFFIX_ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Altimeter_Strip#SUFFIX_ID#</ANIM_NAME>
+		<SIMVAR>KOHLSMAN SETTING HG</SIMVAR>
+		<UNITS>inHg</UNITS>
+		<Condition Valid="USE_AUTO_CALIBRATED_MIN_MAX">
+			<True>
+				<REF1_VALUE>28.1</REF1_VALUE><!-- Value read -->
+				<REF1_ANIM_VALUE>5</REF1_ANIM_VALUE><!-- Anim frame for value read -->
+				<REF2_VALUE>31.4</REF2_VALUE><!-- Value read -->
+				<REF2_ANIM_VALUE>95</REF2_ANIM_VALUE><!-- Anim frame for value read -->
+				<ANIM_STRIP_LENGTH>100</ANIM_STRIP_LENGTH><!-- Frame count -->
+			</True>
+			<False>
+				<MIN_VALUE>27.9</MIN_VALUE>
+				<MAX_VALUE>31.6</MAX_VALUE>
+			</False>
+		</Condition>
+	</DefaultTemplateParameters>
+	<OverrideTemplateParameters>
+		<Condition Valid="USE_AUTO_CALIBRATED_MIN_MAX">
+			<INC_FACTOR Process="Float">#REF2_VALUE# #REF1_VALUE# - #REF2_ANIM_VALUE# #REF1_ANIM_VALUE# - /</INC_FACTOR>
+		</Condition>
+	</OverrideTemplateParameters>
+	<Component ID="#NODE_ID#">
+		<OverrideTemplateParameters>
+			<Condition Valid="USE_AUTO_CALIBRATED_MIN_MAX">
+				<MIN_VALUE Process="Float">#REF1_VALUE# #INC_FACTOR# #REF1_ANIM_VALUE# * -</MIN_VALUE><!-- check value for 0% of anim -->
+				<MAX_VALUE Process="Float">#REF2_VALUE# #INC_FACTOR# #ANIM_STRIP_LENGTH# #REF2_ANIM_VALUE# - * +</MAX_VALUE><!-- check value for 100% of anim -->
+			</Condition>
+		</OverrideTemplateParameters>
+		<Condition Valid="USE_AUTO_CALIBRATED_MIN_MAX">
+			<True>
+				<UseTemplate Name="ASOBO_GT_Needle_Code">
+					<OVERRIDE_ANIM_CODE>(A:#SIMVAR#, #UNITS#) #MIN_VALUE# max #MAX_VALUE# min #MIN_VALUE# - #MAX_VALUE# #MIN_VALUE# - / #ANIM_STRIP_LENGTH# *</OVERRIDE_ANIM_CODE>
+					<ANIM_LENGTH>#ANIM_STRIP_LENGTH#</ANIM_LENGTH>
+				</UseTemplate>
+				<UseTemplate Name="ASOBO_INSTRUMENT_Knob_Altimeter_Template">
+					<Condition Valid="KNOB_ANIM_NAME">
+						<True>
+							<ANIM_NAME>#KNOB_ANIM_NAME#</ANIM_NAME>
+						</True>
+						<False>
+							<ANIM_NAME>INSTRUMENT_Knob_Altimeter#SUFFIX_ID#</ANIM_NAME>
+						</False>
+					</Condition>
+					<Condition Valid="KNOB_ROTATION_SPEED">
+						<ROTATION_SPEED>#KNOB_ROTATION_SPEED#</ROTATION_SPEED>
+					</Condition>
+					<Condition Valid="KNOB_NODE_ID">
+						<True>
+							<NODE_ID>#KNOB_NODE_ID#</NODE_ID>
+						</True>
+						<False>
+							<NODE_ID>INSTRUMENT_Knob_Altimeter#SUFFIX_ID#</NODE_ID>
+						</False>
+					</Condition>
+					<Condition Valid="HIGHLIGHT_NODE_ID">
+						<False>
+							<PART_ID>INSTRUMENT_Knob_Altimeter</PART_ID>
+						</False>
+					</Condition>
+					<Condition Check="KNOB_HIGHLIGHT_NODE_ID">
+						<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+					</Condition>
+				</UseTemplate>
+			</True>
+			<False>
+				<UseTemplate Name="ASOBO_GT_Needle_Code">
+				</UseTemplate>
+			</False>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Knob_Altimeter_SubTemplate">
+	<Parameters Type="Default">
+		<NODE_ID>INSTRUMENT_Knob_Altimeter#SUFFIX_ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Knob_Altimeter#SUFFIX_ID#</ANIM_NAME>
+		<SIMVAR>KOHLSMAN SETTING HG</SIMVAR>
+		<UNITS>inHg</UNITS>
+		<MIN_VALUE>28.2</MIN_VALUE>
+		<MAX_VALUE>31.3</MAX_VALUE>
+		<BARO_ID>0</BARO_ID>
+		<INCREMENT>0.01 33.8639 *</INCREMENT> <!-- 10 MB -->
+		<THRESHOLD_INPUT>0.0001</THRESHOLD_INPUT>
+		<THRESHOLD_MOUSE>0.003</THRESHOLD_MOUSE>
+		<REPEAT_ANIM>3</REPEAT_ANIM>
+		<TOOLTIP_ALTIMETER_TITLE>@TT_Package.INSTRUMENT_KNOB_ALTIMETER_TITLE</TOOLTIP_ALTIMETER_TITLE>
+	</Parameters>
+	<Parameters Type="Override">
+		<TOOLTIP_TITLE>#TOOLTIP_ALTIMETER_TITLE#</TOOLTIP_TITLE>
+		<TOOLTIP_ENTRY_0>INSTRUMENT_Altimeter_#BARO_ID#</TOOLTIP_ENTRY_0>
+	</Parameters>
+	<Parameters Type="Override">
+		<LOWER_LIMIT Process="Int">#MIN_VALUE# (&gt;L:LOCAL_milliBar_to_inHg, inHg) (L:LOCAL_milliBar_to_inHg, Millibar)</LOWER_LIMIT>
+		<UPPER_LIMIT Process="Int">#MAX_VALUE# (&gt;L:LOCAL_milliBar_to_inHg, inHg) (L:LOCAL_milliBar_to_inHg, Millibar)</UPPER_LIMIT>
+	</Parameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseInputEvent ID="INSTRUMENT"/>
+		<UseTemplate Name="ASOBO_GT_Knob_Finite_Code">
+			<ANIM_CODE>
+				(A:#SIMVAR#, #UNITS#) #MIN_VALUE# - #MAX_VALUE# #MIN_VALUE# - / 100 * 
+			</ANIM_CODE>
+			<CLOCKWISE_CODE_DEFAULT_IM>1 (&gt;B:INSTRUMENT_Altimeter_#BARO_ID#_Inc)</CLOCKWISE_CODE_DEFAULT_IM>
+			<ANTICLOCKWISE_CODE_DEFAULT_IM>1 (&gt;B:INSTRUMENT_Altimeter_#BARO_ID#_Dec)</ANTICLOCKWISE_CODE_DEFAULT_IM>
+			<CLOCKWISE_CODE_DRAG_IM>1 (&gt;B:INSTRUMENT_Altimeter_#BARO_ID#_Inc)</CLOCKWISE_CODE_DRAG_IM>
+			<ANTICLOCKWISE_CODE_DRAG_IM>1 (&gt;B:INSTRUMENT_Altimeter_#BARO_ID#_Dec)</ANTICLOCKWISE_CODE_DRAG_IM>
+		</UseTemplate>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Altimeter_SubTemplate">
+	<Parameters Type="Default">
+		<BARO_ID>#ID#</BARO_ID>
+	</Parameters>
+	<Parameters Type="Default">
+		<SIMVAR>KOHLSMAN SETTING HG:#BARO_ID#</SIMVAR>
+		<UNITS>inHg</UNITS>
+		<NEEDLES_UNIT>feet</NEEDLES_UNIT>
+		<ANIM_NAME_STRIP>INSTRUMENT_Altimeter_Strip#SUFFIX_ID#</ANIM_NAME_STRIP>
+		<NODE_ID_STRIP>INSTRUMENT_Altimeter_Strip#SUFFIX_ID#</NODE_ID_STRIP>
+		<MIN_VALUE_STRIP>27.9</MIN_VALUE_STRIP>
+		<MAX_VALUE_STRIP>31.6</MAX_VALUE_STRIP>
+		<MIN_VALUE_KNOB>28.2</MIN_VALUE_KNOB>
+		<MAX_VALUE_KNOB>31.3</MAX_VALUE_KNOB>
+		<PART_ID>INSTRUMENT_Needle_Altimeter</PART_ID>
+		<NEEDLE_100_FEET>True</NEEDLE_100_FEET>
+		<NEEDLE_1000_FEET>True</NEEDLE_1000_FEET>
+		<NEEDLE_10000_FEET>True</NEEDLE_10000_FEET>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<HIGHLIGHT_PART_ID>#PART_ID#</HIGHLIGHT_PART_ID>
+			<PART_ID></PART_ID>
+		</Condition>
+	</Parameters>
+	<EditableTemplateParameters>
+		<AddParams>
+			<ANIM_NAME_100_FEET></ANIM_NAME_100_FEET>
+			<NODE_ID_100_FEET></NODE_ID_100_FEET>
+			<ANIM_NAME_1000_FEET></ANIM_NAME_1000_FEET>
+			<NODE_ID_1000_FEET></NODE_ID_1000_FEET>
+			<ANIM_NAME_10000_FEET></ANIM_NAME_10000_FEET>
+			<NODE_ID_10000_FEET></NODE_ID_10000_FEET>
+			<ANIM_NAME_STRIP></ANIM_NAME_STRIP>
+			<NODE_ID_STRIP></NODE_ID_STRIP>
+			<KNOB_ANIM_NAME></KNOB_ANIM_NAME>
+			<KNOB_NODE_ID></KNOB_NODE_ID>
+			<HIGHLIGHT_NODE_ID/>
+		</AddParams>
+		<RemoveParams>
+			<NODE_ID></NODE_ID>
+			<ANIM_NAME></ANIM_NAME>
+			<FEET></FEET>
+		</RemoveParams>
+	</EditableTemplateParameters>
+
+	<Component ID="INSTRUMENT_Altimeter_#ID#">
+		<Condition Valid="NEEDLE_100_FEET">
+		<UseTemplate Name="ASOBO_INSTRUMENT_Needle_Altimeter_Template">
+			<FEET>100</FEET>
+			<UNITS>#NEEDLES_UNIT#</UNITS>
+			<Condition Check="ANIM_NAME_100_FEET">
+				<ANIM_NAME>#ANIM_NAME_100_FEET#</ANIM_NAME>
+			</Condition>
+			<Condition Check="NODE_ID_100_FEET">
+				<NODE_ID>#NODE_ID_100_FEET#</NODE_ID>
+			</Condition>
+		</UseTemplate>
+		</Condition>
+		<Condition Valid="NEEDLE_1000_FEET">
+		<UseTemplate Name="ASOBO_INSTRUMENT_Needle_Altimeter_Template">
+			<FEET>1000</FEET>
+			<UNITS>#NEEDLES_UNIT#</UNITS>
+			<Condition Check="ANIM_NAME_1000_FEET">
+				<ANIM_NAME>#ANIM_NAME_1000_FEET#</ANIM_NAME>
+			</Condition>
+			<Condition Check="NODE_ID_1000_FEET">
+				<NODE_ID>#NODE_ID_1000_FEET#</NODE_ID>
+			</Condition>
+		</UseTemplate>
+		</Condition>
+		<Condition Valid="NEEDLE_10000_FEET">
+		<UseTemplate Name="ASOBO_INSTRUMENT_Needle_Altimeter_Template">
+			<FEET>10000</FEET>
+			<UNITS>#NEEDLES_UNIT#</UNITS>
+			<Condition Check="ANIM_NAME_10000_FEET">
+				<ANIM_NAME>#ANIM_NAME_10000_FEET#</ANIM_NAME>
+			</Condition>
+			<Condition Check="NODE_ID_10000_FEET">
+				<NODE_ID>#NODE_ID_10000_FEET#</NODE_ID>
+			</Condition>
+		</UseTemplate>
+		</Condition>
+		<Condition Valid="NO_STRIP">
+			<False>
+				<UseTemplate Name="ASOBO_INSTRUMENT_Altimeter_Strip_Template">
+					<ANIM_NAME>#ANIM_NAME_STRIP#</ANIM_NAME>
+					<NODE_ID>#NODE_ID_STRIP#</NODE_ID>
+					<MIN_VALUE>#MIN_VALUE_STRIP#</MIN_VALUE>
+					<MAX_VALUE>#MAX_VALUE_STRIP#</MAX_VALUE>
+					<Condition Check="INVERT_STRIP_ANIM">
+						<True>
+							<INVERT_ANIM>True</INVERT_ANIM>
+						</True>
+					</Condition>
+				</UseTemplate>
+			</False>
+		</Condition>
+		<Condition Valid="USE_AUTO_CALIBRATED_MIN_MAX"><!-- Knob created by strip template when auto calibrated min max -->
+			<False>
+				<UseTemplate Name="ASOBO_INSTRUMENT_Knob_Altimeter_Template">
+					<Condition Check="KNOB_ANIM_NAME">
+						<ANIM_NAME>#KNOB_ANIM_NAME#</ANIM_NAME>
+					</Condition>
+					<Condition Check="KNOB_ROTATION_SPEED">
+						<ROTATION_SPEED>#KNOB_ROTATION_SPEED#</ROTATION_SPEED>
+					</Condition>
+					<Condition Check="KNOB_NODE_ID">
+						<NODE_ID>#KNOB_NODE_ID#</NODE_ID>
+					</Condition>
+					<Condition Check="HIGHLIGHT_NODE_ID">
+						<False>
+							<PART_ID>INSTRUMENT_Knob_Altimeter</PART_ID>
+						</False>
+					</Condition>
+					<Condition Check="KNOB_HIGHLIGHT_NODE_ID">
+						<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+					</Condition>
+					<MIN_VALUE>#MIN_VALUE_KNOB#</MIN_VALUE>
+					<MAX_VALUE>#MAX_VALUE_KNOB#</MAX_VALUE>
+				</UseTemplate>
+			</False>
+		</Condition>
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<UseTemplate Name="ASOBO_GT_Highlight_Template">
+				<PART_ID>#HIGHLIGHT_PART_ID#</PART_ID>
+			</UseTemplate>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Knob_AttitudeIndicator_SubTemplate">
+	<DefaultTemplateParameters>
+		<Switch Param="KNOB_TYPE">
+			<Case Value="LEGACY">
+				<ANIM_NAME>INSTRUMENT_Knob_AttitudeIndicator#SUFFIX_ID#</ANIM_NAME>
+				<NODE_ID>INSTRUMENT_Knob_AttitudeIndicator#SUFFIX_ID#</NODE_ID>
+			</Case>
+			<Default>
+				<NODE_ID>INSTRUMENT_AttitudeIndicator_Knob#SUFFIX_ID#</NODE_ID>
+				<ANIM_NAME_KNOB>INSTRUMENT_AttitudeIndicator_Knob#SUFFIX_ID#</ANIM_NAME_KNOB>
+				<ANIM_NAME_PULL>INSTRUMENT_AttitudeIndicator_Knob_Pull#SUFFIX_ID#</ANIM_NAME_PULL>
+			</Default>
+		</Switch>
+	</DefaultTemplateParameters>
+	<Switch Param="KNOB_TYPE">
+		<Case Value="LEGACY">
+			<Component ID="#NODE_ID#" Node="#NODE_ID#">
+				<UseTemplate Name="ASOBO_GT_Knob_Infinite">
+					<CLOCKWISE_CODE>(&gt;K:ATTITUDE_BARS_POSITION_UP)</CLOCKWISE_CODE>
+					<ANTICLOCKWISE_CODE>(&gt;K:ATTITUDE_BARS_POSITION_DOWN)</ANTICLOCKWISE_CODE>
+					<ANIMTIP_0>TT:COCKPIT.TOOLTIPS.ATTITUDE_INDICATOR_CALIBRATION_KNOB_INCREASE</ANIMTIP_0>
+					<ANIMTIP_0_ON_CURSOR>TurnLeft</ANIMTIP_0_ON_CURSOR>
+					<ANIMTIP_1>TT:COCKPIT.TOOLTIPS.ATTITUDE_INDICATOR_CALIBRATION_KNOB_DECREASE</ANIMTIP_1>
+					<ANIMTIP_1_ON_CURSOR>TurnRight</ANIMTIP_1_ON_CURSOR>
+				</UseTemplate>
+			</Component>
+		</Case>
+		<Default>
+			<UseTemplate Name="ASOBO_INSTRUMENT_Knob_AttitudeCage_Template"></UseTemplate>
+		</Default>
+	</Switch>
+</Template>
+
+<!-- options: (exclusive)
+NO_BARS_POSTION_ADJUSTEMENT: remove the bars position djustement interaction & behaviour
+NO_CAGE: Remove the cage interaction & behaviour
+-->
+<Template Name="ASOBO_INSTRUMENT_Knob_AttitudeCage_SubTemplate">
+	<Parameters Type="Default">
+		<NODE_ID>INSTRUMENT_Knob_AttitudeCage#SUFFIX_ID#</NODE_ID>
+		<ANIM_NAME_KNOB>INSTRUMENT_Knob_AttitudeCage#SUFFIX_ID#</ANIM_NAME_KNOB>
+		<ANIM_NAME_PULL>INSTRUMENT_Knob_AttitudeCage_Pull#SUFFIX_ID#</ANIM_NAME_PULL>
+	</Parameters>
+	<Parameters Type="Override">
+		<Switch>
+			<Case Check="NO_CAGE">
+				<TYPE>BARS_ADJUSTEMENT_ONLY</TYPE>
+				<CAN_ADJUST_BARS>True</CAN_ADJUST_BARS>
+			</Case>
+			<Case Check="NO_BARS_POSTION_ADJUSTEMENT">
+				<TYPE>CAGE_ONLY</TYPE>
+				<CAN_CAGE>True</CAN_CAGE>
+			</Case>
+			<Case Check="CAGE_ONLY_TRIGGER">
+				<TYPE>CAGE_ONLY_TRIGGER</TYPE>
+				<CAN_CAGE>True</CAN_CAGE>
+			</Case>
+			<Default>
+				<TYPE>BOTH</TYPE>
+				<CAN_ADJUST_BARS>True</CAN_ADJUST_BARS>
+				<CAN_CAGE>True</CAN_CAGE>
+			</Default>
+		</Switch>
+	</Parameters>
+	<Parameters Type="Override">
+		<Switch Param="TYPE">
+			<Case Value="BARS_ADJUSTEMENT_ONLY">
+				<USE_TEMPLATE_NAME>ASOBO_GT_Knob_Infinite</USE_TEMPLATE_NAME>
+				<ANIM_NAME>#ANIM_NAME_KNOB#</ANIM_NAME>
+				<WWISE_EVENT>attitudecage_knob_rotate</WWISE_EVENT>
+			</Case>
+			<Case Value="CAGE_ONLY">
+				<USE_TEMPLATE_NAME>ASOBO_GT_Push_Button_Held_Simple</USE_TEMPLATE_NAME>
+				<ANIM_NAME>#ANIM_NAME_PULL#</ANIM_NAME>
+				<WWISE_EVENT_1>attitudecage_knob_push_on</WWISE_EVENT_1>
+				<WWISE_EVENT_2>attitudecage_knob_push_off</WWISE_EVENT_2> 
+			</Case>
+			<Case Value="CAGE_ONLY_TRIGGER">
+				<USE_TEMPLATE_NAME>ASOBO_GT_Switch_Code</USE_TEMPLATE_NAME>
+				<ANIM_NAME>#ANIM_NAME_PULL#</ANIM_NAME>
+				<WWISE_EVENT_1>attitudecage_knob_push_on</WWISE_EVENT_1>
+				<WWISE_EVENT_2>attitudecage_knob_push_off</WWISE_EVENT_2>
+				<TYPE>CAGE_ONLY</TYPE>
+			</Case>
+			<Default>
+				<USE_TEMPLATE_NAME>ASOBO_GT_Knob_Infinite_Pull</USE_TEMPLATE_NAME>
+				<WWISE_EVENT_1>attitudecage_knob_push_on</WWISE_EVENT_1>
+				<WWISE_EVENT_2>attitudecage_knob_push_off</WWISE_EVENT_2> 
+				<WWISE_EVENT>attitudecage_knob_rotate</WWISE_EVENT>
+			</Default>
+		</Switch>
+	</Parameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<Parameters Type="Default">
+			<TOOLTIP_ATT_INDIC_KNOB_TITLE>@TT_Package.INSTRUMENT_KNOB_ATITUDE_TITLE</TOOLTIP_ATT_INDIC_KNOB_TITLE>
+		</Parameters>
+		<Parameters Type="Override">
+			<Condition Valid="CAN_ADJUST_BARS">
+				<KNOB_ID_EXTERNAL>Attitude_Indicator_Bars</KNOB_ID_EXTERNAL>
+			</Condition>
+			<Condition Valid="CAN_CAGE">
+				<BTN_ID_EXTERNAL>Attitude_Indicator_Cage</BTN_ID_EXTERNAL>				
+			</Condition>
+		</Parameters>
+		<Parameters Type="Override">
+			<TOOLTIP_TITLE>#TOOLTIP_ATT_INDIC_KNOB_TITLE#</TOOLTIP_TITLE>
+			<Switch Param="TYPE">
+				<Case Value="BARS_ADJUSTEMENT_ONLY">
+					<TOOLTIP_ENTRY_0>INSTRUMENT_#KNOB_ID_EXTERNAL#</TOOLTIP_ENTRY_0>
+				</Case>
+				<Case Value="CAGE_ONLY">
+					<TOOLTIP_ENTRY_0>INSTRUMENT_#BTN_ID_EXTERNAL#</TOOLTIP_ENTRY_0>
+				</Case>
+				<Default>
+					<TOOLTIP_ENTRY_0>INSTRUMENT_#KNOB_ID_EXTERNAL#</TOOLTIP_ENTRY_0>
+					<TOOLTIP_ENTRY_1>INSTRUMENT_#BTN_ID_EXTERNAL#</TOOLTIP_ENTRY_1>
+				</Default>
+			</Switch>
+		</Parameters>
+		<Condition Valid="CAN_CAGE">
+			<UseInputEvent ID="INSTRUMENT">
+				<BTN_ID>#BTN_ID_EXTERNAL#</BTN_ID>
+				<SET_STATE_ON>(A:ATTITUDE CAGE, Bool) ! if{ (&gt;K:ATTITUDE_CAGE_BUTTON) }</SET_STATE_ON>
+				<SET_STATE_OFF>(A:ATTITUDE CAGE, Bool) if{ (&gt;K:ATTITUDE_CAGE_BUTTON) }</SET_STATE_OFF>
+				<TT_VALUE_ON>(R:1:@TT_Package.GT_STATE_CAGED)</TT_VALUE_ON>
+				<TT_VALUE_OFF>(R:1:@TT_Package.GT_STATE_RELEASED)</TT_VALUE_OFF>
+				<STR_STATE_ON>Cage</STR_STATE_ON>
+				<STR_STATE_OFF>Release</STR_STATE_OFF>
+				<GET_STATE_EXTERNAL>(A:ATTITUDE CAGE, Bool) sp0</GET_STATE_EXTERNAL>
+				<SIM_STATE_IS_ON_EXTERNAL>l0</SIM_STATE_IS_ON_EXTERNAL>
+				<TT_DESCRIPTION_ID>@TT_Package.INSTRUMENT_KNOB_ATITUDE_ACTION_CAGE</TT_DESCRIPTION_ID>
+				<TT_ICON>Pull</TT_ICON>
+			</UseInputEvent>
+		</Condition>
+		<Condition Valid="CAN_ADJUST_BARS">
+			<UseInputEvent ID="INSTRUMENT">
+				<KNOB_ID>#KNOB_ID_EXTERNAL#</KNOB_ID>
+				<GET_STATE_EXTERNAL>(A:ATTITUDE BARS POSITION, percent) s0</GET_STATE_EXTERNAL>
+				<SET_STATE_EXTERNAL>0 (&gt;K:2:ATTITUDE_BARS_POSITION_SET)</SET_STATE_EXTERNAL>
+				<MIN_VALUE>-100</MIN_VALUE>
+				<MAX_VALUE>100</MAX_VALUE>
+				<FORMAT_VALUE>'%d%%' @sprintf</FORMAT_VALUE>
+				<BINDING_SET_0>Center</BINDING_SET_0>
+				<BINDING_SET_0_PARAM_0>0</BINDING_SET_0_PARAM_0>
+				<BINDING_SET_1>Position_Set</BINDING_SET_1>
+				<BINDING_SET_1_EVENT_ID_ONLY>True</BINDING_SET_1_EVENT_ID_ONLY>
+				<BINDING_SET_1_EVENT_ID>ATTITUDE_BARS_POSITION_SET</BINDING_SET_1_EVENT_ID>
+				<BINDING_SET_1_PARAM_0>p0</BINDING_SET_1_PARAM_0>
+				<BINDING_SET_1_PARAM_0_IS_DYNAMIC>True</BINDING_SET_1_PARAM_0_IS_DYNAMIC>
+				<BINDING_INC_0>Position_Up</BINDING_INC_0>
+				<BINDING_INC_0_EVENT_ID>ATTITUDE_BARS_POSITION_UP</BINDING_INC_0_EVENT_ID>
+				<BINDING_INC_0_PARAM_0>1</BINDING_INC_0_PARAM_0>
+				<BINDING_DEC_0>Position_Down</BINDING_DEC_0>
+				<BINDING_DEC_0_EVENT_ID>ATTITUDE_BARS_POSITION_DOWN</BINDING_DEC_0_EVENT_ID>
+				<BINDING_DEC_0_PARAM_0>1</BINDING_DEC_0_PARAM_0>
+				<TT_DESCRIPTION_ID>@TT_Package.INSTRUMENT_KNOB_ATITUDE_ACTION_BARS</TT_DESCRIPTION_ID>
+			</UseInputEvent>
+		</Condition>
+		<UseTemplate Name="#USE_TEMPLATE_NAME#">
+			<Condition Valid="CAN_ADJUST_BARS">
+				<CLOCKWISE_CODE>(&gt;B:INSTRUMENT_#KNOB_ID_EXTERNAL#_Position_Up)</CLOCKWISE_CODE>
+				<ANTICLOCKWISE_CODE>(&gt;B:INSTRUMENT_#KNOB_ID_EXTERNAL#_Position_Down)</ANTICLOCKWISE_CODE>
+			</Condition>
+			<Condition Valid="CAN_CAGE">
+				<ANIM_SIMVAR>ATTITUDE CAGE</ANIM_SIMVAR>
+				<ANIM_SIMVAR_UNITS>Bool</ANIM_SIMVAR_UNITS>
+				<ANIM_SIMVAR_SCALE>100</ANIM_SIMVAR_SCALE>
+				<Condition Valid="CAGE_ONLY_TRIGGER">
+					<True> <!-- special case : cage on click, uncage on click -->
+						<LEFT_SINGLE_CODE>(&gt;B:INSTRUMENT_#BTN_ID_EXTERNAL#_Toggle)</LEFT_SINGLE_CODE>
+						<LEFT_LEAVE_CODE></LEFT_LEAVE_CODE>
+					</True>
+					<False> <!-- default : cage on press, uncage when released -->
+						<LEFT_SINGLE_CODE>(&gt;B:INSTRUMENT_#BTN_ID_EXTERNAL#_Cage)</LEFT_SINGLE_CODE>
+						<LEFT_LEAVE_CODE>(&gt;B:INSTRUMENT_#BTN_ID_EXTERNAL#_Release)</LEFT_LEAVE_CODE>
+					</False>
+				</Condition>
+				
+			</Condition>
+			<Condition Check="KNOB_HIGHLIGHT_NODE_ID">
+				<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+			</Condition>
+		</UseTemplate>
+	</Component>
+</Template> 
+
+<Template Name="ASOBO_INSTRUMENT_CDI_Loc_Glide_Needles_Template">
+	<DefaultTemplateParameters>
+		<ID>1</ID>
+		<GPS_DRIVES_NAV_SIMVAR>(A:GPS DRIVES NAV1, Bool)</GPS_DRIVES_NAV_SIMVAR>
+	</DefaultTemplateParameters>
+	<OverrideTemplateParameters>
+		<Condition Check="NO_NEEDLE_GLIDE">
+			<NO_GLIDE_LOCALIZER_INIT_ANIMATION/>
+		</Condition>
+		<Condition Check="NO_GPS_DEPENDENCY"><!-- If set, GPS cannot drive instrument values -->
+			<True>
+				<LOCALIZER_ANIM_CODE>
+					(A:NAV CDI:#ID#, Number) 127 +
+				</LOCALIZER_ANIM_CODE>
+			</True>
+			<False>
+				<LOCALIZER_ANIM_CODE>
+					#GPS_DRIVES_NAV_SIMVAR# if{
+						(A:GPS CDI NEEDLE, Number) 127 +
+					} els{
+						(A:NAV CDI:#ID#, Number) 127 +
+					}
+				</LOCALIZER_ANIM_CODE>
+			</False>
+		</Condition>
+		<PART_ID></PART_ID>
+	</OverrideTemplateParameters>
+		
+		<Component ID="CDI_LOC_GLIDE_Needles_#ID#">
+			<DefaultTemplateParameters>
+				<Condition Check="NO_GLIDE_LOCALIZER_INIT_ANIMATION">
+					<False>
+						<WATCHER_FREQ>12</WATCHER_FREQ>
+						<UPDATE_SKIPPED_COUNT>(O:XMLVAR_UpdateSkippedCount)</UPDATE_SKIPPED_COUNT>
+						<IS_AVIONICS_ON>(A:CIRCUIT AVIONICS ON, Bool)</IS_AVIONICS_ON>
+						<FIRST_STEP>
+							0 (&gt;O:XMLVAR_GlideTargetPosition)
+							0 (&gt;O:XMLVAR_LocalizerTargetPosition)
+							6 (&gt;O:XMLVAR_UpdateSkippedCount)
+						</FIRST_STEP>
+						<ANIM_STEP_1>
+							127 (&gt;O:XMLVAR_GlideTargetPosition)
+							-127 (&gt;O:XMLVAR_LocalizerTargetPosition)
+							18 (&gt;O:XMLVAR_UpdateSkippedCount)
+						</ANIM_STEP_1>
+						<ANIM_STEP_2>
+							127 (&gt;O:XMLVAR_GlideTargetPosition)
+							127 (&gt;O:XMLVAR_LocalizerTargetPosition)
+							6 (&gt;O:XMLVAR_UpdateSkippedCount)
+						</ANIM_STEP_2>
+						<ANIM_STEP_3>
+							0 (&gt;O:XMLVAR_GlideTargetPosition)
+							0 (&gt;O:XMLVAR_LocalizerTargetPosition)
+							10 (&gt;O:XMLVAR_UpdateSkippedCount)
+						</ANIM_STEP_3>
+						<FINAL_STEP>
+							0 (&gt;O:XMLVAR_Needles_Init_Animation_Playing)
+							0 (&gt;O:XMLVAR_UpdateCount)
+						</FINAL_STEP>
+					</False>
+				</Condition>
+			</DefaultTemplateParameters>
+			<OverrideTemplateParameters>
+				<LOCALIZER_GLIDE_ANIM_CODE>
+					#GPS_DRIVES_NAV_SIMVAR# if{
+						(A:GPS GSI NEEDLE, Number) 127 +
+					} els{
+						(A:NAV GSI:#ID#, Number) 127 +
+					}
+				</LOCALIZER_GLIDE_ANIM_CODE>
+			</OverrideTemplateParameters>
+			<Condition Check="NO_GLIDE_LOCALIZER_INIT_ANIMATION">
+				<False>
+					<Update Frequency="#WATCHER_FREQ#">
+						(* Avionics switch watcher *)
+						#IS_AVIONICS_ON# sp0
+						l0 (O:XMLVAR_Avionics_ON) != if{
+							l0 if{
+								1 (&gt;O:XMLVAR_Needles_Init_Animation_Playing)
+								0 (&gt;O:XMLVAR_AnimationStep)
+							} els{
+								#FINAL_STEP#
+							}
+						}
+						l0 (&gt;O:XMLVAR_Avionics_ON)
+						(* Animation steps handling *)
+						(O:XMLVAR_Needles_Init_Animation_Playing) if{
+							(O:XMLVAR_UpdateCount) #UPDATE_SKIPPED_COUNT# % 0 == if{
+								(O:XMLVAR_AnimationStep) 0 == if{
+									#FIRST_STEP#
+								} els{
+									(O:XMLVAR_AnimationStep) 1 == if{
+										#ANIM_STEP_1#
+									} els{
+										(O:XMLVAR_AnimationStep) 2 == if{
+											#ANIM_STEP_2#
+										} els{
+											(O:XMLVAR_AnimationStep) 3 == if{
+												#ANIM_STEP_3#
+											} els{
+												(O:XMLVAR_AnimationStep) 4 == if{
+													#FINAL_STEP#
+												} 
+											}
+										}
+									}
+								}
+								(O:XMLVAR_AnimationStep) 1 + (&gt;O:XMLVAR_AnimationStep)
+							}
+							(O:XMLVAR_UpdateCount) 1 + (&gt;O:XMLVAR_UpdateCount)
+						}
+					</Update>
+				</False>
+			</Condition>
+			<Condition Check="NO_NEEDLE_GLIDE">
+				<False>
+					<UseTemplate Name="ASOBO_GT_Anim_Code">
+						<ANIM_NAME>#ANIM_NAME_NEEDLE_GLIDE#</ANIM_NAME>
+						<!-- Glidslope deviation (horizontal bar) -->
+						<ANIM_LENGTH>254</ANIM_LENGTH>
+						<ANIM_CODE>
+							(O:XMLVAR_Needles_Init_Animation_Playing) if{
+								(O:XMLVAR_GlideTargetPosition) 127 +
+							} els{
+								#LOCALIZER_GLIDE_ANIM_CODE# 
+							}
+						</ANIM_CODE>
+						<!-- -127 to + 127 => 0 to 254 -->
+						<ANIM_LAG>600</ANIM_LAG>
+					</UseTemplate>
+				</False>
+			</Condition>
+			<UseTemplate Name="ASOBO_GT_Anim_Code">
+				<ANIM_NAME>#ANIM_NAME_NEEDLE_LOCALIZER#</ANIM_NAME>
+				<!-- Course deviation (vertical bar) -->
+				<ANIM_LENGTH>254</ANIM_LENGTH>
+				<ANIM_CODE>
+					(O:XMLVAR_Needles_Init_Animation_Playing) if{
+						(O:XMLVAR_LocalizerTargetPosition) 127 +
+					} els{
+						#LOCALIZER_ANIM_CODE#
+					}
+				</ANIM_CODE>
+				<ANIM_LAG>600</ANIM_LAG>
+				<!-- -127 to + 127 => 0 to 254 -->
+			</UseTemplate>
+		</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_CDI_SubTemplate">
+	<Parameters Type="Default">
+		<ANIM_NAME_COMPASS>INSTRUMENT_CDI_Compass#SUFFIX_ID#</ANIM_NAME_COMPASS>
+		<ANIM_NAME_NEEDLE_LOCALIZER>INSTRUMENT_CDI_Needle_Localizer#SUFFIX_ID#</ANIM_NAME_NEEDLE_LOCALIZER>
+		<ANIM_NAME_NEEDLE_GLIDE>INSTRUMENT_CDI_Needle_Glide#SUFFIX_ID#</ANIM_NAME_NEEDLE_GLIDE>
+		<ANIM_NAME_FLAG_GLIDE>INSTRUMENT_CDI_Flag_Glide#SUFFIX_ID#</ANIM_NAME_FLAG_GLIDE>
+		<ANIM_NAME_FLAG_LOCALIZER>INSTRUMENT_CDI_Flag_Localizer#SUFFIX_ID#</ANIM_NAME_FLAG_LOCALIZER>
+		<ANIM_NAME_FLAG_OFF>INSTRUMENT_CDI_Flag_Off#SUFFIX_ID#</ANIM_NAME_FLAG_OFF>
+		<ANIM_NAME_FLAG_TO>INSTRUMENT_CDI_Flag_To#SUFFIX_ID#</ANIM_NAME_FLAG_TO>
+		<ANIM_NAME_FLAG_FROM>INSTRUMENT_CDI_Flag_From#SUFFIX_ID#</ANIM_NAME_FLAG_FROM>
+		<NODE_ID>INSTRUMENT_CDI#SUFFIX_ID#</NODE_ID>
+		<COURSE_KNOB_NODE_ID>INSTRUMENT_CDI_Knob_Course#SUFFIX_ID#</COURSE_KNOB_NODE_ID>
+		<COURSE_KNOB_ANIM_NAME>INSTRUMENT_CDI_Knob_Course#SUFFIX_ID#</COURSE_KNOB_ANIM_NAME>
+		<NODE_ID_EMISSIVE_NAV>INSTRUMENT_CDI_Emissive_NAV#SUFFIX_ID#</NODE_ID_EMISSIVE_NAV>
+		<NODE_ID_EMISSIVE_VLOC>INSTRUMENT_CDI_Emissive_VLOC#SUFFIX_ID#</NODE_ID_EMISSIVE_VLOC>
+		<NODE_ID_EMISSIVE_GPS>INSTRUMENT_CDI_Emissive_GPS#SUFFIX_ID#</NODE_ID_EMISSIVE_GPS> 
+		<ANIMREF_ID>-1</ANIMREF_ID>
+		<ANIMTIP_0_ON_CURSOR>TurnLeft</ANIMTIP_0_ON_CURSOR>
+		<ANIMTIP_1_ON_CURSOR>TurnRight</ANIMTIP_1_ON_CURSOR>
+		<ANIMTIP_0>TT:COCKPIT.TOOLTIPS.OBS_BEARING_SELECT_COUNTERCLOCKWISE</ANIMTIP_0>
+		<ANIMTIP_1>TT:COCKPIT.TOOLTIPS.OBS_BEARING_SELECT_CLOCKWISE</ANIMTIP_1>
+		<THRESHOLD_INPUT>0.00005</THRESHOLD_INPUT><!-- COURSE_KNOB -->
+		<NO_ANIM_LAG_ON_COMPASS>True</NO_ANIM_LAG_ON_COMPASS>
+		
+		<EMISSIVE_NAV_CODE>(A:NAV HAS NAV:#ID#, Bool)</EMISSIVE_NAV_CODE>
+		<EMISSIVE_VLOC_CODE>0</EMISSIVE_VLOC_CODE>
+		<EMISSIVE_GPS_CODE>#GPS_DRIVES_NAV_SIMVAR#</EMISSIVE_GPS_CODE>
+		<FLAG_GLIDE_CODE>(A:NAV HAS GLIDE SLOPE:#ID#, Bool)</FLAG_GLIDE_CODE>
+		<FLAG_LOCALIZER_CODE>(A:GPS IS ACTIVE FLIGHT PLAN:#ID#, Bool) (A:NAV HAS NAV:#ID#, Bool) #GPS_DRIVES_NAV_SIMVAR# ?</FLAG_LOCALIZER_CODE>
+		<FLAG_TO_CODE>(A:NAV TOFROM:#ID#, Enum) 1 ==</FLAG_TO_CHECK_CODE>
+		<FLAG_FROM_CODE>(A:NAV TOFROM:#ID#, Enum) 2 ==</FLAG_FROM_CHECK_CODE>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<Condition Check="PART_ID">
+				<True>
+					<HIGHLIGHT_PART_ID>#PART_ID#</HIGHLIGHT_PART_ID>
+				</True>
+				<False>
+					<HIGHLIGHT_PART_ID>INSTRUMENT_CDI</HIGHLIGHT_PART_ID>
+				</False>
+			</Condition>
+		</Condition>
+		<!-- Disable PartId if no Highlight node set. -->
+	</Parameters>
+	<Parameters Type="Editable">
+		<AddParams>
+			<ANIM_NAME_COMPASS>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.COMPASS</ANIM_NAME_COMPASS>
+			<ANIM_NAME_NEEDLE_LOCALIZER>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.NEEDLE_LOCALIZER</ANIM_NAME_NEEDLE_LOCALIZER>
+			<ANIM_NAME_NEEDLE_GLIDE>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.NEEDLE_GLIDE</ANIM_NAME_NEEDLE_GLIDE>
+			<ANIM_NAME_FLAG_GLIDE>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.FLAG_GLIDE</ANIM_NAME_FLAG_GLIDE>
+			<ANIM_NAME_FLAG_LOCALIZER>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.FLAG_LOCALIZER</ANIM_NAME_FLAG_LOCALIZER>
+			<ANIM_NAME_FLAG_OFF>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.FLAG_OFF</ANIM_NAME_FLAG_OFF>
+			<ANIM_NAME_FLAG_TO>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.FLAG_TO</ANIM_NAME_FLAG_TO>
+			<ANIM_NAME_FLAG_FROM>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.FLAG_FROM</ANIM_NAME_FLAG_FROM>
+			<COURSE_KNOB_NODE_ID>TT:MODELBEHAVIOR.CDI.PARAMS.NODE_ID.COURSE_KNOB</COURSE_KNOB_NODE_ID>
+			<COURSE_KNOB_ANIM_NAME>TT:MODELBEHAVIOR.CDI.PARAMS.ANIM_NAME.COURSE_KNOB</COURSE_KNOB_ANIM_NAME>
+			<NODE_ID_EMISSIVE_NAV>TT:MODELBEHAVIOR.CDI.PARAMS.NODE_ID.EMISSIVE_NAV</NODE_ID_EMISSIVE_NAV>
+			<NODE_ID_EMISSIVE_VLOC>TT:MODELBEHAVIOR.CDI.PARAMS.NODE_ID.EMISSIVE_VLOC</NODE_ID_EMISSIVE_VLOC>
+			<NODE_ID_EMISSIVE_GPS>TT:MODELBEHAVIOR.CDI.PARAMS.NODE_ID.EMISSIVE_GPS</NODE_ID_EMISSIVE_GPS>
+			<HIGHLIGHT_NODE_ID>TT:MODELBEHAVIOR.CDI.PARAMS.NODE_ID.HIGHLIGHT</HIGHLIGHT_NODE_ID>
+		</AddParams>
+		<AddOptions>
+			<NO_GLIDE_LOCALIZER_INIT_ANIMATION>TT:MODELBEHAVIOR.CDI.OPTIONS.NO_GLIDE_LOCALIZER_INIT_ANIMATION</NO_GLIDE_LOCALIZER_INIT_ANIMATION>
+			<NO_NEEDLE_GLIDE>TT:MODELBEHAVIOR.CDI.OPTIONS.NO_NEEDLE_GLIDE</NO_NEEDLE_GLIDE>
+			<NO_FLAG_GLIDE>TT:MODELBEHAVIOR.CDI.OPTIONS.NO_FLAG_GLIDE</NO_FLAG_GLIDE>
+			<NO_FLAG_LOCALIZER>TT:MODELBEHAVIOR.CDI.OPTIONS.NO_FLAG_LOCALIZER</NO_FLAG_LOCALIZER>
+			<NO_EMISSIVE_NAV>TT:MODELBEHAVIOR.CDI.OPTIONS.NO_EMISSIVE_NAV</NO_EMISSIVE_NAV>
+			<NO_EMISSIVE_GPS>TT:MODELBEHAVIOR.CDI.OPTIONS.NO_EMISSIVE_GPS</NO_EMISSIVE_GPS>
+			<NO_EMISSIVE_VLOC>TT:MODELBEHAVIOR.CDI.OPTIONS.NO_EMISSIVE_VLOC</NO_EMISSIVE_VLOC>
+		</AddOptions>
+		<RemoveParams>
+			<ANIM_NAME/>
+			<NODE_ID/>
+		</RemoveParams>
+	</Parameters>
+
+	<Component ID="#NODE_ID#_#ID#" Node="#NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Anim_Sim">
+			<ANIM_NAME>#ANIM_NAME_COMPASS#</ANIM_NAME>
+			<Condition Check="NO_ANIM_LAG_ON_COMPASS">
+				<False>						
+					<ANIM_LAG>400</ANIM_LAG>
+				</False>
+			</Condition>
+			<!-- [0, 360] -->
+			<ANIM_LENGTH>360</ANIM_LENGTH>
+			<ANIM_SIMVAR>NAV OBS:#ID#</ANIM_SIMVAR>
+			<ANIM_SIMVAR_UNITS>degrees</ANIM_SIMVAR_UNITS>
+			<PART_ID/>
+			<ANIM_WRAP>1</ANIM_WRAP>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_FLAG_TO#</ANIM_NAME>
+			<Condition Check="CIRCUIT_ID">
+				<True>
+					<ANIM_CODE>#FLAG_TO_CODE# (A:CIRCUIT ON:#CIRCUIT_ID#, Bool) and 100 *</ANIM_CODE>
+				</True>
+				<False>
+					<ANIM_CODE>#FLAG_TO_CODE# (A:CIRCUIT AVIONICS ON, Bool) and 100 *</ANIM_CODE>
+				</False>
+			</Condition>
+			<ANIM_LAG>400</ANIM_LAG>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_NAME>#ANIM_NAME_FLAG_FROM#</ANIM_NAME>
+			<Condition Check="CIRCUIT_ID">
+				<True>
+					<ANIM_CODE>#FLAG_FROM_CODE# (A:CIRCUIT ON:#CIRCUIT_ID#, Bool) and 100 *</ANIM_CODE>
+				</True>
+				<False>
+					<ANIM_CODE>#FLAG_FROM_CODE# (A:CIRCUIT AVIONICS ON, Bool) and 100 *</ANIM_CODE>
+				</False>
+			</Condition>
+			<ANIM_LAG>400</ANIM_LAG>
+		</UseTemplate>
+		
+		<UseTemplate Name="ASOBO_INSTRUMENT_CDI_Loc_Glide_Needles_Template">
+		</UseTemplate>
+		
+		<Condition Check="NO_FLAG_GLIDE">
+			<False>
+				<UseTemplate Name="ASOBO_GT_Anim_Code">
+					<ANIM_NAME>#ANIM_NAME_FLAG_GLIDE#</ANIM_NAME>
+					<ANIM_CODE>#FLAG_GLIDE_CODE# 100 * </ANIM_CODE>
+					<ANIM_LAG>400</ANIM_LAG>
+				</UseTemplate>
+			</False>
+		</Condition>
+		<Condition Check="NO_FLAG_LOCALIZER">
+			<False>
+				<UseTemplate Name="ASOBO_GT_Anim_Code">
+					<ANIM_NAME>#ANIM_NAME_FLAG_LOCALIZER#</ANIM_NAME>
+					<ANIM_CODE>#FLAG_LOCALIZER_CODE# 100 * </ANIM_CODE>
+					<ANIM_LAG>400</ANIM_LAG>
+				</UseTemplate>
+			</False>
+		</Condition>
+	</Component>
+	<Component ID="#COURSE_KNOB_NODE_ID#" Node="#COURSE_KNOB_NODE_ID#">
+		<Parameters Type="Default">
+			<TOOLTIP_COURSE_TITLE>@TT_Package.AUTOPILOT_KNOB_COURSE_TITLE</TOOLTIP_COURSE_TITLE>
+		</Parameters>
+		<Parameters Type="Override">
+			<TOOLTIP_TITLE>#TOOLTIP_COURSE_TITLE#</TOOLTIP_TITLE>
+			<TOOLTIP_ENTRY_0>INSTRUMENT_Course_#ID#</TOOLTIP_ENTRY_0>
+		</Parameters>
+		<UseInputEvent ID="INSTRUMENT">
+			<CRS_ID>#ID#</CRS_ID>
+			<ON_AFTER_INC_EXTERNAL_CODE>(O:_KnobAnimVar) 10 + dnor (&gt;O:_KnobAnimVar)</ON_AFTER_INC_EXTERNAL_CODE>
+			<ON_AFTER_DEC_EXTERNAL_CODE>(O:_KnobAnimVar) 10 - dnor (&gt;O:_KnobAnimVar)</ON_AFTER_DEC_EXTERNAL_CODE>
+		</UseInputEvent>
+		<UseTemplate Name="ASOBO_GT_Knob_Infinite">
+			<Condition Check="KNOB_HIGHLIGHT_NODE_ID">
+				<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+			</Condition>
+			<ANIM_NAME>#COURSE_KNOB_ANIM_NAME#</ANIM_NAME>
+			<CLOCKWISE_CODE_DEFAULT_IM>1 (&gt;B:INSTRUMENT_Course_#ID#_Inc)</CLOCKWISE_CODE_DEFAULT_IM>
+			<ANTICLOCKWISE_CODE_DEFAULT_IM>1 (&gt;B:INSTRUMENT_Course_#ID#_Dec)</ANTICLOCKWISE_CODE_DEFAULT_IM>
+			<CLOCKWISE_CODE_DRAG_IM>1 (&gt;B:INSTRUMENT_Course_#ID#_Inc)</CLOCKWISE_CODE_DRAG_IM>
+			<ANTICLOCKWISE_CODE_DRAG_IM>1 (&gt;B:INSTRUMENT_Course_#ID#_Dec)</ANTICLOCKWISE_CODE_DRAG_IM>
+		</UseTemplate>
+	</Component>
+	<Condition Check="NO_EMISSIVE_NAV">
+		<False>
+			<Component ID="#NODE_ID_EMISSIVE_NAV#" Node="#NODE_ID_EMISSIVE_NAV#">
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>#EMISSIVE_NAV_CODE#</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+		</False>
+	</Condition>
+	<Condition Check="NO_EMISSIVE_VLOC">
+		<False>
+			<Component ID="#NODE_ID_EMISSIVE_VLOC#" Node="#NODE_ID_EMISSIVE_VLOC#">
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>#EMISSIVE_VLOC_CODE#</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+		</False>
+	</Condition>
+	<Condition Check="NO_EMISSIVE_GPS">
+		<False>
+			<Component ID="#NODE_ID_EMISSIVE_GPS#" Node="#NODE_ID_EMISSIVE_GPS#">
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>#EMISSIVE_GPS_CODE#</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+		</False>
+	</Condition>
+	<Condition Check="HIGHLIGHT_NODE_ID">
+		<UseTemplate Name="ASOBO_GT_Highlight_Template">
+			<PART_ID>#HIGHLIGHT_PART_ID#</PART_ID>
+		</UseTemplate>
+	</Condition>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Clock_SubTemplate">
+	<DefaultTemplateParameters>
+		<NODE_ID>INSTRUMENT_Needle_Clock#SUFFIX_ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Needle_Clock#SUFFIX_ID#</ANIM_NAME>
+		<UNITS>minutes</UNITS>
+		<MAX_VALUE>60</MAX_VALUE>
+		<ANIM_WRAP>TRUE</ANIM_WRAP>
+		<ANIM_LENGTH>60</ANIM_LENGTH>
+	</DefaultTemplateParameters>
+	<Component ID="#NODE_ID#_#ID#" Node="#NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_CODE>(A:GENERAL ENG HOBBS ELAPSED TIME:#ID#, #UNITS#) #MAX_VALUE# %</ANIM_CODE>
+		</UseTemplate>
+	</Component>
+</Template>
+
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Heading_SubTemplate">
+	<DefaultTemplateParameters>
+		<NEEDLE_ANIM_NAME>INSTRUMENT_Needle_Heading#SUFFIX_ID#</NEEDLE_ANIM_NAME>
+		<NEEDLE_NODE_ID>INSTRUMENT_Needle_Heading#SUFFIX_ID#</NEEDLE_NODE_ID>
+		<CYLINDER_ANIM_NAME>INSTRUMENT_Needle_Heading_Cylinder#SUFFIX_ID#</CYLINDER_ANIM_NAME>
+		<CYLINDER_NODE_ID>INSTRUMENT_Needle_Heading_Cylinder#SUFFIX_ID#</CYLINDER_NODE_ID>
+		<COMPASS_KNOB_NODE_ID>INSTRUMENT_Knob_Heading_Compass#SUFFIX_ID#</COMPASS_KNOB_NODE_ID>
+		<COMPASS_KNOB_ANIM_NAME>INSTRUMENT_Knob_Heading_Compass#SUFFIX_ID#</COMPASS_KNOB_ANIM_NAME>
+		<PART_ID>INSTRUMENT_Needle_Heading</PART_ID>
+		<HEADING_KNOB_ANIM_NAME>INSTRUMENT_Knob_Heading#SUFFIX_ID#</HEADING_KNOB_ANIM_NAME>
+		<HEADING_KNOB_NODE_ID>INSTRUMENT_Knob_Heading#SUFFIX_ID#</HEADING_KNOB_NODE_ID>
+		<Condition Check="USE_FLAG">
+			<FLAG_NODE_ID>INSTRUMENT_Flag_Heading#SUFFIX_ID#</FLAG_NODE_ID>
+			<FLAG_ANIM_NAME>INSTRUMENT_Flag_Heading#SUFFIX_ID#</FLAG_ANIM_NAME>
+			<Condition Check="USE_ELECTRICAL_CHECK">
+				<MIN_VOLTAGE>14</MIN_VOLTAGE>
+			</Condition>
+		</Condition>
+		<NO_ANIM_LAG_ON_NEEDLE>True</NO_ANIM_LAG_ON_NEEDLE>
+		<HDG_ID>1</HDG_ID>
+	</DefaultTemplateParameters>
+	<EditableTemplateParameters>
+		<AddParams>
+			<NEEDLE_ANIM_NAME></NEEDLE_ANIM_NAME>
+			<NEEDLE_NODE_ID></NEEDLE_NODE_ID>
+			<CYLINDER_ANIM_NAME></CYLINDER_ANIM_NAME>
+			<CYLINDER_NODE_ID></CYLINDER_NODE_ID>
+			<COMPASS_KNOB_NODE_ID></COMPASS_KNOB_NODE_ID>
+			<COMPASS_KNOB_ANIM_NAME></COMPASS_KNOB_ANIM_NAME>
+			<HEADING_KNOB_ANIM_NAME></HEADING_KNOB_ANIM_NAME>
+			<HEADING_KNOB_NODE_ID></HEADING_KNOB_NODE_ID>
+			<FLAG_NODE_ID></FLAG_NODE_ID>
+			<FLAG_ANIM_NAME></FLAG_ANIM_NAME>
+			<HIGHLIGHT_NODE_ID></HIGHLIGHT_NODE_ID>
+		</AddParams>
+		<AddOptions>
+			<HEADING_KNOB></HEADING_KNOB>
+			<USE_FLAG></USE_FLAG>
+			<USE_ELECTRICAL_CHECK></USE_ELECTRICAL_CHECK>
+		</AddOptions>
+		<RemoveParams>
+			<ANIM_NAME></ANIM_NAME>
+			<NODE_ID></NODE_ID>
+		</RemoveParams>
+	</EditableTemplateParameters>
+	
+	<Component ID="INSTRUMENT_Heading">
+		<Condition Check="USE_FLAG">
+			<Component ID="#FLAG_NODE_ID#" Node="#FLAG_NODE_ID#">
+				<UseTemplate Name="ASOBO_GT_Anim">
+					<Condition Check="USE_ELECTRICAL_CHECK">
+						<True>
+							<ANIM_CODE>(A:ELECTRICAL MAIN BUS VOLTAGE, Volts) #MIN_VOLTAGE# &gt; 100 *</ANIM_CODE>
+							<FAILURE_CODE>0</FAILURE_CODE>
+						</True>
+						<False>
+							<ANIM_CODE>(A:SUCTION PRESSURE, inhg) 2.3 &gt; 100 *</ANIM_CODE>
+							<FAILURE>1</FAILURE>
+						</False>
+					</Condition>
+					<Condition Check="INVERT_FLAG_ANIM">
+						<True>
+							<INVERT_ANIM>True</INVERT_ANIM>
+						</True>
+					</Condition>
+					<ANIM_NAME>#FLAG_ANIM_NAME#</ANIM_NAME>
+					<ANIM_LAG>600</ANIM_LAG>
+				</UseTemplate>
+			</Component>
+		</Condition>
+		<Component ID="#CYLINDER_ANIM_NAME#" Node="#CYLINDER_NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Anim_Sim">
+				<Condition Check="DONT_FAIL_HEADING_INDICATOR_ANIMATION">
+					<ANIM_NEVER_FAILS/>
+				</Condition>
+				<ANIM_NAME>#CYLINDER_ANIM_NAME#</ANIM_NAME>
+				<ANIM_LENGTH>360</ANIM_LENGTH>
+				<ANIM_WRAP>TRUE</ANIM_WRAP>
+				<ANIM_SIMVAR>PLANE HEADING DEGREES GYRO</ANIM_SIMVAR>
+				<ANIM_SIMVAR_UNITS>degrees</ANIM_SIMVAR_UNITS>
+				<Condition Check="FAILURE_NEEDLE">
+					<FAILURE>#FAILURE_NEEDLE#</FAILURE>
+				</Condition>
+				<!-- [0, 360] -->
+				<Condition Check="HIGHLIGHT_NODE_ID">
+					<PART_ID/>
+				</Condition>
+				<ANIM_WRAP>True</ANIM_WRAP>
+			</UseTemplate>
+		</Component>
+		<Condition Check="NO_COMPASS_ADJUST">
+			<False>
+				<Component ID="#COMPASS_KNOB_NODE_ID#">
+					<Parameters Type="Default">
+						<WWISE_PREFIX>gyro</WWISE_PREFIX>
+						<GYRO_ID>1</GYRO_ID>
+						<TT_DESCRIPTION_ID>@TT_Package.INSTRUMENT_KNOB_HEADING_COMPASS_ACTION</TT_DESCRIPTION_ID>
+						<TOOLTIP_TITLE>@TT_Package.INSTRUMENT_KNOB_HEADING_COMPASS_TITLE</TOOLTIP_TITLE>
+						<THRESHOLD_INPUT>0.00005</THRESHOLD_INPUT>
+						<THRESHOLD_MOUSE>0.001</THRESHOLD_MOUSE>
+					</Parameters>
+					<UseTemplate Name="ASOBO_INSTRUMENT_Base_Template">
+						<Condition Check="DONT_FAIL_HEADING_INDICATOR_ANIMATION">
+							<ANIM_NEVER_FAILS/>
+						</Condition>
+						<Condition Check="KNOB_HIGHLIGHT_NODE_ID">
+							<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+						</Condition>
+						<ANIM_NAME>#COMPASS_KNOB_ANIM_NAME#</ANIM_NAME>
+						<NODE_ID>#COMPASS_KNOB_NODE_ID#</NODE_ID>
+						<IE_NAME>Gyro_Drift</IE_NAME>
+						<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+						<IS_INFINITE>True</IS_INFINITE>
+						<SET_STATE_EXTERNAL>p0 dnor (&gt;K:GYRO_DRIFT_SET_EX1)</SET_STATE_EXTERNAL>
+						<CLAMP_VALUE>dnor</CLAMP_VALUE>
+						<GET_STATE_EXTERNAL>(A:HEADING INDICATOR, Degrees)</GET_STATE_EXTERNAL>
+						<SIMVAR_TO_WATCH_0>HEADING INDICATOR</SIMVAR_TO_WATCH_0>
+						<FORMAT_VALUE>'%d°' @sprintf</FORMAT_VALUE>
+						<STATE_TO_POS_EXTERNAL>3.6 /</STATE_TO_POS_EXTERNAL>
+						<Condition Check="HIGHLIGHT_NODE_ID">
+							<PART_ID/>
+						</Condition>
+					</UseTemplate>
+				</Component>
+			</False>
+		</Condition>
+		<Condition Check="HEADING_KNOB">
+			<Component ID="#NEEDLE_NODE_ID#" Node="#NEEDLE_NODE_ID#">
+				<UseTemplate Name="ASOBO_GT_Anim_Sim">
+					<Condition Check="DONT_FAIL_HEADING_INDICATOR_ANIMATION">
+						<ANIM_NEVER_FAILS/>
+					</Condition>
+					<ANIM_NAME>#NEEDLE_ANIM_NAME#</ANIM_NAME>
+					<ANIM_LENGTH>360</ANIM_LENGTH>
+					<Condition Check="NO_ANIM_LAG_ON_NEEDLE">
+						<False>
+							<ANIM_LAG>200</ANIM_LAG>
+						</False>
+					</Condition>
+					<ANIM_WRAP>TRUE</ANIM_WRAP>
+					<ANIM_SIMVAR>AUTOPILOT HEADING LOCK DIR:#HDG_ID#</ANIM_SIMVAR>
+					<ANIM_SIMVAR_UNITS>degrees</ANIM_SIMVAR_UNITS>
+					<!-- [0, 360] -->
+					<Condition Check="HIGHLIGHT_NODE_ID">
+						<PART_ID/>
+					</Condition>
+					<ANIM_WRAP>True</ANIM_WRAP>
+				</UseTemplate>
+			</Component>
+			<Component ID="#HEADING_KNOB_NODE_ID#">
+				<Parameters Type="Default">
+					<WWISE_PREFIX>hdg</WWISE_PREFIX>
+					<TT_DESCRIPTION_ID>@TT_Package.INSTRUMENT_KNOB_HEADING_BUG_ACTION</TT_DESCRIPTION_ID>
+					<TOOLTIP_TITLE>@TT_Package.INSTRUMENT_KNOB_HEADING_BUG_TITLE</TOOLTIP_TITLE>
+					<THRESHOLD_INPUT>0.00005</THRESHOLD_INPUT>
+					<THRESHOLD_MOUSE>0.001</THRESHOLD_MOUSE>
+				</Parameters>
+				<UseTemplate Name="ASOBO_INSTRUMENT_Base_Template">
+					<Condition Check="DONT_FAIL_HEADING_INDICATOR_ANIMATION">
+						<ANIM_NEVER_FAILS/>
+					</Condition>
+					<Condition Check="KNOB_HIGHLIGHT_NODE_ID_2">
+						<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID_2#</HIGHLIGHT_NODE_ID>
+					</Condition>
+					<ANIM_NAME>#HEADING_KNOB_ANIM_NAME#</ANIM_NAME>
+					<NODE_ID>#HEADING_KNOB_NODE_ID#</NODE_ID>
+					<IE_NAME>Heading_Bug#HDG_ID#</IE_NAME>
+					<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+					<IS_INFINITE>True</IS_INFINITE>
+					<SET_STATE_EXTERNAL>#HDG_ID# p0 dnor 360 / @16k * (&gt;K:2:AP_HEADING_BUG_SET_EX1)</SET_STATE_EXTERNAL>
+					<CLAMP_VALUE>dnor</CLAMP_VALUE>
+					<GET_STATE_EXTERNAL>(A:AUTOPILOT HEADING LOCK DIR:#HDG_ID#, degrees)</GET_STATE_EXTERNAL>
+					<SIMVAR_TO_WATCH_0>AUTOPILOT HEADING LOCK DIR:#HDG_ID#</SIMVAR_TO_WATCH_0>
+					<FORMAT_VALUE>'%d°' @sprintf</FORMAT_VALUE>
+					<STATE_TO_POS_EXTERNAL>3.6 /</STATE_TO_POS_EXTERNAL>
+					<Condition Check="HIGHLIGHT_NODE_ID">
+						<PART_ID/>
+					</Condition>
+				</UseTemplate>
+			</Component>
+		</Condition>
+
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<UseTemplate Name="ASOBO_GT_Highlight_Template">
+			</UseTemplate>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Fuel_Quantity_SubTemplate">
+	<DefaultTemplateParameters>
+		<Condition Valid="TWO_NEEDLE_IN_CONTAINER">
+			<True>
+				<ANIM_NAME>INSTRUMENT_Needle_Fuel_Quantity_1#SUFFIX_ID#</ANIM_NAME>
+				<NODE_ID>INSTRUMENT_Needle_Fuel_Quantity_1#SUFFIX_ID#</NODE_ID>
+				<ANIM_NAME_2>INSTRUMENT_Needle_Fuel_Quantity_2#SUFFIX_ID#</ANIM_NAME_2>
+				<NODE_ID_2>INSTRUMENT_Needle_Fuel_Quantity_2#SUFFIX_ID#</NODE_ID_2>
+			</True>
+			<False>
+				<ANIM_NAME>INSTRUMENT_Needle_Fuel_Quantity#SUFFIX_ID#</ANIM_NAME>
+				<NODE_ID>INSTRUMENT_Needle_Fuel_Quantity#SUFFIX_ID#</NODE_ID>
+			</False>
+		</Condition>
+		<ANIM_LAG>100</ANIM_LAG>
+		<PART_ID>INSTRUMENT_Needle_Fuel_Quantity</PART_ID>
+		<Switch>
+			<Case Valid="USE_SELECTABLE">
+				<!-- REQUIRED: TANK_ID_1 & TANK_ID_2 -->
+				<TANK_ID_SELECTED_ID>0</TANK_ID_SELECTED_ID>
+				<SELECTION_COUNT>2</SELECTION_COUNT>
+				<SELECTION>
+				(A:FUEL TANK #TANK_ID_2# QUANTITY, Gallons) #MAX_FUEL_DISPLAYED_QUANTITY_GALLONS# /
+				(A:FUEL TANK #TANK_ID_1# QUANTITY, Gallons) #MAX_FUEL_DISPLAYED_QUANTITY_GALLONS# /
+				</SELECTION>
+			</Case>
+			<Case Valid="USE_CURVED_GAUGE_SETUP">
+				<SELECTION>(A:FUEL TANK #TANK_ID# QUANTITY, #SIMVAR_UNIT#)</SELECTION>
+				<MIN>0</MIN>
+				<MAX Process="Float">(A:FUEL TANK #TANK_ID# CAPACITY, #SIMVAR_UNIT#)</MAX>
+				<REF_LITERS_LOW>5</REF_LITERS_LOW> <!-- Fuel_Qty ref for anim values below -->
+				<REF_LITERS_HIGH>20</REF_LITERS_HIGH> <!-- Fuel_Qty ref for anim values below -->
+				<ANIM_VALUE_LOW_REF_LITERS>8</ANIM_VALUE_LOW_REF_LITERS> <!-- Frame where Fuel qty equals to REF_LITERS_LOW -->
+				<ANIM_VALUE_HIGH_REF_LITERS>12</ANIM_VALUE_HIGH_REF_LITERS> <!-- Frame where Fuel qty equals to REF_LITERS_HIGH -->
+				<ANIM_FUEL_LENGTH>19</ANIM_FUEL_LENGTH><!-- Frame count -->
+			</Case>
+			<Case Valid="USE_CUSTOM_POINTS">
+				<!-- Setup some parameters that may be overriden-->
+				<SELECTION>(A:FUEL TANK #TANK_ID# QUANTITY, #SIMVAR_UNIT#)</SELECTION>
+			</Case>
+			<Default>
+				<Condition Check="TANK_ID">
+					<True>
+						<SELECTION>(A:FUEL TANK #TANK_ID# QUANTITY, #SIMVAR_UNIT#)</SELECTION>
+						<CAPACITY>(A:FUEL TANK #TANK_ID# CAPACITY, #SIMVAR_UNIT#)</CAPACITY>
+					</True>
+					<False>
+						<SELECTION>(A:FUEL TOTAL QUANTITY, #SIMVAR_UNIT#)</SELECTION>
+						<CAPACITY>(A:FUEL TOTAL CAPACITY, #SIMVAR_UNIT#)</CAPACITY>
+					</False>
+				</Condition>
+				<Condition Check="TANK_ID2">
+					<True>
+						<SELECTION2>(A:FUEL TANK #TANK_ID2# QUANTITY, #SIMVAR_UNIT#)</SELECTION2>
+						<CAPACITY2>(A:FUEL TANK #TANK_ID2# CAPACITY, #SIMVAR_UNIT#)</CAPACITY2>
+					</True>
+				</Condition>
+			</Default>
+		</Switch>
+	</DefaultTemplateParameters>
+	<OverrideTemplateParameters>
+		<Switch>
+			<Case Valid="USE_CURVED_GAUGE_SETUP">
+				<VALUE_RANGE_HIGH Process="Float">#MAX# #REF_LITERS_HIGH# -</VALUE_RANGE_HIGH>
+				<VALUE_RANGE_MID Process="Float">#REF_LITERS_HIGH# #REF_LITERS_LOW# -</VALUE_RANGE_MID>
+				<VALUE_RANGE_LOW Process="Float">#REF_LITERS_LOW#</VALUE_RANGE_LOW>
+				<ANIM_RANGE_HIGH Process="Float">#ANIM_FUEL_LENGTH# #ANIM_VALUE_HIGH_REF_LITERS# -</ANIM_RANGE_HIGH>
+				<ANIM_RANGE_MID Process="Float">#ANIM_VALUE_HIGH_REF_LITERS# #ANIM_VALUE_LOW_REF_LITERS# -</ANIM_RANGE_MID>
+				<ANIM_RANGE_LOW Process="Float">#ANIM_VALUE_LOW_REF_LITERS#</ANIM_RANGE_LOW>
+			</Case>
+			<Case Valid="USE_SELECTABLE">
+				<Condition Check="MAX_FUEL_DISPLAYED_QUANTITY_GALLONS">
+					<True>
+						<CAPACITY>#MAX_FUEL_DISPLAYED_QUANTITY_GALLONS#</CAPACITY>
+					</True>
+				</Condition>
+			</Case>
+		</Switch>
+	</OverrideTemplateParameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<OverrideTemplateParameters>
+			<Condition Check="HIGHLIGHT_NODE_ID">
+				<PART_ID/>
+			</Condition>
+		</OverrideTemplateParameters>
+		<Switch>
+			<Case Valid="USE_CUSTOM_POINTS">
+				<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code">
+					<!-- See template definition to know what parameters are required -->
+				</UseTemplate>
+			</Case>
+			<Default>
+				<UseTemplate Name="ASOBO_GT_Anim_Code">
+					<Switch>
+						<Case Valid="USE_CURVED_GAUGE_SETUP">
+							<ANIM_CODE>
+								#SELECTION# #MAX# min #MIN# max sp0
+								l0 #REF_LITERS_LOW# &gt; if{
+									l0 #REF_LITERS_HIGH# &gt; if{
+										(* Over High *)
+										l0 #REF_LITERS_HIGH# - #VALUE_RANGE_HIGH# / #ANIM_RANGE_HIGH# * #ANIM_VALUE_HIGH_REF_LITERS# +
+									} els{
+										(* In between High and Low *)
+										l0 #REF_LITERS_LOW# - #VALUE_RANGE_MID# / #ANIM_RANGE_MID# * #ANIM_VALUE_LOW_REF_LITERS# +
+									}
+								} els{
+									(* Under Low *)
+									l0 #VALUE_RANGE_LOW# / #ANIM_RANGE_LOW# *
+								}
+							</ANIM_CODE>
+							<ANIM_LENGTH>#ANIM_FUEL_LENGTH#</ANIM_LENGTH>
+						</Case>
+						<Case Valid="USE_SELECTABLE">
+							<ANIM_CODE>
+								#SELECTION# #SELECTION_COUNT# #TANK_ID_SELECTED_ID# case sp0
+								l0 100 *
+							</ANIM_CODE>
+						</Case>
+						<Default>
+							<ANIM_CODE>#SELECTION# #CAPACITY# / 100 *</ANIM_CODE>
+						</Default>
+					</Switch>
+				</UseTemplate>
+			</Default>
+		</Switch>
+	</Component>
+	<Condition Check="TWO_NEEDLE_IN_CONTAINER">
+		<True>
+			<Component ID="#NODE_ID_2#" Node="#NODE_ID_2#">
+				<UseTemplate Name="ASOBO_GT_Anim_Code">
+					<ANIM_NAME>#ANIM_NAME_2#</ANIM_NAME>
+					<ANIM_CODE>#SELECTION2# #CAPACITY2# / 100 *</ANIM_CODE>
+					<Condition Check="HIGHLIGHT_NODE_ID">
+						<PART_ID/>
+					</Condition>
+				</UseTemplate>
+			</Component>
+		</True>
+	</Condition>
+	<Condition Check="HIGHLIGHT_NODE_ID">
+		<UseTemplate Name="ASOBO_GT_Highlight_Template">
+		</UseTemplate>
+	</Condition>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_AttitudeIndicator_Simple_SubTemplate">
+	<DefaultTemplateParameters>
+		<PART_ID>INSTRUMENT_AttitudeIndicator</PART_ID>
+		<PITCH_DEGREES_ANIM_NAME>INSTRUMENT_AttitudeIndicator_Pitch#SUFFIX_ID#</PITCH_DEGREES_ANIM_NAME>
+		<BANK_DEGREES_ANIM_NAME>INSTRUMENT_AttitudeIndicator_Bank#SUFFIX_ID#</BANK_DEGREES_ANIM_NAME>
+		<BARS_POSITION_ANIM_NAME>INSTRUMENT_AttitudeIndicator_Bars#SUFFIX_ID#</BARS_POSITION_ANIM_NAME>
+		<PITCH_DEGREES_NODE_ID>INSTRUMENT_AttitudeIndicator_Pitch#SUFFIX_ID#</PITCH_DEGREES_NODE_ID>
+		<BANK_DEGREES_NODE_ID>INSTRUMENT_AttitudeIndicator_Bank#SUFFIX_ID#</BANK_DEGREES_NODE_ID>
+		<BARS_POSITION_NODE_ID>INSTRUMENT_AttitudeIndicator_Bars#SUFFIX_ID#</BARS_POSITION_NODE_ID>
+		<PITCH_MIN_VALUE>-40</PITCH_MIN_VALUE>
+		<PITCH_MAX_VALUE>40</PITCH_MAX_VALUE>
+		<Condition Check="USE_FLAG">
+			<FLAG_NODE_ID>INSTRUMENT_AttitudeIndicator_Flag#SUFFIX_ID#</FLAG_NODE_ID>
+		</Condition>
+		<Condition Check="NO_BARS_POSTION_ADJUSTEMENT">
+			<NO_BARS_POSITION_ANIMATION>True</NO_BARS_POSITION_ANIMATION>
+		</Condition>
+		<USE_DEFAULT_CONTAINER_VALUES>True</USE_DEFAULT_CONTAINER_VALUES><!-- Override pitch animation settings with default container values -->
+		<FLAG_ANIM_CODE>100</FLAG_ANIM_CODE>
+	</DefaultTemplateParameters>
+	<OverrideTemplateParameters>
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<HIGHLIGHT_PART_ID>#PART_ID#</HIGHLIGHT_PART_ID>
+			<PART_ID></PART_ID>
+		</Condition>
+	</OverrideTemplateParameters>
+	<EditableTemplateParameters>
+		<AddParams>
+			<PITCH_DEGREES_ANIM_NAME></PITCH_DEGREES_ANIM_NAME>
+			<BANK_DEGREES_ANIM_NAME></BANK_DEGREES_ANIM_NAME>
+			<BARS_POSITION_ANIM_NAME></BARS_POSITION_ANIM_NAME>
+			<PITCH_DEGREES_NODE_ID></PITCH_DEGREES_NODE_ID>
+			<BANK_DEGREES_NODE_ID></BANK_DEGREES_NODE_ID>
+			<BARS_POSITION_NODE_ID></BARS_POSITION_NODE_ID>
+			<FLAG_NODE_ID></FLAG_NODE_ID>
+			<HIGHLIGHT_NODE_ID/>
+		</AddParams>
+		<AddOptions>
+			<USE_FLAG></USE_FLAG>
+			<NO_WARNING></NO_WARNING>
+		</AddOptions>
+		<RemoveParams>
+			<NODE_ID></NODE_ID>
+			<ANIM_NAME></ANIM_NAME>
+		</RemoveParams>
+	</EditableTemplateParameters>
+
+	<Component ID="INSTRUMENT_AttitudeIndicator#SUFFIX_ID#">
+		<DefaultTemplateParameters>
+			<Condition Valid="USE_DEFAULT_CONTAINER_VALUES">
+				<Switch>
+					<Case Valid="USE_LINEAR_VALUES">
+						<REF_DEGREES>20</REF_DEGREES> <!-- Degree ref for anim values below -->
+						<ANIM_VALUE_PLUS_REF_DEGREES>23</ANIM_VALUE_PLUS_REF_DEGREES> <!-- Frame where pitch equals 20° -->
+						<ANIM_VALUE_MINUS_REF_DEGREES>13.5</ANIM_VALUE_MINUS_REF_DEGREES> <!-- Frame where pitch equals -20° -->
+						<ANIM_PITCH_LENGTH>36</ANIM_PITCH_LENGTH><!-- Frame count -->
+						<ANIM_PITCH_0>18</ANIM_PITCH_0> <!-- Frame where pitch equals 0° -->
+					</Case>
+					<Default>
+						<REF_DEGREES>20</REF_DEGREES> <!-- Degree ref for anim values below -->
+						<ANIM_VALUE_PLUS_REF_DEGREES>83</ANIM_VALUE_PLUS_REF_DEGREES> <!-- Frame where pitch equals 20° -->
+						<ANIM_VALUE_MINUS_REF_DEGREES>10</ANIM_VALUE_MINUS_REF_DEGREES> <!-- Frame where pitch equals -20° -->
+						<ANIM_PITCH_LENGTH>100</ANIM_PITCH_LENGTH><!-- Frame count -->
+						<ANIM_PITCH_0>50</ANIM_PITCH_0> <!-- Frame where pitch equals 0° -->
+					</Default>
+				</Switch>
+			</Condition>
+		</DefaultTemplateParameters>
+		<Condition Check="USE_FLAG">
+			<Component ID="#FLAG_NODE_ID#" Node="#FLAG_NODE_ID#">
+				<UseTemplate Name="ASOBO_GT_Anim">
+					<Condition Check="USE_SUCTION_PRESSURE_CHECK">
+						<True>
+							<ANIM_CODE>(A:SUCTION PRESSURE, inhg) 2.3 &gt; 100 *</ANIM_CODE>
+							<FAILURE>1</FAILURE>
+						</True>
+						<False>
+							<ANIM_CODE>#FLAG_ANIM_CODE#</ANIM_CODE>
+							<FAILURE_CODE>0</FAILURE_CODE>
+						</False>
+					</Condition>
+					<ANIM_NAME>#FLAG_NODE_ID#</ANIM_NAME>
+					<ANIM_LAG>600</ANIM_LAG>
+				</UseTemplate>
+			</Component>
+		</Condition>
+		<Component ID="#PITCH_DEGREES_NODE_ID#" Node="#PITCH_DEGREES_NODE_ID#">
+			<DefaultTemplateParameters>
+				<Condition Valid="USE_DEFAULT_CONTAINER_VALUES">
+					<MAX_PITCH_DISPLAYED Process="Float">
+						#REF_DEGREES# #ANIM_VALUE_PLUS_REF_DEGREES# #ANIM_PITCH_0# - /
+						#ANIM_PITCH_LENGTH# #ANIM_PITCH_0# - *
+					</MAX_PITCH_DISPLAYED><!-- 34.8 --><!-- Process degrees max for animation given precise anim values -->
+					<MIN_PITCH_DISPLAYED Process="Float">
+						#REF_DEGREES# #ANIM_VALUE_MINUS_REF_DEGREES# #ANIM_PITCH_0# - /
+						#ANIM_PITCH_LENGTH# #ANIM_PITCH_0# - *
+					</MIN_PITCH_DISPLAYED><!-- -22.9 --><!-- Process degrees min for animation given precise anim values -->
+				</Condition>
+			</DefaultTemplateParameters>
+			<Condition Check="FAILURE">
+				<Update Once="True">
+					(A:ATTITUDE INDICATOR PITCH DEGREES, degrees)  #PITCH_MIN_VALUE# - #PITCH_MAX_VALUE# #PITCH_MIN_VALUE# - / 100 * (&gt;O:AnimCode)
+				</Update>
+			</Condition>
+			<UseTemplate Name="ASOBO_GT_Needle_Code">
+				<Condition Check="DONT_FAIL_ATTITUDE_INDICATOR_ANIMATION">
+					<ANIM_NEVER_FAILS/>
+				</Condition>
+				<Condition Valid="USE_DEFAULT_CONTAINER_VALUES">
+					<OVERRIDE_ANIM_CODE>
+						(A:ATTITUDE INDICATOR PITCH DEGREES, degrees) s0 0 &gt; if{
+							(* Pitch down *)
+							l0 #MAX_PITCH_DISPLAYED# / 50 * 50 +
+						} els{
+							(* Pitch up *)
+							50 l0 #MIN_PITCH_DISPLAYED# / 50 * -
+						}
+					</OVERRIDE_ANIM_CODE>
+					<ANIM_LENGTH>100</ANIM_LENGTH>
+				</Condition>
+				<ANIM_NAME>#PITCH_DEGREES_ANIM_NAME#</ANIM_NAME>
+				<MIN_VALUE>#PITCH_MIN_VALUE#</MIN_VALUE>
+				<MAX_VALUE>#PITCH_MAX_VALUE#</MAX_VALUE>
+				<SIMVAR>ATTITUDE INDICATOR PITCH DEGREES</SIMVAR>
+				<UNITS>degrees</UNITS>
+				<NODE_ID>#PITCH_DEGREES_NODE_ID#</NODE_ID>
+				<Condition Valid="PITCH_INVERT_ANIM">
+					<INVERT_ANIM>True</INVERT_ANIM>
+				</Condition>
+			</UseTemplate>
+		</Component>
+		<Component ID="#BANK_DEGREES_NODE_ID#" Node="#BANK_DEGREES_NODE_ID#">
+			<Condition Check="FAILURE">
+				<Update Frequency="0.1">
+					(O:IsInit) ! if{
+						1 (&gt;O:IsInit)
+						(A:ATTITUDE INDICATOR BANK DEGREES, degrees) 180 + (&gt;O:AnimCode)
+					}
+				</Update>
+			</Condition>
+			<UseTemplate Name="ASOBO_GT_Anim_Sim">
+				<Condition Check="DONT_FAIL_ATTITUDE_INDICATOR_ANIMATION">
+					<ANIM_NEVER_FAILS/>
+				</Condition>
+				<ANIM_NAME>#BANK_DEGREES_ANIM_NAME#</ANIM_NAME>
+				<ANIM_LENGTH>360</ANIM_LENGTH>
+				<ANIM_SIMVAR>ATTITUDE INDICATOR BANK DEGREES</ANIM_SIMVAR>
+				<ANIM_SIMVAR_UNITS>degrees</ANIM_SIMVAR_UNITS>
+				<!-- [-180, 180] -->
+				<ANIM_SIMVAR_BIAS>180</ANIM_SIMVAR_BIAS>
+				<!-- [-180, 180] + 180 => [0, 360] -->
+				<NODE_ID>#BANK_DEGREES_NODE_ID#</NODE_ID>
+				<ANIM_WRAP>True</ANIM_WRAP>
+				<Condition Valid="BANK_INVERT_ANIM">
+					<INVERT_ANIM>True</INVERT_ANIM>
+				</Condition>
+			</UseTemplate>
+		</Component>
+		<Condition Check="NO_BARS_POSITION_ANIMATION">
+			<False>
+				<Component ID="#BARS_POSITION_NODE_ID#" Node="#BARS_POSITION_NODE_ID#">
+					<Condition Check="FAILURE">
+						<Update Frequency="0.1">
+							(O:IsInit) ! if{
+								1 (&gt;O:IsInit)
+								(A:ATTITUDE BARS POSITION, percent) 100 + (&gt;O:AnimCode)
+							}
+						</Update>
+					</Condition>
+					<UseTemplate Name="ASOBO_GT_Anim_Sim">
+						<Condition Check="DONT_FAIL_ATTITUDE_INDICATOR_ANIMATION">
+							<ANIM_NEVER_FAILS/>
+						</Condition>
+						<ANIM_NAME>#BARS_POSITION_ANIM_NAME#</ANIM_NAME>
+						<ANIM_LENGTH>200</ANIM_LENGTH>
+						<ANIM_SIMVAR>ATTITUDE BARS POSITION</ANIM_SIMVAR>
+						<ANIM_SIMVAR_UNITS>percent</ANIM_SIMVAR_UNITS>
+						<!-- [-100, 100] -->
+						<ANIM_SIMVAR_BIAS>100</ANIM_SIMVAR_BIAS>
+						<!-- [-100, 100] + 100 => [0, 200] -->
+						<NODE_ID>#BARS_POSITION_NODE_ID#</NODE_ID>
+						<Condition Valid="BARS_INVERT_ANIM">
+							<INVERT_ANIM>True</INVERT_ANIM>
+						</Condition>
+					</UseTemplate>
+				</Component>
+			</False>
+		</Condition>
+
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<UseTemplate Name="ASOBO_GT_Highlight_Template">
+				<PART_ID>#HIGHLIGHT_PART_ID#</PART_ID>
+			</UseTemplate>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Oil_Temperature_SubTemplate"> 
+	<DefaultTemplateParameters>
+		<UNITS>celsius</UNITS>
+		<MIN_VALUE>0</MIN_VALUE>
+		<MAX_VALUE>100</MAX_VALUE>
+		<ANIM_NAME>INSTRUMENT_Needle_Oil_Temperature#SUFFIX_ID#</ANIM_NAME>
+		<NODE_ID>INSTRUMENT_Needle_Oil_Temperature#SUFFIX_ID#</NODE_ID>
+		<PART_ID>INSTRUMENT_Needle_Oil_Temperature</PART_ID>
+		<HIGHLIGHT_PART_ID>INSTRUMENT_Oil_Temperature_Highlight</HIGHLIGHT_PART_ID>
+	</DefaultTemplateParameters>
+
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>GENERAL ENG OIL TEMPERATURE:#ID#</SIMVAR>
+	</UseTemplate>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Oil_Pressure_SubTemplate">
+	<DefaultTemplateParameters>
+		<UNITS>bar</UNITS>
+		<MIN_VALUE>0</MIN_VALUE>
+		<MAX_VALUE>10</MAX_VALUE>
+		<ANIM_NAME>INSTRUMENT_Needle_Oil_Pressure#SUFFIX_ID#</ANIM_NAME>
+		<NODE_ID>INSTRUMENT_Needle_Oil_Pressure#SUFFIX_ID#</NODE_ID>
+		<PART_ID>INSTRUMENT_Needle_Oil_Pressure</PART_ID> 
+		<Condition Check="CREATE_HIGHLIGHT_NODE">
+			<HIGHLIGHT_NODE_ID>INSTRUMENT_Oil_Pressure_Highlight#SUFFIX_ID#</HIGHLIGHT_NODE_ID>
+			<HIGHLIGHT_PART_ID>INSTRUMENT_Oil_Pressure_Highlight</HIGHLIGHT_PART_ID>
+		</Condition>
+	</DefaultTemplateParameters>
+
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>ENG OIL PRESSURE:#ID#</SIMVAR>
+	</UseTemplate>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Switch_Select_Tank_Source_Fuel_Quantity_SubTemplate">
+	<Parameters Type="Default">
+		<ANIM_NAME>INSTRUMENT_Switch_Select_Tank_Source_#ID#</ANIM_NAME>
+		<NODE_ID>INSTRUMENT_Switch_Select_Tank_Source_#ID#</NODE_ID>
+		<PART_ID>INSTRUMENT_Switch_Select_Tank_Source</PART_ID>
+		<WWISE_EVENT>fuel_select_tanksource_switch</WWISE_EVENT>
+		<POS_TEST>0</POS_TEST>
+		<POS_MAIN>1</POS_MAIN>
+		<POS_AUX>2</POS_AUX>
+		<TT_DESCRIPTION_ID>@TT_Package.FUEL_SWITCH_TANK_SELECTION_SOURCE_ACTION</TT_DESCRIPTION_ID>
+		<TOOLTIP_TITLE>@TT_Package.FUEL_SWITCH_TANK_SELECTION_SOURCE_TITLE</TOOLTIP_TITLE>
+	</Parameters>
+	<Parameters Type="Override">
+		<BTN_ID>Tank_Source</BTN_ID>
+		<INPUT_EVENT_ID_SOURCE>INSTRUMENT</INPUT_EVENT_ID_SOURCE>
+		<NUM_STATES>3</NUM_STATES>
+	</Parameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseInputEvent ID="INSTRUMENT">
+			<GET_STATE_EXTERNAL>(O:XMLVAR_INSTRUMENT_Tank_Selection_Source) sp0</GET_STATE_EXTERNAL>
+			<ENUM_VAL_TO_POS_EXTERNAL>l0</ENUM_VAL_TO_POS_EXTERNAL>
+			<SET_STATE_#POS_TEST#>#POS_TEST# (&gt;O:XMLVAR_INSTRUMENT_Tank_Selection_Source)</SET_STATE_#POS_TEST#>
+			<SET_STATE_#POS_MAIN#>#POS_MAIN# (&gt;O:XMLVAR_INSTRUMENT_Tank_Selection_Source)</SET_STATE_#POS_MAIN#>
+			<SET_STATE_#POS_AUX#>#POS_AUX# (&gt;O:XMLVAR_INSTRUMENT_Tank_Selection_Source)</SET_STATE_#POS_AUX#>
+			<STR_STATE_#POS_TEST#>Test</STR_STATE_#POS_TEST#>
+			<STR_STATE_#POS_MAIN#>Main</STR_STATE_#POS_MAIN#>
+			<STR_STATE_#POS_AUX#>Aux</STR_STATE_#POS_AUX#>
+			<TT_VALUE_#POS_TEST#>@TT_Package.GT_STATE_TEST</TT_VALUE_#POS_TEST#>
+			<TT_VALUE_#POS_MAIN#>@TT_Package.GT_STATE_MAIN</TT_VALUE_#POS_MAIN#>
+			<TT_VALUE_#POS_AUX#>@TT_Package.GT_STATE_AUX</TT_VALUE_#POS_AUX#>
+		</UseInputEvent>
+		<UseTemplate Name="ASOBO_GT_Switch_3States">
+			<MOMENTARY_SWITCH/>
+			<SWITCH_POSITION_TYPE_ISDOWN>L</SWITCH_POSITION_TYPE_ISDOWN>
+			<SWITCH_POSITION_VAR_ISDOWN>XMLVAR_TANK_QUANTITY_Test_IsHeld</SWITCH_POSITION_VAR_ISDOWN>
+			<STATE_MAX_TIMER>0</STATE_MAX_TIMER>
+			<STATE0_TIMER>0.1</STATE0_TIMER>
+			<TOOLTIP_ENTRY_0>#INPUT_EVENT_ID_SOURCE#_#BTN_ID#</TOOLTIP_ENTRY_0>
+			<CODE_POS_#POS_TEST#>(&gt;B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#_Test)</CODE_POS_#POS_TEST#>
+			<CODE_POS_#POS_MAIN#>(&gt;B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#_Main)</CODE_POS_#POS_MAIN#>
+			<CODE_POS_#POS_AUX#>(&gt;B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#_Aux)</CODE_POS_#POS_AUX#>
+			<STATE#POS_TEST#_TEST>(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#) #POS_TEST# ==</STATE#POS_TEST#_TEST>
+			<STATE#POS_MAIN#_TEST>(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#) #POS_MAIN# ==</STATE#POS_MAIN#_TEST>
+			<STATE#POS_AUX#_TEST>(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#) #POS_AUX# ==</STATE#POS_AUX#_TEST>
+		</UseTemplate>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_ADF_SubTemplate">
+	<DefaultTemplateParameters>
+		<KNOB_ANIM_NAME>INSTRUMENT_ADF_Knob#SUFFIX_ID#</KNOB_ANIM_NAME>
+		<KNOB_NODE_ID>INSTRUMENT_ADF_Knob#SUFFIX_ID#</KNOB_NODE_ID>
+		<NEEDLE_ANIM_NAME>INSTRUMENT_ADF_Needle#SUFFIX_ID#</NEEDLE_ANIM_NAME>
+		<NEEDLE_NODE_ID>INSTRUMENT_ADF_Needle#SUFFIX_ID#</NEEDLE_NODE_ID>
+		<CYLINDER_ANIM_NAME>INSTRUMENT_ADF_Dial#SUFFIX_ID#</CYLINDER_ANIM_NAME>
+		<CYLINDER_NODE_ID>INSTRUMENT_ADF_Dial#SUFFIX_ID#</CYLINDER_NODE_ID>
+		<PART_ID>INSTRUMENT_ADF</PART_ID>
+	</DefaultTemplateParameters>
+	<EditableTemplateParameters>
+		<AddParams>
+			<KNOB_ANIM_NAME></KNOB_ANIM_NAME>
+			<KNOB_NODE_ID></KNOB_NODE_ID>
+			<CYLINDER_ANIM_NAME></CYLINDER_ANIM_NAME>
+			<CYLINDER_NODE_ID></CYLINDER_NODE_ID>
+			<HIGHLIGHT_NODE_ID></HIGHLIGHT_NODE_ID>
+		</AddParams>
+		<AddOptions>
+			<ADF_KNOB></ADF_KNOB>
+		</AddOptions>
+		<RemoveParams>
+			<ANIM_NAME></ANIM_NAME>
+			<NODE_ID></NODE_ID>
+		</RemoveParams>
+	</EditableTemplateParameters>
+
+	<Component ID="INSTRUMENT_Needle_ADF">
+		<Component ID="#CYLINDER_ANIM_NAME#" Node="#CYLINDER_NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Anim_Sim">
+				<ANIM_NAME>#CYLINDER_ANIM_NAME#</ANIM_NAME>
+				<ANIM_LENGTH>360</ANIM_LENGTH>
+				<ANIM_WRAP>TRUE</ANIM_WRAP>
+				<ANIM_SIMVAR>ADF CARD</ANIM_SIMVAR>
+				<ANIM_SIMVAR_UNITS>degrees</ANIM_SIMVAR_UNITS>
+				<!-- [0, 360] -->
+				<Condition Check="HIGHLIGHT_NODE_ID">
+					<PART_ID/>
+				</Condition>
+				<ANIM_WRAP>True</ANIM_WRAP>
+			</UseTemplate>
+		</Component>
+		<Component ID="#NEEDLE_ANIM_NAME#" Node="#NEEDLE_NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Anim_Sim">
+				<ANIM_NAME>#NEEDLE_ANIM_NAME#</ANIM_NAME>
+				<ANIM_LENGTH>360</ANIM_LENGTH>
+				<ANIM_WRAP>TRUE</ANIM_WRAP>
+				<ANIM_SIMVAR>ADF RADIAL:#ID#</ANIM_SIMVAR>
+				<ANIM_SIMVAR_UNITS>degrees</ANIM_SIMVAR_UNITS>
+				<ANIM_SIMVAR_BIAS>180</ANIM_SIMVAR_BIAS>
+				<Condition Check="FAILURE_NEEDLE">
+					<FAILURE>#FAILURE_NEEDLE#</FAILURE>
+				</Condition>
+				<!-- [0, 360] -->
+				<Condition Check="HIGHLIGHT_NODE_ID">
+					<PART_ID/>
+				</Condition>
+				<ANIM_WRAP>True</ANIM_WRAP>
+			</UseTemplate>
+		</Component>
+		<Condition Check="ADF_KNOB">
+			<Component ID="#KNOB_NODE_ID#" Node="#KNOB_NODE_ID#">
+				<Parameters Type="Default">
+					<TOOLTIP_ADF_TITLE>@TT_Package.ADF_KNOB_COURSESELECTOR_TITLE</TOOLTIP_ADF_TITLE>
+				</Parameters>
+				<Parameters Type="Override">
+					<TOOLTIP_TITLE>#TOOLTIP_ADF_TITLE#</TOOLTIP_TITLE>
+					<TOOLTIP_ENTRY_0>INSTRUMENT_ADF</TOOLTIP_ENTRY_0>
+				</Parameters>
+				<UseInputEvent ID="INSTRUMENT">
+					<ADF_ID>1</ADF_ID>
+					<ON_AFTER_INC_EXTERNAL_CODE>(O:_KnobAnimVar) 10 + dnor (&gt;O:_KnobAnimVar)</ON_AFTER_INC_EXTERNAL_CODE>
+					<ON_AFTER_DEC_EXTERNAL_CODE>(O:_KnobAnimVar) 10 - dnor (&gt;O:_KnobAnimVar)</ON_AFTER_DEC_EXTERNAL_CODE>
+				</UseInputEvent>
+				<UseTemplate Name="ASOBO_GT_Knob_Infinite">
+					<ANIM_NAME>#KNOB_ANIM_NAME#</ANIM_NAME>
+					<CLOCKWISE_CODE>1 (&gt;B:INSTRUMENT_ADF_Inc)</CLOCKWISE_CODE>
+					<ANTICLOCKWISE_CODE>1 (&gt;B:INSTRUMENT_ADF_Dec)</ANTICLOCKWISE_CODE>
+					<Condition Check="HIGHLIGHT_NODE_ID">
+						<PART_ID/>
+					</Condition>
+					<Condition Valid="KNOB_HIGHLIGHT_NODE_ID">
+						<HIGHLIGHT_NODE_ID>#KNOB_HIGHLIGHT_NODE_ID#</HIGHLIGHT_NODE_ID>
+					</Condition>
+				</UseTemplate>
+			</Component>
+		</Condition>
+		
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<UseTemplate Name="ASOBO_GT_Highlight_Template">
+			</UseTemplate>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_EGT_SubTemplate">
+	<DefaultTemplateParameters>
+		<KNOB_ANIM_NAME>INSTRUMENT_Knob_EGT#SUFFIX_ID#</KNOB_ANIM_NAME>
+		<KNOB_NODE_ID>INSTRUMENT_Knob_EGT#SUFFIX_ID#</KNOB_NODE_ID>
+		<PART_ID>INSTRUMENT_EGT</PART_ID>
+		<NEEDLE_ANIM_NAME>INSTRUMENT_Needle_EGT#SUFFIX_ID#</NEEDLE_ANIM_NAME>
+		<NEEDLE_NODE_ID>INSTRUMENT_Needle_EGT#SUFFIX_ID#</NEEDLE_NODE_ID>
+		<NEEDLE_BUG_ANIM_NAME>INSTRUMENT_Needle_Bug_EGT#SUFFIX_ID#</NEEDLE_BUG_ANIM_NAME>
+		<NEEDLE_BUG_NODE_ID>INSTRUMENT_Needle_Bug_EGT#SUFFIX_ID#</NEEDLE_BUG_NODE_ID>
+		<UNITS>Fahrenheit</UNITS>
+		<MIN_VALUE>0</MIN_VALUE>
+		<MAX_VALUE>400</MAX_VALUE>
+	</DefaultTemplateParameters>
+	<EditableTemplateParameters>
+		<AddParams>
+			<KNOB_ANIM_NAME></KNOB_ANIM_NAME>
+			<KNOB_NODE_ID></KNOB_NODE_ID>
+			<NEEDLE_ANIM_NAME></NEEDLE_ANIM_NAME>
+			<NEEDLE_NODE_ID></NEEDLE_NODE_ID>
+			<NEEDLE_BUG_ANIM_NAME></NEEDLE_BUG_ANIM_NAME>
+			<NEEDLE_BUG_NODE_ID></NEEDLE_BUG_NODE_ID>
+			<HIGHLIGHT_NODE_ID></HIGHLIGHT_NODE_ID>
+		</AddParams>
+		<AddOptions>
+			<EGT_BUG></EGT_BUG>
+		</AddOptions>
+		<RemoveParams>
+			<ANIM_NAME></ANIM_NAME>
+			<NODE_ID></NODE_ID>
+		</RemoveParams>
+	</EditableTemplateParameters>
+
+	<Component ID="INSTRUMENT_EGT">
+		<UseTemplate Name="ASOBO_GT_Needle_Code">
+			<NODE_ID>#NEEDLE_NODE_ID#</NODE_ID>
+			<ANIM_NAME>#NEEDLE_ANIM_NAME#</ANIM_NAME>
+			<SIMVAR>ENG EXHAUST GAS TEMPERATURE:1</SIMVAR>
+			<Condition Check="FAILURE_NEEDLE">
+				<FAILURE>#FAILURE_NEEDLE#</FAILURE>
+			</Condition>
+			<Condition Check="HIGHLIGHT_NODE_ID">
+				<PART_ID/>
+			</Condition>
+			<ANIM_WRAP>True</ANIM_WRAP>
+		</UseTemplate>
+		
+		<Condition Check="EGT_BUG">
+			<UseTemplate Name="ASOBO_GT_Needle_Code">
+				<NODE_ID>#NEEDLE_BUG_NODE_ID#</NODE_ID>
+				<ANIM_NAME>#NEEDLE_BUG_ANIM_NAME#</ANIM_NAME>
+				<SIMVAR>ENG EXHAUST GAS TEMPERATURE GES:1</SIMVAR>
+				<UNITS>Percent</UNITS>
+				<MIN_VALUE>0</MIN_VALUE>
+				<MAX_VALUE>100</MAX_VALUE>
+				<Condition Check="FAILURE_NEEDLE">
+					<FAILURE>#FAILURE_NEEDLE#</FAILURE>
+				</Condition>
+				<Condition Check="HIGHLIGHT_NODE_ID">
+					<PART_ID/>
+				</Condition>
+				<ANIM_WRAP>True</ANIM_WRAP>
+			</UseTemplate>
+			
+			<Component ID="#KNOB_NODE_ID#" Node="#KNOB_NODE_ID#">
+				<Parameters Type="Default">
+					<TOOLTIP_EGT_TITLE>@TT_Package.INSTRUMENT_KNOB_EGT_TITLE</TOOLTIP_EGT_TITLE>
+				</Parameters>
+				<Parameters Type="Override">
+					<TOOLTIP_TITLE>#TOOLTIP_EGT_TITLE#</TOOLTIP_TITLE>
+					<!-- <TOOLTIP_TITLE_IS_DYNAMIC>True</TOOLTIP_TITLE_IS_DYNAMIC> -->
+					<TOOLTIP_ENTRY_0>INSTRUMENT_EGT_Bug</TOOLTIP_ENTRY_0>
+				</Parameters>
+				<UseInputEvent ID="INSTRUMENT">
+					<KNOB_ID>EGT_Bug</KNOB_ID>
+					<SET_STATE_EXTERNAL>100 / 32768 * (&gt;K:EGT1_SET)</SET_STATE_EXTERNAL>
+					<GET_STATE_EXTERNAL>(A:ENG EXHAUST GAS TEMPERATURE GES:1, percent)</GET_STATE_EXTERNAL>
+					<TT_DESCRIPTION_ID>@TT_Package.INSTRUMENT_KNOB_EGT_ACTION</TT_DESCRIPTION_ID>
+					<MIN_VALUE>0</MIN_VALUE>
+					<MAX_VALUE>100</MAX_VALUE>
+				</UseInputEvent>
+				<UseTemplate Name="ASOBO_GT_Knob_Infinite">
+					<ANIM_NAME>#KNOB_ANIM_NAME#</ANIM_NAME>
+					<CLOCKWISE_CODE>1 (&gt;B:INSTRUMENT_EGT_Bug_Inc)</CLOCKWISE_CODE>
+					<ANTICLOCKWISE_CODE>1 (&gt;B:INSTRUMENT_EGT_Bug_Dec)</ANTICLOCKWISE_CODE>
+					<Condition Check="HIGHLIGHT_NODE_ID">
+						<PART_ID/>
+					</Condition>
+				</UseTemplate>
+			</Component>
+		</Condition>
+		
+		
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<UseTemplate Name="ASOBO_GT_Highlight_Template">
+			</UseTemplate>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_FuelFlow_SubTemplate">
+	<DefaultTemplateParameters>
+		<ANIM_NAME>INSTRUMENT_Needle_FuelFlow#SUFFIX_ID#</ANIM_NAME>
+		<NODE_ID>INSTRUMENT_Needle_FuelFlow#SUFFIX_ID#</NODE_ID>
+		<PART_ID>INSTRUMENT_Needle_FuelFlow</PART_ID>
+	</DefaultTemplateParameters>
+
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>ENG FUEL FLOW GPH:#ID#</SIMVAR>
+		<UNITS>gallons per hour</UNITS>
+		<MIN_VALUE>0</MIN_VALUE>
+		<MAX_VALUE>19</MAX_VALUE>
+		<Condition Check="FAILURE_NEEDLE">
+			<FAILURE>#FAILURE_NEEDLE#</FAILURE>
+		</Condition>
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<PART_ID/>
+		</Condition>
+	</UseTemplate>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Engine_RPM_SubTemplate">
+	<DefaultTemplateParameters>
+		<ID>1</ID>
+		<UNITS>rpm</UNITS>
+		<MIN_VALUE>300</MIN_VALUE>
+		<MAX_VALUE>3500</MAX_VALUE>
+		<ANIM_NAME>INSTRUMENT_Needle_Engine_RPM#SUFFIX_ID#</ANIM_NAME>
+		<NODE_ID>INSTRUMENT_Needle_Engine_RPM#SUFFIX_ID#</NODE_ID>
+		<PART_ID>INSTRUMENT_Digits_Tachometer</PART_ID>
+		<Condition Check="CREATE_HIGHLIGHT_NODE">
+			<HIGHLIGHT_NODE_ID>INSTRUMENT_Engine_RPM_Highlight#SUFFIX_ID#</HIGHLIGHT_NODE_ID>
+			<HIGHLIGHT_PART_ID>INSTRUMENT_Engine_RPM_Highlight</HIGHLIGHT_PART_ID>
+		</Condition>
+	</DefaultTemplateParameters>
+
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>GENERAL ENG RPM:#ID#</SIMVAR>
+	</UseTemplate>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_BrakePressure_SubTemplate">
+	<DefaultTemplateParameters>
+		<ANIM_NAME>INSTRUMENT_Needle_BrakePressure</ANIM_NAME>
+		<ANIM_POSITION>85</ANIM_POSITION>
+		<ANIM_LAG>100</ANIM_LAG>
+	</DefaultTemplateParameters>
+
+	<UseTemplate Name="ASOBO_GT_Anim_Code">
+		<ANIM_CODE>(A:GENERAL ENG COMBUSTION:1, Bool) #ANIM_POSITION# *</ANIM_CODE>
+	</UseTemplate>
+</Template>
+
+
+<Template Name="ASOBO_INSTRUMENT_Knob_BusSelector_SubTemplate">
+	<Parameters Type="Default">
+		<NODE_ID>INSTRUMENT_Knob_BusSelector</NODE_ID>
+		<PART_ID>INSTRUMENT_Knob_BusSelector</PART_ID>
+		<ANIM_NAME>INSTRUMENT_Knob_BusSelector</ANIM_NAME>
+		<BUS_COUNT>6</BUS_COUNT>
+		<ARROW_TYPE>Curved</ARROW_TYPE>
+		<UPARROW/>
+		<DOWNARROW/>
+		<SWITCH_DIRECTION>Horizontal</SWITCH_DIRECTION>
+		<LEFTARROW>TurnLeft</LEFTARROW>
+		<RIGHTARROW>TurnRight</RIGHTARROW>
+		<WWISE_EVENT>instrument_bus_selector_knob</WWISE_EVENT>			
+		<WWISE_EVENT_1>instrument_bus_selector_knob_on</WWISE_EVENT_1>	
+		<WWISE_EVENT_2>instrument_bus_selector_knob_off</WWISE_EVENT_2>
+		<POS_EXT_PWR>0</POS_EXT_PWR>
+		<POS_CTR>1</POS_CTR>
+		<POS_LGEN>2</POS_LGEN>
+		<POS_RGEN>3</POS_RGEN>
+		<POS_TPLFED>4</POS_TPLFED>
+		<POS_BAT>5</POS_BAT>
+		<TOOLTIP_TITLE>@TT_Package.INSTRUMENT_KNOB_BUSSELECTOR_TITLE</TOOLTIP_TITLE>
+		<TT_DESCRIPTION_ID>@TT_Package.INSTRUMENT_KNOB_BUSSELECTOR_ACTION_SET</TT_DESCRIPTION_ID>
+		<TT_ICON>ROTATE</TT_ICON>
+	</Parameters>
+	<Parameters Type="Override">
+		<BTN_ID>Bus_Selector</BTN_ID>
+		<ANIM>EXTERNAL</ANIM>
+		<NUM_STATES>#BUS_COUNT#</NUM_STATES>
+	</Parameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseInputEvent ID="INSTRUMENT">
+			<GET_STATE_EXTERNAL>(O:XMLVAR_Bus_Selector) sp0</GET_STATE_EXTERNAL>
+			<ENUM_VAL_TO_POS_EXTERNAL>l0</ENUM_VAL_TO_POS_EXTERNAL>
+			<SET_STATE_#POS_EXT_PWR#>#POS_EXT_PWR# (&gt;O:XMLVAR_Bus_Selector)</SET_STATE_#POS_EXT_PWR#>
+			<SET_STATE_#POS_CTR#>#POS_CTR# (&gt;O:XMLVAR_Bus_Selector)</SET_STATE_#POS_CTR#>
+			<SET_STATE_#POS_LGEN#>#POS_LGEN# (&gt;O:XMLVAR_Bus_Selector)</SET_STATE_#POS_LGEN#>
+			<SET_STATE_#POS_RGEN#>#POS_RGEN# (&gt;O:XMLVAR_Bus_Selector)</SET_STATE_#POS_RGEN#>
+			<SET_STATE_#POS_TPLFED#>#POS_TPLFED# (&gt;O:XMLVAR_Bus_Selector)</SET_STATE_#POS_TPLFED#>
+			<SET_STATE_#POS_BAT#>#POS_BAT# (&gt;O:XMLVAR_Bus_Selector)</SET_STATE_#POS_BAT#>
+			<STR_STATE_#POS_EXT_PWR#>External_Power</STR_STATE_#POS_EXT_PWR#>
+			<STR_STATE_#POS_CTR#>Center</STR_STATE_#POS_CTR#>
+			<STR_STATE_#POS_LGEN#>Left_Gen</STR_STATE_#POS_LGEN#>
+			<STR_STATE_#POS_RGEN#>Right_Gen</STR_STATE_#POS_RGEN#>
+			<STR_STATE_#POS_TPLFED#>Triple_Fed</STR_STATE_#POS_TPLFED#>
+			<STR_STATE_#POS_BAT#>Battery</STR_STATE_#POS_BAT#>
+			<TT_VALUE_#POS_EXT_PWR#>@TT_Package.GT_STATE_EXTERNALPOWER</TT_VALUE_#POS_EXT_PWR#>
+			<TT_VALUE_#POS_CTR#>@TT_Package.GT_STATE_CENTER</TT_VALUE_#POS_CTR#>
+			<TT_VALUE_#POS_LGEN#>@TT_Left (R:1:@TT_Package.GT_STATE_GENERATOR) @sprintf</TT_VALUE_#POS_LGEN#>
+			<TT_VALUE_#POS_LGEN#_IS_DYNAMIC>True</TT_VALUE_#POS_LGEN#_IS_DYNAMIC>
+			<TT_VALUE_#POS_RGEN#>@TT_Right (R:1:@TT_Package.GT_STATE_GENERATOR) @sprintf</TT_VALUE_#POS_RGEN#>
+			<TT_VALUE_#POS_RGEN#_IS_DYNAMIC>True</TT_VALUE_#POS_RGEN#_IS_DYNAMIC>
+			<TT_VALUE_#POS_TPLFED#>@TT_Package.GT_STATE_TRIPLEFED</TT_VALUE_#POS_TPLFED#>
+			<TT_VALUE_#POS_BAT#>@TT_Package.GT_STATE_BATTERY</TT_VALUE_#POS_BAT#>
+		</UseInputEvent>
+		<UseTemplate Name="ASOBO_GT_Switch_XStates">
+			<TOOLTIP_ENTRY_0>INSTRUMENT_#BTN_ID#</TOOLTIP_ENTRY_0>
+			<CODE_POS_#POS_EXT_PWR#>(&gt;B:INSTRUMENT_#BTN_ID#_External_Power)</CODE_POS_#POS_EXT_PWR#>
+			<CODE_POS_#POS_CTR#>(&gt;B:INSTRUMENT_#BTN_ID#_Center)</CODE_POS_#POS_CTR#>
+			<CODE_POS_#POS_LGEN#>(&gt;B:INSTRUMENT_#BTN_ID#_Left_Gen)</CODE_POS_#POS_LGEN#>
+			<CODE_POS_#POS_RGEN#>(&gt;B:INSTRUMENT_#BTN_ID#_Right_Gen)</CODE_POS_#POS_RGEN#>
+			<CODE_POS_#POS_TPLFED#>(&gt;B:INSTRUMENT_#BTN_ID#_Triple_Fed)</CODE_POS_#POS_TPLFED#>
+			<CODE_POS_#POS_BAT#>(&gt;B:INSTRUMENT_#BTN_ID#_Battery)</CODE_POS_#POS_BAT#>
+			<STATE#POS_EXT_PWR#_TEST>(B:INSTRUMENT_#BTN_ID#) #POS_EXT_PWR# ==</STATE#POS_EXT_PWR#_TEST>
+			<STATE#POS_CTR#_TEST>(B:INSTRUMENT_#BTN_ID#) #POS_CTR# ==</STATE#POS_CTR#_TEST>
+			<STATE#POS_LGEN#_TEST>(B:INSTRUMENT_#BTN_ID#) #POS_LGEN# ==</STATE#POS_LGEN#_TEST>
+			<STATE#POS_RGEN#_TEST>(B:INSTRUMENT_#BTN_ID#) #POS_RGEN# ==</STATE#POS_RGEN#_TEST>
+			<STATE#POS_TPLFED#_TEST>(B:INSTRUMENT_#BTN_ID#) #POS_TPLFED# ==</STATE#POS_TPLFED#_TEST>
+			<STATE#POS_BAT#_TEST>(B:INSTRUMENT_#BTN_ID#) #POS_BAT# ==</STATE#POS_BAT#_TEST>
+		</UseTemplate>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_MultiBus_Voltage_SubTemplate">
+	<Parameters Type="Default">
+		<NODE_ID>INSTRUMENT_Needle_MultiBus_Voltage_#ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Needle_MultiBus_Voltage_#ID#</ANIM_NAME>
+		<PART_ID>INSTRUMENT_Needle_BusVoltage</PART_ID>
+		<MAX_VOLTAGE_DISPLAYED>30</MAX_VOLTAGE_DISPLAYED>
+		<MIN_VOLTAGE_DISPLAYED>10</MIN_VOLTAGE_DISPLAYED>
+		<BUS_COUNT>6</BUS_COUNT>
+		<BUS_ID_SELECTED>(B:INSTRUMENT_Bus_Selector)</BUS_ID_SELECTED>
+		<SELECTION>
+			(A:ELECTRICAL MAIN BUS VOLTAGE:1, volt)
+			(A:ELECTRICAL MAIN BUS VOLTAGE:1, volt)
+			(A:ELECTRICAL MAIN BUS VOLTAGE:1, volt)
+			(A:ELECTRICAL MAIN BUS VOLTAGE:1, volt)
+			(A:ELECTRICAL MAIN BUS VOLTAGE:1, volt)
+			(A:ELECTRICAL MAIN BUS VOLTAGE:1, volt)
+		</SELECTION>
+		<FAILURE>(A:CIRCUIT GENERAL PANEL ON, Bool)</FAILURE>
+		<FAILURE_CODE>0</FAILURE_CODE>
+	</Parameters>
+	<Parameters Type="Override">
+		<VOLTAGE_RANGE_DISPLAYED Process="Int">#MAX_VOLTAGE_DISPLAYED# #MIN_VOLTAGE_DISPLAYED# -</VOLTAGE_RANGE_DISPLAYED>
+	</Parameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Anim_Code">
+			<ANIM_CODE>
+				#SELECTION# #BUS_COUNT# #BUS_ID_SELECTED# case sp0
+				l0 #MIN_VOLTAGE_DISPLAYED# max #MAX_VOLTAGE_DISPLAYED# min #MIN_VOLTAGE_DISPLAYED# - #VOLTAGE_RANGE_DISPLAYED# / sp0
+				l0 100 *
+			</ANIM_CODE>
+			<Condition Check="HIGHLIGHT_NODE_ID">
+				<PART_ID/>
+			</Condition>
+		</UseTemplate>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Bus_Voltage_SubTemplate">
+	<DefaultTemplateParameters>
+		<NODE_ID>INSTRUMENT_Needle_Bus_Voltage_#ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Needle_Bus_Voltage_#ID#</ANIM_NAME>
+		<PART_ID>INSTRUMENT_Needle_Bus_Voltage</PART_ID>
+		<FAILURE>(A:CIRCUIT GENERAL PANEL ON, Bool)</FAILURE>
+		<FAILURE_CODE>0</FAILURE_CODE>
+		<BUS_ID>1</BUS_ID>
+		<UNITS>volt</UNITS>
+	</DefaultTemplateParameters>
+	<Component ID="#NODE_ID#" Node="#NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>ELECTRICAL MAIN BUS VOLTAGE:#BUS_ID#</SIMVAR>
+	</UseTemplate>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_DC_LOAD_SubTemplate">
+	<DefaultTemplateParameters>
+		<UNITS>Amp</UNITS><!-- actually equals percent on KH electrical -->
+		<MIN_VALUE>0</MIN_VALUE>
+		<MAX_VALUE>100</MAX_VALUE>
+		<ANIM_NAME>ELECTRICAL_Needle_DC_Load_#ID#</ANIM_NAME>
+		<NODE_ID>ELECTRICAL_Needle_DC_Load_#ID#</NODE_ID>
+		<PART_ID>ELECTRICAL_Needle_DC_Load</PART_ID>
+		<ANIM_LAG>100</ANIM_LAG>
+		<FAILURE_CODE>0</FAILURE_CODE>
+		<Condition Check="USE_TURB_ENG_FAILURE">
+			<True>
+				<FAILURE>(A:CIRCUIT GENERAL PANEL ON, Bool) (A:GENERAL ENG MASTER ALTERNATOR:#ID#, Bool) * (A:TURB ENG CORRECTED N1:#ID#, Percent) 10 &gt; *</FAILURE>
+			</True>
+			<False>
+				<FAILURE>(A:CIRCUIT GENERAL PANEL ON, Bool) (A:GENERAL ENG MASTER ALTERNATOR:#ID#, Bool) * (A:GENERAL ENG RPM:#ID#, Percent) 100 &gt; *</FAILURE>
+			</False>
+		</Condition>
+	</DefaultTemplateParameters>
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>ELECTRICAL GENALT LOAD:#ID#</SIMVAR>
+	</UseTemplate>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Generator_Load_Output_SubTemplate">
+	<Parameters Type="Default">
+		<UNITS>Amp</UNITS><!-- actually equals percent on KH electrical -->
+		<MIN_VALUE>0</MIN_VALUE>
+		<MAX_VALUE>100</MAX_VALUE>
+		<ANIM_NAME>ELECTRICAL_Needle_Generator_Load_Output_#ID#</ANIM_NAME>
+		<NODE_ID>ELECTRICAL_Needle_Generator_Load_Output_#ID#</NODE_ID>
+		<SIMVAR_ADJUSTMENT_CODE/>
+		<ANIM_LAG>100</ANIM_LAG>
+		<FAILURE>(A:GENERAL ENG GENERATOR SWITCH:#ID#, Bool)</FAILURE>
+		<FAILURE_CODE>0</FAILURE_CODE>
+	</Parameters>
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>ELECTRICAL GENALT BUS AMPS:#ID#</SIMVAR>
+		<SIMVAR_ADJUSTMENT_CODE>1 (A:ELECTRICAL GENALT LOAD:#ID#, percent over 100) / * #SIMVAR_ADJUSTMENT_CODE#</SIMVAR_ADJUSTMENT_CODE>
+	</UseTemplate>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Ball_Tilt_SubTemplate">
+	<Parameters Type="Default">
+		<BALL_ANIM_NAME>#ANIM_NAME##SUFFIX_ID#</BALL_ANIM_NAME>
+		<BALL_NODE_ID>#NODE_ID##SUFFIX_ID#</BALL_NODE_ID>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Check="UPSIDE_DOWN">
+			<True>
+				<BALL_ANIM_SIMVAR>TURN COORDINATOR BALL INV</BALL_ANIM_SIMVAR>
+			</True>
+			<False>
+				<BALL_ANIM_SIMVAR>TURN COORDINATOR BALL</BALL_ANIM_SIMVAR>
+			</False>
+		</Condition>
+	</Parameters>
+	<Component ID="#BALL_ANIM_NAME#" Node="#BALL_NODE_ID#">
+		<UseTemplate Name="ASOBO_GT_Anim_Sim">
+			<ANIM_NAME>#BALL_ANIM_NAME#</ANIM_NAME>
+			<ANIM_SIMVAR>#BALL_ANIM_SIMVAR#</ANIM_SIMVAR>
+			<ANIM_SIMVAR_UNITS>position</ANIM_SIMVAR_UNITS>
+			<!-- [-1, 1] -->
+			<ANIM_SIMVAR_SCALE>50</ANIM_SIMVAR_SCALE>
+			<!-- [-1, 1] * 50 => [-50, 50] -->
+			<ANIM_SIMVAR_BIAS>50</ANIM_SIMVAR_BIAS>
+			<!-- [-50, 50] + 50 => [0, 100] -->
+			<Condition Check="HIGHLIGHT_NODE_ID">
+				<PART_ID/>
+			</Condition>
+		</UseTemplate>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Turn_SubTemplate">
+	<Parameters Type="Default">
+		<NEEDLE_ANIM_NAME>INSTRUMENT_Needle_Turn#SUFFIX_ID#</NEEDLE_ANIM_NAME>
+		<NEEDLE_NODE_ID>INSTRUMENT_Needle_Turn#SUFFIX_ID#</NEEDLE_NODE_ID>
+		<BALL_ANIM_NAME>INSTRUMENT_Ball_Turn#SUFFIX_ID#</BALL_ANIM_NAME>
+		<BALL_NODE_ID>INSTRUMENT_Ball_Turn#SUFFIX_ID#</BALL_NODE_ID>
+		<WARNING_NODE_ID>INSTRUMENT_Warning_Turn#SUFFIX_ID#</WARNING_NODE_ID>
+		<WARNING_ANIM_NAME>INSTRUMENT_Warning_Turn#SUFFIX_ID#</WARNING_ANIM_NAME>
+		<PART_ID>INSTRUMENT_Needle_Turn</PART_ID>
+		<ID>1</ID>
+	</Parameters>
+	<EditableTemplateParameters>
+		<AddParams>
+			<NEEDLE_ANIM_NAME></NEEDLE_ANIM_NAME>
+			<NEEDLE_NODE_ID></NEEDLE_NODE_ID>
+			<BALL_ANIM_NAME></BALL_ANIM_NAME>
+			<BALL_NODE_ID></BALL_NODE_ID>
+			<WARNING_NODE_ID></WARNING_NODE_ID>
+			<WARNING_ANIM_NAME></WARNING_ANIM_NAME>
+			<HIGHLIGHT_NODE_ID/>
+		</AddParams>
+		<AddOptions>
+			<NO_NEEDLE></NO_NEEDLE>
+			<NO_WARNING></NO_WARNING>
+			<NO_BALL></NO_BALL>
+		</AddOptions>
+		<RemoveParams>
+			<NODE_ID></NODE_ID>
+			<ANIM_NAME></ANIM_NAME>
+		</RemoveParams>
+	</EditableTemplateParameters>
+
+	<Component ID="INSTRUMENT_TurnCoordinator_#ID#">
+		<Condition Check="NO_NEEDLE">
+			<False>
+				<UseTemplate Name="ASOBO_GT_Needle_Code">
+					<NODE_ID>#NEEDLE_NODE_ID#</NODE_ID>
+					<ANIM_NAME>#NEEDLE_ANIM_NAME#</ANIM_NAME>
+					<Condition Check="FAILURE_NEEDLE">
+						<FAILURE>#FAILURE_NEEDLE#</FAILURE>
+					</Condition>
+					<!-- This is calculated for a 2min turn with the standard container's animation -->
+					<SIMVAR>TURN INDICATOR RATE:1</SIMVAR>
+					<UNITS>degree per second</UNITS>
+					<MIN_VALUE>-6.3</MIN_VALUE>
+					<MAX_VALUE>6.3</MAX_VALUE>
+					<Condition Check="HIGHLIGHT_NODE_ID">
+						<PART_ID/>
+					</Condition>
+					<ANIM_WRAP>True</ANIM_WRAP>
+				</UseTemplate>
+			</False>
+		</Condition>
+		<Condition Check="NO_BALL">
+			<False>
+				<UseTemplate Name="ASOBO_INSTRUMENT_Ball_Tilt_SubTemplate">
+					<NODE_ID>#BALL_NODE_ID#</NODE_ID>
+					<ANIM_NAME>#BALL_ANIM_NAME#</ANIM_NAME>
+					<Condition Valid="BALL_PART_ID">
+						<PART_ID>#BALL_PART_ID#</PART_ID>
+					</Condition>
+				</UseTemplate>
+			</False>
+		</Condition>
+		<Condition Check="NO_WARNING">
+			<False>
+				<Component ID="#WARNING_NODE_ID#" Node="#WARNING_NODE_ID#">
+					<UseTemplate Name="ASOBO_GT_Anim_Code">
+						<!-- This indicates whether the instrument is working -->
+						<!-- Failure is not currently simulated - so always 0 -->
+						<ANIM_CODE>(A:CIRCUIT GENERAL PANEL ON, Bool) 100 *</ANIM_CODE>
+						<ANIM_NAME>#WARNING_ANIM_NAME#</ANIM_NAME>
+						<Condition Check="HIGHLIGHT_NODE_ID">
+							<PART_ID/>
+						</Condition>
+					</UseTemplate>
+				</Component>
+			</False>
+		</Condition>
+
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<UseTemplate Name="ASOBO_GT_Highlight_Template">
+			</UseTemplate>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Ammeter_SubTemplate">
+	<DefaultTemplateParameters>
+		<UNITS>Amp</UNITS>
+		<MIN_VALUE>-60</MIN_VALUE>
+		<MAX_VALUE>60</MAX_VALUE>
+		<ANIM_NAME>INSTRUMENT_Needle_Ammeter#SUFFIX_ID#</ANIM_NAME>
+		<NODE_ID>INSTRUMENT_Needle_Ammeter#SUFFIX_ID#</NODE_ID>
+		<PART_ID>INSTRUMENT_Needle_Ammeter</PART_ID>
+		<ANIM_LAG>400</ANIM_LAG>
+		<SIMVAR>ELECTRICAL BATTERY LOAD</SIMVAR>
+	</DefaultTemplateParameters>
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+	</UseTemplate>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_VerticalSpeed_SubTemplate">
+	<DefaultTemplateParameters>
+		<NODE_ID>INSTRUMENT_Needle_VerticalSpeed#SUFFIX_ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Needle_VerticalSpeed#SUFFIX_ID#</ANIM_NAME>
+		<PART_ID>INSTRUMENT_Needle_VerticalSpeed</PART_ID>
+		<MAX_VALUE>2000</MAX_VALUE>
+		<UNITS>ft/min</UNITS>
+	</DefaultTemplateParameters>
+	<OverrideTemplateParameters>
+		<ANIM_SIMVAR_SCALE Process="Float">50 #MAX_VALUE# /</ANIM_SIMVAR_SCALE><!-- Scale MAX_VALUE to [-50, 50] -->
+		<Condition Valid="USE_TOTAL_ENERGY">
+			<True>
+				<ANIM_SIMVAR>VARIOMETER TOTAL ENERGY</ANIM_SIMVAR>
+				<ANIM_LAG>100</ANIM_LAG>
+			</True>
+			<False>
+				<ANIM_SIMVAR>VERTICAL SPEED</ANIM_SIMVAR>
+			</False>
+		</Condition>
+	</OverrideTemplateParameters>
+
+	<Component ID="INSTRUMENT_VerticalSpeed">
+		<Component ID="#ANIM_NAME#" Node="#NODE_ID#">
+			<UseTemplate Name="ASOBO_GT_Anim_Sim">
+				<ANIM_SIMVAR_UNITS>#UNITS#</ANIM_SIMVAR_UNITS>
+				<ANIM_SIMVAR_BIAS>50</ANIM_SIMVAR_BIAS><!-- [-50, 50] + 50 => [0, 100] -->
+				<Condition Check="HIGHLIGHT_NODE_ID">
+					<PART_ID/>
+				</Condition>
+			</UseTemplate>
+		</Component>
+
+		<Condition Check="HIGHLIGHT_NODE_ID">
+			<UseTemplate Name="ASOBO_GT_Highlight_Template">
+				<HIGHLIGHT_NODE_ID>Instrument_VerticalSpeed_Highlight</HIGHLIGHT_NODE_ID>
+			</UseTemplate>
+		</Condition>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_RCA2610_SubTemplate">
+	<DefaultTemplateParameters>
+		<NODE_ID_SCREEN>INSTRUMENT_Sreen_RCA2610#SUFFIX_ID#</NODE_ID_SCREEN>
+		<NODE_ID_DIM_LESS>INSTRUMENT_Push_RCA2610_DIM_Less#SUFFIX_ID#</NODE_ID_DIM_LESS>
+		<ANIM_NAME_DIM_LESS>INSTRUMENT_Push_RCA2610_DIM_Less#SUFFIX_ID#</ANIM_NAME_DIM_LESS>
+		<NODE_ID_DIM_MORE>INSTRUMENT_Push_RCA2610_DIM_More#SUFFIX_ID#</NODE_ID_DIM_MORE>
+		<ANIM_NAME_DIM_MORE>INSTRUMENT_Push_RCA2610_DIM_More#SUFFIX_ID#</ANIM_NAME_DIM_MORE>
+		<NODE_ID_PITCH_SYNC>INSTRUMENT_Push_RCA2610_Pitch_Sync#SUFFIX_ID#</NODE_ID_PITCH_SYNC>
+		<PART_ID>INSTRUMENT_Push_RCA2610</PART_ID>
+		<WWISE_EVENT_1>RCA2610_push_button_on</WWISE_EVENT_1>
+		<NORMALIZED_TIME_1>0.1</NORMALIZED_TIME_1>		
+		<WWISE_EVENT_2>RCA2610_push_button_off</WWISE_EVENT_2>
+		<NORMALIZED_TIME_2>0.5</NORMALIZED_TIME_2>	
+	</DefaultTemplateParameters>
+
+	<Component ID="INSTRUMENT_RCA2610#SUFFIX_ID#">
+		<Component ID="#NODE_ID_SCREEN#" Node="#NODE_ID_SCREEN#">
+			<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+				<EMISSIVE_CODE>(L:XMLVAR_RCA2610_Screen_Brightness)</EMISSIVE_CODE>
+			</UseTemplate>
+		</Component>
+
+    	<UseTemplate Name="ASOBO_INSTRUMENT_Base_Template">
+			<IE_NAME>RCA2610_DIM_LESS</IE_NAME>
+			<NODE_ID>#NODE_ID_DIM_LESS#</NODE_ID>
+			<ANIM_NAME>#ANIM_NAME_DIM_LESS#</ANIM_NAME>
+			<WWISE_PREFIX>rca2610_wwise</WWISE_PREFIX>
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+			<SET_STATE_EXTERNAL>(L:XMLVAR_RCA2610_Screen_Brightness) 0.03 - 0 max (&gt;L:XMLVAR_RCA2610_Screen_Brightness)</SET_STATE_EXTERNAL>
+			<TOOLTIP_TITLE>@TT_Package.LIGHTING_PUSH_DISPLAY_BRIGHTNESS_DEC_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.LIGHTING_PUSH_DISPLAY_BRIGHTNESS_DEC_ACTION</TT_DESCRIPTION_ID>
+		</UseTemplate>
+
+
+		<UseTemplate Name="ASOBO_INSTRUMENT_Base_Template">
+			<IE_NAME>RCA2610_DIM_MORE</IE_NAME>
+			<NODE_ID>#NODE_ID_DIM_MORE#</NODE_ID>
+			<ANIM_NAME>#ANIM_NAME_DIM_MORE#</ANIM_NAME>
+			<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+			<WWISE_PREFIX>rca2610_wwise</WWISE_PREFIX>
+			<SET_STATE_EXTERNAL>(L:XMLVAR_RCA2610_Screen_Brightness) 0.03 + 1 min (&gt;L:XMLVAR_RCA2610_Screen_Brightness)</SET_STATE_EXTERNAL>
+			<TOOLTIP_TITLE>@TT_Package.LIGHTING_PUSH_DISPLAY_BRIGHTNESS_INC_TITLE</TOOLTIP_TITLE>
+			<TT_DESCRIPTION_ID>@TT_Package.LIGHTING_PUSH_DISPLAY_BRIGHTNESS_INC_ACTION</TT_DESCRIPTION_ID>
+		</UseTemplate>
+
+		<Component ID="#NODE_ID_PITCH_SYNC#" Node="#NODE_ID_PITCH_SYNC#">
+			<UseTemplate Name="ASOBO_INSTRUMENT_Base_Template">
+				<IE_NAME>RCA2610_PITCH_SYNC</IE_NAME>
+				<CREATE_COMPONENT>False</CREATE_COMPONENT>
+				<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+				<NO_PUSH_ANIMATION>True</NO_PUSH_ANIMATION>
+				<SET_STATE_EXTERNAL>(&gt;H:RCA2610_Pitch_Sync_Event)</SET_STATE_EXTERNAL>
+				<TOOLTIP_TITLE>@TT_Package.RC2610_PITCH_SYNC_TITLE</TOOLTIP_TITLE>
+				<TT_DESCRIPTION_ID>@TT_Package.RC2610_PITCH_SYNC_ACTION</TT_DESCRIPTION_ID>
+				<TT_VALUE>(L:XMLVAR_RCA2610_Pitch_Sync, Bool) @TT_OnOff_Cond</TT_VALUE>
+				<TT_VALUE_IS_DYNAMIC>True</TT_VALUE_IS_DYNAMIC>
+			</UseTemplate>
+		</Component>
+	</Component>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Indicator_Light_Template">
+	<Parameters Type="Default">
+		<NODE_ID>#NODE_ID_BASE##SUFFIX_ID#</NODE_ID>
+		<I_VAR_NAME>XMLVAR_#NODE_ID_BASE#_Value</I_VAR_NAME>
+		<TARGET_VALUE Process="Float">#MIN_VALUE# #INCREMENT# #ID# 2 - * +</TARGET_VALUE>
+		<NEXT_TARGET_VALUE Process="Float">#MIN_VALUE# #INCREMENT# #ID# 1 - * +</NEXT_TARGET_VALUE>
+	</Parameters>
+	<Parameters Type="Default">
+		<SET_I_VAR>#MAX_VALUE# min (&gt;I:#I_VAR_NAME#)</SET_I_VAR>
+		<EMISSIVE_CODE>(I:#I_VAR_NAME#) #TARGET_VALUE# &gt;</EMISSIVE_CODE>
+	</Parameters>
+	<Parameters Type="Override">
+		<Switch Param="ID">
+			<Case Value="1">
+				<Condition Valid="CURRENT_LIGHT_ONLY">
+					<True>
+						<EMISSIVE_CODE>#GET_VALUE# #SET_I_VAR# (I:#I_VAR_NAME#) #MIN_VALUE# &lt;</EMISSIVE_CODE>
+					</True>
+					<False>
+						<EMISSIVE_CODE>#GET_VALUE# #SET_I_VAR# #EMISSIVE_CODE# (I:#I_VAR_NAME#) #MIN_VALUE# &lt; or</EMISSIVE_CODE>
+					</False>
+				</Condition>
+			</Case>
+			<Case Value="2">
+				<EMISSIVE_CODE>(I:#I_VAR_NAME#) #TARGET_VALUE# &gt;=</EMISSIVE_CODE>
+			</Case>
+		</Switch>
+	</Parameters>
+	<Parameters Type="Override">
+		<Condition Valid="CURRENT_LIGHT_ONLY">
+			<True>
+				<EMISSIVE_CODE>#EMISSIVE_CODE# (I:#I_VAR_NAME#) #NEXT_TARGET_VALUE# &lt;= and</EMISSIVE_CODE>
+			</True>
+		</Condition>
+	</Parameters>
+	<UseTemplate Name="ASOBO_GT_Component_Emissive_Gauge"/>
+</Template>
+
+<Template Name="ASOBO_INSTRUMENT_Needle_Bank_SubTemplate">
+	<Parameters Type="Default">
+		<NODE_ID>INSTRUMENT_Needle_Bank#SUFFIX_ID#</NODE_ID>
+		<ANIM_NAME>INSTRUMENT_Needle_Bank#SUFFIX_ID#</ANIM_NAME>
+		<MIN_VALUE>-180</MIN_VALUE>
+		<MAX_VALUE>180</MAX_VALUE>
+	</Parameters>
+	<UseTemplate Name="ASOBO_GT_Needle_Code">
+		<SIMVAR>ATTITUDE INDICATOR BANK DEGREES</SIMVAR>
+		<UNITS>degrees</UNITS>
+	</UseTemplate>
+</Template>
+
+</ModelBehaviors>
+

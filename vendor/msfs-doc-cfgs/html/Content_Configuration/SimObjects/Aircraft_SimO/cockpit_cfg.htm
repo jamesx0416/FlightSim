@@ -1,0 +1,3819 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>cockpit.cfg</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="search-keywords" content="content"/>
+  <meta name="rh-index-keywords" content="CFG Files,SimObjects,Aircraft"/>
+  <script src="../../../assets/css/Prism/prism.js">
+  </script>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>cockpit.cfg</h2>
+  <p>The <code class="inline">cockpit.cfg</code> file is an optional aircraft file for defining different cockpit behaviors and instruments. Below you can find information on the different sections used in the <code class="inline">cockpit.cfg</code> file as well as what parameters and values are expected within them.</p>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[VERSION]</code></h3>
+  <p>The <code class="inline">[VERSION]</code> section provides version information for the configuration file. In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, major versions should <em>always</em> be at least equal to 1. Note that this section information is <strong>mandatory</strong> and should always be included.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">major</code></td>
+        <td>Major CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minor</code></td>
+        <td>Minor CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[FUEL_FLOW]</code></h3>
+  <p>This section controls the fuel flow glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[FUEL_QUANTITY]</code></h3>
+  <p>This section controls the fuel quantity glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[FUEL_TEMPERATURE]</code></h3>
+  <p>This section controls the glass cockpit display related to fuel temperature. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[FUEL_PRESSURE]</code></h3>
+  <p>This section controls the fuel pressure glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[OIL_TEMPERATURE]</code></h3>
+  <p>This section controls the oil temperature glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[OIL_PRESSURE]</code></h3>
+  <p>This section controls the oil pressure glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[EGT_TEMPERATURE]</code></h3>
+  <p>This section controls the exhaust gas temperature glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <p> </p>
+  <h3 id="cht_temp"><code class="inline">[CHT_TEMPERATURE]</code></h3>
+  <p>This section controls the CHT glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[VACUUM]</code></h3>
+  <p>This section controls the vacuum glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[MANIFOLD_PRESSURE]</code></h3>
+  <p>This section controls the manifold pressure glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[AIRSPEED]</code></h3>
+  <p>This section controls the airspeed indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">white_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">white_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[TORQUE]</code></h3>
+  <p>This section controls the torque indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[RPM]</code></h3>
+  <p>This section controls the <a href="#" data-popovertext="This stands for &#39;Revolutions Per Minute&#39; and is used to measure engine speed and power." data-rhwidget="TextPopOver">RPM</a> indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[TURBINE_NG]</code></h3>
+  <p>This section controls the turbine engine indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[ITTEngineOff]</code></h3>
+  <p>This section controls the engine off glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[ITTEngineOn]</code></h3>
+  <p>This section controls the engine on glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[MAIN_BUS_VOLTAGE]</code></h3>
+  <p>This section controls the main bus voltage indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[HOT_BATTERY_BUS_VOLTAGE]</code></h3>
+  <p>This section controls the hot battery bus voltage indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[BATTERY_BUS_AMPS]</code></h3>
+  <p>This section controls the hot battery bus amps indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[GENALT_BUS_AMPS]</code></h3>
+  <p>This section controls the generator alternator bus amps indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[COOLANT_LEVEL]</code></h3>
+  <p>This section controls the coolant level indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[COOLANT_TEMPERATURE]</code></h3>
+  <p>This section controls the coolant temperature indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">low_yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[GEAR_OIL_TEMPERATURE]</code></h3>
+  <p>This section controls the gear oil temperature glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellow_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">red_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[CABIN_ALTITUDE]</code></h3>
+  <p>This section controls the cabin altitude indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[CABIN_ALTITUDE_CHANGE_RATE]</code></h3>
+  <p>This section controls the cabin altitude change rate indicator glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[CABIN_PRESSURE_DIFF]</code></h3>
+  <p>This section controls the cabin pressure differential glass cockpit display. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_start</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">green_end</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td> </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="ATTITUDEINDICATORS"><code class="inline">[ATTITUDE_INDICATORS]</code></h3>
+  <p>This section is used to define the characteristics of the attitude indicators on the instrument panels, where each indicator is defined in order, starting at 0 and incrementing by 1. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">attitude_indicator.<em>N</em></code></td>
+        <td>The system which drives the attitude indicator.</td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>0 = none</li>
+            <li>1 = Vacuum driven gyro</li>
+            <li>2 = Electrically driven gyro</li>
+          </ol>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="TURNINDICATORS"><code class="inline">[TURN_INDICATORS]</code></h3>
+  <p>This section controls the cockpit glass cockpit display turn indicators. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">turn_indicator.<em>N</em></code></td>
+        <td>
+          <p>This parameter requires two values which define the system on which the turn indicators are dependent. The first value is for <strong>turn</strong>, the second for <strong>bank</strong>, and they should be set to one of the following values:</p>
+          <ol class="minitoc-list">
+            <li>0 = none</li>
+            <li>1 = Vacuum driven gyro</li>
+            <li>2 = Electrically driven gyro</li>
+          </ol>
+          <p>. For example:</p>
+          <pre class="codeblock">turn_indicator.0 = 1,1</pre>
+          <p>You can define multiple turn indicators where <em>N</em> starts at <code class="inline">0</code> and going up to <code class="inline">number-of-indicators - 1</code>.</p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h3 id="DIRECTIONINDICATORS"><code class="inline">[DIRECTION_INDICATORS]</code></h3>
+  <p>This section controls the glass cockpit display direction indicators, not<span> including the magnetic compass</span>. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col style="width: 456px;"/>
+      <col style="width: 349px;"/>
+      <col style="width: 23px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">direction_indicator.<em>N</em></code></td>
+        <td>Sets the type of indicator. If the indicator is type 4, then there must be two entries separated by a comma - the indicator, and the indicator to which this one is slaved.</td>
+        <td>
+          <p>Integer</p>
+          <p><em>or</em></p>
+          <p>1D Table of Integers</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+          <ol class="minitoc-list">
+            <li>0 = None</li>
+            <li>1 = Vacuum gyro</li>
+            <li>2 = Electric gyro</li>
+            <li>3 = Electro-mag slaved compass</li>
+            <li>4 = Slaved to another indicator</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">induction_compass.<em>N</em></code></td>
+        <td>Defines 1 or more induction compasses, where <em>N</em> starts at <code class="inline">0</code> and goes up to <code class="inline">compass-number - 1</code>.</td>
+        <td>
+          <p><u>Integer</u>:</p>
+          <ol class="minitoc-list">
+            <li>1 = Electric</li>
+            <li>2 = Anemometer driven</li>
+          </ol>
+        </td>
+        <td style="text-align: center;">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="AIRSPEEDINDICATOR"><code class="inline">[AIRSPEED_INDICATORS]</code></h3>
+  <p>This section is used to define the characteristics of the different airspeed indicators on the instrument panel, where these <span>characteristics define the calibration between calibrated airspeed and indicated airspeed</span>.</p>
+  <p> </p>
+  <p>Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">airspeed_indicator.<em>N</em></code></td>
+        <td>
+          <p>This is a two value table used to define airspeed indicator <em>N</em>. <span>The first parameter in the table is a scalar on the calibrated airspeed, and the second is an offset in <a href="#" data-popovertext="The &#39;knot&#39; is a unit of speed equal to one nautical mile per hour, which is 1.852 km/h using the metric scale and approximately 1.15078 mph using the imperial scale." data-rhwidget="TextPopOver">Knot</a>s, where the offset is applied first, then the scalar. By </span><span>default the value for the scalar is 1.0 and the offset is 0.0. This means that by default the indicated airspeed will be equal to calibrated airspeed.</span></p>
+          <p><span>There can be multiple entries for this parameter, one for each indicator, with <em>N</em> starting at <code class="inline">0</code> going up to <code class="inline">number of indicators - 1</code>.</span></p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="ALTIMETERS"><code class="inline">[ALTIMETERS]</code></h3>
+  <p>This section can be used to instantiate cockpit altimeters and set their position. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">altimeter.<em>N</em></code></td>
+        <td>
+          <p>When set to TRUE (1), this will instantiate an altimeter, which will operate independently of other altimeters, and can have failures applied to it. There can be multiple entries for this parameter, one for each altimeter, with <em>N</em> starting at <code class="inline">0</code> going up to <code class="inline">number of altimeters - 1</code>.</p>
+          <p><span class="note"><strong>IMPORTANT!</strong> when referencing any altimeter using the appropriate SimVars (for example <code class="inline"><a href="../../../Programming_Tools/SimVars/Aircraft_SimVars/Aircraft_System_Variables.htm#KOHLSMAN_SETTING_HG">KOHLSMAN_SETTING_HG</a></code>) the SimVar index starts at 1 not 0. So <code class="inline">altimeter.0</code> is accessed by <code class="inline">SimVar:1</code>, <code class="inline">altimeter.1</code> is <code class="inline">SimVar:2</code>, etc...</span></p>
+        </td>
+        <td>Boolean</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">altimeter_position.<em>N</em></code></td>
+        <td>Sets the position of the altimeter <em>N</em> on the aircraft control panel using a table of values formatted as: Lateral, Vertical, Longitudinal. Values are relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>. There can be multiple entries for this parameter, one for each altimeter, with <em>N</em> starting at <code class="inline">0</code> going up to <code class="inline">number of altimeters - 1</code>.</td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="ANEMOMENTERS"><code class="inline">[ANEMOMETERS]</code></h3>
+  <p>This section controls the position of the cockpit anemometers. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">anemometer.<em>N</em></code></td>
+        <td>Sets the position of the anemometer <em>N</em> on the aircraft control panel using a table of values formatted as: Lateral, Vertical, Longitudinal. Values are relative to the <a href="Aircraft.htm#h">Datum Reference Point</a>. There can be multiple entries for this parameter, one for each anemometer, with <em>N</em> starting at <code class="inline">0</code> going up to <code class="inline">number of anemometers - 1</code>.</td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[MAGNETICCOMPASS]</code></h3>
+  <p>This section controls the cockpit magnetic compass. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td>compass.0</td>
+        <td>Set to 1 for a vertical compass (with no dip errors).</td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+    </tbody>
+  </table>
+  <p> </p>
+  <h3><code class="inline">[GPWS]</code></h3>
+  <p>This section controls the cockpit <a href="#" data-popovertext="The &#39;Ground Proximity Warning System&#39; generates advisory alerts and mandatory response warnings to the flight crew in respect to their proximity to terrain." data-rhwidget="TextPopOver">GPWS</a>. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">max_warning_height</code></td>
+        <td>The height below which a warning is activated, in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a>.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">sink_rate_fpm</code></td>
+        <td>If an aircraft exceeds this rate of descent (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute) a warning is activated.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">excessive_sink_rate_fpm</code></td>
+        <td>If an aircraft exceeds this rate of descent (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute) an urgent warning is activated.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">climbout_sink_rate_fpm</code></td>
+        <td>If an aircraft starts to descend during takeoff, and exceeds this rate of descent (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute), a warning is activated.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flap_and_gear_sink_rate_fpm</code></td>
+        <td>If an aircraft is landing, and exceeds this rate of descent (in <a href="#" data-popovertext="The &#39;foot&#39; (or &#39;feet&#39; in plural) is an Imperial unit of measurement, and is approximately 0.3 meters on the metric scale." data-rhwidget="TextPopOver">ft</a> per minute) without flaps or gear extended, a warning is activated.</td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[THROTTLE_LEVELS]</code></h3>
+  <p>This section controls the cockpit throttle levels. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">level_1_min</code></td>
+        <td colspan="1" rowspan="12">
+          <p>Set the minimum throttle percentage for each detent and the corresponding name. For example, for the A320, level 1 is -100 REV, level 2 is 0 IDLE, etc...</p>
+          <p>Available names are:</p>
+          <ul>
+            <li>&quot;REV&quot; - reverse</li>
+            <li>&quot;IDLE&quot; - idle</li>
+            <li>&quot;A/THR&quot; - auto</li>
+            <li>&quot;CL&quot; - climb</li>
+            <li>&quot;FLX&quot; - flex</li>
+            <li>&quot;TOGA&quot; - toga</li>
+          </ul>
+          <p>Default level is 0. Default name is &quot;&quot;.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_1_name</code></td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_2_min</code></td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_2_name</code></td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_3_min</code></td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_3_name</code></td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_4_min</code></td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_4_name</code></td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_5_min</code></td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_5_name</code></td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_6_min</code></td>
+        <td>Float</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+      <tr>
+        <td><code class="inline">level_6_name</code></td>
+        <td>String</td>
+        <td style="text-align: center">Yes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[FLAPS_LEVELS]</code></h3>
+  <p>This section controls the cockpit flaps levels. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td>
+          <p><code class="inline">slats_level_1</code></p>
+          <p>to</p>
+          <p><code class="inline">slats_level_10</code></p>
+        </td>
+        <td colspan="1" rowspan="4">
+          <p>The slats/flaps angle for each level in the flaps lever levels (in degrees).</p>
+          <p>Default values for both slats and flaps at all levels is 0.</p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td>
+          <p><code class="inline">flaps_level_1</code></p>
+          <p>to</p>
+          <p><code class="inline">flaps_level_10</code></p>
+        </td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">slats_level_full</code></td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">flaps_level_full</code></td>
+        <td>Float</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h1"><code class="inline">[MISC]</code></h3>
+  <p>This section controls certain HUD elements that will be visible when the user is in &quot;3rd person mode&quot; as well as the style that will be used to display them. Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">g_meter</code></td>
+        <td>
+          <p>When set to 1 (TRUE) a G-meter will be displayed on the external HUD, and if set to 0 (FALSE), none will be displayed.</p>
+          <p>Default value is (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">vcockpit_hud</code></td>
+        <td>
+          <p>This can be set to 1 (TRUE) to have a &quot;vcockpit-style&quot; external HUD, or it can be set to 0 (FALSE) to have a &quot;steamgauge-style&quot; external HUD.</p>
+          <p>Default value is (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_airspeed_color_from_lvar</code></td>
+        <td>
+          <p>When defining your aircraft, you can select this option to set custom colours for the airspeed indicator using local variables, meaning that these colours can be changed dynamically using the using the &quot;<code class="inline">L:</code>&quot; var identifier in <a href="../../../Additional_Information/Reverse_Polish_Notation.htm">Reverse Polish Notation</a>. For more information, please see here: <a href="../../../Developer_Mode/Aircraft_Editor/Tabs/The_Cockpit_Tab.htm#HUD_Airspeed_Colour_from_Lvar">HUD_Airspeed_Colour_from_Lvar</a>.</p>
+          <p><span class="note"><strong>NOTE</strong>: This option is only applicable when the <code class="inline">vcockpit_hud</code> is set to 1 (TRUE).</span></p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_show_fuel</code></td>
+        <td>
+          <p>When set to 1 (TRUE) the HUD will display the fuel meter.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_show_aoa</code></td>
+        <td>
+          <p>When set to 1 (TRUE) the HUD will display the <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> indicator.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_show_variometer</code></td>
+        <td>
+          <p>When set to 1 (TRUE) the HUD will display the variometer. Note that this is only used by gliders, and will only show 0 for all other aircraft.</p>
+          <p><span class="note"><strong>NOTE</strong>: This option is only applicable when the <code class="inline">vcockpit_hud</code> is set to 0 (FALSE).</span></p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td> </td>
+        <td style="text-align: center"> </td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_show_tachometer</code></td>
+        <td>
+          <p>When set to 1 (TRUE) the HUD will display the tachometer. Note that visually this will change depending on whether the <code class="inline">vcockpit_hud</code> option is true or not.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_show_trim</code></td>
+        <td>
+          <p>When set to 1 (TRUE) the HUD will display the fuel meter.</p>
+          <p>Default value is 1 (TRUE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_speed_in_mach </code></td>
+        <td>
+          <p>When set to 1 (TRUE) a mach speed will always be displayed on the external HUD, and if set to 0 (FALSE), then it won&#39;t be displayed.</p>
+          <p><span class="note"><strong>NOTE</strong>: This option is only applicable when the <code class="inline">vcockpit_hud</code> is set to 1 (TRUE).</span></p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_helicopter_mode</code></td>
+        <td>
+          <p>When set to 1 (TRUE) the tachometer will be displayed in a way more appropriate for helicopter.</p>
+          <p><span class="note"><strong>NOTE</strong>: This option is only applicable when the <code class="inline">vcockpit_hud</code> is set to 0 (FALSE).</span></p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">equivalent_airspeed_hud</code></td>
+        <td>
+          <p>When this is is set to 1 (TRUE), airspeed will be shown as <a href="#" data-popovertext="Equivalent airspeed (EAS) is the calibrated airspeed (CAS) corrected for the compressibility of air at a non-trivial Mach number. It is also considered as the airspeed at sea level in the International Standard Atmosphere at which the dynamic pressure is the same as the dynamic pressure at the true airspeed (TAS) and altitude at which the aircraft is flying." data-rhwidget="TextPopOver">EAS</a>., instead of <a href="#" data-popovertext="This stands for &quot;Indicated Air Speed&quot; and simply refers to the airspeed read directly from the airspeed indicator in an aircraft, driven by the pitot-static system." data-rhwidget="TextPopOver">IAS</a> when 0 (FALSE).</p>
+          <p><span class="note"><strong>NOTE</strong>: This option is only applicable when the <code class="inline">vcockpit_hud</code> is set to 1 (TRUE).</span></p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hud_navy_aoa</code></td>
+        <td>
+          <p>This can be used to enabled (1, TRUE) or disable (0, FALSE) the navy-style <a href="#" data-popovertext="This stands for the &#39;Angle of Attack&#39;, which specifies the angle between the chord line of the wing of a fixed-wing aircraft and the vector representing the relative motion between the aircraft and the atmosphere." data-rhwidget="TextPopOver">AoA</a> indicator.</p>
+          <p><span class="note"><strong>NOTE</strong>: This option is only applicable when the <code class="inline">vcockpit_hud</code> is set to 1 (TRUE).</span></p>
+          <p>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">gps_altimeter_hud</code></td>
+        <td>
+          <p>This can be used to enable (1, TRUE) or disable (0, FALSE) using GPS for the altitude indicator instead of the indicated altitude value (based on air pressure).</p>
+          <p><span class="note"><strong>NOTE</strong>: This option is only applicable when the <code class="inline">vcockpit_hud</code> is set to 1 (TRUE).</span>Default value is 0 (FALSE).</p>
+        </td>
+        <td>Bool</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3><code class="inline">[TAKEOFF_SPEEDS]</code></h3>
+  <p>This section controls . Available parameters are:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+        <th>Required</th>
+      </tr>
+      <tr>
+        <td><code class="inline">take_off_speed_min_val</code></td>
+        <td>Default value is 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">take_off_speed_max_val</code></td>
+        <td>Default value is 0.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">take_off_speed_min_weight</code></td>
+        <td>Default value is 200.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+      <tr>
+        <td><code class="inline">take_off_speed_max_weight</code></td>
+        <td>Default value is 1000000.</td>
+        <td>Integer</td>
+        <td style="text-align: center">No</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h">Glass Cockpit Settings Struct</h3>
+  <p>The contents of the <code class="inline">cockpit.cfg</code> file can be accessed from HTML gauges using JavaScript. In this case the returned value will be a struct (of the <code class="inline"><a href="../../../Programming_Tools/SimVars/Simulation_Variable_Units.htm#GlassCockpitSettings">GlassCockpitSettings</a></code> unit type) with the following contents:</p>
+  <p> </p>
+  <table style="table-layout:auto;width:50%;">
+    <colgroup>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td><code class="inline">FuelFlow</code></td>
+        <td><a href="cockpit_cfg.htm#CRDS">ColorRangeDisplay Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">FuelQuantity</code></td>
+        <td><a href="cockpit_cfg.htm#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">FuelTemperature</code></td>
+        <td><a href="cockpit_cfg.htm#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">FuelPressure</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">OilPressure</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">OilTemperature</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">EGTTemperature</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">CHTTemperature</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">Vacuum</code></td>
+        <td><a href="#CRDS">ColorRangeDisplay Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">ManifoldPressure</code></td>
+        <td><a href="#CRDS">ColorRangeDisplay Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">AirSpeed</code></td>
+        <td><a href="cockpit_cfg.htm#CRDS4">ColorRangeDisplay4 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">Torque</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">RPM</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">TurbineNG</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">TurbineN1</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">TurbineN2</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">ITTEngineOff</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">ITTEngineOn</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">MainBusVoltage</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">HotBatteryBusVoltage</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">BatteryBusAmps</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">GenAltBusAmps</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">CoolantLevel</code></td>
+        <td><a href="#RDS">RangeDisplay Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">CoolantTemperature</code></td>
+        <td><a href="#CRDS3">ColorRangeDisplay3 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">GearOilTemperature</code></td>
+        <td><a href="#CRDS2">ColorRangeDisplay2 Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">CabinAltitude</code></td>
+        <td><a href="#CRDS">ColorRangeDisplay Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">CabinAltitudeChangeRate</code></td>
+        <td><a href="cockpit_cfg.htm#RDS">RangeDisplay Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">CabinPressureDiff</code></td>
+        <td><a href="#CRDS">ColorRangeDisplay Struct</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">ThrottleLevels</code></td>
+        <td><a href="cockpit_cfg.htm#TLI">ThrottleLevelsInfo</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">FlapsLevels</code></td>
+        <td><a href="cockpit_cfg.htm#FLI">FlapsLevelsInfo</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">TakeOffSpeeds</code></td>
+        <td><a href="cockpit_cfg.htm#TOS">TakeOffSpeedsInfo</a></td>
+      </tr>
+      <tr>
+        <td><code class="inline">Misc</code></td>
+        <td><a href="cockpit_cfg.htm#GCM">GlassCockpitMisc</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="RDS">RangeDisplay Struct</h5>
+  <table style="table-layout:auto;width:50%;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;RangeDisplay&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="CRDS">ColorRangeDisplay Struct</h5>
+  <table style="table-layout:auto;width:50%;">
+    <colgroup>
+      <col style="width: 193px;"/>
+      <col style="width: 222px;"/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;ColorRangeDisplay&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="CRDS2">ColorRangeDisplay2 Struct</h5>
+  <table style="table-layout:auto;width:50%;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;ColorRangeDisplay2&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellowStart</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellowEnd</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">redStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">redEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="CRDS3">ColorRangeDisplay3 Struct</h5>
+  <table style="table-layout:auto;width:50%;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;ColorRangeDisplay3&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellowStart</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellowEnd</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">redStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">redEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowRedStart</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowRedEnd</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowYellowStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowYellowEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="CRDS4">ColorRangeDisplay4 Struct</h5>
+  <table style="table-layout:auto;width:50%;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;ColorRangeDisplay4&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">min</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">max</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">lowLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">highLimit</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">greenEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellowStart</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">yellowEnd</code></td>
+        <td>
+          <p>0</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">redStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">redEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">whiteStart</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">whiteEnd</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="TLI">ThrottleLevelsInfo</h5>
+  <table style="table-layout:auto;width:50%;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;ThrottleLevelsInfo&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minValues</code></td>
+        <td>[0, 0, 0, 0, 0]</td>
+        <td>
+          <p>Array</p>
+          <p>(Floats)</p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">names</code></td>
+        <td>[&quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;]</td>
+        <td>
+          <p>Array</p>
+          <p>(Strings)</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="FLI">FlapsLevelsInfo</h5>
+  <table style="table-layout:auto;width:50%;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;FlapsLevelsInfo&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">slatsAngle</code></td>
+        <td>[0, 0, 0, 0]</td>
+        <td>
+          <p>Array</p>
+          <p>(Floats)</p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">flapsAngle</code></td>
+        <td>[0, 0, 0, 0]</td>
+        <td>
+          <p>Array</p>
+          <p>(Floats)</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="TOS">TakeOffSpeedsInfo</h5>
+  <table style="table-layout:auto;width:50%;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;FlapsLevelsInfo&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minVal</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">minWeight</code></td>
+        <td>0</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">maxVal</code></td>
+        <td>200</td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">maxWeight</code></td>
+        <td>1000000</td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <h5 id="GCM">GlassCockpitMisc</h5>
+  <table style="table-layout:auto;width:50%;">
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Default Value</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">__Type</code></td>
+        <td>
+          <p>&quot;GlassCockpitMisc&quot;</p>
+        </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialized</code></td>
+        <td>
+          <p>true</p>
+        </td>
+        <td>Boolean</td>
+      </tr>
+      <tr>
+        <td><code class="inline">hasGMeter</code></td>
+        <td>false</td>
+        <td>Boolean</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.3.1.1_3"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>

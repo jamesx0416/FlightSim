@@ -1,0 +1,169 @@
+<ModelBehaviors>
+	<Template Name="ASOBO_AS650_Template">
+		<Parameters Type="Default">
+			<NODE_ID_SCREEN>MFD_650_SCREEN</NODE_ID_SCREEN>
+			<SCREEN_MIN_EMISSIVE_PERCENT>0.05</SCREEN_MIN_EMISSIVE_PERCENT>
+			<MAX_EMISSIVE_PERCENT>1</MAX_EMISSIVE_PERCENT>
+			<NODE_ID_VOLUME>MFD_650_KNOB_VOLUME</NODE_ID_VOLUME>
+			<ANIM_NAME_VOLUME>MFD_650_KNOB_VOLUME</ANIM_NAME_VOLUME>
+			<ANIM_NAME_VOLUME_PUSH>MFD_650_PUSH_VOLUME</ANIM_NAME_VOLUME_PUSH>
+			<NODE_ID_COM_LARGE_KNOB>MFD_650_Knob_MHz</NODE_ID_COM_LARGE_KNOB>
+			<ANIM_NAME_COM_LARGE_KNOB>MFD_650_Knob_MHz</ANIM_NAME_COM_LARGE_KNOB>
+			<NODE_ID_COM_SMALL_KNOB>MFD_650_Knob_KHz</NODE_ID_COM_SMALL_KNOB>
+			<ANIM_NAME_COM_SMALL_KNOB>MFD_650_Knob_KHz</ANIM_NAME_COM_SMALL_KNOB>
+			<ANIM_NAME_COM_KNOB_PUSH>MFD_650_Knob_KHz_PUSH</ANIM_NAME_COM_KNOB_PUSH>
+			<NAV_INDEX>#ID#</NAV_INDEX>
+			<Condition Check="ID" Match="1">
+				<True>
+					<COM_INDEX/>
+				</True>
+				<False>
+					<COM_INDEX>#ID#</COM_INDEX>
+				</False>
+			</Condition>
+			<Condition Check="CIRCUIT_ID">
+				<True>
+					<FAILURE>(A:CIRCUIT ON:#CIRCUIT_ID#, Bool)</FAILURE>
+				</True>
+				<False>
+					<FAILURE>(A:CIRCUIT GENERAL PANEL ON:0, Bool)</FAILURE>
+				</False>
+			</Condition>
+		</Parameters>
+		<Component ID="ASOBO_AS650">
+			<Component ID="#NODE_ID_SCREEN#" Node="#NODE_ID_SCREEN#">
+				<UseTemplate Name="ASOBO_GT_Emissive_Gauge">
+					<EMISSIVE_CODE>#MAX_EMISSIVE_PERCENT# #SCREEN_MIN_EMISSIVE_PERCENT# - (A:GLASSCOCKPIT AUTOMATIC BRIGHTNESS, Percent over 100) * #SCREEN_MIN_EMISSIVE_PERCENT# +</EMISSIVE_CODE>
+				</UseTemplate>
+			</Component>
+			
+			<Component ID="Knob_Volume">
+				<UseTemplate Name="ASOBO_NAVCOM_Knob_COM_Volume_Template">
+					<ID>1</ID>
+					<NODE_ID>#NODE_ID_VOLUME#</NODE_ID>
+					<ANIM_NAME_KNOB>#NODE_ID_VOLUME#</ANIM_NAME_KNOB>
+					<ANIM_NAME_PUSH>#ANIM_NAME_VOLUME_PUSH#</ANIM_NAME_PUSH>
+					<FAILURE>1</FAILURE>
+				</UseTemplate>
+			</Component>
+			<Component ID="Knob_Frequency">
+				<Parameters Type="Default">
+					<TOOLTIP_TITLE_IS_DYNAMIC>True</TOOLTIP_TITLE_IS_DYNAMIC>
+					<TT_DESCRIPTION_IS_DYNAMIC>True</TT_DESCRIPTION_IS_DYNAMIC>
+					<GET_TT_VALUE_STATE>(A:NAV STANDBY FREQUENCY:#ID#, Megahertz) (A:COM STANDBY FREQUENCY:#ID#, Megahertz) (L:AS650_NAV_Freq_Modify) ? sp0</GET_TT_VALUE_STATE>
+					<FORMAT_VALUE>l0 (L:AS650_NAV_Freq_Modify) if{ 'NAV#ID#:&lt;br/&gt;%.3f' } els{ 'COM#ID#:&lt;br/&gt;%.3f' } @sprintf</FORMAT_VALUE>
+				</Parameters>
+				<Parameters Type="Override">
+					<TOOLTIP_TITLE>#ID# (L:AS650_NAV_Freq_Modify) if{ (R:1:@TT_Package.AUDIOPANEL_KNOB_NAV_FREQ_TITLE) } els{ (R:1:@TT_Package.AUDIOPANEL_KNOB_COM_FREQ_TITLE) } @sprintf</TOOLTIP_TITLE>
+				</Parameters>
+				<Component ID="#NODE_ID_COM_SMALL_KNOB#" Node="#NODE_ID_COM_SMALL_KNOB#">
+					<UseTemplate Name="ASOBO_AS650_Push_Event_Base_Template">
+						<IE_NAME>Knob_Button</IE_NAME>
+						<IS_TIMED>True</IS_TIMED>
+						<!-- <LONG_CLICK_TIME>2</LONG_CLICK_TIME> -->
+						<ON_PUSH_EVENT>(L:AS650_NAV_Freq_Modify) ! (&gt;L:AS650_NAV_Freq_Modify)</ON_PUSH_EVENT>
+						<ON_PUSH_EVENT_LONG>(L:AS650_NAV_Freq_Modify) if{ (&gt;K:NAV#NAV_INDEX#_RADIO_SWAP) } els{ (&gt;K:COM#ID#_RADIO_SWAP) }</ON_PUSH_EVENT_LONG>
+						<SHORT_CLICK_CODE>(L:AS650_NAV_Freq_Modify) ! (&gt;L:AS650_NAV_Freq_Modify)</SHORT_CLICK_CODE>
+						<LONG_CLICK_CODE>(L:AS650_NAV_Freq_Modify) if{ (&gt;K:NAV#NAV_INDEX#_RADIO_SWAP) } els{ (&gt;K:COM#ID#_RADIO_SWAP) }</LONG_CLICK_CODE>
+						<TT_DESCRIPTION>#ID# (L:AS650_NAV_Freq_Modify) if{ (R:1:@TT_Package.AUDIOPANEL_PUSH_NAV_SWAP_ACTION) } els{ (R:1:@TT_Package.AUDIOPANEL_PUSH_COM_SWAP_ACTION) } @sprintf</TT_DESCRIPTION>
+						<TT_VALUE>(L:AS650_NAV_Freq_Modify) if{ (R:1:@TT_Package.GT_STATE_NAV) } els{ (R:1:@TT_Package.GT_STATE_COM) }</TT_VALUE>
+						<TT_VALUE_IS_DYNAMIC>True</TT_VALUE_IS_DYNAMIC>
+						<CREATE_COMPONENT>False</CREATE_COMPONENT>
+					</UseTemplate>
+					<UseTemplate Name="ASOBO_AS650_Base_Template">
+						<IE_NAME>COM_Khz</IE_NAME>
+						<IE_ID_EXTERNAL_0>Knob_Button</IE_ID_EXTERNAL_0>
+						<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+						<IS_TIMED>True</IS_TIMED>
+						<IS_INFINITE>True</IS_INFINITE>
+						<CREATE_COMPONENT>False</CREATE_COMPONENT>
+						<!-- <NODE_ID>#NODE_ID_COM_SMALL_KNOB#</NODE_ID> -->
+						<ANIM_NAME_KNOB>#ANIM_NAME_COM_SMALL_KNOB#</ANIM_NAME_KNOB>
+						<ANIM_NAME_PUSH>#ANIM_NAME_COM_KNOB_PUSH#</ANIM_NAME_PUSH>
+						<SET_STATE_EXTERNAL>
+						(L:AS650_NAV_Freq_Modify) if{ 
+							p0 0 &gt; if{ (&gt;K:NAV#NAV_INDEX#_RADIO_FRACT_INC) } els{ (&gt;K:NAV#NAV_INDEX#_RADIO_FRACT_DEC) }
+						} els{ 
+							p0 0 &gt; if{ (&gt;K:COM#COM_INDEX#_RADIO_FRACT_INC) } els{ (&gt;K:COM#COM_INDEX#_RADIO_FRACT_DEC) } 
+						} 
+						</SET_STATE_EXTERNAL>
+						<TT_DESCRIPTION>#ID# (L:AS650_NAV_Freq_Modify) if{ (R:1:@TT_Package.AUDIOPANEL_KNOB_NAV_KHZ_ACTION) } els{ (R:1:@TT_Package.AUDIOPANEL_KNOB_COM_KHZ_ACTION) } @sprintf</TT_DESCRIPTION>
+						<WWISE_EVENT>AS650_small_knob</WWISE_EVENT>
+						<COUNT>36</COUNT>
+					</UseTemplate>
+			</Component>
+				<UseTemplate Name="ASOBO_AS650_Base_Template">
+					<IE_NAME>COM_Mhz</IE_NAME>
+					<INTERACTION_TYPE>Knob</INTERACTION_TYPE>
+					<IS_INFINITE>True</IS_INFINITE>
+					<NODE_ID>#NODE_ID_COM_LARGE_KNOB#</NODE_ID>
+					<ANIM_NAME>#ANIM_NAME_COM_LARGE_KNOB#</ANIM_NAME>
+					<SET_STATE_EXTERNAL>
+					(L:AS650_NAV_Freq_Modify) if{ 
+						p0 0 &gt; if{ (&gt;K:NAV#NAV_INDEX#_RADIO_WHOLE_INC) } els{ (&gt;K:NAV#NAV_INDEX#_RADIO_WHOLE_DEC) }
+					} els{ 
+						p0 0 &gt; if{ (&gt;K:COM#COM_INDEX#_RADIO_WHOLE_INC) } els{ (&gt;K:COM#COM_INDEX#_RADIO_WHOLE_DEC) } 
+					} 
+					</SET_STATE_EXTERNAL>
+					<TT_DESCRIPTION>#ID# (L:AS650_NAV_Freq_Modify) if{ (R:1:@TT_Package.AUDIOPANEL_KNOB_NAV_MHZ_ACTION) } els{ (R:1:@TT_Package.AUDIOPANEL_KNOB_COM_MHZ_ACTION) } @sprintf</TT_DESCRIPTION>
+					<WWISE_EVENT>AS650_large_knob</WWISE_EVENT>
+					<COUNT>36</COUNT>
+				</UseTemplate>
+			</Component>
+			<Component ID="Buttons">
+				<UseTemplate Name="ASOBO_AS650_Base_Template">
+					<NODE_ID>MFD_650_BUTTON_HOME</NODE_ID>
+					<IE_NAME>BUTTON_HOME</IE_NAME>
+					<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+					<ANIM_NAME>MFD_650_BUTTON_HOME</ANIM_NAME>
+					<IS_TIMED>True</IS_TIMED>
+					<SHORT_CLICK_CODE>(&gt;H:AS650_BTN_MODE_Press)</SHORT_CLICK_CODE>
+					<LONG_CLICK_CODE>(&gt;H:AS650_BTN_MODE_LongPress)</LONG_CLICK_CODE>
+					<SET_STATE_EXTERNAL>if{ (&gt;H:AS650_BTN_Home_Press) }</SET_STATE_EXTERNAL>
+					<TOOLTIP_TITLE>@TT_Package.AS650_PUSH_HOME_TITLE</TOOLTIP_TITLE>
+					<TT_DESCRIPTION_ID>@TT_Package.AS650_PUSH_HOME_ACTION</TT_DESCRIPTION_ID>						
+				</UseTemplate>
+				<UseTemplate Name="ASOBO_AS650_Base_Template">
+					<NODE_ID>MFD_650_BUTTON_FUNCTION</NODE_ID>
+					<IE_NAME>BUTTON_DIRECT_TO</IE_NAME>
+					<INTERACTION_TYPE>Push</INTERACTION_TYPE>
+					<ANIM_NAME>MFD_650_BUTTON_FUNCTION</ANIM_NAME>
+					<SET_STATE_EXTERNAL>if{ (&gt;H:AS650_BTN_Direct_To_Press) }</SET_STATE_EXTERNAL>
+					<TOOLTIP_TITLE>@TT_Package.AS650_PUSH_DIRECT_TO_TITLE</TOOLTIP_TITLE>
+					<TT_DESCRIPTION_ID>@TT_Package.AS650_PUSH_DIRECT_TO_ACTION</TT_DESCRIPTION_ID>						
+				</UseTemplate>
+			</Component>
+		</Component>
+	</Template>
+	<!-- ########################################## -->
+	<!-- AS650 Interaction inputs setup template -->
+	<Template Name="ASOBO_AS650_Base_Template">
+		<Parameters Type="Default">
+			<INPUT_EVENT_ID_SOURCE>AS650</INPUT_EVENT_ID_SOURCE>
+			<WWISE_PREFIX>AS650</WWISE_PREFIX>
+		</Parameters>
+		<UseTemplate Name="ASOBO_Interaction_Base_Template">
+			<USE_INPUT_EVENT_ID>AS650</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS650_Push_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Push_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS650</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	<Template Name="ASOBO_AS650_Pull_Event_Base_Template">
+		<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">
+			<USE_INPUT_EVENT_ID>AS650</USE_INPUT_EVENT_ID>
+		</UseTemplate>
+	</Template>
+	
+	<InputEvent ID="AS650">
+		<Presets>
+			<Extend Target="ASOBO_GIE_Anim_Handling">
+				<Parameters Type="Default">
+					<INPUT_EVENT_ID_SOURCE>AS650</INPUT_EVENT_ID_SOURCE>
+				</Parameters>
+			</Extend>
+		</Presets>
+	</InputEvent>
+</ModelBehaviors>

@@ -1,0 +1,1091 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, user-scalable=yes"/>
+  <meta name="version" content="2020.0.0"/>
+  <link rel="StyleSheet" href="../../../template/styles/topic.min.css" type="text/css"/>
+  <link rel="StyleSheet" data-skin="true" type="text/css" href="../../../template/Frameless-MSFS-Dark/layout.css"/>
+  <link rel="StyleSheet" data-skin="true" href="../../../template/Frameless-MSFS-Dark/userstyles.css" type="text/css"/>
+  
+    <link rel="shortcut icon" type="image/png" href="../../../Favicon.png"/>
+    
+<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>cameras.cfg</title>
+  <meta name="generator" content="Adobe RoboHelp 2022"/>
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+  <meta name="rh-index-keywords" content="Cameras,CFG Files"/>
+<meta name="rh-version" content="2022.6.34"/><meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate"/><meta http-equiv="Pragma" content="no-cache"/><meta http-equiv="Expires" content="0"/><link rel="stylesheet" type="text/css" href="../../../assets/css/Prism/prism.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/default.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/extra_symbols.css?version=20_4"/><link rel="stylesheet" type="text/css" href="../../../assets/css/mathjax/mathjax.css?version=20_4"/><script src="../../../assets/css/Prism/prism.js?version=20_4"></script><script src="../../../assets/css/mathjax/es5/tex-chtml.js?version=20_4" type="text/javascript"></script><script src="../../../assets/css/mathjax/es5/input/tex/extensions/boldsymbol.js?version=20_4" charset="UTF-8"></script><script type="text/x-mathjax-config">
+    <![CDATA[
+        MathJax.Hub.Config({"HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"], linebreaks: { automatic:true }, EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50) },
+            tex2jax: { inlineMath: [ ["$", "$"], ["\\(", "\\)"] ], displayMath: [ ["$$","$$"], ["\\[", "\\]"] ], processEscapes: true, ignoreClass: "tex2jax_ignore|dno" },
+            TeX: {  noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } } },
+            messageStyle: "none"
+    svg: {
+        scale: 1,                      // global scaling factor for all expressions
+        minScale: .5,                  // smallest scaling factor to use
+        mtextInheritFont: false,       // true to make mtext elements use surrounding font
+        merrorInheritFont: true,       // true to make merror text use surrounding font
+        mathmlSpacing: false,          // true for MathML spacing rules, false for TeX rules
+        skipAttributes: {},            // RFDa and other attributes NOT to copy to the output
+        exFactor: .5,                  // default size of ex in em units
+        displayAlign: 'center',        // default for indentalign when set to 'auto'
+        displayIndent: '0',            // default for indentshift when set to 'auto'
+        fontCache: 'local',            // or 'global' or 'none'
+        localID: null,                 // ID to use for local font cache (for single equation processing)
+        internalSpeechTitles: true,    // insert <title> tags with speech content
+        titleID: 0                     // initial id number to use for aria-labeledby titles
+      }
+        });
+      ]]>
+  </script>
+  
+  <meta charset="utf-8"/>
+  
+  
+  <meta name="rh-authors" content="Mark Alexander"/>
+<meta name="rh-version" content="2022.6.34"/></head>
+
+<body class="rh-BODY-wrapper">
+  <div class="cookie-widget-holder" id="cookie-status-widget-holder"></div>
+  <div class="RH-LAYOUT-HEADER-skip-content-container" id="skip-to-content"></div>
+  <header class="RH-LAYOUT-HEADER-container" role="banner">
+    <div class="RH-LAYOUT-HEADER-logo-box  ">
+      <div class="RH-LAYOUT-HEADER-logo" id="logo-holder"></div>
+      <div class="RH-LAYOUT-HEADER-title" id="topic-title-holder"></div>
+    </div>
+    <div class="RH-LAYOUT-HEADERMENU-container" id="header-menu"></div>
+    <div class="search-placeholder-class" id="search-with-help"></div>
+  </header>
+  <main role="main" class="RH-LAYOUT-BODY-container">
+    <div class="RH-LAYOUT-SEARCHRESULTS" id="rh-searchresults"></div>
+    <div class="RH-LAYOUT-LEFTPANEL-container" id="rh-leftpanel"></div>
+    <div class="rh-layout-BODY-main" id="rh-layout-main">
+      <div class="RH-LAYOUT-TOOLBAR-toolbar-box" id="rh-toolbar"></div>
+      <div class="rh-layout-BODY-body">
+        <div class="RH-LAYOUT-CENTERPANEL-container">
+          <div class="rh-layout-selectdetails" id="rh-selectdetails"></div>
+          <div class="RH-LAYOUT-CENTERPANEL-topic-box" id="rh-topic">
+		  
+  <div><br/>
+    
+  </div>
+  <div>
+  <h2>CAMERA DEFINITION PROPERTIES</h2>
+  <p>The cameras configuration file is an optional file that may be included along with other files for a SimObject and is called <code class="inline">cameras.cfg</code>. Legacy projects not made with (or for) <span data-keyref="game_name">Microsoft Flight Simulator 2020</span> will have their camera properties set in either <code class="inline">sim.cfg</code> or <code class="inline">container.cfg</code> - for SimObjects - or <code class="inline">aircraft.cfg</code> - for non-aircraft SimObjects.</p>
+  <p> </p>
+  <p>Below you can find information on the different sections used in the <code class="inline">cameras.cfg</code> file as well as what parameters and values are expected within them.</p>
+  <p> </p>
+  <p> </p>
+  <h3 id="version"><code class="inline">[VERSION]</code></h3>
+  <p>The <code class="inline">[VERSION]</code> section provides version information for the configuration file. In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, major versions should <em>always</em> be at least equal to 1. Note that this information is <strong>mandatory</strong> and should always be included.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td>major</td>
+        <td>Major CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+      </tr>
+      <tr>
+        <td>minor</td>
+        <td>Minor CFG file version number, values must be greater than 0.</td>
+        <td>Integer</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="views"><code class="inline">[VIEWS]</code></h3>
+  <p>The <code class="inline">[VIEWS]</code> section has the following elements and is used <span>to determine the base position of the cockpit camera (note that all the camera definitions will be defined relative to this point)</span>:</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col/>
+      <col/>
+      <col/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">eyepoint</code></td>
+        <td>longitudinal, lateral, and vertical distance from the center of the aircraft model.</td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">external_camera_distance </code></td>
+        <td>
+          <p>If this parameter is included and the value given is <em>positive</em>, it will be used as the priority distance for the camera (in feet) from the aircraft.</p>
+          <p> </p>
+          <p>If set to 0 or a negative value or not included, then the following rules will be applied to the camera distance:</p>
+          <ul>
+            <li>
+              <p>For airplanes the distance will be (depending on circumstances)<br/>
+                - the wingspan multiplied by 1.2 or,<br/>
+                - the shadow sphere radius multiplied by 1.75 or,<br/>
+                - the wing chord (calculated by wing area and wingspan) multiplied by the <code class="inline">camera_distance_coefficient</code> or,<br/>
+                - 11 meters by default in case of failed data loading.</p>
+            </li>
+            <li>
+              <p>For helicopters the distance will be (depending on circumstances)<br/>
+                - rotor diameter multiplied by 1.2 or,<br/>
+                - shadow sphere radius multiplied by 1.75 or,<br/>
+                - shadow sphere radius over rotor diameter, multiplied by the <code class="inline">camera_distance_coefficient</code> or,<br/>
+                - 11 meters by default in case of failed data loading.</p>
+            </li>
+          </ul>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">camera_distance_coefficient</code></td>
+        <td>
+          <p>This value will be used as a multiplier on the camera distance under certain circumstances, and when the <code class="inline">external_camera_distance</code> has not been set manually.</p>
+          <p>Default value is 7.</p>
+        </td>
+        <td>Float</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="cameradefinition"><code class="inline">[CAMERADEFINITION.<em>N</em>]</code></h3>
+  <p>In a single <code class="inline">cameras.cfg</code> file you can define multiple cameras for a single aircraft or SimObject. Each camera will need it&#39;s own <code class="inline">[CAMERADEFENITION.<em>N</em>]</code> header and contents, where <code class="inline"><em>N</em></code> is the numeric identifier for the camera, starting at 0. The table below outlines all the possible entries into the CFG file for a camera, but it&#39;s worth pointing out the following as being the most important when it comes to setting up:</p>
+  <ul>
+    <li><code class="inline">InitialXyz</code> (position) and <code class="inline">InitialPbh</code> (angle): These are used to set the initial position offsets and the viewing angle for the camera. Note that <code class="inline">InitialPbh</code> is not used when the <code class="inline">SubCategoryItem</code> is set to &quot;PilotVR&quot;, and the &quot;bank&quot; value will not be used when the camera is set to <code class="inline">Cockpit</code>.</li>
+    <li><code class="inline">Origin</code>: The origin of the camera, which can be any one of a number of pre-defined values (listed in the table below)</li>
+    <li><code class="inline">Category</code>: What kind of camera you are setting, which can be any one of a number of pre-defined values (listed in the table below)</li>
+  </ul>
+  <p><span class="note"><strong>IMPORTANT!</strong> The first camera to be defined (0), <strong>must have the Category set to Cockpit, and have the Pilot subcategory</strong>, otherwise the camera file will not be parsed correctly.</span></p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 27px;"/>
+      <col style="width: 665px;"/>
+      <col style="width: 252px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">Title</code></td>
+        <td>This is descriptive only, not used by the system</td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">UITitle</code></td>
+        <td>This is a localisable string that will be used to show the name of the camera in the simulation. </td>
+        <td>String</td>
+      </tr>
+      <tr>
+        <td><code class="inline">GUID</code></td>
+        <td>Camera definition&#39;s unique identifier. This <a href="#" data-popovertext="GUID stands for &#39;Globally Unique IDentifier&#39; which is a 128-bit value used to identify information in computer systems." data-rhwidget="TextPopOver">GUID</a> must be unique.</td>
+        <td>String<br/>
+          (format {GUID})</td>
+      </tr>
+      <tr>
+        <td><code class="inline">Description</code></td>
+        <td>A brief description of the camera.</td>
+        <td>String</td>
+      </tr>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <tr>
+        <td><code class="inline">Category</code></td>
+        <td>
+          <p>Every camera definition must include a <em>category </em>that defines how the camera is exposed in the user interface. Categories define the view cycling behavior as well as the menu structure. Some categories (<code class="inline">AirTraffic</code>, <code class="inline">Runway</code>, <code class="inline">Multiplayer</code> and <code class="inline">Tower</code>) can also be instance-based, meaning new cameras are created automatically based on the object type.</p>
+          <p><br/>
+            The most useful categories are:</p>
+          <ol class="minitoc-list">
+            <li><strong>Cockpit </strong>- For the cockpit camera&#39;s default position (first one), then for instrument cycle</li>
+            <li><strong>Custom </strong>- For the Quickviews. Always in this order: left, down, right, up</li>
+            <li><strong>FixedOnPlane</strong> - For cameras fixed to the object</li>
+            <li><strong>Aircraft </strong>- For shifting the default external camera original position (title must be DEFAULT_CHASE or name of an flight state)</li>
+          </ol>
+          <p> </p>
+          <p>Note that the first camera definition (0) should <em>always</em> be for the <strong>Cockpit</strong>, and also <em>always</em> have the <strong>Pilot</strong> sub-category.</p>
+        </td>
+        <td>
+          <p><u>String</u>:</p>
+          <ol class="minitoc-list">
+            <li><strong>&quot;Aircraft</strong>&quot;</li>
+            <li><strong>&quot;AirTraffic</strong>&quot;</li>
+            <li><strong>&quot;Cockpit</strong>&quot;</li>
+            <li>&quot;<strong>Custom</strong>&quot;</li>
+            <li>&quot;<strong>Outside</strong>&quot;</li>
+            <li>&quot;<strong>Multiplayer</strong>&quot;</li>
+            <li>&quot;<strong>Runway</strong>&quot;</li>
+            <li>&quot;<strong>Scenery</strong>&quot;</li>
+            <li>&quot;<strong>Tower</strong>&quot;</li>
+            <li>&quot;<strong>FixedOnPlane</strong>&quot;</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">SubCategory</code></td>
+        <td>
+          <p>You can specify the principle role of the camera with the &quot;subcategory&quot;. This defines the context we need the user to view.</p>
+        </td>
+        <td><u>String</u>:
+          <ol class="minitoc-list">
+            <li><strong>&quot;Pilot&quot; </strong>- The view can be used by the cockpit to load any &quot;pilot&quot; view, like VFR, IFR, Landing, Copilot, etc...</li>
+            <li> </li>
+            <li><strong>&quot;Instrument&quot; </strong>- Allow you to define an instrument camera which we can cycle through while in instrument view.</li>
+            <li> </li>
+            <li><strong>&quot;QuickView&quot; </strong>- Allow you to define a <code class="inline">Quickview</code> camera which we can cycle through while in the Quickview view.</li>
+            <li> </li>
+            <li><strong>&quot;CheckList&quot; </strong>- Any Checklist view</li>
+            <li> </li>
+            <li><strong>&quot;Custom&quot; </strong>- Used to create a custom view.</li>
+            <li> </li>
+            <li><strong>&quot;FixedOnPlaneIntern&quot; </strong>- Allows you to define a fixed camera on one place in the interior of the object</li>
+            <li> </li>
+            <li><strong>&quot;FixedOnPlaneExtern&quot; </strong>- Allows you to define a fixed camera on one place on the exterior of the object</li>
+            <li> </li>
+            <li><strong>&quot;Shadow Center&quot;</strong> - Used only to specify a correct position of shaders for the interior model.</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="SubCategoryItem"></a><code class="inline">SubCategoryItem</code></td>
+        <td>
+          <p><code class="inline">SubCategoryItem</code> is used to specify a unique view. For each object, you can only have one of those views linked to a particular <code class="inline">Subcategory</code>/ <code class="inline">Category</code> combo, eg:</p>
+          <p><code class="inline">Aicraft</code>/ <code class="inline">Quickview</code> can have only one <code class="inline">QuickView1</code>. But <code class="inline">Cockpit</code>/ <code class="inline">Quickview</code> can also have one. <code class="inline">SubCategoryItem</code> can only be used with its linked <code class="inline">SubCategory</code>.</p>
+        </td>
+        <td><u>String</u>:
+          <ol class="minitoc-list">
+            <li><strong>&quot;ClosePilot&quot;</strong></li>
+            <li>(Subcategory:Pilot) - Pilot view specialized for IFR flight (better view on instruments)</li>
+            <li> </li>
+            <li><strong>&quot;DefaultPilot&quot;</strong></li>
+            <li>(Subcategory:Pilot) - Pilot view specialized for VFR flight (better view on scenery)</li>
+            <li> </li>
+            <li><strong>&quot;LandingPilot&quot;</strong></li>
+            <li>(Subcategory:Pilot) - Pilot view specialized for Landing (better view on ground)</li>
+            <li> </li>
+            <li><strong>&quot;CoPilot&quot;</strong></li>
+            <li>(Subcategory:Pilot) - Pilot view place at the copilot position</li>
+            <li> </li>
+            <li><strong>&quot;TrueCockpit&quot;</strong></li>
+            <li>(Subcategory:Pilot) - Pilot view for homemade cockpits (centered, cockpit hidden)</li>
+            <li> </li>
+            <li><strong>&quot;QuickView1...8&quot;</strong></li>
+            <li>(Subcategory:QuickView)</li>
+            <li> </li>
+            <li><strong>&quot;PilotVR&quot;</strong></li>
+            <li>(Subcategory:Pilot) - Pilot view used when VR is active.</li>
+          </ol>
+        </td>
+      </tr>
+      
+      
+      <tr>
+        <td><code class="inline">InitialXyz</code></td>
+        <td>
+          <p>Camera XYZ position offset from the default location.</p>
+          <p>All values are in meters with a range of -500.0 to 500.0 (for each of the three), and default to 0.0</p>
+        </td>
+        <td>xyz defined as a 1D Table of floats
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+      
+      
+      <tr>
+        <td><code class="inline">InitialPbh</code></td>
+        <td>
+          <p>Camera pitch, bank and heading orientation offset from the default in degrees. Note that positive pitches give a downward view, and positive headings are to the right.</p>
+          <p>All values are in degrees, between:</p>
+          <ul>
+            <li>-90 to 90.0 (pitch)</li>
+            <li>-180 to 180.0 (bank and heading)</li>
+          </ul>
+          <p><span class="note"><strong>NOTE</strong>: This parameter is not used when the <code class="inline">SubCategoryItem</code> is set to &quot;PilotVR&quot;.</span></p>
+          <p><span class="note"><strong>IMPORTANT!</strong> When using the Cockpit camera, the &quot;bank&quot; value will be ignored.</span></p>
+        </td>
+        <td><a href="#" data-popovertext="&#39;Pitch&#39;, &#39;Heading&#39; and &#39;Bank&#39; values. Pitch is the direction the nose of the plane is pointing vertically, rotating around the X axis. Heading is the direction the plane is heading in, rotating around the Y axis. Bank is the direction the wing rotates around the fusilage, rotating around the Z axis." data-rhwidget="TextPopOver">pbh</a> defined as a 1D Table of Floats
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+      <tr>
+        <td><code class="inline">Initialzoom</code></td>
+        <td>
+          <p>Sets the initial camera zoom level.</p>
+          <p>The defaults value is 1.0.</p>
+        </td>
+        <td>Float<br/>
+          0.0 to 512.0</td>
+      </tr>
+      <tr>
+        <td><a id="VarToggle"></a><code class="inline">VarToggle</code></td>
+        <td>
+          <p>Originally this parameter was for defining a node that would be hidden when the camera being defined was active, however now it functions as a simple toggle for local variables. You supply one (or more) <code class="inline">L:</code> Vars and then when the camera is active the variable will be toggled to 1 (TRUE) and when it is deactivated it will be toggled to 0 (FALSE).</p>
+          <p>This is useful, in particular when using different <a href="../../Models/ModelBehaviors/Model_Behaviors.htm">model behaviours</a> - for example using the visibility template to to hide the yoke when a specific camera that is viewing an instrument.</p>
+          <p>Note that this toggle of the <code class="inline">L:</code> var will only happen if it&#39;s value is less than one when the camera is selected. If it is already 1 (or greater) then the toggle will not happen, and that includes it being set to 0 on switching away from the camera.</p>
+          <p> </p>
+          <p>The default value is &quot;&quot;, and you may supply multiple <code class="inline">L:</code> vars in a single string by separating them with a space.</p>
+        </td>
+        <td>String</td>
+      </tr>
+      
+      <tr>
+        <td><code class="inline">BoundingBoxRadius</code></td>
+        <td>
+          <p>Allows you to define a bounding box to the camera - in meters -  which can be used with the instrument camera to give more or less &quot;space&quot; between the camera and the instrument auto selection and the focus with the mouse going over it.</p>
+          <p>The default value is 0.1, and all values are in meters.</p>
+        </td>
+        <td>
+          <p>Float<br/>
+            0.0 - 100.0</p>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="ChaseDistance"></a><code class="inline">ChaseDistance</code></td>
+        <td>
+          <p>The initial distance (in meters) of the camera from the target object in external views.</p>
+          <p>The default value is 0.0.</p>
+        </td>
+        <td>
+          <p>Float<br/>
+            0.0 - 3000.0</p>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="ChaseHeading"></a><code class="inline">ChaseHeading</code></td>
+        <td>
+          <p>Initial angular offset in degrees of the camera relative to the target object in external views.</p>
+          <p>The default value is 0.0.</p>
+        </td>
+        <td>Float<br/>
+          -180.0 - 180.0</td>
+      </tr>
+      <tr>
+        <td><a id="ChaseAltitude"></a><code class="inline">ChaseAltitude</code></td>
+        <td>
+          <p>Initial altitude in feet of the camera relative to the target object in external views.</p>
+          <p>The default value is 0.0.</p>
+        </td>
+        <td>Float<br/>
+          -1000.0 - 3000.0</td>
+      </tr>
+      <tr>
+        <td><a id="ChaseTime"></a><code class="inline">ChaseTime</code></td>
+        <td>
+          <p>Length of time in seconds an aircraft is kept in Fly-By view before a new position is computed.</p>
+          <p>The default value is 10.0.</p>
+        </td>
+        <td>Float<br/>
+          0.0 - 200.0</td>
+      </tr>
+      <tr>
+        <td><a id="ChaseDistanceAdjustRate"></a><code class="inline">ChaseDistanceAdjustRate</code></td>
+        <td>This controls the rate at which chase distance changes when incremented or decremented using key events. The default value is 5.0.</td>
+        <td>Float<br/>
+          1.0 - 250.0</td>
+      </tr>
+      <tr>
+        <td><code class="inline">external_camera_follows_heading</code></td>
+        <td>
+          <p>This sets the speed (in <a href="#" data-popovertext="Stands for &#39;Knots True AirSpeed&#39; and is a measurement of the speed of an aircraft. It is defined as the speed of the aircraft relative to the air mass through which it is flying." data-rhwidget="TextPopOver">ktas</a>) below which the external camera should follow the aircraft heading.</p>
+          <p>Default value is 19.4 (corresponds 10 m/sec exactly).</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">external_camera_follows_velocity</code></td>
+        <td>
+          <p>This sets the speed (in <a href="#" data-popovertext="Stands for &#39;Knots True AirSpeed&#39; and is a measurement of the speed of an aircraft. It is defined as the speed of the aircraft relative to the air mass through which it is flying." data-rhwidget="TextPopOver">ktas</a>) above which the external camera should follow the aircraft velocity vector.</p>
+          <p>Default value is <span>4</span><span>8</span><span>.6</span> (corresponds 25 m/sec exactly).</p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><code class="inline">HotKeySelect</code></td>
+        <td>Links the camera to one of the 10 pre-defined key events for activating cameras.</td>
+        <td>
+          <p>Integer</p>
+          <p>1 - 10</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p>Note that a number of settings in this file are <strong>legacy</strong> from <span data-keyref="game_fx_short">FSX</span> or have been deprecated in the current version, and as such are not used by <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>, but may still be included in the CFG file. These settings are listed in the table below and have a default value which you should <em>always</em> use when creating new cameras, as any other value will not work.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 34px;"/>
+      <col style="width: 509px;"/>
+      <col style="width: 79px;"/>
+      <col style="width: 278px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Version</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><a id="MomentumEffect"></a><code class="inline">MomentumEffect</code></td>
+        <td>
+          <p>Controls whether the camera exhibits momentum effect.</p>
+          <p>The default value is TRUE (1).</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>
+          <p>Bool</p>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="SnapPbhAdjust"></a><code class="inline">SnapPbhAdjust</code></td>
+        <td>
+          <p>These settings control how camera movement is handled when the camera system receives a view pan or &quot;snap to&quot; command.</p>
+          <p>The default value is &quot;Swivel&quot;.</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td><u>String</u>:
+          <ol class="minitoc-list">
+            <li><strong>None </strong>- Commands are ignored (position remains fixed).</li>
+            <li> </li>
+            <li><strong>Ordinal </strong>- Camera moves to the next ordinal compass position in the direction of the command.</li>
+            <li> </li>
+            <li><strong>Swivel </strong>- Camera moves incrementally in the direction of the command.</li>
+            <li> </li>
+            <li><strong>Orthogonal </strong>- Camera rotates in the direction of the command (used in top-down view).</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="SnapPbhReturn"></a><code class="inline">SnapPbhReturn</code></td>
+        <td>
+          <p>If TRUE (1), camera position returns to its initial position when the snap movement command key is released.</p>
+          <p>The default value is FALSE (0).</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="PanPbhAdjust"></a><code class="inline">PanPbhAdjust</code></td>
+        <td>
+          <p>Same range of options as <code class="inline">SnapPbhAdjust</code> (listed above).</p>
+          <p>The default value is &quot;Swivel&quot;.</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>
+          <p><u>String</u>:</p>
+          <ol class="minitoc-list">
+            <li><strong>None</strong></li>
+            <li><strong>Ordinal</strong></li>
+            <li><strong>Swivel</strong></li>
+            <li><strong>Orthogonal</strong></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="PanPbhReturn"></a><code class="inline">PanPbhReturn</code></td>
+        <td>
+          <p>If true (1), camera position returns to its initial position when the pan movement command key is released.</p>
+          <p>The default value is FALSE (0).</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="Track"></a><code class="inline">Track</code></td>
+        <td>
+          <p>External cameras have the ability to track a user or AI object. The Track parameter controls this behavior.</p>
+          <p>The default value is &quot;None&quot;.</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td><u>String</u>:
+          <ol class="minitoc-list">
+            <li><strong>None</strong> - No tracking behavior. User has manual control over the camera.</li>
+            <li> </li>
+            <li><strong>FlyBy </strong>- Fly-by mode; the camera is positioned away from the user aircraft (at a location given by <code class="inline">ChaseDistance</code>, <code class="inline">ChaseAltitude</code> and <code class="inline">ChaseHeading</code> values) and tracks the aircraft for <code class="inline">ChaseTime</code> seconds before computing a new position.</li>
+            <li> </li>
+            <li><strong>Track </strong>- Camera tracks the object while maintaining its position.</li>
+          </ol>
+          <p> </p>
+          <ol class="minitoc-list">
+            <li><strong>TrackBank </strong>- Camera tracks the object while maintaining its position.</li>
+            <li> </li>
+            <li><strong>FlatChase </strong>- Camera moves with the object, maintaining a fixed distance from it. Camera movements are dampened.</li>
+            <li> </li>
+            <li><strong>FlatChaseLocked </strong>- Camera moves with the object, maintaining a fixed distance from it. Camera movements are rigid.</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="ShowAxis"></a><code class="inline">ShowAxis</code></td>
+        <td>
+          <p>Determines whether the axis indicator is shown.</p>
+          <p>The default value is ON.</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>
+          <p>Enum:</p>
+          <ol class="minitoc-list">
+            <li>- NO / OFF</li>
+            <li>- FrontOnly</li>
+            <li>- YES / ON / TRUE / Always</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="AllowZoom"></a><code class="inline">AllowZoom</code></td>
+        <td>
+          <p>Controls whether the camera responds to zoom commands.</p>
+          <p>The default value is TRUE (1).</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="ZoomPanScalar"></a><code class="inline">ZoomPanScalar</code></td>
+        <td>
+          <p>One side effect of zooming in on an object is that it becomes difficult to make fine camera panning adjustments because the absolute movement of the camera around its position remains constant. The <code class="inline">ZoomPanScalar</code> setting compensates for this by adjusting panning movements by the given factor in relation to zoom level. Movement is scaled by dividing the <code class="inline">ZoomPanScalar</code> value by the zoom level. For example, with a <code class="inline">ZoomPanScalar</code> setting of 1, camera panning is reduced by half at 2x zoom (1 / 2). A setting of 2, on the other hand, accelerates panning to twice the normal rate at 1x zoom (2 / 1) and is exactly the normal rate at 2x zoom (2 / 2).</p>
+          <p>The default value is 1.0.</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Float<br/>
+          0.0 to 100.0</td>
+      </tr>
+      <tr>
+        <td><a id="ShowWeather"></a><code class="inline">ShowWeather</code></td>
+        <td>
+          <p>Determines whether weather visuals are shown.</p>
+          <p>The default value is true (1).</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="XyzAdjust"></a><code class="inline">XyzAdjust</code></td>
+        <td>
+          <p>Controls whether the camera responds to position change commands.</p>
+          <p>The default value is TRUE (1).</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="ShowLensFlare"></a><code class="inline">ShowLensFlare</code></td>
+        <td>
+          <p>Determines whether lens flare effect can be shown (based on user setting).</p>
+          <p>The default value is FALSE (0).</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="PitchPanRate"></a><code class="inline">PitchPanRate</code></td>
+        <td>
+          <p>Controls the rate at which pitch is changed in degrees per second.</p>
+          <p>The default value is 20.0.</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Float<br/>
+          0.0 - 100.0</td>
+      </tr>
+      <tr>
+        <td><a id="HeadingPanRate"></a><code class="inline">HeadingPanRate</code></td>
+        <td>
+          <p>Controls the rate at which the heading is changed in degrees per second.</p>
+          <p>The default value is 60.0.</p>
+        </td>
+        <td><span data-keyref="game_fx_short">FSX</span></td>
+        <td>Float<br/>
+          0.0 - 100.0</td>
+      </tr>
+      <tr>
+        <td><a id="ClipMode"></a><code class="inline">ClipMode</code></td>
+        <td>
+          <p>This setting is used to control how the clip planes are computed. Clip planes are used to set the minimum and maximum distances for rendering in a 3D graphics program. The relative location of these planes determines how precise the graphics engine can maintain the Z-order of objects. A discussion of clip plane management is beyond the scope of this document, however the concept is relevant to the camera system because it determines whether the camera favors near or far objects in the view.</p>
+          <p>Default value is &quot;Normal&quot;.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>
+          <p>String:</p>
+          <ol class="minitoc-list">
+            <li>&quot;<strong>Normal</strong>&quot;<strong> </strong>– The near clip plane is scaled along with the zoom level. Useful for most views.</li>
+            <li>&quot;<strong>Minimum</strong>&quot;<strong> </strong>– Clamps the near clip plane at its absolute minimum value (1 meter). Useful for cameras where the camera is placed close to object geometry (e.g., aircraft cameras).</li>
+            <li>&quot;<strong>Spot</strong>&quot;<strong> </strong>– Favors distant objects by scaling the near clip plane with altitude and distance. Useful when the camera is positioned a reasonable distance away from the target object (e.g., spot view).</li>
+            <li>&quot;<strong>Tower</strong>&quot;<strong> </strong>– Favors near objects by scaling the near clip plane by one-half the zoom level and clamping the far plane based on visibility settings with an absolute limit of 20km. Useful when objects at the limits of visibility aren&#39;t important.</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="BoundingBoxRadius"></a><code class="inline">BoundingBoxRadius</code></td>
+        <td>
+          <p>Allows you to define a bounding box to the camera - in meters -  which can be used with the instrument camera to give more or less &quot;space&quot; between the camera and the instrument auto selection and the focus with the mouse going over it.</p>
+          <p>The default value is 0.1, and all values are in meters.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>
+          <p>Float<br/>
+            0.0 - 100.0</p>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="TargetCategory"></a><code class="inline">TargetCategory</code></td>
+        <td>
+          <p>When a new instance is created this determines which object class triggers the creation of a new <code class="inline">InstanceBased</code> camera.</p>
+          <p>Default value is &quot;None&quot;.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>
+          <p><u>String</u>:</p>
+          <ol class="minitoc-list">
+            <li><strong>None</strong></li>
+            <li><strong>AI Planes</strong></li>
+            <li><strong>Fixed</strong></li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="PanAcceleratorTime"></a><code class="inline">PanAcceleratorTime</code></td>
+        <td>This defines the pan acceleration time (in seconds). When panning the camera, an acceleration/deceleration effect is added over a period of time. The larger this value is the longer it takes for the pan movement to reach its full rate, thus yielding smoother panning movement. Lower numbers yield more abrupt panning. The default value is 5.0.</td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Float<br/>
+          0.0 - 30.0</td>
+      </tr>
+      <tr>
+        <td><a id="InitialXyz1"></a><code class="inline">InitialXyz</code></td>
+        <td>
+          <p>Camera XYZ position offset from the default location.</p>
+          <p>All values are in meters with a range of -500.0 to 500.0 (for each of the three), and default to 0.0</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>
+          <p>1D Table of Floats</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="XYZRate"></a><code class="inline">XYZRate</code></td>
+        <td>
+          <p>The desired speed of the camera (in meters per second). The direction of movement is determined by the camera control keys that are pressed.</p>
+          <p>The default value is 0.25.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Float</td>
+      </tr>
+      <tr>
+        <td><a id="XYZAcceleratorTime"></a><code class="inline">XYZAcceleratorTime</code></td>
+        <td>
+          <p>The desired acceleration time (in seconds) that it takes the camera to go from 0 to <code class="inline">XYZRate</code>.</p>
+          <p>The default value is 1.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>
+          <p>Float</p>
+          <p>0.0 - 100.0</p>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="Origin"></a><code class="inline">Origin</code></td>
+        <td>
+          <p>Every camera definition must have an origin that defines the object or point on which the camera is oriented. In <span data-keyref="game_name">Microsoft Flight Simulator 2020</span>.</p>
+          <p>Default value is &quot;Virtual Cockpit&quot;.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>
+          <p>String:</p>
+          <ol class="minitoc-list">
+            <li><strong>Cockpit</strong> - Camera is locked at fixed position in the 2D cockpit. Forward views include 2D instrument panel. Oblique view angle show virtual cockpit interior.</li>
+            <li><strong>Virtual Cockpit</strong> - Camera is mounted at the eye point defined in the aircraft&#39;s CFG file.</li>
+            <li><strong>Center</strong> - External (spot plane) camera that points at the center of the aircraft&#39;s visual model.</li>
+            <li><strong>Pilot </strong>- External (spot plane) camera that points at the pilot position inside the aircraft&#39;s visual model.</li>
+            <li><strong>Tower</strong> - External camera mounted at a control tower defined via the facilities (BGLCOMP) database.</li>
+            <li><strong>Fixed</strong> - External camera at a fixed position. Fixed camera definitions must include FixedLatitude, FixedLongitude and FixedAltitude values.</li>
+            <li><strong>WorldObject</strong> - Used by SimConnect clients. Not available through CFG settings.</li>
+          </ol>
+        </td>
+      </tr>
+      <tr>
+        <td><a id="InstancedBased"></a><code class="inline">InstancedBased</code></td>
+        <td>
+          <p>If TRUE (1) then a new instance of the camera is created for each instance of the object referenced by the <code class="inline">TargetCategory</code> setting.</p>
+          <p>Default value is FALSE (0).</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="NoSortTitle"></a><code class="inline">NoSortTitle</code></td>
+        <td>
+          <p>Set to TRUE (1) to disable sorting cameras by title in the menu system, or FALSE (0) otherwise.</p>
+          <p>Default value is TRUE (1).</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="Transition"></a><code class="inline">Transition</code></td>
+        <td>
+          <p>When switching between camera views a &quot;smooth&quot; transition is obtained by moving the camera in real time from its old location to the new one.</p>
+          <p>Note that this behavior is only applied if the <code class="inline">Transition</code> settings for both cameras are set to TRUE (1). If either or both are set to FALSE (0) then the view switch is instantaneous.</p>
+          <p>Default value is FALSE (0).</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="CycleHidden"></a><code class="inline">CycleHidden</code></td>
+        <td>
+          <p>If TRUE (1), the camera is hidden from view cycling and it does not appear when cycling through views using the keyboard.</p>
+          <p>Default is FALSE (0).</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="CycleHideRadius"></a><code class="inline">CycleHideRadius</code></td>
+        <td>
+          <p>This sets the distance (in nautical miles) beyond which the camera is skipped in the cycling order for instance based cameras.</p>
+          <p>The default value is 0.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Float<br/>
+          0.0 - 100.0</td>
+      </tr>
+      <tr>
+        <td><a id="ShowPanel"></a><code class="inline">ShowPanel</code></td>
+        <td>
+          <p>Determines whether the 2D instrument panel is shown (1, TRUE) or not (0, FALSE).</p>
+          <p>Default value is FALSE (0).</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Bool</td>
+      </tr>
+      <tr>
+        <td><a id="SmoothZoomTime"></a><code class="inline">SmoothZoomTime</code></td>
+        <td>
+          <p>The zoom time in seconds. By default, zooming in and out is &quot;smoothed&quot; by changing between old and new zoom levels over a small time period (5 seconds). This setting enables you to control this effect on a per-camera basis.</p>
+          <p>The default value is 0.5.</p>
+        </td>
+        <td>
+          <p><span data-keyref="game_name">Microsoft Flight Simulator 2020</span></p>
+        </td>
+        <td>Float<br/>
+          0.0 to 30.0</td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+  <h3 id="h"><code class="inline"><span data-reactroot="" data-token-index="0" id="ray_node">[CAMERA_RAY_NODE_COLLISION]</span></code></h3>
+  <p>This section permits you to define up to 10 different nodes on the user aircraft model (interior and/or exterior) with which to check if the camera is &quot;pointing&quot; at them, using a ray traced from the camera. This camera ray is defined as coming from a point in the center of the <a href="#" data-popovertext="In games, the &#39;Field Of View&#39; is the extent of the observable game world that is seen on the display at any given moment. It is typically measured as an angle." data-rhwidget="TextPopOver">FOV</a> of the camera and going &quot;forward&quot; relative to the camera angle. Once you have defined these nodes, you can then use the SimVar <code class="inline"><a href="../../../Programming_Tools/SimVars/Camera_Variables.htm#IS CAMERA RAY INTERSECT WITH NODE">IS CAMERA RAY INTERSECT WITH NODE</a></code> to check for collisions.</p>
+  <p> </p>
+  <table style="table-layout:auto;">
+    <colgroup>
+      <col style="width: 22px;"/>
+      <col style="width: 595px;"/>
+      <col style="width: 128px;"/>
+    </colgroup>
+    <tbody>
+      <tr>
+        <th>Parameter</th>
+        <th>Description</th>
+        <th>Type</th>
+      </tr>
+      <tr>
+        <td><code class="inline">node.<em>i</em></code></td>
+        <td>
+          <p>This is the model node definition that you want to check for collisions with the camera. You may have up to 10 of these node definitions where <code class="inline"><em>i</em></code> starts at 1 and ends on 10. The definition itself is a hash map comprised of the following key/value pairs:</p>
+          <ul>
+            <li><strong>ModelDefinition</strong> - either &quot;Interior&quot; or &quot;Exterior&quot;</li>
+            <li><strong>Name</strong> - the name of the node, as defined in the glTF</li>
+          </ul>
+          <p>You can see an example node definition below:</p>
+          <pre class="codeblock">node.1 = ModelDefinition:Interior#Name:NO_HMD_COLLISION</pre>
+        </td>
+        <td>
+          <p>Hash Map</p>
+          <p><span class="smallfont">(see <a href="../../../Additional_Information/File_Formats/CFG_Files.htm#DataTypes">Data Types</a> for more information)</span></p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <p> </p>
+  <p> </p>
+
+</div>
+  <div>
+    <script>
+      //<![CDATA[
+      var rhTopicTarget = document.getElementById("rh-topic"); //Get the main page DOM
+      var config = {
+        childList: true,
+        subtree: true
+      }; // We want to watch the arborescence under that node
+      var rhTopicCallback = function(_mutationsList, observer) { // Callback function
+        observer.disconnect(); // We disconnect the observer to prevent circular mutations
+        // All javascript that needs to be done, might need optimisation (TBD)
+        window.hasOwnProperty('Prism') ? Prism.highlightAllUnder(rhTopicTarget) : console.warn('Prism is not loaded'); // Prism
+        if (window.hasOwnProperty('MathJax')) {
+          MathJax.texReset();
+          MathJax.typesetClear();
+          MathJax.typesetPromise([rhTopicTarget]).then(() => observer.observe(rhTopicTarget, config)); // Turn the observer back on for potential next 
+        } else {
+          console.warn('MathJax is not loaded.');
+        } // Mathjax
+        // Collapsible!
+        let coll = document.getElementsByClassName("collapsible");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          coll[indexColl].onclick = function() {
+            this.classList.toggle("collapsibleOpen");
+            this.nextElementSibling.classList.toggle("collapsibleContentOpen"); // Next element is the content
+          }
+        }
+        // SYNTAX HIGHLIGHT
+        coll = document.getElementsByClassName("xmlSource");
+        for (let indexColl = 0; indexColl < coll.length; ++indexColl) {
+          syntaxHighlight(coll[indexColl]);
+        }
+      };
+      // COLLAPSIBLE SYNTAX HIGHLIGHTING
+      const knownParametersNotInAllCaps = new Set(["Pl463", "SimpleCom", "MouseFlags"]);
+      function syntaxHighlight(elmntObj) {
+        let txt = elmntObj.innerHTML;
+        // Replace comments with our own tag, to avoid highlighting things inside of them.
+        // Store them with their highlight already done.
+        // NB: Our placeholder should be safe since it is itself a comment. It will still work if the original file already contains that string.
+        let commentStorage = Array();
+        let commentPlaceholder = "&lt;!-- PLACEHOLDERFORSYNTAXHIGHLIGHTING --&gt;";
+        txt = txt.replaceAll(/&lt;!--.*?--&gt;/sg,
+          (_fullMatch) => {
+            commentStorage.push("<span class=xmlComment>" + _fullMatch + "</span>");
+            return commentPlaceholder;
+          }
+        );
+        // <Value>PARAM</Value>
+        // NB: Execute before the syntax highlighting of tags (otherwise the regex won't match)
+        txt = txt.replaceAll(/(&lt;Value&gt;)([^%&"'<>]+?)(&lt;\/Value&gt;)/sg, "$1<span class=xmlGetParam>$2</span>$3");
+        // XML specifications: https://www.w3.org/TR/xml/#sec-starttags
+        // NB: We accept # as a valid character in tag names although it's not valid XML (this can be used to get a param as part of the tag name)
+        const regexGetParam = /#[^#<>\s]+?#/sg
+        const regexTag = /(?<bracketOpen>&lt;\/?)(?<tagName>[\w:#\-\.]+?)(?<attrAll>(?:\s+?[\w:\-\.]+(?:\s*?=\s*?(?:"[^%&"]*?"|'[^%&']*?'))?)*)(?<endingSpace>\s*?)(?<bracketClose>\/?&gt;)/sg
+        const regexAttribute = /(?<space>\s+?)(?<attrName>[\w:\-\.]+)(?<attrValue>(?<equal>\s*?=\s*?)(?:(?<DQOpen>")(?<attrValueDQ>[^%&"]*?)(?<DQClose>")|(?<SQOpen>')(?<attrValueSQ>[^%&']*?)(?<SQClose>')))?/sg;
+        // Normal tags
+        txt = txt.replaceAll(regexTag,
+          (_fullMatch, _bracketOpen, _tagName, _attributeAll, _endingSpace, _bracketClose /*, _offset, _wholeString, _groups*/ ) => {
+            // <tagName
+            // If the tag name is in ALL CAPS, or if it contains a #, then it's a param
+            // NB: That's not a totally reliable criteria, but the definition of parameters
+            // is litterally "anything that's not a known tag" which is awful to begin with
+            let classToUseForTagName = "xmlTagName";
+            if ((_tagName.indexOf("#") >= 0) || (_tagName == _tagName.toUpperCase()) || knownParametersNotInAllCaps.has(_tagName)) {
+              classToUseForTagName = "xmlParamName";
+            }
+            let res = "<span class=\"xmlTag\">" + _bracketOpen + "</span><span class=\"" + classToUseForTagName + "\">" + _tagName + "</span>";
+            // Attributes (if any)
+            if (_attributeAll != undefined) {
+              res += _attributeAll.replaceAll(regexAttribute,
+                (_fullMatch, _space, _attrName, _attrValue, _equal, _DQOpen, _attrValueDQ, _DQClose, _SQOpen, _attrValueSQ, _SQClose /*, _offset, _wholeString, _groups*/ ) => {
+                  // ␣␣attrName
+                  let res = _space + "<span class=\"xmlAttributeName\">" + _attrName + "</span>";
+                  // ␣␣=␣␣"attrValue" / ␣␣=␣␣'attrValue'
+                  if (_attrValue != undefined) {
+                    let classToUse = "xmlAttributeValue";
+                    switch (_tagName) {
+                      // Template names
+                      case "UseTemplate":
+                      case "Template":
+                        if (_attrName == "Name") {
+                          classToUse = "xmlTemplateName";
+                        }
+                        break;
+                        // Get Parameter
+                      case "Condition":
+                      case "Case":
+                      case "Arg":
+                        if ((_attrName == "Check") || (_attrName == "Valid") || (_attrName == "NotEmpty")) {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                      case "Switch":
+                        if (_attrName == "Param") {
+                          classToUse = "xmlGetParam";
+                        }
+                        break;
+                    }
+                    res += _equal + (_DQOpen || _SQOpen) + "<span class=\"" + classToUse + "\">" + (_attrValueDQ || _attrValueSQ) + "</span>" + (_DQClose || _SQClose);
+                  }
+                  return res;
+                }
+              );
+            }
+            // ␣␣>
+            res += _endingSpace + "<span class=xmlTag>" + _bracketClose + "</span>";
+            return res;
+          }
+        );
+        // Param Get
+        txt = txt.replaceAll(regexGetParam, "<span class=xmlGetParam>$&</span>");
+        // Put back highlighted comments
+        txt = txt.replaceAll(new RegExp(commentPlaceholder, "sg"),
+          (_fullMatch) => {
+            return commentStorage.shift();
+          }
+        );
+        /*
+      // Obsolete replacements:
+      // We apply a white-space style on the container element which gives better results without replacing.
+  
+      // Newlines (\r\n = Windows, \n = Unix-like, other cases are unlikely)
+      //txt = txt.replaceAll("\r\n", "<br>").replaceAll("\n", "<br>");
+  
+      // Tabs
+      //txt = txt.replaceAll("\t", "&emsp;&emsp;");   // 2 spaces
+      //txt = txt.replaceAll("\t", "&nbsp;&nbsp;");   // 2 non-breakable spaces
+      //txt = txt.replaceAll("\t", "&#9;");           // HTML tab (only works with "white-space = pre", but then \t also works so why bother)
+      */
+        elmntObj.innerHTML = txt;
+      }
+      // Launch code
+      var observer = new MutationObserver(rhTopicCallback); // Create the Mutation Observer object
+      observer.observe(rhTopicTarget, config); // Launch the the observation with callback and config
+      //]]>
+    </script>
+  </div>
+
+</div>
+          <div class="RH-LAYOUT-BRS-container" id="rh-brs"></div>
+        </div>
+        <div class="RH-LAYOUT-RIGHTPANEL-container" id="rh-rightpanel"></div>
+      </div>
+    </div>
+  </main>
+  <footer role="contentinfo" class="RH-LAYOUT-FOOTER-container" id="rh-footer">
+  <div class="rh-layout-footer-outer-box" style="background-color: #111; color: #A0A0A0; padding: 5px">
+    <!--<div class="rh-layout-footer-inner-left-box" style="background-color: #212121;"><img alt="World Icon" class="rh-layout-footer-imgTag" src="Group 114.svg" title="World Icon" />
+      <div>
+        <p style="text-align: center;background-color: #212121;color: rgb(0,0,0,);line-height: 2;margin: 0;"><span style="color:#ffffff;"></span><span style="color:rgb(0,0,0,);">EN</span></p>
+      </div>
+    </div>-->
+    <div class="rh-layout-footer-inner-right-box">
+      <div class="rh-layout-footer-inner-right-box1">
+        <p style="text-align: center; line-height: 2;margin: 0;"><a href="https://www.microsoft.com/" style="color: #A0A0A0; text-decoration: none;">©2023 Microsoft</a></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;height: 100%;line-height: 2;margin: 0;"><a href="https://flightsimulator.zendesk.com/hc/en-us" style="color: #A0A0A0; text-decoration: none;">Contact Us</a></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box2">
+        <p style="text-align: center;line-height: 2;margin: 0;"><span style="font-size: 11pt;"><a href="https://privacy.microsoft.com/en-us/privacystatement" style="color: #A0A0A0; text-decoration: none;">Privacy Policy</a></span></p>
+      </div>
+      <!--<div class="rh-layout-footer-inner-right-box4" style="background-color: #212121;">
+        <p style="text-align: center;color: rgb(0,0,0,);line-height: 2;margin: 0;"><a href="http://www.example.com" style="color: black; text-decoration: none;">Terms and Conditions<a/></p>
+      </div>-->
+      <div class="rh-layout-footer-inner-right-box3">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://devsupport.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">SDK Dev Support</a></p>
+      </div>
+      <div class="rh-layout-footer-inner-right-box4">
+        <p style="text-align: center;line-height: 2;margin: 0;"><a href="https://forums.flightsimulator.com/" style="color: #A0A0A0; text-decoration: none;">MSFS Forums</a></p>
+      </div>
+    </div>
+  </div>
+
+</footer>
+  <script type="text/javascript">//<![CDATA[
+
+    gRootRelPath = "../../.."
+    gCommonRootRelPath = "../../.."
+    gTopicId = "5.1.0_1"
+  
+//]]></script>
+
+
+  <script src="../../../template/scripts/topicpage.js"></script>
+  <script src="../../../whxdata/layoutconfig.js"></script>
+  <script src="../../../whxdata/brsdata.js"></script>
+
+  
+    
+
+            
+				  
+
+
+</body></html>
