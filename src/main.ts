@@ -17,6 +17,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
+import { normalizeMsfsFaceWinding } from './msfs/gltf/normalizeMsfsFaceWinding'
 import { normalizeMsfsNormalsTangents } from './msfs/gltf/normalizeMsfsNormalsTangents'
 import { normalizeMsfsSkinning } from './msfs/gltf/normalizeMsfsSkinning'
 import { normalizeMsfsTexcoords } from './msfs/gltf/normalizeMsfsTexcoords'
@@ -266,6 +267,13 @@ async function loadAircraftGltf(
         lodMinSize: lod.minSize
       })
       normalizeMsfsNormalsTangents(gltf.scene)
+      setGlobalLoadStage({
+        stage: 'gltf:lod:normalize-winding',
+        aircraftId: aircraft.id,
+        lodUrl: lod.url,
+        lodMinSize: lod.minSize
+      })
+      normalizeMsfsFaceWinding(gltf.scene)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-materials',
         aircraftId: aircraft.id,
