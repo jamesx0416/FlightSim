@@ -61,10 +61,12 @@ The current loader rewrites `ASOBO_primitive.StartIndex` and `PrimitiveCount` in
 
 If MSFS applies additional optimized-mesh rules that are not represented directly in stock glTF, the loader could still be assembling triangle order or base-vertex selection incorrectly even though the primitive slices are now correct.
 
-One confirmed remaining gap is `BaseVertexIndex`:
+One confirmed remaining field is `BaseVertexIndex`:
 - present in the A320 optimized mesh path
 - honored by `msfs2blend`
-- not yet implemented in this loader
+- in the current A320 case, both primitives already share the same full vertex accessor, so the sliced indices are already absolute into that shared vertex pool
+- that means a blind rebase in this loader would be wrong for the currently observed fixture data
+- it still needs to be handled authoritatively if a future optimized mesh uses primitive-local attribute accessors instead of the shared-accessor pattern
 
 ### 3. Hidden Front-Face Convention In The Optimized Mesh Path
 
