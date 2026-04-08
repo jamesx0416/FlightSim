@@ -88,6 +88,17 @@ Use sources in this order:
     - missing official package content
     - incomplete compiler support for some stock template families already referenced by local templates
 
+### 7. Revalidate Local Stock-Template Implementations
+
+- Once public/offline stock Asobo XMLs are mounted locally, re-check every locally implemented stock-template behavior against the official XML definitions.
+- In particular, revisit:
+  - `ASOBO_GT_Update`
+  - `ASOBO_GT_Helper_Recursive_ID`
+  - `ASOBO_FuelHose_InteractivePoint_Template`
+  - stock handling template shims
+  - any stock gear/tire template support added before the official XMLs are mounted
+- Remove or adjust any approximation that does not match the official template contract.
+
 ## Cross-Cutting Checks
 
 - Look for other dropped or ignored metadata that affects:
