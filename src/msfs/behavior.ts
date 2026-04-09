@@ -651,21 +651,6 @@ function expandTemplateUse(
 
   const templateNode = context.templateMap.get(normalizedTemplateName)
   if (templateNode == null) {
-    if (
-      handleBuiltInTemplate(
-        normalizedTemplateName,
-        templateName,
-        mergedParams,
-        state,
-        context,
-        animationBindings,
-        visibilityBindings,
-        updateBindings
-      )
-    ) {
-      return
-    }
-
     context.diagnostics.push({
       code: 'template_missing',
       message: `Template ${templateName} is not available in the imported package.`,
@@ -697,157 +682,6 @@ function expandTemplateUse(
     }
     traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
   }
-}
-
-function handleBuiltInTemplate(
-  normalizedTemplateName: string,
-  templateName: string,
-  params: Map<string, string>,
-  state: TraversalState,
-  context: CompileContext,
-  animationBindings: CompiledAnimationBinding[],
-  visibilityBindings: CompiledVisibilityBinding[],
-  updateBindings: CompiledUpdateBinding[]
-): boolean {
-  context.builtinFallbackHits.add(normalizedTemplateName)
-  switch (normalizedTemplateName) {
-    case 'ASOBO_GT_ANIM_SIM': {
-      const animationBinding = buildAnimationSimBinding(params, state.path, context.diagnostics)
-      if (animationBinding != null) {
-        animationBindings.push(animationBinding)
-      }
-      return true
-    }
-    case 'ASOBO_GT_UPDATE': {
-      const updateBinding = buildUpdateBinding(params, state.path, context.diagnostics)
-      if (updateBinding != null) {
-        updateBindings.push(updateBinding)
-      }
-      return true
-    }
-    case 'ASOBO_GT_HELPER_RECURSIVE_ID':
-      expandRecursiveTemplateIds(
-        params,
-        state,
-        context,
-        animationBindings,
-        visibilityBindings,
-        updateBindings
-      )
-      return true
-    default:
-      return false
-  }
-}
-
-function expandRecursiveTemplateIds(
-  params: ReadonlyMap<string, string>,
-  state: TraversalState,
-  context: CompileContext,
-  animationBindings: CompiledAnimationBinding[],
-  visibilityBindings: CompiledVisibilityBinding[],
-  updateBindings: CompiledUpdateBinding[]
-): void {
-  const exitTemplate = params.get('EXIT_TEMPLATE')?.trim()
-  if (!exitTemplate) {
-    context.diagnostics.push({
-      code: 'template_params_missing',
-      message: 'ASOBO_GT_Helper_Recursive_ID requires EXIT_TEMPLATE.',
-      severity: 'warning',
-      sourcePath: state.path
-    })
-    return
-  }
-
-  const firstId = parseInteger(params.get('FIRST_ID'), 1)
-  const maxId = parseInteger(params.get('MAX_ID'), 0)
-  if (!Number.isFinite(maxId) || maxId < firstId) {
-    return
-  }
-
-  for (let currentId = firstId; currentId <= maxId; currentId += 1) {
-    const iterationParams = new Map<string, string>(params)
-    iterationParams.set('CURRENT_ID', String(currentId))
-    iterationParams.set('RECURSIVE_ID', String(currentId))
-
-    for (let paramIndex = 1; paramIndex <= 256; paramIndex += 1) {
-      const targetParam = params.get(`PARAM${paramIndex}`)?.trim()
-      if (!targetParam) {
-        if (
-          params.get(`PARAM${paramIndex}_PREFIX`) == null &&
-          params.get(`PARAM${paramIndex}_SUFFIX`) == null &&
-          params.get(`PROCESS_PARAM${paramIndex}`) == null
-        ) {
-          break
-        }
-        continue
-      }
-
-      const generatedValue = [
-        params.get(`PARAM${paramIndex}_PREFIX`) ?? '',
-        String(currentId),
-        params.get(`PARAM${paramIndex}_SUFFIX`) ?? '',
-      ].join('')
-
-      const shouldProcess = parseBoolean(params.get(`PROCESS_PARAM${paramIndex}`))
-      iterationParams.set(
-        targetParam,
-        shouldProcess ? (params.get(generatedValue) ?? '') : generatedValue
-      )
-    }
-
-    handleBuiltInTemplate(
-      exitTemplate.toUpperCase(),
-      exitTemplate,
-      iterationParams,
-      {
-        ...state,
-        params: iterationParams
-      },
-      context,
-      animationBindings,
-      visibilityBindings,
-      updateBindings
-    ) || expandReferencedTemplate(
-      exitTemplate,
-      iterationParams,
-      state,
-      context,
-      animationBindings,
-      visibilityBindings,
-      updateBindings
-    )
-  }
-}
-
-function expandReferencedTemplate(
-  templateName: string,
-  params: Map<string, string>,
-  state: TraversalState,
-  context: CompileContext,
-  animationBindings: CompiledAnimationBinding[],
-  visibilityBindings: CompiledVisibilityBinding[],
-  updateBindings: CompiledUpdateBinding[]
-): boolean {
-  const templateNode = context.templateMap.get(templateName.toUpperCase())
-  if (templateNode == null) {
-    return false
-  }
-
-  const nextState: TraversalState = {
-    ...state,
-    params
-  }
-  for (const child of Array.from(templateNode.children)) {
-    if (
-      getElementTagName(child) === 'DefaultTemplateParameters' ||
-      getElementTagName(child) === 'OverrideTemplateParameters'
-    ) {
-      continue
-    }
-    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
-  }
-  return true
 }
 
 function buildAnimationBinding(
@@ -934,46 +768,20 @@ function buildAnimationSimBinding(
   const units = params.get('ANIM_SIMVAR_UNITS')?.trim() || 'percent'
   const scale = params.get('ANIM_SIMVAR_SCALE')?.trim() || '1'
   const bias = params.get('ANIM_SIMVAR_BIAS')?.trim() || '0'
+  const lag = params.get('ANIM_LAG')?.trim() || '0'
 
   return buildAnimationBinding(
     new Map([
       ['ANIM_NAME', animName],
       ['ANIM_CODE', `(A:${simVar}, ${units}) ${scale} * ${bias} +`],
       ['ANIM_LENGTH', params.get('ANIM_LENGTH')?.trim() || '100'],
-      ['ANIM_WRAP', params.get('ANIM_WRAP')?.trim() || '0']
+      ['ANIM_WRAP', params.get('ANIM_WRAP')?.trim() || '0'],
+      ['ANIM_DELTA', params.get('ANIM_DELTA')?.trim() || '0'],
+      ['ANIM_LAG', lag]
     ]),
     sourcePath,
     diagnostics
   )
-}
-
-function buildUpdateBinding(
-  params: ReadonlyMap<string, string>,
-  sourcePath: string,
-  diagnostics: ImportDiagnostic[]
-): CompiledUpdateBinding | null {
-  const source = params.get('UPDATE_CODE')?.trim() ?? ''
-  if (!source) {
-    diagnostics.push({
-      code: 'update_params_missing',
-      message: 'Update template expansion did not produce UPDATE_CODE.',
-      severity: 'warning',
-      sourcePath
-    })
-    return null
-  }
-
-  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
-  if (expression == null) {
-    return null
-  }
-
-  return {
-    expression,
-    sourcePath,
-    frequency: Math.max(parseNumber(params.get('FREQUENCY'), 1), 0),
-    once: parseBoolean(params.get('UPDATE_ONCE'))
-  }
 }
 
 function collectImmediateParameters(

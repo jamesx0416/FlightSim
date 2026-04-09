@@ -27,48 +27,35 @@ Secondary corroborating reference currently in use:
 
 These are the current high-priority problems on the active A320/A330 fixture path.
 
-### 1. Remaining Fallback Cleanup
-
-There are still a few hardcoded built-in stock template handlers in the compiler as safety nets, even though more of the mounted official stock XML path is now working.
-
-Examples:
-- `ASOBO_GT_Helper_Recursive_ID`
-- a small remaining set of stock convenience templates such as `ASOBO_GT_UPDATE`
-
-Current state:
-- for the active A320/A330 fixture path, the important handling templates now compile through the mounted official XML path with `builtinFallbackHits = []`
-- the dormant handling and fuel-hose fallback branches have been removed
-- the remaining safety-net implementations should be reduced further only when the official path is proven for the broader exercised stock families
-
-### 2. Direct-View Lighting Washout
+### 1. Direct-View Lighting Washout
 
 Some surfaces look too white when viewed straight on.
 
 Current hypothesis:
 - this is likely renderer/material/environment related, not aircraft-specific
 
-### 3. WebGPU Wing / Reflection Jitter
+### 2. WebGPU Wing / Reflection Jitter
 
 Reflections or wing lighting shimmer while the camera moves on the WebGPU path.
 
 Current hypothesis:
 - this is likely a renderer/environment/material stability issue
 
-### 4. A320 Wing Structure Issue
+### 3. A320 Wing Structure Issue
 
 The A320 still looks structurally wrong in the wing area.
 
 Current strongest lead:
 - missing authoritative support around `NodeAnimation type="WingFlex"` or a related model-animation/runtime contract
 
-### 5. Remaining Engine Visual Mismatch
+### 4. Remaining Engine Visual Mismatch
 
 The engine spin is much better than before, but the fan/cone relationship can still look slightly wrong.
 
 Current hypothesis:
 - remaining runtime animation fidelity issue rather than the old multi-state visibility failure
 
-### 6. Broader Stock Coverage Is Still Incomplete
+### 5. Broader Stock Coverage Is Still Incomplete
 
 Many downloaded stock XML families are not yet exercised or verified on the current A320/A330 fixture path.
 
@@ -277,12 +264,10 @@ Rules:
 - [x] Support `Process="Int|Float|Param"`.
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
-- [ ] Replace remaining mirrored stock-template fallbacks where the general XML evaluator can do so safely.
-  Current blockers:
-  - mirrored helper/update fallbacks still exist as safety net templates when a referenced template is absent from the mounted stock XML set
-  - the official mounted `Asobo/Exterior.xml`, `Asobo/Common.xml`, `Asobo/Common/Index.xml`, `Asobo/Generic.xml`, `Asobo/Generic/FX.xml`, and `Asobo/Generic/Index.xml` paths now compile and run cleanly on both the A330 and A320 routes after the generic condition-truthiness and direct `<Animation>` support fixes
-  - the dormant handling and fuel-hose fallback branches have already been removed after the mounted official XML path was re-verified on both fixtures
-  - the next remaining reduction step is to prove the broader helper/input/template families match or exceed the mirrored fallback behavior across both fixtures before deleting the remaining shims
+- [x] Replace remaining mirrored stock-template fallbacks where the general XML evaluator can do so safely.
+  Verified:
+  - the built-in stock-template fallback path has been removed from the compiler
+  - the active A320/A330 fixture routes still compile and run cleanly through the mounted official XML path with `builtinFallbackHits = []`
 
 #### Stock XML Files
 
