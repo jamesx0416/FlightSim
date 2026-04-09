@@ -4,6 +4,9 @@ import { evaluateCompiledExpression } from './rpn'
 import type {
   CompiledBehaviorSet,
   CompiledUpdateBinding,
+  ImportedAircraft,
+  ImportedCfgFile,
+  ImportedCfgSection,
   ImportDiagnostic,
   RuntimeHostServices,
   RuntimeState
@@ -50,11 +53,15 @@ export class AircraftRuntime {
 
     for (const binding of this.compiled.animationBindings) {
       const evaluatedValue = evaluateCompiledExpression(binding.expression, {
-        readVariable: key => this.hostServices.readVariable(key),
-        writeVariable: (key, nextValue) => this.hostServices.writeVariable(key, nextValue)
+        readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+        writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit)
       })
       const previousValue = this.animationValues.get(binding.target) ?? 0
-      const value = binding.delta ? previousValue + evaluatedValue : evaluatedValue
+      const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
+      const value =
+        binding.lagFramesPerSecond > 0
+          ? moveTowards(previousValue, rawValue, binding.lagFramesPerSecond * dtSeconds)
+          : rawValue
       this.animationValues.set(binding.target, value)
 
       const action = this.actions.get(binding.target)
@@ -72,8 +79,8 @@ export class AircraftRuntime {
     for (const binding of this.compiled.visibilityBindings) {
       const isVisible =
         evaluateCompiledExpression(binding.expression, {
-          readVariable: key => this.hostServices.readVariable(key),
-          writeVariable: (key, nextValue) => this.hostServices.writeVariable(key, nextValue)
+          readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+          writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit)
         }) !== 0
 
       this.nodeVisibilities.set(binding.target, isVisible)
@@ -114,8 +121,8 @@ export class AircraftRuntime {
       }
 
       evaluateCompiledExpression(binding.expression, {
-        readVariable: key => this.hostServices.readVariable(key),
-        writeVariable: (key, nextValue) => this.hostServices.writeVariable(key, nextValue)
+        readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+        writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit)
       })
 
       state.ranOnce = true
@@ -127,6 +134,8 @@ export class AircraftRuntime {
 export class DemoRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
+  private readonly engineProfile: DemoEngineProfile
+  private readonly wingFlexProfile: DemoWingFlexProfile
   private cycles: {
     readonly gearCycle: number
     readonly flapCycle: number
@@ -138,9 +147,9 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     readonly reverserCycle: number
     readonly dtSeconds: number
   } = {
-    gearCycle: 0.5,
-    flapCycle: 0.5,
-    spoilerCycle: 0.5,
+    gearCycle: 0,
+    flapCycle: 0,
+    spoilerCycle: 0,
     engineCycle: 55,
     aileronCycle: 0,
     elevatorCycle: 0,
@@ -149,19 +158,26 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     dtSeconds: 0
   }
 
-  constructor(private readonly diagnostics: ImportDiagnostic[]) {}
+  constructor(
+    private readonly diagnostics: ImportDiagnostic[],
+    aircraft?: ImportedAircraft
+  ) {
+    this.engineProfile = createDemoEngineProfile(aircraft)
+    this.wingFlexProfile = createDemoWingFlexProfile(aircraft)
+  }
 
   tick(dtSeconds: number): void {
     this.elapsedSeconds += dtSeconds
     this.cycles = {
-      gearCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.22),
-      flapCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.18 + 0.4),
-      spoilerCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.9 + 1.3),
-      engineCycle: 55 + 35 * Math.sin(this.elapsedSeconds * 0.35),
-      aileronCycle: 0.8 * Math.sin(this.elapsedSeconds * 0.7),
-      elevatorCycle: 0.6 * Math.sin(this.elapsedSeconds * 0.5 + 0.6),
-      rudderCycle: 70 * Math.sin(this.elapsedSeconds * 0.45 + 0.2),
-      reverserCycle: 0.5 + 0.5 * Math.sin(this.elapsedSeconds * 0.24 + 2.2),
+      // Default the standalone viewer to a stable in-flight cruise pose.
+      gearCycle: 0,
+      flapCycle: 0,
+      spoilerCycle: 0,
+      engineCycle: this.engineProfile.cruiseN1Percent,
+      aileronCycle: 0,
+      elevatorCycle: 0,
+      rudderCycle: 0,
+      reverserCycle: 0,
       dtSeconds
     }
 
@@ -171,13 +187,13 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     this.values.set('A:GEAR ANIMATION POSITION:2', this.cycles.gearCycle * 100)
 
     for (const [key] of this.values) {
-      this.values.set(key, this.resolveHeuristicValue(key, this.cycles).value)
+      this.values.set(key, this.resolveHeuristicValue(key, null, this.cycles).value)
     }
   }
 
-  readVariable(key: string): number {
+  readVariable(key: string, unit?: string | null): number {
     if (!this.values.has(key)) {
-      const resolved = this.resolveHeuristicValue(key, this.cycles)
+      const resolved = this.resolveHeuristicValue(key, unit ?? null, this.cycles)
 
       this.values.set(key, resolved.value)
       if (!resolved.handled) {
@@ -192,7 +208,7 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     return this.values.get(key) ?? 0
   }
 
-  writeVariable(key: string, value: number): void {
+  writeVariable(key: string, value: number, _unit?: string | null): void {
     this.values.set(key, value)
   }
 
@@ -202,6 +218,7 @@ export class DemoRuntimeHost implements RuntimeHostServices {
 
   private resolveHeuristicValue(
     key: string,
+    unit: string | null,
     cycles: {
       readonly gearCycle: number
       readonly flapCycle: number
@@ -216,32 +233,53 @@ export class DemoRuntimeHost implements RuntimeHostServices {
   ): { readonly handled: boolean; readonly value: number } {
     const upperKey = key.toUpperCase()
 
-    if (upperKey === 'A:ANIMATION DELTA TIME') return handled(cycles.dtSeconds)
+    if (upperKey === 'A:ANIMATION DELTA TIME') return handled(convertTimeUnit(cycles.dtSeconds, unit))
     if (upperKey === 'A:SIM ON GROUND') return handled(0)
     if (upperKey === 'A:SURFACE RELATIVE GROUND SPEED') return handled(0)
     if (upperKey === 'A:LIGHT BEACON') return handled(1)
     if (upperKey.startsWith('O:')) return handled(this.values.get(key) ?? 0)
     if (upperKey.startsWith('A:CIRCUIT ON:')) return handled(1)
-    if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(1)
+    if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(convertPercentUnit(100, unit))
     if (upperKey.startsWith('A:CIRCUIT CONNECTION ON:')) return handled(1)
-    if (upperKey.startsWith('A:INTERACTIVE POINT OPEN:')) return handled(0)
+    if (upperKey.startsWith('A:INTERACTIVE POINT OPEN:')) return handled(convertPercentUnit(0, unit))
+    if (upperKey === 'A:WING FLEX PCT') {
+      return handled(convertPercentOver100Unit(this.wingFlexProfile.baseFlexPct, unit))
+    }
+    if (upperKey.startsWith('A:WING FLEX PCT:')) {
+      const sideIndex = Number.parseInt(upperKey.split(':').at(-1) ?? '0', 10)
+      const flexPct =
+        sideIndex === 1 ? this.wingFlexProfile.leftFlexPct
+        : sideIndex === 2 ? this.wingFlexProfile.rightFlexPct
+        : this.wingFlexProfile.baseFlexPct
+      return handled(convertPercentOver100Unit(flexPct, unit))
+    }
     if (upperKey.startsWith('A:GEAR STEER ANGLE:')) return handled(0)
-    if (upperKey.includes('ENGINE_N1')) return handled(cycles.engineCycle)
-    if (upperKey.includes('REVERSER')) return handled(cycles.reverserCycle)
-    if (upperKey.includes('AILERON_LEFT')) return handled(toPercentIfRequested(upperKey, cycles.aileronCycle))
-    if (upperKey.includes('AILERON_RIGHT')) return handled(toPercentIfRequested(upperKey, -cycles.aileronCycle))
-    if (upperKey.includes('AILERON')) return handled(toPercentIfRequested(upperKey, cycles.aileronCycle))
-    if (upperKey.includes('ELEVATOR_LEFT')) return handled(toPercentIfRequested(upperKey, cycles.elevatorCycle))
-    if (upperKey.includes('ELEVATOR_RIGHT')) return handled(toPercentIfRequested(upperKey, cycles.elevatorCycle))
-    if (upperKey.includes('ELEVATOR')) return handled(toPercentIfRequested(upperKey, cycles.elevatorCycle))
-    if (upperKey.includes('HYD_AILERON_LEFT_DEFLECTION')) return handled(cycles.aileronCycle * 100)
-    if (upperKey.includes('HYD_AILERON_RIGHT_DEFLECTION')) return handled(-cycles.aileronCycle * 100)
+    if (upperKey.startsWith('A:GENERAL ENG RPM:')) {
+      return handled(convertRpmUnit(cycles.engineCycle, unit))
+    }
+    if (upperKey.startsWith('A:PROP RPM:')) {
+      return handled(convertRpmUnit(cycles.engineCycle, unit))
+    }
+    if (upperKey.startsWith('A:GENERAL ENG THROTTLE LEVER POSITION:')) {
+      return handled(convertPercentUnit(this.engineProfile.cruisePowerPercent, unit))
+    }
+    if (upperKey.startsWith('A:GENERAL ENG REVERSE THRUST ENGAGED:')) return handled(0)
+    if (upperKey.includes('ENGINE_N1')) return handled(convertPercentUnit(cycles.engineCycle, unit))
+    if (upperKey.includes('REVERSER')) return handled(convertPercentUnit(cycles.reverserCycle * 100, unit))
+    if (upperKey.includes('AILERON_LEFT')) return handled(toRequestedControlUnit(cycles.aileronCycle, unit))
+    if (upperKey.includes('AILERON_RIGHT')) return handled(toRequestedControlUnit(-cycles.aileronCycle, unit))
+    if (upperKey.includes('AILERON')) return handled(toRequestedControlUnit(cycles.aileronCycle, unit))
+    if (upperKey.includes('ELEVATOR_LEFT')) return handled(toRequestedControlUnit(cycles.elevatorCycle, unit))
+    if (upperKey.includes('ELEVATOR_RIGHT')) return handled(toRequestedControlUnit(cycles.elevatorCycle, unit))
+    if (upperKey.includes('ELEVATOR')) return handled(toRequestedControlUnit(cycles.elevatorCycle, unit))
+    if (upperKey.includes('HYD_AILERON_LEFT_DEFLECTION')) return handled(convertPercentUnit(cycles.aileronCycle * 100, unit))
+    if (upperKey.includes('HYD_AILERON_RIGHT_DEFLECTION')) return handled(convertPercentUnit(-cycles.aileronCycle * 100, unit))
     if (upperKey.includes('RUDDER')) return handled(cycles.rudderCycle)
-    if (upperKey.includes('SPOILER_LEFT')) return handled(cycles.spoilerCycle)
-    if (upperKey.includes('SPOILER_RIGHT')) return handled(cycles.spoilerCycle)
-    if (upperKey.includes('SPOILER')) return handled(cycles.spoilerCycle)
-    if (upperKey.includes('SLAT')) return handled(cycles.flapCycle * 100)
-    if (upperKey.includes('FLAP')) return handled(cycles.flapCycle)
+    if (upperKey.includes('SPOILER_LEFT')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
+    if (upperKey.includes('SPOILER_RIGHT')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
+    if (upperKey.includes('SPOILER')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
+    if (upperKey.includes('SLAT')) return handled(convertPercentUnit(cycles.flapCycle * 100, unit))
+    if (upperKey.includes('FLAP')) return handled(convertPercentUnit(cycles.flapCycle * 100, unit))
     if (/^L:LANDING_\d+_RETRACTED$/u.test(upperKey)) return handled(1)
     if (upperKey.endsWith('_NOSE_WHEEL_POSITION')) return handled(0)
     if (upperKey.endsWith('_MODEL_CONES_ENABLED')) return handled(0)
@@ -254,9 +292,9 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     if (/^A:(CENTER|LEFT|RIGHT) WHEEL RPM$/u.test(upperKey)) return handled(0)
     if (/^A:(CENTER|LEFT|RIGHT) WHEEL ROTATION ANGLE$/u.test(upperKey)) return handled(0)
     if (upperKey.includes('GEAR') && upperKey.includes('POSITION')) {
-      return handled(cycles.gearCycle * 100)
+      return handled(convertPercentUnit(cycles.gearCycle * 100, unit))
     }
-    if (upperKey.includes('DOOR')) return handled(cycles.gearCycle * 100)
+    if (upperKey.includes('DOOR')) return handled(convertPercentUnit(cycles.gearCycle * 100, unit))
 
     return {
       handled: false,
@@ -265,8 +303,51 @@ export class DemoRuntimeHost implements RuntimeHostServices {
   }
 }
 
-function toPercentIfRequested(key: string, value: number): number {
-  return key.includes('PCT') || key.includes('PERCENT') ? value * 100 : value
+function toRequestedControlUnit(value: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'percent' || normalizedUnit === 'pct') {
+    return value * 100
+  }
+  if (normalizedUnit === 'percent over 100') {
+    return value
+  }
+  return value
+}
+
+function convertPercentUnit(value: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'percent over 100') {
+    return value / 100
+  }
+  return value
+}
+
+function convertPercentOver100Unit(value: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'percent' || normalizedUnit === 'pct') {
+    return value * 100
+  }
+  return value
+}
+
+function convertRpmUnit(valueRpm: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'degrees per second') {
+    return valueRpm * 6
+  }
+  return valueRpm
+}
+
+function convertTimeUnit(valueSeconds: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'seconds' || normalizedUnit === '') {
+    return valueSeconds
+  }
+  return valueSeconds
+}
+
+function normalizeUnit(unit: string | null): string {
+  return unit?.trim().toLowerCase() ?? ''
 }
 
 function handled(value: number): { readonly handled: true; readonly value: number } {
@@ -276,8 +357,143 @@ function handled(value: number): { readonly handled: true; readonly value: numbe
   }
 }
 
+interface DemoEngineProfile {
+  readonly cruiseN1Percent: number
+  readonly cruisePowerPercent: number
+}
+
+interface DemoWingFlexProfile {
+  readonly baseFlexPct: number
+  readonly leftFlexPct: number
+  readonly rightFlexPct: number
+}
+
+function createDemoEngineProfile(aircraft?: ImportedAircraft): DemoEngineProfile {
+  const enginesCfg = aircraft?.cfgFiles.find(file => file.kind === 'engines')
+  const targetPerformanceCfg = aircraft?.cfgFiles.find(file => file.kind === 'target_performance')
+  const generalEngineData = findCfgSection(enginesCfg, 'GENERALENGINEDATA')
+  const turbineEngineData = findCfgSection(enginesCfg, 'TURBINEENGINEDATA')
+
+  const lowIdleN1 = parseCfgNumber(turbineEngineData, 'low_idle_n1', 19.6)
+  const highN1 = parseCfgNumber(turbineEngineData, 'high_n1', 101)
+  const hasCruiseReference =
+    findCfgValue(targetPerformanceCfg, 'TARGET_PERFORMANCE', 'cruise_speed_level_flight_75pctpower') != null
+  const cruisePowerPercent = hasCruiseReference ? 75 : 60
+  const cruisePowerFraction = cruisePowerPercent / 100
+
+  const configuredEngineCount = countCfgKeys(generalEngineData, /^engine\.\d+$/iu)
+  const normalizedLowIdleN1 = clamp(lowIdleN1, 0, highN1)
+  const normalizedHighN1 = Math.max(normalizedLowIdleN1, highN1)
+  const cruiseN1Percent = clamp(
+    normalizedLowIdleN1 + (normalizedHighN1 - normalizedLowIdleN1) * cruisePowerFraction,
+    normalizedLowIdleN1,
+    normalizedHighN1
+  )
+
+  return {
+    cruiseN1Percent: configuredEngineCount > 0 ? cruiseN1Percent : 55,
+    cruisePowerPercent
+  }
+}
+
+function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexProfile {
+  const flightModel = aircraft?.cfgFiles.find(file => file.kind === 'flight_model')
+  const flightDynamics = flightModel == null
+    ? undefined
+    : findCfgSection(flightModel, 'flight_tuning') ?? findCfgSection(flightModel, 'flight_tuning.0')
+  const aerodynamics = flightModel == null
+    ? undefined
+    : findCfgSection(flightModel, 'aerodynamics') ?? findCfgSection(flightModel, 'aerodynamics.0')
+
+  const scalar = parseCfgNumber(
+    aerodynamics ?? flightDynamics,
+    'wingflex_scalar',
+    1
+  )
+  const offset = parseCfgNumber(
+    aerodynamics ?? flightDynamics,
+    'wingflex_offset',
+    0
+  )
+
+  // Without a real flight-model backend, keep the synthetic viewer at the documented
+  // neutral baseline and apply only the aircraft-authored simvar scaling/offset.
+  const baseFlexPct = offset + scalar * 0
+
+  return {
+    baseFlexPct,
+    leftFlexPct: baseFlexPct,
+    rightFlexPct: baseFlexPct
+  }
+}
+
+function findCfgSection(
+  file: ImportedCfgFile | undefined,
+  sectionName: string
+): ImportedCfgSection | undefined {
+  if (file == null) return undefined
+  const normalizedSectionName = sectionName.toUpperCase()
+  return file.sections.find(section => section.name.toUpperCase() === normalizedSectionName)
+}
+
+function findCfgValue(
+  file: ImportedCfgFile | undefined,
+  sectionName: string,
+  keyName: string
+): string | undefined {
+  const section = findCfgSection(file, sectionName)
+  if (section == null) return undefined
+  const normalizedKeyName = keyName.toLowerCase()
+  for (const [key, value] of section.values.entries()) {
+    if (key.toLowerCase() === normalizedKeyName) {
+      return value
+    }
+  }
+  return undefined
+}
+
+function parseCfgNumber(
+  section: ImportedCfgSection | undefined,
+  keyName: string,
+  fallbackValue: number
+): number {
+  if (section == null) return fallbackValue
+  const normalizedKeyName = keyName.toLowerCase()
+  for (const [key, value] of section.values.entries()) {
+    if (key.toLowerCase() !== normalizedKeyName) continue
+    const numericPart = value.split(',')[0]?.trim() ?? ''
+    const parsedValue = Number.parseFloat(numericPart)
+    return Number.isFinite(parsedValue) ? parsedValue : fallbackValue
+  }
+  return fallbackValue
+}
+
+function countCfgKeys(section: ImportedCfgSection | undefined, pattern: RegExp): number {
+  if (section == null) return 0
+  let count = 0
+  for (const key of section.values.keys()) {
+    if (pattern.test(key)) {
+      count += 1
+    }
+  }
+  return count
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
+}
+
+function moveTowards(current: number, target: number, maxDelta: number): number {
+  if (maxDelta <= 0) {
+    return current
+  }
+
+  const delta = target - current
+  if (Math.abs(delta) <= maxDelta) {
+    return target
+  }
+
+  return current + Math.sign(delta) * maxDelta
 }
 
 function positiveModulo(value: number, divisor: number): number {

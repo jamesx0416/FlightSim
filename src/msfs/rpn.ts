@@ -2,6 +2,7 @@ import type { CompiledExpression, ImportDiagnostic, Instruction } from './types'
 
 interface CompileOptions {
   readonly sourcePath: string
+  readonly sourceExpression: string
   readonly diagnostics: ImportDiagnostic[]
 }
 
@@ -120,7 +121,8 @@ function compileInstructionBlock(
           code: 'rpn_token_unsupported',
           message: 'Unsupported RPN control-flow structure prevented compilation.',
           severity: 'warning',
-          sourcePath: options.sourcePath
+          sourcePath: options.sourcePath,
+          details: options.sourceExpression
         })
         return null
       }
@@ -155,10 +157,14 @@ function compileInstructionBlock(
       continue
     }
 
-    const variableKey = extractVariableKey(normalized)
-    if (variableKey != null) {
-      variableKeys.add(variableKey)
-      instructions.push({ op: 'pushVariable', key: variableKey })
+    const variableReference = extractVariableReference(normalized)
+    if (variableReference != null) {
+      variableKeys.add(formatVariableSymbol(variableReference.key, variableReference.unit))
+      instructions.push({
+        op: 'pushVariable',
+        key: variableReference.key,
+        unit: variableReference.unit
+      })
       continue
     }
 
@@ -168,10 +174,14 @@ function compileInstructionBlock(
       continue
     }
 
-    const variableWriteKey = extractVariableWriteKey(normalized)
-    if (variableWriteKey != null) {
-      variableKeys.add(variableWriteKey)
-      instructions.push({ op: 'writeVariable', key: variableWriteKey })
+    const variableWriteReference = extractVariableWriteReference(normalized)
+    if (variableWriteReference != null) {
+      variableKeys.add(formatVariableSymbol(variableWriteReference.key, variableWriteReference.unit))
+      instructions.push({
+        op: 'writeVariable',
+        key: variableWriteReference.key,
+        unit: variableWriteReference.unit
+      })
       continue
     }
 
@@ -244,7 +254,8 @@ function compileInstructionBlock(
       code: 'rpn_token_unsupported',
       message: `Unsupported RPN token "${normalized}" prevented compilation.`,
       severity: 'warning',
-      sourcePath: options.sourcePath
+      sourcePath: options.sourcePath,
+      details: options.sourceExpression
     })
     return null
   }
@@ -286,14 +297,14 @@ function executeInstructions(
         stack.push(instruction.value)
         break
       case 'pushVariable':
-        stack.push(services.readVariable(instruction.key))
+        stack.push(services.readVariable(instruction.key, instruction.unit))
         break
       case 'pushParameter':
         stack.push(services.parameterValues?.[instruction.index] ?? 0)
         break
       case 'writeVariable': {
         const value = stack.pop() ?? 0
-        services.writeVariable?.(instruction.key, value)
+        services.writeVariable?.(instruction.key, value, instruction.unit)
         break
       }
       case 'invokeKeyEvent': {
@@ -546,20 +557,34 @@ function tokenizeRpn(source: string): string[] {
   return tokens
 }
 
-function extractVariableKey(token: string): string | null {
+function extractVariableReference(
+  token: string
+): { readonly key: string; readonly unit: string | null } | null {
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
-  const variableMatch = /^(A|L|O):([^,]+?)(?=,|$)/iu.exec(content)
+  const variableMatch = /^(A|L|O):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
   if (!variableMatch) return null
-  return `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`
+  return {
+    key: `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`,
+    unit: variableMatch[3]?.trim() || null
+  }
 }
 
-function extractVariableWriteKey(token: string): string | null {
+function extractVariableWriteReference(
+  token: string
+): { readonly key: string; readonly unit: string | null } | null {
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
-  const variableMatch = /^>(A|L|O):([^,]+?)(?=,|$)/iu.exec(content)
+  const variableMatch = /^>(A|L|O):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
   if (!variableMatch) return null
-  return `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`
+  return {
+    key: `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`,
+    unit: variableMatch[3]?.trim() || null
+  }
+}
+
+function formatVariableSymbol(key: string, unit: string | null): string {
+  return unit == null ? key : `${key}, ${unit}`
 }
 
 function extractKeyEventWrite(

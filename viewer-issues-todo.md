@@ -106,9 +106,10 @@ Use sources in this order:
     - stock `Process="Int|Float|Param"`
     - direct `<Update>` nodes
     - `ASOBO_GT_Anim` in both simvar and code forms
-  - built-in stock shims remain only for the template families that are still cleaner as mirrored fallbacks than as fully general recursive XML evaluation:
-    - `ASOBO_GT_Helper_Recursive_ID`
-    - current handling template shims
+    - direct stock `<Animation>` nodes from the mounted Asobo templates
+    - documented animation `<Lag>` values in the runtime
+  - the active A320/A330 fixture routes now compile their handling animations from the mounted official templates with `builtinFallbackHits = []`
+  - built-in stock shims remain only as dormant safety nets when a referenced template is genuinely absent from the mounted public XML set
   - those remaining shims were tightened against the mounted official XML definitions during this pass
 
 ## Cross-Cutting Checks

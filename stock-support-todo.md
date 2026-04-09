@@ -29,8 +29,19 @@ Rules:
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
 - [ ] Replace remaining mirrored stock-template fallbacks where the general XML evaluator can do so safely.
+  Current blockers:
+  - mirrored helper fallbacks still exist as safety net templates when a referenced template is absent from the mounted stock XML set
+  - the official mounted `Asobo/Exterior.xml`, `Asobo/Common.xml`, `Asobo/Common/Index.xml`, `Asobo/Generic.xml`, `Asobo/Generic/FX.xml`, and `Asobo/Generic/Index.xml` paths now compile and run cleanly on both the A330 and A320 routes after the generic condition-truthiness and direct `<Animation>` support fixes
+  - the next remaining reduction step is to prove the broader helper/input/template families match or exceed the mirrored fallback behavior across both fixtures before deleting those shims
 
 ### Stock XML Files
+
+Scope note:
+- See [stock-support-scope.md](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/stock-support-scope.md) for the currently exercised public stock XML set on the A320/A330 fixture routes.
+- The current fixture include graph exercises `Common.xml`, `Common/Index.xml`, `Exterior.xml`, `Generic.xml`, `Generic/FX.xml`, and `Generic/Index.xml`.
+- XML files outside that exercised set should stay unchecked until they are either:
+  - exercised and verified on the fixture routes, or
+  - explicitly documented as blocked / out of current runtime scope.
 
 #### AircraftTypes
 
@@ -49,7 +60,7 @@ Rules:
 
 #### Common
 
-- [ ] `Common.xml`
+- [x] `Common.xml`
 - [ ] `Common/Aircraft.xml`
 - [ ] `Common/Autopilot.xml`
 - [ ] `Common/Deice.xml`
@@ -57,7 +68,7 @@ Rules:
 - [ ] `Common/Engine.xml`
 - [ ] `Common/Fuel.xml`
 - [ ] `Common/Handling.xml`
-- [ ] `Common/Index.xml`
+- [x] `Common/Index.xml`
 - [ ] `Common/Instrument.xml`
 - [ ] `Common/LandingGear.xml`
 - [ ] `Common/Lighting.xml`
@@ -101,7 +112,7 @@ Rules:
 
 #### Exterior
 
-- [ ] `Exterior.xml`
+- [x] `Exterior.xml`
 
 #### GPS
 
@@ -113,13 +124,13 @@ Rules:
 
 #### Generic
 
-- [ ] `Generic.xml`
+- [x] `Generic.xml`
 - [ ] `Generic/AnimationTriggers.xml`
 - [ ] `Generic/Animations.xml`
 - [ ] `Generic/Emissive.xml`
-- [ ] `Generic/FX.xml`
+- [x] `Generic/FX.xml`
 - [ ] `Generic/Helpers.xml`
-- [ ] `Generic/Index.xml`
+- [x] `Generic/Index.xml`
 - [ ] `Generic/Interactions.xml`
 - [ ] `Generic/Updates.xml`
 - [ ] `Generic/Visibility.xml`
@@ -201,13 +212,13 @@ Rules:
 - [ ] `Content_Configuration/Models/model_cfg.htm`
 - [ ] `Content_Configuration/SimObjects/Aircraft_SimO/Aircraft.htm`
 - [ ] `Content_Configuration/SimObjects/Aircraft_SimO/aircraft_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/cockpit_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/engines_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/flight_model_cfg.htm`
+- [x] `Content_Configuration/SimObjects/Aircraft_SimO/cockpit_cfg.htm`
+- [x] `Content_Configuration/SimObjects/Aircraft_SimO/engines_cfg.htm`
+- [x] `Content_Configuration/SimObjects/Aircraft_SimO/flight_model_cfg.htm`
 - [ ] `Content_Configuration/SimObjects/Aircraft_SimO/gameplay_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/Instruments/panel_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/systems_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/target_performance_cfg.htm`
+- [x] `Content_Configuration/SimObjects/Aircraft_SimO/Instruments/panel_cfg.htm`
+- [x] `Content_Configuration/SimObjects/Aircraft_SimO/systems_cfg.htm`
+- [x] `Content_Configuration/SimObjects/Aircraft_SimO/target_performance_cfg.htm`
 - [ ] `Content_Configuration/SimObjects/Living_Things/Living_Things_sim_cfg.htm`
 - [ ] `Content_Configuration/Textures/texture_cfg.htm`
 
@@ -216,40 +227,40 @@ Rules:
 - [ ] `html/Introduction/Using_The_SDK.htm`
 - [ ] `html/Introduction/Introduction.htm`
 - [ ] `html/Content_Configuration/Models/Models.htm`
-- [ ] `html/Content_Configuration/Models/Model_Definitions.htm`
-- [ ] `html/Content_Configuration/Models/Model_Animation_Definitions.htm`
-- [ ] `html/Content_Configuration/Models/ModelBehaviors/Model_Behaviors.htm`
-- [ ] `html/Content_Configuration/Models/ModelBehaviors/General_Template_Definitions.htm`
-- [ ] `html/Content_Configuration/Models/ModelBehaviors/Input_Event_Definitions.htm`
-- [ ] `html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Template_Explorer.html`
-- [ ] `html/mergedProjects/How_To_Make_An_Aircraft/Contents/Model_Behaviours/Default_Templates.htm`
+- [x] `html/Content_Configuration/Models/Model_Definitions.htm`
+- [x] `html/Content_Configuration/Models/Model_Animation_Definitions.htm`
+- [x] `html/Content_Configuration/Models/ModelBehaviors/Model_Behaviors.htm`
+- [x] `html/Content_Configuration/Models/ModelBehaviors/General_Template_Definitions.htm`
+- [x] `html/Content_Configuration/Models/ModelBehaviors/Input_Event_Definitions.htm`
+- [x] `html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Template_Explorer.html`
+- [x] `html/mergedProjects/How_To_Make_An_Aircraft/Contents/Model_Behaviours/Default_Templates.htm`
 - [ ] `html/Asset_Creation/3D_Models/General_Principles.htm`
 - [ ] `html/Asset_Creation/Blender_Plugin/The_Blender_Plugin.htm`
 - [ ] `html/Content_Configuration/SimObjects/SimObjects.htm`
-- [ ] `html/Content_Configuration/SimObjects/Aircraft_SimO/flight_model/interactive_points.htm`
+- [x] `html/Content_Configuration/SimObjects/Aircraft_SimO/flight_model/interactive_points.htm`
 - [ ] `html/Content_Configuration/VisualEffects/Visual_Effects_Landing_Templates.htm`
 - [ ] `html/Content_Configuration/Checklists/Checklists.htm`
 - [ ] `msfs2024/html/3_Models_And_Textures/Plugins/glTF_Schemas.htm`
 - [ ] `msfs2024/flighting/html/3_Models_And_Textures/Textures/Materials/FlightSim_Materials.htm`
 - [ ] `msfs2024/html/3_Models_And_Textures/Textures/Materials/FlightSim_Material_Parameters.htm`
-- [ ] `msfs2024/flighting/html/6_Programming_APIs/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm`
+- [x] `msfs2024/flighting/html/6_Programming_APIs/SimVars/Aircraft_SimVars/Aircraft_FlightModel_Variables.htm`
 - [ ] `html/mergedProjects/How_To_Make_An_Aircraft/Contents/Modelling/Airframe/Texturing/Surface_Detail__agt_index.htm`
 
 ### Template Explorer HTML Pack
 
-- [ ] Download the rendered Template Explorer HTML pages for the mounted stock XML set.
-- [ ] Keep the rendered HTML pack separate from the mounted runtime XML pack.
-- [ ] Use the rendered HTML pages as reference/debug support only, not as runtime behavior sources.
+- [x] Download the rendered Template Explorer HTML pages for the mounted stock XML set.
+- [x] Keep the rendered HTML pack separate from the mounted runtime XML pack.
+- [x] Use the rendered HTML pages as reference/debug support only, not as runtime behavior sources.
 
 ## 3. Implement Broader Generic CFG Support For Targeted MSFS CFG Files
 
-- [ ] Expand runtime and importer support beyond the current `aircraft.cfg`, `model.cfg`, and `texture.cfg` scope using the targeted CFG docs above.
-- [ ] Keep the CFG implementation authoritative to the mirrored docs and actual package data.
+- [x] Expand runtime and importer support beyond the current `aircraft.cfg`, `model.cfg`, and `texture.cfg` scope using the targeted CFG docs above.
+- [x] Keep the CFG implementation authoritative to the mirrored docs and actual package data.
 
 ## 4. Verify A330 And A320 Routes After Each Completed Batch
 
-- [ ] Keep the A330 route clean after each completed batch.
-- [ ] Keep the A320 route clean after each completed batch.
+- [x] Keep the A330 route clean after each completed batch.
+- [x] Keep the A320 route clean after each completed batch.
 - [ ] Replace mirrored fallbacks only when the official mounted XML path matches or exceeds current behavior.
 
 ## 5. Fix Lighting Issue Where Surfaces Look Too White When Viewed Directly
