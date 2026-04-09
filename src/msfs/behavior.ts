@@ -26,8 +26,10 @@ interface CompileContext {
   readonly aircraft: ImportedAircraft
   readonly diagnostics: ImportDiagnostic[]
   readonly templateMap: Map<string, Element>
+  readonly parameterFunctionMap: Map<string, Element>
   readonly loadedDocuments: Map<string, LoadedDocument>
   readonly sourceRoots: readonly BehaviorSourceRoot[]
+  readonly builtinFallbackHits: Set<string>
 }
 
 interface CompileBehaviorOptions {
@@ -38,6 +40,7 @@ interface TraversalState {
   readonly path: string
   readonly params: ReadonlyMap<string, string>
   readonly currentNode: string | null
+  readonly templateTrace: readonly string[]
 }
 
 type ParameterBlockKind = 'default' | 'override'
@@ -51,16 +54,7 @@ const VISIBILITY_TEMPLATE_NAMES = new Set([
   'ASOBO_GT_VISIBILITY',
   'ASOBO_GT_VISIBILITY_CODE'
 ])
-const BUILTIN_PREFERRED_TEMPLATE_NAMES = new Set([
-  'ASOBO_GT_HELPER_RECURSIVE_ID',
-  'ASOBO_HANDLING_LEFTRIGHTANIM_TEMPLATE',
-  'ASOBO_HANDLING_TRIM_BASE_TEMPLATE',
-  'ASOBO_HANDLING_AILERON_TEMPLATE',
-  'ASOBO_HANDLING_RUDDER_TEMPLATE',
-  'ASOBO_HANDLING_ELEVATOR_TEMPLATE',
-  'ASOBO_HANDLING_SLATS_TEMPLATE',
-  'ASOBO_HANDLING_FLAPS_TEMPLATE'
-])
+let activeParameterFunctionMap: ReadonlyMap<string, Element> = new Map()
 
 export async function compileMsfs2020Behaviors(
   pkg: ImportedPackage,
@@ -69,6 +63,7 @@ export async function compileMsfs2020Behaviors(
 ): Promise<CompiledBehaviorSet> {
   const diagnostics = [...pkg.diagnostics]
   const templateMap = new Map<string, Element>()
+  const parameterFunctionMap = new Map<string, Element>()
   const loadedDocuments = new Map<string, LoadedDocument>()
 
   if (aircraft.model == null) {
@@ -85,6 +80,7 @@ export async function compileMsfs2020Behaviors(
       visibilityBindings: [],
       updateBindings: [],
       variableKeys: [],
+      builtinFallbackHits: [],
       diagnostics
     }
   }
@@ -95,18 +91,24 @@ export async function compileMsfs2020Behaviors(
     aircraft,
     diagnostics,
     templateMap,
+    parameterFunctionMap,
     loadedDocuments,
-    sourceRoots
+    sourceRoots,
+    builtinFallbackHits: new Set()
   }
 
+  await preloadMountedAsoboDocuments(context)
   await loadBehaviorDocument(aircraft.model.behaviorPath, context, sourceRoots[0] ?? null)
 
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
   const updateBindings: CompiledUpdateBinding[] = []
+  const rootParams = new Map<string, string>()
   for (const loadedDocument of loadedDocuments.values()) {
-    collectTemplates(loadedDocument.document, templateMap)
+    collectDefinitions(loadedDocument.document, templateMap, parameterFunctionMap, rootParams)
   }
+
+  activeParameterFunctionMap = parameterFunctionMap
 
   const rootDocument = sourceRoots.length > 0
     ? loadedDocuments.get(`${sourceRoots[0]!.rootUrl}::${normalizePath(aircraft.model.behaviorPath)}`)
@@ -116,8 +118,9 @@ export async function compileMsfs2020Behaviors(
       rootDocument.rootElement,
       {
         path: rootDocument.path,
-        params: new Map<string, string>(),
-        currentNode: null
+        params: rootParams,
+        currentNode: null,
+        templateTrace: []
       },
       context,
       animationBindings,
@@ -143,15 +146,65 @@ export async function compileMsfs2020Behaviors(
     }
   }
 
-  return {
+  const compiled: CompiledBehaviorSet = {
     irVersion: 'msfs-behavior/v1',
     aircraftId: aircraft.id,
     animationBindings,
     visibilityBindings,
     updateBindings,
     variableKeys: [...variableKeys].sort(),
+    builtinFallbackHits: [...context.builtinFallbackHits].sort(),
     diagnostics
   }
+
+  activeParameterFunctionMap = new Map()
+  return compiled
+}
+
+async function preloadMountedAsoboDocuments(context: CompileContext): Promise<void> {
+  const preloadTasks: Promise<void>[] = []
+
+  for (const root of context.sourceRoots) {
+    for (const layoutPath of root.layoutPathIndex.values()) {
+      if (!layoutPath.endsWith('.xml')) continue
+      if (!layoutPath.startsWith('ModelBehaviorDefs/Asobo/')) continue
+      preloadTasks.push(loadBehaviorDocumentShallow(layoutPath, context, root))
+    }
+  }
+
+  await Promise.all(preloadTasks)
+}
+
+async function loadBehaviorDocumentShallow(
+  path: string,
+  context: CompileContext,
+  preferredRoot: BehaviorSourceRoot | null = null
+): Promise<void> {
+  const resolvedDocument = resolveBehaviorDocument(path, context, preferredRoot)
+  if (resolvedDocument == null) {
+    return
+  }
+
+  const documentKey = `${resolvedDocument.root.rootUrl}::${resolvedDocument.path}`
+  if (context.loadedDocuments.has(documentKey)) return
+
+  const response = await fetch(new URL(resolvedDocument.path, resolvedDocument.root.rootUrl))
+  if (!response.ok) {
+    return
+  }
+
+  const text = await response.text()
+  const parsedDocument = parseBehaviorDocument(text)
+  if (parsedDocument == null) {
+    return
+  }
+
+  context.loadedDocuments.set(documentKey, {
+    rootUrl: resolvedDocument.root.rootUrl,
+    path: resolvedDocument.path,
+    document: parsedDocument.document,
+    rootElement: parsedDocument.rootElement
+  })
 }
 
 async function loadBehaviorDocument(
@@ -211,17 +264,17 @@ async function loadBehaviorDocument(
 }
 
 function resolveIncludePath(sourcePath: string, includeNode: Element): string | null {
-  const relativeFile = includeNode.getAttribute('RelativeFile')
+  const relativeFile = getAttributeValue(includeNode, 'RelativeFile')
   if (relativeFile) {
     return joinPath(dirname(sourcePath), relativeFile)
   }
 
-  const modelBehaviorFile = includeNode.getAttribute('ModelBehaviorFile')
+  const modelBehaviorFile = getAttributeValue(includeNode, 'ModelBehaviorFile')
   if (modelBehaviorFile) {
     return joinPath('ModelBehaviorDefs', modelBehaviorFile)
   }
 
-  const pathAttribute = includeNode.getAttribute('Path')
+  const pathAttribute = getAttributeValue(includeNode, 'Path')
   if (pathAttribute) {
     return joinPath('ModelBehaviorDefs', pathAttribute)
   }
@@ -332,11 +385,28 @@ function resolveBehaviorDocument(
   return null
 }
 
-function collectTemplates(document: Document, templateMap: Map<string, Element>): void {
-  for (const templateNode of document.querySelectorAll('Template[Name]')) {
-    const templateName = templateNode.getAttribute('Name')
+function collectDefinitions(
+  document: Document,
+  templateMap: Map<string, Element>,
+  parameterFunctionMap: Map<string, Element>,
+  rootParams: Map<string, string>
+): void {
+  for (const templateNode of document.querySelectorAll('Template')) {
+    const templateName = getAttributeValue(templateNode, 'Name')
     if (!templateName) continue
     templateMap.set(templateName.toUpperCase(), templateNode)
+  }
+
+  for (const functionNode of document.querySelectorAll('ParametersFn')) {
+    const functionName = getAttributeValue(functionNode, 'Name')
+    if (!functionName) continue
+    parameterFunctionMap.set(functionName.toUpperCase(), functionNode)
+  }
+
+  for (const macroNode of document.querySelectorAll('Macro')) {
+    const macroName = getAttributeValue(macroNode, 'Name')
+    if (!macroName) continue
+    rootParams.set(`@${macroName}`, (macroNode.textContent ?? '').trim())
   }
 }
 
@@ -372,17 +442,19 @@ function traverseElement(
   visibilityBindings: CompiledVisibilityBinding[],
   updateBindings: CompiledUpdateBinding[]
 ): void {
-  if (element.tagName === 'Template') {
+  const elementTagName = getElementTagName(element)
+
+  if (elementTagName === 'Template') {
     return
   }
 
-  if (element.tagName === 'Include') {
+  if (elementTagName === 'Include') {
     return
   }
 
   const scopedState = applyScopedParameters(element, state)
 
-  if (element.tagName === 'Condition') {
+  if (elementTagName === 'Condition') {
     const branch = selectConditionBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
@@ -392,7 +464,7 @@ function traverseElement(
     return
   }
 
-  if (element.tagName === 'Switch') {
+  if (elementTagName === 'Switch') {
     const branch = selectSwitchBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
@@ -402,7 +474,7 @@ function traverseElement(
     return
   }
 
-  if (element.tagName === 'Component') {
+  if (elementTagName === 'Component') {
     const nodeName = substituteParameters(
       element.getAttribute('Node') ?? '',
       scopedState.params
@@ -423,11 +495,48 @@ function traverseElement(
     return
   }
 
-  if (element.tagName === 'Update') {
+  if (elementTagName === 'Update') {
     const updateBinding = buildUpdateNodeBinding(element, scopedState.params, state.path, context.diagnostics)
     if (updateBinding != null) {
       updateBindings.push(updateBinding)
     }
+    return
+  }
+
+  if (elementTagName === 'Animation') {
+    const animationBinding = buildAnimationNodeBinding(element, scopedState.params, state.path, context.diagnostics)
+    if (animationBinding != null) {
+      animationBindings.push(animationBinding)
+    }
+    return
+  }
+
+  if (elementTagName === 'Loop') {
+    const doNode = getDirectChild(element, 'Do')
+    if (doNode == null) {
+      return
+    }
+    executeLoop(
+      element,
+      scopedState.params,
+      state.path,
+      context.diagnostics,
+      iterationParams => {
+        for (const child of Array.from(doNode.children)) {
+          traverseElement(
+            child,
+            {
+              ...scopedState,
+              params: iterationParams
+            },
+            context,
+            animationBindings,
+            visibilityBindings,
+            updateBindings
+          )
+        }
+      }
+    )
     return
   }
 
@@ -463,18 +572,35 @@ function expandTemplateUse(
   updateBindings: CompiledUpdateBinding[]
 ): void {
   const templateName = substituteParameters(
-    useTemplateNode.getAttribute('Name') ?? '',
+    getAttributeValue(useTemplateNode, 'Name') ?? '',
     state.params
   ).trim()
   if (!templateName) return
 
-  const childParams = collectImmediateParameters(useTemplateNode, state.params)
+  const childParams = collectImmediateParameters(
+    useTemplateNode,
+    state.params,
+    state.path,
+    context.diagnostics
+  )
   const mergedParams = new Map<string, string>(state.params)
   for (const [key, value] of childParams) {
     mergedParams.set(key, value)
   }
 
   const normalizedTemplateName = templateName.toUpperCase()
+  const templateTraceKey = createTemplateTraceKey(normalizedTemplateName, mergedParams)
+  if (state.templateTrace.includes(templateTraceKey)) {
+    context.diagnostics.push({
+      code: 'template_recursion_cycle',
+      message: `Template ${templateName} entered a recursive expansion cycle.`,
+      severity: 'warning',
+      sourcePath: state.path,
+      details: state.templateTrace.join(' -> ')
+    })
+    return
+  }
+
   if (normalizedTemplateName === 'ASOBO_GT_ANIM') {
     const animationBinding =
       mergedParams.get('ANIM_CODE')?.trim()
@@ -523,22 +649,6 @@ function expandTemplateUse(
     return
   }
 
-  if (
-    BUILTIN_PREFERRED_TEMPLATE_NAMES.has(normalizedTemplateName) &&
-    handleBuiltInTemplate(
-      normalizedTemplateName,
-      templateName,
-      mergedParams,
-      state,
-      context,
-      animationBindings,
-      visibilityBindings,
-      updateBindings
-    )
-  ) {
-    return
-  }
-
   const templateNode = context.templateMap.get(normalizedTemplateName)
   if (templateNode == null) {
     if (
@@ -574,7 +684,8 @@ function expandTemplateUse(
 
   const nextState: TraversalState = {
     ...state,
-    params: templateParams
+    params: templateParams,
+    templateTrace: [...state.templateTrace, templateTraceKey]
   }
 
   for (const child of Array.from(templateNode.children)) {
@@ -598,6 +709,7 @@ function handleBuiltInTemplate(
   visibilityBindings: CompiledVisibilityBinding[],
   updateBindings: CompiledUpdateBinding[]
 ): boolean {
+  context.builtinFallbackHits.add(normalizedTemplateName)
   switch (normalizedTemplateName) {
     case 'ASOBO_GT_ANIM_SIM': {
       const animationBinding = buildAnimationSimBinding(params, state.path, context.diagnostics)
@@ -1053,7 +1165,7 @@ function buildAnimationBinding(
     return null
   }
 
-  const expression = compileRpnExpression(source, { sourcePath, diagnostics })
+  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
   if (expression == null) return null
 
   const length = Number.parseFloat(params.get('ANIM_LENGTH') ?? '100') || 100
@@ -1065,6 +1177,7 @@ function buildAnimationBinding(
     length,
     wrap,
     delta: parseBoolean(params.get('ANIM_DELTA')),
+    lagFramesPerSecond: Math.max(parseNumber(params.get('ANIM_LAG'), 0), 0),
     sourcePath
   }
 }
@@ -1089,7 +1202,7 @@ function buildVisibilityBinding(
     return null
   }
 
-  const expression = compileRpnExpression(source, { sourcePath, diagnostics })
+  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
   if (expression == null) return null
 
   return {
@@ -1148,7 +1261,7 @@ function buildUpdateBinding(
     return null
   }
 
-  const expression = compileRpnExpression(source, { sourcePath, diagnostics })
+  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
   if (expression == null) {
     return null
   }
@@ -1176,14 +1289,18 @@ function buildFuelHoseVisibilityBinding(
 
 function collectImmediateParameters(
   element: Element,
-  inheritedParams: ReadonlyMap<string, string>
+  inheritedParams: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
 ): Map<string, string> {
   const params = new Map<string, string>()
-  for (const child of Array.from(element.children)) {
-    if (child.children.length > 0) continue
-    const value = substituteParameters(child.textContent ?? '', inheritedParams).trim()
-    params.set(getElementTagName(child), value)
-  }
+  collectParameterEntries(
+    Array.from(element.children),
+    inheritedParams,
+    params,
+    sourcePath,
+    diagnostics
+  )
   return params
 }
 
@@ -1235,30 +1352,32 @@ function selectConditionBranch(
   conditionNode: Element,
   params: ReadonlyMap<string, string>
 ): Element | null {
-  const notEmpty = conditionNode.getAttribute('NotEmpty')
+  const notEmpty = getAttributeValue(conditionNode, 'NotEmpty')
   if (notEmpty) {
     const value = resolveNotEmptyValue(notEmpty, params)
     return value ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
   }
 
-  const empty = conditionNode.getAttribute('Empty')
+  const empty = getAttributeValue(conditionNode, 'Empty')
   if (empty) {
     const value = resolveNotEmptyValue(empty, params)
     return value ? conditionNode.querySelector(':scope > False') : conditionNode.querySelector(':scope > True')
   }
 
-  const valid = conditionNode.getAttribute('Valid')
+  const valid = getAttributeValue(conditionNode, 'Valid')
   if (valid) {
     const value = resolveParameterReference(valid, params)
-    return value ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
+    return isTruthyConditionValue(value)
+      ? conditionNode.querySelector(':scope > True')
+      : conditionNode.querySelector(':scope > False')
   }
 
-  const check = conditionNode.getAttribute('Check')
+  const check = getAttributeValue(conditionNode, 'Check')
   if (check) {
     const value = resolveParameterReference(check, params)
-    const match = conditionNode.getAttribute('Match')
+    const match = getAttributeValue(conditionNode, 'Match')
     const matches = match == null
-      ? value.length > 0
+      ? isTruthyConditionValue(value)
       : value === substituteParameters(match, params).trim()
     return matches ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
   }
@@ -1277,16 +1396,16 @@ function selectSwitchBranch(
   switchNode: Element,
   params: ReadonlyMap<string, string>
 ): Element | null {
-  const switchParam = switchNode.getAttribute('Param')
+  const switchParam = getAttributeValue(switchNode, 'Param')
   const switchValue =
     switchParam == null ? '' : resolveParameterReference(switchParam, params)
 
   for (const child of Array.from(switchNode.children)) {
-    if (child.tagName !== 'Case') {
+    if (getElementTagName(child) !== 'Case') {
       continue
     }
 
-    const value = child.getAttribute('Value')
+    const value = getAttributeValue(child, 'Value')
     if (value != null) {
       if (switchValue === substituteParameters(value, params).trim()) {
         return child
@@ -1294,24 +1413,24 @@ function selectSwitchBranch(
       continue
     }
 
-    const valid = child.getAttribute('Valid')
-    if (valid != null && resolveParameterReference(valid, params)) {
+    const valid = getAttributeValue(child, 'Valid')
+    if (valid != null && isTruthyConditionValue(resolveParameterReference(valid, params))) {
       return child
     }
 
-    const check = child.getAttribute('Check')
+    const check = getAttributeValue(child, 'Check')
     if (check != null) {
       const resolvedValue = resolveParameterReference(check, params)
-      const match = child.getAttribute('Match')
+      const match = getAttributeValue(child, 'Match')
       const matches = match == null
-        ? resolvedValue.length > 0
+        ? isTruthyConditionValue(resolvedValue)
         : resolvedValue === substituteParameters(match, params).trim()
       if (matches) {
         return child
       }
     }
 
-    const notEmpty = child.getAttribute('NotEmpty')
+    const notEmpty = getAttributeValue(child, 'NotEmpty')
     if (notEmpty != null && resolveNotEmptyValue(notEmpty, params)) {
       return child
     }
@@ -1327,14 +1446,29 @@ function substituteParameters(
   let currentValue = value
 
   for (let index = 0; index < 8; index += 1) {
-    const nextValue = currentValue.replace(/#([A-Za-z0-9_:.]+)#/gu, (_match, key) => {
+    const parameterExpanded = currentValue.replace(/#([A-Za-z0-9_:.]+)#/gu, (_match, key) => {
       return params.get(key) ?? ''
+    })
+    const nextValue = parameterExpanded.replace(/@([A-Za-z0-9_]+)/gu, (match, key) => {
+      return params.get(`@${key}`) ?? match
     })
     if (nextValue === currentValue) break
     currentValue = nextValue
   }
 
   return currentValue
+}
+
+function createTemplateTraceKey(
+  templateName: string,
+  params: ReadonlyMap<string, string>
+): string {
+  const stableParams = [...params.entries()]
+    .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+    .map(([key, value]) => `${key}=${value}`)
+    .join('&')
+
+  return `${templateName}?${stableParams}`
 }
 
 function applyParameterBlocks(
@@ -1374,7 +1508,7 @@ function getParameterBlockKind(element: Element): ParameterBlockKind | null {
     return null
   }
 
-  const type = (element.getAttribute('Type') ?? '').trim().toLowerCase()
+  const type = (getAttributeValue(element, 'Type') ?? '').trim().toLowerCase()
   if (type === 'default') {
     return 'default'
   }
@@ -1402,7 +1536,9 @@ function collectParameterEntries(
       continue
     }
 
-    if (child.tagName === 'Condition') {
+    const childTagName = getElementTagName(child)
+
+    if (childTagName === 'Condition') {
       const branch = selectConditionBranch(child, scopedParams)
       if (branch != null) {
         collectParameterEntries(
@@ -1419,7 +1555,7 @@ function collectParameterEntries(
       continue
     }
 
-    if (child.tagName === 'Switch') {
+    if (childTagName === 'Switch') {
       const branch = selectSwitchBranch(child, scopedParams)
       if (branch != null) {
         collectParameterEntries(
@@ -1433,6 +1569,57 @@ function collectParameterEntries(
           scopedParams.set(key, value)
         }
       }
+      continue
+    }
+
+    if (childTagName === 'UseParametersFn') {
+      const returnedValues = executeParameterFunction(
+        child,
+        scopedParams,
+        sourcePath,
+        diagnostics
+      )
+      for (const [key, value] of returnedValues) {
+        values.set(key, value)
+        scopedParams.set(key, value)
+      }
+      continue
+    }
+
+    if (
+      childTagName === 'UseTemplate' ||
+      childTagName === 'Template' ||
+      childTagName === 'Include' ||
+      childTagName === 'Component' ||
+      childTagName === 'Update'
+    ) {
+      continue
+    }
+
+    if (childTagName === 'Loop') {
+      executeLoop(
+        child,
+        scopedParams,
+        sourcePath,
+        diagnostics,
+        iterationParams => {
+          const doNode = getDirectChild(child, 'Do')
+          if (doNode == null) {
+            return
+          }
+
+          collectParameterEntries(
+            Array.from(doNode.children),
+            iterationParams,
+            values,
+            sourcePath,
+            diagnostics
+          )
+          for (const [key, value] of values) {
+            scopedParams.set(key, value)
+          }
+        }
+      )
       continue
     }
 
@@ -1454,7 +1641,7 @@ function resolveProcessedParameterValue(
   diagnostics: ImportDiagnostic[]
 ): string {
   const substituted = substituteParameters(node.textContent ?? '', params).trim()
-  const process = (node.getAttribute('Process') ?? '').trim().toLowerCase()
+  const process = (getAttributeValue(node, 'Process') ?? '').trim().toLowerCase()
   if (!process) {
     return substituted
   }
@@ -1464,7 +1651,7 @@ function resolveProcessedParameterValue(
   }
 
   if (process === 'int' || process === 'float') {
-    const expression = compileRpnExpression(substituted, { sourcePath, diagnostics })
+    const expression = compileRpnExpression(substituted, { sourcePath, sourceExpression: substituted, diagnostics })
     if (expression == null) {
       return substituted
     }
@@ -1499,17 +1686,17 @@ function buildUpdateNodeBinding(
     return null
   }
 
-  const expression = compileRpnExpression(source, { sourcePath, diagnostics })
+  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
   if (expression == null) {
     return null
   }
 
   const frequency = parseNumber(
-    substituteParameters(updateNode.getAttribute('Frequency') ?? '1', params).trim(),
+    substituteParameters(getAttributeValue(updateNode, 'Frequency') ?? '1', params).trim(),
     1
   )
   const once = parseBoolean(
-    substituteParameters(updateNode.getAttribute('Once') ?? '0', params).trim()
+    substituteParameters(getAttributeValue(updateNode, 'Once') ?? '0', params).trim()
   )
 
   return {
@@ -1520,12 +1707,141 @@ function buildUpdateNodeBinding(
   }
 }
 
+function buildAnimationNodeBinding(
+  animationNode: Element,
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledAnimationBinding | null {
+  const target = substituteParameters(
+    getAttributeValue(animationNode, 'Name') ?? '',
+    params
+  ).trim()
+
+  if (!target) {
+    diagnostics.push({
+      code: 'animation_params_missing',
+      message: 'Animation node did not produce a target name.',
+      severity: 'warning',
+      sourcePath
+    })
+    return null
+  }
+
+  const length = parseNumber(
+    substituteParameters(getAttributeValue(animationNode, 'Length') ?? '100', params).trim(),
+    100
+  )
+  const parameterNode = getDirectChild(animationNode, 'Parameter')
+  if (parameterNode == null) {
+    diagnostics.push({
+      code: 'animation_params_missing',
+      message: `Animation node ${target} did not include a Parameter block.`,
+      severity: 'warning',
+      sourcePath
+    })
+    return null
+  }
+
+  const wrap = parseBoolean(
+    substituteParameters(getDirectChild(parameterNode, 'Wrap')?.textContent ?? '0', params).trim()
+  )
+  const delta = parseBoolean(
+    substituteParameters(getDirectChild(parameterNode, 'Delta')?.textContent ?? '0', params).trim()
+  )
+
+  const codeNode = getDirectChild(parameterNode, 'Code')
+  if (codeNode != null) {
+    const source = substituteParameters(codeNode.textContent ?? '', params).trim()
+    if (!source) {
+      diagnostics.push({
+        code: 'animation_params_missing',
+        message: `Animation node ${target} did not produce animation code.`,
+        severity: 'warning',
+        sourcePath
+      })
+      return null
+    }
+
+    const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
+    if (expression == null) {
+      return null
+    }
+
+    return {
+      target,
+      expression,
+      length,
+      wrap,
+      delta,
+      lagFramesPerSecond: Math.max(
+        parseNumber(substituteParameters(getDirectChild(parameterNode, 'Lag')?.textContent ?? '0', params).trim(), 0),
+        0
+      ),
+      sourcePath
+    }
+  }
+
+  const simNode = getDirectChild(parameterNode, 'Sim')
+  if (simNode != null) {
+    const variable = substituteParameters(getDirectChild(simNode, 'Variable')?.textContent ?? '', params).trim()
+    if (!variable) {
+      diagnostics.push({
+        code: 'animation_params_missing',
+        message: `Animation node ${target} did not produce a sim variable.`,
+        severity: 'warning',
+        sourcePath
+      })
+      return null
+    }
+
+    const units = substituteParameters(getDirectChild(simNode, 'Units')?.textContent ?? 'percent', params).trim() || 'percent'
+    const scale = substituteParameters(getDirectChild(simNode, 'Scale')?.textContent ?? '1', params).trim() || '1'
+    const bias = substituteParameters(getDirectChild(simNode, 'Bias')?.textContent ?? '0', params).trim() || '0'
+    const source = `(A:${variable}, ${units}) ${scale} * ${bias} +`
+    const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
+    if (expression == null) {
+      return null
+    }
+
+    return {
+      target,
+      expression,
+      length,
+      wrap,
+      delta,
+      lagFramesPerSecond: Math.max(
+        parseNumber(substituteParameters(getDirectChild(parameterNode, 'Lag')?.textContent ?? '0', params).trim(), 0),
+        0
+      ),
+      sourcePath
+    }
+  }
+
+  diagnostics.push({
+    code: 'animation_params_missing',
+    message: `Animation node ${target} did not include a Code or Sim parameter source.`,
+    severity: 'warning',
+    sourcePath
+  })
+  return null
+}
+
 function resolveParameterReference(
   expression: string,
   params: ReadonlyMap<string, string>
 ): string {
   const substituted = substituteParameters(expression, params).trim()
   return substituted ? (params.get(substituted) ?? '') : ''
+}
+
+function isTruthyConditionValue(value: string): boolean {
+  const normalizedValue = value.trim().toLowerCase()
+  if (!normalizedValue) {
+    return false
+  }
+
+  return normalizedValue !== '0' && normalizedValue !== 'false'
 }
 
 function resolveNotEmptyValue(
@@ -1539,7 +1855,16 @@ function resolveNotEmptyValue(
   if (params.has(substituted)) {
     return params.get(substituted) ?? ''
   }
-  return expression.includes('#') ? substituted : ''
+
+  const tokenMatches = [...expression.matchAll(/#([A-Za-z0-9_:.]+)#/gu)]
+  const literalRemainder = expression.replace(/#([A-Za-z0-9_:.]+)#/gu, '')
+  const isPureTokenConcatenation = tokenMatches.length > 1 && literalRemainder.length === 0
+  if (isPureTokenConcatenation) {
+    return substituted
+  }
+
+  const isDynamicParameterReference = /^[A-Za-z0-9_:.#]+$/u.test(expression) && !/\s/u.test(expression)
+  return isDynamicParameterReference ? '' : substituted
 }
 
 function evaluateTestElement(
@@ -1557,7 +1882,7 @@ function evaluateTestOperator(
   node: Element,
   params: ReadonlyMap<string, string>
 ): boolean {
-  switch (node.tagName) {
+  switch (getElementTagName(node)) {
     case 'Lower': {
       const [left, right] = Array.from(node.children)
       return resolveTestNumericValue(left, params) < resolveTestNumericValue(right, params)
@@ -1583,24 +1908,24 @@ function evaluateTestOperator(
       return child instanceof Element ? !evaluateTestOperator(child, params) : false
     }
     case 'Arg': {
-      const notEmpty = node.getAttribute('NotEmpty')
+      const notEmpty = getAttributeValue(node, 'NotEmpty')
       if (notEmpty != null) {
         return resolveNotEmptyValue(notEmpty, params).length > 0
       }
-      const empty = node.getAttribute('Empty')
+      const empty = getAttributeValue(node, 'Empty')
       if (empty != null) {
         return resolveNotEmptyValue(empty, params).length === 0
       }
-      const valid = node.getAttribute('Valid')
+      const valid = getAttributeValue(node, 'Valid')
       if (valid != null) {
-        return resolveParameterReference(valid, params).length > 0
+        return isTruthyConditionValue(resolveParameterReference(valid, params))
       }
-      const check = node.getAttribute('Check')
+      const check = getAttributeValue(node, 'Check')
       if (check != null) {
         const value = resolveParameterReference(check, params)
-        const match = node.getAttribute('Match')
+        const match = getAttributeValue(node, 'Match')
         return match == null
-          ? value.length > 0
+          ? isTruthyConditionValue(value)
           : value === substituteParameters(match, params).trim()
       }
       return false
@@ -1618,7 +1943,7 @@ function resolveTestNumericValue(
     return 0
   }
 
-  if (node.tagName === 'Number') {
+  if (getElementTagName(node) === 'Number') {
     return parseNumber(substituteParameters(node.textContent ?? '', params).trim(), 0)
   }
 
@@ -1634,11 +1959,141 @@ function resolveTestStringValue(
   }
 
   const substituted = substituteParameters(node.textContent ?? '', params).trim()
-  if (node.tagName === 'Value') {
+  if (getElementTagName(node) === 'Value') {
     return params.get(substituted) ?? substituted
   }
 
   return substituted
+}
+
+function getDirectChild(parent: Element, tagName: string): Element | null {
+  return (
+    Array.from(parent.children).find(child => getElementTagName(child) === tagName) ?? null
+  )
+}
+
+function executeLoop(
+  loopNode: Element,
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[],
+  callback: (iterationParams: Map<string, string>) => void
+): void {
+  const setupNode = getDirectChild(loopNode, 'Setup')
+  const paramName = substituteParameters(getDirectChild(setupNode ?? loopNode, 'Param')?.textContent ?? '', params).trim()
+  if (!paramName) {
+    diagnostics.push({
+      code: 'loop_setup_missing',
+      message: 'Loop is missing a Setup/Param definition.',
+      severity: 'warning',
+      sourcePath
+    })
+    return
+  }
+
+  const fromNode = getDirectChild(setupNode ?? loopNode, 'From')
+  const incNode = getDirectChild(setupNode ?? loopNode, 'Inc')
+  const toNode = getDirectChild(setupNode ?? loopNode, 'To')
+  const whileNode = getDirectChild(setupNode ?? loopNode, 'While')
+  const from = parseInteger(
+    fromNode == null ? '0' : resolveProcessedParameterValue(fromNode, params, sourcePath, diagnostics),
+    0
+  )
+  const inc = parseInteger(
+    incNode == null ? '1' : resolveProcessedParameterValue(incNode, params, sourcePath, diagnostics),
+    1
+  )
+  const to = toNode == null
+    ? null
+    : parseInteger(resolveProcessedParameterValue(toNode, params, sourcePath, diagnostics), from)
+
+  if (inc === 0) {
+    diagnostics.push({
+      code: 'loop_increment_invalid',
+      message: 'Loop increment cannot be zero.',
+      severity: 'warning',
+      sourcePath
+    })
+    return
+  }
+
+  let current = from
+  for (let iteration = 0; iteration < 4096; iteration += 1) {
+    const iterationParams = new Map<string, string>(params)
+    iterationParams.set(paramName, String(current))
+
+    const withinBounds = to == null ? true : inc > 0 ? current <= to : current >= to
+    const whileMatches = whileNode == null ? true : Array.from(whileNode.children).every(child =>
+      evaluateTestOperator(child, iterationParams)
+    )
+    if (!withinBounds || !whileMatches) {
+      return
+    }
+
+    callback(iterationParams)
+    current += inc
+  }
+
+  diagnostics.push({
+    code: 'loop_iteration_limit',
+    message: 'Loop iteration limit was reached while expanding stock behavior XML.',
+    severity: 'warning',
+    sourcePath
+  })
+}
+
+function executeParameterFunction(
+  useFunctionNode: Element,
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): Map<string, string> {
+  const functionName = substituteParameters(
+    getAttributeValue(useFunctionNode, 'Name') ?? '',
+    params
+  ).trim()
+  if (!functionName) {
+    return new Map()
+  }
+
+  const functionNode = activeParameterFunctionMap.get(functionName.toUpperCase())
+  if (functionNode == null) {
+    diagnostics.push({
+      code: 'parameter_function_missing',
+      message: `ParametersFn ${functionName} is not available in the mounted stock behavior set.`,
+      severity: 'warning',
+      sourcePath
+    })
+    return new Map()
+  }
+
+  const functionParams = new Map<string, string>(params)
+  applyParameterBlocks(functionNode, 'default', functionParams, sourcePath, diagnostics)
+  const callParams = collectImmediateParameters(
+    useFunctionNode,
+    functionParams,
+    sourcePath,
+    diagnostics
+  )
+  for (const [key, value] of callParams) {
+    functionParams.set(key, value)
+  }
+  applyParameterBlocks(functionNode, 'override', functionParams, sourcePath, diagnostics)
+
+  const returnedValues = new Map<string, string>()
+  const returnNode = getDirectChild(functionNode, 'ReturnParameters')
+  if (returnNode == null) {
+    return returnedValues
+  }
+
+  collectParameterEntries(
+    Array.from(returnNode.children),
+    functionParams,
+    returnedValues,
+    sourcePath,
+    diagnostics
+  )
+  return returnedValues
 }
 
 function preprocessBehaviorXml(source: string): string {
@@ -1658,6 +2113,15 @@ function preprocessBehaviorXml(source: string): string {
 
 function getElementTagName(element: Element): string {
   return element.getAttribute('msfsTagName') ?? element.tagName
+}
+
+function getAttributeValue(element: Element, name: string): string | null {
+  for (const attribute of Array.from(element.attributes)) {
+    if (attribute.name.toLowerCase() === name.toLowerCase()) {
+      return attribute.value
+    }
+  }
+  return null
 }
 
 function parseBoolean(value: string | undefined): boolean {

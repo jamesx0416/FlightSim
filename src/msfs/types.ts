@@ -24,6 +24,8 @@ export interface ModelLodEntry {
   readonly minSize: number
   readonly path: string
   readonly url: string
+  readonly mergeModels: readonly string[]
+  readonly attachModelIds: readonly string[]
 }
 
 export interface ModelBehaviorReference {
@@ -40,6 +42,33 @@ export interface ImportedModelDefinition {
   readonly behaviorUrl: string
   readonly lods: readonly ModelLodEntry[]
   readonly behaviorIncludes: readonly ModelBehaviorReference[]
+  readonly nodeAnimations: readonly ModelNodeAnimation[]
+  readonly modelAttachments: readonly ImportedModelAttachment[]
+}
+
+export interface ModelNodeAnimation {
+  readonly type: string
+  readonly nodes: readonly string[]
+}
+
+export interface ImportedModelAttachment {
+  readonly id: string
+  readonly attachToNode?: string
+  readonly modelPath?: string
+  readonly modelUrl?: string
+}
+
+export interface ImportedCfgSection {
+  readonly name: string
+  readonly values: ReadonlyMap<string, string>
+}
+
+export interface ImportedCfgFile {
+  readonly kind: string
+  readonly path: string
+  readonly url: string
+  readonly sourceAircraftCfgPath: string
+  readonly sections: readonly ImportedCfgSection[]
 }
 
 export interface ImportedAircraft {
@@ -56,6 +85,7 @@ export interface ImportedAircraft {
   readonly isUserSelectable: boolean
   readonly isFlyable: boolean
   readonly model: ImportedModelDefinition | null
+  readonly cfgFiles: readonly ImportedCfgFile[]
 }
 
 export interface ImportedPackage {
@@ -80,6 +110,7 @@ export interface CompiledAnimationBinding {
   readonly length: number
   readonly wrap: boolean
   readonly delta: boolean
+  readonly lagFramesPerSecond: number
   readonly sourcePath: string
 }
 
@@ -103,6 +134,7 @@ export interface CompiledBehaviorSet {
   readonly visibilityBindings: readonly CompiledVisibilityBinding[]
   readonly updateBindings: readonly CompiledUpdateBinding[]
   readonly variableKeys: readonly string[]
+  readonly builtinFallbackHits: readonly string[]
   readonly diagnostics: readonly ImportDiagnostic[]
 }
 
@@ -115,9 +147,9 @@ export interface RuntimeState {
 
 export type Instruction =
   | { readonly op: 'pushNumber'; readonly value: number }
-  | { readonly op: 'pushVariable'; readonly key: string }
+  | { readonly op: 'pushVariable'; readonly key: string; readonly unit: string | null }
   | { readonly op: 'pushParameter'; readonly index: number }
-  | { readonly op: 'writeVariable'; readonly key: string }
+  | { readonly op: 'writeVariable'; readonly key: string; readonly unit: string | null }
   | { readonly op: 'invokeKeyEvent'; readonly name: string; readonly argCount: number }
   | { readonly op: 'duplicate' | 'popDiscard' | 'swap' | 'increment' | 'decrement' | 'quit' }
   | { readonly op: 'storeRegister'; readonly index: number; readonly pop: boolean }
@@ -139,7 +171,7 @@ export type Instruction =
 
 export interface RuntimeHostServices {
   tick(dtSeconds: number): void
-  readVariable(key: string): number
-  writeVariable(key: string, value: number): void
+  readVariable(key: string, unit?: string | null): number
+  writeVariable(key: string, value: number, unit?: string | null): void
   invokeKeyEvent?(name: string, args: readonly number[]): void
 }

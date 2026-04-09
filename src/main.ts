@@ -154,12 +154,14 @@ async function init(): Promise<void> {
   fitCameraToObject(camera, controls, aircraftRoot)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
 
-  const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never)
+  const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never, aircraft)
   const runtime = new AircraftRuntime(compiledBehaviors, gltf.scene, runtimeHost)
+  ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
   runtime.bindAnimations(gltf.animations)
 
   const clock = new Clock()
   let runtimeState: RuntimeState = runtime.update(0)
+  ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
   updateOverlay(
     overlay,
     packageRoot,
@@ -181,6 +183,7 @@ async function init(): Promise<void> {
   renderer.setAnimationLoop(() => {
     const dtSeconds = clock.getDelta()
     runtimeState = runtime.update(dtSeconds)
+    ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
     controls.update()
     renderPasses.render()
     updateOverlay(

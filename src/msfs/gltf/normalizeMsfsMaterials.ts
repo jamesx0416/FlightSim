@@ -870,7 +870,7 @@ function injectMsfsDetailMapFragmentShaderDeclarations(
 
   shader.fragmentShader = shader.fragmentShader.replace(
     'void main() {',
-    `${declarations}void main() {`
+    `${declarations}\nvoid main() {`
   )
 }
 

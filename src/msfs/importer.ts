@@ -1,5 +1,6 @@
 import { getCfgSection, getCfgSectionsByPrefix, parseCfg } from './config'
 import type {
+  ImportedCfgFile,
   ImportDiagnostic,
   ImportedAircraft,
   ImportedModelDefinition,
@@ -39,6 +40,16 @@ interface FltsimSectionRef {
   readonly record: AircraftCfgRecord
   readonly section: ReturnType<typeof parseCfg>[number]
 }
+
+const ROOT_CFG_KINDS = [
+  { kind: 'cameras', fileName: 'cameras.cfg' },
+  { kind: 'cockpit', fileName: 'cockpit.cfg' },
+  { kind: 'engines', fileName: 'engines.cfg' },
+  { kind: 'flight_model', fileName: 'flight_model.cfg' },
+  { kind: 'gameplay', fileName: 'gameplay.cfg' },
+  { kind: 'systems', fileName: 'systems.cfg' },
+  { kind: 'target_performance', fileName: 'target_performance.cfg' }
+] as const
 
 export async function importBuiltMsfs2020Package(
   rootUrl: string,
@@ -416,6 +427,7 @@ async function importAircraftRecord(
     const variationName = section.values.get('ui_variation') || undefined
     const uiType = section.values.get('ui_type') || undefined
     const textureDirectories = await resolveTextureDirectories(chain, fltsim, context)
+    const cfgFiles = await resolveAdditionalCfgFiles(chain, fltsim, context)
 
     importedAircraft.push({
       id: `${normalizePath(dirname(record.path))}#${section.name.toLowerCase()}`,
@@ -430,7 +442,8 @@ async function importAircraftRecord(
       baseContainer,
       isUserSelectable: parseBoolean(section.values.get('isuserselectable')),
       isFlyable: parseBoolean(section.values.get('isflyable')),
-      model
+      model,
+      cfgFiles
     })
   }
 
@@ -515,16 +528,70 @@ async function importModelDefinition(
     .map(lodNode => {
       const modelFile = lodNode.getAttribute('ModelFile')
       if (!modelFile) return null
+      const mergeModels = Array.from(lodNode.querySelectorAll(':scope > MergeModel'))
+        .map(node => node.getAttribute('ModelFile') ?? node.getAttribute('modelFile') ?? '')
+        .map(value => value.trim())
+        .filter(value => value.length > 0)
+      const attachModelIds = Array.from(lodNode.querySelectorAll(':scope > AttachModel'))
+        .map(node => node.getAttribute('id') ?? '')
+        .map(value => value.trim())
+        .filter(value => value.length > 0)
       return {
         minSize: Number.parseFloat(lodNode.getAttribute('minSize') ?? '0') || 0,
         path: joinPath(dirname(behaviorPath), modelFile),
         url: resolvePackageUrl(
           context.rootUrl,
           joinPath(dirname(behaviorPath), modelFile)
-        )
+        ),
+        mergeModels,
+        attachModelIds
       }
     })
     .filter((lod): lod is NonNullable<typeof lod> => lod != null)
+
+  const nodeAnimations = Array.from(behaviorDocument.querySelectorAll('NodeAnimation'))
+    .map(nodeAnimationNode => {
+      const type = (nodeAnimationNode.getAttribute('type') ?? '').trim()
+      const nodes = Array.from(nodeAnimationNode.querySelectorAll(':scope > Node'))
+        .map(node => node.textContent?.trim() ?? '')
+        .filter(value => value.length > 0)
+      if (!type) {
+        return null
+      }
+      return {
+        type,
+        nodes
+      }
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null)
+
+  const modelAttachments = Array.from(behaviorDocument.querySelectorAll('ModelAttachments > ModelAttachment'))
+    .map(attachmentNode => {
+      const id = (attachmentNode.getAttribute('id') ?? '').trim()
+      if (!id) return null
+
+      const attachToNode =
+        attachmentNode.getAttribute('attachTo')?.trim() ||
+        attachmentNode.querySelector('AttachTo')?.textContent?.trim() ||
+        undefined
+      const modelFile =
+        attachmentNode.getAttribute('ModelFile')?.trim() ||
+        attachmentNode.getAttribute('modelFile')?.trim() ||
+        attachmentNode.querySelector('ModelFile')?.textContent?.trim()
+
+      return {
+        id,
+        attachToNode,
+        modelPath: modelFile ? joinPath(dirname(behaviorPath), modelFile) : undefined,
+        modelUrl: modelFile
+          ? resolvePackageUrl(
+              context.rootUrl,
+              joinPath(dirname(behaviorPath), modelFile)
+            )
+          : undefined
+      }
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null)
 
   const behaviorIncludes = Array.from(
     behaviorDocument.querySelectorAll('Behaviors > Include')
@@ -610,7 +677,9 @@ async function importModelDefinition(
     behaviorPath,
     behaviorUrl: resolvePackageUrl(resolvedBehavior.rootUrl, behaviorPath),
     lods,
-    behaviorIncludes
+    behaviorIncludes,
+    nodeAnimations,
+    modelAttachments
   }
 }
 
@@ -684,6 +753,61 @@ async function resolveTextureDirectories(
   return textureDirectories
 }
 
+async function resolveAdditionalCfgFiles(
+  chain: readonly AircraftCfgRecord[],
+  primaryFltsim: FltsimSectionRef,
+  context: ImportContext
+): Promise<ImportedCfgFile[]> {
+  const cfgFiles: ImportedCfgFile[] = []
+  const visitedPaths = new Set<string>()
+  const orderedRecords = [primaryFltsim.record, ...chain.filter(record => record.path !== primaryFltsim.record.path)]
+
+  const addCfgFile = async (
+    kind: string,
+    sourceRecord: AircraftCfgRecord,
+    candidatePath: string
+  ): Promise<void> => {
+    const resolvedPath = resolveLayoutPath(candidatePath, context)
+    if (resolvedPath == null) {
+      return
+    }
+
+    const normalizedPath = resolvedPath.toLowerCase()
+    if (visitedPaths.has(normalizedPath)) {
+      return
+    }
+
+    const cfgText = await fetchText(resolvedPath, context)
+    if (cfgText == null) {
+      return
+    }
+
+    visitedPaths.add(normalizedPath)
+    cfgFiles.push({
+      kind,
+      path: resolvedPath,
+      url: resolvePackageUrl(context.rootUrl, resolvedPath),
+      sourceAircraftCfgPath: sourceRecord.path,
+      sections: parseCfg(cfgText)
+    })
+  }
+
+  for (const record of orderedRecords) {
+    const aircraftDirectory = dirname(record.path)
+    for (const cfgKind of ROOT_CFG_KINDS) {
+      await addCfgFile(cfgKind.kind, record, joinPath(aircraftDirectory, cfgKind.fileName))
+    }
+  }
+
+  for (const record of orderedRecords) {
+    for (const panelDirectory of getPanelDirectoryCandidates(record, primaryFltsim.section.values.get('panel') ?? '')) {
+      await addCfgFile('panel', record, joinPath(panelDirectory, 'panel.cfg'))
+    }
+  }
+
+  return cfgFiles
+}
+
 async function addTextureFallbackDirectories(
   directoryPath: string,
   context: ImportContext,
@@ -752,6 +876,18 @@ function getModelDirectoryCandidates(
   }
 
   return modelDirectories
+}
+
+function getPanelDirectoryCandidates(
+  record: AircraftCfgRecord,
+  panelSuffix: string
+): string[] {
+  const aircraftDirectory = dirname(record.path)
+  return [
+    panelSuffix
+      ? joinPath(aircraftDirectory, `panel.${panelSuffix}`)
+      : joinPath(aircraftDirectory, 'panel')
+  ]
 }
 
 function getTextureDirectoryCandidates(record: AircraftCfgRecord): string[] {
