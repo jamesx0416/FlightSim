@@ -1,0 +1,253 @@
+<ModelBehaviors>
+	<Include ModelBehaviorFile="ASOBO_EX1\\Index.xml"/>
+	<Include ModelBehaviorFile="ASOBO_EX1\\DefaultConfig.xml"/>
+	<Include ModelBehaviorFile="ASOBO_EX1\\ExteriorDefs.xml"/>
+	<Include RelativeFile="../../Function_Exterior/model/A320_Exterior_Templates.xml"/>
+	<Component ID="CONFIG">
+		<Parameters Type="Override">
+			<UseParametersFn Name="ASOBO_Configure_Global_Parameters"/>
+		</Parameters>
+	</Component>
+	<Component ID="Controls">
+		<UseTemplate Name="ASOBO_GT_Anim_Template">
+			<ANIM_NAME>Landing_Light_Left</ANIM_NAME>
+			<ANIM_CODE>(L:A320_LANDING_LIGHT_L_ANIMATION, Number) 100 *</ANIM_CODE>
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Template">
+			<ANIM_NAME>Landing_Light_Right</ANIM_NAME>
+			<ANIM_CODE>(L:A320_LANDING_LIGHT_R_ANIMATION, Number) 100 *</ANIM_CODE>
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+		</UseTemplate>
+		<Component ID="WingFlex">
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_LENGTH>100</ANIM_LENGTH>
+				<ANIM_NAME>WingFlex_Left</ANIM_NAME>
+				<ANIM_CODE>(A:WING FLEX PCT:1, percent) 3 / 50 +</ANIM_CODE>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_LENGTH>100</ANIM_LENGTH>
+				<ANIM_NAME>WingFlex_Right</ANIM_NAME>
+				<ANIM_CODE>(A:WING FLEX PCT:1, percent) 3 / 50 +</ANIM_CODE>
+			</UseTemplate>
+		</Component>
+		<Component ID="Slats">
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_LENGTH>100</ANIM_LENGTH>
+				<ANIM_NAME>Slats</ANIM_NAME>
+				<ANIM_CODE>(L:SLATS_PREDEPLOY_RATIO, number) 100 *</ANIM_CODE>
+			</UseTemplate>
+		</Component>
+		<Component ID="Spoilers">
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_1R</ANIM_NAME>
+				<ANIM_CODE>(L:Right_spoiler_1, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_2R</ANIM_NAME>
+				<ANIM_CODE>(L:Right_spoiler_2, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_3R</ANIM_NAME>
+				<ANIM_CODE>(L:Right_spoiler_3, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_4R</ANIM_NAME>
+				<ANIM_CODE>(L:Right_spoiler_4, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_5R</ANIM_NAME>
+				<ANIM_CODE>(L:Right_spoiler_5, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_1L</ANIM_NAME>
+				<ANIM_CODE>(L:Left_spoiler_1, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_2L</ANIM_NAME>
+				<ANIM_CODE>(L:Left_spoiler_2, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_3L</ANIM_NAME>
+				<ANIM_CODE>(L:Left_spoiler_3, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_4L</ANIM_NAME>
+				<ANIM_CODE>(L:Left_spoiler_4, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+			<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+				<ANIM_NAME>Spoiler_5L</ANIM_NAME>
+				<ANIM_CODE>(L:Left_spoiler_5, number)</ANIM_CODE>
+				<ANIM_LENGTH>60</ANIM_LENGTH>
+			</UseTemplate>
+		</Component>
+	</Component>
+	<Component ID="Ailerons">
+		<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+			<ANIM_NAME>Aileron_Left</ANIM_NAME>
+			<ANIM_CODE>(L:LEFT_OUTER_AILERON_ANIMATION, number) 25 +</ANIM_CODE>
+			<ANIM_LENGTH>50</ANIM_LENGTH>
+		</UseTemplate>
+		<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+			<ANIM_NAME>Aileron_Right</ANIM_NAME>
+			<ANIM_CODE>(L:RIGHT_OUTER_AILERON_ANIMATION, number) 25 +</ANIM_CODE>
+			<ANIM_LENGTH>50</ANIM_LENGTH>
+		</UseTemplate>
+	</Component>
+	<Component ID="Flaps">
+		<UseTemplate Name="ASOBO_GT_Anim_Code_Template">
+			<ANIM_NAME>Flaps</ANIM_NAME>
+			<ANIM_CODE>(L:FLAPS_ANIMATION, number) 100 *</ANIM_CODE>
+			<ANIM_LENGTH>100</ANIM_LENGTH>
+		</UseTemplate>
+	</Component>
+	<Component ID="WEAR_AND_TEAR">
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>LEFT_AILERON</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_Aileron_Left</NODE_ID>
+			<WEAR_PART>AILERONS_LEFT</WEAR_PART>
+			<WEAR_INDEX/>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>RIGHT_AILERON</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_Aileron_Right</NODE_ID>
+			<WEAR_PART>AILERONS_RIGHT</WEAR_PART>
+			<WEAR_INDEX/>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>LEFT_FLAP</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingLeftWingTrackC</NODE_ID>
+			<WEAR_PART>FLAPS_LEFT</WEAR_PART>
+			<WEAR_INDEX/>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>LEFT_FLAP</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingLeftWingTrackA</NODE_ID>
+			<WEAR_PART>FLAPS_LEFT</WEAR_PART>
+			<WEAR_INDEX/>
+			<NO_PROGRESS_UPDATE>TRUE</NO_PROGRESS_UPDATE>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>RIGHT_FLAP</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingLeftWingTrackA_Right</NODE_ID>
+			<WEAR_PART>FLAPS_RIGHT</WEAR_PART>
+			<WEAR_INDEX/>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>RIGHT_FLAP</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingLeftWingTrackC_Right</NODE_ID>
+			<WEAR_PART>FLAPS_RIGHT</WEAR_PART>
+			<WEAR_INDEX/>
+			<NO_PROGRESS_UPDATE>TRUE</NO_PROGRESS_UPDATE>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>LEFT_FLAP_CABLE</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingSlatOutBoardA_Left</NODE_ID>
+			<WEAR_PART>FLAPS_LEFT_CABLE</WEAR_PART>
+			<WEAR_INDEX/>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>LEFT_FLAP_CABLE</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingSlatInBoardA_Left</NODE_ID>
+			<WEAR_PART>FLAPS_LEFT_CABLE</WEAR_PART>
+			<WEAR_INDEX/>
+			<NO_PROGRESS_UPDATE>TRUE</NO_PROGRESS_UPDATE>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>RIGHT_FLAP_CABLE</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingSlatInBoardA_Right</NODE_ID>
+			<WEAR_PART>FLAPS_RIGHT_CABLE</WEAR_PART>
+			<WEAR_INDEX/>
+		</UseTemplate>
+		<UseTemplate Name="INI_WEAR_TEAR_TEMPLATE">
+			<TOOLTIP_ID>RIGHT_FLAP_CABLE</TOOLTIP_ID>
+			<IE_TOOLTIP_DESCRIPTION_ID>@TT_Package.ACTION.CHECK</IE_TOOLTIP_DESCRIPTION_ID>
+			<NODE_ID>Rig_WingSlatOutBoardA_Right</NODE_ID>
+			<WEAR_PART>FLAPS_RIGHT_CABLE</WEAR_PART>
+			<WEAR_INDEX/>
+			<NO_PROGRESS_UPDATE>TRUE</NO_PROGRESS_UPDATE>
+		</UseTemplate>
+	</Component>
+	<Component ID="Dirt">
+		<Component ID="Regular_Dirt">
+			<UseTemplate Name="ASOBO_ET_COMMON_Dirt_Multiple_Template">
+				<TYPE>REGULAR</TYPE>
+				<SaveParameters ID="Dirt_NODE_IDs">
+					<Dirt_Flap_Inbd_Left/>
+					<Dirt_Flap_Otbd_Left/>
+					<Insects_Slat_Outboard_Left/>
+					<Wing_Dirt_001_Left/>
+					<Dirt_Flap_Inbd_Right/>
+					<Dirt_Flap_Otbd_Right/>
+					<Insects_Slat_Outboard_Right/>
+					<Wing_Dirt_001_Right/>
+				</SaveParameters>
+			</UseTemplate>
+		</Component>
+		<Component ID="Runway_Dirt">
+			<UseTemplate Name="ASOBO_ET_COMMON_Dirt_Multiple_Template">
+				<TYPE>RUNWAY</TYPE>
+				<SaveParameters ID="Dirt_NODE_IDs">
+					<Runway_Dirt_Flap_Inbd_Left/>
+					<Runway_Dirt_Wing_Left/>
+					<Runway_Dirt_Flap_Inbd_Right/>
+					<Runway_Dirt_Wing_Right/>
+				</SaveParameters>
+			</UseTemplate>
+		</Component>
+		<Component ID="Leaks">
+			<UseTemplate Name="ASOBO_ET_COMMON_Dirt_Multiple_Template">
+				<TYPE>LEAKS</TYPE>
+				<SaveParameters ID="Dirt_NODE_IDs">
+					<Leaks_Flap_Inbd_Left/>
+					<Leaks_Flap_Otbd_Left/>
+					<Leaks_Aileron_Left/>
+					<Leaks_Flap_Inbd_Right/>
+					<Leaks_Flap_Otbd_Right/>
+					<Leaks_Aileron_Right/>
+				</SaveParameters>
+			</UseTemplate>
+		</Component>
+		<Component ID="Mud">
+			<UseTemplate Name="ASOBO_ET_COMMON_Dirt_Multiple_Template">
+				<TYPE>MUD</TYPE>
+				<SaveParameters ID="Dirt_NODE_IDs">
+					<Mud_Flap_Inbd_Left/>
+					<Mud_Wing_Left/>
+					<Mud_Flap_Inbd_Right/>
+					<Mud_Wing_Right/>
+				</SaveParameters>
+			</UseTemplate>
+		</Component>
+		<Component ID="Dust">
+			<UseTemplate Name="ASOBO_ET_COMMON_Dirt_Multiple_Template">
+				<TYPE>DUST</TYPE>
+				<SaveParameters ID="Dirt_NODE_IDs">
+					<Dust_Splash_Flap_Inbd_Left/>
+					<Dust_Splash_Wing_Left/>
+					<Dust_Splash_Flap_Inbd_Right/>
+					<Dust_Splash_Wing_Right/>
+				</SaveParameters>
+			</UseTemplate>
+		</Component>
+	</Component>
+</ModelBehaviors>
+

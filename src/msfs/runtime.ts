@@ -8,6 +8,7 @@ import type {
   ImportedCfgFile,
   ImportedCfgSection,
   ImportDiagnostic,
+  ModelNodeAnimation,
   RuntimeHostServices,
   RuntimeState
 } from './types'
@@ -16,14 +17,17 @@ export class AircraftRuntime {
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
   private readonly nodes = new Map<string, Object3D>()
+  private readonly canonicalNodes = new Map<string, Object3D>()
   private readonly animationValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
+  private readonly wingFlexBindings: readonly RuntimeWingFlexBinding[]
 
   constructor(
     private readonly compiled: CompiledBehaviorSet,
     private readonly sceneRoot: Object3D,
-    private readonly hostServices: RuntimeHostServices
+    private readonly hostServices: RuntimeHostServices,
+    aircraft?: ImportedAircraft
   ) {
     this.mixer = new AnimationMixer(sceneRoot)
 
@@ -31,8 +35,19 @@ export class AircraftRuntime {
       if (node.name) {
         this.nodes.set(node.name, node)
         this.nodes.set(node.name.toLowerCase(), node)
+        const canonicalName = canonicalizeNodeAnimationName(node.name)
+        if (canonicalName) {
+          this.canonicalNodes.set(canonicalName, node)
+        }
       }
     })
+
+    this.wingFlexBindings = buildWingFlexBindings(
+      aircraft?.model?.nodeAnimations ?? [],
+      aircraft,
+      this.nodes,
+      this.canonicalNodes
+    )
   }
 
   bindAnimations(clips: readonly { readonly name: string }[]): void {
@@ -75,6 +90,7 @@ export class AircraftRuntime {
     }
 
     this.mixer.update(0)
+    this.applyWingFlexBindings()
 
     for (const binding of this.compiled.visibilityBindings) {
       const isVisible =
@@ -127,6 +143,18 @@ export class AircraftRuntime {
 
       state.ranOnce = true
       this.updateState.set(binding, state)
+    }
+  }
+
+  private applyWingFlexBindings(): void {
+    for (const binding of this.wingFlexBindings) {
+      const leftFlex = this.hostServices.readVariable('A:WING FLEX PCT:1', 'percent over 100')
+      const rightFlex = this.hostServices.readVariable('A:WING FLEX PCT:2', 'percent over 100')
+
+      applyWingFlexChain(binding.leftWing, leftFlex, binding)
+      applyWingFlexChain(binding.rightWing, rightFlex, binding)
+      applyWingFlexEnginePivots(binding.leftEnginePivots, binding.leftWing, leftFlex, binding)
+      applyWingFlexEnginePivots(binding.rightEnginePivots, binding.rightWing, rightFlex, binding)
     }
   }
 }
@@ -236,12 +264,18 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     if (upperKey === 'A:ANIMATION DELTA TIME') return handled(convertTimeUnit(cycles.dtSeconds, unit))
     if (upperKey === 'A:SIM ON GROUND') return handled(0)
     if (upperKey === 'A:SURFACE RELATIVE GROUND SPEED') return handled(0)
+    if (upperKey === 'A:STRUCTURAL ICE PCT') return handled(convertPercentOver100Unit(0, unit))
+    if (upperKey === 'A:PITOT ICE PCT') return handled(convertPercentOver100Unit(0, unit))
+    if (upperKey === 'A:WINDSHIELD DEICE SWITCH') return handled(0)
+    if (upperKey === 'A:STRUCTURAL DEICE SWITCH') return handled(0)
     if (upperKey === 'A:LIGHT BEACON') return handled(1)
     if (upperKey.startsWith('O:')) return handled(this.values.get(key) ?? 0)
     if (upperKey.startsWith('A:CIRCUIT ON:')) return handled(1)
     if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(convertPercentUnit(100, unit))
     if (upperKey.startsWith('A:CIRCUIT CONNECTION ON:')) return handled(1)
     if (upperKey.startsWith('A:INTERACTIVE POINT OPEN:')) return handled(convertPercentUnit(0, unit))
+    if (upperKey.startsWith('A:ENG ANTI ICE:')) return handled(0)
+    if (upperKey.startsWith('A:PROP DEICE SWITCH:')) return handled(0)
     if (upperKey === 'A:WING FLEX PCT') {
       return handled(convertPercentOver100Unit(this.wingFlexProfile.baseFlexPct, unit))
     }
@@ -368,6 +402,23 @@ interface DemoWingFlexProfile {
   readonly rightFlexPct: number
 }
 
+interface RuntimeWingFlexNode {
+  readonly node: Object3D
+  readonly order: number
+  readonly restY: number
+  readonly cumulativeSpan: number
+  appliedOffsetY: number
+}
+
+interface RuntimeWingFlexBinding {
+  readonly leftWing: readonly RuntimeWingFlexNode[]
+  readonly rightWing: readonly RuntimeWingFlexNode[]
+  readonly leftEnginePivots: readonly RuntimeWingFlexNode[]
+  readonly rightEnginePivots: readonly RuntimeWingFlexNode[]
+  readonly maxAngleRadians: number
+  readonly surfaceScalar: number
+}
+
 function createDemoEngineProfile(aircraft?: ImportedAircraft): DemoEngineProfile {
   const enginesCfg = aircraft?.cfgFiles.find(file => file.kind === 'engines')
   const targetPerformanceCfg = aircraft?.cfgFiles.find(file => file.kind === 'target_performance')
@@ -404,14 +455,18 @@ function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexPro
   const aerodynamics = flightModel == null
     ? undefined
     : findCfgSection(flightModel, 'aerodynamics') ?? findCfgSection(flightModel, 'aerodynamics.0')
+  const wingFlexSection = selectCfgSectionWithKeys(
+    [flightDynamics, aerodynamics],
+    ['wingflex_scalar', 'wingflex_offset']
+  )
 
   const scalar = parseCfgNumber(
-    aerodynamics ?? flightDynamics,
+    wingFlexSection,
     'wingflex_scalar',
     1
   )
   const offset = parseCfgNumber(
-    aerodynamics ?? flightDynamics,
+    wingFlexSection,
     'wingflex_offset',
     0
   )
@@ -425,6 +480,222 @@ function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexPro
     leftFlexPct: baseFlexPct,
     rightFlexPct: baseFlexPct
   }
+}
+
+function buildWingFlexBindings(
+  nodeAnimations: readonly ModelNodeAnimation[],
+  aircraft: ImportedAircraft | undefined,
+  nodes: ReadonlyMap<string, Object3D>,
+  canonicalNodes: ReadonlyMap<string, Object3D>
+): readonly RuntimeWingFlexBinding[] {
+  const surfaceScalar = getAircraftWingFlexSurfaceScalar(aircraft)
+  const bindings: RuntimeWingFlexBinding[] = []
+
+  for (const nodeAnimation of nodeAnimations) {
+    if (nodeAnimation.type.trim().toLowerCase() !== 'wingflex') {
+      continue
+    }
+
+    const leftWing: RuntimeWingFlexNode[] = []
+    const rightWing: RuntimeWingFlexNode[] = []
+    const leftEnginePivots: RuntimeWingFlexNode[] = []
+    const rightEnginePivots: RuntimeWingFlexNode[] = []
+
+    for (const nodeName of nodeAnimation.nodes) {
+      const node = resolveNodeAnimationNode(nodeName, nodes, canonicalNodes)
+      if (node == null) continue
+
+      const descriptor = describeNodeAnimationNode(nodeName)
+      if (descriptor == null) continue
+
+      const runtimeNode: RuntimeWingFlexNode = {
+        node,
+        order: descriptor.index,
+        restY: node.position.y,
+        cumulativeSpan: 0,
+        appliedOffsetY: 0
+      }
+
+      if (descriptor.kind === 'wingBone') {
+        if (descriptor.side === 'left') {
+          leftWing.push(runtimeNode)
+        } else {
+          rightWing.push(runtimeNode)
+        }
+        continue
+      }
+
+      if (descriptor.side === 'left') {
+        leftEnginePivots.push(runtimeNode)
+      } else {
+        rightEnginePivots.push(runtimeNode)
+      }
+    }
+
+    finalizeWingFlexChain(leftWing)
+    finalizeWingFlexChain(rightWing)
+    finalizeWingFlexEnginePivots(leftEnginePivots, leftWing)
+    finalizeWingFlexEnginePivots(rightEnginePivots, rightWing)
+
+    if (leftWing.length === 0 && rightWing.length === 0) {
+      continue
+    }
+
+    bindings.push({
+      leftWing,
+      rightWing,
+      leftEnginePivots,
+      rightEnginePivots,
+      maxAngleRadians: (Math.PI / 180) * 5,
+      surfaceScalar
+    })
+  }
+
+  return bindings
+}
+
+function applyWingFlexChain(
+  nodes: readonly RuntimeWingFlexNode[],
+  flexAmount: number,
+  binding: RuntimeWingFlexBinding
+): void {
+  const normalizedFlex = clamp(flexAmount, -1, 1)
+  if (nodes.length === 0) return
+
+  const tangent = Math.tan(binding.maxAngleRadians * binding.surfaceScalar)
+  for (const node of nodes) {
+    const targetOffsetY = node.cumulativeSpan * tangent * normalizedFlex
+    node.node.position.y += targetOffsetY - node.appliedOffsetY
+    node.appliedOffsetY = targetOffsetY
+  }
+}
+
+function applyWingFlexEnginePivots(
+  pivots: readonly RuntimeWingFlexNode[],
+  wingBones: readonly RuntimeWingFlexNode[],
+  flexAmount: number,
+  binding: RuntimeWingFlexBinding
+): void {
+  const normalizedFlex = clamp(flexAmount, -1, 1)
+  if (pivots.length === 0) return
+  const tangent = Math.tan(binding.maxAngleRadians * binding.surfaceScalar)
+
+  const maxSpan = wingBones.at(-1)?.cumulativeSpan ?? 0
+  for (const pivot of pivots) {
+    const targetOffsetY = pivot.cumulativeSpan * tangent * normalizedFlex
+    pivot.node.position.y += targetOffsetY - pivot.appliedOffsetY
+    pivot.appliedOffsetY = targetOffsetY
+    if (maxSpan === 0) {
+      pivot.node.position.y = pivot.restY + targetOffsetY
+    }
+  }
+}
+
+function finalizeWingFlexChain(nodes: RuntimeWingFlexNode[]): void {
+  nodes.sort((left, right) => left.order - right.order)
+  if (nodes.length === 0) return
+
+  let cumulativeSpan = 0
+  nodes[0].cumulativeSpan = 0
+  for (let index = 1; index < nodes.length; index += 1) {
+    cumulativeSpan += nodes[index].node.position.distanceTo(nodes[index - 1].node.position)
+    nodes[index].cumulativeSpan = cumulativeSpan
+  }
+}
+
+function finalizeWingFlexEnginePivots(
+  pivots: RuntimeWingFlexNode[],
+  wingBones: readonly RuntimeWingFlexNode[]
+): void {
+  pivots.sort((left, right) => left.order - right.order)
+  const maxSpan = wingBones.at(-1)?.cumulativeSpan ?? 0
+  if (pivots.length === 0) return
+
+  if (pivots.length === 1) {
+    pivots[0].cumulativeSpan = maxSpan * 0.55
+    return
+  }
+
+  for (let index = 0; index < pivots.length; index += 1) {
+    const t = pivots.length === 1 ? 0.55 : 0.45 + (0.35 * index) / (pivots.length - 1)
+    pivots[index].cumulativeSpan = maxSpan * t
+  }
+}
+
+function getAircraftWingFlexSurfaceScalar(aircraft: ImportedAircraft | undefined): number {
+  const flightModel = aircraft?.cfgFiles.find(file => file.kind === 'flight_model')
+  const flightDynamics = flightModel == null
+    ? undefined
+    : findCfgSection(flightModel, 'flight_tuning') ?? findCfgSection(flightModel, 'flight_tuning.0')
+  const aerodynamics = flightModel == null
+    ? undefined
+    : findCfgSection(flightModel, 'aerodynamics') ?? findCfgSection(flightModel, 'aerodynamics.0')
+  const wingFlexSection = selectCfgSectionWithKeys(
+    [flightDynamics, aerodynamics],
+    ['wingflex_surface_scalar', 'wingflex_scalar']
+  )
+
+  return parseCfgNumber(wingFlexSection, 'wingflex_surface_scalar', 1)
+}
+
+function resolveNodeAnimationNode(
+  nodeName: string,
+  nodes: ReadonlyMap<string, Object3D>,
+  canonicalNodes: ReadonlyMap<string, Object3D>
+): Object3D | null {
+  const exactNode =
+    nodes.get(nodeName) ??
+    nodes.get(nodeName.toLowerCase())
+  if (exactNode != null) return exactNode
+
+  const canonicalName = canonicalizeNodeAnimationName(nodeName)
+  if (!canonicalName) return null
+  return canonicalNodes.get(canonicalName) ?? null
+}
+
+function canonicalizeNodeAnimationName(name: string): string | null {
+  const descriptor = describeNodeAnimationNode(name)
+  if (descriptor == null) return null
+  return `${descriptor.kind}:${descriptor.side}:${descriptor.index}`
+}
+
+function describeNodeAnimationNode(
+  name: string
+): { readonly kind: 'wingBone' | 'enginePivot'; readonly side: 'left' | 'right'; readonly index: number } | null {
+  const normalizedName = name.trim().toUpperCase()
+  if (!normalizedName) return null
+
+  if (normalizedName.includes('WING') && normalizedName.includes('BONE')) {
+    const side = normalizedName.includes('LEFT') ? 'left'
+      : normalizedName.includes('RIGHT') ? 'right'
+      : null
+    if (side == null) return null
+    const indexMatch =
+      normalizedName.match(/WING[_ ]*BONE(?:[_ ]*(?:LEFT|RIGHT))?[_ ]*0*([0-9]+)/u) ??
+      normalizedName.match(/WING[_ ]*BONE[_ ]*0*([0-9]+)(?:[_ ]*(?:LEFT|RIGHT))?/u)
+    const index = Number.parseInt(indexMatch?.[1] ?? '', 10)
+    return {
+      kind: 'wingBone',
+      side,
+      index: Number.isFinite(index) && index > 0 ? index : 1
+    }
+  }
+
+  if (normalizedName.includes('ENGINE') && normalizedName.includes('PIVOT')) {
+    const side = normalizedName.includes('LEFT') ? 'left'
+      : normalizedName.includes('RIGHT') ? 'right'
+      : null
+    if (side == null) return null
+    const allNumbers = [...normalizedName.matchAll(/([0-9]+)/gu)].map(match => Number.parseInt(match[1] ?? '', 10))
+    const index = allNumbers.at(-1) ?? 1
+    return {
+      kind: 'enginePivot',
+      side,
+      index: Number.isFinite(index) && index > 0 ? index : 1
+    }
+  }
+
+  return null
 }
 
 function findCfgSection(
@@ -477,6 +748,22 @@ function countCfgKeys(section: ImportedCfgSection | undefined, pattern: RegExp):
     }
   }
   return count
+}
+
+function selectCfgSectionWithKeys(
+  sections: readonly (ImportedCfgSection | undefined)[],
+  keyNames: readonly string[]
+): ImportedCfgSection | undefined {
+  const normalizedKeys = keyNames.map(key => key.toLowerCase())
+  for (const section of sections) {
+    if (section == null) continue
+    const sectionKeys = new Set(Array.from(section.values.keys(), key => key.toLowerCase()))
+    if (normalizedKeys.some(key => sectionKeys.has(key))) {
+      return section
+    }
+  }
+
+  return sections.find(section => section != null)
 }
 
 function clamp(value: number, min: number, max: number): number {

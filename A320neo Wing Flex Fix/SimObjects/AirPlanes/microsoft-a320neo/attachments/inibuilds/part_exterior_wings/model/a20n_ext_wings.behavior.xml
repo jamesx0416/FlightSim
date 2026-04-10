@@ -1,0 +1,1185 @@
+<ModelBehaviors Compiled="True" Version="2" Revision="0">
+	<Components Count="60">
+		<Component ID="CONFIG">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="CONTROLS">
+			<Components Count="3"/>
+			<Animations Count="2"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="WINGFLEX" OwnerID="1">
+			<Animations Count="2"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="SLATS" OwnerID="1">
+			<Animations Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="SPOILERS" OwnerID="1">
+			<Animations Count="10"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="AILERONS">
+			<Animations Count="2"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="FLAPS">
+			<Animations Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="WEAR_AND_TEAR">
+			<Components Count="10"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_AILERON_LEFT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_AILERON_LEFT" Node="RIG_AILERON_LEFT" OwnerID="8">
+			<UpdateCodes Count="1"/>
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_AILERON_LEFT/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_AILERON_RIGHT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_AILERON_RIGHT" Node="RIG_AILERON_RIGHT" OwnerID="10">
+			<UpdateCodes Count="1"/>
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_AILERON_RIGHT/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKC" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKC" Node="RIG_WINGLEFTWINGTRACKC" OwnerID="12">
+			<UpdateCodes Count="1"/>
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGLEFTWINGTRACKC/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKA" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKA" Node="RIG_WINGLEFTWINGTRACKA" OwnerID="14">
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGLEFTWINGTRACKA/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKA_RIGHT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKA_RIGHT" Node="RIG_WINGLEFTWINGTRACKA_RIGHT" OwnerID="16">
+			<UpdateCodes Count="1"/>
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGLEFTWINGTRACKA_RIGHT/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKC_RIGHT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGLEFTWINGTRACKC_RIGHT" Node="RIG_WINGLEFTWINGTRACKC_RIGHT" OwnerID="18">
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGLEFTWINGTRACKC_RIGHT/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGSLATOUTBOARDA_LEFT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGSLATOUTBOARDA_LEFT" Node="RIG_WINGSLATOUTBOARDA_LEFT" OwnerID="20">
+			<UpdateCodes Count="1"/>
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGSLATOUTBOARDA_LEFT/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGSLATINBOARDA_LEFT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGSLATINBOARDA_LEFT" Node="RIG_WINGSLATINBOARDA_LEFT" OwnerID="22">
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGSLATINBOARDA_LEFT/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGSLATINBOARDA_RIGHT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGSLATINBOARDA_RIGHT" Node="RIG_WINGSLATINBOARDA_RIGHT" OwnerID="24">
+			<UpdateCodes Count="1"/>
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGSLATINBOARDA_RIGHT/>
+			</PartIDs>
+		</Component>
+		<Component ID="RIG_WINGSLATOUTBOARDA_RIGHT" OwnerID="7">
+			<Components Count="1"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RIG_WINGSLATOUTBOARDA_RIGHT" Node="RIG_WINGSLATOUTBOARDA_RIGHT" OwnerID="26">
+			<InputEvents Count="1"/>
+			<PartIDs Count="1">
+				<RIG_WINGSLATOUTBOARDA_RIGHT/>
+			</PartIDs>
+		</Component>
+		<Component ID="DIRT">
+			<Components Count="5"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="REGULAR_DIRT" OwnerID="28">
+			<Components Count="8"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DIRT_FLAP_INBD_LEFT" Node="DIRT_FLAP_INBD_LEFT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DIRT_FLAP_OTBD_LEFT" Node="DIRT_FLAP_OTBD_LEFT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="INSECTS_SLAT_OUTBOARD_LEFT" Node="INSECTS_SLAT_OUTBOARD_LEFT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="WING_DIRT_001_LEFT" Node="WING_DIRT_001_LEFT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DIRT_FLAP_INBD_RIGHT" Node="DIRT_FLAP_INBD_RIGHT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DIRT_FLAP_OTBD_RIGHT" Node="DIRT_FLAP_OTBD_RIGHT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="INSECTS_SLAT_OUTBOARD_RIGHT" Node="INSECTS_SLAT_OUTBOARD_RIGHT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="WING_DIRT_001_RIGHT" Node="WING_DIRT_001_RIGHT" OwnerID="29">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RUNWAY_DIRT" OwnerID="28">
+			<Components Count="4"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RUNWAY_DIRT_FLAP_INBD_LEFT" Node="RUNWAY_DIRT_FLAP_INBD_LEFT" OwnerID="38">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RUNWAY_DIRT_WING_LEFT" Node="RUNWAY_DIRT_WING_LEFT" OwnerID="38">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RUNWAY_DIRT_FLAP_INBD_RIGHT" Node="RUNWAY_DIRT_FLAP_INBD_RIGHT" OwnerID="38">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="RUNWAY_DIRT_WING_RIGHT" Node="RUNWAY_DIRT_WING_RIGHT" OwnerID="38">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="LEAKS" OwnerID="28">
+			<Components Count="6"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="LEAKS_FLAP_INBD_LEFT" Node="LEAKS_FLAP_INBD_LEFT" OwnerID="43">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="LEAKS_FLAP_OTBD_LEFT" Node="LEAKS_FLAP_OTBD_LEFT" OwnerID="43">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="LEAKS_AILERON_LEFT" Node="LEAKS_AILERON_LEFT" OwnerID="43">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="LEAKS_FLAP_INBD_RIGHT" Node="LEAKS_FLAP_INBD_RIGHT" OwnerID="43">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="LEAKS_FLAP_OTBD_RIGHT" Node="LEAKS_FLAP_OTBD_RIGHT" OwnerID="43">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="LEAKS_AILERON_RIGHT" Node="LEAKS_AILERON_RIGHT" OwnerID="43">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="MUD" OwnerID="28">
+			<Components Count="4"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="MUD_FLAP_INBD_LEFT" Node="MUD_FLAP_INBD_LEFT" OwnerID="50">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="MUD_WING_LEFT" Node="MUD_WING_LEFT" OwnerID="50">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="MUD_FLAP_INBD_RIGHT" Node="MUD_FLAP_INBD_RIGHT" OwnerID="50">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="MUD_WING_RIGHT" Node="MUD_WING_RIGHT" OwnerID="50">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DUST" OwnerID="28">
+			<Components Count="4"/>
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DUST_SPLASH_FLAP_INBD_LEFT" Node="DUST_SPLASH_FLAP_INBD_LEFT" OwnerID="55">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DUST_SPLASH_WING_LEFT" Node="DUST_SPLASH_WING_LEFT" OwnerID="55">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DUST_SPLASH_FLAP_INBD_RIGHT" Node="DUST_SPLASH_FLAP_INBD_RIGHT" OwnerID="55">
+			<PartIDs Count="0"/>
+		</Component>
+		<Component ID="DUST_SPLASH_WING_RIGHT" Node="DUST_SPLASH_WING_RIGHT" OwnerID="55">
+			<PartIDs Count="0"/>
+		</Component>
+	</Components>
+	<Mouserects Count="10">
+		<MouseRect OwnerID="9" Lock="False" HighlightNodeId="RIG_AILERON_LEFT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="9968741516673155562"/>
+					<IMDrag StringID="9968741516673155562"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>AILERONS_LEFT</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.LEFT_AILERON</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_Aileron_Left</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="11" Lock="False" HighlightNodeId="RIG_AILERON_RIGHT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="12345489105123220475"/>
+					<IMDrag StringID="12345489105123220475"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>AILERONS_RIGHT</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.RIGHT_AILERON</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_Aileron_Right</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="13" Lock="False" HighlightNodeId="RIG_WINGLEFTWINGTRACKC" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="6711884248261877979"/>
+					<IMDrag StringID="6711884248261877979"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_LEFT</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.LEFT_FLAP</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingLeftWingTrackC</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="15" Lock="False" HighlightNodeId="RIG_WINGLEFTWINGTRACKA" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="11875376013786043550"/>
+					<IMDrag StringID="11875376013786043550"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_LEFT</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.LEFT_FLAP</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingLeftWingTrackA</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="17" Lock="False" HighlightNodeId="RIG_WINGLEFTWINGTRACKA_RIGHT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="12415524527088498503"/>
+					<IMDrag StringID="12415524527088498503"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_RIGHT</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.RIGHT_FLAP</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingLeftWingTrackA_Right</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="19" Lock="False" HighlightNodeId="RIG_WINGLEFTWINGTRACKC_RIGHT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="18371395518290061548"/>
+					<IMDrag StringID="18371395518290061548"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_RIGHT</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.RIGHT_FLAP</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingLeftWingTrackC_Right</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="21" Lock="False" HighlightNodeId="RIG_WINGSLATOUTBOARDA_LEFT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="15358071039977713751"/>
+					<IMDrag StringID="15358071039977713751"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_LEFT_CABLE</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.LEFT_FLAP_CABLE</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingSlatOutBoardA_Left</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="23" Lock="False" HighlightNodeId="RIG_WINGSLATINBOARDA_LEFT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="9213467373844573911"/>
+					<IMDrag StringID="9213467373844573911"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_LEFT_CABLE</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.LEFT_FLAP_CABLE</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingSlatInBoardA_Left</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="25" Lock="False" HighlightNodeId="RIG_WINGSLATINBOARDA_RIGHT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="10643135203557155648"/>
+					<IMDrag StringID="10643135203557155648"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_RIGHT_CABLE</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.RIGHT_FLAP_CABLE</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingSlatInBoardA_Right</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+		<MouseRect OwnerID="27" Lock="False" HighlightNodeId="RIG_WINGSLATOUTBOARDA_RIGHT" LockFlagsTemporary="LeftSingle">
+			<Callback Type="CallbackCode">
+				<IMCodeInstances>
+					<IMDefault StringID="2196901388528186831"/>
+					<IMDrag StringID="2196901388528186831"/>
+				</IMCodeInstances>
+				<DragData/>
+			</Callback>
+			<IMCursorsInstances>
+				<IMDefault>
+					<Cursor>Hand</Cursor>
+				</IMDefault>
+				<IMDrag>
+					<Cursor>Hand</Cursor>
+				</IMDrag>
+			</IMCursorsInstances>
+			<IMMouseFlagsInstances>
+				<IMDefault>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDefault>
+				<IMDrag>WheelUp+Exit+Unlock+Lock+Enter+WheelDown</IMDrag>
+			</IMMouseFlagsInstances>
+			<IMTooltipsInstances>
+				<IMDefault>
+					<Animated/>
+				</IMDefault>
+				<IMDrag>
+					<WearAndTearElements>
+						<WearAndTearElement>FLAPS_RIGHT_CABLE</WearAndTearElement>
+					</WearAndTearElements>
+					<TTTitle>COCKPIT.TOOLTIPSV3.TITLE.RIGHT_FLAP_CABLE</TTTitle>
+					<TooltipEntries>
+						<TooltipEntry>UNKNOWN_Rig_WingSlatOutBoardA_Right</TooltipEntry>
+					</TooltipEntries>
+				</IMDrag>
+			</IMTooltipsInstances>
+		</MouseRect>
+	</Mouserects>
+	<Animations Count="18">
+		<Animation OwnerID="1" Name="LANDING_LIGHT_LEFT" Guid="{0E643DB0-DE00-7FD2-805C-977EC025C128}" Length="100.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="16920757206824088849"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="1" Name="LANDING_LIGHT_RIGHT" Guid="{E97AB800-E680-4DC3-90AE-7F0B00FF36D0}" Length="100.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="655814773311402664"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="2" Name="WINGFLEX_LEFT" Guid="{90A53F00-1C80-5793-00CB-FCE7006AA8B9}" Length="85.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="10691410823124770978"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="2" Name="WINGFLEX_RIGHT" Guid="{39DEC1C0-B090-0596-0009-C9C37063750C}" Length="85.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="10691410823124770978"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="3" Name="SLATS" Guid="{4E3B3600-04C0-17FE-80D2-EC4A74A56602}" Length="100.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="11025259902594975631"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_1R" Guid="{0ED64B00-5100-2143-EDCA-7E0000875953}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="3852355784610201287"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_2R" Guid="{FEEF4600-D800-E697-0077-09FB00109CE1}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="8468579334817332352"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_3R" Guid="{483B5200-F2C0-1FD9-0043-0E8500A536EF}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="10053776323967602892"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_4R" Guid="{BB7CA000-A8C0-2E14-00DF-FEA9006CECC1}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="17610818652737189902"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_5R" Guid="{2FC77940-1200-E679-0063-C58D8835C603}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="749411765706249282"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_1L" Guid="{0E3C5E50-BD00-A6C7-0080-8ECE000CFB43}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="4423278942647263850"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_2L" Guid="{FEEC8100-8B00-A7FB-0047-22E700724786}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="9048441828271464493"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_3L" Guid="{34D9A200-1D00-F181-00A6-AC7E004F1EE5}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="9480857469534751841"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_4L" Guid="{571B6A80-E500-B53C-0006-C6B0806E9F59}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="18190821393377076387"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="4" Name="SPOILER_5L" Guid="{267C4000-4500-9B84-00A9-BE4800B00588}" Length="60.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="176352767693244655"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="5" Name="AILERON_LEFT" Guid="{9E338B00-B700-4717-8035-EC57009A3251}" Length="50.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="13942610812024857832"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="5" Name="AILERON_RIGHT" Guid="{348F77C0-1700-C0B8-00E3-9DAE00840C9A}" Length="50.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="1933868573029848677"/>
+			</Parameter>
+		</Animation>
+		<Animation OwnerID="6" Name="FLAPS" Guid="{7A719080-3000-989A-00EA-C0DA002B6FD0}" Length="100.000000" Autoplay="True" Type="Sim">
+			<Parameter>
+				<Code StringID="7760051059549483666"/>
+			</Parameter>
+		</Animation>
+	</Animations>
+	<VisibilityCodes Count="26">
+		<Visibility OwnerID="30">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="31">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="32">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="33">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="34">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="35">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="36">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="37">
+			<Parameter>
+				<Code StringID="15476619070729609933"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="39">
+			<Parameter>
+				<Code StringID="559538425760887104"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="40">
+			<Parameter>
+				<Code StringID="559538425760887104"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="41">
+			<Parameter>
+				<Code StringID="559538425760887104"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="42">
+			<Parameter>
+				<Code StringID="559538425760887104"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="44">
+			<Parameter>
+				<Code StringID="13052405506983490252"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="45">
+			<Parameter>
+				<Code StringID="13052405506983490252"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="46">
+			<Parameter>
+				<Code StringID="13052405506983490252"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="47">
+			<Parameter>
+				<Code StringID="13052405506983490252"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="48">
+			<Parameter>
+				<Code StringID="13052405506983490252"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="49">
+			<Parameter>
+				<Code StringID="13052405506983490252"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="51">
+			<Parameter>
+				<Code StringID="13990036603214499731"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="52">
+			<Parameter>
+				<Code StringID="13990036603214499731"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="53">
+			<Parameter>
+				<Code StringID="13990036603214499731"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="54">
+			<Parameter>
+				<Code StringID="13990036603214499731"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="56">
+			<Parameter>
+				<Code StringID="11823459624464755732"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="57">
+			<Parameter>
+				<Code StringID="11823459624464755732"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="58">
+			<Parameter>
+				<Code StringID="11823459624464755732"/>
+			</Parameter>
+		</Visibility>
+		<Visibility OwnerID="59">
+			<Parameter>
+				<Code StringID="11823459624464755732"/>
+			</Parameter>
+		</Visibility>
+	</VisibilityCodes>
+	<UpdateCodes Count="6">
+		<Update OwnerID="9" StringID="3304971670557598878" Frequency="10.000000"/>
+		<Update OwnerID="11" StringID="6785856312527847985" Frequency="10.000000"/>
+		<Update OwnerID="13" StringID="13639651157511482303" Frequency="10.000000"/>
+		<Update OwnerID="17" StringID="7541445710324039322" Frequency="10.000000"/>
+		<Update OwnerID="21" StringID="16548461678485446664" Frequency="10.000000"/>
+		<Update OwnerID="25" StringID="11588594083846388236" Frequency="10.000000"/>
+	</UpdateCodes>
+	<InputEvents>
+		<Instances Count="10">
+			<InputEvent OwnerID="9" ID="UNKNOWN_RIG_AILERON_LEFT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="11" ID="UNKNOWN_RIG_AILERON_RIGHT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="13" ID="UNKNOWN_RIG_WINGLEFTWINGTRACKC">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="15" ID="UNKNOWN_RIG_WINGLEFTWINGTRACKA">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="17" ID="UNKNOWN_RIG_WINGLEFTWINGTRACKA_RIGHT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="19" ID="UNKNOWN_RIG_WINGLEFTWINGTRACKC_RIGHT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="21" ID="UNKNOWN_RIG_WINGSLATOUTBOARDA_LEFT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="23" ID="UNKNOWN_RIG_WINGSLATINBOARDA_LEFT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="25" ID="UNKNOWN_RIG_WINGSLATINBOARDA_RIGHT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+			<InputEvent OwnerID="27" ID="UNKNOWN_RIG_WINGSLATOUTBOARDA_RIGHT">
+				<Tooltip Inop="False">
+					<TTDescription>COCKPIT.TOOLTIPSV3.ACTION.CHECK</TTDescription>
+					<TTValue>COCKPIT.TOOLTIPSV3.STATE.NA</TTValue>
+					<Interaction>PRIMARY_DOWN</Interaction>
+					<Icon>WATCH</Icon>
+					<TTInteraction>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteraction>
+					<InteractionLockable>LOCK</InteractionLockable>
+					<IconLockable>WATCH</IconLockable>
+					<TTInteractionLockable>COCKPIT.TOOLTIPSV3.INTERACTION_KEYBIND_HINT_BUTTON_ONLY</TTInteractionLockable>
+				</Tooltip>
+				<Value/>
+				<Inc>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Inc>
+				<Dec>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Dec>
+				<Set>
+					<Code/>
+					<Parameters>
+						<Param StringID="10992749366997106479" Type="Float"/>
+					</Parameters>
+				</Set>
+			</InputEvent>
+		</Instances>
+		<Bindings/>
+	</InputEvents>
+	<Strings Count="40">
+		<16548461678485446664>(A:WEAR AND TEAR CHECK PROGRESSION:7, percent over 100) sp0 (O:XMLVAR_Observing_Part) if{ l0 1 &lt; if{ l0 0.050000 + 1 min d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:7, percent over 100) p } } els{ l0 0 &gt; l0 1 &lt; and if{ l0 0.050000 - 0 max d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:7, percent over 100) p } }</16548461678485446664>
+		<11588594083846388236>(A:WEAR AND TEAR CHECK PROGRESSION:8, percent over 100) sp0 (O:XMLVAR_Observing_Part) if{ l0 1 &lt; if{ l0 0.050000 + 1 min d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:8, percent over 100) p } } els{ l0 0 &gt; l0 1 &lt; and if{ l0 0.050000 - 0 max d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:8, percent over 100) p } }</11588594083846388236>
+		<4266960374906222350>(A:WING FLEX PCT:2, percent) 2 / 50 +</4266960374906222350>
+		<17610818652737189902>(L:Right_spoiler_4, number)</17610818652737189902>
+		<16920757206824088849>(L:A320_LANDING_LIGHT_L_ANIMATION, Number) 100 *</16920757206824088849>
+		<11823459624464755732>(A:DUST DIRT PCT, Percent over 100)</11823459624464755732>
+		<9048441828271464493>(L:Left_spoiler_2, number)</9048441828271464493>
+		<10992749366997106479>p0</10992749366997106479>
+		<6785856312527847985>(A:WEAR AND TEAR CHECK PROGRESSION:10, percent over 100) sp0 (O:XMLVAR_Observing_Part) if{ l0 1 &lt; if{ l0 0.050000 + 1 min d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:10, percent over 100) p } } els{ l0 0 &gt; l0 1 &lt; and if{ l0 0.050000 - 0 max d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:10, percent over 100) p } }</6785856312527847985>
+		<10643135203557155648>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Right_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Right_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Right_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Right_Dec) g0 } :0</10643135203557155648>
+		<559538425760887104>(A:RUNWAY DIRT PCT, Percent over 100)</559538425760887104>
+		<749411765706249282>(L:Right_spoiler_5, number)</749411765706249282>
+		<12415524527088498503>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Right_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Right_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Right_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Right_Dec) g0 } :0</12415524527088498503>
+		<15358071039977713751>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Left_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Left_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Left_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Left_Dec) g0 } :0</15358071039977713751>
+		<9480857469534751841>(L:Left_spoiler_3, number)</9480857469534751841>
+		<1933868573029848677>(L:RIGHT_OUTER_AILERON_ANIMATION, number) 25 +</1933868573029848677>
+		<4423278942647263850>(L:Left_spoiler_1, number)</4423278942647263850>
+		<8468579334817332352>(L:Right_spoiler_2, number)</8468579334817332352>
+		<11025259902594975631>(L:SLATS_PREDEPLOY_RATIO, number) 100 *</11025259902594975631>
+		<7760051059549483666>(L:FLAPS_ANIMATION, number) 100 *</7760051059549483666>
+		<13990036603214499731>(A:MUD DIRT PCT, Percent over 100)</13990036603214499731>
+		<7541445710324039322>(A:WEAR AND TEAR CHECK PROGRESSION:6, percent over 100) sp0 (O:XMLVAR_Observing_Part) if{ l0 1 &lt; if{ l0 0.050000 + 1 min d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:6, percent over 100) p } } els{ l0 0 &gt; l0 1 &lt; and if{ l0 0.050000 - 0 max d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:6, percent over 100) p } }</7541445710324039322>
+		<11875376013786043550>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackA_Dec) g0 } :0</11875376013786043550>
+		<3304971670557598878>(A:WEAR AND TEAR CHECK PROGRESSION:9, percent over 100) sp0 (O:XMLVAR_Observing_Part) if{ l0 1 &lt; if{ l0 0.050000 + 1 min d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:9, percent over 100) p } } els{ l0 0 &gt; l0 1 &lt; and if{ l0 0.050000 - 0 max d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:9, percent over 100) p } }</3304971670557598878>
+		<10691410823124770978>(A:WING FLEX PCT:2, percent) 2 / 50 +</10691410823124770978>
+		<18190821393377076387>(L:Left_spoiler_4, number)</18190821393377076387>
+		<655814773311402664>(L:A320_LANDING_LIGHT_R_ANIMATION, Number) 100 *</655814773311402664>
+		<13639651157511482303>(A:WEAR AND TEAR CHECK PROGRESSION:5, percent over 100) sp0 (O:XMLVAR_Observing_Part) if{ l0 1 &lt; if{ l0 0.050000 + 1 min d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:5, percent over 100) p } } els{ l0 0 &gt; l0 1 &lt; and if{ l0 0.050000 - 0 max d (&gt;A:WEAR AND TEAR CHECK PROGRESSION:5, percent over 100) p } }</13639651157511482303>
+		<3852355784610201287>(L:Right_spoiler_1, number)</3852355784610201287>
+		<10053776323967602892>(L:Right_spoiler_3, number)</10053776323967602892>
+		<13052405506983490252>(A:LEAKS DIRT PCT, Percent over 100)</13052405506983490252>
+		<15476619070729609933>(A:REGULAR DIRT PCT, Percent over 100)</15476619070729609933>
+		<2196901388528186831>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Right_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Right_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Right_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatOutBoardA_Right_Dec) g0 } :0</2196901388528186831>
+		<9213467373844573911>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Left_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Left_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Left_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingSlatInBoardA_Left_Dec) g0 } :0</9213467373844573911>
+		<6711884248261877979>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Dec) g0 } :0</6711884248261877979>
+		<13942610812024857832>(L:LEFT_OUTER_AILERON_ANIMATION, number) 25 +</13942610812024857832>
+		<9968741516673155562>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_Aileron_Left_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_Aileron_Left_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_Aileron_Left_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_Aileron_Left_Dec) g0 } :0</9968741516673155562>
+		<18371395518290061548>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Right_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Right_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Right_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_WingLeftWingTrackC_Right_Dec) g0 } :0</18371395518290061548>
+		<176352767693244655>(L:Left_spoiler_5, number)</176352767693244655>
+		<12345489105123220475>(M:Event) &apos;Enter&apos; scmi 0 == if{ 1 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Exit&apos; scmi 0 == if{ 0 (&gt;O:XMLVAR_Observing_Part) g0 } (M:Event) &apos;Lock&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_Aileron_Right_Set) g0 } (M:Event) &apos;Unlock&apos; scmi 0 == if{ 0 (&gt;B:UNKNOWN_Rig_Aileron_Right_Set) g0 } (M:Event) &apos;WheelUp&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_Aileron_Right_Inc) g0 } (M:Event) &apos;WheelDown&apos; scmi 0 == if{ 1 (&gt;B:UNKNOWN_Rig_Aileron_Right_Dec) g0 } :0</12345489105123220475>
+	</Strings>
+</ModelBehaviors>

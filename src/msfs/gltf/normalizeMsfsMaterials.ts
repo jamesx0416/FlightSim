@@ -65,6 +65,8 @@ type MsfsMaterial = Material & {
   needsUpdate?: boolean
   userData?: {
     readonly gltfExtensions?: Record<string, unknown>
+    msfsMaterialCode?: string
+    msfsBaseOpacity?: number
   }
 }
 
@@ -306,6 +308,10 @@ async function normalizeMsfsMaterial(
       ? parser.json.materials?.[materialIndex]
       : null
   const asoboMaterialCode = materialDef?.extras?.ASOBO_material_code
+  if (asoboMaterialCode != null) {
+    outputMaterial.userData ??= {}
+    outputMaterial.userData.msfsMaterialCode = asoboMaterialCode
+  }
 
   // MSFS exports DirectX-convention normal maps, while stock glTF assumes OpenGL.
   if (outputMaterial.normalMap != null && outputMaterial.normalScale != null) {
@@ -390,6 +396,12 @@ export function usesBlendGBufferMaterial(
   material: Material | MsfsMaterial | null | undefined
 ): boolean {
   return getMsfsExtensions(material)?.ASOBO_material_blend_gbuffer != null
+}
+
+export function usesGeoDecalFrostedMaterial(
+  material: Material | MsfsMaterial | null | undefined
+): boolean {
+  return (material?.userData as { msfsMaterialCode?: string } | undefined)?.msfsMaterialCode === 'GeoDecalFrosted'
 }
 
 function usesInvisibleMaterial(material: Material | MsfsMaterial | null | undefined): boolean {
