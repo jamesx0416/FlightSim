@@ -509,4 +509,17 @@ Scope note:
 ### 7. Revisit The A320 Wing Structure / Transform Issue
 
 - [ ] Revisit the A320 wing structure/transform issue after stock XML and CFG coverage is expanded.
+- [ ] Implement generic model-level `NodeAnimation` runtime support from official docs.
+  Documented-first scope:
+  - [ ] Audit and list all `NodeAnimation` types present in mounted aircraft fixtures and stock docs.
+  - [ ] Confirm which `NodeAnimation` fields are already parsed and preserved from model XML.
+  - [x] Implement generic runtime plumbing for documented `NodeAnimation` inputs and node targets.
+  - [x] Implement `NodeAnimation type="WingFlex"` only up to the published contract:
+    `WING FLEX PCT`, `wingflex_scalar`, `wingflex_surface_scalar`, `wingflex_offset`, and the documented 12-node layout.
+  - [ ] If the exact node deformation math is still not published, mark the remaining transform behavior as blocked rather than guessing.
+  - [ ] Verify A320 and A330 with agent-browser screenshots before checking this item off.
+  Current status:
+  - A generic additive `WingFlex` node runtime is implemented from model XML and documented simvar/cfg inputs.
+  - It runs on the A320/A330 fixture routes and does not override behavior XML.
+  - It does not fully solve the A320 wing issue, which means the remaining problem is deeper than missing `NodeAnimation` wiring alone.
 - [ ] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.

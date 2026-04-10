@@ -1,0 +1,14 @@
+{
+  "content": [
+    {
+      "path": "SimObjects/AirPlanes/microsoft-a321/attachments/inibuilds/part_exterior_wings/model/a321_ext_wings.behavior.xml",
+      "size": 47092,
+      "date": 133793461242815993
+    },
+    {
+      "path": "SimObjects/AirPlanes/microsoft-a321/attachments/inibuilds/part_exterior_wings/model/a321_ext_wings_behavior.xml",
+      "size": 10443,
+      "date": 133793443888842105
+    }
+  ]
+}

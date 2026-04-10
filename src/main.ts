@@ -6,6 +6,7 @@ import {
   DirectionalLight,
   Group,
   HemisphereLight,
+  Material,
   Mesh,
   PerspectiveCamera,
   Scene,
@@ -19,6 +20,7 @@ import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPri
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
 import { normalizeAsoboPrimitiveWinding } from './msfs/gltf/normalizeAsoboPrimitiveWinding'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
+import { usesGeoDecalFrostedMaterial } from './msfs/gltf/normalizeMsfsMaterials'
 import { normalizeMsfsNormalsTangents } from './msfs/gltf/normalizeMsfsNormalsTangents'
 import { normalizeMsfsSkinning } from './msfs/gltf/normalizeMsfsSkinning'
 import { normalizeMsfsTexcoords } from './msfs/gltf/normalizeMsfsTexcoords'
@@ -155,7 +157,8 @@ async function init(): Promise<void> {
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
 
   const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never, aircraft)
-  const runtime = new AircraftRuntime(compiledBehaviors, gltf.scene, runtimeHost)
+  const runtime = new AircraftRuntime(compiledBehaviors, gltf.scene, runtimeHost, aircraft)
+  const runtimeMaterialState = collectRuntimeMaterialState(gltf.scene)
   ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
   runtime.bindAnimations(gltf.animations)
 
@@ -184,6 +187,7 @@ async function init(): Promise<void> {
     const dtSeconds = clock.getDelta()
     runtimeState = runtime.update(dtSeconds)
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
+    syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
     controls.update()
     renderPasses.render()
     updateOverlay(
@@ -196,6 +200,93 @@ async function init(): Promise<void> {
       rendererInfo
     )
   })
+}
+
+type RuntimeFrostMaterialState = {
+  readonly material: Material & {
+    opacity?: number
+    visible?: boolean
+    transparent?: boolean
+    needsUpdate?: boolean
+    userData?: {
+      msfsBaseOpacity?: number
+    }
+  }
+  readonly baseOpacity: number
+}
+
+type RuntimeMaterialState = {
+  readonly frostedMaterials: readonly RuntimeFrostMaterialState[]
+}
+
+function collectRuntimeMaterialState(root: Group): RuntimeMaterialState {
+  const seenMaterials = new Set<Material>()
+  const frostedMaterials: RuntimeFrostMaterialState[] = []
+
+  root.traverse(object => {
+    if (!(object instanceof Mesh)) {
+      return
+    }
+
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : object.material != null
+        ? [object.material]
+        : []
+
+    for (const material of materials) {
+      if (material == null || seenMaterials.has(material)) {
+        continue
+      }
+      seenMaterials.add(material)
+
+      if (!usesGeoDecalFrostedMaterial(material)) {
+        continue
+      }
+
+      const typedMaterial = material as RuntimeFrostMaterialState['material']
+      typedMaterial.userData ??= {}
+      const baseOpacity = typedMaterial.userData.msfsBaseOpacity ?? typedMaterial.opacity ?? 1
+      typedMaterial.userData.msfsBaseOpacity = baseOpacity
+      frostedMaterials.push({
+        material: typedMaterial,
+        baseOpacity
+      })
+    }
+  })
+
+  return {
+    frostedMaterials
+  }
+}
+
+function syncRuntimeMaterialState(
+  materialState: RuntimeMaterialState,
+  runtimeHost: DemoRuntimeHost
+): void {
+  const structuralIce = clamp01(
+    runtimeHost.readVariable('A:STRUCTURAL ICE PCT', 'percent over 100')
+  )
+
+  for (const frostState of materialState.frostedMaterials) {
+    const { material, baseOpacity } = frostState
+    const nextOpacity = baseOpacity * structuralIce
+    const nextVisible = structuralIce > 0.0001
+    const opacityChanged = material.opacity !== nextOpacity
+    const visibilityChanged = material.visible !== nextVisible
+
+    if (!opacityChanged && !visibilityChanged) {
+      continue
+    }
+
+    material.opacity = nextOpacity
+    material.visible = nextVisible
+    material.needsUpdate = true
+  }
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value))
 }
 
 async function loadAircraftGltf(
