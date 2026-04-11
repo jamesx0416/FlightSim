@@ -26,6 +26,23 @@ interface GltfTextureRef {
   readonly index: number
 }
 
+interface GltfPrimitiveDef {
+  readonly material?: number
+}
+
+interface GltfMeshDef {
+  readonly primitives?: readonly GltfPrimitiveDef[]
+}
+
+interface GltfNodeDef {
+  readonly mesh?: number
+  readonly children?: readonly number[]
+}
+
+interface GltfSceneDef {
+  readonly nodes?: readonly number[]
+}
+
 interface GltfMaterialDef {
   readonly alphaMode?: string
   readonly normalTexture?: GltfTextureRef
@@ -42,6 +59,10 @@ interface GltfMaterialDef {
 interface GltfParserLike {
   readonly json: {
     readonly materials?: readonly GltfMaterialDef[]
+    readonly meshes?: readonly GltfMeshDef[]
+    readonly nodes?: readonly GltfNodeDef[]
+    readonly scenes?: readonly GltfSceneDef[]
+    readonly scene?: number
     readonly textures?: readonly GltfTextureDef[]
   }
   readonly options: {
@@ -56,11 +77,14 @@ interface GltfParserLike {
 
 class MSFTTextureDDSExtension {
   readonly name = EXTENSION_NAME
+  private readonly usedMaterialIndices: ReadonlySet<number>
 
   constructor(
     private readonly parser: GltfParserLike,
     private readonly decodeNormalSources: boolean
-  ) {}
+  ) {
+    this.usedMaterialIndices = collectUsedMaterialIndices(parser.json)
+  }
 
   loadTexture(textureIndex: number): Promise<unknown> | null {
     const textureDef = this.parser.json.textures?.[textureIndex]
@@ -76,7 +100,8 @@ class MSFTTextureDDSExtension {
     const decodeNormalSource = shouldDecodeNormalSource(
       this.parser.json,
       sourceIndex,
-      this.decodeNormalSources
+      this.decodeNormalSources,
+      this.usedMaterialIndices
     )
 
     const loader =
@@ -145,13 +170,18 @@ function shouldDecodeTransparentBaseColorSource(
 function shouldDecodeNormalSource(
   json: GltfParserLike['json'],
   sourceIndex: number,
-  decodeNormalSources: boolean
+  decodeNormalSources: boolean,
+  usedMaterialIndices: ReadonlySet<number>
 ): boolean {
   if (!decodeNormalSources || json.materials == null || json.textures == null) {
     return false
   }
 
-  for (const material of json.materials) {
+  for (const [materialIndex, material] of json.materials.entries()) {
+    if (!usedMaterialIndices.has(materialIndex)) {
+      continue
+    }
+
     const normalTextureIndex = material.normalTexture?.index
     if (normalTextureIndex != null) {
       const textureDef = json.textures[normalTextureIndex]
@@ -173,6 +203,47 @@ function shouldDecodeNormalSource(
   }
 
   return false
+}
+
+function collectUsedMaterialIndices(json: GltfParserLike['json']): ReadonlySet<number> {
+  const usedMaterials = new Set<number>()
+  const meshes = json.meshes ?? []
+  const nodes = json.nodes ?? []
+  const scenes = json.scenes ?? []
+  const roots =
+    typeof json.scene === 'number'
+      ? scenes[json.scene]?.nodes ?? []
+      : scenes.flatMap(scene => scene.nodes ?? [])
+  const pending = [...roots]
+  const visitedNodes = new Set<number>()
+
+  while (pending.length > 0) {
+    const nodeIndex = pending.pop()
+    if (nodeIndex == null || visitedNodes.has(nodeIndex)) {
+      continue
+    }
+
+    visitedNodes.add(nodeIndex)
+    const node = nodes[nodeIndex]
+    if (node == null) {
+      continue
+    }
+
+    if (typeof node.mesh === 'number') {
+      const mesh = meshes[node.mesh]
+      for (const primitive of mesh?.primitives ?? []) {
+        if (typeof primitive.material === 'number') {
+          usedMaterials.add(primitive.material)
+        }
+      }
+    }
+
+    for (const childIndex of node.children ?? []) {
+      pending.push(childIndex)
+    }
+  }
+
+  return usedMaterials
 }
 
 export function createMsftTextureDdsExtension(

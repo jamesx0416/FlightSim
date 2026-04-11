@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.21",
+    "bun": "^1.3.12",
     "three": "^0.182.0"
   },
   "devDependencies": {
