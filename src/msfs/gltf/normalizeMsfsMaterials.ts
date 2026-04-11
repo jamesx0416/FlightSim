@@ -329,6 +329,11 @@ async function normalizeMsfsMaterial(
   ) {
     if (options.createNodeMaterial == null) {
       patchCompressedRgNormalMapShader(outputMaterial, outputMaterial.normalMap.format)
+    } else {
+      outputMaterial = createCompressedRgNormalNodeMaterial(
+        outputMaterial,
+        options.createNodeMaterial
+      )
     }
   }
 
