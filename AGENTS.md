@@ -1,18 +1,7 @@
 # Agent Instructions
 
-**Important:** Do not implement, exit, or add anything that is aircraft-specific or heuristic. All bug fixes and changes must be generic MSFS loader fixes that apply broadly and authoritatively, not patches tailored to a specific aircraft.
+**Important:** Do not implement, exit, or add anything that is heuristic or aircraft-specific. All bug fixes and changes must be generic MSFS loader fixes that apply broadly and authoritatively, not patches tailored to a specific aircraft.
 
 Continue implementation until everything in `stock-support-todo.md` that is in scope for this repo is either checked off or explicitly documented as blocked with a reason.
 
-Always use `bun` as the package manager for this project.
-
-- Install dependencies: `bun install`
-- Run dev server: `bun dev`
-- Build: `bun run build`
-- Add packages: `bun add <package>`
-
-## User Input Notes
-
-- The user may be using speech-to-text.
-- If a word appears misspelled, misrecognized, or phonetically substituted, infer the most likely intended meaning from context.
-- Do not waste turns correcting minor speech-to-text mistakes unless the ambiguity materially blocks the task.
+Always use `bun` as the package manager for this project unless told otherwise.

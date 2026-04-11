@@ -4,9 +4,9 @@ Current fixture-driven stock XML coverage is narrower than the full public Asobo
 
 Verified fixture routes:
 - A320:
-  - `https://vanilla-3dtiles.localhost:3000/?package=/tmp/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&renderer=webgl`
+  - `https://vanilla-3dtiles.localhost:3000/?package=/tmp/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0`
 - A330:
-  - `https://vanilla-3dtiles.localhost:3000/?renderer=webgl`
+  - `https://vanilla-3dtiles.localhost:3000/`
 
 The current A320/A330 model XML include graphs pull in these mounted public stock Asobo XML files:
 - `Asobo/Common.xml`

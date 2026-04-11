@@ -91,7 +91,7 @@ async function init(): Promise<void> {
   const scene = new Scene()
 
   setGlobalLoadStage({ stage: 'renderer:create', aircraftId: aircraft.id })
-  const rendererInfo = await createAppRenderer(searchParams)
+  const rendererInfo = await createAppRenderer()
   const { renderer } = rendererInfo
   renderer.setClearColor(backgroundColor, 1)
   const aircraftEnvironment = createAircraftEnvironment(renderer)
@@ -741,13 +741,6 @@ function updateOverlay(
 
 function formatRendererLabel(rendererInfo: RendererInfo): string {
   const parts = [rendererInfo.mode]
-
-  if (
-    rendererInfo.preference !== 'auto' &&
-    rendererInfo.preference !== rendererInfo.mode
-  ) {
-    parts.push(`requested=${rendererInfo.preference}`)
-  }
 
   if (rendererInfo.hasBcTextureCompression != null) {
     parts.push(`bc=${rendererInfo.hasBcTextureCompression ? 'on' : 'off'}`)

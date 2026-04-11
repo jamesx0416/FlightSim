@@ -19,8 +19,7 @@ import {
   type NodeMaterial
 } from 'three/webgpu'
 
-export type RendererPreference = 'webgl' | 'webgpu' | 'auto'
-export type RendererMode = 'webgl' | 'webgpu' | 'webgpu-fallback-webgl'
+export type RendererMode = 'webgl' | 'webgpu' | 'legacy-webgl'
 
 type WebGpuFeatureName = 'texture-compression-bc'
 
@@ -28,7 +27,6 @@ export type AppRenderer = WebGLRenderer | WebGPURenderer
 
 export interface RendererInfo {
   readonly renderer: AppRenderer
-  readonly preference: RendererPreference
   readonly mode: RendererMode
   readonly hasBcTextureCompression: boolean | null
 }
@@ -40,29 +38,25 @@ export interface AircraftEnvironmentInfo {
 
 export type NodeMaterialFactory = (material: Material) => NodeMaterial | null
 
-export async function createAppRenderer(
-  searchParams: URLSearchParams
-): Promise<RendererInfo> {
-  const preference = resolveRendererPreference(searchParams)
-  if (preference === 'webgl') {
-    const renderer = new WebGPURenderer({ antialias: true, forceWebGL: true })
-    await renderer.init()
-    return finalizeRenderer(renderer, preference, 'webgl')
-  }
-
+export async function createAppRenderer(): Promise<RendererInfo> {
   try {
     const renderer = new WebGPURenderer(await createWebGpuRendererOptions())
     await renderer.init()
-    return finalizeRenderer(renderer, preference)
-  } catch (error) {
-    if (preference !== 'auto') {
-      throw error
-    }
+    return finalizeRenderer(renderer)
+  } catch {
+    return createPreferredWebGlRenderer()
+  }
+}
 
+async function createPreferredWebGlRenderer(): Promise<RendererInfo> {
+  try {
+    const renderer = new WebGPURenderer({ antialias: true, forceWebGL: true })
+    await renderer.init()
+    return finalizeRenderer(renderer, 'webgl')
+  } catch {
     return finalizeRenderer(
       new WebGLRenderer({ antialias: true }),
-      preference,
-      'webgpu-fallback-webgl'
+      'legacy-webgl'
     )
   }
 }
@@ -163,7 +157,6 @@ export function createNodeMaterialFactory(
 
 function finalizeRenderer(
   renderer: AppRenderer,
-  preference: RendererPreference,
   modeOverride?: RendererMode
 ): RendererInfo {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -174,33 +167,19 @@ function finalizeRenderer(
 
   return {
     renderer,
-    preference,
     mode: modeOverride ?? resolveRendererMode(renderer),
     hasBcTextureCompression: getRendererFeature(renderer, 'texture-compression-bc'),
   }
 }
 
-function resolveRendererPreference(searchParams: URLSearchParams): RendererPreference {
-  const requestedRenderer = searchParams.get('renderer') ?? import.meta.env.VITE_RENDERER ?? 'webgl'
-
-  switch (requestedRenderer.toLowerCase()) {
-    case 'auto':
-      return 'auto'
-    case 'webgpu':
-      return 'webgpu'
-    default:
-      return 'webgl'
-  }
-}
-
 function resolveRendererMode(renderer: AppRenderer): RendererMode {
   if (renderer instanceof WebGLRenderer) {
-    return 'webgl'
+    return 'legacy-webgl'
   }
 
   return renderer.backend.isWebGPUBackend === true
     ? 'webgpu'
-    : 'webgpu-fallback-webgl'
+    : 'webgl'
 }
 
 function getRendererFeature(

@@ -13,10 +13,8 @@ Use sources in this order:
 
 ## Current State
 
-- The viewer now has a generic renderer factory and an explicit renderer selection path.
-- Default remains `webgl` because the current MSFS material compatibility layer uses `onBeforeCompile`, which `three` documents as WebGL-only.
-- `?renderer=webgpu` or `VITE_RENDERER=webgpu` can be used to exercise the WebGPU bootstrap path.
-- `?renderer=auto` now falls back cleanly to `webgl` if WebGPU initialization fails.
+- The viewer now has a generic renderer factory with a fixed bootstrap order.
+- Startup now tries real `WebGPURenderer` first, then `WebGPURenderer({ forceWebGL: true })`, and only falls back to legacy `WebGLRenderer` if both fail.
 - The WebGPU path currently uses a flat environment fallback when PMREM scene generation is unavailable.
 - Signed compressed RG normal maps now use `three`'s WebGPU node-material conversion path and match the WebGL normal-scale application instead of re-scaling the blend factor a second time.
 - DDS BC5/BC5S normal sources can now be decoded to standard RGB normal maps on the WebGPU load path, so those materials can stay closer to plain `MeshStandardMaterial` behavior instead of requiring node-material conversion just for compressed normals.
@@ -49,9 +47,10 @@ Use sources in this order:
 
 ## Migration Steps
 
-- Keep renderer selection additive until parity is established.
-  - `webgl` remains the stable default.
-  - `webgpu` remains an explicit opt-in path.
+- Keep the bootstrap order fixed and generic while parity work continues.
+  - Real WebGPU remains the primary path.
+  - Forced-WebGL on `WebGPURenderer` remains the primary fallback.
+  - Legacy `WebGLRenderer` remains emergency compatibility only.
 
 - Introduce a WebGPU-native MSFS material layer.
   - Prefer NodeMaterial / TSL or another official WebGPU-compatible path.
@@ -70,6 +69,6 @@ Use sources in this order:
 ## Verification
 
 - `bun run build`
-- Browser load with `?renderer=webgl`
-- Browser load with `?renderer=webgpu`
+- Browser load on a WebGPU-capable device
+- Browser load on a device/browser that falls through to forced-WebGL
 - MCP screenshots for any visible output change
