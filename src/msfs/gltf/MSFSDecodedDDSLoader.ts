@@ -4,6 +4,7 @@ import {
   FileLoader,
   LinearFilter,
   Loader,
+  RGFormat,
   RGBAFormat,
   Texture,
   UnsignedByteType,
@@ -22,6 +23,7 @@ type DecodedDdsTexture = {
   readonly width: number
   readonly height: number
   readonly mipmaps: readonly DecodedMipmap[]
+  readonly format: number
 }
 
 const DDS_MAGIC = 0x20534444
@@ -91,7 +93,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
             height: parsed.height
           }
           decodedTexture.mipmaps = [...parsed.mipmaps]
-          decodedTexture.format = RGBAFormat
+          decodedTexture.format = parsed.format
           decodedTexture.type = UnsignedByteType
           decodedTexture.flipY = false
           decodedTexture.generateMipmaps = false
@@ -138,6 +140,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     let currentHeight = height
     let currentOffset = dataOffset
     const mipmaps: DecodedMipmap[] = []
+    let format = RGBAFormat
 
     switch (fourCC) {
       case FOURCC_DXT1:
@@ -182,10 +185,11 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       case FOURCC_ATI2:
       case FOURCC_AT2N:
       case FOURCC_BC5U:
+        format = RGFormat
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
           mipmaps.push({
-            data: decodeBc5(buffer, currentOffset, currentWidth, currentHeight, false),
+            data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, false),
             width: currentWidth,
             height: currentHeight
           })
@@ -195,10 +199,11 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         }
         break
       case FOURCC_BC5S:
+        format = RGFormat
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
           mipmaps.push({
-            data: decodeBc5(buffer, currentOffset, currentWidth, currentHeight, true),
+            data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, true),
             width: currentWidth,
             height: currentHeight
           })
@@ -218,10 +223,11 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         }
 
         const signed = dxgiFormat === DXGI_FORMAT_BC5_SNORM
+        format = RGFormat
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
           mipmaps.push({
-            data: decodeBc5(buffer, currentOffset, currentWidth, currentHeight, signed),
+            data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, signed),
             width: currentWidth,
             height: currentHeight
           })
@@ -268,7 +274,8 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     return {
       width,
       height,
-      mipmaps
+      mipmaps,
+      format
     }
   }
 }
@@ -376,14 +383,14 @@ function decodeDxt5(buffer: ArrayBuffer, dataOffset: number, width: number, heig
   return output
 }
 
-function decodeBc5(
+function decodeBc5Rg(
   buffer: ArrayBuffer,
   dataOffset: number,
   width: number,
   height: number,
   signed: boolean
 ): Uint8Array {
-  const output = new Uint8Array(width * height * 4)
+  const output = new Uint8Array(width * height * 2)
   const view = new DataView(buffer, dataOffset)
   const blockWidth = Math.max(1, Math.ceil(width / 4))
   const blockHeight = Math.max(1, Math.ceil(height / 4))
@@ -395,13 +402,10 @@ function decodeBc5(
       writeBlock(output, width, height, blockX, blockY, pixelIndex => {
         const x = decodeBc4Value(view, offset, pixelIndex, signed)
         const y = decodeBc4Value(view, offset + 8, pixelIndex, signed)
-        const z = Math.sqrt(Math.max(1 - x * x - y * y, 0))
 
         return [
           toByte(x * 0.5 + 0.5),
-          toByte(y * 0.5 + 0.5),
-          toByte(z * 0.5 + 0.5),
-          255
+          toByte(y * 0.5 + 0.5)
         ]
       })
     }
@@ -566,8 +570,10 @@ function writeBlock(
   height: number,
   blockX: number,
   blockY: number,
-  getPixel: (pixelIndex: number) => readonly [number, number, number, number]
+  getPixel: (pixelIndex: number) => readonly number[]
 ): void {
+  const channelCount = getPixel(0).length
+
   for (let localY = 0; localY < 4; localY += 1) {
     for (let localX = 0; localX < 4; localX += 1) {
       const x = blockX * 4 + localX
@@ -577,11 +583,11 @@ function writeBlock(
       }
 
       const pixel = getPixel(localY * 4 + localX)
-      const destinationOffset = (y * width + x) * 4
-      output[destinationOffset] = pixel[0]
-      output[destinationOffset + 1] = pixel[1]
-      output[destinationOffset + 2] = pixel[2]
-      output[destinationOffset + 3] = pixel[3]
+      const destinationOffset = (y * width + x) * channelCount
+
+      for (let channelIndex = 0; channelIndex < channelCount; channelIndex += 1) {
+        output[destinationOffset + channelIndex] = pixel[channelIndex]!
+      }
     }
   }
 }

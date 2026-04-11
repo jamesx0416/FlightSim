@@ -5,6 +5,7 @@ import {
   Mesh,
   NoColorSpace,
   Object3D,
+  RGFormat,
   RED_GREEN_RGTC2_Format,
   RGB_S3TC_DXT1_Format,
   RGBA_S3TC_DXT1_Format,
@@ -432,6 +433,7 @@ function getMsfsExtensions(
 
 function usesMsfsCompressedRgNormalMap(format: number | undefined): boolean {
   return (
+    format === RGFormat ||
     format === RED_GREEN_RGTC2_Format ||
     format === SIGNED_RED_GREEN_RGTC2_Format
   )
@@ -450,13 +452,14 @@ function patchCompressedRgNormalMapShader(material: MsfsMaterial, format: number
 function createCompressedRgNormalMapShaderSnippet(shaderMode: 'signed-rg' | 'unsigned-rg'): string {
   const decodeRg =
     shaderMode === 'signed-rg'
-      ? 'vec2 mapNxy = texture2D( normalMap, vNormalMapUv ).xy;'
-      : 'vec2 mapNxy = texture2D( normalMap, vNormalMapUv ).xy * 2.0 - 1.0;'
+      ? 'vec2 rawMapNxy = texture2D( normalMap, vNormalMapUv ).xy;'
+      : 'vec2 rawMapNxy = texture2D( normalMap, vNormalMapUv ).xy * 2.0 - 1.0;'
 
   return [
     decodeRg,
+    'vec2 mapNxy = rawMapNxy;',
     'mapNxy *= normalScale;',
-    'float mapNz = sqrt( max( 1.0 - dot( mapNxy, mapNxy ), 0.0 ) );',
+    'float mapNz = sqrt( max( 1.0 - dot( rawMapNxy, rawMapNxy ), 0.0 ) );',
     'vec3 mapN = vec3( mapNxy, mapNz );'
   ].join('\n\t')
 }
@@ -571,17 +574,48 @@ function createMsfsDetailNormalNode(
     return null
   }
 
-  const detailNormalNode = texture(detailNormalTexture, detailUv)
-    .xyz
-    .mul(2)
-    .sub(1)
-  const detailNormalXY = detailNormalNode.xy.mul(detailNormalScale).mul(detailBlend)
+  const detailNormalRawXY = createMsfsDetailNormalXYNode(detailNormalTexture, detailUv)
+  const detailNormalXY = detailNormalRawXY
+    .mul(detailNormalScale)
+    .mul(detailBlend)
+  const detailNormalZ = createMsfsDetailNormalZNode(detailNormalTexture, detailUv, detailNormalRawXY)
   const combinedTangentNormal = vec3(
     baseNormalNode.xy.add(detailNormalXY),
-    baseNormalNode.z.mul(detailNormalNode.z).max(0)
+    baseNormalNode.z.mul(detailNormalZ).max(0)
   ).normalize()
 
   return TBNViewMatrix.mul(combinedTangentNormal).normalize()
+}
+
+function createMsfsDetailNormalXYNode(
+  detailNormalTexture: Texture,
+  detailUv: ReturnType<typeof uv>
+) {
+  if (detailNormalTexture.format === SIGNED_RED_GREEN_RGTC2_Format) {
+    return texture(detailNormalTexture, detailUv).xy
+  }
+
+  if (detailNormalTexture.format === RGFormat) {
+    return texture(detailNormalTexture, detailUv).xy.mul(2).sub(1)
+  }
+
+  return texture(detailNormalTexture, detailUv).xy.mul(2).sub(1)
+}
+
+function createMsfsDetailNormalZNode(
+  detailNormalTexture: Texture,
+  detailUv: ReturnType<typeof uv>,
+  detailNormalRawXY: ReturnType<typeof vec2>
+) {
+  if (usesMsfsCompressedRgNormalMap(detailNormalTexture.format)) {
+    return detailNormalRawXY
+      .dot(detailNormalRawXY)
+      .oneMinus()
+      .max(0)
+      .sqrt()
+  }
+
+  return texture(detailNormalTexture, detailUv).z.mul(2).sub(1)
 }
 
 function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
@@ -590,14 +624,13 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
   }
 
   if (material.normalMap.format === SIGNED_RED_GREEN_RGTC2_Format) {
-    const signedCompressedNormalXY = texture(material.normalMap)
-      .xy
-      .mul(material.normalScale)
+    const signedCompressedNormalRawXY = texture(material.normalMap).xy
+    const signedCompressedNormalXY = signedCompressedNormalRawXY.mul(material.normalScale)
 
     return vec3(
       signedCompressedNormalXY,
-      signedCompressedNormalXY
-        .dot(signedCompressedNormalXY)
+      signedCompressedNormalRawXY
+        .dot(signedCompressedNormalRawXY)
         .oneMinus()
         .max(0)
         .sqrt()
@@ -605,16 +638,33 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
   }
 
   if (material.normalMap.format === RED_GREEN_RGTC2_Format) {
-    const compressedNormalXY = texture(material.normalMap)
+    const compressedNormalRawXY = texture(material.normalMap)
       .xy
       .mul(2)
       .sub(1)
-      .mul(material.normalScale)
+    const compressedNormalXY = compressedNormalRawXY.mul(material.normalScale)
 
     return vec3(
       compressedNormalXY,
-      compressedNormalXY
-        .dot(compressedNormalXY)
+      compressedNormalRawXY
+        .dot(compressedNormalRawXY)
+        .oneMinus()
+        .max(0)
+        .sqrt()
+    )
+  }
+
+  if (material.normalMap.format === RGFormat) {
+    const decodedNormalRawXY = texture(material.normalMap)
+      .xy
+      .mul(2)
+      .sub(1)
+    const decodedNormalXY = decodedNormalRawXY.mul(material.normalScale)
+
+    return vec3(
+      decodedNormalXY,
+      decodedNormalRawXY
+        .dot(decodedNormalRawXY)
         .oneMinus()
         .max(0)
         .sqrt()
@@ -766,6 +816,7 @@ function applyMsfsDetailMapShader(
   const uvScale = extension.UVScale ?? 1
   const uvOffset = extension.UVOffset ?? [0, 0]
   const detailNormalScale = extension.detailNormalTexture?.scale ?? 1
+  const detailNormalShaderMode = getCompressedRgNormalShaderMode(textures.detailNormalTexture?.format)
 
   registerShaderPatch(
     material,
@@ -773,6 +824,7 @@ function applyMsfsDetailMapShader(
       uvScale,
       uvOffset,
       detailNormalScale,
+      detailNormalShaderMode,
       hasDetailColorTexture,
       hasDetailOrmTexture,
       hasDetailNormalTexture,
@@ -814,7 +866,7 @@ function applyMsfsDetailMapShader(
       if (hasDetailNormalTexture) {
         shader.fragmentShader = shader.fragmentShader.replace(
           'normal = normalize( tbn * mapN );',
-          createMsfsDetailNormalFragmentSnippet(detailNormalScale)
+          createMsfsDetailNormalFragmentSnippet(detailNormalScale, detailNormalShaderMode)
         )
       }
     }
@@ -978,12 +1030,36 @@ function createMsfsDetailAoFragmentChunk(): string {
   ].join('\n')
 }
 
-function createMsfsDetailNormalFragmentSnippet(detailNormalScale: number): string {
+function createMsfsDetailNormalFragmentSnippet(
+  detailNormalScale: number,
+  shaderMode: 'signed-rg' | 'unsigned-rg' | 'rgb'
+): string {
+  const decodeDetailNormal =
+    shaderMode === 'signed-rg'
+      ? [
+          '\tvec2 msfsDetailRawMapNxy = texture2D( msfsDetailNormalTexture, vMsfsDetailUv ).xy;',
+          '\tvec2 msfsDetailMapNxy = msfsDetailRawMapNxy;',
+          `\tmsfsDetailMapNxy *= ${formatGlslFloat(detailNormalScale)} * getMsfsDetailBlend();`,
+          '\tfloat msfsDetailMapNz = sqrt( max( 1.0 - dot( msfsDetailRawMapNxy, msfsDetailRawMapNxy ), 0.0 ) );',
+        ]
+      : shaderMode === 'unsigned-rg'
+        ? [
+            '\tvec2 msfsDetailRawMapNxy = texture2D( msfsDetailNormalTexture, vMsfsDetailUv ).xy * 2.0 - 1.0;',
+            '\tvec2 msfsDetailMapNxy = msfsDetailRawMapNxy;',
+            `\tmsfsDetailMapNxy *= ${formatGlslFloat(detailNormalScale)} * getMsfsDetailBlend();`,
+            '\tfloat msfsDetailMapNz = sqrt( max( 1.0 - dot( msfsDetailRawMapNxy, msfsDetailRawMapNxy ), 0.0 ) );',
+          ]
+        : [
+            '\tvec3 msfsDetailMapN = texture2D( msfsDetailNormalTexture, vMsfsDetailUv ).xyz * 2.0 - 1.0;',
+            `\tmsfsDetailMapN.xy *= ${formatGlslFloat(detailNormalScale)} * getMsfsDetailBlend();`,
+            '\tvec2 msfsDetailMapNxy = msfsDetailMapN.xy;',
+            '\tfloat msfsDetailMapNz = msfsDetailMapN.z;',
+          ]
+
   return [
     '#ifdef USE_UV',
-    '\tvec3 msfsDetailMapN = texture2D( msfsDetailNormalTexture, vMsfsDetailUv ).xyz * 2.0 - 1.0;',
-    `\tmsfsDetailMapN.xy *= ${formatGlslFloat(detailNormalScale)} * getMsfsDetailBlend();`,
-    '\tmapN = normalize( vec3( mapN.xy + msfsDetailMapN.xy, max( mapN.z * msfsDetailMapN.z, 0.0 ) ) );',
+    ...decodeDetailNormal,
+    '\tmapN = normalize( vec3( mapN.xy + msfsDetailMapNxy, max( mapN.z * msfsDetailMapNz, 0.0 ) ) );',
     '#endif',
     '\tnormal = normalize( tbn * mapN );',
   ].join('\n')
@@ -993,6 +1069,7 @@ function createMsfsDetailMapCacheKey(
   uvScale: number,
   uvOffset: readonly [number, number],
   detailNormalScale: number,
+  detailNormalShaderMode: 'signed-rg' | 'unsigned-rg' | 'rgb',
   hasDetailColorTexture: boolean,
   hasDetailOrmTexture: boolean,
   hasDetailNormalTexture: boolean,
@@ -1003,11 +1080,26 @@ function createMsfsDetailMapCacheKey(
     `scale:${uvScale}`,
     `offset:${uvOffset[0]},${uvOffset[1]}`,
     `normalScale:${detailNormalScale}`,
+    `normalMode:${detailNormalShaderMode}`,
     `color:${hasDetailColorTexture}`,
     `orm:${hasDetailOrmTexture}`,
     `normal:${hasDetailNormalTexture}`,
     `mask:${hasBlendMaskTexture}`,
   ].join('|')
+}
+
+function getCompressedRgNormalShaderMode(
+  format: number | undefined
+): 'signed-rg' | 'unsigned-rg' | 'rgb' {
+  if (format === SIGNED_RED_GREEN_RGTC2_Format) {
+    return 'signed-rg'
+  }
+
+  if (format === RED_GREEN_RGTC2_Format || format === RGFormat) {
+    return 'unsigned-rg'
+  }
+
+  return 'rgb'
 }
 
 function registerShaderPatch(
