@@ -13,6 +13,7 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       return
     }
 
+    bakeLocalBindTransform(object)
     bakeQuarterTurnBindTransform(object)
     bakeParentWrapperBindTransform(object)
     const skinIndex = object.geometry.getAttribute('skinIndex')
@@ -66,6 +67,25 @@ const NEGATIVE_QUARTER_TURN_X = new Matrix4().set(
   0, 0, 0, 1
 )
 
+function bakeLocalBindTransform(mesh: SkinnedMesh): void {
+  if (mesh.skeleton == null) {
+    return
+  }
+  if (!matrixApproximatelyEquals(mesh.bindMatrix, IDENTITY_MATRIX)) {
+    return
+  }
+  if (matrixApproximatelyEquals(mesh.matrix, IDENTITY_MATRIX)) {
+    return
+  }
+
+  const bakedBindMatrix = mesh.bindMatrix.clone().multiply(mesh.matrix)
+  mesh.position.set(0, 0, 0)
+  mesh.quaternion.identity()
+  mesh.scale.set(1, 1, 1)
+  mesh.updateMatrix()
+  mesh.bind(mesh.skeleton, bakedBindMatrix)
+}
+
 function bakeQuarterTurnBindTransform(mesh: SkinnedMesh): void {
   if (mesh.skeleton == null) {
     return
@@ -104,6 +124,9 @@ function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
     return
   }
   if ('isBone' in parent && parent.isBone === true) {
+    return
+  }
+  if (parent.children.some(child => 'isBone' in child && child.isBone === true)) {
     return
   }
   if (matrixApproximatelyEquals(parent.matrix, IDENTITY_MATRIX)) {
