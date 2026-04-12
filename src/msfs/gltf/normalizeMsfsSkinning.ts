@@ -49,6 +49,8 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
     if (didClamp) {
       normalizedSkinIndex.needsUpdate = true
     }
+
+    normalizeRigidAttachmentBoneInverses(object, normalizedSkinIndex, skinWeight)
   })
 }
 
@@ -56,6 +58,7 @@ function bakeLocalBindTransform(mesh: SkinnedMesh): void {
   if (mesh.skeleton == null) {
     return
   }
+  mesh.updateMatrix()
   if (!matrixApproximatelyEquals(mesh.bindMatrix, IDENTITY_MATRIX)) {
     return
   }
@@ -75,6 +78,7 @@ function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
   if (mesh.skeleton == null) {
     return
   }
+  mesh.updateMatrix()
   if (!isIdentityTranslation(mesh) || !isIdentityScale(mesh) || !isIdentityQuaternion(mesh)) {
     return
   }
@@ -89,6 +93,7 @@ function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
   if (parent.children.some(child => 'isBone' in child && child.isBone === true)) {
     return
   }
+  parent.updateMatrix()
   if (matrixApproximatelyEquals(parent.matrix, IDENTITY_MATRIX)) {
     return
   }
@@ -97,7 +102,73 @@ function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
   mesh.bind(mesh.skeleton, bakedBindMatrix)
 }
 
+function normalizeRigidAttachmentBoneInverses(
+  mesh: SkinnedMesh,
+  skinIndex: BufferAttribute,
+  skinWeight: BufferAttribute
+): void {
+  const skeleton = mesh.skeleton
+  if (skeleton == null) {
+    return
+  }
+
+  const rigidBoneIndex = getRigidSkinBoneIndex(skinIndex, skinWeight)
+  if (rigidBoneIndex == null) {
+    return
+  }
+  if (matrixApproximatelyEquals(mesh.bindMatrix, IDENTITY_MATRIX)) {
+    return
+  }
+  if (rigidBoneIndex < 0 || rigidBoneIndex >= skeleton.bones.length) {
+    return
+  }
+
+  // MSFS ignores glTF inverse-bind accessors. For rigid one-bone attachments,
+  // derive the inverse from the actual joint graph rest pose instead.
+  const bindMatrix = mesh.bindMatrix.clone()
+  mesh.updateWorldMatrix(true, false)
+  skeleton.calculateInverses()
+  mesh.bind(skeleton, bindMatrix)
+}
+
 const IDENTITY_MATRIX = new Matrix4()
+
+function getRigidSkinBoneIndex(skinIndex: BufferAttribute, skinWeight: BufferAttribute): number | null {
+  let rigidBoneIndex: number | null = null
+
+  for (let index = 0; index < skinIndex.count; index += 1) {
+    let vertexBoneIndex: number | null = null
+
+    for (let component = 0; component < skinIndex.itemSize; component += 1) {
+      const weight = getAttributeComponent(skinWeight, index, component)
+      if (Math.abs(weight) <= 1e-6) {
+        continue
+      }
+
+      const boneIndex = getAttributeComponent(skinIndex, index, component)
+      if (vertexBoneIndex == null) {
+        vertexBoneIndex = boneIndex
+        continue
+      }
+      if (vertexBoneIndex !== boneIndex) {
+        return null
+      }
+    }
+
+    if (vertexBoneIndex == null) {
+      continue
+    }
+    if (rigidBoneIndex == null) {
+      rigidBoneIndex = vertexBoneIndex
+      continue
+    }
+    if (rigidBoneIndex !== vertexBoneIndex) {
+      return null
+    }
+  }
+
+  return rigidBoneIndex
+}
 
 function isIdentityTranslation(mesh: SkinnedMesh): boolean {
   return (
@@ -133,6 +204,21 @@ function matrixApproximatelyEquals(left: Matrix4, right: Matrix4): boolean {
     }
   }
   return true
+}
+
+function getAttributeComponent(attribute: BufferAttribute, index: number, component: number): number {
+  switch (component) {
+    case 0:
+      return attribute.getX(index)
+    case 1:
+      return attribute.getY(index)
+    case 2:
+      return attribute.getZ(index)
+    case 3:
+      return attribute.getW(index)
+    default:
+      return 0
+  }
 }
 
 function normalizeSkinAttributeSizes(
