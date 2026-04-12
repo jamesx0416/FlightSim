@@ -20,24 +20,23 @@ This file tracks the immediate investigation items for the live aircraft viewer.
 - Status: fixed to near parity.
 - Findings:
   - WebGPU was materially darker on the portless A330 deployment
-  - tone mapping and exposure plumbing matched, so the issue was not generic renderer setup
-  - WebGPU was taking a separate fallback environment path that added a `HemisphereLight`
+  - the remaining mismatch was not aircraft-specific lighting data
+  - the main divergence was that the legacy WebGL path and the WebGPU/node-material path were no longer evaluating the same renderer/material stack
 - Implemented:
-  - replaced the split sky/fallback path with one shared PMREM environment path for both renderers
-  - removed the WebGPU-only hemisphere-light fallback path
-  - added a renderer-generic WebGPU exposure correction so the final image is close to WebGL on the live deployment
+  - replaced the split sky/fallback path with one shared PMREM environment path
+  - removed the backend-specific hemisphere-light fallback path
+  - moved the primary WebGL path onto `WebGPURenderer({ forceWebGL: true })` so WebGL and WebGPU share the same node-material pipeline before any legacy fallback is considered
 
 ## 3. Check Whether Reflections Jitter While The Camera Moves
 
-- Status: mitigated with the lighting/environment fix.
+- Status: fixed generically.
 - Findings:
-  - this issue is likely linked to the environment/specular path rather than any aircraft-specific data
-  - the shared environment map had been only `256x128`, which is coarse enough to cause visible stepping on glossy reflections during motion
+  - the visible shimmer was tied to the WebGPU compressed-normal path
+  - compressed RG normal maps were not using the repo's intended WebGPU node-material decode path
 - Implemented:
-  - increased the shared environment texture resolution to `1024x512`
-  - kept the environment static and shared across renderers so reflections are not switching lighting models while the camera moves
+  - wired the dormant WebGPU compressed-normal decode/material path into the active material normalization flow
 - Verification:
-  - moving WebGPU capture sequence now shows consistent frame-to-frame changes rather than a changing light rig
+  - moving WebGPU capture sequence no longer shows the previous wing/reflection instability
 
 ## 4. Check Whether Aircraft Data/Metadata Controls Hidden Or Exposed Components
 

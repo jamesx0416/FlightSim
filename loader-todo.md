@@ -27,39 +27,46 @@ Secondary corroborating reference currently in use:
 
 These are the current high-priority problems on the active A320/A330 fixture path.
 
-### 1. Direct-View Lighting Washout
-
-Some surfaces look too white when viewed straight on.
-
-Current hypothesis:
-- this is likely renderer/material/environment related, not aircraft-specific
-
-### 2. WebGPU Wing / Reflection Jitter
-
-Reflections or wing lighting shimmer while the camera moves on the WebGPU path.
-
-Current hypothesis:
-- this is likely a renderer/environment/material stability issue
-
-### 3. A320 Wing Structure Issue
+### 1. A320 Wing Structure Issue
 
 The A320 still looks structurally wrong in the wing area.
 
 Current strongest lead:
-- missing authoritative support around `NodeAnimation type="WingFlex"` or a related model-animation/runtime contract
+- the generic `WingFlex` runtime now resolves flex direction in each node parent space from a shared aircraft/world-up basis instead of assuming local +Y on both sides
+- this directly addresses the authored mirrored-wing hierarchy mismatch seen on the A320 right-wing branch
+- what remains is fixture verification to confirm the structural defect is actually gone and that no other transform-space issue remains
 
-### 4. Remaining Engine Visual Mismatch
+### 2. Remaining Engine Visual Mismatch
 
 The engine spin is much better than before, but the fan/cone relationship can still look slightly wrong.
 
 Current hypothesis:
 - remaining runtime animation fidelity issue rather than the old multi-state visibility failure
 
-### 5. Broader Stock Coverage Is Still Incomplete
+### 3. Broader Stock Coverage Is Still Incomplete
 
 Many downloaded stock XML families are not yet exercised or verified on the current A320/A330 fixture path.
 
 This is a completeness gap, but not the most urgent visible problem on the current routes.
+
+## Recently Resolved
+
+### 1. Direct-View Lighting Washout
+
+Fixed generically.
+
+Result:
+- the direct-view washout was not an aircraft-specific material quirk
+- the remaining mismatch came from divergence between the legacy WebGL material path and the WebGPU/node-material path
+- the viewer now boots through a shared renderer stack order: real WebGPU, then `WebGPURenderer({ forceWebGL: true })`, then legacy `WebGLRenderer` only as an emergency fallback
+
+### 2. WebGPU Wing / Reflection Jitter
+
+Fixed generically.
+
+Result:
+- the WebGPU shimmer came from compressed RG normal maps not using the repo's existing WebGPU decode/material path
+- wiring the dormant WebGPU compressed-normal path removed the reflection/wing instability without aircraft-specific logic
 
 ## Viewer / Runtime Issues
 
@@ -70,7 +77,12 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
 - Reproduce the flipped or malformed wing on the A320.
 - Check optimized primitive metadata, transforms, and shared-accessor behavior.
 - Confirm whether the issue is another missing `ASOBO_primitive` rule, transform-space conversion, or visibility/LOD problem.
-- Current finding: the right-wing glTF branch is authored with a 180-degree X rotation, but the live wing-bone transforms are still symmetric after import. The remaining likely loader gap is no longer raw primitive assembly; it may be missing custom node-animation support such as `NodeAnimation type="WingFlex"` or another behavior-layer contract.
+- Current finding:
+  - the A320 model XML uses the documented 12-node `NodeAnimation type="WingFlex"` layout
+  - `flight_model.cfg` supplies documented `wingflex_scalar = 0.75` and `wingflex_offset = -0.25`
+  - the importer preserves the `NodeAnimation` block and the runtime binds it generically
+  - the runtime now applies `WingFlex` in a shared aircraft/world-up basis transformed into each node parent space, instead of assuming local +Y on mirrored wing branches
+  - this specifically addresses the authored `WING_right` 180-degree X rotation that previously made the right wing respond in the wrong local basis
 - Fix it generically.
 
 ### 2. External Helper Visibility In Flight
@@ -500,11 +512,13 @@ Scope note:
 
 ### 5. Fix Lighting Issue Where Surfaces Look Too White When Viewed Directly
 
-- [ ] Reproduce and fix the direct-view lighting/whitening issue with a generic MSFS-compatible renderer or material change.
+- [x] Reproduce and fix the direct-view lighting/whitening issue with a generic MSFS-compatible renderer or material change.
+  - Fixed generically by unifying the active WebGL path onto `WebGPURenderer({ forceWebGL: true })` and keeping one shared PMREM/environment/material stack before falling back to legacy `WebGLRenderer`.
 
 ### 6. Fix The WebGPU Wing Lighting/Reflection Jitter During Camera Motion
 
-- [ ] Reproduce and fix the WebGPU wing lighting/reflection jitter with a generic renderer or material change.
+- [x] Reproduce and fix the WebGPU wing lighting/reflection jitter with a generic renderer or material change.
+  - Fixed generically by routing compressed RG normal maps through the existing WebGPU node-material decode path instead of leaving them on the incorrect plain-material path.
 
 ### 7. Revisit The A320 Wing Structure / Transform Issue
 
@@ -521,5 +535,6 @@ Scope note:
   Current status:
   - A generic additive `WingFlex` node runtime is implemented from model XML and documented simvar/cfg inputs.
   - It runs on the A320/A330 fixture routes and does not override behavior XML.
-  - It does not fully solve the A320 wing issue, which means the remaining problem is deeper than missing `NodeAnimation` wiring alone.
+  - The earlier local-Y basis bug in the `WingFlex` runtime has now been replaced with parent-space offsets derived from a shared aircraft/world-up direction.
+  - The next step is fixture verification, not more XML parsing work, unless the wing issue still remains after this runtime correction.
 - [ ] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.
