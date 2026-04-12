@@ -3,6 +3,7 @@ import type {
   ImportedCfgFile,
   ImportDiagnostic,
   ImportedAircraft,
+  ImportedFlightState,
   ImportedModelDefinition,
   ImportedPackage,
   ModelBehaviorReference,
@@ -428,6 +429,7 @@ async function importAircraftRecord(
     const uiType = section.values.get('ui_type') || undefined
     const textureDirectories = await resolveTextureDirectories(chain, fltsim, context)
     const cfgFiles = await resolveAdditionalCfgFiles(chain, fltsim, context)
+    const previewFlightState = await resolvePreviewFlightState(chain, fltsim, context)
 
     importedAircraft.push({
       id: `${normalizePath(dirname(record.path))}#${section.name.toLowerCase()}`,
@@ -443,7 +445,8 @@ async function importAircraftRecord(
       isUserSelectable: parseBoolean(section.values.get('isuserselectable')),
       isFlyable: parseBoolean(section.values.get('isflyable')),
       model,
-      cfgFiles
+      cfgFiles,
+      previewFlightState
     })
   }
 
@@ -806,6 +809,45 @@ async function resolveAdditionalCfgFiles(
   }
 
   return cfgFiles
+}
+
+async function resolvePreviewFlightState(
+  chain: readonly AircraftCfgRecord[],
+  primaryFltsim: FltsimSectionRef,
+  context: ImportContext
+): Promise<ImportedFlightState | null> {
+  const orderedRecords = [
+    primaryFltsim.record,
+    ...chain.filter(record => record.path !== primaryFltsim.record.path)
+  ]
+  const visitedPaths = new Set<string>()
+
+  for (const record of orderedRecords) {
+    const aircraftDirectory = dirname(record.path)
+    const candidatePath = resolveLayoutPath(joinPath(aircraftDirectory, 'hangar.flt'), context)
+    if (candidatePath == null) {
+      continue
+    }
+
+    const normalizedPath = candidatePath.toLowerCase()
+    if (visitedPaths.has(normalizedPath)) {
+      continue
+    }
+
+    const flightStateText = await fetchText(candidatePath, context)
+    if (flightStateText == null) {
+      continue
+    }
+
+    visitedPaths.add(normalizedPath)
+    return {
+      path: candidatePath,
+      url: resolvePackageUrl(context.rootUrl, candidatePath),
+      sections: parseCfg(flightStateText)
+    }
+  }
+
+  return null
 }
 
 async function addTextureFallbackDirectories(

@@ -71,6 +71,12 @@ export interface ImportedCfgFile {
   readonly sections: readonly ImportedCfgSection[]
 }
 
+export interface ImportedFlightState {
+  readonly path: string
+  readonly url: string
+  readonly sections: readonly ImportedCfgSection[]
+}
+
 export interface ImportedAircraft {
   readonly id: string
   readonly title: string
@@ -86,6 +92,7 @@ export interface ImportedAircraft {
   readonly isFlyable: boolean
   readonly model: ImportedModelDefinition | null
   readonly cfgFiles: readonly ImportedCfgFile[]
+  readonly previewFlightState: ImportedFlightState | null
 }
 
 export interface ImportedPackage {

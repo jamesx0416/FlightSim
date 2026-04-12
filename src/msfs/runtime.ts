@@ -1,4 +1,4 @@
-import { AnimationMixer, type Object3D } from 'three'
+import { AnimationMixer, type Object3D, Vector3 } from 'three'
 
 import { evaluateCompiledExpression } from './rpn'
 import type {
@@ -7,6 +7,7 @@ import type {
   ImportedAircraft,
   ImportedCfgFile,
   ImportedCfgSection,
+  ImportedFlightState,
   ImportDiagnostic,
   ModelNodeAnimation,
   RuntimeHostServices,
@@ -42,9 +43,11 @@ export class AircraftRuntime {
       }
     })
 
+    sceneRoot.updateWorldMatrix(true, true)
     this.wingFlexBindings = buildWingFlexBindings(
       aircraft?.model?.nodeAnimations ?? [],
       aircraft,
+      sceneRoot,
       this.nodes,
       this.canonicalNodes
     )
@@ -192,6 +195,7 @@ export class DemoRuntimeHost implements RuntimeHostServices {
   ) {
     this.engineProfile = createDemoEngineProfile(aircraft)
     this.wingFlexProfile = createDemoWingFlexProfile(aircraft)
+    this.seedPreviewFlightState(aircraft?.previewFlightState ?? null)
   }
 
   tick(dtSeconds: number): void {
@@ -209,39 +213,69 @@ export class DemoRuntimeHost implements RuntimeHostServices {
       dtSeconds
     }
 
-    this.values.set('A:ANIMATION DELTA TIME', dtSeconds)
-    this.values.set('A:GEAR ANIMATION POSITION:0', this.cycles.gearCycle * 100)
-    this.values.set('A:GEAR ANIMATION POSITION:1', this.cycles.gearCycle * 100)
-    this.values.set('A:GEAR ANIMATION POSITION:2', this.cycles.gearCycle * 100)
-
-    for (const [key] of this.values) {
-      this.values.set(key, this.resolveHeuristicValue(key, null, this.cycles).value)
-    }
+    this.values.set(normalizeRuntimeVariableKey('A:ANIMATION DELTA TIME'), dtSeconds)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:0'), this.cycles.gearCycle * 100)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:1'), this.cycles.gearCycle * 100)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:2'), this.cycles.gearCycle * 100)
   }
 
   readVariable(key: string, unit?: string | null): number {
-    if (!this.values.has(key)) {
-      const resolved = this.resolveHeuristicValue(key, unit ?? null, this.cycles)
+    const normalizedKey = normalizeRuntimeVariableKey(key)
+    if (!this.values.has(normalizedKey)) {
+      const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
 
-      this.values.set(key, resolved.value)
+      if (!resolved.handled) {
+        this.values.set(normalizedKey, resolved.value)
+      }
       if (!resolved.handled) {
         this.diagnostics.push({
           code: 'runtime_variable_defaulted',
-          message: `Variable ${key} is not provided by the demo host and defaulted to 0.`,
+          message: `Variable ${normalizedKey} is not provided by the demo host and defaulted to 0.`,
           severity: 'info'
         })
       }
+
+      return resolved.value
     }
 
-    return this.values.get(key) ?? 0
+    return this.values.get(normalizedKey) ?? 0
   }
 
   writeVariable(key: string, value: number, _unit?: string | null): void {
-    this.values.set(key, value)
+    this.values.set(normalizeRuntimeVariableKey(key), value)
   }
 
   invokeKeyEvent(name: string, args: readonly number[]): void {
-    this.values.set(`K:${name}`, args.at(-1) ?? 0)
+    this.values.set(normalizeRuntimeVariableKey(`K:${name}`), args.at(-1) ?? 0)
+  }
+
+  private seedPreviewFlightState(flightState: ImportedFlightState | null): void {
+    if (flightState == null) {
+      return
+    }
+
+    for (const section of flightState.sections) {
+      const normalizedSectionName = section.name.toLowerCase()
+      if (normalizedSectionName === 'localvars.0') {
+        for (const [key, rawValue] of section.values) {
+          const parsedValue = parseFlightStateScalar(rawValue)
+          if (parsedValue == null) {
+            continue
+          }
+
+          this.values.set(normalizeRuntimeVariableKey(`L:${key}`), parsedValue)
+        }
+        continue
+      }
+
+      if (normalizedSectionName === 'simvars.0') {
+        const simOnGroundValue = section.values.get('simonground')
+        const parsedValue = simOnGroundValue == null ? null : parseFlightStateScalar(simOnGroundValue)
+        if (parsedValue != null) {
+          this.values.set(normalizeRuntimeVariableKey('A:SIM ON GROUND'), parsedValue)
+        }
+      }
+    }
   }
 
   private resolveHeuristicValue(
@@ -259,7 +293,7 @@ export class DemoRuntimeHost implements RuntimeHostServices {
       readonly dtSeconds: number
     }
   ): { readonly handled: boolean; readonly value: number } {
-    const upperKey = key.toUpperCase()
+    const upperKey = normalizeRuntimeVariableKey(key)
 
     if (upperKey === 'A:ANIMATION DELTA TIME') return handled(convertTimeUnit(cycles.dtSeconds, unit))
     if (upperKey === 'A:SIM ON GROUND') return handled(0)
@@ -269,7 +303,7 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     if (upperKey === 'A:WINDSHIELD DEICE SWITCH') return handled(0)
     if (upperKey === 'A:STRUCTURAL DEICE SWITCH') return handled(0)
     if (upperKey === 'A:LIGHT BEACON') return handled(1)
-    if (upperKey.startsWith('O:')) return handled(this.values.get(key) ?? 0)
+    if (upperKey.startsWith('O:')) return handled(this.values.get(upperKey) ?? 0)
     if (upperKey.startsWith('A:CIRCUIT ON:')) return handled(1)
     if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(convertPercentUnit(100, unit))
     if (upperKey.startsWith('A:CIRCUIT CONNECTION ON:')) return handled(1)
@@ -332,7 +366,7 @@ export class DemoRuntimeHost implements RuntimeHostServices {
 
     return {
       handled: false,
-      value: this.values.get(key) ?? 0
+      value: this.values.get(upperKey) ?? 0
     }
   }
 }
@@ -384,6 +418,26 @@ function normalizeUnit(unit: string | null): string {
   return unit?.trim().toLowerCase() ?? ''
 }
 
+function normalizeRuntimeVariableKey(key: string): string {
+  return key.trim().toUpperCase()
+}
+
+function parseFlightStateScalar(rawValue: string): number | null {
+  const normalizedValue = rawValue.trim()
+  if (normalizedValue === '') {
+    return null
+  }
+  if (/^true$/iu.test(normalizedValue)) {
+    return 1
+  }
+  if (/^false$/iu.test(normalizedValue)) {
+    return 0
+  }
+
+  const parsedValue = Number(normalizedValue)
+  return Number.isFinite(parsedValue) ? parsedValue : null
+}
+
 function handled(value: number): { readonly handled: true; readonly value: number } {
   return {
     handled: true,
@@ -405,9 +459,9 @@ interface DemoWingFlexProfile {
 interface RuntimeWingFlexNode {
   readonly node: Object3D
   readonly order: number
-  readonly restY: number
+  readonly localFlexDirection: Vector3
   readonly cumulativeSpan: number
-  appliedOffsetY: number
+  readonly appliedOffset: Vector3
 }
 
 interface RuntimeWingFlexBinding {
@@ -485,73 +539,21 @@ function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexPro
 function buildWingFlexBindings(
   nodeAnimations: readonly ModelNodeAnimation[],
   aircraft: ImportedAircraft | undefined,
+  sceneRoot: Object3D,
   nodes: ReadonlyMap<string, Object3D>,
   canonicalNodes: ReadonlyMap<string, Object3D>
 ): readonly RuntimeWingFlexBinding[] {
-  const surfaceScalar = getAircraftWingFlexSurfaceScalar(aircraft)
-  const bindings: RuntimeWingFlexBinding[] = []
+  void nodeAnimations
+  void aircraft
+  void sceneRoot
+  void nodes
+  void canonicalNodes
 
-  for (const nodeAnimation of nodeAnimations) {
-    if (nodeAnimation.type.trim().toLowerCase() !== 'wingflex') {
-      continue
-    }
-
-    const leftWing: RuntimeWingFlexNode[] = []
-    const rightWing: RuntimeWingFlexNode[] = []
-    const leftEnginePivots: RuntimeWingFlexNode[] = []
-    const rightEnginePivots: RuntimeWingFlexNode[] = []
-
-    for (const nodeName of nodeAnimation.nodes) {
-      const node = resolveNodeAnimationNode(nodeName, nodes, canonicalNodes)
-      if (node == null) continue
-
-      const descriptor = describeNodeAnimationNode(nodeName)
-      if (descriptor == null) continue
-
-      const runtimeNode: RuntimeWingFlexNode = {
-        node,
-        order: descriptor.index,
-        restY: node.position.y,
-        cumulativeSpan: 0,
-        appliedOffsetY: 0
-      }
-
-      if (descriptor.kind === 'wingBone') {
-        if (descriptor.side === 'left') {
-          leftWing.push(runtimeNode)
-        } else {
-          rightWing.push(runtimeNode)
-        }
-        continue
-      }
-
-      if (descriptor.side === 'left') {
-        leftEnginePivots.push(runtimeNode)
-      } else {
-        rightEnginePivots.push(runtimeNode)
-      }
-    }
-
-    finalizeWingFlexChain(leftWing)
-    finalizeWingFlexChain(rightWing)
-    finalizeWingFlexEnginePivots(leftEnginePivots, leftWing)
-    finalizeWingFlexEnginePivots(rightEnginePivots, rightWing)
-
-    if (leftWing.length === 0 && rightWing.length === 0) {
-      continue
-    }
-
-    bindings.push({
-      leftWing,
-      rightWing,
-      leftEnginePivots,
-      rightEnginePivots,
-      maxAngleRadians: (Math.PI / 180) * 5,
-      surfaceScalar
-    })
-  }
-
-  return bindings
+  // The official docs enumerate WingFlex nodes and inputs, but they do not
+  // publish the actual node deformation math. The previous translation-based
+  // runtime visibly broke the live A320/A330 fixtures, so keep the parser
+  // support but do not invent unsupported bone transforms here.
+  return []
 }
 
 function applyWingFlexChain(
@@ -565,14 +567,13 @@ function applyWingFlexChain(
   const tangent = Math.tan(binding.maxAngleRadians * binding.surfaceScalar)
   for (const node of nodes) {
     const targetOffsetY = node.cumulativeSpan * tangent * normalizedFlex
-    node.node.position.y += targetOffsetY - node.appliedOffsetY
-    node.appliedOffsetY = targetOffsetY
+    applyWingFlexOffset(node, targetOffsetY)
   }
 }
 
 function applyWingFlexEnginePivots(
   pivots: readonly RuntimeWingFlexNode[],
-  wingBones: readonly RuntimeWingFlexNode[],
+  _wingBones: readonly RuntimeWingFlexNode[],
   flexAmount: number,
   binding: RuntimeWingFlexBinding
 ): void {
@@ -580,15 +581,19 @@ function applyWingFlexEnginePivots(
   if (pivots.length === 0) return
   const tangent = Math.tan(binding.maxAngleRadians * binding.surfaceScalar)
 
-  const maxSpan = wingBones.at(-1)?.cumulativeSpan ?? 0
   for (const pivot of pivots) {
-    const targetOffsetY = pivot.cumulativeSpan * tangent * normalizedFlex
-    pivot.node.position.y += targetOffsetY - pivot.appliedOffsetY
-    pivot.appliedOffsetY = targetOffsetY
-    if (maxSpan === 0) {
-      pivot.node.position.y = pivot.restY + targetOffsetY
-    }
+    const targetOffsetAmount = pivot.cumulativeSpan * tangent * normalizedFlex
+    applyWingFlexOffset(pivot, targetOffsetAmount)
   }
+}
+
+function applyWingFlexOffset(
+  node: RuntimeWingFlexNode,
+  offsetAmount: number
+): void {
+  const targetOffset = node.localFlexDirection.clone().multiplyScalar(offsetAmount)
+  node.node.position.add(targetOffset.sub(node.appliedOffset))
+  node.appliedOffset.copy(targetOffset)
 }
 
 function finalizeWingFlexChain(nodes: RuntimeWingFlexNode[]): void {
@@ -636,6 +641,28 @@ function getAircraftWingFlexSurfaceScalar(aircraft: ImportedAircraft | undefined
   )
 
   return parseCfgNumber(wingFlexSection, 'wingflex_surface_scalar', 1)
+}
+
+function resolveWingFlexDirectionInParentSpace(
+  node: Object3D,
+  sceneRoot: Object3D
+): Vector3 {
+  const parent = node.parent
+  if (parent == null) {
+    return new Vector3(0, 1, 0)
+  }
+
+  const worldOrigin = sceneRoot.getWorldPosition(new Vector3())
+  const worldUpPoint = sceneRoot.localToWorld(new Vector3(0, 1, 0))
+  const localOrigin = parent.worldToLocal(worldOrigin.clone())
+  const localUpPoint = parent.worldToLocal(worldUpPoint)
+  const localDirection = localUpPoint.sub(localOrigin)
+
+  if (localDirection.lengthSq() <= 1e-12) {
+    return new Vector3(0, 1, 0)
+  }
+
+  return localDirection.normalize()
 }
 
 function resolveNodeAnimationNode(

@@ -1,5 +1,6 @@
 import {
   BufferAttribute,
+  Matrix4,
   Float32BufferAttribute,
   SkinnedMesh,
   Uint16BufferAttribute,
@@ -12,6 +13,8 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       return
     }
 
+    bakeQuarterTurnBindTransform(object)
+    bakeParentWrapperBindTransform(object)
     const skinIndex = object.geometry.getAttribute('skinIndex')
     const skinWeight = object.geometry.getAttribute('skinWeight')
     const skeleton = object.skeleton
@@ -47,6 +50,106 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       normalizedSkinIndex.needsUpdate = true
     }
   })
+}
+
+const POSITIVE_QUARTER_TURN_X = new Matrix4().set(
+  1, 0, 0, 0,
+  0, 0, -1, 0,
+  0, 1, 0, 0,
+  0, 0, 0, 1
+)
+
+const NEGATIVE_QUARTER_TURN_X = new Matrix4().set(
+  1, 0, 0, 0,
+  0, 0, 1, 0,
+  0, -1, 0, 0,
+  0, 0, 0, 1
+)
+
+function bakeQuarterTurnBindTransform(mesh: SkinnedMesh): void {
+  if (mesh.skeleton == null) {
+    return
+  }
+  if (!isIdentityTranslation(mesh) || !isIdentityScale(mesh)) {
+    return
+  }
+  if (!matrixApproximatelyEquals(mesh.bindMatrix, IDENTITY_MATRIX)) {
+    return
+  }
+  if (
+    !matrixApproximatelyEquals(mesh.matrix, POSITIVE_QUARTER_TURN_X) &&
+    !matrixApproximatelyEquals(mesh.matrix, NEGATIVE_QUARTER_TURN_X)
+  ) {
+    return
+  }
+
+  const bakedBindMatrix = mesh.bindMatrix.clone().multiply(mesh.matrix)
+  mesh.position.set(0, 0, 0)
+  mesh.quaternion.identity()
+  mesh.scale.set(1, 1, 1)
+  mesh.updateMatrix()
+  mesh.bind(mesh.skeleton, bakedBindMatrix)
+}
+
+function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
+  if (mesh.skeleton == null) {
+    return
+  }
+  if (!isIdentityTranslation(mesh) || !isIdentityScale(mesh) || !isIdentityQuaternion(mesh)) {
+    return
+  }
+
+  const parent = mesh.parent
+  if (parent == null || parent instanceof SkinnedMesh) {
+    return
+  }
+  if ('isBone' in parent && parent.isBone === true) {
+    return
+  }
+  if (matrixApproximatelyEquals(parent.matrix, IDENTITY_MATRIX)) {
+    return
+  }
+
+  const bakedBindMatrix = mesh.bindMatrix.clone().multiply(parent.matrix)
+  mesh.bind(mesh.skeleton, bakedBindMatrix)
+}
+
+const IDENTITY_MATRIX = new Matrix4()
+
+function isIdentityTranslation(mesh: SkinnedMesh): boolean {
+  return (
+    mesh.position.x === 0 &&
+    mesh.position.y === 0 &&
+    mesh.position.z === 0
+  )
+}
+
+function isIdentityScale(mesh: SkinnedMesh): boolean {
+  return (
+    Math.abs(mesh.scale.x - 1) < 1e-6 &&
+    Math.abs(mesh.scale.y - 1) < 1e-6 &&
+    Math.abs(mesh.scale.z - 1) < 1e-6
+  )
+}
+
+function isIdentityQuaternion(mesh: SkinnedMesh): boolean {
+  return (
+    Math.abs(mesh.quaternion.x) < 1e-6 &&
+    Math.abs(mesh.quaternion.y) < 1e-6 &&
+    Math.abs(mesh.quaternion.z) < 1e-6 &&
+    Math.abs(mesh.quaternion.w - 1) < 1e-6
+  )
+}
+
+function matrixApproximatelyEquals(left: Matrix4, right: Matrix4): boolean {
+  const leftElements = left.elements
+  const rightElements = right.elements
+  for (let index = 0; index < 16; index += 1) {
+    if (Math.abs(leftElements[index] - rightElements[index]) > 1e-6) {
+      return false
+    }
+  }
+  return true
 }
 
 function normalizeSkinAttributeSizes(
