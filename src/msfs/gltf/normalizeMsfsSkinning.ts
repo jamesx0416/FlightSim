@@ -143,10 +143,19 @@ function convertRigidAttachmentToBoneChild(mesh: SkinnedMesh, boneIndex: number)
   if (bone == null) {
     return
   }
+  const boneInverse = skeleton.boneInverses[boneIndex]
+  if (boneInverse == null) {
+    return
+  }
 
   mesh.updateWorldMatrix(true, false)
   bone.updateWorldMatrix(true, false)
-  const relativeToBone = bone.matrixWorld.clone().invert().multiply(mesh.matrixWorld.clone())
+  const relativeToBone = bone.matrixWorld
+    .clone()
+    .invert()
+    .multiply(mesh.matrixWorld.clone())
+    .multiply(bone.matrixWorld.clone())
+    .multiply(boneInverse.clone())
 
   const geometry = mesh.geometry.clone()
   geometry.deleteAttribute('skinIndex')
