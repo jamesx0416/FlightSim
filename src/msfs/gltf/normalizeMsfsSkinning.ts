@@ -2,12 +2,17 @@ import {
   BufferAttribute,
   Float32BufferAttribute,
   Matrix4,
+  Object3D,
+  Skeleton,
   SkinnedMesh,
   Uint16BufferAttribute,
   Uint8BufferAttribute,
 } from 'three'
 
 export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void }): void {
+  const parentWrapperGroups = new Set<Object3D>()
+  const rigidRotationRootMeshes: SkinnedMesh[] = []
+
   root.traverse(object => {
     if (!(object instanceof SkinnedMesh)) {
       return
@@ -47,9 +52,24 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       normalizedSkinIndex.needsUpdate = true
     }
 
+    if (shouldRebindRigidRotationRootMesh(root, object)) {
+      rigidRotationRootMeshes.push(object)
+    }
+
     bakeLocalBindTransform(object)
-    bakeParentWrapperBindTransform(object)
+    const parent = object.parent
+    if (isSkinnedWrapperGroup(parent)) {
+      parentWrapperGroups.add(parent)
+    }
   })
+
+  for (const group of parentWrapperGroups) {
+    bakeParentWrapperBindTransform(group)
+  }
+
+  for (const mesh of rigidRotationRootMeshes) {
+    rebindRigidRotationRootMesh(mesh)
+  }
 }
 
 function bakeLocalBindTransform(mesh: SkinnedMesh): void {
@@ -72,35 +92,54 @@ function bakeLocalBindTransform(mesh: SkinnedMesh): void {
   mesh.bind(mesh.skeleton, bakedBindMatrix)
 }
 
-function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
-  if (mesh.skeleton == null) {
-    return
-  }
-  mesh.updateMatrix()
-  if (!isIdentityTranslation(mesh) || !isIdentityScale(mesh) || !isIdentityQuaternion(mesh)) {
+function bakeParentWrapperBindTransform(group: Object3D): void {
+  if (!isSkinnedWrapperGroup(group)) {
     return
   }
 
-  const parent = mesh.parent
-  if (parent == null || parent instanceof SkinnedMesh) {
-    return
-  }
-  if ('isBone' in parent && parent.isBone === true) {
-    return
-  }
-  if (parent.children.some(child => 'isBone' in child && child.isBone === true)) {
-    return
-  }
-  parent.updateMatrix()
-  if (matrixApproximatelyEquals(parent.matrix, IDENTITY_MATRIX)) {
+  group.updateMatrix()
+  if (matrixApproximatelyEquals(group.matrix, IDENTITY_MATRIX)) {
     return
   }
 
-  const bakedBindMatrix = mesh.bindMatrix.clone().multiply(parent.matrix)
-  mesh.bind(mesh.skeleton, bakedBindMatrix)
+  for (const child of group.children) {
+    if (!(child instanceof SkinnedMesh) || child.skeleton == null) {
+      continue
+    }
+    child.updateMatrix()
+    if (!isIdentityTranslation(child) || !isIdentityScale(child) || !isIdentityQuaternion(child)) {
+      return
+    }
+
+    const bakedBindMatrix = child.bindMatrix.clone().multiply(group.matrix)
+    child.bind(child.skeleton, bakedBindMatrix)
+  }
+
+  group.position.set(0, 0, 0)
+  group.quaternion.identity()
+  group.scale.set(1, 1, 1)
+  group.updateMatrix()
+  group.updateMatrixWorld(true)
 }
 
 const IDENTITY_MATRIX = new Matrix4()
+
+function isSkinnedWrapperGroup(object: Object3D | null | undefined): object is Object3D {
+  if (object == null) {
+    return false
+  }
+  if (object.type !== 'Group') {
+    return false
+  }
+  if ('isBone' in object && object.isBone === true) {
+    return false
+  }
+  if (object.children.length === 0) {
+    return false
+  }
+
+  return object.children.every(child => child instanceof SkinnedMesh)
+}
 
 function isIdentityTranslation(mesh: SkinnedMesh): boolean {
   return (
@@ -136,6 +175,88 @@ function matrixApproximatelyEquals(left: Matrix4, right: Matrix4): boolean {
     }
   }
   return true
+}
+
+function shouldRebindRigidRotationRootMesh(
+  root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void },
+  mesh: SkinnedMesh
+): boolean {
+  if (mesh.parent !== root) {
+    return false
+  }
+  if (!isIdentityTranslation(mesh) || !isIdentityScale(mesh)) {
+    return false
+  }
+  if (matrixApproximatelyEquals(mesh.matrix, IDENTITY_MATRIX)) {
+    return false
+  }
+  if (isApproximatelyHalfTurnX(mesh.quaternion.x, mesh.quaternion.y, mesh.quaternion.z, mesh.quaternion.w, 5e-2)) {
+    return false
+  }
+
+  return getRigidSingleBoneIndex(mesh) != null
+}
+
+function rebindRigidRotationRootMesh(mesh: SkinnedMesh): void {
+  const skeleton = mesh.skeleton
+  if (skeleton == null) {
+    return
+  }
+
+  mesh.updateMatrixWorld(true)
+  const isolatedSkeleton = new Skeleton(
+    skeleton.bones,
+    skeleton.bones.map(bone => bone.matrixWorld.clone().invert())
+  )
+  mesh.bind(isolatedSkeleton, mesh.matrixWorld.clone())
+}
+
+function getRigidSingleBoneIndex(mesh: SkinnedMesh): number | null {
+  const skinIndex = mesh.geometry.getAttribute('skinIndex')
+  const skinWeight = mesh.geometry.getAttribute('skinWeight')
+  if (skinIndex == null || skinWeight == null || skinIndex.count === 0) {
+    return null
+  }
+
+  const dominantBoneIndex = skinIndex.getX(0)
+  for (let vertexIndex = 0; vertexIndex < skinIndex.count; vertexIndex += 1) {
+    let activeWeightCount = 0
+    for (let componentIndex = 0; componentIndex < 4; componentIndex += 1) {
+      const weight = getAttributeComponent(skinWeight, vertexIndex, componentIndex)
+      if (weight <= 1e-4) {
+        continue
+      }
+      const boneIndex = getAttributeComponent(skinIndex, vertexIndex, componentIndex)
+      if (activeWeightCount > 0 || boneIndex !== dominantBoneIndex || Math.abs(weight - 1) > 1e-4) {
+        return null
+      }
+      activeWeightCount += 1
+    }
+  }
+
+  return dominantBoneIndex
+}
+
+function getAttributeComponent(attribute: BufferAttribute, vertexIndex: number, componentIndex: number): number {
+  if (componentIndex === 0) {
+    return attribute.getX(vertexIndex)
+  }
+  if (componentIndex === 1) {
+    return attribute.getY(vertexIndex)
+  }
+  if (componentIndex === 2) {
+    return attribute.getZ(vertexIndex)
+  }
+  return attribute.getW(vertexIndex)
+}
+
+function isApproximatelyHalfTurnX(x: number, y: number, z: number, w: number, tolerance: number): boolean {
+  return (
+    Math.abs(Math.abs(x) - 1) < tolerance &&
+    Math.abs(y) < tolerance &&
+    Math.abs(z) < tolerance &&
+    Math.abs(w) < tolerance
+  )
 }
 
 function normalizeSkinAttributeSizes(

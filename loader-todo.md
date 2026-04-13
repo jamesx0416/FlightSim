@@ -43,7 +43,25 @@ The engine spin is much better than before, but the fan/cone relationship can st
 Current hypothesis:
 - remaining runtime animation fidelity issue rather than the old multi-state visibility failure
 
-### 3. Broader Stock Coverage Is Still Incomplete
+### 3. A320 Floating Canoe / Fairing Attachment
+
+The A320 still has a remaining floating canoe / fairing-like attachment in the wing-root area.
+
+Current strongest lead:
+- this is no longer the whole-wing inversion problem; the main wing surfaces are broadly correct
+- the remaining defect is in a narrower attachment/fairing subset near the wing root
+- the previous rigid one-bone skin reduction was removed because it caused regressions; the remaining floating piece needs to be resolved on the normal skinned path, not with another speculative reduction rule
+
+### 4. Interior Fuselage / Cockpit Mesh Overlap
+
+The interior view inside the A320 fuselage still shows broken overlapping mesh sheets instead of a clean shell/window assembly.
+
+Current strongest lead:
+- this looks like a transform / duplicate-shell / inner-versus-outer mesh-space problem rather than a material-only transparency issue
+- cockpit glazing and nearby interior shell pieces appear to be intersecting or stacked in the wrong space
+- this should be investigated as a generic importer/skinning/transform issue, not as an aircraft-specific cockpit patch
+
+### 5. Broader Stock Coverage Is Still Incomplete
 
 Many downloaded stock XML families are not yet exercised or verified on the current A320/A330 fixture path.
 
@@ -141,6 +159,20 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
 - Additional WebGPU-specific issue:
   - while the camera moves, wing reflections appear to shimmer or glitch
   - investigate whether this is environment-map resolution, PMREM/backend differences, normal-map interpretation, or a WebGPU material-path instability
+
+### 5b. A320 Floating Canoe / Fairing Piece
+
+- Reproduce the remaining floating canoe / fairing attachment on the A320 wing-root area.
+- Confirm the exact object family still detached in the live viewer.
+- Check whether the remaining error is on the normal skinned path, shared accessor/bind data, or another transform-space mismatch.
+- Do not revive the removed rigid one-bone reduction path unless an authoritative generic rule supports it.
+
+### 5c. Interior Fuselage / Cockpit Mesh Breakage
+
+- Reproduce the broken overlapping mesh sheets visible from inside the fuselage / cockpit window area.
+- Check whether the issue is duplicate inner/outer shell geometry, incorrect transform accumulation, or a skin/bind mismatch on interior assemblies.
+- Distinguish mesh-space breakage from window material/transparency handling.
+- Fix it generically.
 
 ### 6. Missing Stock Templates / Includes
 
