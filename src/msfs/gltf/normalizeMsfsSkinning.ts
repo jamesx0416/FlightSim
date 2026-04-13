@@ -1,31 +1,31 @@
 import {
   BufferAttribute,
-  Matrix4,
   Float32BufferAttribute,
+  Matrix4,
+  Mesh,
   SkinnedMesh,
   Uint16BufferAttribute,
   Uint8BufferAttribute,
 } from 'three'
 
 export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void }): void {
+  const rigidAttachments: Array<{ mesh: SkinnedMesh, boneIndex: number }> = []
+
   root.traverse(object => {
     if (!(object instanceof SkinnedMesh)) {
       return
     }
-
-    bakeLocalBindTransform(object)
-    bakeParentWrapperBindTransform(object)
     const skinIndex = object.geometry.getAttribute('skinIndex')
     const skinWeight = object.geometry.getAttribute('skinWeight')
     const skeleton = object.skeleton
     if (skinIndex == null || skinWeight == null || skeleton == null) {
       return
     }
-
     normalizeSkinAttributeSizes(object.geometry, skinIndex, skinWeight)
 
     const normalizedSkinIndex = object.geometry.getAttribute('skinIndex')
-    if (normalizedSkinIndex == null) {
+    const normalizedSkinWeight = object.geometry.getAttribute('skinWeight')
+    if (normalizedSkinIndex == null || normalizedSkinWeight == null) {
       return
     }
 
@@ -50,8 +50,19 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       normalizedSkinIndex.needsUpdate = true
     }
 
-    normalizeRigidAttachmentBoneInverses(object, normalizedSkinIndex, skinWeight)
+    const rigidBoneIndex = getRigidAttachmentBoneIndex(object, getRigidSkinBoneIndex(normalizedSkinIndex, normalizedSkinWeight))
+    if (rigidBoneIndex != null) {
+      rigidAttachments.push({ mesh: object, boneIndex: rigidBoneIndex })
+      return
+    }
+
+    bakeLocalBindTransform(object)
+    bakeParentWrapperBindTransform(object)
   })
+
+  for (const attachment of rigidAttachments) {
+    convertRigidAttachmentToBoneChild(attachment.mesh, attachment.boneIndex)
+  }
 }
 
 function bakeLocalBindTransform(mesh: SkinnedMesh): void {
@@ -102,33 +113,65 @@ function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
   mesh.bind(mesh.skeleton, bakedBindMatrix)
 }
 
-function normalizeRigidAttachmentBoneInverses(
+function getRigidAttachmentBoneIndex(
   mesh: SkinnedMesh,
-  skinIndex: BufferAttribute,
-  skinWeight: BufferAttribute
-): void {
+  rigidBoneIndex: number | null
+): number | null {
   const skeleton = mesh.skeleton
   if (skeleton == null) {
-    return
+    return null
   }
 
-  const rigidBoneIndex = getRigidSkinBoneIndex(skinIndex, skinWeight)
   if (rigidBoneIndex == null) {
-    return
-  }
-  if (matrixApproximatelyEquals(mesh.bindMatrix, IDENTITY_MATRIX)) {
-    return
+    return null
   }
   if (rigidBoneIndex < 0 || rigidBoneIndex >= skeleton.bones.length) {
+    return null
+  }
+
+  return rigidBoneIndex
+}
+
+function convertRigidAttachmentToBoneChild(mesh: SkinnedMesh, boneIndex: number): void {
+  const skeleton = mesh.skeleton
+  const parent = mesh.parent
+  if (skeleton == null || parent == null) {
     return
   }
 
-  // MSFS ignores glTF inverse-bind accessors. For rigid one-bone attachments,
-  // derive the inverse from the actual joint graph rest pose instead.
-  const bindMatrix = mesh.bindMatrix.clone()
+  const bone = skeleton.bones[boneIndex]
+  if (bone == null) {
+    return
+  }
+
   mesh.updateWorldMatrix(true, false)
-  skeleton.calculateInverses()
-  mesh.bind(skeleton, bindMatrix)
+  bone.updateWorldMatrix(true, false)
+  const relativeToBone = bone.matrixWorld.clone().invert().multiply(mesh.matrixWorld.clone())
+
+  const geometry = mesh.geometry.clone()
+  geometry.deleteAttribute('skinIndex')
+  geometry.deleteAttribute('skinWeight')
+  geometry.computeBoundingBox()
+  geometry.computeBoundingSphere()
+
+  const replacement = new Mesh(geometry, mesh.material)
+  replacement.name = mesh.name
+  replacement.castShadow = mesh.castShadow
+  replacement.receiveShadow = mesh.receiveShadow
+  replacement.frustumCulled = mesh.frustumCulled
+  replacement.renderOrder = mesh.renderOrder
+  replacement.visible = mesh.visible
+  replacement.userData = { ...mesh.userData }
+  replacement.layers.mask = mesh.layers.mask
+  relativeToBone.decompose(replacement.position, replacement.quaternion, replacement.scale)
+  replacement.updateMatrix()
+
+  while (mesh.children.length > 0) {
+    replacement.add(mesh.children[0])
+  }
+
+  bone.add(replacement)
+  parent.remove(mesh)
 }
 
 const IDENTITY_MATRIX = new Matrix4()
@@ -207,6 +250,9 @@ function matrixApproximatelyEquals(left: Matrix4, right: Matrix4): boolean {
 }
 
 function getAttributeComponent(attribute: BufferAttribute, index: number, component: number): number {
+  if (component >= attribute.itemSize) {
+    return 0
+  }
   switch (component) {
     case 0:
       return attribute.getX(index)

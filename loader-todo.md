@@ -32,9 +32,9 @@ These are the current high-priority problems on the active A320/A330 fixture pat
 The A320 still looks structurally wrong in the wing area.
 
 Current strongest lead:
-- the generic `WingFlex` runtime now resolves flex direction in each node parent space from a shared aircraft/world-up basis instead of assuming local +Y on both sides
-- this directly addresses the authored mirrored-wing hierarchy mismatch seen on the A320 right-wing branch
-- what remains is fixture verification to confirm the structural defect is actually gone and that no other transform-space issue remains
+- the main wing skin is now mostly correct; the remaining visible defect is the floating under-wing support / fairing attachment chain rather than the whole wing surface
+- the old `X180 * bind * X180` experiment is explicitly rejected as heuristic: it helped a narrow subset, but it is not documented by MSFS and it broke other left-side skinned parts
+- current generic direction is to treat rigid one-bone MSFS attachment skins as a distinct loader class and keep narrowing the remaining floating-part transform/bind mismatch from there
 
 ### 2. Remaining Engine Visual Mismatch
 
@@ -229,9 +229,18 @@ This section tracks the next authoritative, aircraft-generic loader work.
 
 - Improve optimized/skinned mesh compatibility.
   - Keep using authoritative layout evidence from built assets and official exporter expectations.
+  - Add explicit generic handling for rigid one-bone skinned attachments that behave like bone children rather than true deforming skins.
+  - Use this to resolve the remaining floating under-wing support/fairing assemblies without reintroducing aircraft-specific half-turn patches.
 
 - Broaden validation fixtures.
   - Confirm generic loader behavior on more than the current A330 and A320 packages.
+
+## Other Generic Repo Issues
+
+- 3D tiles material replacement plugin still does not support multi-material meshes.
+  - Current failure path throws `Multiple materials are not supported yet.` in `src/plugins/TileMaterialReplacementPlugin.ts`.
+- 3D tiles material replacement plugin still leaks replaced materials on dispose.
+  - Current file already notes this in `src/plugins/TileMaterialReplacementPlugin.ts`; track it here so it is not lost outside the source comment.
 
 ### Current Fixture State
 
