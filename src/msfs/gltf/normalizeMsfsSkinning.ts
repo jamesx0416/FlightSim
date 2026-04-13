@@ -2,15 +2,12 @@ import {
   BufferAttribute,
   Float32BufferAttribute,
   Matrix4,
-  Mesh,
   SkinnedMesh,
   Uint16BufferAttribute,
   Uint8BufferAttribute,
 } from 'three'
 
 export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void }): void {
-  const rigidAttachments: Array<{ mesh: SkinnedMesh, boneIndex: number }> = []
-
   root.traverse(object => {
     if (!(object instanceof SkinnedMesh)) {
       return
@@ -50,19 +47,9 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       normalizedSkinIndex.needsUpdate = true
     }
 
-    const rigidBoneIndex = getRigidAttachmentBoneIndex(object, getRigidSkinBoneIndex(normalizedSkinIndex, normalizedSkinWeight))
-    if (rigidBoneIndex != null) {
-      rigidAttachments.push({ mesh: object, boneIndex: rigidBoneIndex })
-      return
-    }
-
     bakeLocalBindTransform(object)
     bakeParentWrapperBindTransform(object)
   })
-
-  for (const attachment of rigidAttachments) {
-    convertRigidAttachmentToBoneChild(attachment.mesh, attachment.boneIndex)
-  }
 }
 
 function bakeLocalBindTransform(mesh: SkinnedMesh): void {
@@ -113,114 +100,7 @@ function bakeParentWrapperBindTransform(mesh: SkinnedMesh): void {
   mesh.bind(mesh.skeleton, bakedBindMatrix)
 }
 
-function getRigidAttachmentBoneIndex(
-  mesh: SkinnedMesh,
-  rigidBoneIndex: number | null
-): number | null {
-  const skeleton = mesh.skeleton
-  if (skeleton == null) {
-    return null
-  }
-
-  if (rigidBoneIndex == null) {
-    return null
-  }
-  if (rigidBoneIndex < 0 || rigidBoneIndex >= skeleton.bones.length) {
-    return null
-  }
-
-  return rigidBoneIndex
-}
-
-function convertRigidAttachmentToBoneChild(mesh: SkinnedMesh, boneIndex: number): void {
-  const skeleton = mesh.skeleton
-  const parent = mesh.parent
-  if (skeleton == null || parent == null) {
-    return
-  }
-
-  const bone = skeleton.bones[boneIndex]
-  if (bone == null) {
-    return
-  }
-  const boneInverse = skeleton.boneInverses[boneIndex]
-  if (boneInverse == null) {
-    return
-  }
-
-  mesh.updateWorldMatrix(true, false)
-  bone.updateWorldMatrix(true, false)
-  const relativeToBone = bone.matrixWorld
-    .clone()
-    .invert()
-    .multiply(mesh.matrixWorld.clone())
-    .multiply(bone.matrixWorld.clone())
-    .multiply(boneInverse.clone())
-
-  const geometry = mesh.geometry.clone()
-  geometry.deleteAttribute('skinIndex')
-  geometry.deleteAttribute('skinWeight')
-  geometry.computeBoundingBox()
-  geometry.computeBoundingSphere()
-
-  const replacement = new Mesh(geometry, mesh.material)
-  replacement.name = mesh.name
-  replacement.castShadow = mesh.castShadow
-  replacement.receiveShadow = mesh.receiveShadow
-  replacement.frustumCulled = mesh.frustumCulled
-  replacement.renderOrder = mesh.renderOrder
-  replacement.visible = mesh.visible
-  replacement.userData = { ...mesh.userData }
-  replacement.layers.mask = mesh.layers.mask
-  relativeToBone.decompose(replacement.position, replacement.quaternion, replacement.scale)
-  replacement.updateMatrix()
-
-  while (mesh.children.length > 0) {
-    replacement.add(mesh.children[0])
-  }
-
-  bone.add(replacement)
-  parent.remove(mesh)
-}
-
 const IDENTITY_MATRIX = new Matrix4()
-
-function getRigidSkinBoneIndex(skinIndex: BufferAttribute, skinWeight: BufferAttribute): number | null {
-  let rigidBoneIndex: number | null = null
-
-  for (let index = 0; index < skinIndex.count; index += 1) {
-    let vertexBoneIndex: number | null = null
-
-    for (let component = 0; component < skinIndex.itemSize; component += 1) {
-      const weight = getAttributeComponent(skinWeight, index, component)
-      if (Math.abs(weight) <= 1e-6) {
-        continue
-      }
-
-      const boneIndex = getAttributeComponent(skinIndex, index, component)
-      if (vertexBoneIndex == null) {
-        vertexBoneIndex = boneIndex
-        continue
-      }
-      if (vertexBoneIndex !== boneIndex) {
-        return null
-      }
-    }
-
-    if (vertexBoneIndex == null) {
-      continue
-    }
-    if (rigidBoneIndex == null) {
-      rigidBoneIndex = vertexBoneIndex
-      continue
-    }
-    if (rigidBoneIndex !== vertexBoneIndex) {
-      return null
-    }
-  }
-
-  return rigidBoneIndex
-}
 
 function isIdentityTranslation(mesh: SkinnedMesh): boolean {
   return (
@@ -256,24 +136,6 @@ function matrixApproximatelyEquals(left: Matrix4, right: Matrix4): boolean {
     }
   }
   return true
-}
-
-function getAttributeComponent(attribute: BufferAttribute, index: number, component: number): number {
-  if (component >= attribute.itemSize) {
-    return 0
-  }
-  switch (component) {
-    case 0:
-      return attribute.getX(index)
-    case 1:
-      return attribute.getY(index)
-    case 2:
-      return attribute.getZ(index)
-    case 3:
-      return attribute.getW(index)
-    default:
-      return 0
-  }
 }
 
 function normalizeSkinAttributeSizes(
