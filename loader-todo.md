@@ -50,7 +50,10 @@ The A320 still has a remaining floating canoe / fairing-like attachment in the w
 Current strongest lead:
 - this is no longer the whole-wing inversion problem; the main wing surfaces are broadly correct
 - the remaining defect is in a narrower attachment/fairing subset near the wing root
-- the previous rigid one-bone skin reduction was removed because it caused regressions; the remaining floating piece needs to be resolved on the normal skinned path, not with another speculative reduction rule
+- the floating canoe body sits in the root-level rigid one-bone skinned-mesh class with authored local rotation, and that class now has a generic rebind fix
+- the remaining visible floaters are a different skinning class, not another copy of the canoe problem
+- the confirmed remaining front-view floaters are `WIRE_LEFT`, `WIRE_RIGHT`, and `C_WIRE`
+- those wires are root-level translated multi-bone skins driven by gear/suspension chains, and live inspection shows the bad term is in bind-space translation rather than the node translation itself
 
 ### 4. Interior Fuselage / Cockpit Mesh Overlap
 
@@ -61,7 +64,17 @@ Current strongest lead:
 - cockpit glazing and nearby interior shell pieces appear to be intersecting or stacked in the wrong space
 - this should be investigated as a generic importer/skinning/transform issue, not as an aircraft-specific cockpit patch
 
-### 5. Broader Stock Coverage Is Still Incomplete
+### 5. MSFS-Native Skinning Architecture
+
+The loader still relies on targeted normalization passes instead of a single MSFS-native skinning model.
+
+Current strongest lead:
+- MSFS docs say inverse-bind matrices are ignored, but the current path still starts from Three/glTF inverse-bind semantics and repairs only the mismatching classes
+- the canoe fix suggests rigid root-level one-bone skins are one such mismatching class
+- the remaining wire/helper floaters are likely another class and probably need the same broader architectural direction, but not the exact same rigid-mesh rule
+- the cleaner long-term fix is to reconstruct skin rest/bind state from the assembled MSFS joint graph and authored node transforms instead of layering more post-load class-specific rebinding rules
+
+### 6. Broader Stock Coverage Is Still Incomplete
 
 Many downloaded stock XML families are not yet exercised or verified on the current A320/A330 fixture path.
 
@@ -263,6 +276,7 @@ This section tracks the next authoritative, aircraft-generic loader work.
   - Keep using authoritative layout evidence from built assets and official exporter expectations.
   - Add explicit generic handling for rigid one-bone skinned attachments that behave like bone children rather than true deforming skins.
   - Use this to resolve the remaining floating under-wing support/fairing assemblies without reintroducing aircraft-specific half-turn patches.
+  - Design and document a cleaner MSFS-native skinning architecture that derives bind/rest state from assembled joints and node transforms instead of trusting glTF inverse-bind accessors by default.
 
 - Broaden validation fixtures.
   - Confirm generic loader behavior on more than the current A330 and A320 packages.
