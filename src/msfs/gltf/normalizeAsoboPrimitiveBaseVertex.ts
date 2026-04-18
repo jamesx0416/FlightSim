@@ -1,4 +1,4 @@
-import { Mesh } from 'three'
+import { BufferAttribute, Mesh } from 'three'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 type GltfAssociation = {
@@ -57,7 +57,11 @@ export function normalizeAsoboPrimitiveBaseVertex(gltf: GLTF): void {
     const primitiveDef =
       parser.json.meshes?.[association.meshes]?.primitives?.[association.primitives]
     const baseVertexIndex = primitiveDef?.extras?.ASOBO_primitive?.BaseVertexIndex
-    if (!Number.isInteger(baseVertexIndex) || baseVertexIndex == null) {
+    if (
+      !Number.isInteger(baseVertexIndex) ||
+      baseVertexIndex == null ||
+      baseVertexIndex === 0
+    ) {
       return
     }
 
@@ -69,21 +73,33 @@ export function normalizeAsoboPrimitiveBaseVertex(gltf: GLTF): void {
       maxIndex = Math.max(maxIndex, value)
     }
 
-    if (
-      !Number.isFinite(minIndex) ||
-      !Number.isFinite(maxIndex) ||
-      maxIndex < position.count ||
-      minIndex < baseVertexIndex ||
-      maxIndex - baseVertexIndex >= position.count
-    ) {
+    if (!Number.isFinite(minIndex) || !Number.isFinite(maxIndex)) {
       return
     }
 
-    for (let offset = 0; offset < index.count; offset += 1) {
-      index.setX(offset, index.getX(offset) - baseVertexIndex)
+    const indicesArePrimitiveLocal =
+      minIndex < baseVertexIndex && maxIndex + baseVertexIndex < position.count
+    const indicesAlreadySharedAbsolute =
+      maxIndex < position.count
+    const indicesNeedRebasing =
+      minIndex >= baseVertexIndex && maxIndex - baseVertexIndex < position.count
+
+    if (indicesArePrimitiveLocal) {
+      const nextIndexArray = new Uint32Array(index.count)
+      for (let offset = 0; offset < index.count; offset += 1) {
+        nextIndexArray[offset] = index.getX(offset) + baseVertexIndex
+      }
+      geometry.setIndex(new BufferAttribute(nextIndexArray, 1))
+    } else if (indicesNeedRebasing && !indicesAlreadySharedAbsolute) {
+      for (let offset = 0; offset < index.count; offset += 1) {
+        index.setX(offset, index.getX(offset) - baseVertexIndex)
+      }
+
+      index.needsUpdate = true
+    } else {
+      return
     }
 
-    index.needsUpdate = true
     geometry.computeBoundingBox()
     geometry.computeBoundingSphere()
     adjustedGeometries.add(geometry)
