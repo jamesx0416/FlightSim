@@ -187,6 +187,17 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
 - Distinguish mesh-space breakage from window material/transparency handling.
 - Fix it generically.
 
+### 5d. Cockpit Shell / Instrument Runtime Staging
+
+- Do not land full cockpit/instrument support as one step.
+- Stage the work generically in this order:
+  - optional cockpit/interior glTF loading
+  - generic `panel.cfg` `VCockpit` surface binding to dynamic textures
+  - HTML gauge rendering onto those surfaces
+  - WASM instrument handling only after the runtime/environment contract is clear
+- Keep the path opt-in until progressive aircraft loading exists, so cockpit work does not become the default startup-time regression while exterior iteration is still the main workflow.
+- Use the official `cockpit.cfg` / `panel.cfg` docs as the contract, not A320-specific HTML names or hardcoded instrument layouts.
+
 ### 6. Missing Stock Templates / Includes
 
 - Reproduce and inventory the remaining unresolved stock Asobo includes and templates.
@@ -281,6 +292,12 @@ This section tracks the next authoritative, aircraft-generic loader work.
   - Add explicit generic handling for rigid one-bone skinned attachments that behave like bone children rather than true deforming skins.
   - Use this to resolve the remaining floating under-wing support/fairing assemblies without reintroducing aircraft-specific half-turn patches.
   - Design and document a cleaner MSFS-native skinning architecture that derives bind/rest state from assembled joints and node transforms instead of trusting glTF inverse-bind accessors by default.
+
+- Add cockpit/instrument support in staged opt-in form.
+  - Start with optional interior/cockpit shell loading, not default-on loading.
+  - Then wire generic `panel.cfg` `VCockpit` surfaces to dynamic textures.
+  - Add HTML-gauge rendering only after that texture path exists and can be profiled independently.
+  - Treat WASM gauges as a separate runtime milestone and document blockers explicitly if the sim-host environment is unavailable.
 
 - Broaden validation fixtures.
   - Confirm generic loader behavior on more than the current A330 and A320 packages.

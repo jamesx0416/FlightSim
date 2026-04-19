@@ -73,3 +73,18 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - `PASSENGER_DOOR_COMP.PNG.DDS`, `CARGO_DOOR_COMP.PNG.DDS`, `RIVETS_COMP.PNG.DDS`, and `CARGO_SOUTE_COMP.PNG.DDS` are still dangling package-local refs rather than shared glass assets
 - Next step:
   - validate texture fallback behavior against a real SDK/shared-sim asset root before deciding on any generic loader fallback policy
+
+## 7. Stage Cockpit / Instrument Support Without Regressing Startup
+
+- Status: planned, not implemented yet.
+- Findings:
+  - the repo currently imports `panel.cfg` as package data, but it does not yet render `VCockpit` panel textures or execute `htmlgauge` / `WasmInstrument` entries
+  - the A320 cockpit path is substantially heavier than the exterior-only path, so enabling it by default now would make the current startup-time problem worse
+  - cockpit shell/interior geometry, HTML gauges, and WASM-backed instruments should be treated as separate milestones rather than one feature
+- Plan:
+  - add cockpit shell/interior loading first as an opt-in path, not a default path
+  - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically
+  - add HTML gauge rendering after that, one family at a time, with a runtime bridge for panel textures
+  - treat WASM instruments as a later milestone with explicit blocker handling if the required runtime environment is not available
+- Constraint:
+  - keep cockpit/instrument work behind query flags or equivalent opt-in controls until the loader has a generic progressive-loading path that protects the exterior test loop
