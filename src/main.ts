@@ -4,6 +4,7 @@ import {
   Clock,
   Color,
   DirectionalLight,
+  Euler,
   Group,
   HemisphereLight,
   Material,
@@ -170,6 +171,7 @@ async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'scene:ready', aircraftId: aircraft.id })
   centerObjectAtOrigin(aircraftRoot)
   fitCameraToObject(camera, controls, aircraftRoot)
+  installCockpitCameraShortcut(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
 
   const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never, aircraft)
@@ -627,6 +629,170 @@ function fitCameraToObject(
   camera.updateProjectionMatrix()
   controls.target.copy(center).add(new Vector3(0, radius * 0.1, radius * 0.08))
   controls.update()
+}
+
+type CockpitCameraDefinition = {
+  readonly position: Vector3
+  readonly rotationPbhDegrees: Vector3
+}
+
+const FEET_TO_METERS = 0.3048
+let disposeCockpitCameraShortcut: (() => void) | null = null
+
+function installCockpitCameraShortcut(
+  camera: PerspectiveCamera,
+  controls: OrbitControls,
+  aircraftRoot: Group,
+  aircraft: ImportedAircraft
+): void {
+  disposeCockpitCameraShortcut?.()
+  disposeCockpitCameraShortcut = null
+
+  const cockpitCamera = resolveCockpitCameraDefinition(aircraft)
+  if (cockpitCamera == null) {
+    return
+  }
+
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.repeat || event.code !== 'KeyC' || shouldIgnoreKeyboardShortcut(event)) {
+      return
+    }
+
+    const worldPosition = aircraftRoot.localToWorld(cockpitCamera.position.clone())
+    const orientation = new Euler(
+      degreesToRadians(cockpitCamera.rotationPbhDegrees.x),
+      degreesToRadians(cockpitCamera.rotationPbhDegrees.z),
+      degreesToRadians(cockpitCamera.rotationPbhDegrees.y),
+      'YXZ'
+    )
+    const forward = new Vector3(0, 0, 1).applyEuler(orientation).normalize()
+    const up = new Vector3(0, 1, 0).applyEuler(orientation).normalize()
+
+    camera.position.copy(worldPosition)
+    camera.up.copy(up)
+    controls.target.copy(worldPosition).add(forward.multiplyScalar(12))
+    camera.updateProjectionMatrix()
+    controls.update()
+    event.preventDefault()
+  }
+
+  window.addEventListener('keydown', onKeyDown)
+  disposeCockpitCameraShortcut = () => {
+    window.removeEventListener('keydown', onKeyDown)
+  }
+}
+
+function resolveCockpitCameraDefinition(
+  aircraft: ImportedAircraft
+): CockpitCameraDefinition | null {
+  const camerasCfg = aircraft.cfgFiles.find(file => file.kind === 'cameras')
+  if (camerasCfg == null) {
+    return null
+  }
+
+  const viewsSection = camerasCfg.sections.find(section => section.name.toLowerCase() === 'views')
+  const eyepoint = parseNumericTriple(viewsSection?.values.get('eyepoint')) ?? [0, 0, 0]
+
+  const cameraSections = camerasCfg.sections
+    .filter(section => section.name.toLowerCase().startsWith('cameradefinition.'))
+    .map(section => {
+      const initialXyz = parseNumericTriple(section.values.get('initialxyz'))
+      const initialPbh = parseNumericTriple(section.values.get('initialpbh'))
+      if (initialXyz == null || initialPbh == null) {
+        return null
+      }
+
+      return {
+        origin: normalizeCfgValue(section.values.get('origin')),
+        category: normalizeCfgValue(section.values.get('category')),
+        subCategory: normalizeCfgValue(section.values.get('subcategory')),
+        subCategoryItem: normalizeCfgValue(section.values.get('subcategoryitem')),
+        title: normalizeCfgValue(section.values.get('title')),
+        initialXyz,
+        initialPbh
+      }
+    })
+    .filter((section): section is NonNullable<typeof section> => section != null)
+
+  const selectedCamera =
+    cameraSections.find(section =>
+      section.origin === 'virtual cockpit' &&
+      section.category === 'cockpit' &&
+      section.subCategory === 'pilot' &&
+      section.subCategoryItem === 'defaultpilot'
+    ) ??
+    cameraSections.find(section =>
+      section.origin === 'virtual cockpit' &&
+      section.category === 'cockpit' &&
+      section.subCategory === 'pilot'
+    ) ??
+    cameraSections.find(section => section.origin === 'virtual cockpit') ??
+    null
+
+  if (selectedCamera == null) {
+    return null
+  }
+
+  const [eyeLongitudinalFeet, eyeLateralFeet, eyeVerticalFeet] = eyepoint
+  const [offsetLateralFeet, offsetVerticalFeet, offsetLongitudinalFeet] =
+    selectedCamera.initialXyz
+
+  const localPosition = new Vector3(
+    -(eyeLateralFeet + offsetLateralFeet) * FEET_TO_METERS,
+    (eyeVerticalFeet + offsetVerticalFeet) * FEET_TO_METERS,
+    (eyeLongitudinalFeet + offsetLongitudinalFeet) * FEET_TO_METERS
+  )
+  const [pitchDegrees, bankDegrees, headingDegrees] = selectedCamera.initialPbh
+
+  return {
+    position: localPosition,
+    rotationPbhDegrees: new Vector3(pitchDegrees, bankDegrees, headingDegrees)
+  }
+}
+
+function parseNumericTriple(value: string | undefined): [number, number, number] | null {
+  if (value == null) {
+    return null
+  }
+
+  const parts = value
+    .split(',')
+    .map(part => Number.parseFloat(part.trim()))
+
+  if (parts.length < 3 || parts.slice(0, 3).some(part => Number.isNaN(part))) {
+    return null
+  }
+
+  return [parts[0]!, parts[1]!, parts[2]!]
+}
+
+function normalizeCfgValue(value: string | undefined): string {
+  return value?.trim().toLowerCase() ?? ''
+}
+
+function shouldIgnoreKeyboardShortcut(event: KeyboardEvent): boolean {
+  if (event.metaKey || event.ctrlKey || event.altKey) {
+    return true
+  }
+
+  const target = event.target
+  if (!(target instanceof HTMLElement)) {
+    return false
+  }
+
+  if (target.isContentEditable) {
+    return true
+  }
+
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement
+  )
+}
+
+function degreesToRadians(value: number): number {
+  return (value * Math.PI) / 180
 }
 
 function computeApproximateBounds(object: Group): Box3 {
