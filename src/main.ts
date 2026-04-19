@@ -51,6 +51,7 @@ async function init(): Promise<void> {
   const backgroundColor = new Color('#405264')
   const searchParams = new URLSearchParams(window.location.search)
   const packageRoot = resolveRequestedPackageRoot(searchParams)
+  const requestedLodIndex = resolveRequestedLodIndex(searchParams)
   const additionalPackageRoots = resolveAdditionalPackageRoots(searchParams)
   const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
   setGlobalLoadStage({ stage: 'import:package', packageRoot })
@@ -83,12 +84,12 @@ async function init(): Promise<void> {
     throw new Error('No importable aircraft model was found in the configured package.')
   }
 
+  const scene = new Scene()
+
   setGlobalLoadStage({ stage: 'compile:behaviors', aircraftId: aircraft.id })
-  const compiledBehaviors = await compileMsfs2020Behaviors(packageData, aircraft, {
+  const compiledBehaviorsPromise = compileMsfs2020Behaviors(packageData, aircraft, {
     additionalPackageRoots
   })
-  ;(globalThis as Record<string, unknown>).__lastCompiledBehaviors = compiledBehaviors
-  const scene = new Scene()
 
   setGlobalLoadStage({ stage: 'renderer:create', aircraftId: aircraft.id })
   const rendererInfo = await createAppRenderer()
@@ -136,13 +137,21 @@ async function init(): Promise<void> {
   }
 
   setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
-  const gltf = await loadAircraftGltf(
+  const gltfPromise = loadAircraftGltf(
     aircraft,
     packageData.rootUrl,
     packageData.layoutEntries.map(entry => entry.path),
     additionalAssetRoots,
-    rendererInfo
+    rendererInfo,
+    {
+      preferredLodIndex: requestedLodIndex
+    }
   )
+  const [compiledBehaviors, gltf] = await Promise.all([
+    compiledBehaviorsPromise,
+    gltfPromise
+  ])
+  ;(globalThis as Record<string, unknown>).__lastCompiledBehaviors = compiledBehaviors
   setGlobalLoadStage({ stage: 'gltf:loaded', aircraftId: aircraft.id })
   ;(globalThis as Record<string, unknown>).__lastLoadedGltf = gltf
   const aircraftRoot = new Group()
@@ -294,7 +303,10 @@ async function loadAircraftGltf(
   packageRootUrl: string,
   layoutPaths: readonly string[],
   additionalAssetRoots: readonly AssetRoot[],
-  rendererInfo: RendererInfo
+  rendererInfo: RendererInfo,
+  options: {
+    readonly preferredLodIndex?: number | null
+  } = {}
 ): Promise<GLTF> {
   if (aircraft.model == null) {
     throw new Error(`Aircraft ${aircraft.id} does not have a model to load.`)
@@ -315,7 +327,15 @@ async function loadAircraftGltf(
 
   let lastError: unknown = null
   const lods = [...aircraft.model.lods].sort((left, right) => right.minSize - left.minSize)
-  for (const lod of lods) {
+  const preferredLodIndex = options.preferredLodIndex ?? null
+  const loadOrder =
+    preferredLodIndex != null && preferredLodIndex >= 0 && preferredLodIndex < lods.length
+      ? [
+          lods[preferredLodIndex]!,
+          ...lods.filter((_, index) => index !== preferredLodIndex)
+        ]
+      : lods
+  for (const lod of loadOrder) {
     try {
       setGlobalLoadStage({
         stage: 'gltf:lod:fetch',
@@ -759,6 +779,20 @@ function resolveRequestedPackageRoot(searchParams: URLSearchParams): string {
       import.meta.env.VITE_MSFS_PACKAGE_ROOT ||
       DEFAULT_PACKAGE_ROOT
   )
+}
+
+function resolveRequestedLodIndex(searchParams: URLSearchParams): number | null {
+  const rawValue = searchParams.get('lod')
+  if (rawValue == null || rawValue.trim() === '') {
+    return null
+  }
+
+  const parsed = Number.parseInt(rawValue, 10)
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`Invalid lod query parameter "${rawValue}". Expected a zero-based integer.`)
+  }
+
+  return parsed
 }
 
 function resolveAdditionalPackageRoots(searchParams: URLSearchParams): string[] {
