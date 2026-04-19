@@ -270,6 +270,10 @@ This section tracks the next authoritative, aircraft-generic loader work.
 
 - Tighten stock/shared texture fallback resolution.
   - Generic additional package-root support is now in place for texture fallback lookup as well.
+  - Current finding on the A320 route:
+    - `../../../../texture/Glass` is the relevant shared fallback path for the missing glass maps under investigation
+    - `../../../../texture/Interiors` appears in the standard fallback chain but is not implicated by the current missing A320 texture names
+    - several missing `*_COMP` files are genuine dangling package-local refs and should not be treated as shared-stock-texture misses
   - Next step is to validate against real dependency packages such as `fs-base-aircraft-common`.
 
 - Improve optimized/skinned mesh compatibility.

@@ -62,3 +62,14 @@ This file tracks the immediate investigation items for the live aircraft viewer.
 - Why it was missed:
   - earlier loader work focused on DDS/material/runtime issues, and this failure can look like a visibility or texture problem until culling is isolated directly
   - no single MSFS metadata flag was missing here; this was a geometry-compatibility issue in the optimized mesh path
+
+## 6. Check Missing Texture Fallback Provenance
+
+- Status: investigated, no change committed yet.
+- Findings:
+  - the current A320 missing glass names line up with shared fallback lookup, especially `../../../../texture/Glass`
+  - `texture/Interiors` appears to be a generic fallback-chain entry, but it is not implicated by the specific missing A320 texture names currently under investigation
+  - `GLASS_DEFAULTDIRT_COMP.PNG.DDS` and `GLASS_DETAILMAP02_MASK.PNG.DDS` are absent from the A320 package but do exist in the local A330 package, which is consistent with a shared/fallback asset expectation
+  - `PASSENGER_DOOR_COMP.PNG.DDS`, `CARGO_DOOR_COMP.PNG.DDS`, `RIVETS_COMP.PNG.DDS`, and `CARGO_SOUTE_COMP.PNG.DDS` are still dangling package-local refs rather than shared glass assets
+- Next step:
+  - validate texture fallback behavior against a real SDK/shared-sim asset root before deciding on any generic loader fallback policy
