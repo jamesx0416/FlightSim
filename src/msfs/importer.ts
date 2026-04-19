@@ -418,7 +418,20 @@ async function importAircraftRecord(
     const model = await importModelDefinition(
       [fltsim.record, ...chain],
       section.values.get('model') ?? '',
-      context
+      context,
+      {
+        modelKind: 'normal',
+        required: true
+      }
+    )
+    const interiorModel = await importModelDefinition(
+      [fltsim.record, ...chain],
+      section.values.get('model') ?? '',
+      context,
+      {
+        modelKind: 'interior',
+        required: false
+      }
     )
 
     const title =
@@ -445,6 +458,7 @@ async function importAircraftRecord(
       isUserSelectable: parseBoolean(section.values.get('isuserselectable')),
       isFlyable: parseBoolean(section.values.get('isflyable')),
       model,
+      interiorModel,
       cfgFiles,
       previewFlightState
     })
@@ -456,7 +470,11 @@ async function importAircraftRecord(
 async function importModelDefinition(
   aircraftRecords: readonly AircraftCfgRecord[],
   modelSuffix: string,
-  context: ImportContext
+  context: ImportContext,
+  options: {
+    readonly modelKind: 'normal' | 'interior'
+    readonly required: boolean
+  }
 ): Promise<ImportedModelDefinition | null> {
   const candidateModelDirectories = getModelDirectoryCandidates(
     aircraftRecords,
@@ -485,15 +503,18 @@ async function importModelDefinition(
   if (modelCfgText == null) return null
 
   const modelCfgSections = parseCfg(modelCfgText)
+  const modelOptionsSection = getCfgSection(modelCfgSections, 'model.options')
   const modelsSection = getCfgSection(modelCfgSections, 'models')
-  const behaviorFile = modelsSection?.values.get('normal')
+  const behaviorFile = modelsSection?.values.get(options.modelKind)
   if (!behaviorFile) {
-    context.diagnostics.push({
-      code: 'model_behavior_missing',
-      message: `No [models].normal entry was found in ${modelCfgPath}.`,
-      severity: 'warning',
-      sourcePath: modelCfgPath
-    })
+    if (options.required) {
+      context.diagnostics.push({
+        code: 'model_behavior_missing',
+        message: `No [models].${options.modelKind} entry was found in ${modelCfgPath}.`,
+        severity: 'warning',
+        sourcePath: modelCfgPath
+      })
+    }
     return null
   }
 
@@ -682,7 +703,21 @@ async function importModelDefinition(
     lods,
     behaviorIncludes,
     nodeAnimations,
-    modelAttachments
+    modelAttachments,
+    modelOptions: {
+      withExteriorShowInterior: parseBoolean(
+        modelOptionsSection?.values.get('withexterior_showinterior')
+      ),
+      withExteriorShowInteriorHideFirstLod: parseBoolean(
+        modelOptionsSection?.values.get('withexterior_showinterior_hidefirstlod')
+      ),
+      withInteriorForceFirstLod: parseBoolean(
+        modelOptionsSection?.values.get('withinterior_forcefirstlod')
+      ),
+      withInteriorShowExterior: parseBoolean(
+        modelOptionsSection?.values.get('withinterior_showexterior')
+      ),
+    }
   }
 }
 

@@ -30,11 +30,13 @@ import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
 import type { ImportedAircraft, RuntimeState } from './msfs/types'
+import type { ImportedModelDefinition } from './msfs/types'
 import {
   createAircraftEnvironment,
   createAppRenderer,
   type AppRenderer,
   createNodeMaterialFactory,
+  type NodeMaterialFactory,
   type RendererInfo
 } from './rendering/createAppRenderer'
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
@@ -44,6 +46,11 @@ const DEFAULT_STOCK_BEHAVIOR_ROOT = '/vendor/msfs-stock/'
 type AssetRoot = {
   readonly rootUrl: string
   readonly layoutPathIndex: ReadonlySet<string>
+}
+
+type LoadedAircraftModel = {
+  readonly scene: Group
+  readonly animations: GLTF['animations']
 }
 
 async function init(): Promise<void> {
@@ -307,7 +314,7 @@ async function loadAircraftGltf(
   options: {
     readonly preferredLodIndex?: number | null
   } = {}
-): Promise<GLTF> {
+): Promise<LoadedAircraftModel> {
   if (aircraft.model == null) {
     throw new Error(`Aircraft ${aircraft.id} does not have a model to load.`)
   }
@@ -325,9 +332,49 @@ async function loadAircraftGltf(
   })
   const createNodeMaterial = createNodeMaterialFactory(rendererInfo.renderer)
 
+  const loadedScene = new Group()
+  const loadedAnimations: GLTF['animations'] = []
+
+  const modelDefinitions = [aircraft.model]
+  if (
+    aircraft.interiorModel != null &&
+    aircraft.model.modelOptions.withExteriorShowInterior
+  ) {
+    modelDefinitions.push(aircraft.interiorModel)
+  }
+
+  for (const modelDefinition of modelDefinitions) {
+    const modelPreferredLodIndex =
+      modelDefinition === aircraft.interiorModel &&
+      aircraft.model.modelOptions.withExteriorShowInteriorHideFirstLod
+        ? Math.max(options.preferredLodIndex ?? 1, 1)
+        : options.preferredLodIndex ?? null
+    const gltf = await loadAircraftModelDefinitionGltf(
+      loader,
+      aircraft,
+      modelDefinition,
+      createNodeMaterial,
+      modelPreferredLodIndex
+    )
+    loadedScene.add(gltf.scene)
+    loadedAnimations.push(...gltf.animations)
+  }
+
+  return {
+    scene: loadedScene,
+    animations: loadedAnimations
+  }
+}
+
+async function loadAircraftModelDefinitionGltf(
+  loader: GLTFLoader,
+  aircraft: ImportedAircraft,
+  modelDefinition: ImportedModelDefinition,
+  createNodeMaterial: NodeMaterialFactory,
+  preferredLodIndex: number | null
+): Promise<GLTF> {
   let lastError: unknown = null
-  const lods = [...aircraft.model.lods].sort((left, right) => right.minSize - left.minSize)
-  const preferredLodIndex = options.preferredLodIndex ?? null
+  const lods = [...modelDefinition.lods].sort((left, right) => right.minSize - left.minSize)
   const loadOrder =
     preferredLodIndex != null && preferredLodIndex >= 0 && preferredLodIndex < lods.length
       ? [
@@ -335,6 +382,7 @@ async function loadAircraftGltf(
           ...lods.filter((_, index) => index !== preferredLodIndex)
         ]
       : lods
+
   for (const lod of loadOrder) {
     try {
       setGlobalLoadStage({
@@ -425,7 +473,7 @@ async function loadAircraftGltf(
 
   throw lastError instanceof Error
     ? lastError
-    : new Error('Failed to load any exterior model LOD.')
+    : new Error(`Failed to load any model LOD for ${modelDefinition.behaviorPath}.`)
 }
 
 async function loadMsfsGltfLod(
