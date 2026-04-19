@@ -261,16 +261,18 @@ export async function normalizeMsfsMaterials(
     }
   })
 
-  for (const material of materials) {
-    const normalizedMaterial = await normalizeMsfsMaterial(
-      material,
-      parser,
-      textureCache,
-      parser?.associations.get(material)?.materials,
-      options
-    )
-    materialReplacements.set(material, normalizedMaterial)
-  }
+  await Promise.all(
+    [...materials].map(async material => {
+      const normalizedMaterial = await normalizeMsfsMaterial(
+        material,
+        parser,
+        textureCache,
+        parser?.associations.get(material)?.materials,
+        options
+      )
+      materialReplacements.set(material, normalizedMaterial)
+    })
+  )
 
   if (materialReplacements.size > 0) {
     root.traverse(object => {
@@ -739,30 +741,37 @@ async function loadMsfsDetailTextures(
   textureCache: Map<number, Promise<Texture>>,
   extension: MsfsDetailMapExtension
 ): Promise<LoadedMsfsDetailTextures> {
-  const detailColorTexture = await loadMsfsTextureRef(
-    parser,
-    textureCache,
-    extension.detailColorTexture,
-    LinearSRGBColorSpace
-  )
-  const detailNormalTexture = await loadMsfsTextureRef(
-    parser,
-    textureCache,
-    extension.detailNormalTexture,
-    NoColorSpace
-  )
-  const detailMetalRoughAOTexture = await loadMsfsTextureRef(
-    parser,
-    textureCache,
-    extension.detailMetalRoughAOTexture,
-    NoColorSpace
-  )
-  const blendMaskTexture = await loadMsfsTextureRef(
-    parser,
-    textureCache,
-    extension.blendMaskTexture,
-    NoColorSpace
-  )
+  const [
+    detailColorTexture,
+    detailNormalTexture,
+    detailMetalRoughAOTexture,
+    blendMaskTexture
+  ] = await Promise.all([
+    loadMsfsTextureRef(
+      parser,
+      textureCache,
+      extension.detailColorTexture,
+      LinearSRGBColorSpace
+    ),
+    loadMsfsTextureRef(
+      parser,
+      textureCache,
+      extension.detailNormalTexture,
+      NoColorSpace
+    ),
+    loadMsfsTextureRef(
+      parser,
+      textureCache,
+      extension.detailMetalRoughAOTexture,
+      NoColorSpace
+    ),
+    loadMsfsTextureRef(
+      parser,
+      textureCache,
+      extension.blendMaskTexture,
+      NoColorSpace
+    )
+  ])
 
   return {
     detailColorTexture,
