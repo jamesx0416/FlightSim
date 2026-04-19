@@ -100,7 +100,10 @@ export async function compileMsfs2020Behaviors(
     builtinFallbackHits: new Set()
   }
 
-  await loadBehaviorDocument(aircraft.model.behaviorPath, context, sourceRoots[0] ?? null)
+  const aircraftModels = getAircraftModelDefinitions(aircraft)
+  for (const model of aircraftModels) {
+    await loadBehaviorDocument(model.behaviorPath, context, sourceRoots[0] ?? null)
+  }
 
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
@@ -112,10 +115,16 @@ export async function compileMsfs2020Behaviors(
 
   activeParameterFunctionMap = parameterFunctionMap
 
-  const rootDocument = sourceRoots.length > 0
-    ? loadedDocuments.get(`${sourceRoots[0]!.rootUrl}::${normalizePath(aircraft.model.behaviorPath)}`)
-    : null
-  if (rootDocument != null) {
+  const rootDocuments = sourceRoots.length > 0
+    ? aircraftModels
+        .map(model =>
+          loadedDocuments.get(
+            `${sourceRoots[0]!.rootUrl}::${normalizePath(model.behaviorPath)}`
+          ) ?? null
+        )
+        .filter((document): document is LoadedDocument => document != null)
+    : []
+  for (const rootDocument of rootDocuments) {
     traverseElement(
       rootDocument.rootElement,
       {
@@ -161,6 +170,11 @@ export async function compileMsfs2020Behaviors(
 
   activeParameterFunctionMap = new Map()
   return compiled
+}
+
+function getAircraftModelDefinitions(aircraft: ImportedAircraft) {
+  return [aircraft.model, aircraft.interiorModel]
+    .filter((model): model is NonNullable<typeof model> => model != null)
 }
 
 async function loadBehaviorDocumentShallow(

@@ -44,6 +44,14 @@ export interface ImportedModelDefinition {
   readonly behaviorIncludes: readonly ModelBehaviorReference[]
   readonly nodeAnimations: readonly ModelNodeAnimation[]
   readonly modelAttachments: readonly ImportedModelAttachment[]
+  readonly modelOptions: ImportedModelOptions
+}
+
+export interface ImportedModelOptions {
+  readonly withExteriorShowInterior: boolean
+  readonly withExteriorShowInteriorHideFirstLod: boolean
+  readonly withInteriorForceFirstLod: boolean
+  readonly withInteriorShowExterior: boolean
 }
 
 export interface ModelNodeAnimation {
@@ -91,6 +99,7 @@ export interface ImportedAircraft {
   readonly isUserSelectable: boolean
   readonly isFlyable: boolean
   readonly model: ImportedModelDefinition | null
+  readonly interiorModel: ImportedModelDefinition | null
   readonly cfgFiles: readonly ImportedCfgFile[]
   readonly previewFlightState: ImportedFlightState | null
 }
