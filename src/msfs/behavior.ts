@@ -21,6 +21,9 @@ interface BehaviorSourceRoot {
   readonly layoutPathIndex: ReadonlyMap<string, string>
 }
 
+const behaviorSourceRootCache = new Map<string, Promise<BehaviorSourceRoot | null>>()
+const behaviorDocumentCache = new Map<string, Promise<LoadedDocument | null>>()
+
 interface CompileContext {
   readonly pkg: ImportedPackage
   readonly aircraft: ImportedAircraft
@@ -97,7 +100,6 @@ export async function compileMsfs2020Behaviors(
     builtinFallbackHits: new Set()
   }
 
-  await preloadMountedAsoboDocuments(context)
   await loadBehaviorDocument(aircraft.model.behaviorPath, context, sourceRoots[0] ?? null)
 
   const animationBindings: CompiledAnimationBinding[] = []
@@ -161,20 +163,6 @@ export async function compileMsfs2020Behaviors(
   return compiled
 }
 
-async function preloadMountedAsoboDocuments(context: CompileContext): Promise<void> {
-  const preloadTasks: Promise<void>[] = []
-
-  for (const root of context.sourceRoots) {
-    for (const layoutPath of root.layoutPathIndex.values()) {
-      if (!layoutPath.endsWith('.xml')) continue
-      if (!layoutPath.startsWith('ModelBehaviorDefs/Asobo/')) continue
-      preloadTasks.push(loadBehaviorDocumentShallow(layoutPath, context, root))
-    }
-  }
-
-  await Promise.all(preloadTasks)
-}
-
 async function loadBehaviorDocumentShallow(
   path: string,
   context: CompileContext,
@@ -186,25 +174,17 @@ async function loadBehaviorDocumentShallow(
   }
 
   const documentKey = `${resolvedDocument.root.rootUrl}::${resolvedDocument.path}`
-  if (context.loadedDocuments.has(documentKey)) return
-
-  const response = await fetch(new URL(resolvedDocument.path, resolvedDocument.root.rootUrl))
-  if (!response.ok) {
+  if (context.loadedDocuments.has(documentKey)) {
     return
   }
 
-  const text = await response.text()
-  const parsedDocument = parseBehaviorDocument(text)
-  if (parsedDocument == null) {
-    return
+  const loadedDocument = await loadBehaviorDocumentFromCache(
+    resolvedDocument.root.rootUrl,
+    resolvedDocument.path
+  )
+  if (loadedDocument != null) {
+    context.loadedDocuments.set(documentKey, loadedDocument)
   }
-
-  context.loadedDocuments.set(documentKey, {
-    rootUrl: resolvedDocument.root.rootUrl,
-    path: resolvedDocument.path,
-    document: parsedDocument.document,
-    rootElement: parsedDocument.rootElement
-  })
 }
 
 async function loadBehaviorDocument(
@@ -226,8 +206,11 @@ async function loadBehaviorDocument(
   const documentKey = `${resolvedDocument.root.rootUrl}::${resolvedDocument.path}`
   if (context.loadedDocuments.has(documentKey)) return
 
-  const response = await fetch(new URL(resolvedDocument.path, resolvedDocument.root.rootUrl))
-  if (!response.ok) {
+  const loadedDocument = await loadBehaviorDocumentFromCache(
+    resolvedDocument.root.rootUrl,
+    resolvedDocument.path
+  )
+  if (loadedDocument == null) {
     context.diagnostics.push({
       code: 'behavior_document_missing',
       message: `Behavior document ${resolvedDocument.path} could not be loaded.`,
@@ -237,26 +220,9 @@ async function loadBehaviorDocument(
     return
   }
 
-  const text = await response.text()
-  const parsedDocument = parseBehaviorDocument(text)
-  if (parsedDocument == null) {
-    context.diagnostics.push({
-      code: 'behavior_document_invalid_xml',
-      message: `Behavior document ${resolvedDocument.path} could not be parsed.`,
-      severity: 'warning',
-      sourcePath: resolvedDocument.path
-    })
-    return
-  }
+  context.loadedDocuments.set(documentKey, loadedDocument)
 
-  context.loadedDocuments.set(documentKey, {
-    rootUrl: resolvedDocument.root.rootUrl,
-    path: resolvedDocument.path,
-    document: parsedDocument.document,
-    rootElement: parsedDocument.rootElement
-  })
-
-  for (const includeNode of parsedDocument.rootElement.querySelectorAll('Include')) {
+  for (const includeNode of loadedDocument.rootElement.querySelectorAll('Include')) {
     const includedPath = resolveIncludePath(resolvedDocument.path, includeNode)
     if (!includedPath) continue
     await loadBehaviorDocument(includedPath, context, resolvedDocument.root)
@@ -317,6 +283,20 @@ async function tryLoadBehaviorSourceRoot(
   rootUrl: string,
   diagnostics: ImportDiagnostic[]
 ): Promise<BehaviorSourceRoot | null> {
+  const cached = behaviorSourceRootCache.get(rootUrl)
+  if (cached != null) {
+    return cached
+  }
+
+  const pending = tryLoadBehaviorSourceRootUncached(rootUrl, diagnostics)
+  behaviorSourceRootCache.set(rootUrl, pending)
+  return pending
+}
+
+async function tryLoadBehaviorSourceRootUncached(
+  rootUrl: string,
+  diagnostics: ImportDiagnostic[]
+): Promise<BehaviorSourceRoot | null> {
   try {
     const response = await fetch(new URL('layout.json', rootUrl))
     if (!response.ok) {
@@ -358,6 +338,44 @@ async function tryLoadBehaviorSourceRoot(
       details: error instanceof Error ? error.message : String(error)
     })
     return null
+  }
+}
+
+async function loadBehaviorDocumentFromCache(
+  rootUrl: string,
+  path: string
+): Promise<LoadedDocument | null> {
+  const cacheKey = `${rootUrl}::${path}`
+  const cached = behaviorDocumentCache.get(cacheKey)
+  if (cached != null) {
+    return cached
+  }
+
+  const pending = loadBehaviorDocumentFromCacheUncached(rootUrl, path)
+  behaviorDocumentCache.set(cacheKey, pending)
+  return pending
+}
+
+async function loadBehaviorDocumentFromCacheUncached(
+  rootUrl: string,
+  path: string
+): Promise<LoadedDocument | null> {
+  const response = await fetch(new URL(path, rootUrl))
+  if (!response.ok) {
+    return null
+  }
+
+  const text = await response.text()
+  const parsedDocument = parseBehaviorDocument(text)
+  if (parsedDocument == null) {
+    return null
+  }
+
+  return {
+    rootUrl,
+    path,
+    document: parsedDocument.document,
+    rootElement: parsedDocument.rootElement
   }
 }
 

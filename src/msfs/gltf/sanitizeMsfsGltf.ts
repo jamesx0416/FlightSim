@@ -54,13 +54,13 @@ const COMPONENT_BYTE_SIZES: Record<number, number> = {
 }
 
 export function sanitizeMsfsGltf(source: Record<string, unknown>): Record<string, unknown> {
-  const clone = structuredClone(source) as GltfJson
+  const gltf = source as GltfJson
 
-  sanitizeSkins(clone)
-  sanitizeImages(clone)
-  rewriteAsoboPrimitiveIndexSlices(clone)
+  sanitizeSkins(gltf)
+  sanitizeImages(gltf)
+  rewriteAsoboPrimitiveIndexSlices(gltf)
 
-  return clone as Record<string, unknown>
+  return source
 }
 
 function sanitizeSkins(gltf: GltfJson): void {
