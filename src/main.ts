@@ -988,7 +988,7 @@ function installCockpitCameraShortcut(
     const deltaY = event.clientY - lastPointerY
     lastPointerX = event.clientX
     lastPointerY = event.clientY
-    yawOffsetRadians -= deltaX * LOOK_RADIANS_PER_PIXEL
+    yawOffsetRadians += deltaX * LOOK_RADIANS_PER_PIXEL
     const nextPitchRadians = basePitchRadians + pitchOffsetRadians - deltaY * LOOK_RADIANS_PER_PIXEL
     pitchOffsetRadians = Math.min(
       MAX_PITCH_RADIANS,
