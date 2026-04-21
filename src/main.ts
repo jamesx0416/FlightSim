@@ -9,8 +9,10 @@ import {
   HemisphereLight,
   Material,
   Mesh,
+  Object3D,
   PerspectiveCamera,
   Scene,
+  Texture,
   Vector3
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -35,7 +37,6 @@ import type { ImportedModelDefinition } from './msfs/types'
 import {
   createAircraftEnvironment,
   createAppRenderer,
-  type AppRenderer,
   createNodeMaterialFactory,
   type NodeMaterialFactory,
   type RendererInfo
@@ -49,9 +50,25 @@ type AssetRoot = {
   readonly layoutPathIndex: ReadonlySet<string>
 }
 
+type LoadedModelComponent = {
+  readonly kind: 'exterior' | 'interior'
+  readonly modelDefinition: ImportedModelDefinition
+  readonly scene: Group
+  readonly animations: GLTF['animations']
+  readonly loadedLodIndex: number
+}
+
 type LoadedAircraftModel = {
   readonly scene: Group
   readonly animations: GLTF['animations']
+  readonly exterior: LoadedModelComponent
+  readonly interior: LoadedModelComponent | null
+}
+
+type AircraftModelLoadContext = {
+  readonly aircraft: ImportedAircraft
+  readonly createLoader: () => GLTFLoader
+  readonly createNodeMaterial: NodeMaterialFactory | null
 }
 
 async function init(): Promise<void> {
@@ -144,17 +161,17 @@ async function init(): Promise<void> {
     document.body.appendChild(selector)
   }
 
-  setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
-  const gltfPromise = loadAircraftGltf(
+  const aircraftModelLoadContext = createAircraftModelLoadContext(
     aircraft,
     packageData.rootUrl,
     packageData.layoutEntries.map(entry => entry.path),
     additionalAssetRoots,
-    rendererInfo,
-    {
-      preferredLodIndex: requestedLodIndex
-    }
+    rendererInfo
   )
+  setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
+  const gltfPromise = loadAircraftGltf(aircraftModelLoadContext, {
+    preferredLodIndex: requestedLodIndex
+  })
   const [compiledBehaviors, gltf] = await Promise.all([
     compiledBehaviorsPromise,
     gltfPromise
@@ -162,8 +179,9 @@ async function init(): Promise<void> {
   ;(globalThis as Record<string, unknown>).__lastCompiledBehaviors = compiledBehaviors
   setGlobalLoadStage({ stage: 'gltf:loaded', aircraftId: aircraft.id })
   ;(globalThis as Record<string, unknown>).__lastLoadedGltf = gltf
+  let loadedModel = gltf
   const aircraftRoot = new Group()
-  aircraftRoot.add(gltf.scene)
+  aircraftRoot.add(loadedModel.scene)
   scene.add(aircraftRoot)
   ;(globalThis as Record<string, unknown>).__lastAircraftRoot = aircraftRoot
   ;(globalThis as Record<string, unknown>).__lastScene = scene
@@ -171,14 +189,92 @@ async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'scene:ready', aircraftId: aircraft.id })
   centerObjectAtOrigin(aircraftRoot)
   fitCameraToObject(camera, controls, aircraftRoot)
-  installCockpitCameraShortcut(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
 
   const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never, aircraft)
-  const runtime = new AircraftRuntime(compiledBehaviors, gltf.scene, runtimeHost, aircraft)
-  const runtimeMaterialState = collectRuntimeMaterialState(gltf.scene)
+  let runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
+  let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
   ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
-  runtime.bindAnimations(gltf.animations)
+  runtime.bindAnimations(loadedModel.animations)
+
+  let hasRequestedCockpitInteriorLod00 = false
+  let interiorLodUpgradePromise: Promise<void> | null = null
+  const requestInteriorLod00Upgrade = (): void => {
+    if (!hasRequestedCockpitInteriorLod00) {
+      return
+    }
+    if (loadedModel.interior == null || loadedModel.interior.loadedLodIndex === 0) {
+      return
+    }
+    if (interiorLodUpgradePromise != null) {
+      return
+    }
+
+    interiorLodUpgradePromise = (async () => {
+      try {
+        const interiorModel = aircraft.interiorModel
+        if (interiorModel == null) {
+          return
+        }
+
+        setGlobalLoadStage({
+          stage: 'gltf:interior-upgrade:start',
+          aircraftId: aircraft.id
+        })
+        const nextInterior = await loadAircraftModelComponent(
+          aircraftModelLoadContext,
+          interiorModel,
+          {
+            kind: 'interior',
+            preferredLodIndex: 0,
+            fallbackToOtherLods: false
+          }
+        )
+        const previousInterior = loadedModel.interior
+        if (previousInterior == null || previousInterior.loadedLodIndex === 0) {
+          disposeDetachedSceneResources(nextInterior.scene, loadedModel.scene)
+          return
+        }
+
+        loadedModel.scene.remove(previousInterior.scene)
+        loadedModel.scene.add(nextInterior.scene)
+        loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
+        ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
+
+        runtime.dispose()
+        runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
+        runtime.bindAnimations(loadedModel.animations)
+        runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
+        runtimeState = runtime.update(0)
+        ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
+
+        disposeDetachedSceneResources(previousInterior.scene, loadedModel.scene)
+        setGlobalLoadStage({
+          stage: 'gltf:interior-upgrade:ready',
+          aircraftId: aircraft.id
+        })
+      } catch (error) {
+        setGlobalLoadStage({
+          stage: 'gltf:interior-upgrade:error',
+          aircraftId: aircraft.id,
+          error: error instanceof Error ? error.message : String(error)
+        })
+        console.error('Failed to upgrade interior LOD.', error)
+      } finally {
+        interiorLodUpgradePromise = null
+      }
+    })()
+  }
+  installCockpitCameraShortcut(
+    camera,
+    controls,
+    aircraftRoot,
+    aircraft,
+    () => {
+      hasRequestedCockpitInteriorLod00 = true
+      requestInteriorLod00Upgrade()
+    }
+  )
 
   const clock = new Clock()
   let runtimeState: RuntimeState = runtime.update(0)
@@ -307,20 +403,13 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
-async function loadAircraftGltf(
+function createAircraftModelLoadContext(
   aircraft: ImportedAircraft,
   packageRootUrl: string,
   layoutPaths: readonly string[],
   additionalAssetRoots: readonly AssetRoot[],
-  rendererInfo: RendererInfo,
-  options: {
-    readonly preferredLodIndex?: number | null
-  } = {}
-): Promise<LoadedAircraftModel> {
-  if (aircraft.model == null) {
-    throw new Error(`Aircraft ${aircraft.id} does not have a model to load.`)
-  }
-
+  rendererInfo: RendererInfo
+): AircraftModelLoadContext {
   const textureUrlResolver = createTextureUrlResolver(
     aircraft,
     packageRootUrl,
@@ -328,64 +417,142 @@ async function loadAircraftGltf(
     additionalAssetRoots
   )
   const decodeNormalSources = rendererInfo.hasBcTextureCompression === false
-  const loader = createMsfsGltfLoader({
-    urlResolver: textureUrlResolver,
-    decodeNormalSources,
-  })
-  const createNodeMaterial = createNodeMaterialFactory(rendererInfo.renderer)
 
-  const loadedScene = new Group()
-  const loadedAnimations: GLTF['animations'] = []
+  return {
+    aircraft,
+    createLoader: () =>
+      createMsfsGltfLoader({
+        urlResolver: textureUrlResolver,
+        decodeNormalSources,
+      }),
+    createNodeMaterial: createNodeMaterialFactory(rendererInfo.renderer)
+  }
+}
 
-  const modelDefinitions = [aircraft.model]
-  if (
-    aircraft.interiorModel != null &&
-    aircraft.model.modelOptions.withExteriorShowInterior
-  ) {
-    modelDefinitions.push(aircraft.interiorModel)
+async function loadAircraftGltf(
+  context: AircraftModelLoadContext,
+  options: {
+    readonly preferredLodIndex?: number | null
+  } = {}
+): Promise<LoadedAircraftModel> {
+  const { aircraft } = context
+  if (aircraft.model == null) {
+    throw new Error(`Aircraft ${aircraft.id} does not have a model to load.`)
   }
 
-  for (const modelDefinition of modelDefinitions) {
-    const modelPreferredLodIndex =
-      modelDefinition === aircraft.interiorModel &&
-      aircraft.model.modelOptions.withExteriorShowInteriorHideFirstLod
-        ? Math.max(options.preferredLodIndex ?? 1, 1)
-        : options.preferredLodIndex ?? null
-    const gltf = await loadAircraftModelDefinitionGltf(
-      loader,
-      aircraft,
-      modelDefinition,
-      createNodeMaterial,
-      modelPreferredLodIndex
-    )
-    loadedScene.add(gltf.scene)
-    loadedAnimations.push(...gltf.animations)
+  const exterior = await loadAircraftModelComponent(context, aircraft.model, {
+    kind: 'exterior',
+    preferredLodIndex: options.preferredLodIndex ?? null
+  })
+  const interior =
+    aircraft.interiorModel != null && aircraft.model.modelOptions.withExteriorShowInterior
+      ? await loadAircraftModelComponent(context, aircraft.interiorModel, {
+          kind: 'interior',
+          preferredLodIndex: aircraft.model.modelOptions.withExteriorShowInteriorHideFirstLod
+            ? Math.max(options.preferredLodIndex ?? 1, 1)
+            : options.preferredLodIndex ?? null
+        })
+      : null
+
+  return combineLoadedAircraftModel(exterior, interior)
+}
+
+async function loadAircraftModelComponent(
+  context: AircraftModelLoadContext,
+  modelDefinition: ImportedModelDefinition,
+  options: {
+    readonly kind: LoadedModelComponent['kind']
+    readonly preferredLodIndex: number | null
+    readonly fallbackToOtherLods?: boolean
+  }
+): Promise<LoadedModelComponent> {
+  const loader = context.createLoader()
+  const loaded = await loadAircraftModelDefinitionGltf(
+    loader,
+    context.aircraft,
+    modelDefinition,
+    context.createNodeMaterial,
+    options.preferredLodIndex,
+    options.fallbackToOtherLods ?? true
+  )
+
+  return {
+    kind: options.kind,
+    modelDefinition,
+    scene: loaded.gltf.scene,
+    animations: loaded.gltf.animations,
+    loadedLodIndex: loaded.loadedLodIndex
+  }
+}
+
+function combineLoadedAircraftModel(
+  exterior: LoadedModelComponent,
+  interior: LoadedModelComponent | null
+): LoadedAircraftModel {
+  const scene = new Group()
+  scene.add(exterior.scene)
+  if (interior != null) {
+    scene.add(interior.scene)
   }
 
   return {
-    scene: loadedScene,
-    animations: loadedAnimations
+    scene,
+    animations: buildLoadedAircraftAnimations(exterior, interior),
+    exterior,
+    interior
   }
+}
+
+function replaceLoadedAircraftInterior(
+  model: LoadedAircraftModel,
+  interior: LoadedModelComponent
+): LoadedAircraftModel {
+  return {
+    scene: model.scene,
+    animations: buildLoadedAircraftAnimations(model.exterior, interior),
+    exterior: model.exterior,
+    interior
+  }
+}
+
+function buildLoadedAircraftAnimations(
+  exterior: LoadedModelComponent,
+  interior: LoadedModelComponent | null
+): GLTF['animations'] {
+  return interior != null
+    ? [...exterior.animations, ...interior.animations]
+    : [...exterior.animations]
 }
 
 async function loadAircraftModelDefinitionGltf(
   loader: GLTFLoader,
   aircraft: ImportedAircraft,
   modelDefinition: ImportedModelDefinition,
-  createNodeMaterial: NodeMaterialFactory,
-  preferredLodIndex: number | null
-): Promise<GLTF> {
+  createNodeMaterial: NodeMaterialFactory | null,
+  preferredLodIndex: number | null,
+  fallbackToOtherLods = true
+): Promise<{
+  readonly gltf: GLTF
+  readonly loadedLodIndex: number
+}> {
   let lastError: unknown = null
-  const lods = [...modelDefinition.lods].sort((left, right) => right.minSize - left.minSize)
-  const loadOrder =
-    preferredLodIndex != null && preferredLodIndex >= 0 && preferredLodIndex < lods.length
+  const lodEntries = [...modelDefinition.lods]
+    .sort((left, right) => right.minSize - left.minSize)
+    .map((lod, index) => ({ lod, index }))
+  const hasPreferredLod =
+    preferredLodIndex != null &&
+    preferredLodIndex >= 0 &&
+    preferredLodIndex < lodEntries.length
+  const loadOrder = hasPreferredLod
+    ? fallbackToOtherLods
       ? [
-          lods[preferredLodIndex]!,
-          ...lods.filter((_, index) => index !== preferredLodIndex)
+          lodEntries[preferredLodIndex]!,
+          ...lodEntries.filter(({ index }) => index !== preferredLodIndex)
         ]
-      : lods
+      : [lodEntries[preferredLodIndex]!]
+    : lodEntries
 
-  for (const lod of loadOrder) {
+  for (const { lod, index } of loadOrder) {
     try {
       setGlobalLoadStage({
         stage: 'gltf:lod:fetch',
@@ -460,7 +627,10 @@ async function loadAircraftModelDefinitionGltf(
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
-      return gltf
+      return {
+        gltf,
+        loadedLodIndex: index
+      }
     } catch (error) {
       lastError = error
       setGlobalLoadStage({
@@ -643,7 +813,8 @@ function installCockpitCameraShortcut(
   camera: PerspectiveCamera,
   controls: OrbitControls,
   aircraftRoot: Group,
-  aircraft: ImportedAircraft
+  aircraft: ImportedAircraft,
+  onEnterCockpit?: () => void
 ): void {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -673,6 +844,7 @@ function installCockpitCameraShortcut(
     controls.target.copy(worldPosition).add(forward.multiplyScalar(12))
     camera.updateProjectionMatrix()
     controls.update()
+    onEnterCockpit?.()
     event.preventDefault()
   }
 
@@ -821,6 +993,106 @@ function computeApproximateBounds(object: Group): Box3 {
   })
 
   return bounds
+}
+
+type SceneResourceIndex = {
+  readonly geometries: Set<NonNullable<Mesh['geometry']>>
+  readonly materials: Set<Material>
+  readonly textures: Set<Texture>
+}
+
+function disposeDetachedSceneResources(detachedRoot: Object3D, retainedRoot: Object3D): void {
+  const retainedResources = collectSceneResources(retainedRoot)
+  const detachedResources = collectSceneResources(detachedRoot)
+
+  for (const geometry of detachedResources.geometries) {
+    if (!retainedResources.geometries.has(geometry)) {
+      geometry.dispose()
+    }
+  }
+
+  for (const material of detachedResources.materials) {
+    if (!retainedResources.materials.has(material)) {
+      material.dispose()
+    }
+  }
+
+  for (const texture of detachedResources.textures) {
+    if (!retainedResources.textures.has(texture)) {
+      texture.dispose()
+    }
+  }
+}
+
+function collectSceneResources(root: Object3D): SceneResourceIndex {
+  const geometries = new Set<NonNullable<Mesh['geometry']>>()
+  const materials = new Set<Material>()
+  const textures = new Set<Texture>()
+
+  root.traverse(node => {
+    if (!(node instanceof Mesh)) {
+      return
+    }
+
+    if (node.geometry != null) {
+      geometries.add(node.geometry)
+    }
+
+    const nodeMaterials = Array.isArray(node.material)
+      ? node.material
+      : node.material != null
+        ? [node.material]
+        : []
+
+    for (const material of nodeMaterials) {
+      if (material == null) {
+        continue
+      }
+
+      materials.add(material)
+      collectMaterialTextures(material, textures)
+    }
+  })
+
+  return {
+    geometries,
+    materials,
+    textures
+  }
+}
+
+function collectMaterialTextures(material: Material, textures: Set<Texture>): void {
+  const collectValue = (value: unknown): void => {
+    if (value instanceof Texture) {
+      textures.add(value)
+      return
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        collectValue(item)
+      }
+      return
+    }
+
+    if (value != null && typeof value === 'object' && 'value' in value) {
+      collectValue((value as { readonly value: unknown }).value)
+    }
+  }
+
+  for (const value of Object.values(material as Record<string, unknown>)) {
+    collectValue(value)
+  }
+
+  const uniforms = (material as { readonly uniforms?: Record<string, { readonly value: unknown }> })
+    .uniforms
+  if (uniforms == null) {
+    return
+  }
+
+  for (const uniform of Object.values(uniforms)) {
+    collectValue(uniform?.value)
+  }
 }
 
 function createOverlay(): HTMLDivElement {

@@ -119,6 +119,12 @@ export class AircraftRuntime {
     }
   }
 
+  dispose(): void {
+    this.mixer.stopAllAction()
+    this.actions.clear()
+    this.mixer.uncacheRoot(this.sceneRoot)
+  }
+
   private runUpdateBindings(dtSeconds: number): void {
     for (const binding of this.compiled.updateBindings) {
       const state = this.updateState.get(binding) ?? { elapsedSeconds: 0, ranOnce: false }
