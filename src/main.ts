@@ -71,6 +71,12 @@ type AircraftModelLoadContext = {
   readonly createNodeMaterial: NodeMaterialFactory | null
 }
 
+type CockpitCameraController = {
+  readonly dispose: () => void
+  readonly isActive: () => boolean
+  readonly update: () => void
+}
+
 async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'init:start' })
   const backgroundColor = new Color('#405264')
@@ -265,7 +271,8 @@ async function init(): Promise<void> {
       }
     })()
   }
-  installCockpitCameraShortcut(
+  const cockpitCameraController = installCockpitCameraShortcut(
+    renderer.domElement,
     camera,
     controls,
     aircraftRoot,
@@ -302,7 +309,10 @@ async function init(): Promise<void> {
     runtimeState = runtime.update(dtSeconds)
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
     syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
-    controls.update()
+    cockpitCameraController.update()
+    if (!cockpitCameraController.isActive()) {
+      controls.update()
+    }
     renderPasses.render()
     updateOverlay(
       overlay,
@@ -806,34 +816,79 @@ type CockpitCameraDefinition = {
   readonly rotationPbhDegrees: Vector3
 }
 
+type ParsedCockpitCameraSection = {
+  readonly declarationIndex: number
+  readonly origin: string
+  readonly category: string
+  readonly subCategory: string
+  readonly subCategoryItem: string
+  readonly title: string
+  readonly initialXyz: [number, number, number]
+  readonly initialPbh: [number, number, number]
+}
+
+type OrbitCameraSnapshot = {
+  readonly position: Vector3
+  readonly target: Vector3
+  readonly up: Vector3
+  readonly zoom: number
+}
+
 const FEET_TO_METERS = 0.3048
 let disposeCockpitCameraShortcut: (() => void) | null = null
 
 function installCockpitCameraShortcut(
+  domElement: HTMLElement,
   camera: PerspectiveCamera,
   controls: OrbitControls,
   aircraftRoot: Group,
   aircraft: ImportedAircraft,
   onEnterCockpit?: () => void
-): void {
+): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
 
   const cockpitCamera = resolveCockpitCameraDefinition(aircraft)
   if (cockpitCamera == null) {
-    return
+    return {
+      dispose: () => {},
+      isActive: () => false,
+      update: () => {}
+    }
   }
 
-  const onKeyDown = (event: KeyboardEvent): void => {
-    if (event.repeat || event.code !== 'KeyC' || shouldIgnoreKeyboardShortcut(event)) {
+  const LOOK_RADIANS_PER_PIXEL = 0.003
+  const MIN_PITCH_RADIANS = degreesToRadians(-89)
+  const MAX_PITCH_RADIANS = degreesToRadians(89)
+  const MIN_ZOOM = 0.5
+  const MAX_ZOOM = 4
+  const basePitchRadians = degreesToRadians(cockpitCamera.rotationPbhDegrees.x)
+  const baseBankRadians = degreesToRadians(cockpitCamera.rotationPbhDegrees.y)
+  const baseHeadingRadians = degreesToRadians(cockpitCamera.rotationPbhDegrees.z)
+  let isCockpitViewActive = false
+  let yawOffsetRadians = 0
+  let pitchOffsetRadians = 0
+  let cockpitZoom = camera.zoom
+  let activePointerId: number | null = null
+  let lastPointerX = 0
+  let lastPointerY = 0
+  let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
+  const previousTouchAction = domElement.style.touchAction
+
+  const applyCockpitCamera = (): void => {
+    if (!isCockpitViewActive) {
       return
     }
 
     const worldPosition = aircraftRoot.localToWorld(cockpitCamera.position.clone())
+    const pitchRadians = Math.min(
+      MAX_PITCH_RADIANS,
+      Math.max(MIN_PITCH_RADIANS, basePitchRadians + pitchOffsetRadians)
+    )
     const orientation = new Euler(
-      degreesToRadians(cockpitCamera.rotationPbhDegrees.x),
-      degreesToRadians(cockpitCamera.rotationPbhDegrees.z),
-      degreesToRadians(cockpitCamera.rotationPbhDegrees.y),
+      pitchRadians,
+      baseHeadingRadians + yawOffsetRadians,
+      baseBankRadians,
       'YXZ'
     )
     const forward = new Vector3(0, 0, 1).applyEuler(orientation).normalize()
@@ -841,16 +896,152 @@ function installCockpitCameraShortcut(
 
     camera.position.copy(worldPosition)
     camera.up.copy(up)
-    controls.target.copy(worldPosition).add(forward.multiplyScalar(12))
+    camera.zoom = cockpitZoom
+    camera.lookAt(worldPosition.clone().add(forward))
+    camera.updateProjectionMatrix()
+  }
+
+  const releasePointer = (): void => {
+    if (activePointerId == null) {
+      return
+    }
+
+    if (typeof domElement.releasePointerCapture === 'function') {
+      try {
+        domElement.releasePointerCapture(activePointerId)
+      } catch {
+        // Ignore pointer capture release failures when the pointer is already gone.
+      }
+    }
+    activePointerId = null
+  }
+
+  const exitCockpitView = (): void => {
+    releasePointer()
+    isCockpitViewActive = false
+    domElement.style.touchAction = previousTouchAction
+    controls.enabled = true
+
+    if (exteriorCameraSnapshot == null) {
+      return
+    }
+
+    camera.position.copy(exteriorCameraSnapshot.position)
+    camera.up.copy(exteriorCameraSnapshot.up)
+    camera.zoom = exteriorCameraSnapshot.zoom
+    controls.target.copy(exteriorCameraSnapshot.target)
     camera.updateProjectionMatrix()
     controls.update()
+  }
+
+  const enterCockpitView = (): void => {
+    exteriorCameraSnapshot = {
+      position: camera.position.clone(),
+      target: controls.target.clone(),
+      up: camera.up.clone(),
+      zoom: camera.zoom
+    }
+    isCockpitViewActive = true
+    yawOffsetRadians = 0
+    pitchOffsetRadians = 0
+    cockpitZoom = camera.zoom
+    domElement.style.touchAction = 'none'
+    controls.enabled = false
+    applyCockpitCamera()
     onEnterCockpit?.()
+  }
+
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.repeat || event.code !== 'KeyC' || shouldIgnoreKeyboardShortcut(event)) {
+      return
+    }
+
+    if (isCockpitViewActive) {
+      exitCockpitView()
+    } else {
+      enterCockpitView()
+    }
+    event.preventDefault()
+  }
+
+  const onPointerDown = (event: PointerEvent): void => {
+    if (!isCockpitViewActive) {
+      return
+    }
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return
+    }
+
+    activePointerId = event.pointerId
+    lastPointerX = event.clientX
+    lastPointerY = event.clientY
+    domElement.setPointerCapture(event.pointerId)
+    event.preventDefault()
+  }
+
+  const onPointerMove = (event: PointerEvent): void => {
+    if (!isCockpitViewActive || activePointerId !== event.pointerId) {
+      return
+    }
+
+    const deltaX = event.clientX - lastPointerX
+    const deltaY = event.clientY - lastPointerY
+    lastPointerX = event.clientX
+    lastPointerY = event.clientY
+    yawOffsetRadians -= deltaX * LOOK_RADIANS_PER_PIXEL
+    const nextPitchRadians = basePitchRadians + pitchOffsetRadians - deltaY * LOOK_RADIANS_PER_PIXEL
+    pitchOffsetRadians = Math.min(
+      MAX_PITCH_RADIANS,
+      Math.max(MIN_PITCH_RADIANS, nextPitchRadians)
+    ) - basePitchRadians
+    applyCockpitCamera()
+    event.preventDefault()
+  }
+
+  const onPointerUp = (event: PointerEvent): void => {
+    if (activePointerId !== event.pointerId) {
+      return
+    }
+
+    releasePointer()
+  }
+
+  const onWheel = (event: WheelEvent): void => {
+    if (!isCockpitViewActive) {
+      return
+    }
+
+    cockpitZoom = Math.min(
+      MAX_ZOOM,
+      Math.max(MIN_ZOOM, cockpitZoom * Math.exp(-event.deltaY * 0.0015))
+    )
+    applyCockpitCamera()
     event.preventDefault()
   }
 
   window.addEventListener('keydown', onKeyDown)
+  domElement.addEventListener('pointerdown', onPointerDown)
+  domElement.addEventListener('pointermove', onPointerMove)
+  domElement.addEventListener('pointerup', onPointerUp)
+  domElement.addEventListener('pointercancel', onPointerUp)
+  domElement.addEventListener('wheel', onWheel, { passive: false })
   disposeCockpitCameraShortcut = () => {
+    exitCockpitView()
     window.removeEventListener('keydown', onKeyDown)
+    domElement.removeEventListener('pointerdown', onPointerDown)
+    domElement.removeEventListener('pointermove', onPointerMove)
+    domElement.removeEventListener('pointerup', onPointerUp)
+    domElement.removeEventListener('pointercancel', onPointerUp)
+    domElement.removeEventListener('wheel', onWheel)
+  }
+
+  return {
+    dispose: () => {
+      disposeCockpitCameraShortcut?.()
+      disposeCockpitCameraShortcut = null
+    },
+    isActive: () => isCockpitViewActive,
+    update: applyCockpitCamera
   }
 }
 
@@ -867,7 +1058,7 @@ function resolveCockpitCameraDefinition(
 
   const cameraSections = camerasCfg.sections
     .filter(section => section.name.toLowerCase().startsWith('cameradefinition.'))
-    .map(section => {
+    .map((section, declarationIndex) => {
       const initialXyz = parseNumericTriple(section.values.get('initialxyz'))
       const initialPbh = parseNumericTriple(section.values.get('initialpbh'))
       if (initialXyz == null || initialPbh == null) {
@@ -875,6 +1066,7 @@ function resolveCockpitCameraDefinition(
       }
 
       return {
+        declarationIndex,
         origin: normalizeCfgValue(section.values.get('origin')),
         category: normalizeCfgValue(section.values.get('category')),
         subCategory: normalizeCfgValue(section.values.get('subcategory')),
@@ -886,40 +1078,122 @@ function resolveCockpitCameraDefinition(
     })
     .filter((section): section is NonNullable<typeof section> => section != null)
 
-  const selectedCamera =
-    cameraSections.find(section =>
-      section.origin === 'virtual cockpit' &&
-      section.category === 'cockpit' &&
-      section.subCategory === 'pilot' &&
-      section.subCategoryItem === 'defaultpilot'
-    ) ??
-    cameraSections.find(section =>
-      section.origin === 'virtual cockpit' &&
-      section.category === 'cockpit' &&
-      section.subCategory === 'pilot'
-    ) ??
-    cameraSections.find(section => section.origin === 'virtual cockpit') ??
-    null
+  const selectedCamera = [...cameraSections]
+    .filter(isSupportedCockpitCameraSection)
+    .sort((left, right) => {
+      const scoreDelta =
+        getCockpitCameraSectionScore(right) - getCockpitCameraSectionScore(left)
+      if (scoreDelta !== 0) {
+        return scoreDelta
+      }
+
+      return left.declarationIndex - right.declarationIndex
+    })[0] ?? null
 
   if (selectedCamera == null) {
     return null
   }
 
-  const [eyeLongitudinalFeet, eyeLateralFeet, eyeVerticalFeet] = eyepoint
-  const [offsetLateralFeet, offsetVerticalFeet, offsetLongitudinalFeet] =
-    selectedCamera.initialXyz
-
-  const localPosition = new Vector3(
-    -(eyeLateralFeet + offsetLateralFeet) * FEET_TO_METERS,
-    (eyeVerticalFeet + offsetVerticalFeet) * FEET_TO_METERS,
-    (eyeLongitudinalFeet + offsetLongitudinalFeet) * FEET_TO_METERS
+  const localPosition = getCameraOriginBasePosition(selectedCamera.origin, eyepoint).add(
+    convertCameraOffsetToLocalPosition(selectedCamera.initialXyz)
   )
   const [pitchDegrees, bankDegrees, headingDegrees] = selectedCamera.initialPbh
 
   return {
     position: localPosition,
-    rotationPbhDegrees: new Vector3(pitchDegrees, bankDegrees, headingDegrees)
+    rotationPbhDegrees: new Vector3(
+      pitchDegrees,
+      selectedCamera.origin === 'cockpit' ? 0 : bankDegrees,
+      headingDegrees
+    )
   }
+}
+
+function isSupportedCockpitCameraSection(section: ParsedCockpitCameraSection): boolean {
+  if (section.category !== '' && section.category !== 'cockpit') {
+    return false
+  }
+
+  return (
+    section.origin === '' ||
+    section.origin === 'virtual cockpit' ||
+    section.origin === 'cockpit'
+  )
+}
+
+function getCockpitCameraSectionScore(section: ParsedCockpitCameraSection): number {
+  let score = 0
+
+  if (section.origin === '' || section.origin === 'virtual cockpit') {
+    score += 40
+  } else if (section.origin === 'cockpit') {
+    score += 30
+  }
+
+  if (section.category === 'cockpit') {
+    score += 20
+  }
+
+  if (section.subCategory === 'pilot') {
+    score += 120
+  } else if (section.subCategory === '') {
+    score += 5
+  }
+
+  switch (section.subCategoryItem) {
+    case 'defaultpilot':
+      score += 200
+      break
+    case 'closepilot':
+      score += 150
+      break
+    case 'landingpilot':
+      score += 140
+      break
+    case 'truecockpit':
+      score += 80
+      break
+    case 'pilotvr':
+      score -= 40
+      break
+    case 'copilot':
+      score -= 160
+      break
+  }
+
+  if (section.title.includes('copilot')) {
+    score -= 120
+  }
+  if (section.title.includes('cabin') || section.title.includes('galley')) {
+    score -= 200
+  }
+
+  return score
+}
+
+function getCameraOriginBasePosition(
+  origin: string,
+  eyepoint: [number, number, number]
+): Vector3 {
+  if (origin === 'cockpit') {
+    return new Vector3()
+  }
+
+  return convertEyepointToLocalPosition(eyepoint)
+}
+
+function convertEyepointToLocalPosition(eyepoint: [number, number, number]): Vector3 {
+  const [longitudinalFeet, lateralFeet, verticalFeet] = eyepoint
+  return new Vector3(
+    -lateralFeet * FEET_TO_METERS,
+    verticalFeet * FEET_TO_METERS,
+    longitudinalFeet * FEET_TO_METERS
+  )
+}
+
+function convertCameraOffsetToLocalPosition(offset: [number, number, number]): Vector3 {
+  const [lateralMeters, verticalMeters, longitudinalMeters] = offset
+  return new Vector3(-lateralMeters, verticalMeters, longitudinalMeters)
 }
 
 function parseNumericTriple(value: string | undefined): [number, number, number] | null {
