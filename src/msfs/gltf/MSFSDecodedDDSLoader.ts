@@ -3,6 +3,7 @@ import {
   DataTexture,
   FileLoader,
   LinearFilter,
+  LinearMipmapLinearFilter,
   Loader,
   RGFormat,
   RGBAFormat,
@@ -98,7 +99,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
           decodedTexture.flipY = false
           decodedTexture.generateMipmaps = false
           decodedTexture.minFilter =
-            parsed.mipmaps.length > 1 ? decodedTexture.minFilter : LinearFilter
+            parsed.mipmaps.length > 1 ? LinearMipmapLinearFilter : LinearFilter
           decodedTexture.magFilter = LinearFilter
           decodedTexture.needsUpdate = true
           onLoad?.(decodedTexture)

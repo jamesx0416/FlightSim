@@ -106,9 +106,7 @@ class MSFTTextureDDSExtension {
 
     const loader =
       decodeTransparentBaseColor || decodeNormalSource
-        ? new MSFSDecodedDDSLoader(this.parser.options.manager, {
-            loadMipmaps: !decodeNormalSource,
-          })
+        ? new MSFSDecodedDDSLoader(this.parser.options.manager)
         : new MSFSDDSLoader(this.parser.options.manager)
 
     return this.parser
