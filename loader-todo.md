@@ -196,6 +196,9 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
   - prototype additive `KHR_texture_basisu` / `KTX2` loader support while keeping the existing DDS path intact
   - define a generic texture-conversion pipeline for any future `KTX2` rollout, including color/normal-map handling and glTF reference updates
   - benchmark cold and warm cockpit-entry timings, texture decode/upload stalls, and RAM impact before and after any `KTX2` or `ImageBitmap` texture-path change
+  - treat `KTX2` as the primary near-term texture-upgrade path for this browser viewer
+  - if post-`KTX2` gains are still insufficient, evaluate an `NTBC`-style browser prototype that decodes once on load and uploads standard GPU textures
+  - defer `NTC` / runtime neural texture decoding in WGSL or vendor-specific native paths unless this effort is explicitly reframed as browser research rather than productization
   - generic `panel.cfg` `VCockpit` surface binding to dynamic textures
   - HTML gauge rendering onto those surfaces
   - WASM instrument handling only after the runtime/environment contract is clear
