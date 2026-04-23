@@ -203,15 +203,57 @@ async function init(): Promise<void> {
   ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
   runtime.bindAnimations(loadedModel.animations)
 
+  const rebuildRuntimeForLoadedModel = (): void => {
+    runtime.dispose()
+    runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
+    runtime.bindAnimations(loadedModel.animations)
+    runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
+    runtimeState = runtime.update(0)
+    ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
+  }
+
+  const setActiveInteriorComponent = (nextInterior: LoadedModelComponent): void => {
+    const currentInterior = loadedModel.interior
+    if (currentInterior === nextInterior) {
+      return
+    }
+
+    if (currentInterior != null) {
+      loadedModel.scene.remove(currentInterior.scene)
+    }
+    if (nextInterior.scene.parent !== loadedModel.scene) {
+      loadedModel.scene.add(nextInterior.scene)
+    }
+
+    loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
+    ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
+    rebuildRuntimeForLoadedModel()
+  }
+
+  const exteriorViewInterior = loadedModel.interior
+  let cachedCockpitInteriorLod00: LoadedModelComponent | null =
+    loadedModel.interior?.loadedLodIndex === 0 ? loadedModel.interior : null
+  let shouldUseCockpitInteriorLod00 = false
   let hasRequestedCockpitInteriorLod00 = false
   let interiorLodUpgradePromise: Promise<void> | null = null
   const requestInteriorLod00Upgrade = (): void => {
     if (!hasRequestedCockpitInteriorLod00) {
       return
     }
-    if (loadedModel.interior == null || loadedModel.interior.loadedLodIndex === 0) {
+    if (exteriorViewInterior == null) {
       return
     }
+
+    if (cachedCockpitInteriorLod00 != null) {
+      if (
+        shouldUseCockpitInteriorLod00 &&
+        loadedModel.interior !== cachedCockpitInteriorLod00
+      ) {
+        setActiveInteriorComponent(cachedCockpitInteriorLod00)
+      }
+      return
+    }
+
     if (interiorLodUpgradePromise != null) {
       return
     }
@@ -236,25 +278,12 @@ async function init(): Promise<void> {
             fallbackToOtherLods: false
           }
         )
-        const previousInterior = loadedModel.interior
-        if (previousInterior == null || previousInterior.loadedLodIndex === 0) {
-          disposeDetachedSceneResources(nextInterior.scene, loadedModel.scene)
-          return
+        cachedCockpitInteriorLod00 = nextInterior
+
+        if (shouldUseCockpitInteriorLod00 && loadedModel.interior !== nextInterior) {
+          setActiveInteriorComponent(nextInterior)
         }
 
-        loadedModel.scene.remove(previousInterior.scene)
-        loadedModel.scene.add(nextInterior.scene)
-        loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
-        ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
-
-        runtime.dispose()
-        runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
-        runtime.bindAnimations(loadedModel.animations)
-        runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
-        runtimeState = runtime.update(0)
-        ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
-
-        disposeDetachedSceneResources(previousInterior.scene, loadedModel.scene)
         setGlobalLoadStage({
           stage: 'gltf:interior-upgrade:ready',
           aircraftId: aircraft.id
@@ -271,16 +300,29 @@ async function init(): Promise<void> {
       }
     })()
   }
+
+  const restoreExteriorInteriorLod = (): void => {
+    shouldUseCockpitInteriorLod00 = false
+    if (exteriorViewInterior == null || loadedModel.interior === exteriorViewInterior) {
+      return
+    }
+
+    setActiveInteriorComponent(exteriorViewInterior)
+  }
+
   const cockpitCameraController = installCockpitCameraShortcut(
     renderer.domElement,
     camera,
     controls,
     aircraftRoot,
+    loadedModel.exterior.scene,
     aircraft,
     () => {
+      shouldUseCockpitInteriorLod00 = true
       hasRequestedCockpitInteriorLod00 = true
       requestInteriorLod00Upgrade()
-    }
+    },
+    restoreExteriorInteriorLod
   )
 
   const clock = new Clock()
@@ -842,8 +884,10 @@ function installCockpitCameraShortcut(
   camera: PerspectiveCamera,
   controls: OrbitControls,
   aircraftRoot: Group,
+  exteriorScene: Object3D,
   aircraft: ImportedAircraft,
-  onEnterCockpit?: () => void
+  onEnterCockpit?: () => void,
+  onExitCockpit?: () => void
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -873,6 +917,7 @@ function installCockpitCameraShortcut(
   let lastPointerX = 0
   let lastPointerY = 0
   let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
+  let exteriorVisibilityBeforeCockpit = exteriorScene.visible
   const previousTouchAction = domElement.style.touchAction
 
   const applyCockpitCamera = (): void => {
@@ -921,6 +966,7 @@ function installCockpitCameraShortcut(
     isCockpitViewActive = false
     domElement.style.touchAction = previousTouchAction
     controls.enabled = true
+    exteriorScene.visible = exteriorVisibilityBeforeCockpit
 
     if (exteriorCameraSnapshot == null) {
       return
@@ -932,6 +978,7 @@ function installCockpitCameraShortcut(
     controls.target.copy(exteriorCameraSnapshot.target)
     camera.updateProjectionMatrix()
     controls.update()
+    onExitCockpit?.()
   }
 
   const enterCockpitView = (): void => {
@@ -941,12 +988,14 @@ function installCockpitCameraShortcut(
       up: camera.up.clone(),
       zoom: camera.zoom
     }
+    exteriorVisibilityBeforeCockpit = exteriorScene.visible
     isCockpitViewActive = true
     yawOffsetRadians = 0
     pitchOffsetRadians = 0
     cockpitZoom = camera.zoom
     domElement.style.touchAction = 'none'
     controls.enabled = false
+    exteriorScene.visible = false
     applyCockpitCamera()
     onEnterCockpit?.()
   }
