@@ -72,10 +72,15 @@ type AircraftModelLoadContext = {
 }
 
 type CockpitCameraController = {
+  readonly isAvailable: () => boolean
   readonly dispose: () => void
   readonly isActive: () => boolean
   readonly update: () => void
+  readonly enter: (source?: CockpitViewToggleSource) => void
+  readonly exit: (source?: CockpitViewToggleSource) => void
 }
+
+type CockpitViewToggleSource = 'keyboard' | 'benchmark'
 
 async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'init:start' })
@@ -202,6 +207,297 @@ async function init(): Promise<void> {
   let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
   ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
   runtime.bindAnimations(loadedModel.animations)
+  type CockpitBenchmarkMemorySample = {
+    readonly usedJSHeapSize: number | null
+    readonly totalJSHeapSize: number | null
+    readonly jsHeapSizeLimit: number | null
+    readonly userAgentSpecificBytes: number | null
+    readonly userAgentSpecificError: string | null
+    readonly rendererTextures: number | null
+    readonly rendererGeometries: number | null
+  }
+
+  type CockpitBenchmarkEvent = {
+    readonly label: string
+    readonly nowMs: number
+    readonly wallTimeMs: number
+    readonly loadStage: string | null
+    readonly loadStageTimestampMs: number | null
+    readonly interiorLodIndex: number | null
+    readonly cockpitViewActive: boolean
+    readonly details: Record<string, unknown> | null
+    readonly memory: CockpitBenchmarkMemorySample | null
+  }
+
+  type CockpitBenchmarkPhaseResult = {
+    readonly status: 'measured' | 'skipped'
+    readonly reason: string | null
+    readonly toggleToLoadStartMs: number | null
+    readonly toggleToComponentLoadedMs: number | null
+    readonly toggleToSwapCompleteMs: number | null
+    readonly toggleToActiveInteriorMs: number | null
+    readonly toggleToVisualReadyMs: number | null
+    readonly memoryBefore: CockpitBenchmarkMemorySample | null
+    readonly memoryAfter: CockpitBenchmarkMemorySample | null
+    readonly usedJSHeapDelta: number | null
+    readonly userAgentSpecificBytesDelta: number | null
+  }
+
+  type CockpitBenchmarkRunResult = {
+    readonly aircraftId: string
+    readonly createdAt: string
+    readonly cold: CockpitBenchmarkPhaseResult
+    readonly cachedExterior: CockpitBenchmarkPhaseResult
+    readonly warm: CockpitBenchmarkPhaseResult
+    readonly events: readonly CockpitBenchmarkEvent[]
+  }
+
+  type PerformanceWithMemory = Performance & {
+    readonly memory?: {
+      readonly usedJSHeapSize: number
+      readonly totalJSHeapSize: number
+      readonly jsHeapSizeLimit: number
+    }
+    readonly measureUserAgentSpecificMemory?: () => Promise<{ readonly bytes: number }>
+  }
+
+  let activeCockpitBenchmarkEvents: CockpitBenchmarkEvent[] | null = null
+  let lastCockpitBenchmarkResult: CockpitBenchmarkRunResult | null = null
+
+  const getCockpitBenchmarkLoadStage = (): {
+    readonly stage: string | null
+    readonly timestampMs: number | null
+  } => {
+    const loadStage = (globalThis as Record<string, unknown>).__msfsLoadStage
+    if (loadStage == null || typeof loadStage !== 'object') {
+      return { stage: null, timestampMs: null }
+    }
+
+    const record = loadStage as Record<string, unknown>
+    return {
+      stage: typeof record.stage === 'string' ? record.stage : null,
+      timestampMs: typeof record.timestamp === 'number' ? record.timestamp : null
+    }
+  }
+
+  const collectCockpitBenchmarkMemory = async (): Promise<CockpitBenchmarkMemorySample> => {
+    const performanceWithMemory = performance as PerformanceWithMemory
+    const heap = performanceWithMemory.memory
+    let userAgentSpecificBytes: number | null = null
+    let userAgentSpecificError: string | null = null
+
+    if (typeof performanceWithMemory.measureUserAgentSpecificMemory === 'function') {
+      try {
+        const userAgentSpecificMemory =
+          await performanceWithMemory.measureUserAgentSpecificMemory()
+        userAgentSpecificBytes = userAgentSpecificMemory.bytes
+      } catch (error) {
+        userAgentSpecificError = error instanceof Error ? error.message : String(error)
+      }
+    }
+
+    return {
+      usedJSHeapSize: heap?.usedJSHeapSize ?? null,
+      totalJSHeapSize: heap?.totalJSHeapSize ?? null,
+      jsHeapSizeLimit: heap?.jsHeapSizeLimit ?? null,
+      userAgentSpecificBytes,
+      userAgentSpecificError,
+      rendererTextures: renderer.info.memory.textures ?? null,
+      rendererGeometries: renderer.info.memory.geometries ?? null
+    }
+  }
+
+  const pushCockpitBenchmarkEvent = (
+    label: string,
+    details: Record<string, unknown> | null = null,
+    memory: CockpitBenchmarkMemorySample | null = null
+  ): CockpitBenchmarkEvent | null => {
+    if (activeCockpitBenchmarkEvents == null) {
+      return null
+    }
+
+    const loadStage = getCockpitBenchmarkLoadStage()
+    const event: CockpitBenchmarkEvent = {
+      label,
+      nowMs: performance.now(),
+      wallTimeMs: Date.now(),
+      loadStage: loadStage.stage,
+      loadStageTimestampMs: loadStage.timestampMs,
+      interiorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
+      cockpitViewActive: cockpitCameraController.isActive(),
+      details,
+      memory
+    }
+    activeCockpitBenchmarkEvents.push(event)
+    return event
+  }
+
+  const recordCockpitBenchmarkEvent = (
+    label: string,
+    details: Record<string, unknown> | null = null
+  ): void => {
+    pushCockpitBenchmarkEvent(label, details)
+  }
+
+  const captureCockpitBenchmarkSnapshot = async (
+    label: string,
+    details: Record<string, unknown> | null = null
+  ): Promise<CockpitBenchmarkEvent | null> => {
+    return pushCockpitBenchmarkEvent(
+      label,
+      details,
+      await collectCockpitBenchmarkMemory()
+    )
+  }
+
+  const waitForAnimationFrames = async (frameCount: number): Promise<void> => {
+    for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+      await new Promise<void>(resolve => {
+        requestAnimationFrame(() => resolve())
+      })
+    }
+  }
+
+  const waitForCockpitBenchmarkCondition = async (
+    predicate: () => boolean,
+    timeoutMs: number,
+    description: string
+  ): Promise<void> => {
+    const startedAt = performance.now()
+    while (performance.now() - startedAt < timeoutMs) {
+      if (predicate()) {
+        return
+      }
+      await new Promise(resolve => window.setTimeout(resolve, 16))
+    }
+
+    throw new Error(`Timed out waiting for ${description}.`)
+  }
+
+  const findCockpitBenchmarkEvent = (
+    events: readonly CockpitBenchmarkEvent[],
+    label: string,
+    minNowMs: number
+  ): CockpitBenchmarkEvent | null => {
+    return events.find(event => event.label === label && event.nowMs >= minNowMs) ?? null
+  }
+
+  const toCockpitBenchmarkDelta = (
+    startEvent: CockpitBenchmarkEvent | null,
+    endEvent: CockpitBenchmarkEvent | null
+  ): number | null => {
+    return startEvent != null && endEvent != null
+      ? Number((endEvent.nowMs - startEvent.nowMs).toFixed(1))
+      : null
+  }
+
+  const toCockpitBenchmarkMemoryDelta = (
+    before: CockpitBenchmarkMemorySample | null,
+    after: CockpitBenchmarkMemorySample | null,
+    key: 'usedJSHeapSize' | 'userAgentSpecificBytes'
+  ): number | null => {
+    const beforeValue = before?.[key]
+    const afterValue = after?.[key]
+    return typeof beforeValue === 'number' && typeof afterValue === 'number'
+      ? afterValue - beforeValue
+      : null
+  }
+
+  const summarizeCockpitBenchmarkPhase = (
+    events: readonly CockpitBenchmarkEvent[],
+    options: {
+      readonly startLabel: string
+      readonly beforeLabel: string
+      readonly afterLabel: string
+      readonly visualReadyLabel?: string
+      readonly loadStartLabel?: string
+      readonly componentLoadedLabel?: string
+      readonly swapCompleteLabel?: string
+      readonly activeInteriorLabel?: string
+      readonly skipReason?: string | null
+    }
+  ): CockpitBenchmarkPhaseResult => {
+    const beforeEvent = events.find(event => event.label === options.beforeLabel) ?? null
+    const startEvent =
+      beforeEvent != null
+        ? findCockpitBenchmarkEvent(events, options.startLabel, beforeEvent.nowMs)
+        : null
+    const afterEvent =
+      startEvent != null
+        ? findCockpitBenchmarkEvent(events, options.afterLabel, startEvent.nowMs)
+        : null
+
+    if (startEvent == null || beforeEvent == null || afterEvent == null) {
+      return {
+        status: 'skipped',
+        reason: options.skipReason ?? 'Required benchmark events were not recorded.',
+        toggleToLoadStartMs: null,
+        toggleToComponentLoadedMs: null,
+        toggleToSwapCompleteMs: null,
+        toggleToActiveInteriorMs: null,
+        toggleToVisualReadyMs: null,
+        memoryBefore: beforeEvent?.memory ?? null,
+        memoryAfter: afterEvent?.memory ?? null,
+        usedJSHeapDelta: toCockpitBenchmarkMemoryDelta(
+          beforeEvent?.memory ?? null,
+          afterEvent?.memory ?? null,
+          'usedJSHeapSize'
+        ),
+        userAgentSpecificBytesDelta: toCockpitBenchmarkMemoryDelta(
+          beforeEvent?.memory ?? null,
+          afterEvent?.memory ?? null,
+          'userAgentSpecificBytes'
+        )
+      }
+    }
+
+    return {
+      status: 'measured',
+      reason: null,
+      toggleToLoadStartMs: toCockpitBenchmarkDelta(
+        startEvent,
+        options.loadStartLabel != null
+          ? findCockpitBenchmarkEvent(events, options.loadStartLabel, startEvent.nowMs)
+          : null
+      ),
+      toggleToComponentLoadedMs: toCockpitBenchmarkDelta(
+        startEvent,
+        options.componentLoadedLabel != null
+          ? findCockpitBenchmarkEvent(events, options.componentLoadedLabel, startEvent.nowMs)
+          : null
+      ),
+      toggleToSwapCompleteMs: toCockpitBenchmarkDelta(
+        startEvent,
+        options.swapCompleteLabel != null
+          ? findCockpitBenchmarkEvent(events, options.swapCompleteLabel, startEvent.nowMs)
+          : null
+      ),
+      toggleToActiveInteriorMs: toCockpitBenchmarkDelta(
+        startEvent,
+        options.activeInteriorLabel != null
+          ? findCockpitBenchmarkEvent(events, options.activeInteriorLabel, startEvent.nowMs)
+          : null
+      ),
+      toggleToVisualReadyMs: toCockpitBenchmarkDelta(
+        startEvent,
+        options.visualReadyLabel != null
+          ? findCockpitBenchmarkEvent(events, options.visualReadyLabel, startEvent.nowMs)
+          : afterEvent
+      ),
+      memoryBefore: beforeEvent.memory,
+      memoryAfter: afterEvent.memory,
+      usedJSHeapDelta: toCockpitBenchmarkMemoryDelta(
+        beforeEvent.memory,
+        afterEvent.memory,
+        'usedJSHeapSize'
+      ),
+      userAgentSpecificBytesDelta: toCockpitBenchmarkMemoryDelta(
+        beforeEvent.memory,
+        afterEvent.memory,
+        'userAgentSpecificBytes'
+      )
+    }
+  }
 
   const rebuildRuntimeForLoadedModel = (): void => {
     runtime.dispose()
@@ -228,6 +524,9 @@ async function init(): Promise<void> {
     loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
     ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
     rebuildRuntimeForLoadedModel()
+    recordCockpitBenchmarkEvent('cockpit:interior:swap-complete', {
+      loadedLodIndex: nextInterior.loadedLodIndex
+    })
   }
 
   const exteriorViewInterior = loadedModel.interior
@@ -249,6 +548,9 @@ async function init(): Promise<void> {
         shouldUseCockpitInteriorLod00 &&
         loadedModel.interior !== cachedCockpitInteriorLod00
       ) {
+        recordCockpitBenchmarkEvent('cockpit:interior-upgrade:cache-hit', {
+          loadedLodIndex: cachedCockpitInteriorLod00.loadedLodIndex
+        })
         setActiveInteriorComponent(cachedCockpitInteriorLod00)
       }
       return
@@ -269,6 +571,7 @@ async function init(): Promise<void> {
           stage: 'gltf:interior-upgrade:start',
           aircraftId: aircraft.id
         })
+        recordCockpitBenchmarkEvent('cockpit:interior-upgrade:start')
         const nextInterior = await loadAircraftModelComponent(
           aircraftModelLoadContext,
           interiorModel,
@@ -279,6 +582,9 @@ async function init(): Promise<void> {
           }
         )
         cachedCockpitInteriorLod00 = nextInterior
+        recordCockpitBenchmarkEvent('cockpit:interior-upgrade:component-loaded', {
+          loadedLodIndex: nextInterior.loadedLodIndex
+        })
 
         if (shouldUseCockpitInteriorLod00 && loadedModel.interior !== nextInterior) {
           setActiveInteriorComponent(nextInterior)
@@ -292,6 +598,9 @@ async function init(): Promise<void> {
         setGlobalLoadStage({
           stage: 'gltf:interior-upgrade:error',
           aircraftId: aircraft.id,
+          error: error instanceof Error ? error.message : String(error)
+        })
+        recordCockpitBenchmarkEvent('cockpit:interior-upgrade:error', {
           error: error instanceof Error ? error.message : String(error)
         })
         console.error('Failed to upgrade interior LOD.', error)
@@ -322,8 +631,144 @@ async function init(): Promise<void> {
       hasRequestedCockpitInteriorLod00 = true
       requestInteriorLod00Upgrade()
     },
-    restoreExteriorInteriorLod
+    restoreExteriorInteriorLod,
+    (mode, source) => {
+      recordCockpitBenchmarkEvent(`cockpit:toggle:${mode}`, { source })
+    }
   )
+
+  const runCockpitBenchmark = async (): Promise<CockpitBenchmarkRunResult> => {
+    if (!cockpitCameraController.isAvailable()) {
+      throw new Error('Cockpit benchmark is unavailable because the selected aircraft has no cockpit camera.')
+    }
+    if (exteriorViewInterior == null) {
+      throw new Error('Cockpit benchmark is unavailable because the selected aircraft has no interior model.')
+    }
+    if (activeCockpitBenchmarkEvents != null) {
+      throw new Error('Cockpit benchmark is already running.')
+    }
+
+    const events: CockpitBenchmarkEvent[] = []
+    activeCockpitBenchmarkEvents = events
+
+    try {
+      if (cockpitCameraController.isActive()) {
+        cockpitCameraController.exit('benchmark')
+      }
+      await waitForCockpitBenchmarkCondition(
+        () =>
+          !cockpitCameraController.isActive() &&
+          loadedModel.interior === exteriorViewInterior,
+        10_000,
+        'exterior LOD01 state before benchmark start'
+      )
+      await waitForAnimationFrames(3)
+
+      const coldAvailable = cachedCockpitInteriorLod00 == null
+      await captureCockpitBenchmarkSnapshot('benchmark:cold:before')
+      if (coldAvailable) {
+        cockpitCameraController.enter('benchmark')
+        await waitForCockpitBenchmarkCondition(
+          () =>
+            cockpitCameraController.isActive() &&
+            loadedModel.interior?.loadedLodIndex === 0,
+          120_000,
+          'cold cockpit LOD00 activation'
+        )
+        recordCockpitBenchmarkEvent('benchmark:cold:active-interior')
+        await waitForAnimationFrames(3)
+        recordCockpitBenchmarkEvent('benchmark:cold:visual-ready')
+        await captureCockpitBenchmarkSnapshot('benchmark:cold:after')
+      } else {
+        recordCockpitBenchmarkEvent('benchmark:cold:skipped', {
+          reason: 'Interior LOD00 was already cached before the benchmark run started.'
+        })
+      }
+
+      cockpitCameraController.exit('benchmark')
+      await waitForCockpitBenchmarkCondition(
+        () =>
+          !cockpitCameraController.isActive() &&
+          loadedModel.interior === exteriorViewInterior,
+        10_000,
+        'cached exterior state after cold cockpit exit'
+      )
+      recordCockpitBenchmarkEvent('benchmark:cached-exterior:active-interior')
+      await waitForAnimationFrames(3)
+      recordCockpitBenchmarkEvent('benchmark:cached-exterior:visual-ready')
+      await captureCockpitBenchmarkSnapshot('benchmark:cached-exterior:after')
+
+      await captureCockpitBenchmarkSnapshot('benchmark:warm:before')
+      cockpitCameraController.enter('benchmark')
+      await waitForCockpitBenchmarkCondition(
+        () =>
+          cockpitCameraController.isActive() &&
+          loadedModel.interior?.loadedLodIndex === 0,
+        10_000,
+        'warm cockpit LOD00 activation'
+      )
+      recordCockpitBenchmarkEvent('benchmark:warm:active-interior')
+      await waitForAnimationFrames(3)
+      recordCockpitBenchmarkEvent('benchmark:warm:visual-ready')
+      await captureCockpitBenchmarkSnapshot('benchmark:warm:after')
+
+      const result: CockpitBenchmarkRunResult = {
+        aircraftId: aircraft.id,
+        createdAt: new Date().toISOString(),
+        cold: summarizeCockpitBenchmarkPhase(events, {
+          startLabel: 'cockpit:toggle:enter',
+          beforeLabel: 'benchmark:cold:before',
+          afterLabel: 'benchmark:cold:after',
+          visualReadyLabel: 'benchmark:cold:visual-ready',
+          loadStartLabel: 'cockpit:interior-upgrade:start',
+          componentLoadedLabel: 'cockpit:interior-upgrade:component-loaded',
+          swapCompleteLabel: 'cockpit:interior:swap-complete',
+          activeInteriorLabel: 'benchmark:cold:active-interior',
+          skipReason: coldAvailable
+            ? null
+            : 'Interior LOD00 was already cached before the benchmark run started.'
+        }),
+        cachedExterior: summarizeCockpitBenchmarkPhase(events, {
+          startLabel: 'cockpit:toggle:exit',
+          beforeLabel: 'benchmark:cold:after',
+          afterLabel: 'benchmark:cached-exterior:after',
+          visualReadyLabel: 'benchmark:cached-exterior:visual-ready',
+          swapCompleteLabel: 'cockpit:interior:swap-complete',
+          activeInteriorLabel: 'benchmark:cached-exterior:active-interior'
+        }),
+        warm: summarizeCockpitBenchmarkPhase(events, {
+          startLabel: 'cockpit:toggle:enter',
+          beforeLabel: 'benchmark:warm:before',
+          afterLabel: 'benchmark:warm:after',
+          visualReadyLabel: 'benchmark:warm:visual-ready',
+          loadStartLabel: 'cockpit:interior-upgrade:cache-hit',
+          swapCompleteLabel: 'cockpit:interior:swap-complete',
+          activeInteriorLabel: 'benchmark:warm:active-interior'
+        }),
+        events: [...events]
+      }
+      lastCockpitBenchmarkResult = result
+      ;(globalThis as Record<string, unknown>).__lastCockpitBenchmarkResult = result
+      return result
+    } finally {
+      activeCockpitBenchmarkEvents = null
+    }
+  }
+
+  ;(globalThis as Record<string, unknown>).__cockpitBenchmark = {
+    getState: () => ({
+      aircraftId: aircraft.id,
+      cockpitCameraAvailable: cockpitCameraController.isAvailable(),
+      cockpitViewActive: cockpitCameraController.isActive(),
+      activeInteriorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
+      cachedInteriorLod00Available: cachedCockpitInteriorLod00 != null,
+      benchmarkRunning: activeCockpitBenchmarkEvents != null,
+      lastResult: lastCockpitBenchmarkResult
+    }),
+    run: runCockpitBenchmark
+  }
+  ;(globalThis as Record<string, unknown>).__lastCockpitBenchmarkResult =
+    lastCockpitBenchmarkResult
 
   const clock = new Clock()
   let runtimeState: RuntimeState = runtime.update(0)
@@ -887,7 +1332,8 @@ function installCockpitCameraShortcut(
   exteriorScene: Object3D,
   aircraft: ImportedAircraft,
   onEnterCockpit?: () => void,
-  onExitCockpit?: () => void
+  onExitCockpit?: () => void,
+  onToggleCockpitView?: (mode: 'enter' | 'exit', source: CockpitViewToggleSource) => void
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -895,9 +1341,12 @@ function installCockpitCameraShortcut(
   const cockpitCamera = resolveCockpitCameraDefinition(aircraft)
   if (cockpitCamera == null) {
     return {
+      isAvailable: () => false,
       dispose: () => {},
       isActive: () => false,
-      update: () => {}
+      update: () => {},
+      enter: () => {},
+      exit: () => {}
     }
   }
 
@@ -961,7 +1410,12 @@ function installCockpitCameraShortcut(
     activePointerId = null
   }
 
-  const exitCockpitView = (): void => {
+  const exitCockpitView = (source: CockpitViewToggleSource = 'keyboard'): void => {
+    if (!isCockpitViewActive) {
+      return
+    }
+
+    onToggleCockpitView?.('exit', source)
     releasePointer()
     isCockpitViewActive = false
     domElement.style.touchAction = previousTouchAction
@@ -981,7 +1435,12 @@ function installCockpitCameraShortcut(
     onExitCockpit?.()
   }
 
-  const enterCockpitView = (): void => {
+  const enterCockpitView = (source: CockpitViewToggleSource = 'keyboard'): void => {
+    if (isCockpitViewActive) {
+      return
+    }
+
+    onToggleCockpitView?.('enter', source)
     exteriorCameraSnapshot = {
       position: camera.position.clone(),
       target: controls.target.clone(),
@@ -1006,9 +1465,9 @@ function installCockpitCameraShortcut(
     }
 
     if (isCockpitViewActive) {
-      exitCockpitView()
+      exitCockpitView('keyboard')
     } else {
-      enterCockpitView()
+      enterCockpitView('keyboard')
     }
     event.preventDefault()
   }
@@ -1085,12 +1544,15 @@ function installCockpitCameraShortcut(
   }
 
   return {
+    isAvailable: () => true,
     dispose: () => {
       disposeCockpitCameraShortcut?.()
       disposeCockpitCameraShortcut = null
     },
     isActive: () => isCockpitViewActive,
-    update: applyCockpitCamera
+    update: applyCockpitCamera,
+    enter: source => enterCockpitView(source ?? 'benchmark'),
+    exit: source => exitCockpitView(source ?? 'benchmark')
   }
 }
 
