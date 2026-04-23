@@ -192,6 +192,10 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
 - Do not land full cockpit/instrument support as one step.
 - Stage the work generically in this order:
   - optional cockpit/interior glTF loading
+  - evaluate `ImageBitmap`-based texture loading on applicable non-DDS paths and measure whether it reduces first-entry cockpit texture decode/upload stalls without changing asset semantics
+  - prototype additive `KHR_texture_basisu` / `KTX2` loader support while keeping the existing DDS path intact
+  - define a generic texture-conversion pipeline for any future `KTX2` rollout, including color/normal-map handling and glTF reference updates
+  - benchmark cold and warm cockpit-entry timings, texture decode/upload stalls, and RAM impact before and after any `KTX2` or `ImageBitmap` texture-path change
   - generic `panel.cfg` `VCockpit` surface binding to dynamic textures
   - HTML gauge rendering onto those surfaces
   - WASM instrument handling only after the runtime/environment contract is clear
