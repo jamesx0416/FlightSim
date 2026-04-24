@@ -23,6 +23,7 @@ type BlendGBufferMesh = Mesh & {
 
 export interface MsfsRenderPasses {
   readonly hasBlendGBufferDecals: boolean
+  refresh(): void
   render(): void
 }
 
@@ -35,31 +36,42 @@ export function createMsfsRenderPasses(
   const blendMeshes: BlendGBufferMesh[] = []
   const baseMeshes: Mesh[] = []
 
-  root.traverse(object => {
-    if (!(object instanceof Mesh) || Array.isArray(object.material)) {
-      return
-    }
+  const refresh = (): void => {
+    blendMeshes.length = 0
+    baseMeshes.length = 0
 
-    if (usesBlendGBufferMaterial(object.material as MsfsMaterial)) {
-      blendMeshes.push(object as BlendGBufferMesh)
-      return
-    }
+    root.traverse(object => {
+      if (!(object instanceof Mesh)) {
+        return
+      }
 
-    baseMeshes.push(object)
-  })
+      const materials = Array.isArray(object.material)
+        ? object.material
+        : object.material != null
+          ? [object.material]
+          : []
+      if (materials.some(material => usesBlendGBufferMaterial(material as MsfsMaterial))) {
+        blendMeshes.push(object as BlendGBufferMesh)
+        return
+      }
 
-  if (blendMeshes.length === 0) {
-    return {
-      hasBlendGBufferDecals: false,
-      render: () => {
-        renderer.render(scene, camera)
-      },
-    }
+      baseMeshes.push(object)
+    })
   }
 
+  refresh()
+
   return {
-    hasBlendGBufferDecals: true,
+    get hasBlendGBufferDecals() {
+      return blendMeshes.length > 0
+    },
+    refresh,
     render: () => {
+      if (blendMeshes.length === 0) {
+        renderer.render(scene, camera)
+        return
+      }
+
       const originalBackground = scene.background
       const originalAutoClear = renderer.autoClear
       const hiddenBlendMeshes = hideMeshes(blendMeshes)
