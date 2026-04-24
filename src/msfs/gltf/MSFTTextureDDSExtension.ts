@@ -10,7 +10,7 @@ import {
 } from 'three'
 
 import { MSFSDecodedDDSLoader } from './MSFSDecodedDDSLoader'
-import { MSFSDDSLoader } from './MSFSDDSLoader'
+import { MSFSDDSLoader, type MSFSDDSLoadOptions } from './MSFSDDSLoader'
 
 const EXTENSION_NAME = 'MSFT_texture_dds'
 
@@ -71,7 +71,7 @@ interface GltfParserLike {
   loadTextureImage(
     textureIndex: number,
     sourceIndex: number,
-    loader: MSFSDDSLoader
+    loader: unknown
   ): Promise<unknown>
 }
 
@@ -81,7 +81,8 @@ class MSFTTextureDDSExtension {
 
   constructor(
     private readonly parser: GltfParserLike,
-    private readonly decodeNormalSources: boolean
+    private readonly decodeNormalSources: boolean,
+    private readonly textureLoadOptions: MSFSDDSLoadOptions
   ) {
     this.usedMaterialIndices = collectUsedMaterialIndices(parser.json)
   }
@@ -104,10 +105,18 @@ class MSFTTextureDDSExtension {
       this.usedMaterialIndices
     )
 
+    const textureLoadOptions = {
+      ...this.textureLoadOptions,
+      placeholderKind: decodeNormalSource
+        ? 'normal'
+        : decodeTransparentBaseColor
+          ? 'transparent'
+          : 'color'
+    } as const
     const loader =
       decodeTransparentBaseColor || decodeNormalSource
-        ? new MSFSDecodedDDSLoader(this.parser.options.manager)
-        : new MSFSDDSLoader(this.parser.options.manager)
+        ? new MSFSDecodedDDSLoader(this.parser.options.manager, textureLoadOptions)
+        : new MSFSDDSLoader(this.parser.options.manager, textureLoadOptions)
 
     return this.parser
       .loadTextureImage(textureIndex, sourceIndex, loader)
@@ -248,10 +257,15 @@ export function createMsftTextureDdsExtension(
   parser: GltfParserLike,
   options: {
     readonly decodeNormalSources?: boolean
+    readonly textureLoadOptions?: MSFSDDSLoadOptions
   } = {}
 ): {
   readonly name: string
   loadTexture(textureIndex: number): Promise<unknown> | null
 } {
-  return new MSFTTextureDDSExtension(parser, options.decodeNormalSources === true)
+  return new MSFTTextureDDSExtension(
+    parser,
+    options.decodeNormalSources === true,
+    options.textureLoadOptions ?? {}
+  )
 }

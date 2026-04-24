@@ -21,9 +21,10 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPrimitiveBaseVertex'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
+import type { MSFSDDSLoadOptions } from './msfs/gltf/MSFSDDSLoader'
 import { normalizeAsoboPrimitiveWinding } from './msfs/gltf/normalizeAsoboPrimitiveWinding'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
-import { usesGeoDecalFrostedMaterial } from './msfs/gltf/normalizeMsfsMaterials'
+import { usesBlendGBufferMaterial, usesGeoDecalFrostedMaterial } from './msfs/gltf/normalizeMsfsMaterials'
 import { normalizeMsfsNormalsTangents } from './msfs/gltf/normalizeMsfsNormalsTangents'
 import { normalizeMsfsSkinning } from './msfs/gltf/normalizeMsfsSkinning'
 import { normalizeMsfsTexcoords } from './msfs/gltf/normalizeMsfsTexcoords'
@@ -67,7 +68,9 @@ type LoadedAircraftModel = {
 
 type AircraftModelLoadContext = {
   readonly aircraft: ImportedAircraft
-  readonly createLoader: () => GLTFLoader
+  readonly createLoader: (options?: {
+    readonly textureLoadOptions?: MSFSDDSLoadOptions
+  }) => GLTFLoader
   readonly createNodeMaterial: NodeMaterialFactory | null
 }
 
@@ -578,7 +581,9 @@ async function init(): Promise<void> {
           {
             kind: 'interior',
             preferredLodIndex: 0,
-            fallbackToOtherLods: false
+            fallbackToOtherLods: false,
+            textureLoadOptions: createCockpitLod00TextureLoadOptions(),
+            stripTextures: true
           }
         )
         cachedCockpitInteriorLod00 = nextInterior
@@ -773,6 +778,10 @@ async function init(): Promise<void> {
   const clock = new Clock()
   let runtimeState: RuntimeState = runtime.update(0)
   ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
+  const cockpitPerfDiagnostics = searchParams.has('cockpitPerf')
+    ? createCockpitPerfDiagnostics(() => loadedModel)
+    : createDisabledCockpitPerfDiagnostics(() => loadedModel)
+  ;(globalThis as Record<string, unknown>).__cockpitPerf = cockpitPerfDiagnostics
   updateOverlay(
     overlay,
     packageRoot,
@@ -792,15 +801,48 @@ async function init(): Promise<void> {
   window.addEventListener('resize', handleResize)
 
   renderer.setAnimationLoop(() => {
-    const dtSeconds = clock.getDelta()
-    runtimeState = runtime.update(dtSeconds)
-    ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
-    syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
-    cockpitCameraController.update()
-    if (!cockpitCameraController.isActive()) {
-      controls.update()
+    if (cockpitPerfDiagnostics.enabled) {
+      const frameStartMs = performance.now()
+      const dtSeconds = clock.getDelta()
+      const runtimeStartMs = performance.now()
+      runtimeState = runtime.update(dtSeconds)
+      const runtimeEndMs = performance.now()
+      ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
+      syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
+      const cameraStartMs = performance.now()
+      cockpitCameraController.update()
+      if (!cockpitCameraController.isActive()) {
+        controls.update()
+      }
+      const cameraEndMs = performance.now()
+      const renderStartMs = performance.now()
+      renderPasses.render()
+      const renderEndMs = performance.now()
+      cockpitPerfDiagnostics.recordFrame({
+        cockpitActive: cockpitCameraController.isActive(),
+        loadedInteriorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
+        frameMs: renderEndMs - frameStartMs,
+        runtimeMs: runtimeEndMs - runtimeStartMs,
+        cameraMs: cameraEndMs - cameraStartMs,
+        renderMs: renderEndMs - renderStartMs,
+        rendererCalls: renderer.info.render.calls,
+        rendererTriangles: renderer.info.render.triangles,
+        rendererLines: renderer.info.render.lines,
+        rendererPoints: renderer.info.render.points,
+        rendererTextures: renderer.info.memory.textures,
+        rendererGeometries: renderer.info.memory.geometries
+      })
+    } else {
+      const dtSeconds = clock.getDelta()
+      runtimeState = runtime.update(dtSeconds)
+      ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
+      syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
+      cockpitCameraController.update()
+      if (!cockpitCameraController.isActive()) {
+        controls.update()
+      }
+      renderPasses.render()
     }
-    renderPasses.render()
     updateOverlay(
       overlay,
       packageRoot,
@@ -811,6 +853,229 @@ async function init(): Promise<void> {
       rendererInfo
     )
   })
+}
+
+
+type CockpitPerfFrameSample = {
+  readonly cockpitActive: boolean
+  readonly loadedInteriorLodIndex: number | null
+  readonly frameMs: number
+  readonly runtimeMs: number
+  readonly cameraMs: number
+  readonly renderMs: number
+  readonly rendererCalls: number
+  readonly rendererTriangles: number
+  readonly rendererLines: number
+  readonly rendererPoints: number
+  readonly rendererTextures: number
+  readonly rendererGeometries: number
+}
+
+type CockpitPerfDiagnostics = {
+  readonly enabled: boolean
+  readonly recordFrame: (sample: CockpitPerfFrameSample) => void
+  readonly getSummary: () => Record<string, unknown>
+  readonly getActiveInteriorStats: () => Record<string, unknown> | null
+  readonly reset: () => void
+}
+
+function createCockpitPerfDiagnostics(
+  getLoadedModel: () => LoadedAircraftModel
+): CockpitPerfDiagnostics {
+  const samples: CockpitPerfFrameSample[] = []
+  const maxSamples = 240
+
+  return {
+    enabled: true,
+    recordFrame: sample => {
+      samples.push(sample)
+      if (samples.length > maxSamples) {
+        samples.shift()
+      }
+    },
+    getSummary: () => summarizeCockpitPerfSamples(samples),
+    getActiveInteriorStats: () => {
+      const interior = getLoadedModel().interior
+      return interior == null ? null : collectModelRenderStats(interior.scene)
+    },
+    reset: () => {
+      samples.length = 0
+    }
+  }
+}
+
+function createDisabledCockpitPerfDiagnostics(
+  getLoadedModel: () => LoadedAircraftModel
+): CockpitPerfDiagnostics {
+  return {
+    enabled: false,
+    recordFrame: () => {},
+    getSummary: () => ({ enabled: false }),
+    getActiveInteriorStats: () => {
+      const interior = getLoadedModel().interior
+      return interior == null ? null : collectModelRenderStats(interior.scene)
+    },
+    reset: () => {}
+  }
+}
+
+function summarizeCockpitPerfSamples(samples: readonly CockpitPerfFrameSample[]): Record<string, unknown> {
+  const activeSamples = samples.filter(sample => sample.cockpitActive)
+  const sourceSamples = activeSamples.length > 0 ? activeSamples : samples
+  return {
+    sampleCount: sourceSamples.length,
+    cockpitSampleCount: activeSamples.length,
+    latest: sourceSamples.at(-1) ?? null,
+    frameMs: summarizeNumericSamples(sourceSamples.map(sample => sample.frameMs)),
+    runtimeMs: summarizeNumericSamples(sourceSamples.map(sample => sample.runtimeMs)),
+    cameraMs: summarizeNumericSamples(sourceSamples.map(sample => sample.cameraMs)),
+    renderMs: summarizeNumericSamples(sourceSamples.map(sample => sample.renderMs)),
+    rendererCalls: summarizeNumericSamples(sourceSamples.map(sample => sample.rendererCalls)),
+    rendererTriangles: summarizeNumericSamples(sourceSamples.map(sample => sample.rendererTriangles)),
+    rendererTextures: sourceSamples.at(-1)?.rendererTextures ?? null,
+    rendererGeometries: sourceSamples.at(-1)?.rendererGeometries ?? null
+  }
+}
+
+function summarizeNumericSamples(values: readonly number[]): Record<string, number | null> {
+  if (values.length === 0) {
+    return { min: null, median: null, p95: null, max: null, average: null }
+  }
+
+  const sorted = [...values].sort((left, right) => left - right)
+  const sum = values.reduce((total, value) => total + value, 0)
+  return {
+    min: sorted[0]!,
+    median: sorted[Math.floor(sorted.length * 0.5)]!,
+    p95: sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))]!,
+    max: sorted.at(-1)!,
+    average: sum / values.length
+  }
+}
+
+function collectModelRenderStats(root: Object3D): Record<string, unknown> {
+  const geometries = new Set<NonNullable<Mesh['geometry']>>()
+  const materials = new Set<Material>()
+  let meshCount = 0
+  let visibleMeshCount = 0
+  let skinnedMeshCount = 0
+  let morphTargetMeshCount = 0
+  let blendGBufferMeshCount = 0
+  let transparentMeshCount = 0
+  let namedMeshCount = 0
+  let unnamedMeshCount = 0
+  let staticMergeCandidateCount = 0
+  let staticMergeCandidateTriangles = 0
+  const staticMergeCandidateMaterialCounts = new Map<Material, number>()
+  let triangleCount = 0
+  let indexedTriangleCount = 0
+  let nonIndexedTriangleCount = 0
+  let vertexCount = 0
+  let drawCallEstimate = 0
+
+  root.updateWorldMatrix(true, true)
+  root.traverse(object => {
+    if (!(object instanceof Mesh)) {
+      return
+    }
+
+    meshCount += 1
+    if (object.visible) {
+      visibleMeshCount += 1
+    }
+    if ((object as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh === true) {
+      skinnedMeshCount += 1
+    }
+    if (object.morphTargetInfluences != null && object.morphTargetInfluences.length > 0) {
+      morphTargetMeshCount += 1
+    }
+    if (object.name) {
+      namedMeshCount += 1
+    } else {
+      unnamedMeshCount += 1
+    }
+
+    const materialList = Array.isArray(object.material) ? object.material : [object.material]
+    drawCallEstimate += Math.max(1, materialList.filter(material => material != null).length)
+    let hasBlendGBufferMaterial = false
+    let hasTransparentMaterial = false
+    for (const material of materialList) {
+      if (material != null) {
+        materials.add(material)
+        if (usesBlendGBufferMaterial(material)) {
+          hasBlendGBufferMaterial = true
+        }
+        if (material.transparent) {
+          hasTransparentMaterial = true
+        }
+      }
+    }
+    if (hasBlendGBufferMaterial) {
+      blendGBufferMeshCount += 1
+    }
+    if (hasTransparentMaterial) {
+      transparentMeshCount += 1
+    }
+
+    const geometry = object.geometry
+    if (geometry == null || geometries.has(geometry)) {
+      return
+    }
+    geometries.add(geometry)
+
+    const position = geometry.getAttribute('position')
+    const geometryVertexCount = position?.count ?? 0
+    vertexCount += geometryVertexCount
+    let geometryTriangles = 0
+    if (geometry.index != null) {
+      geometryTriangles = Math.floor(geometry.index.count / 3)
+      indexedTriangleCount += geometryTriangles
+      triangleCount += geometryTriangles
+    } else {
+      geometryTriangles = Math.floor(geometryVertexCount / 3)
+      nonIndexedTriangleCount += geometryTriangles
+      triangleCount += geometryTriangles
+    }
+
+    if (
+      object.name === '' &&
+      !hasBlendGBufferMaterial &&
+      !hasTransparentMaterial &&
+      materialList.length === 1 &&
+      materialList[0] != null &&
+      (object as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh !== true &&
+      (object.morphTargetInfluences == null || object.morphTargetInfluences.length === 0)
+    ) {
+      staticMergeCandidateCount += 1
+      staticMergeCandidateTriangles += geometryTriangles
+      staticMergeCandidateMaterialCounts.set(
+        materialList[0],
+        (staticMergeCandidateMaterialCounts.get(materialList[0]) ?? 0) + 1
+      )
+    }
+  })
+
+  return {
+    meshCount,
+    visibleMeshCount,
+    geometryCount: geometries.size,
+    materialCount: materials.size,
+    drawCallEstimate,
+    skinnedMeshCount,
+    morphTargetMeshCount,
+    blendGBufferMeshCount,
+    transparentMeshCount,
+    namedMeshCount,
+    unnamedMeshCount,
+    staticMergeCandidateCount,
+    staticMergeCandidateTriangles,
+    staticMergeCandidateMaterialGroups: staticMergeCandidateMaterialCounts.size,
+    largestStaticMergeGroupSize: Math.max(0, ...staticMergeCandidateMaterialCounts.values()),
+    vertexCount,
+    triangleCount,
+    indexedTriangleCount,
+    nonIndexedTriangleCount
+  }
 }
 
 type RuntimeFrostMaterialState = {
@@ -900,6 +1165,12 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
+function createCockpitLod00TextureLoadOptions(): MSFSDDSLoadOptions {
+  return {
+    skipTextures: true
+  }
+}
+
 function createAircraftModelLoadContext(
   aircraft: ImportedAircraft,
   packageRootUrl: string,
@@ -917,10 +1188,11 @@ function createAircraftModelLoadContext(
 
   return {
     aircraft,
-    createLoader: () =>
+    createLoader: options =>
       createMsfsGltfLoader({
         urlResolver: textureUrlResolver,
         decodeNormalSources,
+        textureLoadOptions: options?.textureLoadOptions
       }),
     createNodeMaterial: createNodeMaterialFactory(rendererInfo.renderer)
   }
@@ -961,9 +1233,13 @@ async function loadAircraftModelComponent(
     readonly kind: LoadedModelComponent['kind']
     readonly preferredLodIndex: number | null
     readonly fallbackToOtherLods?: boolean
+    readonly textureLoadOptions?: MSFSDDSLoadOptions
+    readonly stripTextures?: boolean
   }
 ): Promise<LoadedModelComponent> {
-  const loader = context.createLoader()
+  const loader = context.createLoader({
+    textureLoadOptions: options.textureLoadOptions
+  })
   const loaded = await loadAircraftModelDefinitionGltf(
     loader,
     context.aircraft,
@@ -972,6 +1248,9 @@ async function loadAircraftModelComponent(
     options.preferredLodIndex,
     options.fallbackToOtherLods ?? true
   )
+  if (options.stripTextures === true) {
+    stripObjectTextures(loaded.gltf.scene)
+  }
 
   return {
     kind: options.kind,
@@ -980,6 +1259,32 @@ async function loadAircraftModelComponent(
     animations: loaded.gltf.animations,
     loadedLodIndex: loaded.loadedLodIndex
   }
+}
+
+function stripObjectTextures(root: Object3D): void {
+  root.traverse(object => {
+    if (!(object instanceof Mesh)) {
+      return
+    }
+
+    const materials = Array.isArray(object.material) ? object.material : [object.material]
+    for (const material of materials) {
+      if (material != null) {
+        stripMaterialTextures(material)
+      }
+    }
+  })
+}
+
+function stripMaterialTextures(material: Material): void {
+  const materialRecord = material as unknown as Record<string, unknown>
+  for (const [key, value] of Object.entries(materialRecord)) {
+    if (value instanceof Texture) {
+      value.dispose()
+      materialRecord[key] = null
+    }
+  }
+  material.needsUpdate = true
 }
 
 function combineLoadedAircraftModel(

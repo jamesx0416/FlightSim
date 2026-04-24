@@ -62,16 +62,8 @@ export function createMsfsRenderPasses(
     render: () => {
       const originalBackground = scene.background
       const originalAutoClear = renderer.autoClear
-      const hiddenDecalMeshesForBasePass = hideMeshes(blendMeshes)
-
-      try {
-        renderer.autoClear = true
-        renderer.render(scene, camera)
-      } finally {
-        restoreMeshes(hiddenDecalMeshesForBasePass)
-      }
-
       const hiddenBlendMeshes = hideMeshes(blendMeshes)
+
       try {
         renderer.autoClear = true
         renderer.render(scene, camera)
