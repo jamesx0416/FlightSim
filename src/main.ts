@@ -527,6 +527,7 @@ async function init(): Promise<void> {
     loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
     ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
     rebuildRuntimeForLoadedModel()
+    renderPasses.refresh()
     recordCockpitBenchmarkEvent('cockpit:interior:swap-complete', {
       loadedLodIndex: nextInterior.loadedLodIndex
     })
@@ -799,6 +800,7 @@ async function init(): Promise<void> {
   }
 
   window.addEventListener('resize', handleResize)
+  let nextOverlayUpdateMs = 0
 
   renderer.setAnimationLoop(() => {
     if (cockpitPerfDiagnostics.enabled) {
@@ -843,15 +845,19 @@ async function init(): Promise<void> {
       }
       renderPasses.render()
     }
-    updateOverlay(
-      overlay,
-      packageRoot,
-      packageData,
-      aircraft,
-      compiledBehaviors,
-      runtimeState,
-      rendererInfo
-    )
+    const nowMs = performance.now()
+    if (nowMs >= nextOverlayUpdateMs) {
+      nextOverlayUpdateMs = nowMs + 250
+      updateOverlay(
+        overlay,
+        packageRoot,
+        packageData,
+        aircraft,
+        compiledBehaviors,
+        runtimeState,
+        rendererInfo
+      )
+    }
   })
 }
 
