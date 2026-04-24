@@ -1,6 +1,5 @@
 import {
   CompressedTexture,
-  DataTexture,
   FileLoader,
   LinearFilter,
   LinearMipmapLinearFilter,
@@ -12,7 +11,11 @@ import {
   type LoadingManager
 } from 'three'
 
-import { MSFSDDSLoader } from './MSFSDDSLoader'
+import {
+  MSFSDDSLoader,
+  type MSFSDDSLoadOptions,
+  type MSFSDDSPlaceholderKind
+} from './MSFSDDSLoader'
 
 type DecodedMipmap = {
   readonly data: Uint8Array
@@ -25,6 +28,11 @@ type DecodedDdsTexture = {
   readonly height: number
   readonly mipmaps: readonly DecodedMipmap[]
   readonly format: number
+}
+
+type DdsDecodeParseOptions = {
+  readonly loadMipmaps?: boolean
+  readonly maxTextureSize?: number
 }
 
 const DDS_MAGIC = 0x20534444
@@ -59,9 +67,7 @@ const DXGI_FORMAT_BC5_SNORM = 84
 export class MSFSDecodedDDSLoader extends Loader<Texture> {
   constructor(
     manager?: LoadingManager,
-    private readonly options: {
-      readonly loadMipmaps?: boolean
-    } = {}
+    private readonly options: MSFSDDSLoadOptions = {}
   ) {
     super(manager)
   }
@@ -79,36 +85,47 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     fileLoader.setRequestHeader(this.requestHeader)
     fileLoader.setWithCredentials(this.withCredentials)
 
+    if (this.options.skipTextures === true) {
+      applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
+      onLoad?.(texture)
+      return texture
+    }
+
+    const useImmediatePlaceholder = this.options.immediatePlaceholder === true
+    if (useImmediatePlaceholder) {
+      applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
+      onLoad?.(texture)
+    }
+
     fileLoader.load(
       url,
       buffer => {
         try {
-          const parsed = this.parse(
-            buffer as ArrayBuffer,
-            this.options.loadMipmaps !== false
-          )
-          const decodedTexture = new DataTexture()
-          decodedTexture.image = {
-            data: parsed.mipmaps[0].data,
-            width: parsed.width,
-            height: parsed.height
+          const arrayBuffer = buffer as ArrayBuffer
+          const parsed = this.parse(arrayBuffer, {
+            loadMipmaps: this.options.loadMipmaps !== false,
+            maxTextureSize: this.options.initialMaxTextureSize ?? this.options.maxTextureSize
+          })
+          applyDecodedTexture(texture, parsed)
+          if (!useImmediatePlaceholder) {
+            onLoad?.(texture)
           }
-          decodedTexture.mipmaps = [...parsed.mipmaps]
-          decodedTexture.format = parsed.format
-          decodedTexture.type = UnsignedByteType
-          decodedTexture.flipY = false
-          decodedTexture.generateMipmaps = false
-          decodedTexture.minFilter =
-            parsed.mipmaps.length > 1 ? LinearMipmapLinearFilter : LinearFilter
-          decodedTexture.magFilter = LinearFilter
-          decodedTexture.needsUpdate = true
-          onLoad?.(decodedTexture)
+          if (this.options.upgradeToFullResolution === true) {
+            this.scheduleFullResolutionUpgrade(texture, arrayBuffer, parsed)
+          }
         } catch {
           try {
             const compressedTexture = createCompressedTexture(
-              new MSFSDDSLoader(this.manager).parse(buffer as ArrayBuffer, true)
+              new MSFSDDSLoader(this.manager, this.options).parse(buffer as ArrayBuffer, {
+                loadMipmaps: this.options.loadMipmaps !== false,
+                maxTextureSize: this.options.initialMaxTextureSize ?? this.options.maxTextureSize
+              })
             )
-            onLoad?.(compressedTexture)
+            if (useImmediatePlaceholder) {
+              copyTexture(texture, compressedTexture)
+            } else {
+              onLoad?.(compressedTexture)
+            }
           } catch (error) {
             onError?.(error)
             this.manager.itemError(url)
@@ -122,23 +139,64 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     return texture
   }
 
-  parse(buffer: ArrayBuffer, loadMipmaps = true): DecodedDdsTexture {
+  private scheduleFullResolutionUpgrade(
+    texture: Texture,
+    buffer: ArrayBuffer,
+    initialTexture: DecodedDdsTexture
+  ): void {
+    if (this.options.initialMaxTextureSize == null) {
+      return
+    }
+
+    globalThis.setTimeout(() => {
+      try {
+        const upgradedTexture = this.parse(buffer, {
+          loadMipmaps: this.options.loadMipmaps !== false,
+          maxTextureSize: this.options.maxTextureSize
+        })
+        if (
+          upgradedTexture.width === initialTexture.width &&
+          upgradedTexture.height === initialTexture.height &&
+          upgradedTexture.mipmaps.length === initialTexture.mipmaps.length
+        ) {
+          return
+        }
+
+        applyDecodedTexture(texture, upgradedTexture)
+      } catch (error) {
+        console.warn('Failed to upgrade decoded DDS texture mip level.', error)
+      }
+    }, Math.max(0, this.options.upgradeDelayMs ?? 0))
+  }
+
+  parse(buffer: ArrayBuffer, loadMipmaps?: boolean): DecodedDdsTexture
+  parse(buffer: ArrayBuffer, options?: DdsDecodeParseOptions): DecodedDdsTexture
+  parse(buffer: ArrayBuffer, options: boolean | DdsDecodeParseOptions = true): DecodedDdsTexture {
+    const parseOptions = normalizeDdsDecodeParseOptions(options)
     const header = new Int32Array(buffer, 0, HEADER_LENGTH_INT)
     if (header[OFF_MAGIC] !== DDS_MAGIC) {
       throw new Error('Invalid DDS header.')
     }
 
-    const width = header[OFF_WIDTH]
-    const height = header[OFF_HEIGHT]
+    const sourceWidth = header[OFF_WIDTH]
+    const sourceHeight = header[OFF_HEIGHT]
     const mipmapCount =
-      (header[OFF_FLAGS] & DDSD_MIPMAPCOUNT) !== 0 && loadMipmaps !== false
+      (header[OFF_FLAGS] & DDSD_MIPMAPCOUNT) !== 0 && parseOptions.loadMipmaps !== false
         ? Math.max(1, header[OFF_MIPMAPCOUNT])
         : 1
+    const firstMipIndex = computeFirstMipIndex(
+      sourceWidth,
+      sourceHeight,
+      mipmapCount,
+      parseOptions.maxTextureSize
+    )
+    const width = computeMipDimension(sourceWidth, firstMipIndex)
+    const height = computeMipDimension(sourceHeight, firstMipIndex)
     const fourCC = header[OFF_PF_FOURCC]
     let dataOffset = header[OFF_SIZE] + 4
 
-    let currentWidth = width
-    let currentHeight = height
+    let currentWidth = sourceWidth
+    let currentHeight = sourceHeight
     let currentOffset = dataOffset
     const mipmaps: DecodedMipmap[] = []
     let format = RGBAFormat
@@ -147,11 +205,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       case FOURCC_DXT1:
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 8)
-          mipmaps.push({
-            data: decodeDxt1(buffer, currentOffset, currentWidth, currentHeight),
-            width: currentWidth,
-            height: currentHeight
-          })
+          if (level >= firstMipIndex) {
+            mipmaps.push({
+              data: decodeDxt1(buffer, currentOffset, currentWidth, currentHeight),
+              width: currentWidth,
+              height: currentHeight
+            })
+          }
           currentOffset += byteLength
           currentWidth = Math.max(1, currentWidth >> 1)
           currentHeight = Math.max(1, currentHeight >> 1)
@@ -160,11 +220,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       case FOURCC_DXT3:
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
-          mipmaps.push({
-            data: decodeDxt3(buffer, currentOffset, currentWidth, currentHeight),
-            width: currentWidth,
-            height: currentHeight
-          })
+          if (level >= firstMipIndex) {
+            mipmaps.push({
+              data: decodeDxt3(buffer, currentOffset, currentWidth, currentHeight),
+              width: currentWidth,
+              height: currentHeight
+            })
+          }
           currentOffset += byteLength
           currentWidth = Math.max(1, currentWidth >> 1)
           currentHeight = Math.max(1, currentHeight >> 1)
@@ -173,11 +235,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       case FOURCC_DXT5:
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
-          mipmaps.push({
-            data: decodeDxt5(buffer, currentOffset, currentWidth, currentHeight),
-            width: currentWidth,
-            height: currentHeight
-          })
+          if (level >= firstMipIndex) {
+            mipmaps.push({
+              data: decodeDxt5(buffer, currentOffset, currentWidth, currentHeight),
+              width: currentWidth,
+              height: currentHeight
+            })
+          }
           currentOffset += byteLength
           currentWidth = Math.max(1, currentWidth >> 1)
           currentHeight = Math.max(1, currentHeight >> 1)
@@ -189,11 +253,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         format = RGFormat
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
-          mipmaps.push({
-            data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, false),
-            width: currentWidth,
-            height: currentHeight
-          })
+          if (level >= firstMipIndex) {
+            mipmaps.push({
+              data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, false),
+              width: currentWidth,
+              height: currentHeight
+            })
+          }
           currentOffset += byteLength
           currentWidth = Math.max(1, currentWidth >> 1)
           currentHeight = Math.max(1, currentHeight >> 1)
@@ -203,11 +269,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         format = RGFormat
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
-          mipmaps.push({
-            data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, true),
-            width: currentWidth,
-            height: currentHeight
-          })
+          if (level >= firstMipIndex) {
+            mipmaps.push({
+              data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, true),
+              width: currentWidth,
+              height: currentHeight
+            })
+          }
           currentOffset += byteLength
           currentWidth = Math.max(1, currentWidth >> 1)
           currentHeight = Math.max(1, currentHeight >> 1)
@@ -227,11 +295,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         format = RGFormat
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
-          mipmaps.push({
-            data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, signed),
-            width: currentWidth,
-            height: currentHeight
-          })
+          if (level >= firstMipIndex) {
+            mipmaps.push({
+              data: decodeBc5Rg(buffer, currentOffset, currentWidth, currentHeight, signed),
+              width: currentWidth,
+              height: currentHeight
+            })
+          }
           currentOffset += byteLength
           currentWidth = Math.max(1, currentWidth >> 1)
           currentHeight = Math.max(1, currentHeight >> 1)
@@ -242,11 +312,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         if (isUncompressedRgba(header)) {
           for (let level = 0; level < mipmapCount; level += 1) {
             const byteLength = currentWidth * currentHeight * 4
-            mipmaps.push({
-              data: decodeUncompressedArgb(buffer, currentOffset, currentWidth, currentHeight),
-              width: currentWidth,
-              height: currentHeight
-            })
+            if (level >= firstMipIndex) {
+              mipmaps.push({
+                data: decodeUncompressedArgb(buffer, currentOffset, currentWidth, currentHeight),
+                width: currentWidth,
+                height: currentHeight
+              })
+            }
             currentOffset += byteLength
             currentWidth = Math.max(1, currentWidth >> 1)
             currentHeight = Math.max(1, currentHeight >> 1)
@@ -257,11 +329,13 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         if (isUncompressedRgb(header)) {
           for (let level = 0; level < mipmapCount; level += 1) {
             const byteLength = currentWidth * currentHeight * 3
-            mipmaps.push({
-              data: decodeUncompressedRgb(buffer, currentOffset, currentWidth, currentHeight),
-              width: currentWidth,
-              height: currentHeight
-            })
+            if (level >= firstMipIndex) {
+              mipmaps.push({
+                data: decodeUncompressedRgb(buffer, currentOffset, currentWidth, currentHeight),
+                width: currentWidth,
+                height: currentHeight
+              })
+            }
             currentOffset += byteLength
             currentWidth = Math.max(1, currentWidth >> 1)
             currentHeight = Math.max(1, currentHeight >> 1)
@@ -279,6 +353,84 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       format
     }
   }
+}
+
+
+function applyDecodedTexture(texture: Texture, parsed: DecodedDdsTexture): void {
+  texture.image = {
+    data: parsed.mipmaps[0]?.data ?? new Uint8Array([128, 128, 128, 255]),
+    width: parsed.width,
+    height: parsed.height
+  }
+  texture.mipmaps = [...parsed.mipmaps]
+  texture.format = parsed.format
+  texture.type = UnsignedByteType
+  texture.flipY = false
+  texture.generateMipmaps = false
+  texture.minFilter = parsed.mipmaps.length > 1 ? LinearMipmapLinearFilter : LinearFilter
+  texture.magFilter = LinearFilter
+  texture.needsUpdate = true
+}
+
+function applyPlaceholderTexture(
+  texture: Texture,
+  placeholderKind: MSFSDDSPlaceholderKind
+): void {
+  const data =
+    placeholderKind === 'normal'
+      ? new Uint8Array([128, 128, 255, 255])
+      : placeholderKind === 'transparent'
+        ? new Uint8Array([255, 255, 255, 0])
+        : new Uint8Array([128, 128, 128, 255])
+  texture.image = { data, width: 1, height: 1 }
+  texture.mipmaps = []
+  texture.format = RGBAFormat
+  texture.type = UnsignedByteType
+  texture.flipY = false
+  texture.generateMipmaps = false
+  texture.minFilter = LinearFilter
+  texture.magFilter = LinearFilter
+  texture.needsUpdate = true
+}
+
+function copyTexture(target: Texture, source: Texture): void {
+  target.copy(source)
+  target.needsUpdate = true
+}
+
+function normalizeDdsDecodeParseOptions(
+  options: boolean | DdsDecodeParseOptions
+): DdsDecodeParseOptions {
+  return typeof options === 'boolean' ? { loadMipmaps: options } : options
+}
+
+function computeFirstMipIndex(
+  width: number,
+  height: number,
+  mipmapCount: number,
+  maxTextureSize: number | undefined
+): number {
+  if (maxTextureSize == null || maxTextureSize <= 0) {
+    return 0
+  }
+
+  let mipIndex = 0
+  let mipWidth = width
+  let mipHeight = height
+  while (
+    mipIndex < mipmapCount - 1 &&
+    (mipWidth > maxTextureSize || mipHeight > maxTextureSize)
+  ) {
+    mipIndex += 1
+    mipWidth = computeMipDimension(width, mipIndex)
+    mipHeight = computeMipDimension(height, mipIndex)
+  }
+
+  return mipIndex
+}
+
+function computeMipDimension(value: number, mipIndex: number): number {
+  return Math.max(1, value >> mipIndex)
 }
 
 function createCompressedTexture(
