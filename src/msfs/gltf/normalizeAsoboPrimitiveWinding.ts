@@ -62,16 +62,14 @@ export function normalizeAsoboPrimitiveWinding(gltf: GLTF): void {
       return
     }
 
-    for (let offset = 0; offset < index.count; offset += 3) {
-      const first = index.getX(offset)
-      const third = index.getX(offset + 2)
-      index.setX(offset, third)
-      index.setX(offset + 2, first)
+    const indexArray = index.array
+    for (let offset = 0; offset < indexArray.length; offset += 3) {
+      const first = indexArray[offset]!
+      indexArray[offset] = indexArray[offset + 2]!
+      indexArray[offset + 2] = first
     }
 
     index.needsUpdate = true
-    geometry.computeBoundingBox()
-    geometry.computeBoundingSphere()
     flippedGeometries.add(geometry)
   })
 }
