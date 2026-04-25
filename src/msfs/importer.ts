@@ -133,20 +133,18 @@ export async function importBuiltMsfs2020Package(
     })
   }
 
-  const aircraft: ImportedAircraft[] = []
-  for (const record of aircraftCfgRecords.values()) {
-    const importedAircraft = await importAircraftRecord(
-      record,
-      aircraftCfgRecords,
-      context,
-      {
-        requestedAircraftId: options.requestedAircraftId ?? null
-      }
-    )
-    if (importedAircraft.length > 0) {
-      aircraft.push(...importedAircraft)
-    }
-  }
+  const requestedAircraftId = options.requestedAircraftId ?? null
+  const lightweightAircraft = await importAircraftRecords(
+    aircraftCfgRecords,
+    context,
+    requestedAircraftId ?? ''
+  )
+  const selectedAircraftId =
+    requestedAircraftId ?? selectDefaultAircraftId(lightweightAircraft)
+  const aircraft =
+    selectedAircraftId == null
+      ? lightweightAircraft
+      : await importAircraftRecords(aircraftCfgRecords, context, selectedAircraftId)
 
   return {
     irVersion: 'msfs-package/v1',
@@ -158,6 +156,48 @@ export async function importBuiltMsfs2020Package(
     aircraft,
     diagnostics
   }
+}
+
+async function importAircraftRecords(
+  aircraftCfgRecords: ReadonlyMap<string, AircraftCfgRecord>,
+  context: ImportContext,
+  fullAircraftId: string
+): Promise<ImportedAircraft[]> {
+  const aircraft: ImportedAircraft[] = []
+
+  for (const record of aircraftCfgRecords.values()) {
+    const importedAircraft = await importAircraftRecord(
+      record,
+      aircraftCfgRecords,
+      context,
+      {
+        fullAircraftId
+      }
+    )
+    if (importedAircraft.length > 0) {
+      aircraft.push(...importedAircraft)
+    }
+  }
+
+  return aircraft
+}
+
+function selectDefaultAircraftId(aircraft: readonly ImportedAircraft[]): string | null {
+  const rankedAircraft = [...aircraft].sort((left, right) => {
+    const leftScore = getAircraftImportSelectionScore(left)
+    const rightScore = getAircraftImportSelectionScore(right)
+    return rightScore - leftScore
+  })
+
+  return rankedAircraft[0]?.id ?? null
+}
+
+function getAircraftImportSelectionScore(aircraft: ImportedAircraft): number {
+  let score = 0
+  if (aircraft.isUserSelectable) score += 20
+  if (aircraft.isFlyable) score += 20
+  score += aircraft.inheritedFromPaths.length * 5
+  return score
 }
 
 async function loadBaseContainerAircraftCfgRecords(
@@ -445,7 +485,7 @@ async function importAircraftRecord(
   aircraftCfgRecords: ReadonlyMap<string, AircraftCfgRecord>,
   context: ImportContext,
   options: {
-    readonly requestedAircraftId: string | null
+    readonly fullAircraftId: string
   }
 ): Promise<ImportedAircraft[]> {
   const visitedPaths = new Set<string>()
@@ -493,8 +533,7 @@ async function importAircraftRecord(
   for (const fltsim of fltsimSections) {
     const section = fltsim.section
     const aircraftId = `${normalizePath(dirname(record.path))}#${section.name.toLowerCase()}`
-    const shouldImportFullAircraft =
-      options.requestedAircraftId == null || aircraftId === options.requestedAircraftId
+    const shouldImportFullAircraft = aircraftId === options.fullAircraftId
     const title =
       section.values.get('title') ||
       section.values.get('ui_type') ||
