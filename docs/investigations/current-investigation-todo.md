@@ -76,11 +76,14 @@ This file tracks the immediate investigation items for the live aircraft viewer.
 
 ## 7. Stage Cockpit / Instrument Support Without Regressing Startup
 
-- Status: planned, not implemented yet.
+- Status: in progress.
 - Findings:
   - the repo currently imports `panel.cfg` as package data, but it does not yet render `VCockpit` panel textures or execute `htmlgauge` / `WasmInstrument` entries
   - the A320 cockpit path is substantially heavier than the exterior-only path, so enabling it by default now would make the current startup-time problem worse
   - cockpit shell/interior geometry, HTML gauges, and WASM-backed instruments should be treated as separate milestones rather than one feature
+  - the MSFS glTF loader previously fetched each LOD as text, parsed it for MSFS sanitizing, stringified it again, and then let `GLTFLoader` parse the JSON a second time
+  - Three r182 accepts a parsed glTF JSON object directly, so the loader now passes the sanitized object into `GLTFLoader` without the second stringify/parse cycle
+  - this reduces transient CPU work and peak JS heap during cold internal cockpit LOD00 loads without changing asset semantics
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically
@@ -88,3 +91,5 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - treat WASM instruments as a later milestone with explicit blocker handling if the required runtime environment is not available
 - Constraint:
   - keep cockpit/instrument work behind query flags or equivalent opt-in controls until the loader has a generic progressive-loading path that protects the exterior test loop
+- Benchmark blocker:
+  - the local `/tmp/headwindsim-aircraft-a330-900/` and `/tmp/flybywire-aircraft-a320-neo/` fixture package roots were not present in this worktree environment, so fresh cold/warm cockpit timings could not be captured during this pass
