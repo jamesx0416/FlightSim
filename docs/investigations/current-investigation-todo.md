@@ -86,8 +86,9 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - this reduces transient CPU work and peak JS heap during cold internal cockpit LOD00 loads without changing asset semantics
   - model components now carry generic load diagnostics with per-phase timings for fetch, JSON parse, MSFS sanitization, Three glTF parse, skin repair, normalization passes, material normalization, optional static batching, texture stripping, and resource-stat collection
   - cockpit interior swap benchmark events now include scene-graph swap, runtime rebuild, and render-pass refresh timings
-  - model components now also carry resource accounting for unique geometries, materials, textures, geometry attribute/index bytes, known texture bytes, and estimated texture bytes
+  - model components can now carry resource accounting for unique geometries, materials, textures, geometry attribute/index bytes, known texture bytes, and estimated texture bytes; normal startup avoids that extra walk unless cockpit diagnostics or a benchmark requests it
   - cockpit benchmark component-loaded events and `__cockpitPerf.getActiveInteriorStats()` expose those diagnostics for the active cockpit/interior component
+  - optional cockpit static instancing/merging modules are now imported lazily only when their query flags are used, keeping the default startup bundle smaller without changing visuals
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically
