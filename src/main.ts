@@ -33,7 +33,7 @@ import { repairMsfsSkinnedAttributes } from './msfs/gltf/repairMsfsSkinnedAttrib
 import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
-import type { ImportedAircraft, RuntimeState } from './msfs/types'
+import type { CompiledBehaviorSet, ImportedAircraft, RuntimeState } from './msfs/types'
 import type { ImportedModelDefinition } from './msfs/types'
 import {
   createAircraftEnvironment,
@@ -152,10 +152,12 @@ async function init(): Promise<void> {
   }
 
   const scene = new Scene()
+  const deferInteriorBehaviors = !syncExteriorInterior && aircraft.interiorModel != null
 
   setGlobalLoadStage({ stage: 'compile:behaviors', aircraftId: aircraft.id })
   const compiledBehaviorsPromise = compileMsfs2020Behaviors(packageData, aircraft, {
-    additionalPackageRoots
+    additionalPackageRoots,
+    includeInteriorModel: !deferInteriorBehaviors
   })
 
   setGlobalLoadStage({ stage: 'renderer:create', aircraftId: aircraft.id })
@@ -215,10 +217,11 @@ async function init(): Promise<void> {
     preferredLodIndex: requestedLodIndex,
     loadExteriorInterior: syncExteriorInterior
   })
-  const [compiledBehaviors, gltf] = await Promise.all([
+  const [initialCompiledBehaviors, gltf] = await Promise.all([
     compiledBehaviorsPromise,
     gltfPromise
   ])
+  let compiledBehaviors = initialCompiledBehaviors
   ;(globalThis as Record<string, unknown>).__lastCompiledBehaviors = compiledBehaviors
   setGlobalLoadStage({ stage: 'gltf:loaded', aircraftId: aircraft.id })
   ;(globalThis as Record<string, unknown>).__lastLoadedGltf = gltf
@@ -540,6 +543,51 @@ async function init(): Promise<void> {
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
   }
 
+  let fullCompiledBehaviorsPromise: Promise<CompiledBehaviorSet> | null = null
+  let hasFullCompiledBehaviors = !deferInteriorBehaviors
+  const ensureFullCompiledBehaviors = (): Promise<CompiledBehaviorSet> => {
+    if (hasFullCompiledBehaviors) {
+      return Promise.resolve(compiledBehaviors)
+    }
+    if (fullCompiledBehaviorsPromise != null) {
+      return fullCompiledBehaviorsPromise
+    }
+
+    setGlobalLoadStage({
+      stage: 'compile:behaviors:full:start',
+      aircraftId: aircraft.id
+    })
+    fullCompiledBehaviorsPromise = compileMsfs2020Behaviors(packageData, aircraft, {
+      additionalPackageRoots,
+      includeInteriorModel: true
+    })
+      .then(nextCompiledBehaviors => {
+        compiledBehaviors = nextCompiledBehaviors
+        hasFullCompiledBehaviors = true
+        ;(globalThis as Record<string, unknown>).__lastCompiledBehaviors =
+          compiledBehaviors
+        rebuildRuntimeForLoadedModel()
+        setGlobalLoadStage({
+          stage: 'compile:behaviors:full:ready',
+          aircraftId: aircraft.id
+        })
+        return compiledBehaviors
+      })
+      .catch(error => {
+        setGlobalLoadStage({
+          stage: 'compile:behaviors:full:error',
+          aircraftId: aircraft.id,
+          error: error instanceof Error ? error.message : String(error)
+        })
+        throw error
+      })
+      .finally(() => {
+        fullCompiledBehaviorsPromise = null
+      })
+
+    return fullCompiledBehaviorsPromise
+  }
+
   const setActiveInteriorComponent = (nextInterior: LoadedModelComponent | null): void => {
     const currentInterior = loadedModel.interior
     if (currentInterior === nextInterior) {
@@ -624,15 +672,18 @@ async function init(): Promise<void> {
       stage: 'gltf:exterior-interior:deferred:start',
       aircraftId: aircraft.id
     })
-    exteriorViewInteriorLoadPromise = loadAircraftModelComponent(
-      aircraftModelLoadContext,
-      interiorModel,
-      {
-        kind: 'interior',
-        preferredLodIndex: getExteriorViewInteriorPreferredLodIndex()
-      }
-    )
-      .then(nextInterior => {
+    exteriorViewInteriorLoadPromise = Promise.all([
+      loadAircraftModelComponent(
+        aircraftModelLoadContext,
+        interiorModel,
+        {
+          kind: 'interior',
+          preferredLodIndex: getExteriorViewInteriorPreferredLodIndex()
+        }
+      ),
+      ensureFullCompiledBehaviors()
+    ])
+      .then(([nextInterior]) => {
         exteriorViewInterior = nextInterior
         setGlobalLoadStage({
           stage: 'gltf:exterior-interior:deferred:ready',
@@ -697,6 +748,7 @@ async function init(): Promise<void> {
           aircraftId: aircraft.id
         })
         recordCockpitBenchmarkEvent('cockpit:interior-upgrade:start')
+        await ensureFullCompiledBehaviors()
         const nextInterior = await loadAircraftModelComponent(
           aircraftModelLoadContext,
           interiorModel,
