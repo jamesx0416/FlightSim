@@ -22,6 +22,7 @@ import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPrimitiveBaseVertex'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
 import { instanceStaticMsfsMeshes } from './msfs/gltf/instanceStaticMsfsMeshes'
+import { mergeStaticMsfsMeshes } from './msfs/gltf/mergeStaticMsfsMeshes'
 import type { MSFSDDSLoadOptions } from './msfs/gltf/MSFSDDSLoader'
 import { normalizeAsoboPrimitiveWinding } from './msfs/gltf/normalizeAsoboPrimitiveWinding'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
@@ -587,6 +588,7 @@ async function init(): Promise<void> {
             textureLoadOptions: createCockpitLod00TextureLoadOptions(),
             stripTextures: true,
             instanceStaticMeshes: searchParams.has('cockpitInstanceStatic'),
+            mergeStaticMeshes: searchParams.has('cockpitMergeStatic'),
             behaviorSet: compiledBehaviors
           }
         )
@@ -1005,7 +1007,9 @@ function collectModelRenderStats(root: Object3D): Record<string, unknown> {
     }
 
     const materialList = Array.isArray(object.material) ? object.material : [object.material]
-    drawCallEstimate += Math.max(1, materialList.filter(material => material != null).length)
+    if (object.visible) {
+      drawCallEstimate += Math.max(1, materialList.filter(material => material != null).length)
+    }
     let hasBlendGBufferMaterial = false
     let hasTransparentMaterial = false
     for (const material of materialList) {
@@ -1034,6 +1038,9 @@ function collectModelRenderStats(root: Object3D): Record<string, unknown> {
 
     const position = geometry.getAttribute('position')
     const geometryVertexCount = position?.count ?? 0
+    if (!object.visible) {
+      return
+    }
     vertexCount += geometryVertexCount
     let geometryTriangles = 0
     if (geometry.index != null) {
@@ -1047,7 +1054,6 @@ function collectModelRenderStats(root: Object3D): Record<string, unknown> {
     }
 
     if (
-      object.name === '' &&
       !hasBlendGBufferMaterial &&
       !hasTransparentMaterial &&
       materialList.length === 1 &&
@@ -1245,6 +1251,7 @@ async function loadAircraftModelComponent(
     readonly textureLoadOptions?: MSFSDDSLoadOptions
     readonly stripTextures?: boolean
     readonly instanceStaticMeshes?: boolean
+    readonly mergeStaticMeshes?: boolean
     readonly behaviorSet?: typeof compiledBehaviors
   }
 ): Promise<LoadedModelComponent> {
@@ -1271,6 +1278,17 @@ async function loadAircraftModelComponent(
       stage: 'gltf:lod:instance-static-meshes',
       aircraftId: context.aircraft.id,
       ...instancingStats
+    })
+  }
+  if (options.mergeStaticMeshes === true && options.behaviorSet != null) {
+    const mergeStats = mergeStaticMsfsMeshes(
+      loaded.gltf.scene,
+      options.behaviorSet
+    )
+    setGlobalLoadStage({
+      stage: 'gltf:lod:merge-static-meshes',
+      aircraftId: context.aircraft.id,
+      ...mergeStats
     })
   }
 
