@@ -21,8 +21,6 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPrimitiveBaseVertex'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
-import { instanceStaticMsfsMeshes } from './msfs/gltf/instanceStaticMsfsMeshes'
-import { mergeStaticMsfsMeshes } from './msfs/gltf/mergeStaticMsfsMeshes'
 import type { MSFSDDSLoadOptions } from './msfs/gltf/MSFSDDSLoader'
 import { normalizeAsoboPrimitiveWinding } from './msfs/gltf/normalizeAsoboPrimitiveWinding'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
@@ -60,7 +58,7 @@ type LoadedModelComponent = {
   readonly animations: GLTF['animations']
   readonly loadedLodIndex: number
   readonly loadDiagnostics: ModelLoadDiagnostics
-  readonly resourceStats: ModelResourceStats
+  readonly resourceStats: ModelResourceStats | null
 }
 
 type LoadedAircraftModel = {
@@ -673,7 +671,10 @@ async function init(): Promise<void> {
         loadedModel.interior !== cachedCockpitInteriorLod00
       ) {
         recordCockpitBenchmarkEvent('cockpit:interior-upgrade:cache-hit', {
-          loadedLodIndex: cachedCockpitInteriorLod00.loadedLodIndex
+          loadedLodIndex: cachedCockpitInteriorLod00.loadedLodIndex,
+          resourceStats:
+            cachedCockpitInteriorLod00.resourceStats ??
+            collectModelResourceStats(cachedCockpitInteriorLod00.scene)
         })
         setActiveInteriorComponent(cachedCockpitInteriorLod00)
       }
@@ -707,6 +708,8 @@ async function init(): Promise<void> {
             stripTextures: true,
             instanceStaticMeshes: searchParams.has('cockpitInstanceStatic'),
             mergeStaticMeshes: searchParams.has('cockpitMergeStatic'),
+            collectResourceStats:
+              searchParams.has('cockpitPerf') || activeCockpitBenchmarkEvents != null,
             behaviorSet: compiledBehaviors
           }
         )
@@ -1120,7 +1123,7 @@ function collectLoadedComponentStats(component: LoadedModelComponent): Record<st
     ...collectModelRenderStats(component.scene),
     loadedLodIndex: component.loadedLodIndex,
     loadDiagnostics: component.loadDiagnostics,
-    resourceStats: component.resourceStats
+    resourceStats: component.resourceStats ?? collectModelResourceStats(component.scene)
   }
 }
 
@@ -1547,6 +1550,7 @@ async function loadAircraftModelComponent(
     readonly stripTextures?: boolean
     readonly instanceStaticMeshes?: boolean
     readonly mergeStaticMeshes?: boolean
+    readonly collectResourceStats?: boolean
     readonly behaviorSet?: typeof compiledBehaviors
   }
 ): Promise<LoadedModelComponent> {
@@ -1585,6 +1589,9 @@ async function loadAircraftModelComponent(
   }
   if (options.instanceStaticMeshes === true && options.behaviorSet != null) {
     const instanceStartMs = performance.now()
+    const { instanceStaticMsfsMeshes } = await import(
+      './msfs/gltf/instanceStaticMsfsMeshes'
+    )
     const instancingStats = instanceStaticMsfsMeshes(
       loaded.gltf.scene,
       options.behaviorSet
@@ -1598,6 +1605,7 @@ async function loadAircraftModelComponent(
   }
   if (options.mergeStaticMeshes === true && options.behaviorSet != null) {
     const mergeStartMs = performance.now()
+    const { mergeStaticMsfsMeshes } = await import('./msfs/gltf/mergeStaticMsfsMeshes')
     const mergeStats = mergeStaticMsfsMeshes(
       loaded.gltf.scene,
       options.behaviorSet
@@ -1610,8 +1618,13 @@ async function loadAircraftModelComponent(
     })
   }
   const resourceStatsStartMs = performance.now()
-  const resourceStats = collectModelResourceStats(loaded.gltf.scene)
-  recordPhase('component:collect-resource-stats', resourceStatsStartMs, resourceStats)
+  const resourceStats =
+    options.collectResourceStats === true
+      ? collectModelResourceStats(loaded.gltf.scene)
+      : null
+  if (resourceStats != null) {
+    recordPhase('component:collect-resource-stats', resourceStatsStartMs, resourceStats)
+  }
   const loadDiagnostics: ModelLoadDiagnostics = {
     phases,
     totalDurationMs: performance.now() - componentLoadStartMs
