@@ -120,6 +120,7 @@ async function init(): Promise<void> {
   const searchParams = new URLSearchParams(window.location.search)
   const packageRoot = resolveRequestedPackageRoot(searchParams)
   const requestedLodIndex = resolveRequestedLodIndex(searchParams)
+  const syncExteriorInterior = searchParams.has('syncExteriorInterior')
   const additionalPackageRoots = resolveAdditionalPackageRoots(searchParams)
   const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
   setGlobalLoadStage({ stage: 'import:package', packageRoot })
@@ -213,7 +214,8 @@ async function init(): Promise<void> {
   )
   setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
   const gltfPromise = loadAircraftGltf(aircraftModelLoadContext, {
-    preferredLodIndex: requestedLodIndex
+    preferredLodIndex: requestedLodIndex,
+    loadExteriorInterior: syncExteriorInterior
   })
   const [compiledBehaviors, gltf] = await Promise.all([
     compiledBehaviorsPromise,
@@ -540,7 +542,7 @@ async function init(): Promise<void> {
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
   }
 
-  const setActiveInteriorComponent = (nextInterior: LoadedModelComponent): void => {
+  const setActiveInteriorComponent = (nextInterior: LoadedModelComponent | null): void => {
     const currentInterior = loadedModel.interior
     if (currentInterior === nextInterior) {
       return
@@ -566,7 +568,7 @@ async function init(): Promise<void> {
     if (currentInterior != null) {
       loadedModel.scene.remove(currentInterior.scene)
     }
-    if (nextInterior.scene.parent !== loadedModel.scene) {
+    if (nextInterior != null && nextInterior.scene.parent !== loadedModel.scene) {
       loadedModel.scene.add(nextInterior.scene)
     }
     recordSwapPhase('interior-swap:scene-graph', sceneSwapStartMs)
@@ -580,22 +582,88 @@ async function init(): Promise<void> {
     renderPasses.refresh()
     recordSwapPhase('interior-swap:render-pass-refresh', renderPassRefreshStartMs)
     recordCockpitBenchmarkEvent('cockpit:interior:swap-complete', {
-      loadedLodIndex: nextInterior.loadedLodIndex,
+      loadedLodIndex: nextInterior?.loadedLodIndex ?? null,
       swapPhases
     })
   }
 
-  const exteriorViewInterior = loadedModel.interior
+  let exteriorViewInterior = loadedModel.interior
+  let exteriorViewInteriorLoadPromise: Promise<LoadedModelComponent | null> | null = null
   let cachedCockpitInteriorLod00: LoadedModelComponent | null =
     loadedModel.interior?.loadedLodIndex === 0 ? loadedModel.interior : null
   let shouldUseCockpitInteriorLod00 = false
   let hasRequestedCockpitInteriorLod00 = false
   let interiorLodUpgradePromise: Promise<void> | null = null
+  const shouldLoadExteriorViewInterior = (): boolean => {
+    return (
+      aircraft.interiorModel != null &&
+      aircraft.model?.modelOptions.withExteriorShowInterior === true
+    )
+  }
+
+  const getExteriorViewInteriorPreferredLodIndex = (): number | null => {
+    if (aircraft.model?.modelOptions.withExteriorShowInteriorHideFirstLod === true) {
+      return Math.max(requestedLodIndex ?? 1, 1)
+    }
+
+    return requestedLodIndex ?? null
+  }
+
+  const ensureExteriorViewInteriorLoaded = (): Promise<LoadedModelComponent | null> => {
+    if (exteriorViewInterior != null || !shouldLoadExteriorViewInterior()) {
+      return Promise.resolve(exteriorViewInterior)
+    }
+    if (exteriorViewInteriorLoadPromise != null) {
+      return exteriorViewInteriorLoadPromise
+    }
+
+    const interiorModel = aircraft.interiorModel
+    if (interiorModel == null) {
+      return Promise.resolve(null)
+    }
+
+    setGlobalLoadStage({
+      stage: 'gltf:exterior-interior:deferred:start',
+      aircraftId: aircraft.id
+    })
+    exteriorViewInteriorLoadPromise = loadAircraftModelComponent(
+      aircraftModelLoadContext,
+      interiorModel,
+      {
+        kind: 'interior',
+        preferredLodIndex: getExteriorViewInteriorPreferredLodIndex()
+      }
+    )
+      .then(nextInterior => {
+        exteriorViewInterior = nextInterior
+        setGlobalLoadStage({
+          stage: 'gltf:exterior-interior:deferred:ready',
+          aircraftId: aircraft.id,
+          loadedLodIndex: nextInterior.loadedLodIndex
+        })
+        if (!cockpitCameraController.isActive() && loadedModel.interior !== nextInterior) {
+          setActiveInteriorComponent(nextInterior)
+        }
+        return nextInterior
+      })
+      .catch(error => {
+        setGlobalLoadStage({
+          stage: 'gltf:exterior-interior:deferred:error',
+          aircraftId: aircraft.id,
+          error: error instanceof Error ? error.message : String(error)
+        })
+        console.error('Failed to load deferred exterior-view interior.', error)
+        return null
+      })
+      .finally(() => {
+        exteriorViewInteriorLoadPromise = null
+      })
+
+    return exteriorViewInteriorLoadPromise
+  }
+
   const requestInteriorLod00Upgrade = (): void => {
     if (!hasRequestedCockpitInteriorLod00) {
-      return
-    }
-    if (exteriorViewInterior == null) {
       return
     }
 
@@ -675,11 +743,12 @@ async function init(): Promise<void> {
 
   const restoreExteriorInteriorLod = (): void => {
     shouldUseCockpitInteriorLod00 = false
-    if (exteriorViewInterior == null || loadedModel.interior === exteriorViewInterior) {
+    if (loadedModel.interior === exteriorViewInterior) {
       return
     }
 
     setActiveInteriorComponent(exteriorViewInterior)
+    void ensureExteriorViewInteriorLoaded()
   }
 
   const cockpitCameraController = installCockpitCameraShortcut(
@@ -699,13 +768,39 @@ async function init(): Promise<void> {
       recordCockpitBenchmarkEvent(`cockpit:toggle:${mode}`, { source })
     }
   )
+  if (!syncExteriorInterior) {
+    requestAnimationFrame(() => {
+      const idleCallback = (
+        window as Window & {
+          requestIdleCallback?: (
+            callback: () => void,
+            options?: { readonly timeout?: number }
+          ) => number
+        }
+      ).requestIdleCallback
+      if (typeof idleCallback === 'function') {
+        idleCallback(() => {
+          void ensureExteriorViewInteriorLoaded()
+        }, { timeout: 1_000 })
+        return
+      }
+
+      window.setTimeout(() => {
+        void ensureExteriorViewInteriorLoaded()
+      }, 0)
+    })
+  }
 
   const runCockpitBenchmark = async (): Promise<CockpitBenchmarkRunResult> => {
     if (!cockpitCameraController.isAvailable()) {
       throw new Error('Cockpit benchmark is unavailable because the selected aircraft has no cockpit camera.')
     }
-    if (exteriorViewInterior == null) {
+    if (aircraft.interiorModel == null) {
       throw new Error('Cockpit benchmark is unavailable because the selected aircraft has no interior model.')
+    }
+    await ensureExteriorViewInteriorLoaded()
+    if (exteriorViewInterior == null) {
+      throw new Error('Cockpit benchmark is unavailable because the exterior-view interior LOD could not be loaded.')
     }
     if (activeCockpitBenchmarkEvents != null) {
       throw new Error('Cockpit benchmark is already running.')
@@ -1414,6 +1509,7 @@ async function loadAircraftGltf(
   context: AircraftModelLoadContext,
   options: {
     readonly preferredLodIndex?: number | null
+    readonly loadExteriorInterior?: boolean
   } = {}
 ): Promise<LoadedAircraftModel> {
   const { aircraft } = context
@@ -1426,7 +1522,9 @@ async function loadAircraftGltf(
     preferredLodIndex: options.preferredLodIndex ?? null
   })
   const interior =
-    aircraft.interiorModel != null && aircraft.model.modelOptions.withExteriorShowInterior
+    options.loadExteriorInterior === true &&
+    aircraft.interiorModel != null &&
+    aircraft.model.modelOptions.withExteriorShowInterior
       ? await loadAircraftModelComponent(context, aircraft.interiorModel, {
           kind: 'interior',
           preferredLodIndex: aircraft.model.modelOptions.withExteriorShowInteriorHideFirstLod
@@ -1583,7 +1681,7 @@ function combineLoadedAircraftModel(
 
 function replaceLoadedAircraftInterior(
   model: LoadedAircraftModel,
-  interior: LoadedModelComponent
+  interior: LoadedModelComponent | null
 ): LoadedAircraftModel {
   return {
     scene: model.scene,

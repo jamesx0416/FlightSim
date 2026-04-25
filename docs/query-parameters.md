@@ -9,6 +9,7 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 | `package` | `?package=/tmp/flybywire-aircraft-a320-neo/` | Selects the main built MSFS package root to load. The value is normalized with a trailing slash. If omitted, `VITE_MSFS_PACKAGE_ROOT` is used, then the built-in development default. |
 | `aircraft` | `?aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0` | Selects a specific aircraft variation from the imported package. The aircraft selector also writes this value into the URL when changed. If omitted or invalid, the viewer falls back to the first discovered aircraft. |
 | `lod` | `?lod=0` | Requests the initial zero-based LOD index. `0` means LOD00, `1` means LOD01, and so on. Empty values are ignored. Negative or non-integer values throw a startup error. |
+| `syncExteriorInterior` | `?syncExteriorInterior` | Loads any `withExterior_showInterior` interior LOD synchronously before the first exterior view. By default, that interior is loaded progressively after the exterior first view is available. |
 
 ## Additional Package Roots
 
