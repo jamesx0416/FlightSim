@@ -99,7 +99,7 @@ See `docs/query-parameters.md` for the full list of supported query parameters, 
 
 ## Project Layout
 
-- [`plan.md`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/plan.md): implementation plan and phase boundaries
+- [`docs/investigations/plan.md`](docs/investigations/plan.md): implementation plan and phase boundaries
 - [`src/msfs/importer.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/importer.ts): generic built-package importer and config/model resolution
 - [`src/msfs/behavior.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/behavior.ts): behavior include loading, template expansion, and output compilation
 - [`src/msfs/rpn.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/rpn.ts): supported calculator/RPN compiler and evaluator

@@ -367,7 +367,7 @@ Rules:
 #### Stock XML Files
 
 Scope note:
-- See [stock-support-scope.md](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/stock-support-scope.md) for the currently exercised public stock XML set on the A320/A330 fixture routes.
+- See [stock-support-scope.md](stock-support-scope.md) for the currently exercised public stock XML set on the A320/A330 fixture routes.
 - The current fixture include graph exercises `Common.xml`, `Common/Index.xml`, `Exterior.xml`, `Generic.xml`, `Generic/FX.xml`, and `Generic/Index.xml`.
 - XML files outside that exercised set should stay unchecked until they are either:
   - exercised and verified on the fixture routes, or
