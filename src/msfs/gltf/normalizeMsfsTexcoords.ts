@@ -35,10 +35,9 @@ function normalizeGeometryTexcoords(geometry: BufferGeometry): void {
     }
 
     const converted = new Float32Array(attribute.count * attribute.itemSize)
-    for (let index = 0; index < attribute.count; index += 1) {
-      const destinationOffset = index * attribute.itemSize
-      converted[destinationOffset] = decodeFloat16Bits(attribute.getX(index))
-      converted[destinationOffset + 1] = decodeFloat16Bits(attribute.getY(index))
+    for (let offset = 0; offset < attribute.array.length; offset += 2) {
+      converted[offset] = decodeFloat16Bits(attribute.array[offset]!)
+      converted[offset + 1] = decodeFloat16Bits(attribute.array[offset + 1]!)
     }
 
     geometry.setAttribute(

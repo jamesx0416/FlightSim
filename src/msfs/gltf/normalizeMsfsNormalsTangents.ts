@@ -33,22 +33,22 @@ function normalizeGeometryVectors(geometry: BufferGeometry): void {
 
     const scale = attribute.array instanceof Int8Array ? 127 : 32767
     const converted = new Float32Array(attribute.count * attribute.itemSize)
+    const source = attribute.array
 
-    for (let index = 0; index < attribute.count; index += 1) {
-      const destinationOffset = index * attribute.itemSize
-      converted[destinationOffset] = clampSignedNormalized(attribute.getX(index) / scale)
+    for (let offset = 0; offset < source.length; offset += attribute.itemSize) {
+      converted[offset] = clampSignedNormalized(source[offset]! / scale)
 
       if (attribute.itemSize >= 2) {
-        converted[destinationOffset + 1] = clampSignedNormalized(attribute.getY(index) / scale)
+        converted[offset + 1] = clampSignedNormalized(source[offset + 1]! / scale)
       }
       if (attribute.itemSize >= 3) {
-        converted[destinationOffset + 2] = clampSignedNormalized(attribute.getZ(index) / scale)
+        converted[offset + 2] = clampSignedNormalized(source[offset + 2]! / scale)
       }
       if (attribute.itemSize >= 4) {
-        converted[destinationOffset + 3] = clampSignedNormalized(attribute.getW(index) / scale)
+        converted[offset + 3] = clampSignedNormalized(source[offset + 3]! / scale)
       }
 
-      normalizeVectorComponents(converted, destinationOffset, Math.min(3, attribute.itemSize))
+      normalizeVectorComponents(converted, offset, Math.min(3, attribute.itemSize))
     }
 
     geometry.setAttribute(
