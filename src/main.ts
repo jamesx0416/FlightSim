@@ -59,6 +59,8 @@ type LoadedModelComponent = {
   readonly scene: Group
   readonly animations: GLTF['animations']
   readonly loadedLodIndex: number
+  readonly loadDiagnostics: ModelLoadDiagnostics
+  readonly resourceStats: ModelResourceStats
 }
 
 type LoadedAircraftModel = {
@@ -74,6 +76,31 @@ type AircraftModelLoadContext = {
     readonly textureLoadOptions?: MSFSDDSLoadOptions
   }) => GLTFLoader
   readonly createNodeMaterial: NodeMaterialFactory | null
+}
+
+type ModelLoadPhase = {
+  readonly label: string
+  readonly startMs: number
+  readonly endMs: number
+  readonly durationMs: number
+  readonly details: Record<string, unknown> | null
+}
+
+type ModelLoadDiagnostics = {
+  readonly phases: readonly ModelLoadPhase[]
+  readonly totalDurationMs: number
+}
+
+type ModelResourceStats = {
+  readonly geometryCount: number
+  readonly materialCount: number
+  readonly textureCount: number
+  readonly geometryAttributeBytes: number
+  readonly geometryIndexBytes: number
+  readonly textureKnownBytes: number
+  readonly textureEstimatedBytes: number
+  readonly totalKnownBytes: number
+  readonly totalEstimatedBytes: number
 }
 
 type CockpitCameraController = {
@@ -519,19 +546,42 @@ async function init(): Promise<void> {
       return
     }
 
+    const swapPhases: ModelLoadPhase[] = []
+    const recordSwapPhase = (
+      label: string,
+      startMs: number,
+      details: Record<string, unknown> | null = null
+    ): void => {
+      const endMs = performance.now()
+      swapPhases.push({
+        label,
+        startMs,
+        endMs,
+        durationMs: endMs - startMs,
+        details
+      })
+    }
+
+    const sceneSwapStartMs = performance.now()
     if (currentInterior != null) {
       loadedModel.scene.remove(currentInterior.scene)
     }
     if (nextInterior.scene.parent !== loadedModel.scene) {
       loadedModel.scene.add(nextInterior.scene)
     }
+    recordSwapPhase('interior-swap:scene-graph', sceneSwapStartMs)
 
     loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
     ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
+    const runtimeRebuildStartMs = performance.now()
     rebuildRuntimeForLoadedModel()
+    recordSwapPhase('interior-swap:runtime-rebuild', runtimeRebuildStartMs)
+    const renderPassRefreshStartMs = performance.now()
     renderPasses.refresh()
+    recordSwapPhase('interior-swap:render-pass-refresh', renderPassRefreshStartMs)
     recordCockpitBenchmarkEvent('cockpit:interior:swap-complete', {
-      loadedLodIndex: nextInterior.loadedLodIndex
+      loadedLodIndex: nextInterior.loadedLodIndex,
+      swapPhases
     })
   }
 
@@ -594,7 +644,9 @@ async function init(): Promise<void> {
         )
         cachedCockpitInteriorLod00 = nextInterior
         recordCockpitBenchmarkEvent('cockpit:interior-upgrade:component-loaded', {
-          loadedLodIndex: nextInterior.loadedLodIndex
+          loadedLodIndex: nextInterior.loadedLodIndex,
+          loadDiagnostics: nextInterior.loadDiagnostics,
+          resourceStats: nextInterior.resourceStats
         })
 
         if (shouldUseCockpitInteriorLod00 && loadedModel.interior !== nextInterior) {
@@ -773,6 +825,10 @@ async function init(): Promise<void> {
       cockpitViewActive: cockpitCameraController.isActive(),
       activeInteriorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
       cachedInteriorLod00Available: cachedCockpitInteriorLod00 != null,
+      activeInteriorLoadDiagnostics: loadedModel.interior?.loadDiagnostics ?? null,
+      activeInteriorResourceStats: loadedModel.interior?.resourceStats ?? null,
+      cachedInteriorLod00LoadDiagnostics: cachedCockpitInteriorLod00?.loadDiagnostics ?? null,
+      cachedInteriorLod00ResourceStats: cachedCockpitInteriorLod00?.resourceStats ?? null,
       benchmarkRunning: activeCockpitBenchmarkEvents != null,
       lastResult: lastCockpitBenchmarkResult
     }),
@@ -907,7 +963,7 @@ function createCockpitPerfDiagnostics(
     getSummary: () => summarizeCockpitPerfSamples(samples),
     getActiveInteriorStats: () => {
       const interior = getLoadedModel().interior
-      return interior == null ? null : collectModelRenderStats(interior.scene)
+      return interior == null ? null : collectLoadedComponentStats(interior)
     },
     reset: () => {
       samples.length = 0
@@ -924,7 +980,7 @@ function createDisabledCockpitPerfDiagnostics(
     getSummary: () => ({ enabled: false }),
     getActiveInteriorStats: () => {
       const interior = getLoadedModel().interior
-      return interior == null ? null : collectModelRenderStats(interior.scene)
+      return interior == null ? null : collectLoadedComponentStats(interior)
     },
     reset: () => {}
   }
@@ -961,6 +1017,15 @@ function summarizeNumericSamples(values: readonly number[]): Record<string, numb
     p95: sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))]!,
     max: sorted.at(-1)!,
     average: sum / values.length
+  }
+}
+
+function collectLoadedComponentStats(component: LoadedModelComponent): Record<string, unknown> {
+  return {
+    ...collectModelRenderStats(component.scene),
+    loadedLodIndex: component.loadedLodIndex,
+    loadDiagnostics: component.loadDiagnostics,
+    resourceStats: component.resourceStats
   }
 }
 
@@ -1091,6 +1156,138 @@ function collectModelRenderStats(root: Object3D): Record<string, unknown> {
     indexedTriangleCount,
     nonIndexedTriangleCount
   }
+}
+
+function collectModelResourceStats(root: Object3D): ModelResourceStats {
+  const resources = collectSceneResources(root)
+  let geometryAttributeBytes = 0
+  let geometryIndexBytes = 0
+  let textureKnownBytes = 0
+  let textureEstimatedBytes = 0
+
+  for (const geometry of resources.geometries) {
+    for (const attribute of Object.values(geometry.attributes)) {
+      geometryAttributeBytes += getBufferAttributeByteLength(attribute)
+    }
+
+    for (const morphAttributes of Object.values(geometry.morphAttributes)) {
+      for (const attribute of morphAttributes) {
+        geometryAttributeBytes += getBufferAttributeByteLength(attribute)
+      }
+    }
+
+    if (geometry.index != null) {
+      geometryIndexBytes += getBufferAttributeByteLength(geometry.index)
+    }
+  }
+
+  for (const texture of resources.textures) {
+    const textureBytes = estimateTextureByteSize(texture)
+    textureKnownBytes += textureBytes.knownBytes
+    textureEstimatedBytes += textureBytes.estimatedBytes
+  }
+
+  return {
+    geometryCount: resources.geometries.size,
+    materialCount: resources.materials.size,
+    textureCount: resources.textures.size,
+    geometryAttributeBytes,
+    geometryIndexBytes,
+    textureKnownBytes,
+    textureEstimatedBytes,
+    totalKnownBytes: geometryAttributeBytes + geometryIndexBytes + textureKnownBytes,
+    totalEstimatedBytes: geometryAttributeBytes + geometryIndexBytes + textureEstimatedBytes
+  }
+}
+
+function getBufferAttributeByteLength(attribute: unknown): number {
+  const array = (attribute as { readonly array?: ArrayBufferView | null }).array
+  return array?.byteLength ?? 0
+}
+
+function estimateTextureByteSize(texture: Texture): {
+  readonly knownBytes: number
+  readonly estimatedBytes: number
+} {
+  const textureRecord = texture as unknown as {
+    readonly image?: unknown
+    readonly mipmaps?: readonly unknown[]
+  }
+  const knownFromMipmaps = sumTextureImageByteLengths(textureRecord.mipmaps ?? [])
+  if (knownFromMipmaps > 0) {
+    return {
+      knownBytes: knownFromMipmaps,
+      estimatedBytes: knownFromMipmaps
+    }
+  }
+
+  const knownFromImage = sumTextureImageByteLengths([textureRecord.image])
+  if (knownFromImage > 0) {
+    return {
+      knownBytes: knownFromImage,
+      estimatedBytes: knownFromImage
+    }
+  }
+
+  return {
+    knownBytes: 0,
+    estimatedBytes: estimateTextureImageByteLength(textureRecord.image)
+  }
+}
+
+function sumTextureImageByteLengths(images: readonly unknown[]): number {
+  return images.reduce((total, image) => total + getTextureImageByteLength(image), 0)
+}
+
+function getTextureImageByteLength(image: unknown): number {
+  if (Array.isArray(image)) {
+    return sumTextureImageByteLengths(image)
+  }
+
+  if (image == null || typeof image !== 'object') {
+    return 0
+  }
+
+  const record = image as {
+    readonly data?: { readonly byteLength?: number } | ArrayBufferView | null
+    readonly mipmaps?: readonly unknown[]
+  }
+  const dataByteLength =
+    record.data == null
+      ? 0
+      : 'byteLength' in record.data && typeof record.data.byteLength === 'number'
+        ? record.data.byteLength
+        : 0
+  return dataByteLength + sumTextureImageByteLengths(record.mipmaps ?? [])
+}
+
+function estimateTextureImageByteLength(image: unknown): number {
+  if (Array.isArray(image)) {
+    return image.reduce((total, item) => total + estimateTextureImageByteLength(item), 0)
+  }
+
+  if (image == null || typeof image !== 'object') {
+    return 0
+  }
+
+  const record = image as {
+    readonly width?: number
+    readonly height?: number
+    readonly mipmaps?: readonly unknown[]
+  }
+  const mipmapEstimate = record.mipmaps?.reduce(
+    (total, mipmap) => total + estimateTextureImageByteLength(mipmap),
+    0
+  )
+  if (mipmapEstimate != null && mipmapEstimate > 0) {
+    return mipmapEstimate
+  }
+
+  if (typeof record.width !== 'number' || typeof record.height !== 'number') {
+    return 0
+  }
+
+  return Math.max(0, record.width) * Math.max(0, record.height) * 4
 }
 
 type RuntimeFrostMaterialState = {
@@ -1255,6 +1452,22 @@ async function loadAircraftModelComponent(
     readonly behaviorSet?: typeof compiledBehaviors
   }
 ): Promise<LoadedModelComponent> {
+  const phases: ModelLoadPhase[] = []
+  const componentLoadStartMs = performance.now()
+  const recordPhase = (
+    label: string,
+    startMs: number,
+    details: Record<string, unknown> | null = null
+  ): void => {
+    const endMs = performance.now()
+    phases.push({
+      label,
+      startMs,
+      endMs,
+      durationMs: endMs - startMs,
+      details
+    })
+  }
   const loader = context.createLoader({
     textureLoadOptions: options.textureLoadOptions
   })
@@ -1264,16 +1477,21 @@ async function loadAircraftModelComponent(
     modelDefinition,
     context.createNodeMaterial,
     options.preferredLodIndex,
-    options.fallbackToOtherLods ?? true
+    options.fallbackToOtherLods ?? true,
+    recordPhase
   )
   if (options.stripTextures === true) {
+    const stripStartMs = performance.now()
     stripObjectTextures(loaded.gltf.scene)
+    recordPhase('component:strip-textures', stripStartMs)
   }
   if (options.instanceStaticMeshes === true && options.behaviorSet != null) {
+    const instanceStartMs = performance.now()
     const instancingStats = instanceStaticMsfsMeshes(
       loaded.gltf.scene,
       options.behaviorSet
     )
+    recordPhase('component:instance-static-meshes', instanceStartMs, instancingStats)
     setGlobalLoadStage({
       stage: 'gltf:lod:instance-static-meshes',
       aircraftId: context.aircraft.id,
@@ -1281,15 +1499,31 @@ async function loadAircraftModelComponent(
     })
   }
   if (options.mergeStaticMeshes === true && options.behaviorSet != null) {
+    const mergeStartMs = performance.now()
     const mergeStats = mergeStaticMsfsMeshes(
       loaded.gltf.scene,
       options.behaviorSet
     )
+    recordPhase('component:merge-static-meshes', mergeStartMs, mergeStats)
     setGlobalLoadStage({
       stage: 'gltf:lod:merge-static-meshes',
       aircraftId: context.aircraft.id,
       ...mergeStats
     })
+  }
+  const resourceStatsStartMs = performance.now()
+  const resourceStats = collectModelResourceStats(loaded.gltf.scene)
+  recordPhase('component:collect-resource-stats', resourceStatsStartMs, resourceStats)
+  const loadDiagnostics: ModelLoadDiagnostics = {
+    phases,
+    totalDurationMs: performance.now() - componentLoadStartMs
+  }
+  ;(globalThis as Record<string, unknown>).__lastMsfsModelLoadDiagnostics = {
+    aircraftId: context.aircraft.id,
+    kind: options.kind,
+    loadedLodIndex: loaded.loadedLodIndex,
+    loadDiagnostics,
+    resourceStats
   }
 
   return {
@@ -1297,7 +1531,9 @@ async function loadAircraftModelComponent(
     modelDefinition,
     scene: loaded.gltf.scene,
     animations: loaded.gltf.animations,
-    loadedLodIndex: loaded.loadedLodIndex
+    loadedLodIndex: loaded.loadedLodIndex,
+    loadDiagnostics,
+    resourceStats
   }
 }
 
@@ -1372,7 +1608,12 @@ async function loadAircraftModelDefinitionGltf(
   modelDefinition: ImportedModelDefinition,
   createNodeMaterial: NodeMaterialFactory | null,
   preferredLodIndex: number | null,
-  fallbackToOtherLods = true
+  fallbackToOtherLods = true,
+  recordPhase: (
+    label: string,
+    startMs: number,
+    details?: Record<string, unknown> | null
+  ) => void = () => {}
 ): Promise<{
   readonly gltf: GLTF
   readonly loadedLodIndex: number
@@ -1406,63 +1647,79 @@ async function loadAircraftModelDefinitionGltf(
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
-      })
+      }, recordPhase)
       setGlobalLoadStage({
         stage: 'gltf:lod:repair-skinned',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const repairStartMs = performance.now()
       await repairMsfsSkinnedAttributes(gltf)
+      recordPhase('lod:repair-skinned-attributes', repairStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-skinning',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const skinningStartMs = performance.now()
       normalizeMsfsSkinning(gltf.scene)
+      recordPhase('lod:normalize-skinning', skinningStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-texcoords',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const texcoordStartMs = performance.now()
       normalizeMsfsTexcoords(gltf.scene)
+      recordPhase('lod:normalize-texcoords', texcoordStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-colors',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const colorStartMs = performance.now()
       normalizeMsfsVertexColors(gltf.scene)
+      recordPhase('lod:normalize-vertex-colors', colorStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-normals',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const normalsStartMs = performance.now()
       normalizeMsfsNormalsTangents(gltf.scene)
+      recordPhase('lod:normalize-normals-tangents', normalsStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-asobo-primitive-base-vertex',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const baseVertexStartMs = performance.now()
       normalizeAsoboPrimitiveBaseVertex(gltf)
+      recordPhase('lod:normalize-asobo-primitive-base-vertex', baseVertexStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-asobo-primitive-winding',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const windingStartMs = performance.now()
       normalizeAsoboPrimitiveWinding(gltf)
+      recordPhase('lod:normalize-asobo-primitive-winding', windingStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-materials',
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
       })
+      const materialStartMs = performance.now()
       await normalizeMsfsMaterials(gltf, { createNodeMaterial })
+      recordPhase('lod:normalize-materials', materialStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:ready',
         aircraftId: aircraft.id,
@@ -1497,9 +1754,19 @@ async function loadMsfsGltfLod(
     readonly aircraftId: string
     readonly lodUrl: string
     readonly lodMinSize: number
-  } | null = null
+  } | null = null,
+  recordPhase: (
+    label: string,
+    startMs: number,
+    details?: Record<string, unknown> | null
+  ) => void = () => {}
 ): Promise<GLTF> {
+  const fetchStartMs = performance.now()
   const response = await fetch(url)
+  recordPhase('lod:fetch', fetchStartMs, {
+    httpStatus: response.status,
+    ok: response.ok
+  })
   if (loadContext != null) {
     setGlobalLoadStage({
       stage: 'gltf:lod:fetch:response',
@@ -1514,7 +1781,11 @@ async function loadMsfsGltfLod(
   const contentLengthHeader = response.headers.get('content-length')
   const contentLength =
     contentLengthHeader == null ? null : Number.parseInt(contentLengthHeader, 10)
+  const jsonStartMs = performance.now()
   const gltfJson = (await response.json()) as Record<string, unknown>
+  recordPhase('lod:parse-json', jsonStartMs, {
+    byteLength: Number.isFinite(contentLength) ? contentLength : null
+  })
   if (loadContext != null) {
     setGlobalLoadStage({
       stage: 'gltf:lod:json:loaded',
@@ -1523,14 +1794,18 @@ async function loadMsfsGltfLod(
     })
   }
   const baseUrl = url.slice(0, url.lastIndexOf('/') + 1)
+  const sanitizeStartMs = performance.now()
   const sanitizedGltf = sanitizeMsfsGltf(gltfJson)
+  recordPhase('lod:sanitize-msfs-gltf', sanitizeStartMs)
   if (loadContext != null) {
     setGlobalLoadStage({
       stage: 'gltf:lod:parse:start',
       ...loadContext
     })
   }
+  const loaderParseStartMs = performance.now()
   const gltf = await loader.parseAsync(sanitizedGltf, baseUrl)
+  recordPhase('lod:gltf-loader-parse', loaderParseStartMs)
   if (loadContext != null) {
     setGlobalLoadStage({
       stage: 'gltf:lod:parse:done',

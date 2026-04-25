@@ -84,6 +84,10 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - the MSFS glTF loader previously fetched each LOD as text, parsed it for MSFS sanitizing, stringified it again, and then let `GLTFLoader` parse the JSON a second time
   - Three r182 accepts a parsed glTF JSON object directly, so the loader now passes the sanitized object into `GLTFLoader` without the second stringify/parse cycle
   - this reduces transient CPU work and peak JS heap during cold internal cockpit LOD00 loads without changing asset semantics
+  - model components now carry generic load diagnostics with per-phase timings for fetch, JSON parse, MSFS sanitization, Three glTF parse, skin repair, normalization passes, material normalization, optional static batching, texture stripping, and resource-stat collection
+  - cockpit interior swap benchmark events now include scene-graph swap, runtime rebuild, and render-pass refresh timings
+  - model components now also carry resource accounting for unique geometries, materials, textures, geometry attribute/index bytes, known texture bytes, and estimated texture bytes
+  - cockpit benchmark component-loaded events and `__cockpitPerf.getActiveInteriorStats()` expose those diagnostics for the active cockpit/interior component
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically
