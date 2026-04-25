@@ -37,6 +37,7 @@ interface CompileContext {
 
 interface CompileBehaviorOptions {
   readonly additionalPackageRoots?: readonly string[]
+  readonly includeInteriorModel?: boolean
 }
 
 interface TraversalState {
@@ -100,7 +101,9 @@ export async function compileMsfs2020Behaviors(
     builtinFallbackHits: new Set()
   }
 
-  const aircraftModels = getAircraftModelDefinitions(aircraft)
+  const aircraftModels = getAircraftModelDefinitions(aircraft, {
+    includeInteriorModel: options.includeInteriorModel !== false
+  })
   for (const model of aircraftModels) {
     await loadBehaviorDocument(model.behaviorPath, context, sourceRoots[0] ?? null)
   }
@@ -172,8 +175,16 @@ export async function compileMsfs2020Behaviors(
   return compiled
 }
 
-function getAircraftModelDefinitions(aircraft: ImportedAircraft) {
-  return [aircraft.model, aircraft.interiorModel]
+function getAircraftModelDefinitions(
+  aircraft: ImportedAircraft,
+  options: {
+    readonly includeInteriorModel: boolean
+  }
+) {
+  return [
+    aircraft.model,
+    options.includeInteriorModel ? aircraft.interiorModel : null
+  ]
     .filter((model): model is NonNullable<typeof model> => model != null)
 }
 

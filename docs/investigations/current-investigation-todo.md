@@ -89,6 +89,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - model components can now carry resource accounting for unique geometries, materials, textures, geometry attribute/index bytes, known texture bytes, and estimated texture bytes; normal startup avoids that extra walk unless cockpit diagnostics or a benchmark requests it
   - cockpit benchmark component-loaded events and `__cockpitPerf.getActiveInteriorStats()` expose those diagnostics for the active cockpit/interior component
   - optional cockpit static instancing/merging modules are now imported lazily only when their query flags are used, keeping the default startup bundle smaller without changing visuals
+  - when exterior-visible interior loading is deferred, startup now compiles only exterior model behavior first; full exterior+interior behavior compilation runs progressively before deferred interior attachment or cockpit use
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically
