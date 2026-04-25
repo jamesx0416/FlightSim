@@ -585,10 +585,8 @@ async function init(): Promise<void> {
             kind: 'interior',
             preferredLodIndex: 0,
             fallbackToOtherLods: false,
-            textureLoadOptions: searchParams.has('cockpitSkipTextures')
-              ? createCockpitSkipTextureLoadOptions()
-              : undefined,
-            stripTextures: searchParams.has('cockpitSkipTextures'),
+            textureLoadOptions: createCockpitSkipTextureLoadOptions(),
+            stripTextures: true,
             instanceStaticMeshes: searchParams.has('cockpitInstanceStatic'),
             mergeStaticMeshes: searchParams.has('cockpitMergeStatic'),
             behaviorSet: compiledBehaviors
