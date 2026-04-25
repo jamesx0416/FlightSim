@@ -1511,23 +1511,26 @@ async function loadMsfsGltfLod(
     throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
   }
 
-  const gltfText = await response.text()
+  const contentLengthHeader = response.headers.get('content-length')
+  const contentLength =
+    contentLengthHeader == null ? null : Number.parseInt(contentLengthHeader, 10)
+  const gltfJson = (await response.json()) as Record<string, unknown>
   if (loadContext != null) {
     setGlobalLoadStage({
-      stage: 'gltf:lod:text:loaded',
+      stage: 'gltf:lod:json:loaded',
       ...loadContext,
-      textLength: gltfText.length
+      byteLength: Number.isFinite(contentLength) ? contentLength : null
     })
   }
   const baseUrl = url.slice(0, url.lastIndexOf('/') + 1)
-  const sanitizedGltf = sanitizeMsfsGltf(JSON.parse(gltfText) as Record<string, unknown>)
+  const sanitizedGltf = sanitizeMsfsGltf(gltfJson)
   if (loadContext != null) {
     setGlobalLoadStage({
       stage: 'gltf:lod:parse:start',
       ...loadContext
     })
   }
-  const gltf = await loader.parseAsync(JSON.stringify(sanitizedGltf), baseUrl)
+  const gltf = await loader.parseAsync(sanitizedGltf, baseUrl)
   if (loadContext != null) {
     setGlobalLoadStage({
       stage: 'gltf:lod:parse:done',
