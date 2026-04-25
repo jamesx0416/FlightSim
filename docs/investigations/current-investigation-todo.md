@@ -92,6 +92,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - when exterior-visible interior loading is deferred, startup now compiles only exterior model behavior first; full exterior+interior behavior compilation runs progressively before deferred interior attachment or cockpit use
   - when the URL specifies `aircraft=...`, package import now fully resolves only that requested aircraft and keeps the other variations as lightweight selector entries; this avoids model XML, texture fallback, cfg, and preview-state parsing for unrelated liveries/variants
   - when no `aircraft=...` is specified, package import now builds lightweight variation rows first, selects the default from those rows, and fully resolves only that default aircraft; unrelated variations no longer pay full model/texture/cfg import cost at startup
+  - ASOBO primitive index normalization now edits typed index arrays directly and avoids eager bounds recomputation, reducing CPU work and temporary math churn during model load without changing final geometry
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically

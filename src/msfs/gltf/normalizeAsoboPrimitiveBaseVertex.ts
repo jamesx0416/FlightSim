@@ -65,10 +65,11 @@ export function normalizeAsoboPrimitiveBaseVertex(gltf: GLTF): void {
       return
     }
 
+    const indexArray = index.array
     let minIndex = Number.POSITIVE_INFINITY
     let maxIndex = Number.NEGATIVE_INFINITY
-    for (let offset = 0; offset < index.count; offset += 1) {
-      const value = index.getX(offset)
+    for (let offset = 0; offset < indexArray.length; offset += 1) {
+      const value = indexArray[offset]!
       minIndex = Math.min(minIndex, value)
       maxIndex = Math.max(maxIndex, value)
     }
@@ -85,14 +86,14 @@ export function normalizeAsoboPrimitiveBaseVertex(gltf: GLTF): void {
       minIndex >= baseVertexIndex && maxIndex - baseVertexIndex < position.count
 
     if (indicesArePrimitiveLocal) {
-      const nextIndexArray = new Uint32Array(index.count)
-      for (let offset = 0; offset < index.count; offset += 1) {
-        nextIndexArray[offset] = index.getX(offset) + baseVertexIndex
+      const nextIndexArray = new Uint32Array(indexArray.length)
+      for (let offset = 0; offset < indexArray.length; offset += 1) {
+        nextIndexArray[offset] = indexArray[offset]! + baseVertexIndex
       }
       geometry.setIndex(new BufferAttribute(nextIndexArray, 1))
     } else if (indicesNeedRebasing && !indicesAlreadySharedAbsolute) {
-      for (let offset = 0; offset < index.count; offset += 1) {
-        index.setX(offset, index.getX(offset) - baseVertexIndex)
+      for (let offset = 0; offset < indexArray.length; offset += 1) {
+        indexArray[offset] = indexArray[offset]! - baseVertexIndex
       }
 
       index.needsUpdate = true
@@ -100,8 +101,6 @@ export function normalizeAsoboPrimitiveBaseVertex(gltf: GLTF): void {
       return
     }
 
-    geometry.computeBoundingBox()
-    geometry.computeBoundingSphere()
     adjustedGeometries.add(geometry)
   })
 }
