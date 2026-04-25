@@ -90,6 +90,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - cockpit benchmark component-loaded events and `__cockpitPerf.getActiveInteriorStats()` expose those diagnostics for the active cockpit/interior component
   - optional cockpit static instancing/merging modules are now imported lazily only when their query flags are used, keeping the default startup bundle smaller without changing visuals
   - when exterior-visible interior loading is deferred, startup now compiles only exterior model behavior first; full exterior+interior behavior compilation runs progressively before deferred interior attachment or cockpit use
+  - when the URL specifies `aircraft=...`, package import now fully resolves only that requested aircraft and keeps the other variations as lightweight selector entries; this avoids model XML, texture fallback, cfg, and preview-state parsing for unrelated liveries/variants
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically

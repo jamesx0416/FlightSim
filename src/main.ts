@@ -121,11 +121,12 @@ async function init(): Promise<void> {
   const syncExteriorInterior = searchParams.has('syncExteriorInterior')
   const additionalPackageRoots = resolveAdditionalPackageRoots(searchParams)
   const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
+  const requestedAircraftId = searchParams.get('aircraft')
   setGlobalLoadStage({ stage: 'import:package', packageRoot })
   const packageData = await importBuiltMsfs2020Package(packageRoot, {
-    additionalPackageRoots
+    additionalPackageRoots,
+    requestedAircraftId
   })
-  const requestedAircraftId = searchParams.get('aircraft')
   const aircraft = selectAircraft(
     packageData.aircraft,
     requestedAircraftId
@@ -135,7 +136,6 @@ async function init(): Promise<void> {
   if (aircraft == null || aircraft.model == null) {
     if (requestedAircraftId != null) {
       const availableAircraft = packageData.aircraft
-        .filter(candidate => candidate.model != null)
         .map(candidate => candidate.id)
         .sort()
       throw new Error(

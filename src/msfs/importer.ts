@@ -35,6 +35,7 @@ interface BehaviorSourceRoot {
 
 interface ImportPackageOptions {
   readonly additionalPackageRoots?: readonly string[]
+  readonly requestedAircraftId?: string | null
 }
 
 interface FltsimSectionRef {
@@ -104,7 +105,10 @@ export async function importBuiltMsfs2020Package(
     const importedAircraft = await importAircraftRecord(
       record,
       aircraftCfgRecords,
-      context
+      context,
+      {
+        requestedAircraftId: options.requestedAircraftId ?? null
+      }
     )
     if (importedAircraft.length > 0) {
       aircraft.push(...importedAircraft)
@@ -369,7 +373,10 @@ async function fetchTextFromRoot(
 async function importAircraftRecord(
   record: AircraftCfgRecord,
   aircraftCfgRecords: ReadonlyMap<string, AircraftCfgRecord>,
-  context: ImportContext
+  context: ImportContext,
+  options: {
+    readonly requestedAircraftId: string | null
+  }
 ): Promise<ImportedAircraft[]> {
   const visitedPaths = new Set<string>()
   const chain: AircraftCfgRecord[] = []
@@ -415,6 +422,40 @@ async function importAircraftRecord(
 
   for (const fltsim of fltsimSections) {
     const section = fltsim.section
+    const aircraftId = `${normalizePath(dirname(record.path))}#${section.name.toLowerCase()}`
+    const shouldImportFullAircraft =
+      options.requestedAircraftId == null || aircraftId === options.requestedAircraftId
+    const title =
+      section.values.get('title') ||
+      section.values.get('ui_type') ||
+      aircraftDirectoryName
+    const variationName = section.values.get('ui_variation') || undefined
+    const uiType = section.values.get('ui_type') || undefined
+    const isUserSelectable = parseBoolean(section.values.get('isuserselectable'))
+    const isFlyable = parseBoolean(section.values.get('isflyable'))
+
+    if (!shouldImportFullAircraft) {
+      importedAircraft.push({
+        id: aircraftId,
+        title,
+        sectionName: section.name,
+        uiType,
+        variationName,
+        sourcePath: record.path,
+        sourceUrl: record.url,
+        inheritedFromPaths,
+        textureDirectories: [],
+        baseContainer,
+        isUserSelectable,
+        isFlyable,
+        model: null,
+        interiorModel: null,
+        cfgFiles: [],
+        previewFlightState: null
+      })
+      continue
+    }
+
     const model = await importModelDefinition(
       [fltsim.record, ...chain],
       section.values.get('model') ?? '',
@@ -434,18 +475,12 @@ async function importAircraftRecord(
       }
     )
 
-    const title =
-      section.values.get('title') ||
-      section.values.get('ui_type') ||
-      aircraftDirectoryName
-    const variationName = section.values.get('ui_variation') || undefined
-    const uiType = section.values.get('ui_type') || undefined
     const textureDirectories = await resolveTextureDirectories(chain, fltsim, context)
     const cfgFiles = await resolveAdditionalCfgFiles(chain, fltsim, context)
     const previewFlightState = await resolvePreviewFlightState(chain, fltsim, context)
 
     importedAircraft.push({
-      id: `${normalizePath(dirname(record.path))}#${section.name.toLowerCase()}`,
+      id: aircraftId,
       title,
       sectionName: section.name,
       uiType,
@@ -455,8 +490,8 @@ async function importAircraftRecord(
       inheritedFromPaths,
       textureDirectories,
       baseContainer,
-      isUserSelectable: parseBoolean(section.values.get('isuserselectable')),
-      isFlyable: parseBoolean(section.values.get('isflyable')),
+      isUserSelectable,
+      isFlyable,
       model,
       interiorModel,
       cfgFiles,
