@@ -47,6 +47,8 @@ function normalizeGeometryVectors(geometry: BufferGeometry): void {
       if (attribute.itemSize >= 4) {
         converted[destinationOffset + 3] = clampSignedNormalized(attribute.getW(index) / scale)
       }
+
+      normalizeVectorComponents(converted, destinationOffset, Math.min(3, attribute.itemSize))
     }
 
     geometry.setAttribute(
@@ -54,6 +56,28 @@ function normalizeGeometryVectors(geometry: BufferGeometry): void {
       new Float32BufferAttribute(converted, attribute.itemSize, false)
     )
   }
+}
+
+function normalizeVectorComponents(
+  values: Float32Array,
+  offset: number,
+  componentCount: number
+): void {
+  if (componentCount < 3) {
+    return
+  }
+
+  const x = values[offset]
+  const y = values[offset + 1]
+  const z = values[offset + 2]
+  const length = Math.hypot(x, y, z)
+  if (length <= 0) {
+    return
+  }
+
+  values[offset] = x / length
+  values[offset + 1] = y / length
+  values[offset + 2] = z / length
 }
 
 function clampSignedNormalized(value: number): number {

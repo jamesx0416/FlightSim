@@ -95,7 +95,7 @@ The main package root can also be selected from the URL:
 ?package=/tmp/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0
 ```
 
-See `docs/query-parameters.md` for the full list of supported query parameters, including cockpit diagnostics and opt-in runtime experiments.
+See `docs/query-parameters.md` for the full list of supported query parameters, including cockpit diagnostics and opt-in runtime experiments. Any new URL query parameter added to the viewer must be documented there in the same change.
 
 ## Project Layout
 
