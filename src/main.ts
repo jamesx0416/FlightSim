@@ -585,8 +585,10 @@ async function init(): Promise<void> {
             kind: 'interior',
             preferredLodIndex: 0,
             fallbackToOtherLods: false,
-            textureLoadOptions: createCockpitLod00TextureLoadOptions(),
-            stripTextures: true,
+            textureLoadOptions: searchParams.has('cockpitSkipTextures')
+              ? createCockpitSkipTextureLoadOptions()
+              : undefined,
+            stripTextures: searchParams.has('cockpitSkipTextures'),
             instanceStaticMeshes: searchParams.has('cockpitInstanceStatic'),
             mergeStaticMeshes: searchParams.has('cockpitMergeStatic'),
             behaviorSet: compiledBehaviors
@@ -1180,7 +1182,7 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
-function createCockpitLod00TextureLoadOptions(): MSFSDDSLoadOptions {
+function createCockpitSkipTextureLoadOptions(): MSFSDDSLoadOptions {
   return {
     skipTextures: true
   }

@@ -81,6 +81,7 @@ export function instanceStaticMsfsMeshes(
   let instancedMeshCount = 0
   let instancedBatchCount = 0
   let disposedGeometryCount = 0
+  const proxiedSourceGeometries = new Set<BufferGeometry>()
 
   for (const batch of batches.values()) {
     if (batch.length < MIN_INSTANCES_PER_BATCH) {
@@ -104,10 +105,7 @@ export function instanceStaticMsfsMeshes(
       instancedMesh.setMatrixAt(index, candidate.worldMatrix)
       candidate.mesh.visible = false
       candidate.mesh.userData.msfsInstancedProxy = true
-      if (candidate.geometry !== canonical.geometry) {
-        candidate.geometry.dispose()
-        disposedGeometryCount += 1
-      }
+      proxiedSourceGeometries.add(candidate.geometry)
     }
 
     instancedMesh.instanceMatrix.needsUpdate = true
@@ -116,6 +114,14 @@ export function instanceStaticMsfsMeshes(
     findInstancingAnchor(canonical.mesh, root, protectedNames).add(instancedMesh)
     instancedMeshCount += batch.length
     instancedBatchCount += 1
+  }
+
+  const visibleGeometries = collectVisibleGeometries(root)
+  for (const geometry of proxiedSourceGeometries) {
+    if (geometry !== undefined && !visibleGeometries.has(geometry)) {
+      geometry.dispose()
+      disposedGeometryCount += 1
+    }
   }
 
   return {
@@ -164,6 +170,16 @@ function findInstancingAnchor(
     current = current.parent
   }
   return root
+}
+
+function collectVisibleGeometries(root: Object3D): ReadonlySet<BufferGeometry> {
+  const geometries = new Set<BufferGeometry>()
+  root.traverse(object => {
+    if (object instanceof Mesh && object.visible && object.geometry != null) {
+      geometries.add(object.geometry)
+    }
+  })
+  return geometries
 }
 
 function getMatrixRelativeToAnchor(object: Object3D, anchor: Object3D): Matrix4 {
