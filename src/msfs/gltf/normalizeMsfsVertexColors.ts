@@ -32,58 +32,56 @@ function normalizeGeometryVertexColors(geometry: BufferGeometry): void {
     return
   }
 
-  let readComponent: ((index: number, component: number) => number) | null = null
   if (attribute.array instanceof Uint16Array) {
-    readComponent = (index, component) =>
-      decodeFloat16Bits(getComponent(attribute, index, component))
-  } else if (attribute.array instanceof Uint8Array) {
-    readComponent = (index, component) =>
-      getComponent(attribute, index, component) / MSFS_BYTE_COLOR_SCALE
-  } else if (attribute.array instanceof Int8Array) {
-    readComponent = (index, component) =>
-      reinterpretSignedByteAsUnsigned(getComponent(attribute, index, component)) /
-      MSFS_BYTE_COLOR_SCALE
-  }
-
-  if (readComponent == null) {
+    convertVertexColorAttribute(
+      geometry,
+      attribute.itemSize,
+      attribute.array,
+      decodeFloat16Bits
+    )
     return
   }
 
-  const converted = new Float32Array(attribute.count * attribute.itemSize)
-  for (let index = 0; index < attribute.count; index += 1) {
-    const destinationOffset = index * attribute.itemSize
-    converted[destinationOffset] = readComponent(index, 0)
-    converted[destinationOffset + 1] = readComponent(index, 1)
-    converted[destinationOffset + 2] = readComponent(index, 2)
-
-    if (attribute.itemSize === 4) {
-      converted[destinationOffset + 3] = readComponent(index, 3)
-    }
+  if (attribute.array instanceof Uint8Array) {
+    convertVertexColorAttribute(
+      geometry,
+      attribute.itemSize,
+      attribute.array,
+      value => value / MSFS_BYTE_COLOR_SCALE
+    )
+    return
   }
 
-  geometry.setAttribute(
-    'color',
-    new Float32BufferAttribute(converted, attribute.itemSize, false)
-  )
+  if (attribute.array instanceof Int8Array) {
+    convertVertexColorAttribute(
+      geometry,
+      attribute.itemSize,
+      attribute.array,
+      value => reinterpretSignedByteAsUnsigned(value) / MSFS_BYTE_COLOR_SCALE
+    )
+  }
 }
 
-function getComponent(
-  attribute: ReturnType<BufferGeometry['getAttribute']>,
-  index: number,
-  component: number
-): number {
-  switch (component) {
-    case 0:
-      return attribute.getX(index)
-    case 1:
-      return attribute.getY(index)
-    case 2:
-      return attribute.getZ(index)
-    case 3:
-      return attribute.getW(index)
-    default:
-      return 0
+function convertVertexColorAttribute(
+  geometry: BufferGeometry,
+  itemSize: number,
+  source: Uint16Array | Uint8Array | Int8Array,
+  convertComponent: (value: number) => number
+): void {
+  const converted = new Float32Array(source.length)
+  for (let offset = 0; offset < source.length; offset += itemSize) {
+    converted[offset] = convertComponent(source[offset]!)
+    converted[offset + 1] = convertComponent(source[offset + 1]!)
+    converted[offset + 2] = convertComponent(source[offset + 2]!)
+
+    if (itemSize === 4) {
+      converted[offset + 3] = convertComponent(source[offset + 3]!)
+    }
   }
+  geometry.setAttribute(
+    'color',
+    new Float32BufferAttribute(converted, itemSize, false)
+  )
 }
 
 function reinterpretSignedByteAsUnsigned(value: number): number {
