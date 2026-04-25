@@ -21,6 +21,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPrimitiveBaseVertex'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
+import { instanceStaticMsfsMeshes } from './msfs/gltf/instanceStaticMsfsMeshes'
 import type { MSFSDDSLoadOptions } from './msfs/gltf/MSFSDDSLoader'
 import { normalizeAsoboPrimitiveWinding } from './msfs/gltf/normalizeAsoboPrimitiveWinding'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
@@ -584,7 +585,9 @@ async function init(): Promise<void> {
             preferredLodIndex: 0,
             fallbackToOtherLods: false,
             textureLoadOptions: createCockpitLod00TextureLoadOptions(),
-            stripTextures: true
+            stripTextures: true,
+            instanceStaticMeshes: searchParams.has('cockpitInstanceStatic'),
+            behaviorSet: compiledBehaviors
           }
         )
         cachedCockpitInteriorLod00 = nextInterior
@@ -1241,6 +1244,8 @@ async function loadAircraftModelComponent(
     readonly fallbackToOtherLods?: boolean
     readonly textureLoadOptions?: MSFSDDSLoadOptions
     readonly stripTextures?: boolean
+    readonly instanceStaticMeshes?: boolean
+    readonly behaviorSet?: typeof compiledBehaviors
   }
 ): Promise<LoadedModelComponent> {
   const loader = context.createLoader({
@@ -1256,6 +1261,17 @@ async function loadAircraftModelComponent(
   )
   if (options.stripTextures === true) {
     stripObjectTextures(loaded.gltf.scene)
+  }
+  if (options.instanceStaticMeshes === true && options.behaviorSet != null) {
+    const instancingStats = instanceStaticMsfsMeshes(
+      loaded.gltf.scene,
+      options.behaviorSet
+    )
+    setGlobalLoadStage({
+      stage: 'gltf:lod:instance-static-meshes',
+      aircraftId: context.aircraft.id,
+      ...instancingStats
+    })
   }
 
   return {
