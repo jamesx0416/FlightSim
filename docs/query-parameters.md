@@ -24,6 +24,7 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 | --- | --- | --- |
 | `cockpitPerf` | `?cockpitPerf` | Enables cockpit performance diagnostics and exposes frame/render/load stats through `globalThis.__cockpitPerf`. Without this flag, the per-frame profiler is not installed. |
 | `cockpitInstanceStatic` | `?cockpitPerf&cockpitInstanceStatic` | Opts into dynamic runtime instancing for eligible static cockpit meshes in interior LOD00. The default path is unchanged when this flag is absent. The experiment preserves behavior-bound nodes by keeping hidden proxy meshes and only batches meshes with matching geometry, material, draw range, and safe behavior ancestry. |
+| `cockpitMergeStatic` | `?cockpitPerf&cockpitMergeStatic` | Opts into dynamic runtime merging for eligible opaque static cockpit meshes in interior LOD00. The default path is unchanged when this flag is absent. The experiment keeps named/metadata proxy meshes hidden, skips behavior-bound/skinned/morphed/transparent/decal meshes, and merges by material plus spatial cell to reduce draw calls while limiting culling loss. It may slightly change visuals because merged chunks can have different frustum-culling or render-order behavior. |
 
 ## Common URLs
 
@@ -37,6 +38,10 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 
 ```text
 ?package=/tmp/my-aircraft/&cockpitPerf&cockpitInstanceStatic
+```
+
+```text
+?package=/tmp/my-aircraft/&cockpitPerf&cockpitMergeStatic
 ```
 
 ## Related Environment Variables
