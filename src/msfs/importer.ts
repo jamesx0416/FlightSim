@@ -83,20 +83,53 @@ export async function importBuiltMsfs2020Package(
     textCache
   }
 
-  const aircraftCfgPaths = layoutEntries
+  const allAircraftCfgPaths = layoutEntries
     .map(entry => normalizePath(entry.path))
     .filter(path => /simobjects\/airplanes\/.+\/aircraft\.cfg$/iu.test(path))
     .sort()
+  const requestedAircraftCfgPath =
+    options.requestedAircraftId == null
+      ? null
+      : resolveRequestedAircraftCfgPath(options.requestedAircraftId, context)
+  const aircraftCfgPaths =
+    requestedAircraftCfgPath == null ? allAircraftCfgPaths : [requestedAircraftCfgPath]
 
   const aircraftCfgRecords = new Map<string, AircraftCfgRecord>()
-  for (const path of aircraftCfgPaths) {
-    const cfgText = await fetchText(path, context)
-    if (cfgText == null) continue
+  const loadAircraftCfgRecord = async (path: string): Promise<AircraftCfgRecord | null> => {
+    const resolvedPath = resolveLayoutPath(path, context) ?? normalizePath(path)
+    const existing = aircraftCfgRecords.get(resolvedPath)
+    if (existing != null) {
+      return existing
+    }
 
-    aircraftCfgRecords.set(path, {
-      path,
-      url: resolvePackageUrl(normalizedRootUrl, path),
+    const cfgText = await fetchText(resolvedPath, context)
+    if (cfgText == null) {
+      return null
+    }
+
+    const record: AircraftCfgRecord = {
+      path: resolvedPath,
+      url: resolvePackageUrl(normalizedRootUrl, resolvedPath),
       sections: parseCfg(cfgText)
+    }
+    aircraftCfgRecords.set(resolvedPath, record)
+    return record
+  }
+
+  for (const path of aircraftCfgPaths) {
+    await loadAircraftCfgRecord(path)
+  }
+
+  for (const record of aircraftCfgRecords.values()) {
+    await loadBaseContainerAircraftCfgRecords(record, context, loadAircraftCfgRecord)
+  }
+
+  if (aircraftCfgRecords.size === 0 && requestedAircraftCfgPath != null) {
+    diagnostics.push({
+      code: 'requested_aircraft_cfg_missing',
+      message: `Requested aircraft ${options.requestedAircraftId} could not be resolved to an aircraft.cfg in the package layout.`,
+      severity: 'error',
+      sourcePath: options.requestedAircraftId ?? undefined
     })
   }
 
@@ -125,6 +158,43 @@ export async function importBuiltMsfs2020Package(
     aircraft,
     diagnostics
   }
+}
+
+async function loadBaseContainerAircraftCfgRecords(
+  record: AircraftCfgRecord,
+  context: ImportContext,
+  loadAircraftCfgRecord: (path: string) => Promise<AircraftCfgRecord | null>
+): Promise<void> {
+  const visitedPaths = new Set<string>()
+  let currentRecord: AircraftCfgRecord | null = record
+
+  while (currentRecord != null && !visitedPaths.has(currentRecord.path)) {
+    visitedPaths.add(currentRecord.path)
+    const variationSection = getCfgSection(currentRecord.sections, 'variation')
+    const nextBaseContainer = variationSection?.values.get('base_container')
+    if (!nextBaseContainer) {
+      return
+    }
+
+    const nextPath = normalizePath(
+      `${joinPath(dirname(currentRecord.path), nextBaseContainer)}/aircraft.cfg`
+    )
+    currentRecord = await loadAircraftCfgRecord(nextPath)
+  }
+}
+
+function resolveRequestedAircraftCfgPath(
+  requestedAircraftId: string,
+  context: ImportContext
+): string | null {
+  const separatorIndex = requestedAircraftId.indexOf('#')
+  const aircraftDirectory =
+    separatorIndex >= 0 ? requestedAircraftId.slice(0, separatorIndex) : requestedAircraftId
+  if (aircraftDirectory.trim() === '') {
+    return null
+  }
+
+  return resolveLayoutPath(joinPath(aircraftDirectory, 'aircraft.cfg'), context)
 }
 
 function ensureTrailingSlash(url: string): string {
