@@ -756,8 +756,8 @@ async function init(): Promise<void> {
             kind: 'interior',
             preferredLodIndex: 0,
             fallbackToOtherLods: false,
-            textureLoadOptions: createCockpitSkipTextureLoadOptions(),
-            stripTextures: true,
+            textureLoadOptions: createCockpitTextureLoadOptions(searchParams),
+            stripTextures: !shouldLoadCockpitRangeTextures(searchParams),
             instanceStaticMeshes: searchParams.has('cockpitInstanceStatic'),
             mergeStaticMeshes: searchParams.has('cockpitMergeStatic'),
             collectResourceStats:
@@ -1527,10 +1527,21 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
-function createCockpitSkipTextureLoadOptions(): MSFSDDSLoadOptions {
+function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDSLoadOptions {
+  if (shouldLoadCockpitRangeTextures(searchParams)) {
+    return {
+      rangeMaxTextureSize: 256,
+      rangeFallback: 'placeholder'
+    }
+  }
+
   return {
     skipTextures: true
   }
+}
+
+function shouldLoadCockpitRangeTextures(searchParams: URLSearchParams): boolean {
+  return searchParams.get('cockpitTextures') === 'range-low'
 }
 
 function createAircraftModelLoadContext(

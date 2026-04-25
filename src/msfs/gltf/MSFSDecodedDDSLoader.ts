@@ -91,6 +91,12 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       return texture
     }
 
+    if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
+      applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
+      onLoad?.(texture)
+      return texture
+    }
+
     const useImmediatePlaceholder = this.options.immediatePlaceholder === true
     if (useImmediatePlaceholder) {
       applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
