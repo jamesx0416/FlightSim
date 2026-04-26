@@ -24,7 +24,8 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 | Parameter | Example | Feature |
 | --- | --- | --- |
 | `cockpitPerf` | `?cockpitPerf` | Enables cockpit performance diagnostics and exposes frame/render/load stats through `globalThis.__cockpitPerf`. Without this flag, the per-frame profiler is not installed. |
-| `cockpitTextures` | `?cockpitTextures=range-low` | Opts cockpit LOD00 into low-resolution DDS texture loading. The loader fetches DDS headers first, then requests only the selected small mip byte range when the server supports HTTP `Range`; decoded normal/transparent DDS paths use placeholders in this mode to avoid full-buffer CPU decode. If range requests are not supported, it falls back to placeholders instead of downloading the full DDS. |
+| `cockpitTextures` | `?cockpitTextures=range-low` | Opts cockpit LOD00 into low-resolution DDS texture loading. The loader fetches DDS headers first, then requests only the selected small mip byte range when the server supports HTTP `Range`; decoded normal/transparent DDS paths also use range-loaded low mips. If range requests are not supported, it falls back to placeholders instead of downloading the full DDS. |
+| `cockpitTextureSize` | `?cockpitTextures=range-low&cockpitTextureSize=1024` | Sets the largest mip dimension for range-loaded cockpit textures. Values are clamped from `128` to `2048`; default is `1024` so cockpit labels have enough atlas resolution to remain readable while still avoiding full DDS downloads. |
 | `cockpitInstanceStatic` | `?cockpitPerf&cockpitInstanceStatic` | Opts into dynamic runtime instancing for eligible static cockpit meshes in interior LOD00. The default path is unchanged when this flag is absent. The experiment preserves behavior-bound nodes by keeping hidden proxy meshes and only batches meshes with matching geometry, material, draw range, and safe behavior ancestry. |
 | `cockpitMergeStatic` | `?cockpitPerf&cockpitMergeStatic` | Opts into dynamic runtime merging for eligible opaque static cockpit meshes in interior LOD00. The default path is unchanged when this flag is absent. The experiment keeps named/metadata proxy meshes hidden, skips behavior-bound/skinned/morphed/transparent/decal meshes, and merges by material plus spatial cell to reduce draw calls while limiting culling loss. It may slightly change visuals because merged chunks can have different frustum-culling or render-order behavior. |
 
@@ -47,7 +48,7 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 ```
 
 ```text
-?package=/tmp/my-aircraft/&cockpitTextures=range-low
+?package=/tmp/my-aircraft/&cockpitTextures=range-low&cockpitTextureSize=1024
 ```
 
 ## Related Environment Variables

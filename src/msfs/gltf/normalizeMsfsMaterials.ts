@@ -374,6 +374,13 @@ async function normalizeMsfsMaterial(
     outputMaterial.premultipliedAlpha = false
     outputMaterial.side = DoubleSide
     outputMaterial.needsUpdate = true
+    if (options.createNodeMaterial != null) {
+      outputMaterial = applyMsfsBlendGBufferNodeMaterial(
+        outputMaterial,
+        blendFactors,
+        options.createNodeMaterial
+      )
+    }
   }
 
   if (parser != null && materialIndex != null) {
@@ -485,6 +492,39 @@ function createCompressedRgNormalNodeMaterial(
   }
 
   nodeMaterial.normalNode = compressedRgNormalNode
+  nodeMaterial.needsUpdate = true
+  return nodeMaterial as unknown as MsfsMaterial
+}
+
+function applyMsfsBlendGBufferNodeMaterial(
+  material: MsfsMaterial,
+  blendFactors: MsfsBlendFactors,
+  createNodeMaterial: NodeMaterialFactory
+): MsfsMaterial {
+  const nodeMaterial = ensureNodeMaterial(material, createNodeMaterial)
+  if (nodeMaterial == null) {
+    return material
+  }
+
+  if (material.map != null) {
+    const baseTexture = texture(material.map)
+    const opacityNode = baseTexture.a
+      .mul(materialOpacity)
+      .mul(blendFactors.baseColor)
+    nodeMaterial.colorNode = vec4(
+      baseTexture.rgb.mul(materialColor.rgb).mul(blendFactors.baseColor),
+      opacityNode
+    )
+    nodeMaterial.opacityNode = opacityNode
+  }
+
+  if (material.emissiveMap != null) {
+    nodeMaterial.emissiveNode = texture(material.emissiveMap)
+      .rgb
+      .mul(materialEmissive)
+      .mul(blendFactors.emissive)
+  }
+
   nodeMaterial.needsUpdate = true
   return nodeMaterial as unknown as MsfsMaterial
 }

@@ -95,7 +95,8 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - ASOBO primitive index normalization now edits typed index arrays directly and avoids eager bounds recomputation, reducing CPU work and temporary math churn during model load without changing final geometry
   - MSFS texcoord, normal/tangent, and vertex-color conversion passes now read source typed arrays directly instead of calling per-component BufferAttribute accessors in large loops
   - cockpit LOD00 can now opt into `cockpitTextures=range-low`, which reads DDS headers first and then loads only the selected small mip byte range for ordinary compressed DDS textures when HTTP `Range` is supported
-  - the range-low texture path falls back to placeholders instead of full DDS downloads when range requests are unavailable, and decoded normal/transparent DDS sources stay placeholder-backed to avoid reintroducing full-buffer CPU decode and RAM spikes
+  - the range-low texture path falls back to placeholders instead of full DDS downloads when range requests are unavailable, and decoded normal/transparent DDS sources now decode selected low mip ranges without reintroducing full-buffer CPU decode and RAM spikes
+  - range-low cockpit textures now default to a `1024` max mip dimension, with `cockpitTextureSize=` available for `128` to `2048`, because `256` can erase small text in cockpit label atlases
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically

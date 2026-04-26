@@ -1,5 +1,6 @@
 import {
   CompressedTexture,
+  DataTexture,
   FileLoader,
   LinearFilter,
   LinearMipmapLinearFilter,
@@ -35,6 +36,24 @@ type DdsDecodeParseOptions = {
   readonly maxTextureSize?: number
 }
 
+type DecodedDdsHeaderInfo = {
+  readonly width: number
+  readonly height: number
+  readonly mipmapCount: number
+  readonly dataOffset: number
+  readonly blockBytes: number | null
+  readonly bytesPerPixel: number | null
+  readonly isCubemap: boolean
+}
+
+type DecodedDdsMipLayout = {
+  readonly mipIndex: number
+  readonly offset: number
+  readonly byteLength: number
+  readonly width: number
+  readonly height: number
+}
+
 const DDS_MAGIC = 0x20534444
 const DDSD_MIPMAPCOUNT = 0x20000
 
@@ -51,6 +70,9 @@ const OFF_R_BIT_MASK = 23
 const OFF_G_BIT_MASK = 24
 const OFF_B_BIT_MASK = 25
 const OFF_A_BIT_MASK = 26
+const OFF_CAPS2 = 28
+
+const DDSCAPS2_CUBEMAP = 0x200
 
 const FOURCC_DXT1 = fourCCToInt32('DXT1')
 const FOURCC_DXT3 = fourCCToInt32('DXT3')
@@ -60,6 +82,9 @@ const FOURCC_AT2N = fourCCToInt32('AT2N')
 const FOURCC_BC5U = fourCCToInt32('BC5U')
 const FOURCC_BC5S = fourCCToInt32('BC5S')
 const FOURCC_DX10 = fourCCToInt32('DX10')
+
+const EXTENDED_HEADER_LENGTH_INT = 5
+const OFF_DXGI_FORMAT = 0
 
 const DXGI_FORMAT_BC5_UNORM = 83
 const DXGI_FORMAT_BC5_SNORM = 84
@@ -78,7 +103,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     onProgress?: (event: ProgressEvent<EventTarget>) => void,
     onError?: (error: unknown) => void
   ): Texture {
-    const texture = new Texture()
+    const texture = new DataTexture()
     const fileLoader = new FileLoader(this.manager)
     fileLoader.setPath(this.path)
     fileLoader.setResponseType('arraybuffer')
@@ -92,8 +117,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     }
 
     if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
-      applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
-      onLoad?.(texture)
+      this.loadRangeTexture(url, texture, onLoad, onProgress, onError)
       return texture
     }
 
@@ -143,6 +167,88 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     )
 
     return texture
+  }
+
+  private loadRangeTexture(
+    url: string,
+    texture: Texture,
+    onLoad: ((data: Texture) => void) | undefined,
+    onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined,
+    onError: ((error: unknown) => void) | undefined
+  ): void {
+    const itemUrl = resolveTextureUrl(this.path, url)
+    const resolvedUrl = this.manager.resolveURL(itemUrl)
+    this.manager.itemStart(resolvedUrl)
+    void this.fetchRangeTexture(resolvedUrl, onProgress)
+      .then(parsed => {
+        if (parsed == null) {
+          applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
+        } else {
+          applyDecodedTexture(texture, parsed)
+        }
+
+        onLoad?.(texture)
+        this.manager.itemEnd(resolvedUrl)
+      })
+      .catch(error => {
+        this.manager.itemEnd(resolvedUrl)
+        if (shouldUseCompressedRangeFallback(error)) {
+          new MSFSDDSLoader(this.manager, this.options).load(url, onLoad, onProgress, onError)
+          return
+        }
+
+        applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
+        onLoad?.(texture)
+        console.warn('Decoded DDS range mip load fell back to a placeholder.', error)
+      })
+  }
+
+  private async fetchRangeTexture(
+    url: string,
+    onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined
+  ): Promise<DecodedDdsTexture | null> {
+    const headerBuffer = await fetchArrayBufferRange(url, 0, 4095, this.requestHeader)
+    if (headerBuffer == null) {
+      return null
+    }
+
+    const headerInfo = parseDecodedDdsHeaderInfo(headerBuffer, this.options.loadMipmaps !== false)
+    if (headerInfo.isCubemap) {
+      return null
+    }
+
+    const firstMipIndex = computeFirstMipIndex(
+      headerInfo.width,
+      headerInfo.height,
+      headerInfo.mipmapCount,
+      this.options.rangeMaxTextureSize
+    )
+    const mipLayouts = computeDecodedDdsMipLayouts(headerInfo)
+    const selectedLayouts = mipLayouts.slice(firstMipIndex)
+    const firstLayout = selectedLayouts[0]
+    const lastLayout = selectedLayouts[selectedLayouts.length - 1]
+    if (firstLayout == null || lastLayout == null) {
+      return null
+    }
+
+    const rangeStart = firstLayout.offset
+    const rangeEnd = lastLayout.offset + lastLayout.byteLength - 1
+    const dataBuffer = await fetchArrayBufferRange(url, rangeStart, rangeEnd, this.requestHeader)
+    if (dataBuffer == null) {
+      return null
+    }
+
+    onProgress?.(
+      new ProgressEvent('progress', {
+        lengthComputable: true,
+        loaded: headerBuffer.byteLength + dataBuffer.byteLength,
+        total: headerBuffer.byteLength + dataBuffer.byteLength
+      })
+    )
+
+    return this.parse(createSelectedMipDdsBuffer(headerBuffer, dataBuffer, headerInfo, firstLayout), {
+      loadMipmaps: true
+    })
   }
 
   private scheduleFullResolutionUpgrade(
@@ -408,6 +514,154 @@ function normalizeDdsDecodeParseOptions(
   options: boolean | DdsDecodeParseOptions
 ): DdsDecodeParseOptions {
   return typeof options === 'boolean' ? { loadMipmaps: options } : options
+}
+
+function shouldUseCompressedRangeFallback(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    /Unsupported DX10 DDS format for range decode: (9[589]|8[0134])/u.test(error.message)
+  )
+}
+
+function resolveTextureUrl(path: string, url: string): string {
+  if (/^(?:[a-z]+:)?\/\//i.test(url) || url.startsWith('data:') || url.startsWith('blob:')) {
+    return url
+  }
+
+  if (path === '') {
+    return url
+  }
+
+  try {
+    return new URL(url, path).toString()
+  } catch {
+    return `${path}${url}`
+  }
+}
+
+async function fetchArrayBufferRange(
+  url: string,
+  start: number,
+  end: number,
+  requestHeader: Record<string, string>
+): Promise<ArrayBuffer | null> {
+  const headers = new Headers(requestHeader)
+  headers.set('Range', `bytes=${start}-${end}`)
+  const response = await fetch(url, {
+    headers,
+    credentials: 'same-origin'
+  })
+
+  if (response.status !== 206) {
+    await response.body?.cancel()
+    return null
+  }
+
+  return response.arrayBuffer()
+}
+
+function parseDecodedDdsHeaderInfo(
+  buffer: ArrayBuffer,
+  loadMipmaps: boolean
+): DecodedDdsHeaderInfo {
+  const header = new Int32Array(buffer, 0, HEADER_LENGTH_INT)
+  if (header[OFF_MAGIC] !== DDS_MAGIC) {
+    throw new Error('Invalid DDS header.')
+  }
+
+  let dataOffset = header[OFF_SIZE] + 4
+  const fourCC = header[OFF_PF_FOURCC]
+  let blockBytes: number | null = null
+  let bytesPerPixel: number | null = null
+
+  switch (fourCC) {
+    case FOURCC_DXT1:
+      blockBytes = 8
+      break
+    case FOURCC_DXT3:
+    case FOURCC_DXT5:
+    case FOURCC_ATI2:
+    case FOURCC_AT2N:
+    case FOURCC_BC5U:
+    case FOURCC_BC5S:
+      blockBytes = 16
+      break
+    case FOURCC_DX10: {
+      const dxgiHeader = new Int32Array(
+        buffer,
+        (HEADER_LENGTH_INT + 1) * 4,
+        EXTENDED_HEADER_LENGTH_INT
+      )
+      const dxgiFormat = dxgiHeader[OFF_DXGI_FORMAT]
+      if (dxgiFormat !== DXGI_FORMAT_BC5_UNORM && dxgiFormat !== DXGI_FORMAT_BC5_SNORM) {
+        throw new Error(`Unsupported DX10 DDS format for range decode: ${dxgiFormat}`)
+      }
+      blockBytes = 16
+      dataOffset += EXTENDED_HEADER_LENGTH_INT * 4
+      break
+    }
+    default:
+      if (isUncompressedRgba(header)) {
+        bytesPerPixel = 4
+      } else if (isUncompressedRgb(header)) {
+        bytesPerPixel = 3
+      } else {
+        throw new Error(`Unsupported DDS format for range decode: ${int32ToFourCC(fourCC)}`)
+      }
+  }
+
+  return {
+    width: header[OFF_WIDTH],
+    height: header[OFF_HEIGHT],
+    mipmapCount:
+      (header[OFF_FLAGS] & DDSD_MIPMAPCOUNT) !== 0 && loadMipmaps
+        ? Math.max(1, header[OFF_MIPMAPCOUNT])
+        : 1,
+    dataOffset,
+    blockBytes,
+    bytesPerPixel,
+    isCubemap: (header[OFF_CAPS2] & DDSCAPS2_CUBEMAP) !== 0
+  }
+}
+
+function computeDecodedDdsMipLayouts(header: DecodedDdsHeaderInfo): DecodedDdsMipLayout[] {
+  let width = header.width
+  let height = header.height
+  let offset = header.dataOffset
+  const layouts: DecodedDdsMipLayout[] = []
+
+  for (let mipIndex = 0; mipIndex < header.mipmapCount; mipIndex += 1) {
+    const byteLength =
+      header.blockBytes != null
+        ? computeCompressedMipByteLength(width, height, header.blockBytes)
+        : width * height * (header.bytesPerPixel ?? 4)
+    layouts.push({ mipIndex, offset, byteLength, width, height })
+    offset += byteLength
+    width = Math.max(1, width >> 1)
+    height = Math.max(1, height >> 1)
+  }
+
+  return layouts
+}
+
+function createSelectedMipDdsBuffer(
+  headerBuffer: ArrayBuffer,
+  dataBuffer: ArrayBuffer,
+  headerInfo: DecodedDdsHeaderInfo,
+  firstLayout: DecodedDdsMipLayout
+): ArrayBuffer {
+  const buffer = new ArrayBuffer(headerInfo.dataOffset + dataBuffer.byteLength)
+  new Uint8Array(buffer, 0, headerInfo.dataOffset).set(
+    new Uint8Array(headerBuffer, 0, headerInfo.dataOffset)
+  )
+  new Uint8Array(buffer, headerInfo.dataOffset).set(new Uint8Array(dataBuffer))
+
+  const header = new Int32Array(buffer, 0, HEADER_LENGTH_INT)
+  header[OFF_WIDTH] = firstLayout.width
+  header[OFF_HEIGHT] = firstLayout.height
+  header[OFF_MIPMAPCOUNT] = headerInfo.mipmapCount - firstLayout.mipIndex
+
+  return buffer
 }
 
 function computeFirstMipIndex(

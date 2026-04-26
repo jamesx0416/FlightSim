@@ -33,7 +33,12 @@ import { repairMsfsSkinnedAttributes } from './msfs/gltf/repairMsfsSkinnedAttrib
 import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
-import type { CompiledBehaviorSet, ImportedAircraft, RuntimeState } from './msfs/types'
+import type {
+  CompiledBehaviorSet,
+  ImportedAircraft,
+  ImportedCfgSection,
+  RuntimeState
+} from './msfs/types'
 import type { ImportedModelDefinition } from './msfs/types'
 import {
   createAircraftEnvironment,
@@ -991,8 +996,8 @@ async function init(): Promise<void> {
   let runtimeState: RuntimeState = runtime.update(0)
   ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
   const cockpitPerfDiagnostics = searchParams.has('cockpitPerf')
-    ? createCockpitPerfDiagnostics(() => loadedModel)
-    : createDisabledCockpitPerfDiagnostics(() => loadedModel)
+    ? createCockpitPerfDiagnostics(aircraft, () => loadedModel)
+    : createDisabledCockpitPerfDiagnostics(aircraft, () => loadedModel)
   ;(globalThis as Record<string, unknown>).__cockpitPerf = cockpitPerfDiagnostics
   updateOverlay(
     overlay,
@@ -1093,10 +1098,12 @@ type CockpitPerfDiagnostics = {
   readonly recordFrame: (sample: CockpitPerfFrameSample) => void
   readonly getSummary: () => Record<string, unknown>
   readonly getActiveInteriorStats: () => Record<string, unknown> | null
+  readonly getPanelSurfaceStats: () => Record<string, unknown>
   readonly reset: () => void
 }
 
 function createCockpitPerfDiagnostics(
+  aircraft: ImportedAircraft,
   getLoadedModel: () => LoadedAircraftModel
 ): CockpitPerfDiagnostics {
   const samples: CockpitPerfFrameSample[] = []
@@ -1115,6 +1122,7 @@ function createCockpitPerfDiagnostics(
       const interior = getLoadedModel().interior
       return interior == null ? null : collectLoadedComponentStats(interior)
     },
+    getPanelSurfaceStats: () => collectPanelSurfaceStats(aircraft),
     reset: () => {
       samples.length = 0
     }
@@ -1122,6 +1130,7 @@ function createCockpitPerfDiagnostics(
 }
 
 function createDisabledCockpitPerfDiagnostics(
+  aircraft: ImportedAircraft,
   getLoadedModel: () => LoadedAircraftModel
 ): CockpitPerfDiagnostics {
   return {
@@ -1132,6 +1141,7 @@ function createDisabledCockpitPerfDiagnostics(
       const interior = getLoadedModel().interior
       return interior == null ? null : collectLoadedComponentStats(interior)
     },
+    getPanelSurfaceStats: () => collectPanelSurfaceStats(aircraft),
     reset: () => {}
   }
 }
@@ -1176,6 +1186,79 @@ function collectLoadedComponentStats(component: LoadedModelComponent): Record<st
     loadedLodIndex: component.loadedLodIndex,
     loadDiagnostics: component.loadDiagnostics,
     resourceStats: component.resourceStats ?? collectModelResourceStats(component.scene)
+  }
+}
+
+function collectPanelSurfaceStats(aircraft: ImportedAircraft): Record<string, unknown> {
+  const panelFiles = aircraft.cfgFiles.filter(file => file.kind === 'panel')
+  const vcockpitSurfaces = panelFiles.flatMap(file =>
+    file.sections
+      .filter(section => /^vcockpit\d+$/iu.test(section.name))
+      .map(section => collectPanelSectionSurfaceStats(file.path, section, 'VCockpit'))
+  )
+  const paintingSurfaces = panelFiles.flatMap(file =>
+    file.sections
+      .filter(section => /^vpainting\d+$/iu.test(section.name))
+      .map(section => collectPanelSectionSurfaceStats(file.path, section, 'VPainting'))
+  )
+
+  return {
+    panelFileCount: panelFiles.length,
+    panelFiles: panelFiles.map(file => file.path),
+    vcockpitSurfaceCount: vcockpitSurfaces.length,
+    vcockpitRenderableSurfaceCount: vcockpitSurfaces.filter(surface => surface.texture !== 'NO_TEXTURE')
+      .length,
+    htmlGaugeCount: vcockpitSurfaces.reduce((total, surface) => total + surface.htmlGaugeCount, 0),
+    gaugeCount: vcockpitSurfaces.reduce((total, surface) => total + surface.gaugeCount, 0),
+    paintingSurfaceCount: paintingSurfaces.length,
+    paintingCount: paintingSurfaces.reduce((total, surface) => total + surface.paintingCount, 0),
+    vcockpitSurfaces,
+    paintingSurfaces
+  }
+}
+
+function collectPanelSectionSurfaceStats(
+  panelPath: string,
+  section: ImportedCfgSection,
+  kind: 'VCockpit' | 'VPainting'
+): {
+  readonly kind: 'VCockpit' | 'VPainting'
+  readonly panelPath: string
+  readonly section: string
+  readonly texture: string | null
+  readonly sizeMm: string | null
+  readonly pixelSize: string | null
+  readonly htmlGaugeCount: number
+  readonly gaugeCount: number
+  readonly paintingCount: number
+  readonly htmlGauges: readonly string[]
+  readonly gauges: readonly string[]
+  readonly paintings: readonly string[]
+} {
+  const entries = [...section.values.entries()]
+  const htmlGauges = entries
+    .filter(([key]) => /^htmlgauge\d+$/iu.test(key))
+    .map(([, value]) => value)
+  const gauges = entries
+    .filter(([key]) => /^gauge\d+$/iu.test(key))
+    .map(([, value]) => value)
+  const paintings = entries
+    .filter(([key]) => /^painting\d+$/iu.test(key))
+    .map(([, value]) => value)
+
+  return {
+    kind,
+    panelPath,
+    section: section.name,
+    texture: normalizeCfgValue(section.values.get('texture')),
+    sizeMm: normalizeCfgValue(section.values.get('size_mm')),
+    pixelSize: normalizeCfgValue(section.values.get('pixel_size')),
+    htmlGaugeCount: htmlGauges.length,
+    gaugeCount: gauges.length,
+    paintingCount: paintings.length,
+    htmlGauges,
+    gauges,
+    paintings
   }
 }
 
@@ -1530,7 +1613,7 @@ function clamp01(value: number): number {
 function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDSLoadOptions {
   if (shouldLoadCockpitRangeTextures(searchParams)) {
     return {
-      rangeMaxTextureSize: 256,
+      rangeMaxTextureSize: getCockpitRangeTextureSize(searchParams),
       rangeFallback: 'placeholder'
     }
   }
@@ -1542,6 +1625,20 @@ function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDS
 
 function shouldLoadCockpitRangeTextures(searchParams: URLSearchParams): boolean {
   return searchParams.get('cockpitTextures') === 'range-low'
+}
+
+function getCockpitRangeTextureSize(searchParams: URLSearchParams): number {
+  const rawSize = searchParams.get('cockpitTextureSize')
+  if (rawSize == null || rawSize.trim() === '') {
+    return 1024
+  }
+
+  const parsed = Number.parseInt(rawSize, 10)
+  if (!Number.isFinite(parsed)) {
+    return 1024
+  }
+
+  return Math.min(2048, Math.max(128, parsed))
 }
 
 function createAircraftModelLoadContext(
