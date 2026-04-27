@@ -146,12 +146,6 @@ async function init(): Promise<void> {
     additionalPackageRoots,
     requestedAircraftId
   })
-  const selectorOptions = await loadAircraftSelectorOptions(
-    discoveredPackageRoots,
-    packageData,
-    packageRoot,
-    additionalPackageRoots
-  )
   const aircraft = selectAircraft(
     packageData.aircraft,
     requestedAircraftId
@@ -225,7 +219,11 @@ async function init(): Promise<void> {
 
   const overlay = createOverlay()
   document.body.appendChild(overlay)
-  const selector = createAircraftSelector(selectorOptions, packageRoot, aircraft)
+  const selectedPackageSelectorOptions = createPackageAircraftSelectorOptions(
+    packageData,
+    packageRoot
+  )
+  const selector = createAircraftSelector(selectedPackageSelectorOptions, packageRoot, aircraft)
   if (selector != null) {
     document.body.appendChild(selector)
   }
@@ -261,6 +259,27 @@ async function init(): Promise<void> {
   centerObjectAtOrigin(aircraftRoot)
   fitCameraToObject(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
+  void loadAircraftSelectorOptions(
+    discoveredPackageRoots,
+    packageData,
+    packageRoot,
+    additionalPackageRoots
+  )
+    .then(selectorOptions => {
+      const nextSelector = createAircraftSelector(selectorOptions, packageRoot, aircraft)
+      if (nextSelector == null) {
+        selector?.remove()
+        return
+      }
+
+      selector?.replaceWith(nextSelector)
+      if (selector == null) {
+        document.body.appendChild(nextSelector)
+      }
+    })
+    .catch(error => {
+      console.warn('Failed to populate aircraft selector options.', error)
+    })
 
   const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never, aircraft)
   let runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
@@ -3164,6 +3183,17 @@ async function loadAircraftSelectorOptions(
   }
 
   return options
+}
+
+function createPackageAircraftSelectorOptions(
+  packageData: Awaited<ReturnType<typeof importBuiltMsfs2020Package>>,
+  packageRoot: string
+): readonly AircraftSelectorOption[] {
+  return packageData.aircraft.map(aircraft => ({
+    packageRoot,
+    packageName: packageData.packageName,
+    aircraft
+  }))
 }
 
 async function resolveRequestedPackageRoot(
