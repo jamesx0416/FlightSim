@@ -61,6 +61,7 @@ type MsfsMaterial = Material & {
   polygonOffsetUnits?: number
   premultipliedAlpha?: boolean
   side?: number
+  forceSinglePass?: boolean
   onBeforeCompile?: (shader: Shader) => void
   customProgramCacheKey?: () => string
   needsUpdate?: boolean
@@ -373,6 +374,7 @@ async function normalizeMsfsMaterial(
       MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE - getMsfsDrawOrderOffset(outputMaterial)
     outputMaterial.premultipliedAlpha = false
     outputMaterial.side = DoubleSide
+    outputMaterial.forceSinglePass = true
     outputMaterial.needsUpdate = true
     if (options.createNodeMaterial != null) {
       outputMaterial = applyMsfsBlendGBufferNodeMaterial(
