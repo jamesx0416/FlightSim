@@ -74,22 +74,22 @@ export function createMsfsRenderPasses(
 
       const originalBackground = scene.background
       const originalAutoClear = renderer.autoClear
-      const hiddenBlendMeshes = hideMeshes(blendMeshes)
+      const hiddenBlendMeshes = hideMeshDrawablesFromCamera(blendMeshes, camera)
 
       try {
         renderer.autoClear = true
         renderer.render(scene, camera)
       } finally {
-        restoreMeshes(hiddenBlendMeshes)
+        restoreMeshDrawables(hiddenBlendMeshes)
       }
 
-      const hiddenBaseMeshesForDecals = hideMeshes(baseMeshes)
+      const hiddenBaseMeshesForDecals = hideMeshDrawablesFromCamera(baseMeshes, camera)
       try {
         scene.background = null
         renderer.autoClear = false
         renderer.render(scene, camera)
       } finally {
-        restoreMeshes(hiddenBaseMeshesForDecals)
+        restoreMeshDrawables(hiddenBaseMeshesForDecals)
         scene.background = originalBackground
         renderer.autoClear = originalAutoClear
       }
@@ -97,19 +97,34 @@ export function createMsfsRenderPasses(
   }
 }
 
-function hideMeshes(meshes: readonly Mesh[]): Map<Mesh, boolean> {
-  const hiddenMeshes = new Map<Mesh, boolean>()
+function hideMeshDrawablesFromCamera(
+  meshes: readonly Mesh[],
+  camera: Camera
+): Map<Mesh, number> {
+  const hiddenMeshLayerMasks = new Map<Mesh, number>()
+  const hiddenLayerMask = findLayerMaskOutsideCamera(camera)
 
   for (const mesh of meshes) {
-    hiddenMeshes.set(mesh, mesh.visible)
-    mesh.visible = false
+    hiddenMeshLayerMasks.set(mesh, mesh.layers.mask)
+    mesh.layers.mask = hiddenLayerMask
   }
 
-  return hiddenMeshes
+  return hiddenMeshLayerMasks
 }
 
-function restoreMeshes(hiddenMeshes: Map<Mesh, boolean>): void {
-  for (const [mesh, visible] of hiddenMeshes) {
-    mesh.visible = visible
+function restoreMeshDrawables(hiddenMeshLayerMasks: Map<Mesh, number>): void {
+  for (const [mesh, layerMask] of hiddenMeshLayerMasks) {
+    mesh.layers.mask = layerMask
   }
+}
+
+function findLayerMaskOutsideCamera(camera: Camera): number {
+  for (let layer = 0; layer < 32; layer += 1) {
+    const layerMask = 1 << layer
+    if ((camera.layers.mask & layerMask) === 0) {
+      return layerMask
+    }
+  }
+
+  return 0
 }
