@@ -36,6 +36,7 @@ interface BehaviorSourceRoot {
 interface ImportPackageOptions {
   readonly additionalPackageRoots?: readonly string[]
   readonly requestedAircraftId?: string | null
+  readonly lightweightAircraftOnly?: boolean
 }
 
 interface FltsimSectionRef {
@@ -142,7 +143,7 @@ export async function importBuiltMsfs2020Package(
   const selectedAircraftId =
     requestedAircraftId ?? selectDefaultAircraftId(lightweightAircraft)
   const aircraft =
-    selectedAircraftId == null
+    options.lightweightAircraftOnly || selectedAircraftId == null
       ? lightweightAircraft
       : await importAircraftRecords(aircraftCfgRecords, context, selectedAircraftId)
 

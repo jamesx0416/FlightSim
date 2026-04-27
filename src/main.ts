@@ -51,9 +51,17 @@ import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
 const DEFAULT_STOCK_BEHAVIOR_ROOT = '/vendor/msfs-stock/'
+const DEV_DEFAULT_PACKAGE_ROOT = '/aircrafts/headwindsim-aircraft-a330-900/'
+const DEV_DEFAULT_AIRCRAFT_ID = 'SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0'
 type AssetRoot = {
   readonly rootUrl: string
   readonly layoutPathIndex: ReadonlyMap<string, string>
+}
+
+type AircraftSelectorOption = {
+  readonly packageRoot: string
+  readonly packageName: string
+  readonly aircraft: ImportedAircraft
 }
 
 type LoadedModelComponent = {
@@ -121,17 +129,29 @@ async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'init:start' })
   const backgroundColor = new Color('#405264')
   const searchParams = new URLSearchParams(window.location.search)
-  const packageRoot = resolveRequestedPackageRoot(searchParams)
+  const discoveredPackageRoots = await discoverAircraftPackageRoots()
   const requestedLodIndex = resolveRequestedLodIndex(searchParams)
   const syncExteriorInterior = searchParams.has('syncExteriorInterior')
   const additionalPackageRoots = resolveAdditionalPackageRoots(searchParams)
   const additionalAssetRoots = await loadConfiguredAssetRoots(additionalPackageRoots)
   const requestedAircraftId = searchParams.get('aircraft')
+  const packageRoot = await resolveRequestedPackageRoot(
+    searchParams,
+    discoveredPackageRoots,
+    requestedAircraftId,
+    additionalPackageRoots
+  )
   setGlobalLoadStage({ stage: 'import:package', packageRoot })
   const packageData = await importBuiltMsfs2020Package(packageRoot, {
     additionalPackageRoots,
     requestedAircraftId
   })
+  const selectorOptions = await loadAircraftSelectorOptions(
+    discoveredPackageRoots,
+    packageData,
+    packageRoot,
+    additionalPackageRoots
+  )
   const aircraft = selectAircraft(
     packageData.aircraft,
     requestedAircraftId
@@ -205,7 +225,7 @@ async function init(): Promise<void> {
 
   const overlay = createOverlay()
   document.body.appendChild(overlay)
-  const selector = createAircraftSelector(packageData.aircraft, aircraft)
+  const selector = createAircraftSelector(selectorOptions, packageRoot, aircraft)
   if (selector != null) {
     document.body.appendChild(selector)
   }
@@ -2155,6 +2175,13 @@ function selectAircraft(
     return aircraft.find(candidate => candidate.id === requestedId && candidate.model != null) ?? null
   }
 
+  const devDefaultAircraft = aircraft.find(
+    candidate => candidate.id === DEV_DEFAULT_AIRCRAFT_ID && candidate.model != null
+  )
+  if (devDefaultAircraft != null) {
+    return devDefaultAircraft
+  }
+
   const rankedAircraft = [...aircraft].sort((left, right) => {
     const leftScore = getAircraftSelectionScore(left)
     const rightScore = getAircraftSelectionScore(right)
@@ -2805,10 +2832,11 @@ function createOverlay(): HTMLDivElement {
 }
 
 function createAircraftSelector(
-  aircraft: readonly ImportedAircraft[],
+  options: readonly AircraftSelectorOption[],
+  selectedPackageRoot: string,
   selectedAircraft: ImportedAircraft
 ): HTMLDivElement | null {
-  if (aircraft.length <= 1) {
+  if (options.length <= 1) {
     return null
   }
 
@@ -2840,25 +2868,43 @@ function createAircraftSelector(
   select.style.color = '#f3f7fb'
   select.style.font = 'inherit'
 
-  const sortedAircraft = [...aircraft].sort((left, right) =>
-    getAircraftDisplayName(left).localeCompare(getAircraftDisplayName(right))
+  const selectedValue = createAircraftSelectorValue(selectedPackageRoot, selectedAircraft.id)
+  const sortedOptions = [...options].sort((left, right) =>
+    getAircraftSelectorDisplayName(left).localeCompare(getAircraftSelectorDisplayName(right))
   )
-  for (const candidate of sortedAircraft) {
+  for (const candidate of sortedOptions) {
     const option = document.createElement('option')
-    option.value = candidate.id
-    option.textContent = getAircraftDisplayName(candidate)
-    option.selected = candidate.id === selectedAircraft.id
+    option.value = createAircraftSelectorValue(candidate.packageRoot, candidate.aircraft.id)
+    option.textContent = getAircraftSelectorDisplayName(candidate)
+    option.selected = option.value === selectedValue
     select.appendChild(option)
   }
 
   select.addEventListener('change', () => {
+    const selectedOption = options.find(
+      candidate => createAircraftSelectorValue(candidate.packageRoot, candidate.aircraft.id) === select.value
+    )
+    if (selectedOption == null) {
+      return
+    }
+
     const nextUrl = new URL(window.location.href)
-    nextUrl.searchParams.set('aircraft', select.value)
+    nextUrl.searchParams.set('package', selectedOption.packageRoot)
+    nextUrl.searchParams.set('aircraft', selectedOption.aircraft.id)
     window.location.assign(nextUrl.toString())
   })
 
   wrapper.append(label, select)
   return wrapper
+}
+
+function createAircraftSelectorValue(packageRoot: string, aircraftId: string): string {
+  return `${packageRoot}\n${aircraftId}`
+}
+
+function getAircraftSelectorDisplayName(option: AircraftSelectorOption): string {
+  const aircraftName = getAircraftDisplayName(option.aircraft)
+  return option.packageName === '' ? aircraftName : `${option.packageName} - ${aircraftName}`
 }
 
 function getAircraftDisplayName(aircraft: ImportedAircraft): string {
@@ -2948,12 +2994,104 @@ function ensureTrailingSlash(value: string): string {
   return value.endsWith('/') ? value : `${value}/`
 }
 
-function resolveRequestedPackageRoot(searchParams: URLSearchParams): string {
+async function discoverAircraftPackageRoots(): Promise<readonly string[]> {
+  try {
+    const response = await fetch('/aircrafts/index.json')
+    if (!response.ok) {
+      return []
+    }
+
+    const payload = (await response.json()) as {
+      readonly packages?: readonly unknown[]
+    }
+    return (payload.packages ?? [])
+      .filter((root): root is string => typeof root === 'string')
+      .map(ensureTrailingSlash)
+      .filter((root, index, roots) => roots.indexOf(root) === index)
+  } catch {
+    return []
+  }
+}
+
+async function loadAircraftSelectorOptions(
+  packageRoots: readonly string[],
+  selectedPackage: Awaited<ReturnType<typeof importBuiltMsfs2020Package>>,
+  selectedPackageRoot: string,
+  additionalPackageRoots: readonly string[]
+): Promise<readonly AircraftSelectorOption[]> {
+  const roots = [selectedPackageRoot, ...packageRoots]
+    .map(ensureTrailingSlash)
+    .filter((root, index, values) => values.indexOf(root) === index)
+  const options: AircraftSelectorOption[] = []
+
+  for (const root of roots) {
+    const packageData =
+      root === selectedPackageRoot
+        ? selectedPackage
+        : await importBuiltMsfs2020Package(root, {
+            additionalPackageRoots,
+            lightweightAircraftOnly: true
+          })
+
+    for (const aircraft of packageData.aircraft) {
+      options.push({
+        packageRoot: root,
+        packageName: packageData.packageName,
+        aircraft
+      })
+    }
+  }
+
+  return options
+}
+
+async function resolveRequestedPackageRoot(
+  searchParams: URLSearchParams,
+  discoveredPackageRoots: readonly string[],
+  requestedAircraftId: string | null,
+  additionalPackageRoots: readonly string[]
+): Promise<string> {
+  const explicitPackageRoot = searchParams.get('package')
+  if (explicitPackageRoot != null && explicitPackageRoot.trim() !== '') {
+    return ensureTrailingSlash(explicitPackageRoot)
+  }
+
+  if (requestedAircraftId != null) {
+    const discoveredPackageRoot = await findPackageRootForAircraft(
+      discoveredPackageRoots,
+      requestedAircraftId,
+      additionalPackageRoots
+    )
+    if (discoveredPackageRoot != null) {
+      return discoveredPackageRoot
+    }
+  }
+
   return ensureTrailingSlash(
-    searchParams.get('package') ||
+    discoveredPackageRoots.includes(DEV_DEFAULT_PACKAGE_ROOT)
+      ? DEV_DEFAULT_PACKAGE_ROOT
+      : discoveredPackageRoots[0] ||
       import.meta.env.VITE_MSFS_PACKAGE_ROOT ||
       DEFAULT_PACKAGE_ROOT
   )
+}
+
+async function findPackageRootForAircraft(
+  packageRoots: readonly string[],
+  requestedAircraftId: string,
+  additionalPackageRoots: readonly string[]
+): Promise<string | null> {
+  for (const root of packageRoots) {
+    const packageData = await importBuiltMsfs2020Package(root, {
+      additionalPackageRoots,
+      lightweightAircraftOnly: true
+    })
+    if (packageData.aircraft.some(aircraft => aircraft.id === requestedAircraftId)) {
+      return ensureTrailingSlash(root)
+    }
+  }
+
+  return null
 }
 
 function resolveRequestedLodIndex(searchParams: URLSearchParams): number | null {
