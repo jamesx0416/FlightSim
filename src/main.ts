@@ -53,7 +53,7 @@ const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
 const DEFAULT_STOCK_BEHAVIOR_ROOT = '/vendor/msfs-stock/'
 type AssetRoot = {
   readonly rootUrl: string
-  readonly layoutPathIndex: ReadonlySet<string>
+  readonly layoutPathIndex: ReadonlyMap<string, string>
 }
 
 type LoadedModelComponent = {
@@ -2093,7 +2093,12 @@ function createTextureUrlResolver(
   additionalAssetRoots: readonly AssetRoot[]
 ): (url: string) => string {
   const textureDirectories = aircraft.textureDirectories
-  const layoutPathIndex = new Set(layoutPaths.map(path => normalizePath(path).toLowerCase()))
+  const layoutPathIndex = new Map(
+    layoutPaths.map(path => {
+      const normalizedPath = normalizePath(path)
+      return [normalizedPath.toLowerCase(), normalizedPath] as const
+    })
+  )
 
   return (url: string): string => {
     if (!url.toLowerCase().endsWith('.dds')) {
@@ -2111,18 +2116,21 @@ function createTextureUrlResolver(
     )
 
     for (const candidatePath of textureCandidates) {
-      if (!layoutPathIndex.has(candidatePath.toLowerCase())) {
+      const normalizedCandidatePath = candidatePath.toLowerCase()
+      const resolvedPackagePath = layoutPathIndex.get(normalizedCandidatePath)
+      if (resolvedPackagePath == null) {
         for (const assetRoot of additionalAssetRoots) {
-          if (!assetRoot.layoutPathIndex.has(candidatePath.toLowerCase())) {
+          const resolvedAssetPath = assetRoot.layoutPathIndex.get(normalizedCandidatePath)
+          if (resolvedAssetPath == null) {
             continue
           }
 
-          return new URL(candidatePath, assetRoot.rootUrl).toString()
+          return new URL(resolvedAssetPath, assetRoot.rootUrl).toString()
         }
         continue
       }
 
-      return new URL(candidatePath, packageRootUrl).toString()
+      return new URL(resolvedPackagePath, packageRootUrl).toString()
     }
 
     if (textureCandidates.length > 0) {
@@ -3022,10 +3030,17 @@ async function tryLoadAssetRoot(rootUrl: string): Promise<AssetRoot | null> {
 
     return {
       rootUrl,
-      layoutPathIndex: new Set(
+      layoutPathIndex: new Map(
         (payload.content ?? [])
-          .map(entry => typeof entry.path === 'string' ? normalizePath(entry.path).toLowerCase() : null)
-          .filter((entry): entry is string => entry != null)
+          .map(entry => {
+            if (typeof entry.path !== 'string') {
+              return null
+            }
+
+            const normalizedPath = normalizePath(entry.path)
+            return [normalizedPath.toLowerCase(), normalizedPath] as const
+          })
+          .filter((entry): entry is readonly [string, string] => entry != null)
       )
     }
   } catch {
