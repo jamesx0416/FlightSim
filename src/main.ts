@@ -259,7 +259,7 @@ async function init(): Promise<void> {
 
   setGlobalLoadStage({ stage: 'scene:ready', aircraftId: aircraft.id })
   centerObjectAtOrigin(aircraftRoot)
-  fitCameraToObject(camera, controls, aircraftRoot)
+  fitCameraToObject(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
 
   const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never, aircraft)
@@ -2213,20 +2213,78 @@ function centerObjectAtOrigin(object: Group): void {
 function fitCameraToObject(
   camera: PerspectiveCamera,
   controls: OrbitControls,
-  object: Group
+  object: Group,
+  aircraft: ImportedAircraft
 ): void {
   const bounds = computeApproximateBounds(object)
   const size = bounds.getSize(new Vector3())
-  const center = bounds.getCenter(new Vector3())
+  const viewerCenter = computeViewerOrbitTarget(object, bounds)
   const radius = Math.max(size.x, size.y, size.z)
+  const externalCamera = resolveExternalAircraftCameraDefinition(aircraft)
   camera.near = 0.1
   camera.far = Math.max(5000, radius * 40)
-  camera.position
-    .copy(center)
-    .add(new Vector3(radius * 1.2, radius * 0.46, radius * 1.05))
+
+  if (externalCamera != null) {
+    camera.position.copy(viewerCenter).add(externalCamera.positionOffset)
+  } else {
+    camera.position
+      .copy(viewerCenter)
+      .add(new Vector3(radius * 1.2, radius * 0.35, radius * 1.05))
+  }
+
+  camera.lookAt(viewerCenter)
   camera.updateProjectionMatrix()
-  controls.target.copy(center).add(new Vector3(0, radius * 0.1, radius * 0.08))
+  controls.target.copy(viewerCenter)
   controls.update()
+}
+
+function computeViewerOrbitTarget(object: Group, bounds: Box3): Vector3 {
+  const center = bounds.getCenter(new Vector3())
+  return new Vector3(
+    center.x,
+    computeTrimmedVisualCenterY(object, bounds),
+    center.z
+  )
+}
+
+function computeTrimmedVisualCenterY(object: Group, bounds: Box3): number {
+  const fallbackCenter = bounds.getCenter(new Vector3()).y
+  const samples: number[] = []
+  const worldPosition = new Vector3()
+  object.updateWorldMatrix(true, true)
+
+  object.traverse(node => {
+    if (!(node instanceof Mesh) || !node.visible) {
+      return
+    }
+
+    const position = node.geometry?.attributes.position
+    if (position == null || position.count <= 0) {
+      return
+    }
+
+    const stride = Math.max(1, Math.ceil(position.count / 160))
+    for (let index = 0; index < position.count; index += stride) {
+      worldPosition
+        .fromBufferAttribute(position, index)
+        .applyMatrix4(node.matrixWorld)
+      if (Number.isFinite(worldPosition.y)) {
+        samples.push(worldPosition.y)
+      }
+    }
+  })
+
+  if (samples.length < 8) {
+    return fallbackCenter
+  }
+
+  samples.sort((left, right) => left - right)
+  const lowIndex = Math.floor(samples.length * 0.12)
+  const highIndex = Math.max(lowIndex + 1, Math.ceil(samples.length * 0.72))
+  const lower = samples[lowIndex] ?? fallbackCenter
+  const upper = samples[highIndex - 1] ?? fallbackCenter
+
+  return (lower + upper) * 0.5
 }
 
 type CockpitCameraDefinition = {
@@ -2234,7 +2292,11 @@ type CockpitCameraDefinition = {
   readonly rotationPbhDegrees: Vector3
 }
 
-type ParsedCockpitCameraSection = {
+type ExternalAircraftCameraDefinition = {
+  readonly positionOffset: Vector3
+}
+
+type ParsedCameraSection = {
   readonly declarationIndex: number
   readonly origin: string
   readonly category: string
@@ -2498,27 +2560,7 @@ function resolveCockpitCameraDefinition(
   const viewsSection = camerasCfg.sections.find(section => section.name.toLowerCase() === 'views')
   const eyepoint = parseNumericTriple(viewsSection?.values.get('eyepoint')) ?? [0, 0, 0]
 
-  const cameraSections = camerasCfg.sections
-    .filter(section => section.name.toLowerCase().startsWith('cameradefinition.'))
-    .map((section, declarationIndex) => {
-      const initialXyz = parseNumericTriple(section.values.get('initialxyz'))
-      const initialPbh = parseNumericTriple(section.values.get('initialpbh'))
-      if (initialXyz == null || initialPbh == null) {
-        return null
-      }
-
-      return {
-        declarationIndex,
-        origin: normalizeCfgValue(section.values.get('origin')),
-        category: normalizeCfgValue(section.values.get('category')),
-        subCategory: normalizeCfgValue(section.values.get('subcategory')),
-        subCategoryItem: normalizeCfgValue(section.values.get('subcategoryitem')),
-        title: normalizeCfgValue(section.values.get('title')),
-        initialXyz,
-        initialPbh
-      }
-    })
-    .filter((section): section is NonNullable<typeof section> => section != null)
+  const cameraSections = parseCameraSections(camerasCfg.sections)
 
   const selectedCamera = [...cameraSections]
     .filter(isSupportedCockpitCameraSection)
@@ -2551,7 +2593,63 @@ function resolveCockpitCameraDefinition(
   }
 }
 
-function isSupportedCockpitCameraSection(section: ParsedCockpitCameraSection): boolean {
+function resolveExternalAircraftCameraDefinition(
+  aircraft: ImportedAircraft
+): ExternalAircraftCameraDefinition | null {
+  const camerasCfg = aircraft.cfgFiles.find(file => file.kind === 'cameras')
+  if (camerasCfg == null) {
+    return null
+  }
+
+  const selectedCamera = parseCameraSections(camerasCfg.sections)
+    .filter(isSupportedExternalAircraftCameraSection)
+    .sort((left, right) => {
+      const scoreDelta =
+        getExternalAircraftCameraSectionScore(right) -
+        getExternalAircraftCameraSectionScore(left)
+      if (scoreDelta !== 0) {
+        return scoreDelta
+      }
+
+      return left.declarationIndex - right.declarationIndex
+    })[0] ?? null
+
+  if (selectedCamera == null) {
+    return null
+  }
+
+  return {
+    positionOffset: convertCameraOffsetToLocalPosition(selectedCamera.initialXyz)
+  }
+}
+
+function parseCameraSections(
+  sections: readonly ImportedCfgSection[]
+): ParsedCameraSection[] {
+  return sections
+    .filter(section => section.name.toLowerCase().startsWith('cameradefinition.'))
+    .map((section, declarationIndex) => {
+      const initialXyz = parseNumericTriple(section.values.get('initialxyz'))
+      const initialPbh = parseNumericTriple(section.values.get('initialpbh'))
+      if (initialXyz == null || initialPbh == null) {
+        return null
+      }
+
+      return {
+        declarationIndex,
+        origin: normalizeCfgValue(section.values.get('origin')),
+        category: normalizeCfgValue(section.values.get('category')),
+        subCategory: normalizeCfgValue(section.values.get('subcategory')),
+        subCategoryItem: normalizeCfgValue(section.values.get('subcategoryitem')),
+        title: normalizeCfgValue(section.values.get('title')),
+        initialXyz,
+        initialPbh
+      }
+    })
+    .filter((section): section is ParsedCameraSection => section != null)
+}
+
+function isSupportedCockpitCameraSection(section: ParsedCameraSection): boolean {
   if (section.category !== '' && section.category !== 'cockpit') {
     return false
   }
@@ -2563,7 +2661,7 @@ function isSupportedCockpitCameraSection(section: ParsedCockpitCameraSection): b
   )
 }
 
-function getCockpitCameraSectionScore(section: ParsedCockpitCameraSection): number {
+function getCockpitCameraSectionScore(section: ParsedCameraSection): number {
   let score = 0
 
   if (section.origin === '' || section.origin === 'virtual cockpit') {
@@ -2608,6 +2706,29 @@ function getCockpitCameraSectionScore(section: ParsedCockpitCameraSection): numb
   }
   if (section.title.includes('cabin') || section.title.includes('galley')) {
     score -= 200
+  }
+
+  return score
+}
+
+function isSupportedExternalAircraftCameraSection(section: ParsedCameraSection): boolean {
+  return section.category === 'aircraft' && section.origin === 'center'
+}
+
+function getExternalAircraftCameraSectionScore(section: ParsedCameraSection): number {
+  let score = 0
+
+  if (section.title === 'default_chase') {
+    score += 200
+  } else if (section.title.includes('chase')) {
+    score += 120
+  }
+
+  if (section.subCategory === '' || section.subCategory === 'none') {
+    score += 20
+  }
+  if (section.subCategoryItem === '' || section.subCategoryItem === 'none') {
+    score += 10
   }
 
   return score
