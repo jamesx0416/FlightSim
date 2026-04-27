@@ -200,6 +200,7 @@ function getMatrixRelativeToAnchor(object: Object3D, anchor: Object3D): Matrix4 
 }
 
 function canMergeMesh(mesh: Mesh, material: Material): boolean {
+  const isBlendGBufferMaterial = usesBlendGBufferMaterial(material)
   if ((mesh as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh === true) {
     return false
   }
@@ -209,7 +210,7 @@ function canMergeMesh(mesh: Mesh, material: Material): boolean {
   if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
     return false
   }
-  if (material.transparent || usesBlendGBufferMaterial(material)) {
+  if (material.transparent && !isBlendGBufferMaterial) {
     return false
   }
   return isMergeableGeometry(mesh.geometry)

@@ -764,7 +764,9 @@ async function init(): Promise<void> {
             textureLoadOptions: createCockpitTextureLoadOptions(searchParams),
             stripTextures: !shouldLoadCockpitRangeTextures(searchParams),
             instanceStaticMeshes: searchParams.has('cockpitInstanceStatic'),
-            mergeStaticMeshes: searchParams.has('cockpitMergeStatic'),
+            mergeStaticMeshes:
+              searchParams.has('cockpitMergeStatic') ||
+              shouldLoadCockpitRangeTextures(searchParams),
             collectResourceStats:
               searchParams.has('cockpitPerf') || activeCockpitBenchmarkEvents != null,
             behaviorSet: compiledBehaviors

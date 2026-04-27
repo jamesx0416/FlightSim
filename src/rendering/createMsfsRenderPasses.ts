@@ -34,11 +34,14 @@ export function createMsfsRenderPasses(
   root: Object3D
 ): MsfsRenderPasses {
   const blendMeshes: BlendGBufferMesh[] = []
-  const baseMeshes: Mesh[] = []
+  const originalBlendMeshLayerMasks = new Map<Mesh, number>()
+  let decalLayerMask = findLayerMaskOutsideCamera(camera)
 
   const refresh = (): void => {
+    restoreMeshDrawables(originalBlendMeshLayerMasks)
+    originalBlendMeshLayerMasks.clear()
     blendMeshes.length = 0
-    baseMeshes.length = 0
+    decalLayerMask = findLayerMaskOutsideCamera(camera)
 
     root.traverse(object => {
       if (!(object instanceof Mesh)) {
@@ -52,11 +55,14 @@ export function createMsfsRenderPasses(
           : []
       if (materials.some(material => usesBlendGBufferMaterial(material as MsfsMaterial))) {
         blendMeshes.push(object as BlendGBufferMesh)
-        return
       }
-
-      baseMeshes.push(object)
     })
+
+    moveMeshDrawablesToLayer(
+      blendMeshes,
+      decalLayerMask,
+      originalBlendMeshLayerMasks
+    )
   }
 
   refresh()
@@ -74,22 +80,18 @@ export function createMsfsRenderPasses(
 
       const originalBackground = scene.background
       const originalAutoClear = renderer.autoClear
-      const hiddenBlendMeshes = hideMeshDrawablesFromCamera(blendMeshes, camera)
+      const originalCameraLayerMask = camera.layers.mask
 
       try {
         renderer.autoClear = true
         renderer.render(scene, camera)
-      } finally {
-        restoreMeshDrawables(hiddenBlendMeshes)
-      }
 
-      const hiddenBaseMeshesForDecals = hideMeshDrawablesFromCamera(baseMeshes, camera)
-      try {
+        camera.layers.mask = decalLayerMask
         scene.background = null
         renderer.autoClear = false
         renderer.render(scene, camera)
       } finally {
-        restoreMeshDrawables(hiddenBaseMeshesForDecals)
+        camera.layers.mask = originalCameraLayerMask
         scene.background = originalBackground
         renderer.autoClear = originalAutoClear
       }
@@ -97,23 +99,19 @@ export function createMsfsRenderPasses(
   }
 }
 
-function hideMeshDrawablesFromCamera(
+function moveMeshDrawablesToLayer(
   meshes: readonly Mesh[],
-  camera: Camera
-): Map<Mesh, number> {
-  const hiddenMeshLayerMasks = new Map<Mesh, number>()
-  const hiddenLayerMask = findLayerMaskOutsideCamera(camera)
-
+  layerMask: number,
+  originalMeshLayerMasks: Map<Mesh, number>
+): void {
   for (const mesh of meshes) {
-    hiddenMeshLayerMasks.set(mesh, mesh.layers.mask)
-    mesh.layers.mask = hiddenLayerMask
+    originalMeshLayerMasks.set(mesh, mesh.layers.mask)
+    mesh.layers.mask = layerMask
   }
-
-  return hiddenMeshLayerMasks
 }
 
-function restoreMeshDrawables(hiddenMeshLayerMasks: Map<Mesh, number>): void {
-  for (const [mesh, layerMask] of hiddenMeshLayerMasks) {
+function restoreMeshDrawables(originalMeshLayerMasks: Map<Mesh, number>): void {
+  for (const [mesh, layerMask] of originalMeshLayerMasks) {
     mesh.layers.mask = layerMask
   }
 }
