@@ -1934,17 +1934,17 @@ async function loadAircraftModelDefinitionGltf(
   const lodEntries = [...modelDefinition.lods]
     .sort((left, right) => right.minSize - left.minSize)
     .map((lod, index) => ({ lod, index }))
-  const hasPreferredLod =
-    preferredLodIndex != null &&
-    preferredLodIndex >= 0 &&
-    preferredLodIndex < lodEntries.length
-  const loadOrder = hasPreferredLod
+  const resolvedPreferredLodIndex =
+    preferredLodIndex == null || lodEntries.length === 0
+      ? null
+      : Math.min(Math.max(preferredLodIndex, 0), lodEntries.length - 1)
+  const loadOrder = resolvedPreferredLodIndex != null
     ? fallbackToOtherLods
       ? [
-          lodEntries[preferredLodIndex]!,
-          ...lodEntries.filter(({ index }) => index !== preferredLodIndex)
+          lodEntries[resolvedPreferredLodIndex]!,
+          ...lodEntries.filter(({ index }) => index !== resolvedPreferredLodIndex)
         ]
-      : [lodEntries[preferredLodIndex]!]
+      : [lodEntries[resolvedPreferredLodIndex]!]
     : lodEntries
 
   for (const { lod, index } of loadOrder) {
