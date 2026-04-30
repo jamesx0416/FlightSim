@@ -1,17 +1,21 @@
 import {
   AmbientLight,
   Box3,
+  CanvasTexture,
   Clock,
   Color,
   DirectionalLight,
   Euler,
   Group,
   HemisphereLight,
+  LinearFilter,
   Material,
   Mesh,
+  MeshBasicMaterial,
   Object3D,
   PerspectiveCamera,
   Scene,
+  SRGBColorSpace,
   Texture,
   Vector3
 } from 'three'
@@ -32,11 +36,14 @@ import { normalizeMsfsVertexColors } from './msfs/gltf/normalizeMsfsVertexColors
 import { repairMsfsSkinnedAttributes } from './msfs/gltf/repairMsfsSkinnedAttributes'
 import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
+import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
+import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
 import type {
   CompiledBehaviorSet,
   ImportedAircraft,
   ImportedCfgSection,
+  ImportDiagnostic,
   RuntimeState
 } from './msfs/types'
 import type { ImportedModelDefinition } from './msfs/types'
@@ -72,6 +79,7 @@ type LoadedModelComponent = {
   readonly loadedLodIndex: number
   readonly loadDiagnostics: ModelLoadDiagnostics
   readonly resourceStats: ModelResourceStats | null
+  readonly vcockpitBinding: VCockpitSurfaceBindingResult | null
 }
 
 type LoadedAircraftModel = {
@@ -87,6 +95,7 @@ type AircraftModelLoadContext = {
     readonly textureLoadOptions?: MSFSDDSLoadOptions
   }) => GLTFLoader
   readonly createNodeMaterial: NodeMaterialFactory | null
+  readonly resolvePanelAssetUrl: (source: string) => string | null
 }
 
 type ModelLoadPhase = {
@@ -238,7 +247,9 @@ async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
   const gltfPromise = loadAircraftGltf(aircraftModelLoadContext, {
     preferredLodIndex: requestedLodIndex,
-    loadExteriorInterior: syncExteriorInterior
+    loadExteriorInterior: syncExteriorInterior,
+    bindVCockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
+    liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams)
   })
   const [initialCompiledBehaviors, gltf] = await Promise.all([
     compiledBehaviorsPromise,
@@ -722,7 +733,9 @@ async function init(): Promise<void> {
         interiorModel,
         {
           kind: 'interior',
-          preferredLodIndex: getExteriorViewInteriorPreferredLodIndex()
+          preferredLodIndex: getExteriorViewInteriorPreferredLodIndex(),
+          bindVCockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
+          liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams)
         }
       ),
       ensureFullCompiledBehaviors()
@@ -806,6 +819,8 @@ async function init(): Promise<void> {
             mergeStaticMeshes:
               searchParams.has('cockpitMergeStatic') ||
               shouldLoadCockpitRangeTextures(searchParams),
+            bindVCockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
+            liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams),
             collectResourceStats:
               searchParams.has('cockpitPerf') || activeCockpitBenchmarkEvents != null,
             behaviorSet: compiledBehaviors
@@ -1074,6 +1089,7 @@ async function init(): Promise<void> {
         controls.update()
       }
       const cameraEndMs = performance.now()
+      loadedModel.interior?.vcockpitBinding?.update(performance.now())
       const renderStartMs = performance.now()
       renderPasses.render()
       const renderEndMs = performance.now()
@@ -1100,6 +1116,7 @@ async function init(): Promise<void> {
       if (!cockpitCameraController.isActive()) {
         controls.update()
       }
+      loadedModel.interior?.vcockpitBinding?.update(performance.now())
       renderPasses.render()
     }
     const nowMs = performance.now()
@@ -1226,7 +1243,18 @@ function collectLoadedComponentStats(component: LoadedModelComponent): Record<st
     ...collectModelRenderStats(component.scene),
     loadedLodIndex: component.loadedLodIndex,
     loadDiagnostics: component.loadDiagnostics,
-    resourceStats: component.resourceStats ?? collectModelResourceStats(component.scene)
+    resourceStats: component.resourceStats ?? collectModelResourceStats(component.scene),
+    vcockpitBinding:
+      component.vcockpitBinding == null
+        ? null
+        : {
+            surfaceCount: component.vcockpitBinding.surfaces.length,
+            boundSurfaceCount: component.vcockpitBinding.boundSurfaceCount,
+            htmlGaugeCount: component.vcockpitBinding.htmlGaugeCount,
+            loadedHtmlGaugeCount: component.vcockpitBinding.loadedHtmlGaugeCount,
+            capturedHtmlGaugeCount: component.vcockpitBinding.capturedHtmlGaugeCount,
+            diagnostics: component.vcockpitBinding.diagnostics
+          }
   }
 }
 
@@ -1668,6 +1696,14 @@ function shouldLoadCockpitRangeTextures(searchParams: URLSearchParams): boolean 
   return searchParams.get('cockpitTextures') === 'range-low'
 }
 
+function shouldBindVCockpitSurfaces(searchParams: URLSearchParams): boolean {
+  return searchParams.get('vcockpitSurfaces') !== 'off'
+}
+
+function shouldLiveRefreshVCockpitGauges(searchParams: URLSearchParams): boolean {
+  return searchParams.has('vcockpitLiveGauges')
+}
+
 function getCockpitRangeTextureSize(searchParams: URLSearchParams): number {
   const rawSize = searchParams.get('cockpitTextureSize')
   if (rawSize == null || rawSize.trim() === '') {
@@ -1705,7 +1741,12 @@ function createAircraftModelLoadContext(
         decodeNormalSources,
         textureLoadOptions: options?.textureLoadOptions
       }),
-    createNodeMaterial: createNodeMaterialFactory(rendererInfo.renderer)
+    createNodeMaterial: createNodeMaterialFactory(rendererInfo.renderer),
+    resolvePanelAssetUrl: createPanelAssetUrlResolver(
+      packageRootUrl,
+      layoutPaths,
+      additionalAssetRoots
+    )
   }
 }
 
@@ -1714,6 +1755,8 @@ async function loadAircraftGltf(
   options: {
     readonly preferredLodIndex?: number | null
     readonly loadExteriorInterior?: boolean
+    readonly bindVCockpitSurfaces?: boolean
+    readonly liveVCockpitGauges?: boolean
   } = {}
 ): Promise<LoadedAircraftModel> {
   const { aircraft } = context
@@ -1733,7 +1776,9 @@ async function loadAircraftGltf(
           kind: 'interior',
           preferredLodIndex: aircraft.model.modelOptions.withExteriorShowInteriorHideFirstLod
             ? Math.max(options.preferredLodIndex ?? 1, 1)
-            : options.preferredLodIndex ?? null
+            : options.preferredLodIndex ?? null,
+          bindVCockpitSurfaces: options.bindVCockpitSurfaces,
+          liveVCockpitGauges: options.liveVCockpitGauges
         })
       : null
 
@@ -1751,8 +1796,10 @@ async function loadAircraftModelComponent(
     readonly stripTextures?: boolean
     readonly instanceStaticMeshes?: boolean
     readonly mergeStaticMeshes?: boolean
+    readonly bindVCockpitSurfaces?: boolean
+    readonly liveVCockpitGauges?: boolean
     readonly collectResourceStats?: boolean
-    readonly behaviorSet?: typeof compiledBehaviors
+    readonly behaviorSet?: CompiledBehaviorSet
   }
 ): Promise<LoadedModelComponent> {
   const phases: ModelLoadPhase[] = []
@@ -1818,6 +1865,37 @@ async function loadAircraftModelComponent(
       ...mergeStats
     })
   }
+  let vcockpitBinding: VCockpitSurfaceBindingResult | null = null
+  if (options.bindVCockpitSurfaces === true && options.kind === 'interior') {
+    const vcockpitStartMs = performance.now()
+    vcockpitBinding = await bindVCockpitPlaceholderSurfaces(
+      loaded.gltf.scene,
+      context.aircraft,
+      context.resolvePanelAssetUrl,
+      options.liveVCockpitGauges === true
+    )
+    recordPhase('component:bind-vcockpit-surfaces', vcockpitStartMs, {
+      surfaceCount: vcockpitBinding.surfaces.length,
+      boundSurfaceCount: vcockpitBinding.boundSurfaceCount,
+      materialBindingCount: vcockpitBinding.materialBindingCount,
+      htmlGaugeCount: vcockpitBinding.htmlGaugeCount,
+      loadedHtmlGaugeCount: vcockpitBinding.loadedHtmlGaugeCount,
+      capturedHtmlGaugeCount: vcockpitBinding.capturedHtmlGaugeCount,
+      diagnostics: vcockpitBinding.diagnostics
+    })
+    ;(globalThis as Record<string, unknown>).__lastVCockpitSurfaceBinding =
+      vcockpitBinding
+    setGlobalLoadStage({
+      stage: 'gltf:lod:bind-vcockpit-surfaces',
+      aircraftId: context.aircraft.id,
+      surfaceCount: vcockpitBinding.surfaces.length,
+      boundSurfaceCount: vcockpitBinding.boundSurfaceCount,
+      materialBindingCount: vcockpitBinding.materialBindingCount,
+      htmlGaugeCount: vcockpitBinding.htmlGaugeCount,
+      loadedHtmlGaugeCount: vcockpitBinding.loadedHtmlGaugeCount,
+      capturedHtmlGaugeCount: vcockpitBinding.capturedHtmlGaugeCount
+    })
+  }
   const resourceStatsStartMs = performance.now()
   const resourceStats =
     options.collectResourceStats === true
@@ -1845,7 +1923,8 @@ async function loadAircraftModelComponent(
     animations: loaded.gltf.animations,
     loadedLodIndex: loaded.loadedLodIndex,
     loadDiagnostics,
-    resourceStats
+    resourceStats,
+    vcockpitBinding
   }
 }
 
@@ -1873,6 +1952,1427 @@ function stripMaterialTextures(material: Material): void {
     }
   }
   material.needsUpdate = true
+}
+
+type VCockpitSurfaceBindingResult = {
+  readonly surfaces: readonly VCockpitSurface[]
+  readonly boundSurfaceCount: number
+  readonly materialBindingCount: number
+  readonly htmlGaugeCount: number
+  readonly loadedHtmlGaugeCount: number
+  readonly capturedHtmlGaugeCount: number
+  readonly htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[]
+  readonly update: (nowMs: number) => void
+  readonly dispose: () => void
+  readonly diagnostics: readonly ImportDiagnostic[]
+}
+
+type VCockpitHtmlGaugeRuntime = {
+  readonly surface: string
+  readonly textureName: string
+  readonly gaugeKey: string
+  readonly gauge: VCockpitGaugeEntry | null
+  readonly source: string
+  readonly resolvedUrl: string | null
+  readonly status: 'loaded' | 'missing' | 'deferred-wasm' | 'iframe-error'
+  readonly iframe: HTMLIFrameElement | null
+  captured: boolean
+  captureAttemptCount: number
+  lastCaptureError: string | null
+}
+
+type VCockpitSurfaceTextureRuntime = {
+  readonly surface: VCockpitSurface
+  readonly canvas: HTMLCanvasElement
+  readonly context: CanvasRenderingContext2D
+  readonly texture: CanvasTexture
+  readonly htmlGaugeRuntimes: VCockpitHtmlGaugeRuntime[]
+  readonly liveCapture: boolean
+  nextCaptureMs: number
+  isCapturing: boolean
+}
+
+const VCOCKPIT_HTML_CAPTURE_RETRY_MS = 500
+const VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS = 6
+const VCOCKPIT_HTML_GAUGE_LOAD_CONCURRENCY = 4
+
+let activeVCockpitHtmlGaugeLoads = 0
+const queuedVCockpitHtmlGaugeLoads: Array<() => void> = []
+
+function scheduleVCockpitHtmlGaugeRuntimeLoad(
+  task: () => Promise<VCockpitHtmlGaugeRuntime>
+): Promise<VCockpitHtmlGaugeRuntime> {
+  return new Promise((resolve, reject) => {
+    const run = (): void => {
+      activeVCockpitHtmlGaugeLoads += 1
+      task()
+        .then(resolve, reject)
+        .finally(() => {
+          activeVCockpitHtmlGaugeLoads -= 1
+          queuedVCockpitHtmlGaugeLoads.shift()?.()
+        })
+    }
+
+    if (activeVCockpitHtmlGaugeLoads < VCOCKPIT_HTML_GAUGE_LOAD_CONCURRENCY) {
+      run()
+      return
+    }
+
+    queuedVCockpitHtmlGaugeLoads.push(run)
+  })
+}
+
+async function bindVCockpitPlaceholderSurfaces(
+  root: Object3D,
+  aircraft: ImportedAircraft,
+  resolvePanelAssetUrl: (source: string) => string | null,
+  liveHtmlGaugeCapture: boolean
+): Promise<VCockpitSurfaceBindingResult> {
+  const parsed = parseVCockpitSurfaces(aircraft)
+  const diagnostics: ImportDiagnostic[] = [...parsed.diagnostics]
+  const replacementByMaterial = new Map<Material, MeshBasicMaterial>()
+  const boundSurfaceNames = new Set<string>()
+  const visitedSurfaceNames = new Set<string>()
+  const htmlGaugeRuntimes: VCockpitHtmlGaugeRuntime[] = []
+  const surfaceTextureRuntimes: VCockpitSurfaceTextureRuntime[] = []
+  let disposed = false
+  let materialBindingCount = 0
+
+  const loadSurfaceHtmlGaugeRuntimes = (
+    surface: VCockpitSurface,
+    surfaceTextureRuntime: VCockpitSurfaceTextureRuntime
+  ): void => {
+    for (const gauge of surface.htmlGauges) {
+      void scheduleVCockpitHtmlGaugeRuntimeLoad(() => {
+        if (disposed) {
+          return Promise.resolve(createAbandonedVCockpitHtmlGaugeRuntime(surface, gauge))
+        }
+
+        return createVCockpitHtmlGaugeRuntime(
+          surface,
+          gauge,
+          resolvePanelAssetUrl,
+          diagnostics
+        )
+      })
+      .then(runtime => {
+        if (disposed) {
+          runtime.iframe?.remove()
+          return
+        }
+
+        htmlGaugeRuntimes.push(runtime)
+        surfaceTextureRuntime.htmlGaugeRuntimes.push(runtime)
+        drawVCockpitPlaceholderSurface(
+          surfaceTextureRuntime.context,
+          surfaceTextureRuntime.surface,
+          surfaceTextureRuntime.htmlGaugeRuntimes,
+          surfaceTextureRuntime.canvas.width,
+          surfaceTextureRuntime.canvas.height
+        )
+        surfaceTextureRuntime.texture.needsUpdate = true
+        surfaceTextureRuntime.nextCaptureMs = performance.now()
+      })
+      .catch(error => {
+        diagnostics.push({
+          code: 'vcockpit-html-gauge-runtime-error',
+          severity: 'warning',
+          sourcePath: surface.panelPath,
+          message: `${surface.sectionName} HTML gauge runtimes could not be created.`,
+          details: error instanceof Error ? error.message : String(error)
+        })
+      })
+    }
+  }
+
+  for (const surface of parsed.surfaces) {
+    if (
+      surface.normalizedTextureName === '' ||
+      surface.normalizedTextureName === 'notexture'
+    ) {
+      continue
+    }
+
+    if (visitedSurfaceNames.has(surface.normalizedTextureName)) {
+      continue
+    }
+    visitedSurfaceNames.add(surface.normalizedTextureName)
+
+    if (
+      surface.pixelSize == null ||
+      surface.pixelSize.width <= 0 ||
+      surface.pixelSize.height <= 0
+    ) {
+      diagnostics.push({
+        code: 'vcockpit-surface-invalid-dimensions',
+        severity: 'warning',
+        sourcePath: surface.panelPath,
+        message: `${surface.sectionName} texture ${surface.textureName} cannot be bound without positive pixel_size dimensions.`
+      })
+      continue
+    }
+
+    const surfaceRuntimes: VCockpitHtmlGaugeRuntime[] = []
+    const surfaceTextureRuntime = createVCockpitSurfaceTextureRuntime(
+      surface,
+      surfaceRuntimes,
+      liveHtmlGaugeCapture
+    )
+    let surfaceBindingCount = 0
+
+    root.traverse(object => {
+      if (!(object instanceof Mesh)) {
+        return
+      }
+
+      const materials = Array.isArray(object.material)
+        ? object.material
+        : object.material != null
+          ? [object.material]
+          : []
+
+      for (const material of materials) {
+        if (
+          material == null ||
+          normalizeSurfaceLookupName(material.name) !== surface.normalizedTextureName
+        ) {
+          continue
+        }
+
+        if (!replacementByMaterial.has(material)) {
+          replacementByMaterial.set(
+            material,
+            createVCockpitSurfaceMaterial(
+              material,
+              surface,
+              surfaceTextureRuntime.texture
+            )
+          )
+        }
+        surfaceBindingCount += 1
+      }
+    })
+
+    if (surfaceBindingCount === 0) {
+      surfaceTextureRuntime.texture.dispose()
+      diagnostics.push({
+        code: 'vcockpit-surface-unresolved-material',
+        severity: 'warning',
+        sourcePath: surface.panelPath,
+        message: `${surface.sectionName} texture ${surface.textureName} did not match a cockpit material name.`
+      })
+      continue
+    }
+
+    boundSurfaceNames.add(surface.normalizedTextureName)
+    surfaceTextureRuntimes.push(surfaceTextureRuntime)
+    loadSurfaceHtmlGaugeRuntimes(surface, surfaceTextureRuntime)
+    materialBindingCount += surfaceBindingCount
+  }
+
+  if (replacementByMaterial.size > 0) {
+    root.traverse(object => {
+      if (!(object instanceof Mesh)) {
+        return
+      }
+
+      if (Array.isArray(object.material)) {
+        object.material = object.material.map(material =>
+          material == null ? material : replacementByMaterial.get(material) ?? material
+        )
+        return
+      }
+
+      if (object.material != null) {
+        object.material = replacementByMaterial.get(object.material) ?? object.material
+      }
+    })
+  }
+
+  return {
+    surfaces: parsed.surfaces,
+    boundSurfaceCount: boundSurfaceNames.size,
+    materialBindingCount,
+    htmlGaugeCount: parsed.surfaces.reduce(
+      (total, surface) => total + surface.htmlGauges.length,
+      0
+    ),
+    get loadedHtmlGaugeCount() {
+      return htmlGaugeRuntimes.filter(runtime => runtime.status === 'loaded').length
+    },
+    get capturedHtmlGaugeCount() {
+      return htmlGaugeRuntimes.filter(runtime => runtime.captured).length
+    },
+    htmlGaugeRuntimes,
+    update: nowMs => {
+      updateVCockpitSurfaceTextureRuntimes(surfaceTextureRuntimes, diagnostics, nowMs)
+    },
+    dispose: () => {
+      disposed = true
+      for (const surfaceRuntime of surfaceTextureRuntimes) {
+        surfaceRuntime.texture.dispose()
+      }
+      for (const gaugeRuntime of htmlGaugeRuntimes) {
+        gaugeRuntime.iframe?.remove()
+      }
+    },
+    diagnostics
+  }
+}
+
+function createAbandonedVCockpitHtmlGaugeRuntime(
+  surface: VCockpitSurface,
+  gauge: VCockpitGaugeEntry
+): VCockpitHtmlGaugeRuntime {
+  return {
+    surface: surface.sectionName,
+    textureName: surface.textureName,
+    gaugeKey: gauge.key,
+    gauge: null,
+    source: gauge.source,
+    resolvedUrl: null,
+    status: 'iframe-error',
+    iframe: null,
+    captured: false,
+    captureAttemptCount: 0,
+    lastCaptureError: null
+  }
+}
+
+async function createVCockpitHtmlGaugeRuntime(
+  surface: VCockpitSurface,
+  gauge: VCockpitGaugeEntry,
+  resolvePanelAssetUrl: (source: string) => string | null,
+  diagnostics: ImportDiagnostic[]
+): Promise<VCockpitHtmlGaugeRuntime> {
+  if (isWasmBackedHtmlGauge(gauge)) {
+    diagnostics.push({
+      code: 'vcockpit-html-gauge-wasm-deferred',
+      severity: 'info',
+      sourcePath: surface.panelPath,
+      message: `${surface.sectionName} ${gauge.key} uses a WASM-backed HTML host and is deferred.`
+    })
+    return {
+      surface: surface.sectionName,
+      textureName: surface.textureName,
+      gaugeKey: gauge.key,
+      gauge: null,
+      source: gauge.source,
+      resolvedUrl: null,
+      status: 'deferred-wasm',
+      iframe: null,
+      captured: false,
+      captureAttemptCount: 0,
+      lastCaptureError: null
+    } satisfies VCockpitHtmlGaugeRuntime
+  }
+
+  const resolvedUrl = resolvePanelAssetUrl(gauge.source)
+  if (resolvedUrl == null) {
+    diagnostics.push({
+      code: 'vcockpit-html-gauge-missing-asset',
+      severity: 'warning',
+      sourcePath: surface.panelPath,
+      message: `${surface.sectionName} ${gauge.key} could not resolve ${gauge.source}.`
+    })
+    return {
+      surface: surface.sectionName,
+      textureName: surface.textureName,
+      gaugeKey: gauge.key,
+      gauge: null,
+      source: gauge.source,
+      resolvedUrl: null,
+      status: 'missing',
+      iframe: null,
+      captured: false,
+      captureAttemptCount: 0,
+      lastCaptureError: null
+    } satisfies VCockpitHtmlGaugeRuntime
+  }
+
+  const loadResult = await createSandboxedHtmlGaugeFrame(surface, gauge, resolvedUrl)
+  if (loadResult.status !== 'loaded') {
+    diagnostics.push({
+      code: 'vcockpit-html-gauge-frame-error',
+      severity: 'warning',
+      sourcePath: surface.panelPath,
+      message: `${surface.sectionName} ${gauge.key} failed to load ${gauge.source}.`
+    })
+  }
+  return {
+    surface: surface.sectionName,
+    textureName: surface.textureName,
+    gaugeKey: gauge.key,
+    gauge,
+    source: gauge.source,
+    resolvedUrl,
+    status: loadResult.status,
+    iframe: loadResult.iframe,
+    captured: false,
+    captureAttemptCount: 0,
+    lastCaptureError: null
+  } satisfies VCockpitHtmlGaugeRuntime
+}
+
+function isWasmBackedHtmlGauge(gauge: VCockpitGaugeEntry): boolean {
+  return (
+    gauge.source.toLowerCase().startsWith('wasminstrument/') ||
+    gauge.source.toLowerCase().includes('wasm_module=')
+  )
+}
+
+async function createSandboxedHtmlGaugeFrame(
+  surface: VCockpitSurface,
+  gauge: VCockpitGaugeEntry,
+  resolvedUrl: string
+): Promise<{
+  readonly status: 'loaded' | 'iframe-error'
+  readonly iframe: HTMLIFrameElement
+}> {
+  const htmlResponse = await fetch(resolvedUrl)
+  if (!htmlResponse.ok) {
+    const iframe = document.createElement('iframe')
+    return { status: 'iframe-error', iframe }
+  }
+
+  const sourceHtml = await htmlResponse.text()
+  const iframe = document.createElement('iframe')
+  iframe.dataset.msfsVCockpitSurface = surface.sectionName
+  iframe.dataset.msfsVCockpitTexture = surface.textureName
+  iframe.dataset.msfsVCockpitGauge = gauge.key
+  iframe.sandbox.add('allow-scripts')
+  iframe.sandbox.add('allow-same-origin')
+  iframe.loading = 'eager'
+  iframe.srcdoc = adaptMsfsHtmlGaugeDocument(sourceHtml, resolvedUrl)
+  iframe.style.position = 'fixed'
+  iframe.style.left = '-10000px'
+  iframe.style.top = '0'
+  iframe.style.width = `${Math.max(1, Math.round(gauge.width ?? surface.pixelSize?.width ?? 1))}px`
+  iframe.style.height = `${Math.max(1, Math.round(gauge.height ?? surface.pixelSize?.height ?? 1))}px`
+  iframe.style.border = '0'
+  iframe.style.pointerEvents = 'none'
+  iframe.style.visibility = 'hidden'
+
+  const status = await new Promise<'loaded' | 'iframe-error'>(resolve => {
+    const timeoutId = window.setTimeout(() => resolve('iframe-error'), 5000)
+    iframe.addEventListener(
+      'load',
+      () => {
+        window.clearTimeout(timeoutId)
+        resolve('loaded')
+      },
+      { once: true }
+    )
+    iframe.addEventListener(
+      'error',
+      () => {
+        window.clearTimeout(timeoutId)
+        resolve('iframe-error')
+      },
+      { once: true }
+    )
+    document.body.appendChild(iframe)
+  })
+
+  return { status, iframe }
+}
+
+function adaptMsfsHtmlGaugeDocument(sourceHtml: string, resolvedUrl: string): string {
+  const htmlUiRootUrl = getHtmlUiRootUrl(resolvedUrl)
+  const documentUrl = new URL(resolvedUrl, window.location.href)
+  const documentDirectoryUrl = new URL('.', documentUrl).toString()
+  const parser = new DOMParser()
+  const document = parser.parseFromString(sourceHtml, 'text/html')
+
+  const base = document.createElement('base')
+  base.href = documentDirectoryUrl
+  document.head.prepend(base)
+
+  const bridgeScript = document.createElement('script')
+  bridgeScript.textContent = createVCockpitGaugeBridgeScript(htmlUiRootUrl, resolvedUrl)
+  document.head.prepend(bridgeScript)
+
+  for (const script of [...document.querySelectorAll('script[src*="@vite/client"]')]) {
+    script.remove()
+  }
+
+  for (const script of [...document.querySelectorAll('script[import-script]')]) {
+    const importSource = script.getAttribute('import-script')
+    if (importSource == null || importSource.trim() === '') {
+      continue
+    }
+
+    if (isBrowserProvidedMsfsImport(importSource)) {
+      script.remove()
+      continue
+    }
+
+    const replacement = document.createElement('script')
+    replacement.src = resolveMsfsHtmlAssetUrl(importSource, htmlUiRootUrl, documentDirectoryUrl)
+    replacement.async = script.getAttribute('import-async') !== 'false'
+    script.replaceWith(replacement)
+  }
+
+  for (const element of [...document.querySelectorAll<HTMLElement>('[href], [src]')]) {
+    const href = element.getAttribute('href')
+    if (href != null) {
+      element.setAttribute(
+        'href',
+        resolveMsfsHtmlAssetUrl(href, htmlUiRootUrl, documentDirectoryUrl)
+      )
+    }
+    const src = element.getAttribute('src')
+    if (src != null) {
+      element.setAttribute(
+        'src',
+        resolveMsfsHtmlAssetUrl(src, htmlUiRootUrl, documentDirectoryUrl)
+      )
+    }
+  }
+
+  return `<!doctype html>${document.documentElement.outerHTML}`
+}
+
+function isBrowserProvidedMsfsImport(source: string): boolean {
+  const normalized = source.trim().replaceAll('\\', '/').toLowerCase()
+  return normalized === '/js/datastorage.js' || normalized.endsWith('/js/datastorage.js')
+}
+
+function getHtmlUiRootUrl(resolvedUrl: string): string {
+  const marker = '/html_ui/'
+  const markerIndex = resolvedUrl.toLowerCase().indexOf(marker)
+  if (markerIndex < 0) {
+    return new URL('.', resolvedUrl).toString()
+  }
+
+  return resolvedUrl.slice(0, markerIndex + marker.length)
+}
+
+function resolveMsfsHtmlAssetUrl(
+  source: string,
+  htmlUiRootUrl: string,
+  documentDirectoryUrl: string
+): string {
+  const trimmed = source.trim()
+  const lowerTrimmed = trimmed.toLowerCase()
+  const couiHtmlUiPrefix = 'coui://html_ui/'
+  if (lowerTrimmed.startsWith(couiHtmlUiPrefix)) {
+    return new URL(trimmed.slice(couiHtmlUiPrefix.length), htmlUiRootUrl).toString()
+  }
+
+  if (/^(?:[a-z][a-z0-9+.-]*:|data:|blob:)/iu.test(trimmed)) {
+    return trimmed
+  }
+
+  if (trimmed.startsWith('/')) {
+    return new URL(trimmed.slice(1), htmlUiRootUrl).toString()
+  }
+
+  return new URL(trimmed, documentDirectoryUrl).toString()
+}
+
+function createVCockpitGaugeBridgeScript(htmlUiRootUrl: string, resolvedUrl: string): string {
+  return `
+(() => {
+  const noop = () => {};
+  const zero = () => 0;
+  const htmlUiRootUrl = ${JSON.stringify(htmlUiRootUrl)};
+  const gaugeDocumentUrl = ${JSON.stringify(resolvedUrl)};
+  const resolveMsfsResourceUrl = value => {
+    const text = String(value ?? '');
+    const couiHtmlUiPrefix = 'coui://html_ui/';
+    if (text.toLowerCase().startsWith(couiHtmlUiPrefix)) {
+      try {
+        return new URL(text.slice(couiHtmlUiPrefix.length), htmlUiRootUrl).toString();
+      } catch {
+        return text;
+      }
+    }
+    return text;
+  };
+  const rewriteStyleUrls = value => String(value ?? '').replace(
+    /url\\((['"]?)coui:\\/\\/html_ui\\/([^'")]+)\\1\\)/giu,
+    (_match, quote, path) => 'url(' + quote + resolveMsfsResourceUrl('coui://html_ui/' + path) + quote + ')'
+  );
+  const nativeSetAttribute = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function(name, value) {
+    const normalizedName = String(name).toLowerCase();
+    if (normalizedName === 'src' || normalizedName === 'href') {
+      return nativeSetAttribute.call(this, name, resolveMsfsResourceUrl(value));
+    }
+    if (normalizedName === 'style') {
+      return nativeSetAttribute.call(this, name, rewriteStyleUrls(value));
+    }
+    return nativeSetAttribute.call(this, name, value);
+  };
+  const imageSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+  if (imageSrcDescriptor?.set != null && imageSrcDescriptor?.get != null) {
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true,
+      enumerable: imageSrcDescriptor.enumerable,
+      get: imageSrcDescriptor.get,
+      set(value) {
+        imageSrcDescriptor.set.call(this, resolveMsfsResourceUrl(value));
+      }
+    });
+  }
+  const nativeStyleSetProperty = CSSStyleDeclaration.prototype.setProperty;
+  CSSStyleDeclaration.prototype.setProperty = function(property, value, priority) {
+    return nativeStyleSetProperty.call(this, property, rewriteStyleUrls(value), priority);
+  };
+  const gaugeErrors = [];
+  const recordGaugeError = error => {
+    gaugeErrors.push({
+      message: String(error?.message ?? error?.reason?.message ?? error?.type ?? error),
+      filename: String(error?.filename ?? error?.target?.src ?? error?.target?.href ?? ''),
+      lineno: Number(error?.lineno ?? 0),
+      colno: Number(error?.colno ?? 0)
+    });
+  };
+  globalThis.__msfsGaugeErrors = gaugeErrors;
+  window.addEventListener('error', event => {
+    recordGaugeError(event);
+  }, true);
+  window.addEventListener('unhandledrejection', event => {
+    recordGaugeError(event);
+  });
+  const ensureBody = () => {
+    if (document.body != null) {
+      return document.body;
+    }
+    const body = document.createElement('body');
+    document.documentElement.appendChild(body);
+    return body;
+  };
+  const ensureVCockpitPanelHost = () => {
+    const body = ensureBody();
+    let panel = body.querySelector('vcockpit-panel');
+    if (panel == null) {
+      panel = document.createElement('vcockpit-panel');
+      panel.style.display = 'none';
+      body.appendChild(panel);
+    }
+    let gaugeHost = Array.from(panel.children).find(child => child.tagName.toLowerCase() !== 'wasm-instrument');
+    if (gaugeHost == null) {
+      gaugeHost = document.createElement('html-gauge');
+      panel.appendChild(gaugeHost);
+    }
+    gaugeHost.setAttribute('url', gaugeDocumentUrl);
+  };
+  ensureVCockpitPanelHost();
+  const registeredSimVars = new Map();
+  const registeredSimVarById = [];
+  const readDemoSimVar = (name, unit) => {
+    const normalizedName = String(name ?? '').toLowerCase();
+    const normalizedUnit = String(unit ?? '').toLowerCase();
+    if (normalizedUnit.includes('bool')) {
+      return normalizedName.includes('power') ||
+        normalizedName.includes('powered') ||
+        normalizedName.includes('electric') ||
+        normalizedName.includes('bus') ||
+        normalizedName.includes('circuit') ||
+        normalizedName.includes('light') ||
+        normalizedName.includes('healthy')
+        ? 1
+        : 0;
+    }
+    if (normalizedName.includes('brightness') || normalizedName.includes('potentiometer')) {
+      return normalizedUnit.includes('percent over 100') ? 1 : 100;
+    }
+    if (normalizedName.includes('absolute time')) {
+      return Date.now() / 1000 + 62135596800;
+    }
+    if (normalizedName.includes('latitude')) return 0;
+    if (normalizedName.includes('longitude')) return 0;
+    if (normalizedName.includes('altitude')) return 10000;
+    if (normalizedName.includes('heading')) return 0;
+    if (normalizedName.includes('airspeed')) return 250;
+    if (normalizedName.includes('mach')) return 0.78;
+    if (normalizedName.includes('ambient pressure')) return 29.92;
+    if (normalizedName.includes('ambient temperature')) return 15;
+    if (normalizedName.includes('voltage') || normalizedName.includes('volts')) return 28;
+    if (normalizedName.includes('power') || normalizedName.includes('powered')) return 1;
+    if (normalizedUnit.includes('percent over 100')) return 1;
+    if (normalizedUnit.includes('percent')) return 100;
+    return 0;
+  };
+  const registerSimVar = (name, unit, source = '') => {
+    const key = String(source) + '|' + String(name) + '|' + String(unit);
+    if (registeredSimVars.has(key)) {
+      return registeredSimVars.get(key);
+    }
+    const id = registeredSimVarById.length;
+    registeredSimVars.set(key, id);
+    registeredSimVarById.push({ name, unit, source });
+    return id;
+  };
+  globalThis.simvar ??= {
+    getValueReg: id => {
+      const entry = registeredSimVarById[id];
+      return entry == null ? 0 : readDemoSimVar(entry.name, entry.unit);
+    },
+    getValueReg_String: id => {
+      const entry = registeredSimVarById[id];
+      return entry == null ? '' : String(readDemoSimVar(entry.name, entry.unit));
+    },
+    getValue_LatLongAlt: () => ({ lat: 0, long: 0, alt: 10000 }),
+    getValue_LatLongAltPBH: () => ({ lat: 0, long: 0, alt: 10000, pitch: 0, bank: 0, heading: 0 }),
+    getValue_PBH: () => ({ pitch: 0, bank: 0, heading: 0 }),
+    getValue_PID_STRUCT: () => ({ pid_p: 0, pid_i: 0, pid_d: 0 }),
+    getValue_XYZ: () => ({ x: 0, y: 0, z: 0 })
+  };
+  class CodexBaseInstrument extends HTMLElement {
+    constructor() {
+      super();
+      this._lastUpdateMs = performance.now();
+    }
+    connectedCallback() {
+      if (this.__msfsTemplateAttached) {
+        return;
+      }
+      this.__msfsTemplateAttached = true;
+      const templateId = this.templateID;
+      const template = typeof templateId === 'string'
+        ? document.getElementById(templateId)
+        : null;
+      if (template?.textContent) {
+        const holder = document.createElement('div');
+        holder.innerHTML = template.textContent;
+        while (holder.firstChild) {
+          this.appendChild(holder.firstChild);
+        }
+      }
+    }
+    disconnectedCallback() {}
+    Update() {}
+    onInteractionEvent() {}
+    onGameStateChanged() {}
+    onFlightStart() {}
+    onSoundEnd() {}
+  }
+  class LatLongAlt {
+    constructor(latOrValue = 0, long = 0, alt = 0) {
+      if (typeof latOrValue === 'object' && latOrValue != null) {
+        this.lat = Number(latOrValue.lat ?? latOrValue.latitude ?? 0);
+        this.long = Number(latOrValue.long ?? latOrValue.lon ?? latOrValue.longitude ?? 0);
+        this.alt = Number(latOrValue.alt ?? latOrValue.altitude ?? 0);
+        return;
+      }
+      this.lat = Number(latOrValue);
+      this.long = Number(long);
+      this.alt = Number(alt);
+    }
+  }
+  class LatLongAltPBH extends LatLongAlt {
+    constructor(value = 0, long = 0, alt = 0, pitch = 0, bank = 0, heading = 0) {
+      super(value, long, alt);
+      if (typeof value === 'object' && value != null) {
+        this.pitch = Number(value.pitch ?? 0);
+        this.bank = Number(value.bank ?? 0);
+        this.heading = Number(value.heading ?? 0);
+        return;
+      }
+      this.pitch = Number(pitch);
+      this.bank = Number(bank);
+      this.heading = Number(heading);
+    }
+  }
+  class PitchBankHeading {
+    constructor(value = 0, bank = 0, heading = 0) {
+      if (typeof value === 'object' && value != null) {
+        this.pitch = Number(value.pitch ?? 0);
+        this.bank = Number(value.bank ?? 0);
+        this.heading = Number(value.heading ?? 0);
+        return;
+      }
+      this.pitch = Number(value);
+      this.bank = Number(bank);
+      this.heading = Number(heading);
+    }
+  }
+  class PID_STRUCT {
+    constructor(value = 0, i = 0, d = 0) {
+      if (typeof value === 'object' && value != null) {
+        this.pid_p = Number(value.pid_p ?? value.p ?? 0);
+        this.pid_i = Number(value.pid_i ?? value.i ?? 0);
+        this.pid_d = Number(value.pid_d ?? value.d ?? 0);
+        return;
+      }
+      this.pid_p = Number(value);
+      this.pid_i = Number(i);
+      this.pid_d = Number(d);
+    }
+  }
+  class XYZ {
+    constructor(value = 0, y = 0, z = 0) {
+      if (typeof value === 'object' && value != null) {
+        this.x = Number(value.x ?? 0);
+        this.y = Number(value.y ?? 0);
+        this.z = Number(value.z ?? 0);
+        return;
+      }
+      this.x = Number(value);
+      this.y = Number(y);
+      this.z = Number(z);
+    }
+  }
+  globalThis.BaseInstrument ??= CodexBaseInstrument;
+  globalThis.LatLongAlt ??= LatLongAlt;
+  globalThis.LatLongAltPBH ??= LatLongAltPBH;
+  globalThis.PitchBankHeading ??= PitchBankHeading;
+  globalThis.PID_STRUCT ??= PID_STRUCT;
+  globalThis.XYZ ??= XYZ;
+  globalThis.RunwayDesignator ??= {
+    RUNWAY_DESIGNATOR_NONE: 0,
+    RUNWAY_DESIGNATOR_LEFT: 1,
+    RUNWAY_DESIGNATOR_RIGHT: 2,
+    RUNWAY_DESIGNATOR_CENTER: 3,
+    RUNWAY_DESIGNATOR_WATER: 4,
+    RUNWAY_DESIGNATOR_A: 5,
+    RUNWAY_DESIGNATOR_B: 6
+  };
+  globalThis.EmptyCallback ??= { Void: noop };
+  globalThis.GameState ??= {
+    briefing: 0,
+    loading: 1,
+    ingame: 2,
+    mainmenu: 3
+  };
+  globalThis.registerInstrument ??= (tagName, InstrumentClass) => {
+    if (typeof tagName !== 'string' || typeof InstrumentClass !== 'function') {
+      return;
+    }
+    const normalizedTagName = tagName.includes('-') ? tagName.toLowerCase() : 'msfs-' + tagName.toLowerCase();
+    if (!customElements.get(normalizedTagName)) {
+      customElements.define(normalizedTagName, InstrumentClass);
+    }
+    const element = document.createElement(normalizedTagName);
+    element.dataset.msfsInstrument = normalizedTagName;
+    ensureBody().appendChild(element);
+    window.__msfsInstrumentElement = element;
+    const update = () => {
+      if (!element.isConnected) {
+        return;
+      }
+      try {
+        element.Update?.();
+      } catch (error) {
+        console.warn('MSFS instrument update failed', error);
+      }
+      window.requestAnimationFrame(update);
+    };
+    window.requestAnimationFrame(update);
+  };
+  globalThis.SimVar ??= {
+    GetSimVarValue: zero,
+    SetSimVarValue: () => Promise.resolve(),
+    GetGameVarValue: zero
+  };
+  globalThis.SimVar.GetRegisteredId ??= registerSimVar;
+  globalThis.SimVar.GetSimVarValue ??= (name, unit) => readDemoSimVar(name, unit);
+  globalThis.SimVar.GetSimVarValueFastReg ??= id => {
+    const entry = registeredSimVarById[id];
+    return entry == null ? 0 : readDemoSimVar(entry.name, entry.unit);
+  };
+  globalThis.SimVar.SetSimVarValue ??= () => Promise.resolve();
+  globalThis.SimVar.GetGameVarValue ??= (name, unit) => readDemoSimVar(name, unit);
+  globalThis.SimVar.GetGlobalVarValue ??= (name, unit) => readDemoSimVar(name, unit);
+  const createListenerHandle = () => ({
+    on: noop,
+    off: noop,
+    clear: noop,
+    triggerToAllSubscribers: noop
+  });
+  globalThis.RegisterViewListener ??= () => createListenerHandle();
+  globalThis.RegisterGenericDataListener ??= callback => {
+    const listeners = new Map();
+    const handle = {
+      onDataReceived: (key, listener) => {
+        if (typeof listener === 'function') {
+          listeners.set(String(key), listener);
+        }
+      },
+      send: (key, data) => {
+        listeners.get(String(key))?.(data);
+      },
+      close: noop,
+      clear: noop
+    };
+    window.setTimeout(() => callback?.(), 0);
+    return handle;
+  };
+  globalThis.Coherent ??= {
+    call: () => Promise.resolve(),
+    on: () => createListenerHandle(),
+    off: noop,
+    trigger: noop
+  };
+  globalThis.GetStoredData ??= key => localStorage.getItem(String(key)) ?? '';
+  globalThis.SetStoredData ??= (key, value) => localStorage.setItem(String(key), String(value));
+  const genericUtils = {
+    Clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
+    clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
+    DEG2RAD: Math.PI / 180,
+    RAD2DEG: 180 / Math.PI,
+    TWO_PI: Math.PI * 2,
+    lerpAngle: (from, to, amount) => {
+      const delta = ((((to - from) % 360) + 540) % 360) - 180;
+      return from + delta * amount;
+    }
+  };
+  globalThis.Avionics ??= {};
+  globalThis.Utils = { ...genericUtils, ...(globalThis.Utils ?? {}) };
+  globalThis.Avionics.Utils = { ...genericUtils, ...(globalThis.Avionics.Utils ?? {}) };
+  globalThis.__msfsGaugeBridgeReady = true;
+})();
+`
+}
+
+function createVCockpitSurfaceTextureRuntime(
+  surface: VCockpitSurface,
+  htmlGaugeRuntimes: VCockpitHtmlGaugeRuntime[],
+  liveCapture: boolean
+): VCockpitSurfaceTextureRuntime {
+  const width = Math.max(1, Math.round(surface.pixelSize?.width ?? 1))
+  const height = Math.max(1, Math.round(surface.pixelSize?.height ?? 1))
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+
+  const context = canvas.getContext('2d')
+  if (context != null) {
+    drawVCockpitPlaceholderSurface(context, surface, htmlGaugeRuntimes, width, height)
+  }
+
+  const texture = new CanvasTexture(canvas)
+  texture.name = surface.textureName
+  texture.colorSpace = SRGBColorSpace
+  texture.flipY = false
+  texture.minFilter = LinearFilter
+  texture.magFilter = LinearFilter
+  texture.needsUpdate = true
+  return {
+    surface,
+    canvas,
+    context: context ?? canvas.getContext('2d')!,
+    texture,
+    htmlGaugeRuntimes,
+    liveCapture,
+    nextCaptureMs: 0,
+    isCapturing: false
+  }
+}
+
+function drawVCockpitPlaceholderSurface(
+  context: CanvasRenderingContext2D,
+  surface: VCockpitSurface,
+  htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[],
+  width: number,
+  height: number
+): void {
+  const background = surface.backgroundColor
+    ? `rgb(${surface.backgroundColor.r}, ${surface.backgroundColor.g}, ${surface.backgroundColor.b})`
+    : '#09131f'
+  context.fillStyle = background
+  context.fillRect(0, 0, width, height)
+
+  const accent = createVCockpitSurfaceAccent(surface)
+  context.strokeStyle = accent
+  context.lineWidth = Math.max(2, Math.round(Math.min(width, height) * 0.012))
+  context.strokeRect(
+    context.lineWidth * 0.5,
+    context.lineWidth * 0.5,
+    width - context.lineWidth,
+    height - context.lineWidth
+  )
+
+  context.fillStyle = accent
+  context.globalAlpha = 0.2
+  const gridStep = Math.max(32, Math.round(Math.min(width, height) / 8))
+  for (let x = 0; x < width; x += gridStep) {
+    context.fillRect(x, 0, 1, height)
+  }
+  for (let y = 0; y < height; y += gridStep) {
+    context.fillRect(0, y, width, 1)
+  }
+  context.globalAlpha = 1
+
+  const fontSize = Math.max(14, Math.min(44, Math.round(Math.min(width, height) * 0.08)))
+  context.font = `600 ${fontSize}px system-ui, sans-serif`
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  context.fillStyle = '#f5fbff'
+  context.fillText(surface.textureName, width / 2, height / 2)
+
+  const captionSize = Math.max(10, Math.round(fontSize * 0.42))
+  context.font = `500 ${captionSize}px system-ui, sans-serif`
+  context.fillStyle = '#a6d7ff'
+  context.fillText(
+    `${surface.sectionName} ${width}x${height}`,
+    width / 2,
+    Math.min(height - captionSize * 1.5, height / 2 + fontSize)
+  )
+
+  drawVCockpitGaugeStatusOverlay(context, htmlGaugeRuntimes, width, height, captionSize)
+}
+
+function drawVCockpitGaugeStatusOverlay(
+  context: CanvasRenderingContext2D,
+  htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[],
+  width: number,
+  height: number,
+  captionSize: number
+): void {
+  if (htmlGaugeRuntimes.length === 0) {
+    return
+  }
+
+  context.textAlign = 'left'
+  context.textBaseline = 'top'
+  const rowHeight = Math.max(18, Math.round(captionSize * 1.45))
+  const panelWidth = Math.min(width - 24, Math.max(width * 0.45, 260))
+  const panelX = 12
+  const panelY = 12
+  context.fillStyle = 'rgba(0, 0, 0, 0.54)'
+  context.fillRect(panelX, panelY, panelWidth, rowHeight * (htmlGaugeRuntimes.length + 1) + 12)
+  context.font = `600 ${captionSize}px system-ui, sans-serif`
+  context.fillStyle = '#f5fbff'
+  context.fillText('HTML gauges', panelX + 8, panelY + 6)
+  context.font = `500 ${Math.max(9, Math.round(captionSize * 0.82))}px system-ui, sans-serif`
+  htmlGaugeRuntimes.forEach((runtime, index) => {
+    const rowY = panelY + rowHeight * (index + 1) + 6
+    context.fillStyle = getVCockpitGaugeStatusColor(runtime.status)
+    context.fillRect(panelX + 8, rowY + 4, 8, 8)
+    context.fillStyle = '#d8ecff'
+    context.fillText(
+      `${runtime.gaugeKey}: ${runtime.status}${runtime.captured ? ' captured' : ''} ${runtime.source}`,
+      panelX + 22,
+      rowY
+    )
+  })
+}
+
+function getVCockpitGaugeStatusColor(status: VCockpitHtmlGaugeRuntime['status']): string {
+  switch (status) {
+    case 'loaded':
+      return '#6ee7a8'
+    case 'deferred-wasm':
+      return '#f6c85f'
+    case 'missing':
+    case 'iframe-error':
+      return '#ff7a7a'
+  }
+}
+
+function updateVCockpitSurfaceTextureRuntimes(
+  surfaceTextureRuntimes: readonly VCockpitSurfaceTextureRuntime[],
+  diagnostics: ImportDiagnostic[],
+  nowMs: number
+): void {
+  for (const surfaceRuntime of surfaceTextureRuntimes) {
+    if (
+      surfaceRuntime.isCapturing ||
+      nowMs < surfaceRuntime.nextCaptureMs ||
+      !surfaceRuntime.htmlGaugeRuntimes.some(runtime =>
+        shouldCaptureVCockpitHtmlGaugeRuntime(runtime, surfaceRuntime.liveCapture)
+      )
+    ) {
+      continue
+    }
+
+    surfaceRuntime.isCapturing = true
+    surfaceRuntime.nextCaptureMs = nowMs + VCOCKPIT_HTML_CAPTURE_RETRY_MS
+    void captureVCockpitSurfaceTexture(surfaceRuntime, diagnostics)
+      .catch(error => {
+        diagnostics.push({
+          code: 'vcockpit-html-capture-error',
+          severity: 'warning',
+          sourcePath: surfaceRuntime.surface.panelPath,
+          message: `${surfaceRuntime.surface.sectionName} HTML gauge capture failed.`,
+          details: error instanceof Error ? error.message : String(error)
+        })
+      })
+      .finally(() => {
+        surfaceRuntime.isCapturing = false
+      })
+  }
+}
+
+function shouldCaptureVCockpitHtmlGaugeRuntime(
+  runtime: VCockpitHtmlGaugeRuntime,
+  liveCapture: boolean
+): boolean {
+  if (
+    runtime.status !== 'loaded' ||
+    runtime.iframe == null ||
+    runtime.gauge == null
+  ) {
+    return false
+  }
+
+  if (liveCapture) {
+    return true
+  }
+
+  return (
+    !runtime.captured &&
+    runtime.captureAttemptCount < VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS
+  )
+}
+
+async function captureVCockpitSurfaceTexture(
+  surfaceRuntime: VCockpitSurfaceTextureRuntime,
+  diagnostics: ImportDiagnostic[]
+): Promise<void> {
+  drawVCockpitPlaceholderSurface(
+    surfaceRuntime.context,
+    surfaceRuntime.surface,
+    surfaceRuntime.htmlGaugeRuntimes,
+    surfaceRuntime.canvas.width,
+    surfaceRuntime.canvas.height
+  )
+
+  for (const gaugeRuntime of surfaceRuntime.htmlGaugeRuntimes) {
+    if (
+      gaugeRuntime.status !== 'loaded' ||
+      gaugeRuntime.iframe == null ||
+      gaugeRuntime.gauge == null ||
+      (
+        !surfaceRuntime.liveCapture &&
+        !gaugeRuntime.captured &&
+        gaugeRuntime.captureAttemptCount >= VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS
+      )
+    ) {
+      continue
+    }
+
+    const gauge = gaugeRuntime.gauge
+    const x = Math.round(gauge.x ?? 0)
+    const y = Math.round(gauge.y ?? 0)
+    const width = Math.max(1, Math.round(gauge.width ?? surfaceRuntime.canvas.width))
+    const height = Math.max(1, Math.round(gauge.height ?? surfaceRuntime.canvas.height))
+
+    try {
+      if (surfaceRuntime.liveCapture || !gaugeRuntime.captured) {
+        gaugeRuntime.captureAttemptCount += 1
+      }
+      assertHtmlGaugeHasRenderableContent(gaugeRuntime)
+      const image = await captureHtmlGaugeFrameImage(gaugeRuntime, width, height)
+      surfaceRuntime.context.drawImage(image, x, y, width, height)
+      gaugeRuntime.captured = true
+      gaugeRuntime.lastCaptureError = null
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      if (gaugeRuntime.lastCaptureError !== message) {
+        diagnostics.push({
+          code: 'vcockpit-html-gauge-capture-error',
+          severity: 'warning',
+          sourcePath: surfaceRuntime.surface.panelPath,
+          message: `${surfaceRuntime.surface.sectionName} ${gaugeRuntime.gaugeKey} could not be captured into a texture.`,
+          details: message
+        })
+      }
+      gaugeRuntime.lastCaptureError = message
+      gaugeRuntime.captured = false
+    }
+  }
+
+  const captionSize = Math.max(
+    10,
+    Math.min(
+      18,
+      Math.round(Math.min(surfaceRuntime.canvas.width, surfaceRuntime.canvas.height) * 0.035)
+    )
+  )
+  drawVCockpitGaugeStatusOverlay(
+    surfaceRuntime.context,
+    surfaceRuntime.htmlGaugeRuntimes,
+    surfaceRuntime.canvas.width,
+    surfaceRuntime.canvas.height,
+    captionSize
+  )
+  surfaceRuntime.texture.needsUpdate = true
+}
+
+function assertHtmlGaugeHasRenderableContent(
+  gaugeRuntime: VCockpitHtmlGaugeRuntime
+): void {
+  const frameDocument = gaugeRuntime.iframe?.contentDocument
+  if (frameDocument == null) {
+    throw new Error('iframe document is not accessible')
+  }
+
+  const instrumentElement = frameDocument.querySelector('[data-msfs-instrument]')
+  const bodyText = frameDocument.body?.innerText?.trim() ?? ''
+  const placeholderText = "If you're seeing this, instrument didn't load."
+  const hasOnlyPlaceholderText =
+    bodyText !== '' && bodyText.replaceAll(placeholderText, '').trim() === ''
+  const hasMountedInstrument =
+    instrumentElement != null &&
+    instrumentElement.childElementCount > 0 &&
+    !hasOnlyPlaceholderText
+  const hasNonPlaceholderText =
+    bodyText !== '' && !hasOnlyPlaceholderText
+
+  if (!hasMountedInstrument && !hasNonPlaceholderText) {
+    throw new Error('gauge iframe loaded but did not mount visible instrument DOM')
+  }
+}
+
+async function captureHtmlGaugeFrameImage(
+  gaugeRuntime: VCockpitHtmlGaugeRuntime,
+  width: number,
+  height: number
+): Promise<HTMLCanvasElement> {
+  const iframe = gaugeRuntime.iframe
+  const frameDocument = iframe?.contentDocument
+  if (iframe == null || frameDocument == null) {
+    throw new Error('iframe document is not accessible')
+  }
+
+  return renderHtmlGaugeToCleanCanvas(frameDocument, width, height)
+}
+
+function collectAccessibleCssText(frameDocument: Document): string {
+  const cssBlocks: string[] = []
+  for (const styleSheet of [...frameDocument.styleSheets]) {
+    try {
+      cssBlocks.push(
+        [...styleSheet.cssRules].map(rule => rule.cssText).join('\n')
+      )
+    } catch {
+      // Cross-origin or blocked stylesheets cannot be inlined into the SVG capture.
+    }
+  }
+  return cssBlocks.join('\n')
+}
+
+async function renderHtmlGaugeToCleanCanvas(
+  frameDocument: Document,
+  width: number,
+  height: number
+): Promise<HTMLCanvasElement> {
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext('2d')
+  if (context == null) {
+    throw new Error('could not create HTML gauge capture canvas')
+  }
+
+  context.fillStyle = resolveGaugeBackground(frameDocument)
+  context.fillRect(0, 0, width, height)
+
+  const root = frameDocument.querySelector<HTMLElement>('[data-msfs-instrument]') ??
+    frameDocument.body
+  if (root == null) {
+    return canvas
+  }
+
+  await drawGaugeCanvases(context, root)
+  await drawGaugeSvgs(context, frameDocument, root)
+  drawGaugeText(context, root)
+
+  assertCanvasIsOriginClean(canvas)
+  return canvas
+}
+
+function resolveGaugeBackground(frameDocument: Document): string {
+  const bodyBackground = frameDocument.defaultView == null || frameDocument.body == null
+    ? ''
+    : frameDocument.defaultView.getComputedStyle(frameDocument.body).backgroundColor
+  return bodyBackground !== '' && bodyBackground !== 'rgba(0, 0, 0, 0)'
+    ? bodyBackground
+    : '#000'
+}
+
+async function drawGaugeCanvases(
+  context: CanvasRenderingContext2D,
+  root: Element
+): Promise<void> {
+  for (const canvas of [...root.querySelectorAll('canvas')]) {
+    const rect = canvas.getBoundingClientRect()
+    if (!isRenderableRect(rect)) {
+      continue
+    }
+
+    try {
+      context.drawImage(canvas, rect.left, rect.top, rect.width, rect.height)
+    } catch {
+      // Some gauges may use internally-tainted map canvases; skip those rather than
+      // tainting the VCockpit texture uploaded to the renderer.
+    }
+  }
+}
+
+async function drawGaugeSvgs(
+  context: CanvasRenderingContext2D,
+  frameDocument: Document,
+  root: Element
+): Promise<void> {
+  const cssText = sanitizeGaugeSvgCssText(collectAccessibleCssText(frameDocument))
+  for (const svgElement of [...root.querySelectorAll('svg')]) {
+    const rect = svgElement.getBoundingClientRect()
+    if (!isRenderableRect(rect)) {
+      continue
+    }
+
+    const clone = svgElement.cloneNode(true) as SVGSVGElement
+    clone.querySelectorAll('script, foreignObject').forEach(element => element.remove())
+    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    clone.setAttribute('width', `${Math.max(1, Math.round(rect.width))}`)
+    clone.setAttribute('height', `${Math.max(1, Math.round(rect.height))}`)
+    if (!clone.hasAttribute('viewBox')) {
+      clone.setAttribute('viewBox', `0 0 ${Math.max(1, rect.width)} ${Math.max(1, rect.height)}`)
+    }
+    if (cssText !== '') {
+      const style = frameDocument.createElementNS('http://www.w3.org/2000/svg', 'style')
+      style.textContent = cssText
+      clone.prepend(style)
+    }
+
+    const image = await loadImageElement(createSvgDataUrl(clone))
+    context.drawImage(image, rect.left, rect.top, rect.width, rect.height)
+  }
+}
+
+function drawGaugeText(
+  context: CanvasRenderingContext2D,
+  root: Element
+): void {
+  const textElements = [...root.querySelectorAll<HTMLElement>('*')]
+    .filter(element =>
+      element.closest('svg') == null &&
+      element.querySelector('svg, canvas') == null &&
+      getElementOwnText(element).trim() !== '' &&
+      isElementRenderable(element)
+    )
+
+  for (const element of textElements) {
+    const rect = element.getBoundingClientRect()
+    if (!isRenderableRect(rect)) {
+      continue
+    }
+
+    const view = element.ownerDocument.defaultView
+    const style = view?.getComputedStyle(element)
+    const text = getElementOwnText(element).trim()
+    if (style == null || text === '') {
+      continue
+    }
+
+    context.save()
+    context.globalAlpha = Number.parseFloat(style.opacity || '1')
+    context.fillStyle = style.color || '#fff'
+    context.font = [
+      style.fontStyle,
+      style.fontVariant,
+      style.fontWeight,
+      style.fontSize,
+      style.fontFamily
+    ].filter(Boolean).join(' ')
+    context.textAlign = style.textAlign === 'right'
+      ? 'right'
+      : style.textAlign === 'center'
+        ? 'center'
+        : 'left'
+    context.textBaseline = 'top'
+
+    const x = context.textAlign === 'right'
+      ? rect.right
+      : context.textAlign === 'center'
+        ? rect.left + rect.width / 2
+        : rect.left
+    const lineHeight = resolveCssPixelSize(style.lineHeight, resolveCssPixelSize(style.fontSize, 12) * 1.2)
+    text.split(/\s*\n+\s*/u).forEach((line, index) => {
+      context.fillText(line, x, rect.top + index * lineHeight, rect.width)
+    })
+    context.restore()
+  }
+}
+
+function getElementOwnText(element: Element): string {
+  return [...element.childNodes]
+    .filter(node => node.nodeType === Node.TEXT_NODE)
+    .map(node => node.textContent ?? '')
+    .join('')
+}
+
+function isElementRenderable(element: HTMLElement): boolean {
+  const view = element.ownerDocument.defaultView
+  const style = view?.getComputedStyle(element)
+  return (
+    style != null &&
+    style.display !== 'none' &&
+    style.visibility !== 'hidden' &&
+    Number.parseFloat(style.opacity || '1') > 0
+  )
+}
+
+function isRenderableRect(rect: DOMRect): boolean {
+  return rect.width > 0 && rect.height > 0 && Number.isFinite(rect.left) && Number.isFinite(rect.top)
+}
+
+function resolveCssPixelSize(value: string, fallback: number): number {
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function sanitizeGaugeSvgCssText(cssText: string): string {
+  return cssText
+    .replaceAll(/url\([^)]*\)/giu, 'none')
+    .replaceAll(/@font-face\s*\{[^}]*\}/giu, '')
+}
+
+function createSvgDataUrl(svgElement: SVGSVGElement): string {
+  const serialized = new XMLSerializer().serializeToString(svgElement)
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`
+}
+
+function assertCanvasIsOriginClean(canvas: HTMLCanvasElement): void {
+  canvas.getContext('2d')?.getImageData(0, 0, 1, 1)
+}
+
+function loadImageElement(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('failed to load serialized gauge image'))
+    image.src = url
+  })
+}
+
+function createVCockpitSurfaceAccent(surface: VCockpitSurface): string {
+  let hash = 0
+  for (const character of surface.normalizedTextureName) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0
+  }
+  const hue = hash % 360
+  return `hsl(${hue}, 84%, 62%)`
+}
+
+function createVCockpitSurfaceMaterial(
+  sourceMaterial: Material,
+  surface: VCockpitSurface,
+  texture: Texture
+): MeshBasicMaterial {
+  const material = new MeshBasicMaterial({
+    name: sourceMaterial.name || surface.textureName,
+    map: texture,
+    toneMapped: false,
+    side: sourceMaterial.side,
+    transparent: sourceMaterial.transparent,
+    opacity: sourceMaterial.opacity
+  })
+  material.userData = {
+    ...sourceMaterial.userData,
+    msfsVCockpitSurface: {
+      panelPath: surface.panelPath,
+      sectionName: surface.sectionName,
+      textureName: surface.textureName
+    }
+  }
+  return material
 }
 
 function combineLoadedAircraftModel(
@@ -2180,6 +3680,76 @@ function createTextureUrlResolver(
 
     return parsedUrl.toString()
   }
+}
+
+function createPanelAssetUrlResolver(
+  packageRootUrl: string,
+  layoutPaths: readonly string[],
+  additionalAssetRoots: readonly AssetRoot[]
+): (source: string) => string | null {
+  const layoutPathIndex = new Map(
+    layoutPaths.map(path => {
+      const normalizedPath = normalizePath(path)
+      return [normalizedPath.toLowerCase(), normalizedPath] as const
+    })
+  )
+
+  return (source: string): string | null => {
+    const parsedSource = parsePanelAssetSource(source)
+    if (parsedSource == null) {
+      return null
+    }
+
+    for (const candidatePath of getPanelAssetCandidatePaths(parsedSource.path)) {
+      const normalizedCandidatePath = candidatePath.toLowerCase()
+      const packagePath = layoutPathIndex.get(normalizedCandidatePath)
+      if (packagePath != null) {
+        return new URL(`${packagePath}${parsedSource.query}`, packageRootUrl).toString()
+      }
+
+      for (const assetRoot of additionalAssetRoots) {
+        const assetPath = assetRoot.layoutPathIndex.get(normalizedCandidatePath)
+        if (assetPath != null) {
+          return new URL(`${assetPath}${parsedSource.query}`, assetRoot.rootUrl).toString()
+        }
+      }
+    }
+
+    return null
+  }
+}
+
+function parsePanelAssetSource(source: string): {
+  readonly path: string
+  readonly query: string
+} | null {
+  const trimmed = source.trim()
+  if (trimmed === '') {
+    return null
+  }
+
+  const queryIndex = trimmed.indexOf('?')
+  const sourcePath = queryIndex >= 0 ? trimmed.slice(0, queryIndex) : trimmed
+  const query = queryIndex >= 0 ? trimmed.slice(queryIndex) : ''
+  const normalizedSourcePath = normalizePath(sourcePath.replace(/^\/+/u, ''))
+  if (normalizedSourcePath === '') {
+    return null
+  }
+
+  return {
+    path: normalizedSourcePath,
+    query
+  }
+}
+
+function getPanelAssetCandidatePaths(sourcePath: string): string[] {
+  const normalizedSourcePath = normalizePath(sourcePath)
+  return [
+    `html_ui/Pages/VCockpit/Instruments/${normalizedSourcePath}`,
+    `html_ui/Pages/VCockpit/${normalizedSourcePath}`,
+    `html_ui/${normalizedSourcePath}`,
+    normalizedSourcePath
+  ].map(normalizePath)
 }
 
 function normalizePath(path: string): string {
