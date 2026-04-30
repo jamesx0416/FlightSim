@@ -102,7 +102,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - cockpit LOD00 can now create placeholder dynamic textures for resolved `VCockpit` surfaces and bind them to matching cockpit material names
   - `globalThis.__lastVCockpitSurfaceBinding` exposes parsed surfaces, binding counts, and diagnostics for unresolved/invalid surfaces
   - non-WASM `htmlgaugeXX` entries now resolve through generic package/dependency roots and load through a small queued sandboxed iframe loader so cockpit LOD binding does not wait for gauge iframe startup
-  - placeholder `VCockpit` textures now include HTML gauge load/deferred/missing status overlays for verification
+  - `?vcockpitGaugeDebug` enables placeholder labels, grids, and HTML gauge load/deferred/missing status overlays for verification; the default dynamic texture path keeps these diagnostics off the visible cockpit screens
   - WASM-backed `htmlgauge` hosts are explicitly diagnosed as deferred rather than treated as normal HTML instruments
   - MSFS HTML gauge documents now adapt `import-script` tags and absolute `/Pages` / `/JS` asset paths into browser-loadable iframe documents
   - sandboxed HTML gauges now get a minimal generic `BaseInstrument` / `registerInstrument` host so template-based gauges can mount visible DOM
