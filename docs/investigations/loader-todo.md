@@ -242,7 +242,7 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
   - accessible non-WASM iframe DOM is composited into the bound cockpit `CanvasTexture` with an origin-clean SVG/canvas/text renderer so browser `foreignObject` tainting does not upload black GPU textures.
   - HTML gauge capture defaults to a bounded first-successful-frame pass, with `?vcockpitLiveGauges` available for continuous refresh.
   - live LOD00 verification on the A339X package captures 15 non-WASM HTML gauges without blocking LOD00 binding; WASM instruments and EFB host/runtime gaps remain explicitly deferred or diagnosed.
-  - placeholder overlays remain visible when gauges are missing, deferred, or blocked from capture.
+  - `?vcockpitGaugeDebug` keeps placeholder labels and gauge status overlays available for verification; the default path hides those overlays from cockpit screens.
   - binding and gauge diagnostics are exposed through `globalThis.__lastVCockpitSurfaceBinding`.
   - legacy gauge hosting, WASM instruments, and fuller simulator/instrument API bridge coverage remain intentionally deferred.
 - Keep the path opt-in until progressive aircraft loading exists, so cockpit work does not become the default startup-time regression while exterior iteration is still the main workflow.

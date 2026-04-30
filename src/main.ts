@@ -249,7 +249,8 @@ async function init(): Promise<void> {
     preferredLodIndex: requestedLodIndex,
     loadExteriorInterior: syncExteriorInterior,
     bindVCockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
-    liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams)
+    liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams),
+    debugVCockpitGauges: shouldDebugVCockpitGauges(searchParams)
   })
   const [initialCompiledBehaviors, gltf] = await Promise.all([
     compiledBehaviorsPromise,
@@ -735,7 +736,8 @@ async function init(): Promise<void> {
           kind: 'interior',
           preferredLodIndex: getExteriorViewInteriorPreferredLodIndex(),
           bindVCockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
-          liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams)
+          liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams),
+          debugVCockpitGauges: shouldDebugVCockpitGauges(searchParams)
         }
       ),
       ensureFullCompiledBehaviors()
@@ -821,6 +823,7 @@ async function init(): Promise<void> {
               shouldLoadCockpitRangeTextures(searchParams),
             bindVCockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
             liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams),
+            debugVCockpitGauges: shouldDebugVCockpitGauges(searchParams),
             collectResourceStats:
               searchParams.has('cockpitPerf') || activeCockpitBenchmarkEvents != null,
             behaviorSet: compiledBehaviors
@@ -1704,6 +1707,10 @@ function shouldLiveRefreshVCockpitGauges(searchParams: URLSearchParams): boolean
   return searchParams.has('vcockpitLiveGauges')
 }
 
+function shouldDebugVCockpitGauges(searchParams: URLSearchParams): boolean {
+  return searchParams.has('vcockpitGaugeDebug')
+}
+
 function getCockpitRangeTextureSize(searchParams: URLSearchParams): number {
   const rawSize = searchParams.get('cockpitTextureSize')
   if (rawSize == null || rawSize.trim() === '') {
@@ -1757,6 +1764,7 @@ async function loadAircraftGltf(
     readonly loadExteriorInterior?: boolean
     readonly bindVCockpitSurfaces?: boolean
     readonly liveVCockpitGauges?: boolean
+    readonly debugVCockpitGauges?: boolean
   } = {}
 ): Promise<LoadedAircraftModel> {
   const { aircraft } = context
@@ -1778,7 +1786,8 @@ async function loadAircraftGltf(
             ? Math.max(options.preferredLodIndex ?? 1, 1)
             : options.preferredLodIndex ?? null,
           bindVCockpitSurfaces: options.bindVCockpitSurfaces,
-          liveVCockpitGauges: options.liveVCockpitGauges
+          liveVCockpitGauges: options.liveVCockpitGauges,
+          debugVCockpitGauges: options.debugVCockpitGauges
         })
       : null
 
@@ -1798,6 +1807,7 @@ async function loadAircraftModelComponent(
     readonly mergeStaticMeshes?: boolean
     readonly bindVCockpitSurfaces?: boolean
     readonly liveVCockpitGauges?: boolean
+    readonly debugVCockpitGauges?: boolean
     readonly collectResourceStats?: boolean
     readonly behaviorSet?: CompiledBehaviorSet
   }
@@ -1872,7 +1882,8 @@ async function loadAircraftModelComponent(
       loaded.gltf.scene,
       context.aircraft,
       context.resolvePanelAssetUrl,
-      options.liveVCockpitGauges === true
+      options.liveVCockpitGauges === true,
+      options.debugVCockpitGauges === true
     )
     recordPhase('component:bind-vcockpit-surfaces', vcockpitStartMs, {
       surfaceCount: vcockpitBinding.surfaces.length,
@@ -1988,6 +1999,7 @@ type VCockpitSurfaceTextureRuntime = {
   readonly texture: CanvasTexture
   readonly htmlGaugeRuntimes: VCockpitHtmlGaugeRuntime[]
   readonly liveCapture: boolean
+  readonly debugOverlay: boolean
   nextCaptureMs: number
   isCapturing: boolean
 }
@@ -2026,7 +2038,8 @@ async function bindVCockpitPlaceholderSurfaces(
   root: Object3D,
   aircraft: ImportedAircraft,
   resolvePanelAssetUrl: (source: string) => string | null,
-  liveHtmlGaugeCapture: boolean
+  liveHtmlGaugeCapture: boolean,
+  debugHtmlGaugeOverlay: boolean
 ): Promise<VCockpitSurfaceBindingResult> {
   const parsed = parseVCockpitSurfaces(aircraft)
   const diagnostics: ImportDiagnostic[] = [...parsed.diagnostics]
@@ -2068,7 +2081,8 @@ async function bindVCockpitPlaceholderSurfaces(
           surfaceTextureRuntime.surface,
           surfaceTextureRuntime.htmlGaugeRuntimes,
           surfaceTextureRuntime.canvas.width,
-          surfaceTextureRuntime.canvas.height
+          surfaceTextureRuntime.canvas.height,
+          surfaceTextureRuntime.debugOverlay
         )
         surfaceTextureRuntime.texture.needsUpdate = true
         surfaceTextureRuntime.nextCaptureMs = performance.now()
@@ -2116,7 +2130,8 @@ async function bindVCockpitPlaceholderSurfaces(
     const surfaceTextureRuntime = createVCockpitSurfaceTextureRuntime(
       surface,
       surfaceRuntimes,
-      liveHtmlGaugeCapture
+      liveHtmlGaugeCapture,
+      debugHtmlGaugeOverlay
     )
     let surfaceBindingCount = 0
 
@@ -2831,7 +2846,8 @@ function createVCockpitGaugeBridgeScript(htmlUiRootUrl: string, resolvedUrl: str
 function createVCockpitSurfaceTextureRuntime(
   surface: VCockpitSurface,
   htmlGaugeRuntimes: VCockpitHtmlGaugeRuntime[],
-  liveCapture: boolean
+  liveCapture: boolean,
+  debugOverlay: boolean
 ): VCockpitSurfaceTextureRuntime {
   const width = Math.max(1, Math.round(surface.pixelSize?.width ?? 1))
   const height = Math.max(1, Math.round(surface.pixelSize?.height ?? 1))
@@ -2841,7 +2857,14 @@ function createVCockpitSurfaceTextureRuntime(
 
   const context = canvas.getContext('2d')
   if (context != null) {
-    drawVCockpitPlaceholderSurface(context, surface, htmlGaugeRuntimes, width, height)
+    drawVCockpitPlaceholderSurface(
+      context,
+      surface,
+      htmlGaugeRuntimes,
+      width,
+      height,
+      debugOverlay
+    )
   }
 
   const texture = new CanvasTexture(canvas)
@@ -2858,6 +2881,7 @@ function createVCockpitSurfaceTextureRuntime(
     texture,
     htmlGaugeRuntimes,
     liveCapture,
+    debugOverlay,
     nextCaptureMs: 0,
     isCapturing: false
   }
@@ -2868,13 +2892,18 @@ function drawVCockpitPlaceholderSurface(
   surface: VCockpitSurface,
   htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[],
   width: number,
-  height: number
+  height: number,
+  debugOverlay: boolean
 ): void {
   const background = surface.backgroundColor
     ? `rgb(${surface.backgroundColor.r}, ${surface.backgroundColor.g}, ${surface.backgroundColor.b})`
     : '#09131f'
   context.fillStyle = background
   context.fillRect(0, 0, width, height)
+
+  if (!debugOverlay) {
+    return
+  }
 
   const accent = createVCockpitSurfaceAccent(surface)
   context.strokeStyle = accent
@@ -2913,7 +2942,9 @@ function drawVCockpitPlaceholderSurface(
     Math.min(height - captionSize * 1.5, height / 2 + fontSize)
   )
 
-  drawVCockpitGaugeStatusOverlay(context, htmlGaugeRuntimes, width, height, captionSize)
+  if (debugOverlay) {
+    drawVCockpitGaugeStatusOverlay(context, htmlGaugeRuntimes, width, height, captionSize)
+  }
 }
 
 function drawVCockpitGaugeStatusOverlay(
@@ -3029,7 +3060,8 @@ async function captureVCockpitSurfaceTexture(
     surfaceRuntime.surface,
     surfaceRuntime.htmlGaugeRuntimes,
     surfaceRuntime.canvas.width,
-    surfaceRuntime.canvas.height
+    surfaceRuntime.canvas.height,
+    surfaceRuntime.debugOverlay
   )
 
   for (const gaugeRuntime of surfaceRuntime.htmlGaugeRuntimes) {
@@ -3077,20 +3109,22 @@ async function captureVCockpitSurfaceTexture(
     }
   }
 
-  const captionSize = Math.max(
-    10,
-    Math.min(
-      18,
-      Math.round(Math.min(surfaceRuntime.canvas.width, surfaceRuntime.canvas.height) * 0.035)
+  if (surfaceRuntime.debugOverlay) {
+    const captionSize = Math.max(
+      10,
+      Math.min(
+        18,
+        Math.round(Math.min(surfaceRuntime.canvas.width, surfaceRuntime.canvas.height) * 0.035)
+      )
     )
-  )
-  drawVCockpitGaugeStatusOverlay(
-    surfaceRuntime.context,
-    surfaceRuntime.htmlGaugeRuntimes,
-    surfaceRuntime.canvas.width,
-    surfaceRuntime.canvas.height,
-    captionSize
-  )
+    drawVCockpitGaugeStatusOverlay(
+      surfaceRuntime.context,
+      surfaceRuntime.htmlGaugeRuntimes,
+      surfaceRuntime.canvas.width,
+      surfaceRuntime.canvas.height,
+      captionSize
+    )
+  }
   surfaceRuntime.texture.needsUpdate = true
 }
 
@@ -3211,7 +3245,9 @@ async function drawGaugeSvgs(
   root: Element
 ): Promise<void> {
   const cssText = sanitizeGaugeSvgCssText(collectAccessibleCssText(frameDocument))
-  for (const svgElement of [...root.querySelectorAll('svg')]) {
+  const svgElements = [...root.querySelectorAll<SVGSVGElement>('svg')]
+    .filter(svgElement => svgElement.parentElement?.closest('svg') == null)
+  for (const svgElement of svgElements) {
     const rect = svgElement.getBoundingClientRect()
     if (!isRenderableRect(rect)) {
       continue
