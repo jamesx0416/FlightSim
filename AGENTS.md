@@ -5,3 +5,6 @@
 Continue implementation until everything in `stock-support-todo.md` that is in scope for this repo is either checked off or explicitly documented as blocked with a reason.
 
 Always use `bun` as the package manager for this project unless told otherwise.
+
+# Dev server URL
+https://msfs-combined-375b8e3b-fresh-local.vanilla-3dtiles.localhost:3000
