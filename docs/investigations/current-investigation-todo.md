@@ -97,10 +97,33 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - cockpit LOD00 can now opt into `cockpitTextures=range-low`, which reads DDS headers first and then loads only the selected small mip byte range for ordinary compressed DDS textures when HTTP `Range` is supported
   - the range-low texture path falls back to placeholders instead of full DDS downloads when range requests are unavailable, and decoded normal/transparent DDS sources now decode selected low mip ranges without reintroducing full-buffer CPU decode and RAM spikes
   - range-low cockpit textures now default to a `1024` max mip dimension, with `cockpitTextureSize=` available for `128` to `2048`, because `256` can erase small text in cockpit label atlases
+  - `VCockpit` surface binding now runs by default for cockpit LOD00 and can be disabled with `?vcockpitSurfaces=off`
+  - `[VCockpitXX]` panel sections are parsed into typed surface IR with texture targets, dimensions, background color, and gauge entries
+  - cockpit LOD00 can now create placeholder dynamic textures for resolved `VCockpit` surfaces and bind them to matching cockpit material names
+  - `globalThis.__lastVCockpitSurfaceBinding` exposes parsed surfaces, binding counts, and diagnostics for unresolved/invalid surfaces
+  - non-WASM `htmlgaugeXX` entries now resolve through generic package/dependency roots and load through a small queued sandboxed iframe loader so cockpit LOD binding does not wait for gauge iframe startup
+  - placeholder `VCockpit` textures now include HTML gauge load/deferred/missing status overlays for verification
+  - WASM-backed `htmlgauge` hosts are explicitly diagnosed as deferred rather than treated as normal HTML instruments
+  - MSFS HTML gauge documents now adapt `import-script` tags and absolute `/Pages` / `/JS` asset paths into browser-loadable iframe documents
+  - sandboxed HTML gauges now get a minimal generic `BaseInstrument` / `registerInstrument` host so template-based gauges can mount visible DOM
+  - the iframe bridge now provides a generic demo `simvar` backend with power/brightness/default flight values so standalone gauges are not all driven by null/zero host data
+  - the iframe bridge now provides generic MSFS browser-host shims for `vcockpit-panel`, `RunwayDesignator`, `Avionics.Utils`, `EmptyCallback`, `GameState`, listener handles, fast registered simvars, global vars, and dynamic `coui://html_ui` image/style URLs
+  - accessible non-WASM iframe DOM is now composited into the bound cockpit `CanvasTexture` with an origin-clean SVG/canvas/text renderer so browser `foreignObject` tainting does not upload black GPU textures
+  - HTML gauge capture now defaults to a bounded first-successful-frame pass with `?vcockpitLiveGauges` available for continuous refresh
+  - live LOD00 verification on the A339X package now captures 15 non-WASM HTML gauges without blocking LOD00 binding; WASM hosts and the EFB remain explicitly deferred or diagnosed
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
-  - add `VCockpit` dynamic texture binding next, using `panel.cfg` surface definitions generically
+  - continue `VCockpit` dynamic texture binding, using `panel.cfg` surface definitions generically
+    - parse `[VCockpitXX]` sections into typed surface IR, including `texture`, `pixel_size`, `size_mm`, background color, and gauge entries
+    - resolve each surface `texture=` target to cockpit material/texture slots by package data, not by aircraft-specific display names
+    - create one dynamic texture per surface and first bind a placeholder/debug pattern to verify material binding
+    - emit diagnostics for unresolved textures, invalid dimensions, duplicate targets, and unsupported panel entries
   - add HTML gauge rendering after that, one family at a time, with a runtime bridge for panel textures
+    - resolve gauge assets through generic package/dependency roots
+    - render gauges into the already-bound `VCockpit` dynamic textures using documented panel coordinates/order
+    - provide a minimal generic instrument bridge for documented simvars, local vars, events, and update ticks
+    - report missing assets, unsupported bridge calls, blocked resources, and update/render timings as diagnostics
+    - next: broaden the minimal instrument bridge and verify which gauge families need simulator APIs before their real content renders correctly
   - treat WASM instruments as a later milestone with explicit blocker handling if the required runtime environment is not available
 - Constraint:
   - keep cockpit/instrument work behind query flags or equivalent opt-in controls until the loader has a generic progressive-loading path that protects the exterior test loop

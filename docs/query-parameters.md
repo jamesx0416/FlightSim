@@ -26,6 +26,8 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 | `cockpitPerf` | `?cockpitPerf` | Enables cockpit performance diagnostics and exposes frame/render/load stats through `globalThis.__cockpitPerf`. Without this flag, the per-frame profiler is not installed. |
 | `cockpitTextures` | `?cockpitTextures=range-low` | Opts cockpit LOD00 into low-resolution DDS texture loading. The loader fetches DDS headers first, then requests only the selected small mip byte range when the server supports HTTP `Range`; decoded normal/transparent DDS paths also use range-loaded low mips. If range requests are not supported, it falls back to placeholders instead of downloading the full DDS. |
 | `cockpitTextureSize` | `?cockpitTextures=range-low&cockpitTextureSize=1024` | Sets the largest mip dimension for range-loaded cockpit textures. Values are clamped from `128` to `2048`; default is `1024` so cockpit labels have enough atlas resolution to remain readable while still avoiding full DDS downloads. |
+| `vcockpitSurfaces` | `?vcockpitSurfaces=off` | Generic `panel.cfg` `[VCockpitXX]` surface binding is enabled for cockpit LOD00 by default. Set this to `off` to disable dynamic VCockpit textures. The current slice parses panel surfaces, binds dynamic textures to matching cockpit material names, resolves non-WASM `htmlgaugeXX` assets into a queued sandboxed iframe loader, adapts MSFS HTML imports for browser loading, composites the first accessible iframe DOM frame into the cockpit textures with bounded retries, and exposes diagnostics on `globalThis.__lastVCockpitSurfaceBinding`. |
+| `vcockpitLiveGauges` | `?vcockpitLiveGauges` | Opts VCockpit HTML gauges into continuous iframe-to-texture refresh. By default gauges capture the first successfully rendered frame and then stop refreshing, which keeps cockpit LOD loading responsive while still making static display content visible. |
 | `cockpitInstanceStatic` | `?cockpitPerf&cockpitInstanceStatic` | Opts into dynamic runtime instancing for eligible static cockpit meshes in interior LOD00. The default path is unchanged when this flag is absent. The experiment preserves behavior-bound nodes by keeping hidden proxy meshes and only batches meshes with matching geometry, material, draw range, and safe behavior ancestry. |
 | `cockpitMergeStatic` | `?cockpitPerf&cockpitMergeStatic` | Opts into dynamic runtime merging for eligible opaque static cockpit meshes in interior LOD00. The default path is unchanged when this flag is absent. The experiment keeps named/metadata proxy meshes hidden, skips behavior-bound/skinned/morphed/transparent/decal meshes, and merges by material plus spatial cell to reduce draw calls while limiting culling loss. It may slightly change visuals because merged chunks can have different frustum-culling or render-order behavior. |
 
@@ -49,6 +51,10 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 
 ```text
 ?package=/tmp/my-aircraft/&cockpitTextures=range-low&cockpitTextureSize=1024
+```
+
+```text
+?package=/tmp/my-aircraft/&vcockpitSurfaces&cockpitTextures=range-low
 ```
 
 ## Related Environment Variables

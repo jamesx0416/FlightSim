@@ -202,6 +202,49 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
   - generic `panel.cfg` `VCockpit` surface binding to dynamic textures
   - HTML gauge rendering onto those surfaces
   - WASM instrument handling only after the runtime/environment contract is clear
+- Implementation plan for `VCockpit` surfaces and gauges:
+  - Parse every `[VCockpitXX]` section from `panel.cfg` into a typed generic IR:
+    - panel index and section name
+    - `size_mm`
+    - `pixel_size`
+    - `texture`
+    - `background_color`
+    - `htmlgaugeXX`
+    - `gaugeXX`
+    - `WasmInstrumentXX`
+    - any other documented fields needed to preserve layout and diagnostics
+  - Resolve each `texture=` target to the corresponding cockpit material or texture slot by name, using MSFS texture/material references generically rather than hardcoded display names.
+  - Create one runtime dynamic texture per resolved `VCockpit` surface, sized from `pixel_size` with `size_mm` retained for gauge layout coordinates.
+  - First render a deterministic placeholder/debug pattern into each dynamic texture and bind it to the cockpit model, so surface discovery and material binding can be verified before any gauge runtime exists.
+  - Add structured diagnostics for unresolved surface textures, duplicate texture names, unsupported panel entries, invalid dimensions, and missing gauge assets.
+  - Keep `VCockpit` binding startup-safe by binding surfaces synchronously but loading gauge iframes asynchronously.
+  - Implement HTML gauge loading only after surface binding is verified:
+    - resolve gauge package paths through the same package-root/dependency-root system as other aircraft assets
+    - instantiate gauges in an isolated browser surface such as an iframe or equivalent sandbox
+    - provide a minimal generic MSFS instrument bridge for documented simvars, local vars, events, and update ticks
+    - copy or render the gauge output into the already-bound `VCockpit` dynamic texture
+    - support multiple `htmlgaugeXX` entries on the same surface using documented panel coordinates and z/order rules
+  - Add gauge diagnostics for missing HTML assets, unsupported JS bridge calls, blocked external resources, layout overflow, and update/render timing.
+  - Treat legacy `gaugeXX` and `WasmInstrumentXX` entries as explicit unsupported/blocker diagnostics until their host/runtime contracts are designed.
+  - Verify each stage on both A330 and A320 routes with cockpit opt-in enabled:
+    - placeholder `VCockpit` textures visibly bind to the expected cockpit screens
+    - HTML gauge surfaces render without breaking exterior startup
+    - diagnostics are visible and no aircraft-specific bindings or name maps are introduced
+- Current first-slice implementation:
+  - cockpit LOD00 runs placeholder `VCockpit` surface binding by default; `?vcockpitSurfaces=off` disables it for comparisons.
+  - `[VCockpitXX]` sections are parsed into typed surface IR with texture targets, dimensions, background color, and gauge entries.
+  - placeholder `CanvasTexture` surfaces are generated from `pixel_size` and bound to cockpit materials whose names match the `panel.cfg` `texture=` target.
+  - non-WASM `htmlgaugeXX` entries resolve through generic package/dependency roots and load through a small queued sandboxed iframe loader.
+  - MSFS HTML gauge documents adapt `import-script` tags and absolute `/Pages` / `/JS` asset paths into browser-loadable iframe documents.
+  - sandboxed HTML gauges get a minimal generic `BaseInstrument` / `registerInstrument` host so template-based gauges can mount visible DOM.
+  - the iframe bridge provides a generic demo `simvar` backend with power/brightness/default flight values so standalone gauges are not all driven by null/zero host data.
+  - the iframe bridge provides generic MSFS browser-host shims for `vcockpit-panel`, `RunwayDesignator`, `Avionics.Utils`, `EmptyCallback`, `GameState`, listener handles, fast registered simvars, global vars, and dynamic `coui://html_ui` image/style URLs.
+  - accessible non-WASM iframe DOM is composited into the bound cockpit `CanvasTexture` with an origin-clean SVG/canvas/text renderer so browser `foreignObject` tainting does not upload black GPU textures.
+  - HTML gauge capture defaults to a bounded first-successful-frame pass, with `?vcockpitLiveGauges` available for continuous refresh.
+  - live LOD00 verification on the A339X package captures 15 non-WASM HTML gauges without blocking LOD00 binding; WASM instruments and EFB host/runtime gaps remain explicitly deferred or diagnosed.
+  - placeholder overlays remain visible when gauges are missing, deferred, or blocked from capture.
+  - binding and gauge diagnostics are exposed through `globalThis.__lastVCockpitSurfaceBinding`.
+  - legacy gauge hosting, WASM instruments, and fuller simulator/instrument API bridge coverage remain intentionally deferred.
 - Keep the path opt-in until progressive aircraft loading exists, so cockpit work does not become the default startup-time regression while exterior iteration is still the main workflow.
 - Use the official `cockpit.cfg` / `panel.cfg` docs as the contract, not A320-specific HTML names or hardcoded instrument layouts.
 
