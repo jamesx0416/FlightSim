@@ -101,7 +101,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - `[VCockpitXX]` panel sections are parsed into typed surface IR with texture targets, dimensions, background color, and gauge entries
   - cockpit LOD00 can now create placeholder dynamic textures for resolved `VCockpit` surfaces and bind them to matching cockpit material names
   - `globalThis.__lastVCockpitSurfaceBinding` exposes parsed surfaces, binding counts, and diagnostics for unresolved/invalid surfaces
-  - non-WASM `htmlgaugeXX` entries now resolve through generic package/dependency roots and load through a small queued sandboxed iframe loader so cockpit LOD binding does not wait for gauge iframe startup
+  - non-WASM `htmlgaugeXX` entries now resolve through generic package/dependency roots and load through a serialized queued sandboxed iframe loader so cockpit LOD binding does not wait for gauge iframe startup or burst many instruments at once
   - `?vcockpitGaugeDebug` enables placeholder labels, grids, and HTML gauge load/deferred/missing status overlays for verification; the default dynamic texture path keeps these diagnostics off the visible cockpit screens
   - WASM-backed `htmlgauge` hosts are explicitly diagnosed as deferred rather than treated as normal HTML instruments
   - MSFS HTML gauge documents now adapt `import-script` tags and absolute `/Pages` / `/JS` asset paths into browser-loadable iframe documents
@@ -109,7 +109,11 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - the iframe bridge now provides a generic demo `simvar` backend with power/brightness/default flight values so standalone gauges are not all driven by null/zero host data
   - the iframe bridge now provides generic MSFS browser-host shims for `vcockpit-panel`, `RunwayDesignator`, `Avionics.Utils`, `EmptyCallback`, `GameState`, listener handles, fast registered simvars, global vars, and dynamic `coui://html_ui` image/style URLs
   - accessible non-WASM iframe DOM is now composited into the bound cockpit `CanvasTexture` with an origin-clean SVG/canvas/text renderer so browser `foreignObject` tainting does not upload black GPU textures
-  - HTML gauge capture now defaults to a bounded first-successful-frame pass with `?vcockpitLiveGauges` available for continuous refresh
+  - `?vcockpitGaugeMode=overlay` adds an experimental direct-HTML path that projects live gauge iframes over matched VCockpit material bounds instead of converting DOM into images/textures every refresh
+  - `?vcockpitGaugeMode=video` adds an experimental mesh-texture path that streams the composited VCockpit canvas through `captureStream()` into a Three `VideoTexture`, with `?vcockpitGaugeVideoFps=` controlling the stream frame rate
+  - `?vcockpitGaugeRasterScale=` can lower texture/video-mode hidden iframe viewports and dynamic texture dimensions generically for performance testing, while leaving overlay mode at full scale
+  - live texture/video capture is now dirty-driven and rate-capped: the generic iframe bridge posts output-change versions for DOM mutations and Canvas2D writes, and the parent only recaptures dirty gauges/surfaces without letting per-frame iframe draws bypass `?vcockpitGaugeCaptureFps=`
+  - HTML gauge capture now defaults to live refresh with adaptive generic instrument `Update()` scheduling based on SimVar/game-var dependencies; `?vcockpitGaugeUpdateMs=` or `?vcockpitGaugeUpdateHz=` can force periodic iframe updates, `?vcockpitGaugeUpdateMs=off` restores every-animation-frame updates, and `?vcockpitLiveGauges=off` switches to a bounded first-successful-frame pass that caches captured pixels and releases hidden iframes
   - live LOD00 verification on the A339X package now captures 15 non-WASM HTML gauges without blocking LOD00 binding; WASM hosts and the EFB remain explicitly deferred or diagnosed
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
