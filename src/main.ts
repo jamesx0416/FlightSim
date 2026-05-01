@@ -2112,6 +2112,7 @@ type VCockpitSurfaceBindingResult = {
   readonly loadedHtmlGaugeCount: number
   readonly capturedHtmlGaugeCount: number
   readonly htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[]
+  readonly captureStats: readonly Record<string, unknown>[]
   readonly update: (
     nowMs: number,
     camera: PerspectiveCamera,
@@ -2172,6 +2173,9 @@ type VCockpitSurfaceTextureRuntime = {
   readonly debugOverlay: boolean
   nextCaptureMs: number
   isCapturing: boolean
+  captureCount: number
+  lastCaptureDurationMs: number
+  averageCaptureDurationMs: number
 }
 
 const VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS = 6
@@ -2562,6 +2566,17 @@ async function bindVCockpitPlaceholderSurfaces(
       return htmlGaugeRuntimes.filter(runtime => runtime.captured).length
     },
     htmlGaugeRuntimes,
+    get captureStats() {
+      return surfaceTextureRuntimes.map(surfaceRuntime => ({
+        sectionName: surfaceRuntime.surface.sectionName,
+        textureName: surfaceRuntime.surface.textureName,
+        captureCount: surfaceRuntime.captureCount,
+        lastCaptureDurationMs: surfaceRuntime.lastCaptureDurationMs,
+        averageCaptureDurationMs: surfaceRuntime.averageCaptureDurationMs,
+        currentCaptureIntervalMs: getVCockpitSurfaceCaptureIntervalMs(surfaceRuntime),
+        dirtyGaugeCount: surfaceRuntime.htmlGaugeRuntimes.filter(runtime => runtime.needsCapture).length
+      }))
+    },
     update: (nowMs, camera, viewportElement) => {
       if (!active || disposed) {
         return
@@ -3515,7 +3530,10 @@ function createVCockpitSurfaceTextureRuntime(
     overlayObjects: [],
     debugOverlay,
     nextCaptureMs: 0,
-    isCapturing: false
+    isCapturing: false,
+    captureCount: 0,
+    lastCaptureDurationMs: 0,
+    averageCaptureDurationMs: 0
   }
 }
 
@@ -3770,8 +3788,7 @@ function updateVCockpitSurfaceTextureRuntimes(
 
     surfaceRuntime.isCapturing = true
     activeVCockpitSurfaceTextureCaptures += 1
-    surfaceRuntime.nextCaptureMs =
-      nowMs + getVCockpitSurfaceCaptureIntervalMs(surfaceRuntime)
+    const captureStartMs = performance.now()
     void captureVCockpitSurfaceTexture(surfaceRuntime, diagnostics, captureCandidates)
       .catch(error => {
         diagnostics.push({
@@ -3783,6 +3800,16 @@ function updateVCockpitSurfaceTextureRuntimes(
         })
       })
       .finally(() => {
+        const captureEndMs = performance.now()
+        const captureDurationMs = Math.max(0, captureEndMs - captureStartMs)
+        surfaceRuntime.captureCount += 1
+        surfaceRuntime.lastCaptureDurationMs = captureDurationMs
+        surfaceRuntime.averageCaptureDurationMs =
+          surfaceRuntime.averageCaptureDurationMs <= 0
+            ? captureDurationMs
+            : surfaceRuntime.averageCaptureDurationMs * 0.85 + captureDurationMs * 0.15
+        surfaceRuntime.nextCaptureMs =
+          captureEndMs + getVCockpitSurfaceCaptureIntervalMs(surfaceRuntime)
         activeVCockpitSurfaceTextureCaptures = Math.max(
           0,
           activeVCockpitSurfaceTextureCaptures - 1
@@ -3796,7 +3823,14 @@ function updateVCockpitSurfaceTextureRuntimes(
 function getVCockpitSurfaceCaptureIntervalMs(
   surfaceRuntime: VCockpitSurfaceTextureRuntime
 ): number {
-  return surfaceRuntime.captureIntervalMs
+  const cpuBudgetedIntervalMs =
+    surfaceRuntime.averageCaptureDurationMs > 0
+      ? surfaceRuntime.averageCaptureDurationMs * 4
+      : 0
+  return Math.min(
+    2_000,
+    Math.max(surfaceRuntime.captureIntervalMs, cpuBudgetedIntervalMs)
+  )
 }
 
 function updateVCockpitHtmlGaugeOverlayRuntimes(
