@@ -2167,7 +2167,7 @@ const VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS = 6
 const VCOCKPIT_HTML_GAUGE_LOAD_CONCURRENCY = 1
 const VCOCKPIT_HTML_GAUGE_LOAD_IDLE_TIMEOUT_MS = 250
 const VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ = 15
-const VCOCKPIT_HTML_GAUGE_DEFAULT_UPDATE_HZ = 15
+const VCOCKPIT_SURFACE_CAPTURE_CONCURRENCY = 1
 const CANVAS_ORIGIN_CLEAN_CACHE_MS = 1_000
 
 const accessibleGaugeCssTextByDocument = new WeakMap<
@@ -2181,6 +2181,7 @@ const gaugeSvgImageCache = new WeakMap<SVGSVGElement, CachedGaugeSvgImage>()
 const canvasOriginCleanCache = new WeakMap<HTMLCanvasElement, CanvasOriginCleanCacheEntry>()
 
 let activeVCockpitHtmlGaugeLoads = 0
+let activeVCockpitSurfaceTextureCaptures = 0
 const queuedVCockpitHtmlGaugeLoads: Array<() => void> = []
 
 function scheduleVCockpitHtmlGaugeRuntimeLoad(
@@ -3409,6 +3410,45 @@ function scaleVCockpitRasterCoordinate(value: number, rasterScale: number): numb
   return Math.round(value * rasterScale)
 }
 
+function createVCockpitCanvasVideoCapture(
+  canvas: HTMLCanvasElement,
+  fallbackFps: number
+): {
+  readonly stream: MediaStream
+  readonly track: CanvasCaptureMediaStreamTrack | null
+} {
+  try {
+    const manualStream = canvas.captureStream(0)
+    const manualTrack = getCanvasCaptureMediaStreamTrack(manualStream)
+    if (manualTrack != null) {
+      return { stream: manualStream, track: manualTrack }
+    }
+
+    manualStream.getTracks().forEach(track => track.stop())
+  } catch {
+    // Fall back to browser-driven capture if manual frame production is unsupported.
+  }
+
+  const stream = canvas.captureStream(fallbackFps)
+  return {
+    stream,
+    track: getCanvasCaptureMediaStreamTrack(stream)
+  }
+}
+
+function getCanvasCaptureMediaStreamTrack(
+  stream: MediaStream
+): CanvasCaptureMediaStreamTrack | null {
+  const rawTrack = stream.getVideoTracks()[0] as
+    | (MediaStreamTrack & { readonly requestFrame?: () => void })
+    | undefined
+  if (rawTrack == null || typeof rawTrack.requestFrame !== 'function') {
+    return null
+  }
+
+  return rawTrack as CanvasCaptureMediaStreamTrack
+}
+
 function createVCockpitVideoTextureRuntime(
   canvas: HTMLCanvasElement,
   surface: VCockpitSurface,
@@ -3421,14 +3461,9 @@ function createVCockpitVideoTextureRuntime(
   readonly track: CanvasCaptureMediaStreamTrack | null
 } | null {
   try {
-    const stream = canvas.captureStream(videoFps)
-    const rawTrack = stream.getVideoTracks()[0]
-    const track =
-      typeof CanvasCaptureMediaStreamTrack === 'undefined'
-        ? null
-        : rawTrack instanceof CanvasCaptureMediaStreamTrack
-          ? rawTrack
-          : null
+    const capture = createVCockpitCanvasVideoCapture(canvas, videoFps)
+    const stream = capture.stream
+    const track = capture.track
     const video = document.createElement('video')
     video.muted = true
     video.autoplay = true
@@ -3466,6 +3501,12 @@ function createVCockpitVideoTextureRuntime(
   }
 }
 
+function getVCockpitSurfaceBackgroundFillStyle(surface: VCockpitSurface): string {
+  return surface.backgroundColor
+    ? `rgb(${surface.backgroundColor.r}, ${surface.backgroundColor.g}, ${surface.backgroundColor.b})`
+    : '#09131f'
+}
+
 function drawVCockpitPlaceholderSurface(
   context: CanvasRenderingContext2D,
   surface: VCockpitSurface,
@@ -3474,10 +3515,7 @@ function drawVCockpitPlaceholderSurface(
   height: number,
   debugOverlay: boolean
 ): void {
-  const background = surface.backgroundColor
-    ? `rgb(${surface.backgroundColor.r}, ${surface.backgroundColor.g}, ${surface.backgroundColor.b})`
-    : '#09131f'
-  context.fillStyle = background
+  context.fillStyle = getVCockpitSurfaceBackgroundFillStyle(surface)
   context.fillRect(0, 0, width, height)
 
   if (!debugOverlay) {
@@ -3584,22 +3622,29 @@ function updateVCockpitSurfaceTextureRuntimes(
   diagnostics: ImportDiagnostic[],
   nowMs: number
 ): void {
+  if (activeVCockpitSurfaceTextureCaptures >= VCOCKPIT_SURFACE_CAPTURE_CONCURRENCY) {
+    return
+  }
+
   for (const surfaceRuntime of surfaceTextureRuntimes) {
     if (
       surfaceRuntime.gaugeMode === 'overlay' ||
       surfaceRuntime.isCapturing ||
-      nowMs < surfaceRuntime.nextCaptureMs ||
-      !surfaceRuntime.htmlGaugeRuntimes.some(runtime =>
-        shouldCaptureVCockpitHtmlGaugeRuntime(runtime, surfaceRuntime.liveCapture)
-      )
+      nowMs < surfaceRuntime.nextCaptureMs
     ) {
       continue
     }
 
+    const captureCandidates = getVCockpitSurfaceCaptureCandidates(surfaceRuntime)
+    if (captureCandidates.length === 0) {
+      continue
+    }
+
     surfaceRuntime.isCapturing = true
+    activeVCockpitSurfaceTextureCaptures += 1
     surfaceRuntime.nextCaptureMs =
       nowMs + getVCockpitSurfaceCaptureIntervalMs(surfaceRuntime)
-    void captureVCockpitSurfaceTexture(surfaceRuntime, diagnostics)
+    void captureVCockpitSurfaceTexture(surfaceRuntime, diagnostics, captureCandidates)
       .catch(error => {
         diagnostics.push({
           code: 'vcockpit-html-capture-error',
@@ -3610,8 +3655,13 @@ function updateVCockpitSurfaceTextureRuntimes(
         })
       })
       .finally(() => {
+        activeVCockpitSurfaceTextureCaptures = Math.max(
+          0,
+          activeVCockpitSurfaceTextureCaptures - 1
+        )
         surfaceRuntime.isCapturing = false
       })
+    return
   }
 }
 
@@ -3759,34 +3809,137 @@ function projectObjectsToViewportRect(
   }
 }
 
-function shouldCaptureVCockpitHtmlGaugeRuntime(
-  runtime: VCockpitHtmlGaugeRuntime,
-  liveCapture: boolean
+function getVCockpitSurfaceCaptureCandidates(
+  surfaceRuntime: VCockpitSurfaceTextureRuntime
+): readonly VCockpitHtmlGaugeRuntime[] {
+  const loadedRuntimes = surfaceRuntime.htmlGaugeRuntimes.filter(
+    isRenderableVCockpitHtmlGaugeRuntime
+  )
+
+  if (surfaceRuntime.liveCapture) {
+    if (surfaceRuntime.debugOverlay) {
+      return loadedRuntimes
+    }
+
+    const dirtyRuntimes = loadedRuntimes.filter(
+      runtime => !runtime.captured || runtime.needsCapture
+    )
+    return expandVCockpitCaptureCandidatesForOverlap(
+      surfaceRuntime,
+      loadedRuntimes,
+      dirtyRuntimes
+    )
+  }
+
+  return loadedRuntimes.some(
+    runtime =>
+      !runtime.captured &&
+      runtime.captureAttemptCount < VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS
+  )
+    ? loadedRuntimes
+    : []
+}
+
+function isRenderableVCockpitHtmlGaugeRuntime(
+  runtime: VCockpitHtmlGaugeRuntime
 ): boolean {
-  if (
-    runtime.status !== 'loaded' ||
-    runtime.iframe == null ||
-    runtime.gauge == null
-  ) {
-    return false
-  }
-
-  if (liveCapture) {
-    return !runtime.captured || runtime.needsCapture
-  }
-
   return (
-    !runtime.captured &&
-    runtime.captureAttemptCount < VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS
+    runtime.status === 'loaded' &&
+    runtime.iframe != null &&
+    runtime.gauge != null
+  )
+}
+
+function expandVCockpitCaptureCandidatesForOverlap(
+  surfaceRuntime: VCockpitSurfaceTextureRuntime,
+  loadedRuntimes: readonly VCockpitHtmlGaugeRuntime[],
+  captureRuntimes: readonly VCockpitHtmlGaugeRuntime[]
+): readonly VCockpitHtmlGaugeRuntime[] {
+  if (captureRuntimes.length === 0 || captureRuntimes.length === loadedRuntimes.length) {
+    return captureRuntimes
+  }
+
+  const selectedRuntimes = new Set(captureRuntimes)
+  let addedOverlap = true
+  while (addedOverlap) {
+    addedOverlap = false
+    const selectedRects = [...selectedRuntimes].map(runtime =>
+      getVCockpitGaugePanelRect(surfaceRuntime, runtime)
+    )
+    for (const runtime of loadedRuntimes) {
+      if (selectedRuntimes.has(runtime)) {
+        continue
+      }
+
+      const rect = getVCockpitGaugePanelRect(surfaceRuntime, runtime)
+      if (selectedRects.some(selectedRect => doPanelRectsOverlap(rect, selectedRect))) {
+        selectedRuntimes.add(runtime)
+        addedOverlap = true
+      }
+    }
+  }
+
+  return loadedRuntimes.filter(runtime => selectedRuntimes.has(runtime))
+}
+
+function getVCockpitGaugePanelRect(
+  surfaceRuntime: VCockpitSurfaceTextureRuntime,
+  runtime: VCockpitHtmlGaugeRuntime
+): {
+  readonly left: number
+  readonly top: number
+  readonly right: number
+  readonly bottom: number
+} {
+  const gauge = runtime.gauge
+  const fallbackWidth =
+    surfaceRuntime.surface.pixelSize?.width ??
+    surfaceRuntime.canvas.width / surfaceRuntime.rasterScale
+  const fallbackHeight =
+    surfaceRuntime.surface.pixelSize?.height ??
+    surfaceRuntime.canvas.height / surfaceRuntime.rasterScale
+  const left = gauge?.x ?? 0
+  const top = gauge?.y ?? 0
+  const width = Math.max(1, gauge?.width ?? fallbackWidth)
+  const height = Math.max(1, gauge?.height ?? fallbackHeight)
+  return {
+    left,
+    top,
+    right: left + width,
+    bottom: top + height
+  }
+}
+
+function doPanelRectsOverlap(
+  left: {
+    readonly left: number
+    readonly top: number
+    readonly right: number
+    readonly bottom: number
+  },
+  right: {
+    readonly left: number
+    readonly top: number
+    readonly right: number
+    readonly bottom: number
+  }
+): boolean {
+  return (
+    left.left < right.right &&
+    left.right > right.left &&
+    left.top < right.bottom &&
+    left.bottom > right.top
   )
 }
 
 async function captureVCockpitSurfaceTexture(
   surfaceRuntime: VCockpitSurfaceTextureRuntime,
-  diagnostics: ImportDiagnostic[]
+  diagnostics: ImportDiagnostic[],
+  htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[]
 ): Promise<void> {
   let surfaceDirty = false
-  if (!surfaceRuntime.liveCapture || surfaceRuntime.debugOverlay) {
+  const surfaceWasCleared = !surfaceRuntime.liveCapture || surfaceRuntime.debugOverlay
+  if (surfaceWasCleared) {
     drawVCockpitPlaceholderSurface(
       surfaceRuntime.context,
       surfaceRuntime.surface,
@@ -3798,7 +3951,7 @@ async function captureVCockpitSurfaceTexture(
     surfaceDirty = true
   }
 
-  for (const gaugeRuntime of surfaceRuntime.htmlGaugeRuntimes) {
+  for (const gaugeRuntime of htmlGaugeRuntimes) {
     const gauge = gaugeRuntime.gauge
     const x = scaleVCockpitRasterCoordinate(gauge?.x ?? 0, surfaceRuntime.rasterScale)
     const y = scaleVCockpitRasterCoordinate(gauge?.y ?? 0, surfaceRuntime.rasterScale)
@@ -3840,27 +3993,44 @@ async function captureVCockpitSurfaceTexture(
       if (surfaceRuntime.liveCapture) {
         const changeVersion =
           gaugeRuntime.pendingChangeVersion ?? getHtmlGaugeChangeVersion(gaugeRuntime)
-        if (
-          changeVersion != null &&
-          gaugeRuntime.captured &&
-          changeVersion === gaugeRuntime.lastChangeVersion
-        ) {
-          gaugeRuntime.pendingChangeVersion = null
-          gaugeRuntime.needsCapture = false
-          continue
+        const forceCompositeRedraw =
+          !surfaceWasCleared && gaugeRuntime.captured && !gaugeRuntime.needsCapture
+        let visualSignature = forceCompositeRedraw ? gaugeRuntime.lastVisualSignature : null
+
+        if (!surfaceWasCleared && !forceCompositeRedraw) {
+          if (
+            changeVersion != null &&
+            gaugeRuntime.captured &&
+            changeVersion === gaugeRuntime.lastChangeVersion
+          ) {
+            gaugeRuntime.pendingChangeVersion = null
+            gaugeRuntime.needsCapture = false
+            continue
+          }
+          assertHtmlGaugeHasRenderableContent(gaugeRuntime)
+          visualSignature =
+            changeVersion == null ? getHtmlGaugeStableVisualSignature(gaugeRuntime) : null
+          if (
+            visualSignature != null &&
+            gaugeRuntime.captured &&
+            visualSignature === gaugeRuntime.lastVisualSignature
+          ) {
+            gaugeRuntime.pendingChangeVersion = null
+            gaugeRuntime.needsCapture = false
+            continue
+          }
+        } else {
+          assertHtmlGaugeHasRenderableContent(gaugeRuntime)
         }
-        assertHtmlGaugeHasRenderableContent(gaugeRuntime)
-        const visualSignature =
-          changeVersion == null ? getHtmlGaugeStableVisualSignature(gaugeRuntime) : null
-        if (
-          visualSignature != null &&
-          gaugeRuntime.captured &&
-          visualSignature === gaugeRuntime.lastVisualSignature
-        ) {
-          gaugeRuntime.pendingChangeVersion = null
-          gaugeRuntime.needsCapture = false
-          continue
+
+        if (!surfaceWasCleared && gaugeRuntime.needsCapture) {
+          surfaceRuntime.context.fillStyle = getVCockpitSurfaceBackgroundFillStyle(
+            surfaceRuntime.surface
+          )
+          surfaceRuntime.context.fillRect(x, y, width, height)
+          surfaceDirty = true
         }
+
         await drawHtmlGaugeFrameToContext(
           gaugeRuntime,
           surfaceRuntime.context,
