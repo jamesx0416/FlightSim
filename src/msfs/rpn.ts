@@ -240,13 +240,13 @@ function compileInstructionBlock(
 
     const binaryOperator = BINARY_OPERATORS.get(normalized)
     if (binaryOperator) {
-      instructions.push({ op: binaryOperator })
+      instructions.push({ op: binaryOperator } as Instruction)
       continue
     }
 
     const unaryOperator = UNARY_OPERATORS.get(normalized)
     if (unaryOperator) {
-      instructions.push({ op: unaryOperator })
+      instructions.push({ op: unaryOperator } as Instruction)
       continue
     }
 
@@ -269,8 +269,8 @@ function compileInstructionBlock(
 export function evaluateCompiledExpression(
   expression: CompiledExpression,
   services: {
-    readVariable: (key: string) => number
-    writeVariable?: (key: string, value: number) => void
+    readVariable: (key: string, unit?: string | null) => number
+    writeVariable?: (key: string, value: number, unit?: string | null) => void
     invokeKeyEvent?: (name: string, args: readonly number[]) => void
     parameterValues?: readonly number[]
   }
@@ -284,8 +284,8 @@ function executeInstructions(
   instructions: readonly Instruction[],
   stack: number[],
   services: {
-    readVariable: (key: string) => number
-    writeVariable?: (key: string, value: number) => void
+    readVariable: (key: string, unit?: string | null) => number
+    writeVariable?: (key: string, value: number, unit?: string | null) => void
     invokeKeyEvent?: (name: string, args: readonly number[]) => void
     parameterValues?: readonly number[]
   },

@@ -362,7 +362,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       case FOURCC_ATI2:
       case FOURCC_AT2N:
       case FOURCC_BC5U:
-        format = RGFormat
+        format = RGFormat as never
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
           if (level >= firstMipIndex) {
@@ -378,7 +378,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         }
         break
       case FOURCC_BC5S:
-        format = RGFormat
+        format = RGFormat as never
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
           if (level >= firstMipIndex) {
@@ -404,7 +404,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         }
 
         const signed = dxgiFormat === DXGI_FORMAT_BC5_SNORM
-        format = RGFormat
+        format = RGFormat as never
         for (let level = 0; level < mipmapCount; level += 1) {
           const byteLength = computeCompressedMipByteLength(currentWidth, currentHeight, 16)
           if (level >= firstMipIndex) {
@@ -475,7 +475,7 @@ function applyDecodedTexture(texture: Texture, parsed: DecodedDdsTexture): void 
     height: parsed.height
   }
   texture.mipmaps = [...parsed.mipmaps]
-  texture.format = parsed.format
+  texture.format = parsed.format as never
   texture.type = UnsignedByteType
   texture.flipY = false
   texture.generateMipmaps = false
@@ -696,12 +696,12 @@ function computeMipDimension(value: number, mipIndex: number): number {
 function createCompressedTexture(
   parsed: ReturnType<MSFSDDSLoader['parse']>
 ): CompressedTexture {
-  const texture = new CompressedTexture()
+  const texture = new (CompressedTexture as typeof CompressedTexture & { new(): CompressedTexture })()
 
   texture.image.width = parsed.width
   texture.image.height = parsed.height
   texture.mipmaps = parsed.mipmaps
-  texture.format = parsed.format
+  texture.format = parsed.format as never
   texture.flipY = false
   texture.generateMipmaps = false
   if (parsed.mipmapCount === 1) {

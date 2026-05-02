@@ -90,7 +90,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     onProgress?: (event: ProgressEvent<EventTarget>) => void,
     onError?: (error: unknown) => void
   ): CompressedTexture {
-    const texture = new CompressedTexture()
+    const texture = new (CompressedTexture as typeof CompressedTexture & { new(): CompressedTexture })()
     const loader = new FileLoader(this.manager)
     loader.setPath(this.path)
     loader.setResponseType('arraybuffer')
@@ -774,7 +774,7 @@ function applyPlaceholderTexture(
   const placeholder = new DataTexture(data, 1, 1, RGBAFormat, UnsignedByteType)
   texture.image = placeholder.image
   texture.mipmaps = []
-  texture.format = RGBAFormat
+  texture.format = RGBAFormat as never
   texture.type = UnsignedByteType
   texture.minFilter = LinearFilter
   texture.magFilter = LinearFilter

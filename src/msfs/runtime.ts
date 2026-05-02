@@ -466,7 +466,7 @@ interface RuntimeWingFlexNode {
   readonly node: Object3D
   readonly order: number
   readonly localFlexDirection: Vector3
-  readonly cumulativeSpan: number
+  cumulativeSpan: number
   readonly appliedOffset: Vector3
 }
 

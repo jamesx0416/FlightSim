@@ -726,11 +726,28 @@ async function init(): Promise<void> {
   }
 
   const getExteriorViewInteriorPreferredLodIndex = (): number | null => {
-    if (aircraft.model?.modelOptions.withExteriorShowInteriorHideFirstLod === true) {
-      return Math.max(requestedLodIndex ?? 1, 1)
+    const interiorModel = aircraft.interiorModel
+    if (interiorModel == null) {
+      return null
     }
 
-    return requestedLodIndex ?? null
+    const screenSizePercent = estimateObjectVerticalScreenSizePercent(camera, aircraftRoot)
+    const firstAllowedLodIndex = getExteriorViewInteriorFirstAllowedLodIndex() ?? 0
+    if (screenSizePercent != null) {
+      return selectModelLodIndexForScreenSize(
+        interiorModel,
+        screenSizePercent,
+        firstAllowedLodIndex
+      )
+    }
+
+    return Math.max(requestedLodIndex ?? firstAllowedLodIndex, firstAllowedLodIndex)
+  }
+
+  const getExteriorViewInteriorFirstAllowedLodIndex = (): number | null => {
+    return aircraft.model?.modelOptions.withExteriorShowInteriorHideFirstLod === true
+      ? 1
+      : null
   }
 
   const ensureExteriorViewInteriorLoaded = (): Promise<LoadedModelComponent | null> => {
@@ -757,13 +774,9 @@ async function init(): Promise<void> {
         {
           kind: 'interior',
           preferredLodIndex: getExteriorViewInteriorPreferredLodIndex(),
-          bindVCockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
-          liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(searchParams),
-          vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
-          vcockpitGaugeVideoFps: getVCockpitGaugeVideoFps(searchParams),
-          vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
-          vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
-          debugVCockpitGauges: shouldDebugVCockpitGauges(searchParams)
+          firstAllowedLodIndex: getExteriorViewInteriorFirstAllowedLodIndex(),
+          bindVCockpitSurfaces: false,
+          liveVCockpitGauges: false
         }
       ),
       ensureFullCompiledBehaviors()
@@ -1593,7 +1606,7 @@ function estimateTextureByteSize(texture: Texture): {
 }
 
 function sumTextureImageByteLengths(images: readonly unknown[]): number {
-  return images.reduce((total, image) => total + getTextureImageByteLength(image), 0)
+  return images.reduce<number>((total, image) => total + getTextureImageByteLength(image), 0)
 }
 
 function getTextureImageByteLength(image: unknown): number {
@@ -1632,7 +1645,7 @@ function estimateTextureImageByteLength(image: unknown): number {
     readonly height?: number
     readonly mipmaps?: readonly unknown[]
   }
-  const mipmapEstimate = record.mipmaps?.reduce(
+  const mipmapEstimate = record.mipmaps?.reduce<number>(
     (total, mipmap) => total + estimateTextureImageByteLength(mipmap),
     0
   )
@@ -1920,13 +1933,11 @@ async function loadAircraftGltf(
           preferredLodIndex: aircraft.model.modelOptions.withExteriorShowInteriorHideFirstLod
             ? Math.max(options.preferredLodIndex ?? 1, 1)
             : options.preferredLodIndex ?? null,
-          bindVCockpitSurfaces: options.bindVCockpitSurfaces,
-          liveVCockpitGauges: options.liveVCockpitGauges,
-          vcockpitGaugeMode: options.vcockpitGaugeMode,
-          vcockpitGaugeVideoFps: options.vcockpitGaugeVideoFps,
-          vcockpitGaugeCaptureFps: options.vcockpitGaugeCaptureFps,
-          vcockpitGaugeRasterScale: options.vcockpitGaugeRasterScale,
-          debugVCockpitGauges: options.debugVCockpitGauges
+          firstAllowedLodIndex: aircraft.model.modelOptions.withExteriorShowInteriorHideFirstLod
+            ? 1
+            : null,
+          bindVCockpitSurfaces: false,
+          liveVCockpitGauges: false
         })
       : null
 
@@ -1939,6 +1950,7 @@ async function loadAircraftModelComponent(
   options: {
     readonly kind: LoadedModelComponent['kind']
     readonly preferredLodIndex: number | null
+    readonly firstAllowedLodIndex?: number | null
     readonly fallbackToOtherLods?: boolean
     readonly textureLoadOptions?: MSFSDDSLoadOptions
     readonly stripTextures?: boolean
@@ -1981,7 +1993,8 @@ async function loadAircraftModelComponent(
     context.createNodeMaterial,
     options.preferredLodIndex,
     options.fallbackToOtherLods ?? true,
-    recordPhase
+    recordPhase,
+    options.firstAllowedLodIndex ?? null
   )
   if (options.stripTextures === true) {
     const stripStartMs = performance.now()
@@ -5139,26 +5152,40 @@ async function loadAircraftModelDefinitionGltf(
     label: string,
     startMs: number,
     details?: Record<string, unknown> | null
-  ) => void = () => {}
+  ) => void = () => {},
+  firstAllowedLodIndex: number | null = null
 ): Promise<{
   readonly gltf: GLTF
   readonly loadedLodIndex: number
 }> {
   let lastError: unknown = null
-  const lodEntries = [...modelDefinition.lods]
+  const allLodEntries = [...modelDefinition.lods]
     .sort((left, right) => right.minSize - left.minSize)
     .map((lod, index) => ({ lod, index }))
+  const minimumLodIndex = firstAllowedLodIndex == null
+    ? 0
+    : Math.max(0, Math.min(firstAllowedLodIndex, allLodEntries.length))
+  const lodEntries = allLodEntries.filter(({ index }) => index >= minimumLodIndex)
+  if (lodEntries.length === 0) {
+    throw new Error(`No model LOD satisfies first allowed LOD index ${minimumLodIndex}.`)
+  }
+
+  const maximumLodIndex = allLodEntries.length - 1
   const resolvedPreferredLodIndex =
-    preferredLodIndex == null || lodEntries.length === 0
+    preferredLodIndex == null
       ? null
-      : Math.min(Math.max(preferredLodIndex, 0), lodEntries.length - 1)
-  const loadOrder = resolvedPreferredLodIndex != null
+      : Math.min(Math.max(preferredLodIndex, minimumLodIndex), maximumLodIndex)
+  const preferredLodEntry =
+    resolvedPreferredLodIndex == null
+      ? null
+      : lodEntries.find(({ index }) => index === resolvedPreferredLodIndex) ?? null
+  const loadOrder = preferredLodEntry != null
     ? fallbackToOtherLods
       ? [
-          lodEntries[resolvedPreferredLodIndex]!,
-          ...lodEntries.filter(({ index }) => index !== resolvedPreferredLodIndex)
+          preferredLodEntry,
+          ...lodEntries.filter(({ index }) => index !== preferredLodEntry.index)
         ]
-      : [lodEntries[resolvedPreferredLodIndex]!]
+      : [preferredLodEntry]
     : lodEntries
 
   for (const { lod, index } of loadOrder) {
@@ -5330,7 +5357,7 @@ async function loadMsfsGltfLod(
     })
   }
   const loaderParseStartMs = performance.now()
-  const gltf = await loader.parseAsync(sanitizedGltf, baseUrl)
+  const gltf = await loader.parseAsync(sanitizedGltf as never, baseUrl)
   recordPhase('lod:gltf-loader-parse', loaderParseStartMs)
   if (loadContext != null) {
     setGlobalLoadStage({
@@ -5539,6 +5566,64 @@ function fitCameraToObject(
   camera.updateProjectionMatrix()
   controls.target.copy(viewerCenter)
   controls.update()
+}
+
+function estimateObjectVerticalScreenSizePercent(
+  camera: PerspectiveCamera,
+  object: Group
+): number | null {
+  const bounds = computeApproximateBounds(object)
+  if (bounds.isEmpty()) {
+    return null
+  }
+
+  const corners = [
+    new Vector3(bounds.min.x, bounds.min.y, bounds.min.z),
+    new Vector3(bounds.min.x, bounds.min.y, bounds.max.z),
+    new Vector3(bounds.min.x, bounds.max.y, bounds.min.z),
+    new Vector3(bounds.min.x, bounds.max.y, bounds.max.z),
+    new Vector3(bounds.max.x, bounds.min.y, bounds.min.z),
+    new Vector3(bounds.max.x, bounds.min.y, bounds.max.z),
+    new Vector3(bounds.max.x, bounds.max.y, bounds.min.z),
+    new Vector3(bounds.max.x, bounds.max.y, bounds.max.z)
+  ]
+
+  let minY = Number.POSITIVE_INFINITY
+  let maxY = Number.NEGATIVE_INFINITY
+  for (const corner of corners) {
+    const projected = corner.project(camera)
+    if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y)) {
+      return null
+    }
+    minY = Math.min(minY, projected.y)
+    maxY = Math.max(maxY, projected.y)
+  }
+
+  if (!Number.isFinite(minY) || !Number.isFinite(maxY) || maxY <= minY) {
+    return null
+  }
+
+  return Math.max(0, (maxY - minY) * 50)
+}
+
+function selectModelLodIndexForScreenSize(
+  modelDefinition: ImportedModelDefinition,
+  screenSizePercent: number,
+  firstAllowedLodIndex: number
+): number | null {
+  const lodEntries = [...modelDefinition.lods]
+    .sort((left, right) => right.minSize - left.minSize)
+    .map((lod, index) => ({ lod, index }))
+    .filter(({ index }) => index >= firstAllowedLodIndex)
+
+  if (lodEntries.length === 0) {
+    return null
+  }
+
+  return (
+    lodEntries.find(({ lod }) => screenSizePercent >= lod.minSize) ??
+    lodEntries.at(-1)!
+  ).index
 }
 
 function computeViewerOrbitTarget(object: Group, bounds: Box3): Vector3 {
@@ -6220,7 +6305,7 @@ function collectMaterialTextures(material: Material, textures: Set<Texture>): vo
     }
   }
 
-  for (const value of Object.values(material as Record<string, unknown>)) {
+  for (const value of Object.values(material as unknown as Record<string, unknown>)) {
     collectValue(value)
   }
 
@@ -6459,7 +6544,7 @@ function updateOverlay(
 }
 
 function formatRendererLabel(rendererInfo: RendererInfo): string {
-  const parts = [rendererInfo.mode]
+  const parts: string[] = [rendererInfo.mode]
 
   if (rendererInfo.hasBcTextureCompression != null) {
     parts.push(`bc=${rendererInfo.hasBcTextureCompression ? 'on' : 'off'}`)

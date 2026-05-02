@@ -11,8 +11,7 @@ import {
   RGBA_S3TC_DXT1_Format,
   SIGNED_RED_GREEN_RGTC2_Format,
   TangentSpaceNormalMap,
-  Texture,
-  type Shader
+  Texture
 } from 'three'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import {
@@ -35,15 +34,17 @@ import type { NodeMaterial } from 'three/webgpu'
 import type { NodeMaterialFactory } from '../../rendering/createAppRenderer'
 
 type MsfsMaterial = Material & {
-  map?: {
+  map?: Texture & {
     format?: number
     needsUpdate?: boolean
   } | null
   metalness?: number
-  normalMap?: {
+  normalMap?: Texture & {
     format?: number
     needsUpdate?: boolean
   } | null
+  emissiveMap?: Texture | null
+  normalMapType?: number
   normalScale?: {
     x: number
     y: number
@@ -70,6 +71,12 @@ type MsfsMaterial = Material & {
     msfsMaterialCode?: string
     msfsBaseOpacity?: number
   }
+}
+
+type Shader = {
+  vertexShader: string
+  fragmentShader: string
+  uniforms: Record<string, { value: unknown }>
 }
 
 type GltfTextureRef = {
@@ -149,7 +156,15 @@ export type MsfsBlendFactors = {
   readonly occlusion: number
 }
 
-type MsfsNodeMaterial = MsfsMaterial & NodeMaterial
+type MsfsNodeMaterial = MsfsMaterial & NodeMaterial & {
+  colorNode?: any
+  opacityNode?: any
+  emissiveNode?: any
+  roughnessNode?: any
+  metalnessNode?: any
+  aoNode?: any
+  normalNode?: any
+}
 
 const MSFS_BLEND_GBUFFER_RENDER_ORDER_BASE = 10
 const MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE = -1
@@ -608,7 +623,7 @@ function applyMsfsDetailMapNodeMaterial(
 
 function createMsfsDetailNormalNode(
   material: MsfsMaterial,
-  detailUv: ReturnType<typeof uv>,
+  detailUv: any,
   detailBlend: ReturnType<typeof vertexColor>['a'],
   detailNormalTexture: Texture,
   detailNormalScale: number
@@ -633,7 +648,7 @@ function createMsfsDetailNormalNode(
 
 function createMsfsDetailNormalXYNode(
   detailNormalTexture: Texture,
-  detailUv: ReturnType<typeof uv>
+  detailUv: any
 ) {
   if (detailNormalTexture.format === SIGNED_RED_GREEN_RGTC2_Format) {
     return texture(detailNormalTexture, detailUv).xy
@@ -648,8 +663,8 @@ function createMsfsDetailNormalXYNode(
 
 function createMsfsDetailNormalZNode(
   detailNormalTexture: Texture,
-  detailUv: ReturnType<typeof uv>,
-  detailNormalRawXY: ReturnType<typeof vec2>
+  detailUv: any,
+  detailNormalRawXY: any
 ) {
   if (usesMsfsCompressedRgNormalMap(detailNormalTexture.format)) {
     return detailNormalRawXY
@@ -669,7 +684,7 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
 
   if (material.normalMap.format === SIGNED_RED_GREEN_RGTC2_Format) {
     const signedCompressedNormalRawXY = texture(material.normalMap).xy
-    const signedCompressedNormalXY = signedCompressedNormalRawXY.mul(material.normalScale)
+    const signedCompressedNormalXY = signedCompressedNormalRawXY.mul(material.normalScale as never)
 
     return vec3(
       signedCompressedNormalXY,
@@ -686,7 +701,7 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
       .xy
       .mul(2)
       .sub(1)
-    const compressedNormalXY = compressedNormalRawXY.mul(material.normalScale)
+    const compressedNormalXY = compressedNormalRawXY.mul(material.normalScale as never)
 
     return vec3(
       compressedNormalXY,
@@ -703,7 +718,7 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
       .xy
       .mul(2)
       .sub(1)
-    const decodedNormalXY = decodedNormalRawXY.mul(material.normalScale)
+    const decodedNormalXY = decodedNormalRawXY.mul(material.normalScale as never)
 
     return vec3(
       decodedNormalXY,
@@ -721,7 +736,7 @@ function createMsfsBaseTangentNormalNode(material: MsfsMaterial) {
     .sub(1)
 
   return vec3(
-    tangentNormal.xy.mul(material.normalScale),
+    tangentNormal.xy.mul(material.normalScale as never),
     tangentNormal.z
   )
 }

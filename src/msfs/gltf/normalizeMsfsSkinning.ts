@@ -1,6 +1,7 @@
 import {
   BufferAttribute,
   Float32BufferAttribute,
+  InterleavedBufferAttribute,
   Matrix4,
   Object3D,
   Skeleton,
@@ -12,7 +13,8 @@ import {
 export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void }): void {
   const parentWrapperGroups = new Set<Object3D>()
   const rigidRotationRootMeshes: SkinnedMesh[] = []
-  const translatedRootMultiBoneMeshes: SkinnedMesh[] = []
+
+  updateRootMatrixWorld(root)
 
   root.traverse(object => {
     if (!(object instanceof SkinnedMesh)) {
@@ -57,11 +59,8 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       rigidRotationRootMeshes.push(object)
     }
 
-    if (shouldPreserveRootTranslatedMultiBoneTransform(root, object)) {
-      translatedRootMultiBoneMeshes.push(object)
-    } else {
-      bakeLocalBindTransform(object)
-    }
+    normalizeSkinRestPose(object)
+    resetSkinnedMeshObjectTransform(object)
     const parent = object.parent
     if (isSkinnedWrapperGroup(parent)) {
       parentWrapperGroups.add(parent)
@@ -69,11 +68,7 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
   })
 
   for (const group of parentWrapperGroups) {
-    bakeParentWrapperBindTransform(group)
-  }
-
-  for (const mesh of translatedRootMultiBoneMeshes) {
-    preserveRootTranslatedMultiBoneTransform(mesh)
+    resetParentWrapperTransform(group)
   }
 
   for (const mesh of rigidRotationRootMeshes) {
@@ -81,27 +76,37 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
   }
 }
 
-function bakeLocalBindTransform(mesh: SkinnedMesh): void {
-  if (mesh.skeleton == null) {
-    return
-  }
-  mesh.updateMatrix()
-  if (!matrixApproximatelyEquals(mesh.bindMatrix, IDENTITY_MATRIX)) {
-    return
-  }
-  if (matrixApproximatelyEquals(mesh.matrix, IDENTITY_MATRIX)) {
+function updateRootMatrixWorld(root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void }): void {
+  const object = root as { updateMatrixWorld?: (force?: boolean) => void }
+  object.updateMatrixWorld?.(true)
+}
+
+function normalizeSkinRestPose(mesh: SkinnedMesh): void {
+  const skeleton = mesh.skeleton
+  if (skeleton == null) {
     return
   }
 
-  const bakedBindMatrix = mesh.bindMatrix.clone().multiply(mesh.matrix)
+  const restPoseSkeleton = new Skeleton(
+    skeleton.bones,
+    skeleton.bones.map(bone => bone.matrixWorld.clone().invert())
+  )
+  mesh.bind(restPoseSkeleton, mesh.bindMatrix)
+}
+
+function resetSkinnedMeshObjectTransform(mesh: SkinnedMesh): void {
+  if (mesh.skeleton == null) {
+    return
+  }
+
   mesh.position.set(0, 0, 0)
   mesh.quaternion.identity()
   mesh.scale.set(1, 1, 1)
   mesh.updateMatrix()
-  mesh.bind(mesh.skeleton, bakedBindMatrix)
+  mesh.bind(mesh.skeleton, IDENTITY_MATRIX)
 }
 
-function bakeParentWrapperBindTransform(group: Object3D): void {
+function resetParentWrapperTransform(group: Object3D): void {
   if (!isSkinnedWrapperGroup(group)) {
     return
   }
@@ -120,8 +125,7 @@ function bakeParentWrapperBindTransform(group: Object3D): void {
       return
     }
 
-    const bakedBindMatrix = child.bindMatrix.clone().multiply(group.matrix)
-    child.bind(child.skeleton, bakedBindMatrix)
+    child.bind(child.skeleton, IDENTITY_MATRIX)
   }
 
   group.position.set(0, 0, 0)
@@ -206,46 +210,6 @@ function shouldRebindRigidRotationRootMesh(
   return getRigidSingleBoneIndex(mesh) != null
 }
 
-function shouldPreserveRootTranslatedMultiBoneTransform(
-  root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void },
-  mesh: SkinnedMesh
-): boolean {
-  if (mesh.parent !== root) {
-    return false
-  }
-  if (isIdentityTranslation(mesh) || !isIdentityScale(mesh) || !isIdentityQuaternion(mesh)) {
-    return false
-  }
-  if (!matrixApproximatelyEquals(mesh.bindMatrix, IDENTITY_MATRIX)) {
-    return false
-  }
-
-  return getRigidSingleBoneIndex(mesh) == null
-}
-
-function preserveRootTranslatedMultiBoneTransform(mesh: SkinnedMesh): void {
-  if (mesh.skeleton == null) {
-    return
-  }
-
-  mesh.updateMatrix()
-  if (isIdentityTranslation(mesh)) {
-    return
-  }
-
-  const preservedTranslation = mesh.position.clone()
-  const preservedBindMatrix = mesh.bindMatrix.clone()
-  preservedBindMatrix.elements[12] = 0
-  preservedBindMatrix.elements[13] = 0
-  preservedBindMatrix.elements[14] = 0
-
-  mesh.position.copy(preservedTranslation)
-  mesh.quaternion.identity()
-  mesh.scale.set(1, 1, 1)
-  mesh.updateMatrix()
-  mesh.bind(mesh.skeleton, preservedBindMatrix)
-}
-
 function rebindRigidRotationRootMesh(mesh: SkinnedMesh): void {
   const skeleton = mesh.skeleton
   if (skeleton == null) {
@@ -286,7 +250,11 @@ function getRigidSingleBoneIndex(mesh: SkinnedMesh): number | null {
   return dominantBoneIndex
 }
 
-function getAttributeComponent(attribute: BufferAttribute, vertexIndex: number, componentIndex: number): number {
+function getAttributeComponent(
+  attribute: BufferAttribute | InterleavedBufferAttribute,
+  vertexIndex: number,
+  componentIndex: number
+): number {
   if (componentIndex === 0) {
     return attribute.getX(vertexIndex)
   }

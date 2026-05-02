@@ -32,10 +32,15 @@ type GltfImageDef = {
   extras?: unknown
 }
 
+type GltfNodeDef = {
+  mesh?: unknown
+}
+
 type GltfJson = {
   accessors?: GltfAccessorDef[]
   images?: GltfImageDef[]
   meshes?: GltfMeshDef[]
+  nodes?: GltfNodeDef[]
   skins?: GltfSkinDef[]
 }
 
@@ -58,6 +63,7 @@ export function sanitizeMsfsGltf(source: Record<string, unknown>): Record<string
 
   sanitizeSkins(gltf)
   sanitizeImages(gltf)
+  sanitizeNodes(gltf)
   rewriteAsoboPrimitiveIndexSlices(gltf)
 
   return source
@@ -83,6 +89,28 @@ function sanitizeImages(gltf: GltfJson): void {
   for (const image of gltf.images) {
     if (image.extras === 'ASOBO_image_converted_meta') {
       delete image.extras
+    }
+  }
+}
+
+function sanitizeNodes(gltf: GltfJson): void {
+  if (!Array.isArray(gltf.nodes)) {
+    return
+  }
+
+  const meshCount = Array.isArray(gltf.meshes) ? gltf.meshes.length : 0
+  for (const node of gltf.nodes) {
+    if (!Object.hasOwn(node, 'mesh')) {
+      continue
+    }
+
+    if (
+      typeof node.mesh !== 'number' ||
+      !Number.isInteger(node.mesh) ||
+      node.mesh < 0 ||
+      node.mesh >= meshCount
+    ) {
+      delete node.mesh
     }
   }
 }
@@ -127,8 +155,8 @@ function rewriteAsoboPrimitiveIndexSlices(gltf: GltfJson): void {
 
       if (
         componentByteSize == null ||
+        slicedIndexCount == null ||
         !Number.isInteger(startIndex) ||
-        !Number.isInteger(slicedIndexCount) ||
         startIndex < 0 ||
         slicedIndexCount <= 0 ||
         startIndex + slicedIndexCount > sourceAccessor.count

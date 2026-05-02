@@ -25,7 +25,7 @@ export function createMsfsGltfLoader(
     createMsftTextureDdsExtension(parser as never, {
       decodeNormalSources: options.decodeNormalSources,
       textureLoadOptions: options.textureLoadOptions
-    })
+    }) as never
   )
 
   return loader

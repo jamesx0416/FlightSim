@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, Mesh } from 'three'
+import { BufferAttribute, BufferGeometry, InterleavedBufferAttribute, Mesh } from 'three'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
 type GltfAccessorDef = {
@@ -79,7 +79,7 @@ const COMPONENT_ARRAYS = {
 type SupportedComponentType = keyof typeof COMPONENT_ARRAYS
 
 export async function repairMsfsSkinnedAttributes(gltf: GLTF): Promise<void> {
-  const parser = (gltf as GLTF & { parser?: GltfParserLike }).parser
+  const parser = (gltf as unknown as { parser?: GltfParserLike }).parser
   if (parser == null) {
     return
   }
@@ -98,7 +98,7 @@ export async function repairMsfsSkinnedAttributes(gltf: GLTF): Promise<void> {
       return
     }
 
-    const association = parser.associations.get(object)
+    const association = parser.associations.get(object as never)
     if (association?.meshes == null || association.primitives == null) {
       return
     }
@@ -150,7 +150,7 @@ async function repairGeometryAttributes(
       bufferViewDef == null ||
       bufferViewDef.byteStride == null ||
       currentAttribute == null ||
-      !currentAttribute.isInterleavedBufferAttribute
+      !(currentAttribute as { readonly isInterleavedBufferAttribute?: boolean }).isInterleavedBufferAttribute
     ) {
       continue
     }
@@ -174,15 +174,18 @@ async function repairGeometryAttributes(
 }
 
 function isCorruptedInterleavedAttribute(
-  attribute: BufferAttribute,
+  attribute: BufferAttribute | InterleavedBufferAttribute,
   sourceBuffer: ArrayBuffer,
   expectedOffset: number
 ): boolean {
+  const interleavedAttribute = attribute as InterleavedBufferAttribute & {
+    readonly isInterleavedBufferAttribute?: boolean
+  }
   const interleavedStride =
-    attribute.isInterleavedBufferAttribute &&
-    attribute.data?.stride != null &&
-    attribute.array?.BYTES_PER_ELEMENT != null
-      ? attribute.data.stride * attribute.array.BYTES_PER_ELEMENT
+    interleavedAttribute.isInterleavedBufferAttribute === true &&
+    interleavedAttribute.data?.stride != null &&
+    interleavedAttribute.array?.BYTES_PER_ELEMENT != null
+      ? interleavedAttribute.data.stride * interleavedAttribute.array.BYTES_PER_ELEMENT
       : 0
   const byteLength = Math.min(
     Math.max(32, interleavedStride * 2),

@@ -14,7 +14,7 @@ export interface FadeParams {
 export class FadeMaterialManager extends FadeMaterialManagerBase {
   declare protected _fadeParams: WeakMap<Material, FadeParams>
 
-  override prepareMaterial(material: Material): void {
+  prepareMaterial(material: Material): void {
     const fadeParams = this._fadeParams
     if (fadeParams.has(material)) {
       return
@@ -24,7 +24,7 @@ export class FadeMaterialManager extends FadeMaterialManagerBase {
     if (material instanceof NodeMaterial) {
       params = wrapFadeNodeMaterial(material)
     } else {
-      params = wrapFadeMaterial(material, material.onBeforeCompile)
+      params = wrapFadeMaterial(material, material.onBeforeCompile) as FadeParams
     }
     fadeParams.set(material, params)
   }
