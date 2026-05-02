@@ -162,6 +162,32 @@ type ViewerConfigStore = {
   readonly aircraft: Record<string, ViewerConfigProfile>
 }
 
+type ViewerSettingsPanelScope = 'global' | 'aircraft'
+
+type ViewerSettingsApplyEvent = {
+  readonly scope: ViewerSettingsPanelScope
+  readonly action: 'apply' | 'reset'
+  readonly selectedPackageRoot: string
+  readonly selectedAircraftId: string
+}
+
+type ViewerRuntimeSettingsSnapshot = {
+  readonly exteriorLod: number | null
+  readonly exteriorInteriorMode: ExteriorInteriorMode
+  readonly exteriorInteriorLod: number | null
+  readonly vcockpitSurfaces: boolean
+  readonly vcockpitLiveGauges: boolean
+  readonly vcockpitGaugeMode: VCockpitGaugeMode
+  readonly vcockpitGaugeCaptureFps: number
+  readonly vcockpitGaugeRasterScale: number
+  readonly cockpitTextures: 'off' | 'range-low'
+  readonly cockpitTextureSize: number | null
+  readonly cockpitMergeStatic: boolean
+  readonly cockpitInstanceStatic: boolean
+  readonly cockpitPerf: boolean
+  readonly extraQuery: string
+}
+
 type FpsCounterSnapshot = {
   readonly fps: number
   readonly averageFrameMs: number
@@ -225,15 +251,15 @@ async function init(): Promise<void> {
 
   const aircraftConfigProfile =
     configStore.aircraft[getViewerAircraftConfigKey(packageRoot, aircraft.id)] ?? null
-  const effectiveSearchParams = createEffectiveViewerSearchParams(
+  let effectiveSearchParams = createEffectiveViewerSearchParams(
     searchParams,
     configStore.global,
     aircraftConfigProfile
   )
-  const requestedLodIndex = resolveRequestedLodIndex(effectiveSearchParams)
-  const requestedExteriorInteriorLodIndex =
+  let requestedLodIndex = resolveRequestedLodIndex(effectiveSearchParams)
+  let requestedExteriorInteriorLodIndex =
     resolveRequestedExteriorInteriorLodIndex(effectiveSearchParams)
-  const exteriorInteriorMode = getExteriorInteriorMode(effectiveSearchParams)
+  let exteriorInteriorMode = getExteriorInteriorMode(effectiveSearchParams)
   const syncExteriorInterior = exteriorInteriorMode === 'sync'
 
   const scene = new Scene()
@@ -293,12 +319,16 @@ async function init(): Promise<void> {
   if (selector != null) {
     document.body.appendChild(selector)
   }
+  let handleViewerSettingsApplied:
+    | ((event: ViewerSettingsApplyEvent) => Promise<string | null>)
+    | null = null
   let settingsPanel = createSettingsPanel({
     selectorOptions: selectedPackageSelectorOptions,
     packageRoot,
     aircraft,
     configStore,
-    effectiveSearchParams
+    effectiveSearchParams,
+    onApply: event => handleViewerSettingsApplied?.(event) ?? null
   })
   document.body.appendChild(settingsPanel)
 
@@ -363,7 +393,8 @@ async function init(): Promise<void> {
         packageRoot,
         aircraft,
         configStore: loadViewerConfigStore(),
-        effectiveSearchParams
+        effectiveSearchParams,
+        onApply: event => handleViewerSettingsApplied?.(event) ?? null
       })
       settingsPanel.replaceWith(nextSettingsPanel)
       settingsPanel = nextSettingsPanel
@@ -1174,7 +1205,7 @@ async function init(): Promise<void> {
   const fpsCounter = createFpsCounter()
   let runtimeState: RuntimeState = runtime.update(0)
   ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
-  const cockpitPerfDiagnostics = isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf')
+  let cockpitPerfDiagnostics = isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf')
     ? createCockpitPerfDiagnostics(aircraft, () => loadedModel)
     : createDisabledCockpitPerfDiagnostics(aircraft, () => loadedModel)
   ;(globalThis as Record<string, unknown>).__cockpitPerf = cockpitPerfDiagnostics
@@ -1188,6 +1219,242 @@ async function init(): Promise<void> {
     rendererInfo,
     fpsCounter.getSnapshot()
   )
+
+  const resolveCurrentStoredEffectiveSearchParams = (): URLSearchParams => {
+    const nextStore = loadViewerConfigStore()
+    return createEffectiveViewerSearchParams(
+      searchParams,
+      nextStore.global,
+      nextStore.aircraft[getViewerAircraftConfigKey(packageRoot, aircraft.id)] ?? null
+    )
+  }
+
+  const setActiveEffectiveSearchParams = (nextSearchParams: URLSearchParams): void => {
+    effectiveSearchParams = nextSearchParams
+    requestedLodIndex = resolveRequestedLodIndex(effectiveSearchParams)
+    requestedExteriorInteriorLodIndex =
+      resolveRequestedExteriorInteriorLodIndex(effectiveSearchParams)
+    exteriorInteriorMode = getExteriorInteriorMode(effectiveSearchParams)
+  }
+
+  const setCockpitPerfDiagnosticsEnabled = (enabled: boolean): void => {
+    cockpitPerfDiagnostics = enabled
+      ? createCockpitPerfDiagnostics(aircraft, () => loadedModel)
+      : createDisabledCockpitPerfDiagnostics(aircraft, () => loadedModel)
+    ;(globalThis as Record<string, unknown>).__cockpitPerf = cockpitPerfDiagnostics
+  }
+
+  const invalidateCachedCockpitInterior = (): void => {
+    const previousCachedCockpitInterior = cachedCockpitInteriorLod00
+    cachedCockpitInteriorLod00 = null
+    hasRequestedCockpitInteriorLod00 = false
+    if (
+      previousCachedCockpitInterior != null &&
+      previousCachedCockpitInterior !== loadedModel.interior &&
+      previousCachedCockpitInterior !== exteriorViewInterior
+    ) {
+      disposeLoadedModelComponent(previousCachedCockpitInterior)
+    }
+  }
+
+  const loadCockpitInteriorLod00WithActiveSettings =
+    async (): Promise<LoadedModelComponent | null> => {
+      const interiorModel = aircraft.interiorModel
+      if (interiorModel == null) {
+        return null
+      }
+
+      await ensureFullCompiledBehaviors()
+      return loadAircraftModelComponent(
+        aircraftModelLoadContext,
+        interiorModel,
+        {
+          kind: 'interior',
+          preferredLodIndex: 0,
+          fallbackToOtherLods: false,
+          textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
+          stripTextures: !shouldLoadCockpitRangeTextures(effectiveSearchParams),
+          instanceStaticMeshes: isEnabledFlagSearchParam(
+            effectiveSearchParams,
+            'cockpitInstanceStatic'
+          ),
+          mergeStaticMeshes:
+            isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitMergeStatic') ||
+            shouldLoadCockpitRangeTextures(effectiveSearchParams),
+          bindVCockpitSurfaces: shouldBindVCockpitSurfaces(effectiveSearchParams),
+          liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(effectiveSearchParams),
+          vcockpitGaugeMode: getVCockpitGaugeMode(effectiveSearchParams),
+          vcockpitGaugeVideoFps: getVCockpitGaugeVideoFps(effectiveSearchParams),
+          vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(effectiveSearchParams),
+          vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(effectiveSearchParams),
+          debugVCockpitGauges: shouldDebugVCockpitGauges(effectiveSearchParams),
+          collectResourceStats:
+            isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf') ||
+            activeCockpitBenchmarkEvents != null,
+          behaviorSet: compiledBehaviors
+        }
+      )
+    }
+
+  const reloadCockpitInteriorLod00WithActiveSettings = async (): Promise<void> => {
+    const previousCockpitInterior = cachedCockpitInteriorLod00
+    const nextCockpitInterior = await loadCockpitInteriorLod00WithActiveSettings()
+    if (nextCockpitInterior == null) {
+      invalidateCachedCockpitInterior()
+      return
+    }
+
+    cachedCockpitInteriorLod00 = nextCockpitInterior
+    hasRequestedCockpitInteriorLod00 = cockpitCameraController.isActive()
+    if (cockpitCameraController.isActive()) {
+      shouldUseCockpitInteriorLod00 = true
+      setActiveInteriorComponent(nextCockpitInterior)
+    } else {
+      nextCockpitInterior.vcockpitBinding?.setActive(false)
+    }
+
+    if (
+      previousCockpitInterior != null &&
+      previousCockpitInterior !== nextCockpitInterior &&
+      previousCockpitInterior !== exteriorViewInterior &&
+      previousCockpitInterior !== loadedModel.interior
+    ) {
+      disposeLoadedModelComponent(previousCockpitInterior)
+    }
+  }
+
+  const reloadExteriorViewInteriorWithActiveSettings = async (): Promise<void> => {
+    const previousExteriorInterior = exteriorViewInterior
+    exteriorViewInterior = null
+    exteriorViewInteriorLoadPromise = null
+    if (!cockpitCameraController.isActive() && loadedModel.interior === previousExteriorInterior) {
+      setActiveInteriorComponent(null)
+    }
+
+    if (
+      previousExteriorInterior != null &&
+      previousExteriorInterior !== cachedCockpitInteriorLod00 &&
+      previousExteriorInterior !== loadedModel.interior
+    ) {
+      disposeLoadedModelComponent(previousExteriorInterior)
+    }
+
+    if (!cockpitCameraController.isActive()) {
+      await ensureExteriorViewInteriorLoaded()
+    }
+  }
+
+  const reloadExteriorModelWithActiveSettings = async (): Promise<void> => {
+    if (aircraft.model == null) {
+      return
+    }
+
+    const previousExterior = loadedModel.exterior
+    const reusableExteriorScene = previousExterior.scene
+    const wasVisible = reusableExteriorScene.visible
+    const nextExterior = await loadAircraftModelComponent(aircraftModelLoadContext, aircraft.model, {
+      kind: 'exterior',
+      preferredLodIndex: requestedLodIndex
+    })
+
+    disposeObjectResources(reusableExteriorScene)
+    reusableExteriorScene.clear()
+    while (nextExterior.scene.children.length > 0) {
+      reusableExteriorScene.add(nextExterior.scene.children[0])
+    }
+    reusableExteriorScene.visible = wasVisible
+
+    loadedModel = {
+      scene: loadedModel.scene,
+      animations: buildLoadedAircraftAnimations(
+        { ...nextExterior, scene: reusableExteriorScene },
+        loadedModel.interior
+      ),
+      exterior: { ...nextExterior, scene: reusableExteriorScene },
+      interior: loadedModel.interior
+    }
+    ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
+    rebuildRuntimeForLoadedModel()
+    renderPasses.refresh()
+  }
+
+  const applyViewerSettingsToLoadedAircraft = async (
+    event: ViewerSettingsApplyEvent
+  ): Promise<string | null> => {
+    if (
+      ensureTrailingSlash(event.selectedPackageRoot) !== ensureTrailingSlash(packageRoot) ||
+      event.selectedAircraftId !== aircraft.id
+    ) {
+      return event.scope === 'aircraft' ? 'Saved profile for selected aircraft.' : null
+    }
+
+    const previousSettings = createViewerRuntimeSettingsSnapshot(effectiveSearchParams)
+    const nextSearchParams = resolveCurrentStoredEffectiveSearchParams()
+    const nextSettings = createViewerRuntimeSettingsSnapshot(nextSearchParams)
+    setActiveEffectiveSearchParams(nextSearchParams)
+
+    const actions: string[] = []
+    const exteriorLodChanged = previousSettings.exteriorLod !== nextSettings.exteriorLod
+    const exteriorInteriorChanged =
+      previousSettings.exteriorInteriorMode !== nextSettings.exteriorInteriorMode ||
+      previousSettings.exteriorInteriorLod !== nextSettings.exteriorInteriorLod
+    const vcockpitBindingChanged =
+      previousSettings.vcockpitSurfaces !== nextSettings.vcockpitSurfaces ||
+      previousSettings.vcockpitLiveGauges !== nextSettings.vcockpitLiveGauges ||
+      previousSettings.vcockpitGaugeMode !== nextSettings.vcockpitGaugeMode ||
+      previousSettings.vcockpitGaugeRasterScale !== nextSettings.vcockpitGaugeRasterScale
+    const gaugeCaptureFpsChanged =
+      previousSettings.vcockpitGaugeCaptureFps !== nextSettings.vcockpitGaugeCaptureFps
+    const cockpitTextureChanged =
+      previousSettings.cockpitTextures !== nextSettings.cockpitTextures ||
+      previousSettings.cockpitTextureSize !== nextSettings.cockpitTextureSize ||
+      previousSettings.cockpitMergeStatic !== nextSettings.cockpitMergeStatic ||
+      previousSettings.cockpitInstanceStatic !== nextSettings.cockpitInstanceStatic
+    const cockpitPerfChanged = previousSettings.cockpitPerf !== nextSettings.cockpitPerf
+    const extraQueryChanged = previousSettings.extraQuery !== nextSettings.extraQuery
+
+    if (exteriorLodChanged) {
+      await reloadExteriorModelWithActiveSettings()
+      actions.push('reloaded exterior model')
+    }
+
+    if (exteriorInteriorChanged) {
+      await reloadExteriorViewInteriorWithActiveSettings()
+      actions.push(
+        cockpitCameraController.isActive()
+          ? 'queued exterior-view interior reload'
+          : 'reloaded exterior-view interior'
+      )
+    }
+
+    if (gaugeCaptureFpsChanged && loadedModel.interior?.vcockpitBinding != null) {
+      loadedModel.interior.vcockpitBinding.setCaptureFps(nextSettings.vcockpitGaugeCaptureFps)
+      actions.push('updated gauge capture FPS')
+    }
+
+    if (cockpitPerfChanged) {
+      setCockpitPerfDiagnosticsEnabled(nextSettings.cockpitPerf)
+      actions.push(nextSettings.cockpitPerf ? 'enabled cockpit perf' : 'disabled cockpit perf')
+    }
+
+    if (vcockpitBindingChanged || cockpitTextureChanged) {
+      if (cockpitCameraController.isActive()) {
+        await reloadCockpitInteriorLod00WithActiveSettings()
+        actions.push('reloaded cockpit interior')
+      } else {
+        invalidateCachedCockpitInterior()
+        actions.push('queued cockpit settings for next cockpit load')
+      }
+    }
+
+    if (extraQueryChanged) {
+      actions.push('saved extra query for next load')
+    }
+
+    return actions.length > 0 ? actions.join(', ') : 'Saved settings.'
+  }
+
+  handleViewerSettingsApplied = applyViewerSettingsToLoadedAircraft
 
   const handleResize = (): void => {
     camera.aspect = window.innerWidth / window.innerHeight
@@ -2584,6 +2851,7 @@ type VCockpitSurfaceBindingResult = {
     camera: PerspectiveCamera,
     viewportElement: HTMLElement
   ) => void
+  readonly setCaptureFps: (captureFps: number) => void
   readonly setActive: (active: boolean) => void
   readonly dispose: () => void
   readonly diagnostics: readonly ImportDiagnostic[]
@@ -2635,7 +2903,7 @@ type VCockpitSurfaceTextureRuntime = {
   readonly videoStream: MediaStream | null
   readonly videoTrack: CanvasCaptureMediaStreamTrack | null
   readonly videoFps: number | null
-  readonly captureIntervalMs: number
+  captureIntervalMs: number
   readonly rasterScale: number
   readonly htmlGaugeRuntimes: VCockpitHtmlGaugeRuntime[]
   readonly liveCapture: boolean
@@ -3084,6 +3352,13 @@ async function bindVCockpitPlaceholderSurfaces(
         camera,
         viewportElement
       )
+    },
+    setCaptureFps: captureFps => {
+      const captureIntervalMs = 1000 / Math.min(60, Math.max(1, captureFps))
+      for (const surfaceRuntime of surfaceTextureRuntimes) {
+        surfaceRuntime.captureIntervalMs = captureIntervalMs
+        surfaceRuntime.nextCaptureMs = performance.now()
+      }
     },
     setActive,
     dispose: () => {
@@ -5568,6 +5843,51 @@ function replaceLoadedAircraftInterior(
   }
 }
 
+function disposeLoadedModelComponent(component: LoadedModelComponent): void {
+  component.vcockpitBinding?.dispose()
+  disposeObjectResources(component.scene)
+}
+
+function disposeObjectResources(object: Object3D): void {
+  const disposedGeometries = new Set<unknown>()
+  const disposedMaterials = new Set<Material>()
+  const disposedTextures = new Set<Texture>()
+
+  object.traverse(child => {
+    if (!(child instanceof Mesh)) {
+      return
+    }
+
+    if (child.geometry != null && !disposedGeometries.has(child.geometry)) {
+      child.geometry.dispose()
+      disposedGeometries.add(child.geometry)
+    }
+
+    const materials = Array.isArray(child.material)
+      ? child.material
+      : child.material != null
+        ? [child.material]
+        : []
+    for (const material of materials) {
+      if (material == null || disposedMaterials.has(material)) {
+        continue
+      }
+      disposeMaterialTextures(material, disposedTextures)
+      material.dispose()
+      disposedMaterials.add(material)
+    }
+  })
+}
+
+function disposeMaterialTextures(material: Material, disposedTextures: Set<Texture>): void {
+  for (const value of Object.values(material as unknown as Record<string, unknown>)) {
+    if (value instanceof Texture && !disposedTextures.has(value)) {
+      value.dispose()
+      disposedTextures.add(value)
+    }
+  }
+}
+
 function buildLoadedAircraftAnimations(
   exterior: LoadedModelComponent,
   interior: LoadedModelComponent | null
@@ -6908,6 +7228,9 @@ function createSettingsPanel(options: {
   readonly aircraft: ImportedAircraft
   readonly configStore: ViewerConfigStore
   readonly effectiveSearchParams: URLSearchParams
+  readonly onApply?: (
+    event: ViewerSettingsApplyEvent
+  ) => Promise<string | null> | string | null
 }): HTMLDivElement {
   const root = document.createElement('div')
   root.style.position = 'fixed'
@@ -7084,23 +7407,56 @@ function createSettingsPanel(options: {
 
   const applyButton = createActionButton('Apply')
   const resetButton = createActionButton('Reset')
-  applyButton.addEventListener('click', () => {
-    if (activePanel === 'global') {
-      applyGlobalProfile()
-      status.textContent = 'Saved global defaults.'
-    } else {
-      applyAircraftProfile()
-      status.textContent = 'Saved aircraft profile.'
+  const notifyApplied = async (action: ViewerSettingsApplyEvent['action']): Promise<void> => {
+    const selectedOption = getSelectedAircraftOption()
+    const message = await options.onApply?.({
+      scope: activePanel,
+      action,
+      selectedPackageRoot: selectedOption.packageRoot,
+      selectedAircraftId: selectedOption.aircraft.id
+    })
+    if (message != null && message !== '') {
+      status.textContent = message
     }
+  }
+
+  applyButton.addEventListener('click', () => {
+    void (async () => {
+      applyButton.disabled = true
+      resetButton.disabled = true
+      try {
+        if (activePanel === 'global') {
+          applyGlobalProfile()
+          status.textContent = 'Saved global defaults.'
+        } else {
+          applyAircraftProfile()
+          status.textContent = 'Saved aircraft profile.'
+        }
+        await notifyApplied('apply')
+      } finally {
+        applyButton.disabled = false
+        resetButton.disabled = false
+      }
+    })()
   })
   resetButton.addEventListener('click', () => {
-    if (activePanel === 'global') {
-      resetGlobalProfile()
-      status.textContent = 'Cleared global defaults.'
-    } else {
-      resetAircraftProfile()
-      status.textContent = 'Cleared aircraft profile.'
-    }
+    void (async () => {
+      applyButton.disabled = true
+      resetButton.disabled = true
+      try {
+        if (activePanel === 'global') {
+          resetGlobalProfile()
+          status.textContent = 'Cleared global defaults.'
+        } else {
+          resetAircraftProfile()
+          status.textContent = 'Cleared aircraft profile.'
+        }
+        await notifyApplied('reset')
+      } finally {
+        applyButton.disabled = false
+        resetButton.disabled = false
+      }
+    })()
   })
 
   const actions = document.createElement('div')
@@ -7349,6 +7705,29 @@ function createViewerConfigProfileFromSearchParams(
     cockpitMergeStatic: isEnabledFlagSearchParam(searchParams, 'cockpitMergeStatic'),
     cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
     cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf')
+  }
+}
+
+function createViewerRuntimeSettingsSnapshot(
+  searchParams: URLSearchParams
+): ViewerRuntimeSettingsSnapshot {
+  return {
+    exteriorLod: resolveRequestedLodIndex(searchParams),
+    exteriorInteriorMode: getExteriorInteriorMode(searchParams),
+    exteriorInteriorLod: resolveRequestedExteriorInteriorLodIndex(searchParams),
+    vcockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
+    vcockpitLiveGauges: shouldLiveRefreshVCockpitGauges(searchParams),
+    vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
+    vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
+    vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
+    cockpitTextures: shouldLoadCockpitRangeTextures(searchParams) ? 'range-low' : 'off',
+    cockpitTextureSize: searchParams.has('cockpitTextureSize')
+      ? getCockpitRangeTextureSize(searchParams)
+      : null,
+    cockpitMergeStatic: isEnabledFlagSearchParam(searchParams, 'cockpitMergeStatic'),
+    cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
+    cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf'),
+    extraQuery: getUnmanagedRawQuery(`?${searchParams.toString()}`)
   }
 }
 
