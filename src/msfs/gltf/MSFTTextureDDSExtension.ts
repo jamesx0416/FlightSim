@@ -10,6 +10,7 @@ import {
 } from 'three'
 
 import { MSFSDecodedDDSLoader } from './MSFSDecodedDDSLoader'
+import { MSFSMipSafeDDSLoader } from './MSFSMipSafeDDSLoader'
 import { MSFSDDSLoader, type MSFSDDSLoadOptions } from './MSFSDDSLoader'
 
 const EXTENSION_NAME = 'MSFT_texture_dds'
@@ -98,16 +99,16 @@ class MSFTTextureDDSExtension {
       this.parser.json,
       sourceIndex
     )
-    const decodeNormalSource = shouldDecodeNormalSource(
+    const normalSource = isNormalSource(
       this.parser.json,
       sourceIndex,
-      this.decodeNormalSources,
       this.usedMaterialIndices
     )
+    const decodeNormalSource = normalSource && this.decodeNormalSources
 
     const textureLoadOptions = {
       ...this.textureLoadOptions,
-      placeholderKind: decodeNormalSource
+      placeholderKind: normalSource
         ? 'normal'
         : decodeTransparentBaseColor
           ? 'transparent'
@@ -116,14 +117,16 @@ class MSFTTextureDDSExtension {
     const loader =
       decodeTransparentBaseColor || decodeNormalSource
         ? new MSFSDecodedDDSLoader(this.parser.options.manager, textureLoadOptions)
-        : new MSFSDDSLoader(this.parser.options.manager, textureLoadOptions)
+        : normalSource
+          ? new MSFSMipSafeDDSLoader(this.parser.options.manager, textureLoadOptions)
+          : new MSFSDDSLoader(this.parser.options.manager, textureLoadOptions)
 
     return this.parser
       .loadTextureImage(textureIndex, sourceIndex, loader)
       .catch(() =>
         createFallbackTexture({
           transparent: decodeTransparentBaseColor,
-          normal: decodeNormalSource
+          normal: normalSource
         })
       )
   }
@@ -174,13 +177,12 @@ function shouldDecodeTransparentBaseColorSource(
   return false
 }
 
-function shouldDecodeNormalSource(
+function isNormalSource(
   json: GltfParserLike['json'],
   sourceIndex: number,
-  decodeNormalSources: boolean,
   usedMaterialIndices: ReadonlySet<number>
 ): boolean {
-  if (!decodeNormalSources || json.materials == null || json.textures == null) {
+  if (json.materials == null || json.textures == null) {
     return false
   }
 

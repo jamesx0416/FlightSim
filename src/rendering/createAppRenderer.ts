@@ -147,7 +147,7 @@ export function createNodeMaterialFactory(
     }
 
     try {
-      return renderer.library.fromMaterial(material)
+      return renderer.library.fromMaterial(material) as NodeMaterial
     } catch {
       failedConversions.add(material)
       return null
@@ -177,7 +177,7 @@ function resolveRendererMode(renderer: AppRenderer): RendererMode {
     return 'legacy-webgl'
   }
 
-  return renderer.backend.isWebGPUBackend === true
+  return (renderer.backend as { readonly isWebGPUBackend?: boolean }).isWebGPUBackend === true
     ? 'webgpu'
     : 'webgl'
 }
@@ -190,7 +190,7 @@ function getRendererFeature(
     return null
   }
 
-  return renderer.hasFeature(featureName)
+  return (renderer as unknown as { hasFeature(featureName: string): boolean }).hasFeature(featureName)
 }
 
 function createEnvironmentTexture(): Texture {

@@ -45,15 +45,16 @@ Current hypothesis:
 
 ### 3. A320 Floating Canoe / Fairing Attachment
 
-The A320 still has a remaining floating canoe / fairing-like attachment in the wing-root area.
+The A320 floating wire / fairing attachments now have a generic loader fix.
 
-Current strongest lead:
+Current finding:
 - this is no longer the whole-wing inversion problem; the main wing surfaces are broadly correct
-- the remaining defect is in a narrower attachment/fairing subset near the wing root
-- the floating canoe body sits in the root-level rigid one-bone skinned-mesh class with authored local rotation, and that class now has a generic rebind fix
-- the remaining visible floaters are a different skinning class, not another copy of the canoe problem
-- the confirmed remaining front-view floaters are `WIRE_LEFT`, `WIRE_RIGHT`, and `C_WIRE`
-- those wires are root-level translated multi-bone skins driven by gear/suspension chains, and live inspection shows the bad term is in bind-space translation rather than the node translation itself
+- the confirmed front-view floaters were `WIRE_LEFT`, `WIRE_RIGHT`, and `C_WIRE`
+- those wires are translated multi-bone skins driven by gear/suspension chains
+- their `POSITION` data is already authored in aircraft/model space, while Three/glTF-style inverse-bind handling adds a second root translation
+- the MSFS SDK explicitly says inverse-bind matrices are ignored for skins
+- the loader now reconstructs skin rest state from the assembled joint graph and resets skinned mesh object/bind transforms to identity instead of trusting shipped inverse-bind accessors
+- JS REPL checks on the A320 fixture verified the normalized wire bounds match raw authored bounds; the current A330 fixture has no translated skinned mesh nodes
 
 ### 4. Interior Fuselage / Cockpit Mesh Overlap
 
@@ -66,13 +67,12 @@ Current strongest lead:
 
 ### 5. MSFS-Native Skinning Architecture
 
-The loader still relies on targeted normalization passes instead of a single MSFS-native skinning model.
+The loader now has a generic MSFS-native rest/bind path, but older targeted compatibility helpers remain.
 
 Current strongest lead:
-- MSFS docs say inverse-bind matrices are ignored, but the current path still starts from Three/glTF inverse-bind semantics and repairs only the mismatching classes
-- the canoe fix suggests rigid root-level one-bone skins are one such mismatching class
-- the remaining wire/helper floaters are likely another class and probably need the same broader architectural direction, but not the exact same rigid-mesh rule
-- the cleaner long-term fix is to reconstruct skin rest/bind state from the assembled MSFS joint graph and authored node transforms instead of layering more post-load class-specific rebinding rules
+- MSFS docs say inverse-bind matrices are ignored
+- the current generic path reconstructs rest-pose bone inverses from the assembled joint graph and clears skinned mesh object/bind transforms
+- keep validating this against broader stock and third-party packages before removing older narrow compatibility helpers
 
 ### 6. Broader Stock Coverage Is Still Incomplete
 
@@ -350,9 +350,9 @@ This section tracks the next authoritative, aircraft-generic loader work.
 
 - Improve optimized/skinned mesh compatibility.
   - Keep using authoritative layout evidence from built assets and official exporter expectations.
-  - Add explicit generic handling for rigid one-bone skinned attachments that behave like bone children rather than true deforming skins.
-  - Use this to resolve the remaining floating under-wing support/fairing assemblies without reintroducing aircraft-specific half-turn patches.
-  - Design and document a cleaner MSFS-native skinning architecture that derives bind/rest state from assembled joints and node transforms instead of trusting glTF inverse-bind accessors by default.
+  - Current implementation derives MSFS skin rest/bind state from assembled joint transforms and ignores shipped inverse-bind accessors, matching the SDK skinning note.
+  - Use this to keep resolving floating attachment assemblies without reintroducing aircraft-specific half-turn patches.
+  - Broaden fixture validation before deleting older narrow compatibility helpers.
 
 - Add cockpit/instrument support in staged opt-in form.
   - Start with optional interior/cockpit shell loading, not default-on loading.

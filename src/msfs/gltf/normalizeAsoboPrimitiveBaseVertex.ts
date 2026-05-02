@@ -26,7 +26,7 @@ type GltfParserLike = {
 }
 
 export function normalizeAsoboPrimitiveBaseVertex(gltf: GLTF): void {
-  const parser = (gltf as GLTF & { parser?: GltfParserLike }).parser
+  const parser = (gltf as unknown as { parser?: GltfParserLike }).parser
   if (parser == null) {
     return
   }
@@ -49,7 +49,7 @@ export function normalizeAsoboPrimitiveBaseVertex(gltf: GLTF): void {
       return
     }
 
-    const association = parser.associations.get(object)
+    const association = parser.associations.get(object as never)
     if (association?.meshes == null || association.primitives == null) {
       return
     }

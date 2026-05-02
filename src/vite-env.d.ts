@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="@webgpu/types" />
 
 interface ImportMetaEnv {
   readonly VITE_CESIUM_ION_TOKEN: string
