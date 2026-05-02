@@ -2123,6 +2123,8 @@ type VCockpitSurfaceBindingResult = {
   readonly diagnostics: readonly ImportDiagnostic[]
 }
 
+type VCockpitGaugeDirtyKind = 'dom' | 'canvas' | 'unknown'
+
 type VCockpitHtmlGaugeRuntime = {
   readonly surface: string
   readonly textureName: string
@@ -2139,7 +2141,10 @@ type VCockpitHtmlGaugeRuntime = {
   lastVisualSignature: string | null
   lastChangeVersion: number | null
   pendingChangeVersion: number | null
+  pendingDirtyKind: VCockpitGaugeDirtyKind | null
   needsCapture: boolean
+  staticCaptureImage: HTMLCanvasElement | null
+  staticCaptureSignature: string | null
 }
 
 type CachedGaugeSvgImage = {
@@ -2183,7 +2188,7 @@ const VCOCKPIT_HTML_GAUGE_LOAD_CONCURRENCY = 1
 const VCOCKPIT_HTML_GAUGE_LOAD_IDLE_TIMEOUT_MS = 250
 const VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ = 15
 const VCOCKPIT_SURFACE_CAPTURE_CONCURRENCY = 1
-const CANVAS_ORIGIN_CLEAN_CACHE_MS = 1_000
+const CANVAS_ORIGIN_CLEAN_CACHE_MS = 10_000
 
 const accessibleGaugeCssTextByDocument = new WeakMap<
   Document,
@@ -2197,6 +2202,8 @@ const canvasOriginCleanCache = new WeakMap<HTMLCanvasElement, CanvasOriginCleanC
 
 let activeVCockpitHtmlGaugeLoads = 0
 let activeVCockpitSurfaceTextureCaptures = 0
+let canvasOriginCleanScratchCanvas: HTMLCanvasElement | null = null
+let canvasOriginCleanScratchContext: CanvasRenderingContext2D | null = null
 const queuedVCockpitHtmlGaugeLoads: Array<() => void> = []
 
 function scheduleVCockpitHtmlGaugeRuntimeLoad(
@@ -2284,6 +2291,7 @@ function resolveEffectiveVCockpitGaugeMode(
 type VCockpitGaugeDirtyMessage = {
   readonly type: 'msfs-vcockpit-gauge-dirty'
   readonly version: number
+  readonly kind?: VCockpitGaugeDirtyKind
 }
 
 function isVCockpitGaugeDirtyMessage(value: unknown): value is VCockpitGaugeDirtyMessage {
@@ -2295,8 +2303,27 @@ function isVCockpitGaugeDirtyMessage(value: unknown): value is VCockpitGaugeDirt
   return (
     record.type === 'msfs-vcockpit-gauge-dirty' &&
     typeof record.version === 'number' &&
-    Number.isFinite(record.version)
+    Number.isFinite(record.version) &&
+    (
+      record.kind == null ||
+      record.kind === 'dom' ||
+      record.kind === 'canvas' ||
+      record.kind === 'unknown'
+    )
   )
+}
+
+function mergeVCockpitGaugeDirtyKind(
+  previous: VCockpitGaugeDirtyKind | null,
+  next: VCockpitGaugeDirtyKind | null | undefined
+): VCockpitGaugeDirtyKind {
+  if (previous === 'dom' || next === 'dom') {
+    return 'dom'
+  }
+  if (previous === 'unknown' || next == null || next === 'unknown') {
+    return 'unknown'
+  }
+  return 'canvas'
 }
 
 async function bindVCockpitPlaceholderSurfaces(
@@ -2333,9 +2360,11 @@ async function bindVCockpitPlaceholderSurfaces(
   let materialBindingCount = 0
   const markGaugeRuntimeDirty = (
     runtime: VCockpitHtmlGaugeRuntime,
-    version: number | null
+    version: number | null,
+    kind: VCockpitGaugeDirtyKind | null | undefined = 'unknown'
   ): void => {
     runtime.pendingChangeVersion = version
+    runtime.pendingDirtyKind = mergeVCockpitGaugeDirtyKind(runtime.pendingDirtyKind, kind)
     runtime.needsCapture = true
     const surfaceRuntime = surfaceTextureRuntimeByGaugeRuntime.get(runtime)
     if (surfaceRuntime != null && !runtime.captured) {
@@ -2354,7 +2383,7 @@ async function bindVCockpitPlaceholderSurfaces(
       return
     }
 
-    markGaugeRuntimeDirty(runtime, event.data.version)
+    markGaugeRuntimeDirty(runtime, event.data.version, event.data.kind)
   }
   window.addEventListener('message', onGaugeDirtyMessage)
   const setActive = (nextActive: boolean): void => {
@@ -2366,7 +2395,7 @@ async function bindVCockpitPlaceholderSurfaces(
     for (const runtime of htmlGaugeRuntimes) {
       setVCockpitHtmlGaugeRuntimeActive(runtime, nextActive)
       if (nextActive && runtime.status === 'loaded' && !runtime.captured) {
-        markGaugeRuntimeDirty(runtime, getHtmlGaugeChangeVersion(runtime))
+        markGaugeRuntimeDirty(runtime, getHtmlGaugeChangeVersion(runtime), 'dom')
       }
     }
     for (const surfaceRuntime of surfaceTextureRuntimes) {
@@ -2410,7 +2439,7 @@ async function bindVCockpitPlaceholderSurfaces(
         }
         setVCockpitHtmlGaugeRuntimeActive(runtime, active)
         if (runtime.status === 'loaded') {
-          markGaugeRuntimeDirty(runtime, getHtmlGaugeChangeVersion(runtime))
+          markGaugeRuntimeDirty(runtime, getHtmlGaugeChangeVersion(runtime), 'dom')
         }
         drawVCockpitPlaceholderSurface(
           surfaceTextureRuntime.context,
@@ -2574,7 +2603,8 @@ async function bindVCockpitPlaceholderSurfaces(
         lastCaptureDurationMs: surfaceRuntime.lastCaptureDurationMs,
         averageCaptureDurationMs: surfaceRuntime.averageCaptureDurationMs,
         currentCaptureIntervalMs: getVCockpitSurfaceCaptureIntervalMs(surfaceRuntime),
-        dirtyGaugeCount: surfaceRuntime.htmlGaugeRuntimes.filter(runtime => runtime.needsCapture).length
+        dirtyGaugeCount: surfaceRuntime.htmlGaugeRuntimes.filter(runtime => runtime.needsCapture).length,
+        gauges: surfaceRuntime.htmlGaugeRuntimes.map(getVCockpitHtmlGaugeRuntimeStats)
       }))
     },
     update: (nowMs, camera, viewportElement) => {
@@ -2626,7 +2656,10 @@ function createAbandonedVCockpitHtmlGaugeRuntime(
     lastVisualSignature: null,
     lastChangeVersion: null,
     pendingChangeVersion: null,
-    needsCapture: false
+    pendingDirtyKind: null,
+    needsCapture: false,
+    staticCaptureImage: null,
+    staticCaptureSignature: null
   }
 }
 
@@ -2660,7 +2693,10 @@ async function createVCockpitHtmlGaugeRuntime(
       lastVisualSignature: null,
       lastChangeVersion: null,
       pendingChangeVersion: null,
-      needsCapture: false
+      pendingDirtyKind: null,
+      needsCapture: false,
+      staticCaptureImage: null,
+      staticCaptureSignature: null
     } satisfies VCockpitHtmlGaugeRuntime
   }
 
@@ -2688,7 +2724,10 @@ async function createVCockpitHtmlGaugeRuntime(
       lastVisualSignature: null,
       lastChangeVersion: null,
       pendingChangeVersion: null,
-      needsCapture: false
+      pendingDirtyKind: null,
+      needsCapture: false,
+      staticCaptureImage: null,
+      staticCaptureSignature: null
     } satisfies VCockpitHtmlGaugeRuntime
   }
 
@@ -2722,7 +2761,10 @@ async function createVCockpitHtmlGaugeRuntime(
     lastVisualSignature: null,
     lastChangeVersion: null,
     pendingChangeVersion: null,
-    needsCapture: loadResult.status === 'loaded'
+    pendingDirtyKind: loadResult.status === 'loaded' ? 'dom' : null,
+    needsCapture: loadResult.status === 'loaded',
+    staticCaptureImage: null,
+    staticCaptureSignature: null
   } satisfies VCockpitHtmlGaugeRuntime
 }
 
@@ -2981,6 +3023,7 @@ function createVCockpitGaugeBridgeScript(
   let coalescedDirtyMessageCount = 0;
   let dirtyBurstCount = 0;
   let lastDirtyMarkMs = -Infinity;
+  let pendingDirtyKind = null;
   let gaugeRuntimeActive = true;
   const dirtyStats = {
     dirtyMessageCount,
@@ -3005,15 +3048,19 @@ function createVCockpitGaugeBridgeScript(
   const postGaugeDirtyMessage = () => {
     if (!gaugeRuntimeActive) {
       pendingDirtyMessage = false;
+      pendingDirtyKind = null;
       return;
     }
 
     pendingDirtyMessage = false;
+    const kind = pendingDirtyKind ?? 'unknown';
+    pendingDirtyKind = null;
     postedDirtyMessageCount += 1;
     dirtyStats.postedDirtyMessageCount = postedDirtyMessageCount;
     window.parent?.postMessage({
       type: 'msfs-vcockpit-gauge-dirty',
-      version: gaugeChangeVersion
+      version: gaugeChangeVersion,
+      kind
     }, '*');
   };
   const getDirtyPostDelayMs = () => {
@@ -3023,8 +3070,20 @@ function createVCockpitGaugeBridgeScript(
     if (dirtyBurstCount > 60) return 50;
     return 0;
   };
-  const markGaugeChanged = () => {
+  const mergeDirtyKind = nextKind => {
+    if (pendingDirtyKind === 'dom' || nextKind === 'dom') return 'dom';
+    if (pendingDirtyKind === 'unknown' || nextKind == null || nextKind === 'unknown') return 'unknown';
+    return 'canvas';
+  };
+  const markGaugeChanged = (kind = 'unknown') => {
     if (!gaugeRuntimeActive) {
+      return;
+    }
+
+    if (pendingDirtyMessage) {
+      pendingDirtyKind = mergeDirtyKind(kind);
+      coalescedDirtyMessageCount += 1;
+      dirtyStats.coalescedDirtyMessageCount = coalescedDirtyMessageCount;
       return;
     }
 
@@ -3039,12 +3098,8 @@ function createVCockpitGaugeBridgeScript(
     globalThis.__msfsGaugeChangeVersion = gaugeChangeVersion;
     dirtyStats.dirtyMessageCount = dirtyMessageCount;
     dirtyStats.dirtyBurstCount = dirtyBurstCount;
-    if (pendingDirtyMessage) {
-      coalescedDirtyMessageCount += 1;
-      dirtyStats.coalescedDirtyMessageCount = coalescedDirtyMessageCount;
-      return;
-    }
     pendingDirtyMessage = true;
+    pendingDirtyKind = mergeDirtyKind(kind);
     const delayMs = getDirtyPostDelayMs();
     if (delayMs > 0) {
       window.setTimeout(postGaugeDirtyMessage, delayMs);
@@ -3059,7 +3114,7 @@ function createVCockpitGaugeBridgeScript(
     if (root == null || typeof MutationObserver === 'undefined') {
       return;
     }
-    const observer = new MutationObserver(markGaugeChanged);
+    const observer = new MutationObserver(() => markGaugeChanged('dom'));
     observer.observe(root, {
       attributes: true,
       characterData: true,
@@ -3077,16 +3132,9 @@ function createVCockpitGaugeBridgeScript(
     'fillText',
     'putImageData',
     'reset',
-    'restore',
-    'rotate',
-    'scale',
-    'setLineDash',
-    'setTransform',
     'stroke',
     'strokeRect',
-    'strokeText',
-    'transform',
-    'translate'
+    'strokeText'
   ];
   for (const methodName of markCanvasDrawMethods) {
     const original = CanvasRenderingContext2D.prototype[methodName];
@@ -3094,7 +3142,7 @@ function createVCockpitGaugeBridgeScript(
       continue;
     }
     CanvasRenderingContext2D.prototype[methodName] = function(...args) {
-      markGaugeChanged();
+      markGaugeChanged('canvas');
       return original.apply(this, args);
     };
   }
@@ -3341,18 +3389,39 @@ function createVCockpitGaugeBridgeScript(
     ingame: 2,
     mainmenu: 3
   };
+  const instrumentRegistry = globalThis.__msfsInstrumentRegistry ?? new Map();
+  globalThis.__msfsInstrumentRegistry = instrumentRegistry;
+  const instrumentRuntimeStats = globalThis.__msfsInstrumentRuntimeStats ?? {
+    registerCallCount: 0,
+    createdElementCount: 0,
+    reusedElementCount: 0,
+    activeLoopCount: 0,
+    updateCallCount: 0
+  };
+  globalThis.__msfsInstrumentRuntimeStats = instrumentRuntimeStats;
   globalThis.registerInstrument ??= (tagName, InstrumentClass) => {
     if (typeof tagName !== 'string' || typeof InstrumentClass !== 'function') {
       return;
     }
+    instrumentRuntimeStats.registerCallCount += 1;
     const normalizedTagName = tagName.includes('-') ? tagName.toLowerCase() : 'msfs-' + tagName.toLowerCase();
     if (!customElements.get(normalizedTagName)) {
       customElements.define(normalizedTagName, InstrumentClass);
     }
+    const registered = instrumentRegistry.get(normalizedTagName);
+    if (registered?.element?.isConnected) {
+      window.__msfsInstrumentElement = registered.element;
+      instrumentRuntimeStats.reusedElementCount += 1;
+      return registered.element;
+    }
+
     const element = document.createElement(normalizedTagName);
     element.dataset.msfsInstrument = normalizedTagName;
     ensureBody().appendChild(element);
     window.__msfsInstrumentElement = element;
+    instrumentRuntimeStats.createdElementCount += 1;
+    instrumentRuntimeStats.activeLoopCount += 1;
+    instrumentRegistry.set(normalizedTagName, { element });
     let lastUpdateMs = -Infinity;
     let lastDependencyProbeMs = -Infinity;
     let dependencySnapshot = null;
@@ -3389,6 +3458,7 @@ function createVCockpitGaugeBridgeScript(
       activeDependencyCollector = nextDependencies;
       try {
         element.Update?.();
+        instrumentRuntimeStats.updateCallCount += 1;
         consecutiveUpdateErrors = 0;
         nextUpdateAfterErrorMs = -Infinity;
       } catch (error) {
@@ -3405,6 +3475,7 @@ function createVCockpitGaugeBridgeScript(
     };
     const update = nowMs => {
       if (!element.isConnected) {
+        instrumentRuntimeStats.activeLoopCount = Math.max(0, instrumentRuntimeStats.activeLoopCount - 1);
         return;
       }
       if (!gaugeRuntimeActive) {
@@ -4166,6 +4237,7 @@ async function captureVCockpitSurfaceTexture(
             changeVersion === gaugeRuntime.lastChangeVersion
           ) {
             gaugeRuntime.pendingChangeVersion = null
+            gaugeRuntime.pendingDirtyKind = null
             gaugeRuntime.needsCapture = false
             continue
           }
@@ -4178,6 +4250,7 @@ async function captureVCockpitSurfaceTexture(
             visualSignature === gaugeRuntime.lastVisualSignature
           ) {
             gaugeRuntime.pendingChangeVersion = null
+            gaugeRuntime.pendingDirtyKind = null
             gaugeRuntime.needsCapture = false
             continue
           }
@@ -4193,16 +4266,18 @@ async function captureVCockpitSurfaceTexture(
           surfaceDirty = true
         }
 
-        await drawHtmlGaugeFrameToContext(
+        await drawHtmlGaugeLiveFrameToContext(
           gaugeRuntime,
           surfaceRuntime.context,
           x,
           y,
           width,
-          height
+          height,
+          gaugeRuntime.pendingDirtyKind ?? (gaugeRuntime.captured ? 'unknown' : 'dom')
         )
         gaugeRuntime.lastChangeVersion = changeVersion
         gaugeRuntime.pendingChangeVersion = null
+        gaugeRuntime.pendingDirtyKind = null
         gaugeRuntime.needsCapture = false
         gaugeRuntime.lastVisualSignature = visualSignature
         surfaceDirty = true
@@ -4236,6 +4311,7 @@ async function captureVCockpitSurfaceTexture(
       gaugeRuntime.lastVisualSignature = null
       gaugeRuntime.lastChangeVersion = null
       gaugeRuntime.pendingChangeVersion = null
+      gaugeRuntime.pendingDirtyKind = null
       gaugeRuntime.needsCapture = !surfaceRuntime.liveCapture
       gaugeRuntime.captured = false
       if (
@@ -4296,6 +4372,8 @@ function disposeVCockpitSurfaceTextureRuntime(
 function releaseVCockpitHtmlGaugeFrame(gaugeRuntime: VCockpitHtmlGaugeRuntime): void {
   gaugeRuntime.iframe?.remove()
   gaugeRuntime.iframe = null
+  gaugeRuntime.staticCaptureImage = null
+  gaugeRuntime.staticCaptureSignature = null
 }
 
 function setVCockpitHtmlGaugeRuntimeActive(
@@ -4306,6 +4384,35 @@ function setVCockpitHtmlGaugeRuntimeActive(
     type: 'msfs-vcockpit-gauge-active',
     active
   }, '*')
+}
+
+function getVCockpitHtmlGaugeRuntimeStats(
+  gaugeRuntime: VCockpitHtmlGaugeRuntime
+): Record<string, unknown> {
+  const frameDocument = gaugeRuntime.iframe?.contentDocument
+  const frameWindow = gaugeRuntime.iframe?.contentWindow as
+    | (Window & {
+        readonly __msfsGaugeDirtyStats?: unknown
+        readonly __msfsInstrumentRuntimeStats?: unknown
+      })
+    | null
+    | undefined
+  return {
+    key: gaugeRuntime.gaugeKey,
+    source: gaugeRuntime.source,
+    status: gaugeRuntime.status,
+    captured: gaugeRuntime.captured,
+    needsCapture: gaugeRuntime.needsCapture,
+    pendingDirtyKind: gaugeRuntime.pendingDirtyKind,
+    hasStaticCaptureImage: gaugeRuntime.staticCaptureImage != null,
+    captureAttemptCount: gaugeRuntime.captureAttemptCount,
+    changeVersion: getHtmlGaugeChangeVersion(gaugeRuntime),
+    domNodeCount: frameDocument?.getElementsByTagName('*').length ?? null,
+    canvasCount: frameDocument?.querySelectorAll('canvas').length ?? null,
+    svgCount: frameDocument?.querySelectorAll('svg').length ?? null,
+    dirtyStats: frameWindow?.__msfsGaugeDirtyStats ?? null,
+    instrumentStats: frameWindow?.__msfsInstrumentRuntimeStats ?? null
+  }
 }
 
 function assertHtmlGaugeHasRenderableContent(
@@ -4354,6 +4461,96 @@ async function drawHtmlGaugeFrameToContext(
   const frameDocument = getHtmlGaugeFrameDocument(gaugeRuntime)
 
   await drawHtmlGaugeDocumentToContext(context, frameDocument, x, y, width, height)
+}
+
+async function drawHtmlGaugeLiveFrameToContext(
+  gaugeRuntime: VCockpitHtmlGaugeRuntime,
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  dirtyKind: VCockpitGaugeDirtyKind
+): Promise<void> {
+  const staticImage = await getHtmlGaugeStaticCaptureImage(
+    gaugeRuntime,
+    width,
+    height,
+    dirtyKind !== 'canvas'
+  )
+  context.drawImage(staticImage, x, y, width, height)
+
+  const frameDocument = getHtmlGaugeFrameDocument(gaugeRuntime)
+  const root = frameDocument.querySelector<HTMLElement>('[data-msfs-instrument]') ??
+    frameDocument.body
+  if (root == null) {
+    return
+  }
+
+  context.save()
+  context.translate(x, y)
+  try {
+    await drawGaugeCanvases(context, root)
+  } finally {
+    context.restore()
+  }
+}
+
+async function getHtmlGaugeStaticCaptureImage(
+  gaugeRuntime: VCockpitHtmlGaugeRuntime,
+  width: number,
+  height: number,
+  forceRefresh: boolean
+): Promise<HTMLCanvasElement> {
+  if (!forceRefresh && gaugeRuntime.staticCaptureImage != null) {
+    return gaugeRuntime.staticCaptureImage
+  }
+
+  const frameDocument = getHtmlGaugeFrameDocument(gaugeRuntime)
+  const signature = getHtmlGaugeStaticCaptureSignature(frameDocument, width, height)
+  if (
+    !forceRefresh &&
+    gaugeRuntime.staticCaptureImage != null &&
+    gaugeRuntime.staticCaptureSignature === signature
+  ) {
+    return gaugeRuntime.staticCaptureImage
+  }
+
+  const canvas = gaugeRuntime.staticCaptureImage ?? document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const context = canvas.getContext('2d')
+  if (context == null) {
+    throw new Error('could not create static HTML gauge capture canvas')
+  }
+
+  await drawHtmlGaugeStaticDocumentToContext(context, frameDocument, 0, 0, width, height)
+  gaugeRuntime.staticCaptureImage = canvas
+  gaugeRuntime.staticCaptureSignature = signature
+  return canvas
+}
+
+function getHtmlGaugeStaticCaptureSignature(
+  frameDocument: Document,
+  width: number,
+  height: number
+): string {
+  const root = frameDocument.querySelector<HTMLElement>('[data-msfs-instrument]') ??
+    frameDocument.body
+  return [
+    `${width}x${height}`,
+    resolveGaugeBackground(frameDocument),
+    getSanitizedAccessibleCssText(frameDocument),
+    root == null ? '' : getHtmlGaugeStaticDomSignature(root)
+  ].join('\n/* vcockpit-static-signature */\n')
+}
+
+function getHtmlGaugeStaticDomSignature(root: HTMLElement): string {
+  const clone = root.cloneNode(true) as HTMLElement
+  clone.querySelectorAll('canvas, video, iframe, object, embed').forEach(element => {
+    element.replaceWith(root.ownerDocument.createElement(element.tagName.toLowerCase()))
+  })
+  return clone.outerHTML
 }
 
 function getHtmlGaugeFrameDocument(gaugeRuntime: VCockpitHtmlGaugeRuntime): Document {
@@ -4512,6 +4709,33 @@ async function drawHtmlGaugeDocumentToContext(
   context.translate(x, y)
   try {
     await drawGaugeCanvases(context, root)
+    await drawGaugeSvgs(context, frameDocument, root)
+    drawGaugeText(context, root)
+  } finally {
+    context.restore()
+  }
+}
+
+async function drawHtmlGaugeStaticDocumentToContext(
+  context: CanvasRenderingContext2D,
+  frameDocument: Document,
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): Promise<void> {
+  context.fillStyle = resolveGaugeBackground(frameDocument)
+  context.fillRect(x, y, width, height)
+
+  const root = frameDocument.querySelector<HTMLElement>('[data-msfs-instrument]') ??
+    frameDocument.body
+  if (root == null) {
+    return
+  }
+
+  context.save()
+  context.translate(x, y)
+  try {
     await drawGaugeSvgs(context, frameDocument, root)
     drawGaugeText(context, root)
   } finally {
@@ -4738,7 +4962,45 @@ function createSvgObjectUrl(svgElement: SVGSVGElement): string {
 }
 
 function assertCanvasIsOriginClean(canvas: HTMLCanvasElement): void {
-  canvas.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, 1, 1)
+  const context = getCanvasOriginCleanScratchContext()
+  context.clearRect(0, 0, 1, 1)
+  try {
+    context.drawImage(canvas, 0, 0, 1, 1)
+    context.getImageData(0, 0, 1, 1)
+  } catch (error) {
+    resetCanvasOriginCleanScratch()
+    throw error
+  }
+}
+
+function getCanvasOriginCleanScratchContext(): CanvasRenderingContext2D {
+  if (canvasOriginCleanScratchCanvas == null) {
+    canvasOriginCleanScratchCanvas = document.createElement('canvas')
+    canvasOriginCleanScratchCanvas.width = 1
+    canvasOriginCleanScratchCanvas.height = 1
+  }
+
+  if (canvasOriginCleanScratchContext == null) {
+    canvasOriginCleanScratchContext =
+      canvasOriginCleanScratchCanvas.getContext('2d', { willReadFrequently: true })
+    if (canvasOriginCleanScratchContext == null) {
+      throw new Error('could not create canvas origin-clean test context')
+    }
+  }
+
+  return canvasOriginCleanScratchContext
+}
+
+function resetCanvasOriginCleanScratch(): void {
+  if (canvasOriginCleanScratchCanvas == null) {
+    canvasOriginCleanScratchContext = null
+    return
+  }
+
+  canvasOriginCleanScratchCanvas.width = 1
+  canvasOriginCleanScratchCanvas.height = 1
+  canvasOriginCleanScratchContext =
+    canvasOriginCleanScratchCanvas.getContext('2d', { willReadFrequently: true })
 }
 
 function isCanvasOriginClean(canvas: HTMLCanvasElement): boolean {
