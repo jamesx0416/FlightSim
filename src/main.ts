@@ -7009,8 +7009,15 @@ function createSettingsPanel(options: {
   status.style.marginTop = '10px'
   status.style.color = 'rgba(243, 247, 251, 0.72)'
 
-  const reloadWithSelectedAircraft = (): void => {
+  const reloadWithSelectedAircraftIfChanged = (): boolean => {
     const selectedOption = getSelectedAircraftOption()
+    if (
+      createAircraftSelectorValue(selectedOption.packageRoot, selectedOption.aircraft.id) ===
+      selectedValue
+    ) {
+      return false
+    }
+
     const nextUrl = new URL(window.location.href)
     for (const key of PROFILE_QUERY_KEYS) {
       nextUrl.searchParams.delete(key)
@@ -7018,6 +7025,7 @@ function createSettingsPanel(options: {
     nextUrl.searchParams.set('package', selectedOption.packageRoot)
     nextUrl.searchParams.set('aircraft', selectedOption.aircraft.id)
     window.location.assign(nextUrl.toString())
+    return true
   }
 
   const applyGlobalProfile = (): void => {
@@ -7098,18 +7106,26 @@ function createSettingsPanel(options: {
   applyButton.addEventListener('click', () => {
     if (activePanel === 'global') {
       applyGlobalProfile()
+      status.textContent = 'Saved global defaults.'
     } else {
       applyAircraftProfile()
+      status.textContent = 'Saved aircraft profile.'
     }
-    reloadWithSelectedAircraft()
+    if (reloadWithSelectedAircraftIfChanged()) {
+      status.textContent = 'Loading selected aircraft.'
+    }
   })
   resetButton.addEventListener('click', () => {
     if (activePanel === 'global') {
       resetGlobalProfile()
+      status.textContent = 'Cleared global defaults.'
     } else {
       resetAircraftProfile()
+      status.textContent = 'Cleared aircraft profile.'
     }
-    reloadWithSelectedAircraft()
+    if (reloadWithSelectedAircraftIfChanged()) {
+      status.textContent = 'Loading selected aircraft.'
+    }
   })
 
   const actions = document.createElement('div')
