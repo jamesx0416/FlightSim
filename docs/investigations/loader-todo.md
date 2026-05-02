@@ -242,6 +242,13 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
   - accessible non-WASM iframe DOM is composited into the bound cockpit `CanvasTexture` with an origin-clean SVG/canvas/text renderer so browser `foreignObject` tainting does not upload black GPU textures.
   - `?vcockpitGaugeMode=overlay` adds an experimental direct-HTML path that projects live gauge iframes over matched VCockpit material bounds instead of converting DOM into images/textures every refresh.
   - `?vcockpitGaugeMode=video` adds an experimental mesh-texture path that streams the composited VCockpit canvas through `captureStream()` into a Three `VideoTexture`, with `?vcockpitGaugeVideoFps=` controlling the stream frame rate.
+  - Add an experimental `?vcockpitGaugeMode=htmlTexture` path only when native browser HTML-in-Canvas support is available:
+    - upgrade to Three.js `r184+` only after verifying the existing WebGPU/WebGL renderer stack still works
+    - feature-detect `drawElementImage`, `texElementImage2D`, or WebGPU `copyElementImageToTexture`
+    - document that current Chromium builds may require `chrome://flags/#canvas-draw-element`
+    - use the native browser path to draw/copy compatible HTML gauge content into a canvas/GPU texture, then bind it to the existing `VCockpit` material texture path
+    - fall back to the current dirty-driven `CanvasTexture` compositor when the browser API is missing, incomplete, or visually incompatible with stock MSFS gauge documents
+    - keep diagnostics for unsupported iframe/custom-element/SVG/font/canvas cases rather than silently switching behavior
   - `?vcockpitGaugeRasterScale=` can lower texture/video-mode hidden iframe viewports and dynamic texture dimensions generically for performance testing, while leaving overlay mode at full scale.
   - live texture/video capture is dirty-driven and rate-capped: the generic iframe bridge posts output-change versions for DOM mutations and Canvas2D writes, and the parent only recaptures dirty gauges/surfaces without letting per-frame iframe draws bypass `?vcockpitGaugeCaptureFps=`.
   - HTML gauge capture defaults to live refresh with adaptive generic instrument `Update()` scheduling based on SimVar/game-var dependencies, with `?vcockpitGaugeUpdateMs=` / `?vcockpitGaugeUpdateHz=` available for forced periodic iframe updates and `?vcockpitLiveGauges=off` available for a bounded first-successful-frame pass that caches captured pixels and releases hidden iframes.
@@ -668,3 +675,13 @@ Scope note:
   - The earlier local-Y basis bug in the `WingFlex` runtime has now been replaced with parent-space offsets derived from a shared aircraft/world-up direction.
   - The next step is fixture verification, not more XML parsing work, unless the wing issue still remains after this runtime correction.
 - [ ] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.
+
+### 8. Prototype Experimental Native HTML Gauge Texture Path
+
+- [ ] Evaluate Three.js `r184+` `HTMLTexture` / HTML-in-Canvas support against the current WebGPU-first renderer stack.
+- [ ] Add a query-gated `?vcockpitGaugeMode=htmlTexture` prototype that is used only when native browser feature detection succeeds.
+- [ ] Detect and report native browser support for `drawElementImage`, `texElementImage2D`, and WebGPU `copyElementImageToTexture`.
+- [ ] Keep the current optimized dirty-driven `CanvasTexture` path as the fallback for normal browsers and for incompatible gauge documents.
+- [ ] Verify whether sandboxed same-origin MSFS gauge iframes, custom elements, SVG, loaded fonts, and nested gauge canvases render correctly through the native path.
+- [ ] Compare long-session CPU stability, capture duration, upload timing, and visual correctness against the current canvas compositor on both A330 and A320 routes.
+- [ ] Keep this mode blocked from default use until it works without aircraft-specific assumptions and without requiring unstable browser APIs for normal users.

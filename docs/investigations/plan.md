@@ -158,3 +158,24 @@ The IR may evolve during the first slice, but it must be explicitly versioned fr
 - The first milestone is import + generic behavior-driven render.
 - Panels, WASM, and sound are deferred until the model behavior runtime works.
 - The loader must remain generic across aircraft, even while only one package is used for initial testing.
+
+## Cockpit / HTML Gauge Performance Addendum
+
+Track a generic experimental `VCockpit` HTML gauge texture path based on the browser HTML-in-Canvas proposal and Three.js `HTMLTexture`.
+
+- Goal:
+  - let the browser render compatible HTML gauge content into a canvas or GPU texture directly, instead of manually walking iframe DOM/SVG/text/canvas trees.
+- Proposed query-gated mode:
+  - `?vcockpitGaugeMode=htmlTexture`
+- Prerequisites:
+  - upgrade Three.js to `r184+` only after confirming the project renderer path remains compatible
+  - feature-detect native HTML-in-Canvas support such as `drawElementImage`, `texElementImage2D`, or WebGPU `copyElementImageToTexture`
+  - document that current Chromium builds may require `chrome://flags/#canvas-draw-element`
+- Required behavior:
+  - never make this path the default until the browser APIs are stable enough for normal users
+  - fall back to the current optimized `CanvasTexture` capture path when native HTML-in-Canvas support is unavailable
+  - keep material-texture output so cockpit lighting, occlusion, reflections, and post effects still apply
+  - keep all implementation generic to MSFS `panel.cfg` / `VCockpit` surface definitions and avoid aircraft-specific gauge assumptions
+- Validation:
+  - verify whether same-origin sandboxed gauge documents, custom elements, SVG, fonts, and gauge canvases are supported by the native browser path
+  - compare capture timing, texture upload timing, visual correctness, and long-session CPU stability against the current dirty-driven canvas path

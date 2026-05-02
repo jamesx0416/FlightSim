@@ -136,6 +136,18 @@ type CockpitCameraController = {
 type CockpitViewToggleSource = 'keyboard' | 'benchmark'
 type VCockpitGaugeMode = 'texture' | 'overlay' | 'video'
 
+type FpsCounterSnapshot = {
+  readonly fps: number
+  readonly averageFrameMs: number
+  readonly lowFps: number
+  readonly sampleCount: number
+}
+
+type FpsCounter = {
+  readonly recordFrame: (deltaSeconds: number) => void
+  readonly getSnapshot: () => FpsCounterSnapshot
+}
+
 async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'init:start' })
   const backgroundColor = new Color('#405264')
@@ -1076,6 +1088,7 @@ async function init(): Promise<void> {
     lastCockpitBenchmarkResult
 
   const clock = new Clock()
+  const fpsCounter = createFpsCounter()
   let runtimeState: RuntimeState = runtime.update(0)
   ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
   const cockpitPerfDiagnostics = searchParams.has('cockpitPerf')
@@ -1089,7 +1102,8 @@ async function init(): Promise<void> {
     aircraft,
     compiledBehaviors,
     runtimeState,
-    rendererInfo
+    rendererInfo,
+    fpsCounter.getSnapshot()
   )
 
   const handleResize = (): void => {
@@ -1105,6 +1119,7 @@ async function init(): Promise<void> {
     if (cockpitPerfDiagnostics.enabled) {
       const frameStartMs = performance.now()
       const dtSeconds = clock.getDelta()
+      fpsCounter.recordFrame(dtSeconds)
       const runtimeStartMs = performance.now()
       runtimeState = runtime.update(dtSeconds)
       const runtimeEndMs = performance.now()
@@ -1140,6 +1155,7 @@ async function init(): Promise<void> {
       })
     } else {
       const dtSeconds = clock.getDelta()
+      fpsCounter.recordFrame(dtSeconds)
       runtimeState = runtime.update(dtSeconds)
       ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
       syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
@@ -1164,7 +1180,8 @@ async function init(): Promise<void> {
         aircraft,
         compiledBehaviors,
         runtimeState,
-        rendererInfo
+        rendererInfo,
+        fpsCounter.getSnapshot()
       )
     }
   })
@@ -6218,6 +6235,58 @@ function collectMaterialTextures(material: Material, textures: Set<Texture>): vo
   }
 }
 
+function createFpsCounter(): FpsCounter {
+  const frameTimesMs: number[] = []
+  const maxSamples = 120
+  let totalFrameMs = 0
+
+  return {
+    recordFrame: deltaSeconds => {
+      if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) {
+        return
+      }
+
+      const frameMs = Math.min(1_000, deltaSeconds * 1_000)
+      frameTimesMs.push(frameMs)
+      totalFrameMs += frameMs
+      while (frameTimesMs.length > maxSamples) {
+        totalFrameMs -= frameTimesMs.shift() ?? 0
+      }
+    },
+    getSnapshot: () => {
+      if (frameTimesMs.length === 0) {
+        return {
+          fps: 0,
+          averageFrameMs: 0,
+          lowFps: 0,
+          sampleCount: 0
+        }
+      }
+
+      const averageFrameMs = totalFrameMs / frameTimesMs.length
+      const worstFrameMs = Math.max(...frameTimesMs)
+      return {
+        fps: 1_000 / averageFrameMs,
+        averageFrameMs,
+        lowFps: 1_000 / worstFrameMs,
+        sampleCount: frameTimesMs.length
+      }
+    }
+  }
+}
+
+function formatFpsCounter(snapshot: FpsCounterSnapshot): string {
+  if (snapshot.sampleCount === 0) {
+    return 'warming up'
+  }
+
+  return [
+    `${snapshot.fps.toFixed(1)} fps`,
+    `${snapshot.averageFrameMs.toFixed(1)} ms`,
+    `low ${snapshot.lowFps.toFixed(1)}`
+  ].join(' / ')
+}
+
 function createOverlay(): HTMLDivElement {
   const overlay = document.createElement('div')
   overlay.style.position = 'fixed'
@@ -6338,7 +6407,8 @@ function updateOverlay(
     readonly diagnostics: readonly { readonly severity: string; readonly message: string }[]
   },
   runtimeState: RuntimeState,
-  rendererInfo: RendererInfo
+  rendererInfo: RendererInfo,
+  fpsCounter: FpsCounterSnapshot
 ): void {
   const diagnostics = [
     ...packageData.diagnostics,
@@ -6364,6 +6434,7 @@ function updateOverlay(
     `MSFS package: ${packageData.packageName}`,
     `Root: ${packageRoot}`,
     `Renderer: ${formatRendererLabel(rendererInfo)}`,
+    `FPS: ${formatFpsCounter(fpsCounter)}`,
     `Aircraft: ${aircraft.title}`,
     `Variation: ${aircraft.variationName ?? aircraft.sectionName}`,
     `Source: ${aircraft.sourcePath}`,
