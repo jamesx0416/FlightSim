@@ -6898,7 +6898,7 @@ function createAircraftSelector(
 type SettingsProfileEditor = {
   readonly root: HTMLDivElement
   readonly readProfile: () => ViewerConfigProfile
-  readonly getSelectedOption: () => AircraftSelectorOption
+  readonly refreshForSelectedAircraft: () => void
   readonly setProfile: (profile: ViewerConfigProfile) => void
 }
 
@@ -6957,32 +6957,51 @@ function createSettingsPanel(options: {
     aircraft: options.aircraft
   }
 
-  const aircraftProfileKey = getViewerAircraftConfigKey(options.packageRoot, options.aircraft.id)
-  const savedAircraftProfile = options.configStore.aircraft[aircraftProfileKey]
-  const effectiveProfile = createViewerConfigProfileFromSearchParams(options.effectiveSearchParams)
-  const aircraftInitialProfile = savedAircraftProfile ?? {
-    ...effectiveProfile,
-    rawQuery: getUnmanagedRawQuery(window.location.search)
+  const aircraftSelect = createSettingsSelect('Aircraft')
+  for (const option of sortedOptions) {
+    const element = document.createElement('option')
+    element.value = createAircraftSelectorValue(option.packageRoot, option.aircraft.id)
+    element.textContent = getAircraftSelectorDisplayName(option)
+    element.selected = element.value === selectedValue
+    aircraftSelect.appendChild(element)
+  }
+  if (aircraftSelect.selectedIndex < 0) {
+    aircraftSelect.value = createAircraftSelectorValue(
+      fallbackOption.packageRoot,
+      fallbackOption.aircraft.id
+    )
+  }
+
+  const getSelectedAircraftOption = (): AircraftSelectorOption => {
+    return sortedOptions.find(
+      option => createAircraftSelectorValue(option.packageRoot, option.aircraft.id) === aircraftSelect.value
+    ) ?? fallbackOption
   }
 
   const globalEditor = createSettingsProfileEditor({
     title: 'Global',
-    sortedOptions,
-    fallbackOption,
+    scope: 'global',
+    getSelectedOption: getSelectedAircraftOption,
     initialProfile: options.configStore.global
   })
   const aircraftEditor = createSettingsProfileEditor({
     title: 'Aircraft',
-    sortedOptions,
-    fallbackOption,
-    initialProfile: aircraftInitialProfile,
-    resolveProfileForSelectedAircraft: selectedOption =>
+    scope: 'aircraft',
+    getSelectedOption: getSelectedAircraftOption,
+    initialProfile:
       options.configStore.aircraft[
+        getViewerAircraftConfigKey(options.packageRoot, options.aircraft.id)
+      ] ?? {}
+  })
+
+  aircraftSelect.addEventListener('change', () => {
+    const selectedOption = getSelectedAircraftOption()
+    globalEditor.refreshForSelectedAircraft()
+    aircraftEditor.setProfile(
+      loadViewerConfigStore().aircraft[
         getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)
-      ] ?? {
-        packageRoot: selectedOption.packageRoot,
-        aircraftId: selectedOption.aircraft.id
-      }
+      ] ?? {}
+    )
   })
 
   const status = document.createElement('div')
@@ -6990,42 +7009,27 @@ function createSettingsPanel(options: {
   status.style.marginTop = '10px'
   status.style.color = 'rgba(243, 247, 251, 0.72)'
 
-  const saveGlobalButton = createActionButton('Save Global')
-  const resetGlobalButton = createActionButton('Reset Global')
-  const applyUrlButton = createActionButton('Apply URL')
-  const saveAircraftButton = createActionButton('Save Aircraft')
-  const resetAircraftButton = createActionButton('Reset Aircraft')
+  const reloadWithSelectedAircraft = (): void => {
+    const selectedOption = getSelectedAircraftOption()
+    const nextUrl = new URL(window.location.href)
+    for (const key of PROFILE_QUERY_KEYS) {
+      nextUrl.searchParams.delete(key)
+    }
+    nextUrl.searchParams.set('package', selectedOption.packageRoot)
+    nextUrl.searchParams.set('aircraft', selectedOption.aircraft.id)
+    window.location.assign(nextUrl.toString())
+  }
 
-  saveGlobalButton.addEventListener('click', () => {
+  const applyGlobalProfile = (): void => {
     const nextStore = loadViewerConfigStore()
     saveViewerConfigStore({
       ...nextStore,
       global: globalEditor.readProfile()
     })
-    status.textContent = 'Saved global defaults.'
-  })
+  }
 
-  resetGlobalButton.addEventListener('click', () => {
-    const nextStore = loadViewerConfigStore()
-    saveViewerConfigStore({
-      ...nextStore,
-      global: {}
-    })
-    globalEditor.setProfile({})
-    status.textContent = 'Cleared global defaults.'
-  })
-
-  applyUrlButton.addEventListener('click', () => {
-    const nextUrl = new URL(window.location.href)
-    for (const key of PROFILE_QUERY_KEYS) {
-      nextUrl.searchParams.delete(key)
-    }
-    applyViewerConfigProfileToSearchParams(nextUrl.searchParams, aircraftEditor.readProfile(), true)
-    window.location.assign(nextUrl.toString())
-  })
-
-  saveAircraftButton.addEventListener('click', () => {
-    const selectedOption = aircraftEditor.getSelectedOption()
+  const applyAircraftProfile = (): void => {
+    const selectedOption = getSelectedAircraftOption()
     const nextStore = loadViewerConfigStore()
     saveViewerConfigStore({
       ...nextStore,
@@ -7035,11 +7039,19 @@ function createSettingsPanel(options: {
           aircraftEditor.readProfile()
       }
     })
-    status.textContent = 'Saved aircraft profile.'
-  })
+  }
 
-  resetAircraftButton.addEventListener('click', () => {
-    const selectedOption = aircraftEditor.getSelectedOption()
+  const resetGlobalProfile = (): void => {
+    const nextStore = loadViewerConfigStore()
+    saveViewerConfigStore({
+      ...nextStore,
+      global: {}
+    })
+    globalEditor.setProfile({})
+  }
+
+  const resetAircraftProfile = (): void => {
+    const selectedOption = getSelectedAircraftOption()
     const nextStore = loadViewerConfigStore()
     const aircraftProfiles = { ...nextStore.aircraft }
     delete aircraftProfiles[
@@ -7049,17 +7061,8 @@ function createSettingsPanel(options: {
       ...nextStore,
       aircraft: aircraftProfiles
     })
-    aircraftEditor.setProfile({
-      packageRoot: selectedOption.packageRoot,
-      aircraftId: selectedOption.aircraft.id
-    })
-    status.textContent = 'Cleared aircraft profile.'
-  })
-
-  globalEditor.root.append(createSettingsActions(saveGlobalButton, resetGlobalButton))
-  aircraftEditor.root.append(
-    createSettingsActions(applyUrlButton, saveAircraftButton, resetAircraftButton)
-  )
+    aircraftEditor.setProfile({})
+  }
 
   const tabs = document.createElement('div')
   tabs.style.display = 'flex'
@@ -7071,8 +7074,10 @@ function createSettingsPanel(options: {
   const aircraftTab = createSettingsTabButton('Aircraft')
   tabs.append(globalTab, aircraftTab)
 
-  const setActivePanel = (activePanel: 'global' | 'aircraft'): void => {
-    const activeGlobal = activePanel === 'global'
+  let activePanel: 'global' | 'aircraft' = 'global'
+  const setActivePanel = (nextActivePanel: 'global' | 'aircraft'): void => {
+    activePanel = nextActivePanel
+    const activeGlobal = nextActivePanel === 'global'
     globalEditor.root.hidden = !activeGlobal
     aircraftEditor.root.hidden = activeGlobal
     globalTab.setAttribute('aria-selected', activeGlobal ? 'true' : 'false')
@@ -7085,35 +7090,62 @@ function createSettingsPanel(options: {
   aircraftTab.addEventListener('click', () => setActivePanel('aircraft'))
   setActivePanel('global')
 
-  drawer.append(heading, tabs, globalEditor.root, aircraftEditor.root, status)
+  const aircraftField = createSettingsField('Aircraft', aircraftSelect)
+  aircraftField.style.marginBottom = '12px'
+
+  const applyButton = createActionButton('Apply')
+  const resetButton = createActionButton('Reset')
+  applyButton.addEventListener('click', () => {
+    if (activePanel === 'global') {
+      applyGlobalProfile()
+    } else {
+      applyAircraftProfile()
+    }
+    reloadWithSelectedAircraft()
+  })
+  resetButton.addEventListener('click', () => {
+    if (activePanel === 'global') {
+      resetGlobalProfile()
+    } else {
+      resetAircraftProfile()
+    }
+    reloadWithSelectedAircraft()
+  })
+
+  const actions = document.createElement('div')
+  actions.style.display = 'grid'
+  actions.style.gridTemplateColumns = 'repeat(2, minmax(0, 1fr))'
+  actions.style.gap = '8px'
+  actions.style.marginTop = '12px'
+  actions.append(applyButton, resetButton)
+
+  drawer.append(
+    heading,
+    aircraftField,
+    tabs,
+    globalEditor.root,
+    aircraftEditor.root,
+    actions,
+    status
+  )
   root.append(drawer, toggleButton)
   return root
 }
 
 function createSettingsProfileEditor(options: {
   readonly title: string
-  readonly sortedOptions: readonly AircraftSelectorOption[]
-  readonly fallbackOption: AircraftSelectorOption
+  readonly scope: 'global' | 'aircraft'
+  readonly getSelectedOption: () => AircraftSelectorOption
   readonly initialProfile: ViewerConfigProfile
-  readonly resolveProfileForSelectedAircraft?: (
-    selectedOption: AircraftSelectorOption
-  ) => ViewerConfigProfile
 }): SettingsProfileEditor {
   const root = document.createElement('div')
   root.style.minWidth = '0'
   root.style.paddingTop = '2px'
   root.setAttribute('aria-label', `${options.title} settings`)
+  const inheritsFromGlobal = options.scope === 'aircraft'
 
   const form = document.createElement('form')
   form.addEventListener('submit', event => event.preventDefault())
-
-  const aircraftSelect = createSettingsSelect('Aircraft')
-  for (const option of options.sortedOptions) {
-    const element = document.createElement('option')
-    element.value = createAircraftSelectorValue(option.packageRoot, option.aircraft.id)
-    element.textContent = getAircraftSelectorDisplayName(option)
-    aircraftSelect.appendChild(element)
-  }
 
   const exteriorLodSelect = createSettingsSelect('Exterior LOD')
   const exteriorInteriorModeSelect = createSettingsSelect('Exterior Interior')
@@ -7130,59 +7162,55 @@ function createSettingsProfileEditor(options: {
   const cockpitPerfSelect = createSettingsSelect('Cockpit Perf')
   const rawQueryTextarea = createSettingsTextarea('Extra Query')
 
+  const appendGlobalOption = (select: HTMLSelectElement): void => {
+    if (inheritsFromGlobal) {
+      select.append(createSettingsOption('global', 'Global'))
+    }
+  }
+
+  appendGlobalOption(exteriorInteriorModeSelect)
   exteriorInteriorModeSelect.append(
     createSettingsOption('deferred', 'Deferred auto'),
     createSettingsOption('sync', 'Sync at load'),
     createSettingsOption('off', 'Off')
   )
+  appendGlobalOption(vcockpitSurfacesSelect)
   vcockpitSurfacesSelect.append(
     createSettingsOption('on', 'On'),
     createSettingsOption('off', 'Off')
   )
+  appendGlobalOption(vcockpitLiveSelect)
   vcockpitLiveSelect.append(
     createSettingsOption('on', 'On'),
     createSettingsOption('off', 'Off')
   )
+  appendGlobalOption(vcockpitGaugeModeSelect)
   vcockpitGaugeModeSelect.append(
     createSettingsOption('texture', 'Texture'),
     createSettingsOption('overlay', 'Overlay'),
     createSettingsOption('video', 'Video')
   )
+  appendGlobalOption(cockpitTexturesSelect)
   cockpitTexturesSelect.append(
     createSettingsOption('off', 'Off'),
     createSettingsOption('range-low', 'Range low')
   )
   for (const select of [cockpitMergeSelect, cockpitInstanceSelect, cockpitPerfSelect]) {
+    appendGlobalOption(select)
     select.append(createSettingsOption('off', 'Off'), createSettingsOption('on', 'On'))
-  }
-
-  const fallbackValue = createAircraftSelectorValue(
-    options.fallbackOption.packageRoot,
-    options.fallbackOption.aircraft.id
-  )
-
-  const getSelectedOption = (): AircraftSelectorOption => {
-    return options.sortedOptions.find(
-      option => createAircraftSelectorValue(option.packageRoot, option.aircraft.id) === aircraftSelect.value
-    ) ?? options.fallbackOption
-  }
-
-  const getProfileAircraftValue = (profile: ViewerConfigProfile): string => {
-    return profile.packageRoot != null && profile.aircraftId != null
-      ? createAircraftSelectorValue(profile.packageRoot, profile.aircraftId)
-      : fallbackValue
   }
 
   const refreshLodOptions = (
     lod: number | null | undefined,
     exteriorInteriorLod: number | null | undefined
   ): void => {
-    const selectedOption = getSelectedOption()
+    const selectedOption = options.getSelectedOption()
     replaceLodSelectOptions(
       exteriorLodSelect,
       selectedOption.aircraft.model?.lods.length ?? 0,
       0,
-      lod
+      lod,
+      inheritsFromGlobal
     )
     replaceLodSelectOptions(
       exteriorInteriorLodSelect,
@@ -7190,73 +7218,99 @@ function createSettingsProfileEditor(options: {
       selectedOption.aircraft.model?.modelOptions.withExteriorShowInteriorHideFirstLod === true
         ? 1
         : 0,
-      exteriorInteriorLod
+      exteriorInteriorLod,
+      inheritsFromGlobal
     )
   }
 
   const setProfile = (profile: ViewerConfigProfile): void => {
-    aircraftSelect.value = getProfileAircraftValue(profile)
-    if (aircraftSelect.selectedIndex < 0) {
-      aircraftSelect.value = fallbackValue
-    }
-
     refreshLodOptions(profile.lod, profile.exteriorInteriorLod)
-    exteriorInteriorModeSelect.value = profile.exteriorInteriorMode ?? 'deferred'
+    exteriorInteriorModeSelect.value =
+      profile.exteriorInteriorMode ?? (inheritsFromGlobal ? 'global' : 'deferred')
     exteriorInteriorLodSelect.value =
-      profile.exteriorInteriorLod == null ? 'auto' : String(profile.exteriorInteriorLod)
-    vcockpitSurfacesSelect.value = profile.vcockpitSurfaces === false ? 'off' : 'on'
-    vcockpitLiveSelect.value = profile.vcockpitLiveGauges === false ? 'off' : 'on'
-    vcockpitGaugeModeSelect.value = profile.vcockpitGaugeMode ?? 'texture'
-    cockpitTexturesSelect.value = profile.cockpitTextures ?? 'off'
+      profile.exteriorInteriorLod === undefined && inheritsFromGlobal
+        ? 'global'
+        : profile.exteriorInteriorLod == null ? 'auto' : String(profile.exteriorInteriorLod)
+    vcockpitSurfacesSelect.value = formatSettingsBooleanValue(
+      profile.vcockpitSurfaces,
+      inheritsFromGlobal
+    )
+    vcockpitLiveSelect.value = formatSettingsBooleanValue(
+      profile.vcockpitLiveGauges,
+      inheritsFromGlobal
+    )
+    vcockpitGaugeModeSelect.value =
+      profile.vcockpitGaugeMode ?? (inheritsFromGlobal ? 'global' : 'texture')
+    cockpitTexturesSelect.value = profile.cockpitTextures ?? (inheritsFromGlobal ? 'global' : 'off')
     cockpitTextureSizeInput.value =
       profile.cockpitTextureSize == null ? '' : String(profile.cockpitTextureSize)
     vcockpitCaptureFpsInput.value =
       profile.vcockpitGaugeCaptureFps == null ? '' : String(profile.vcockpitGaugeCaptureFps)
     vcockpitRasterScaleInput.value =
       profile.vcockpitGaugeRasterScale == null ? '' : String(profile.vcockpitGaugeRasterScale)
-    cockpitMergeSelect.value = profile.cockpitMergeStatic === true ? 'on' : 'off'
-    cockpitInstanceSelect.value = profile.cockpitInstanceStatic === true ? 'on' : 'off'
-    cockpitPerfSelect.value = profile.cockpitPerf === true ? 'on' : 'off'
+    cockpitMergeSelect.value = formatSettingsBooleanValue(
+      profile.cockpitMergeStatic,
+      inheritsFromGlobal
+    )
+    cockpitInstanceSelect.value = formatSettingsBooleanValue(
+      profile.cockpitInstanceStatic,
+      inheritsFromGlobal
+    )
+    cockpitPerfSelect.value = formatSettingsBooleanValue(profile.cockpitPerf, inheritsFromGlobal)
     rawQueryTextarea.value = profile.rawQuery ?? ''
   }
 
   const readProfile = (): ViewerConfigProfile => {
-    const selectedOption = getSelectedOption()
     return {
-      packageRoot: selectedOption.packageRoot,
-      aircraftId: selectedOption.aircraft.id,
       lod: parseSettingsNullableInteger(exteriorLodSelect.value),
-      exteriorInteriorMode: exteriorInteriorModeSelect.value as ExteriorInteriorMode,
+      exteriorInteriorMode: parseSettingsExteriorInteriorMode(
+        exteriorInteriorModeSelect.value,
+        inheritsFromGlobal
+      ),
       exteriorInteriorLod: parseSettingsNullableInteger(exteriorInteriorLodSelect.value),
-      vcockpitSurfaces: vcockpitSurfacesSelect.value !== 'off',
-      vcockpitLiveGauges: vcockpitLiveSelect.value !== 'off',
-      vcockpitGaugeMode: vcockpitGaugeModeSelect.value as VCockpitGaugeMode,
-      vcockpitGaugeCaptureFps: parseSettingsNullableNumber(vcockpitCaptureFpsInput.value),
-      vcockpitGaugeRasterScale: parseSettingsNullableNumber(vcockpitRasterScaleInput.value),
-      cockpitTextures: cockpitTexturesSelect.value === 'range-low' ? 'range-low' : 'off',
-      cockpitTextureSize: parseSettingsNullableInteger(cockpitTextureSizeInput.value),
-      cockpitMergeStatic: cockpitMergeSelect.value === 'on',
-      cockpitInstanceStatic: cockpitInstanceSelect.value === 'on',
-      cockpitPerf: cockpitPerfSelect.value === 'on',
-      rawQuery: rawQueryTextarea.value
+      vcockpitSurfaces: parseSettingsBooleanValue(vcockpitSurfacesSelect.value, inheritsFromGlobal),
+      vcockpitLiveGauges: parseSettingsBooleanValue(vcockpitLiveSelect.value, inheritsFromGlobal),
+      vcockpitGaugeMode: parseSettingsGaugeMode(
+        vcockpitGaugeModeSelect.value,
+        inheritsFromGlobal
+      ),
+      vcockpitGaugeCaptureFps: parseSettingsNullableNumber(
+        vcockpitCaptureFpsInput.value,
+        inheritsFromGlobal
+      ),
+      vcockpitGaugeRasterScale: parseSettingsNullableNumber(
+        vcockpitRasterScaleInput.value,
+        inheritsFromGlobal
+      ),
+      cockpitTextures: parseSettingsCockpitTextures(
+        cockpitTexturesSelect.value,
+        inheritsFromGlobal
+      ),
+      cockpitTextureSize: parseSettingsNullableInteger(
+        cockpitTextureSizeInput.value,
+        inheritsFromGlobal
+      ),
+      cockpitMergeStatic: parseSettingsBooleanValue(cockpitMergeSelect.value, inheritsFromGlobal),
+      cockpitInstanceStatic: parseSettingsBooleanValue(
+        cockpitInstanceSelect.value,
+        inheritsFromGlobal
+      ),
+      cockpitPerf: parseSettingsBooleanValue(cockpitPerfSelect.value, inheritsFromGlobal),
+      rawQuery:
+        inheritsFromGlobal && rawQueryTextarea.value.trim() === ''
+          ? undefined
+          : rawQueryTextarea.value
     }
   }
 
-  aircraftSelect.addEventListener('change', () => {
-    const selectedOption = getSelectedOption()
-    const profile = options.resolveProfileForSelectedAircraft?.(selectedOption)
-    if (profile != null) {
-      setProfile(profile)
-    } else {
-      refreshLodOptions(
-        parseSettingsNullableInteger(exteriorLodSelect.value),
-        parseSettingsNullableInteger(exteriorInteriorLodSelect.value)
-      )
-    }
-  })
+  const refreshForSelectedAircraft = (): void => {
+    refreshLodOptions(
+      parseSettingsNullableInteger(exteriorLodSelect.value, inheritsFromGlobal),
+      parseSettingsNullableInteger(exteriorInteriorLodSelect.value, inheritsFromGlobal)
+    )
+  }
 
   form.append(
-    createSettingsField('Aircraft', aircraftSelect),
     createSettingsField('Exterior LOD', exteriorLodSelect),
     createSettingsField('Exterior Interior', exteriorInteriorModeSelect),
     createSettingsField('Exterior Interior LOD', exteriorInteriorLodSelect),
@@ -7278,7 +7332,7 @@ function createSettingsProfileEditor(options: {
   return {
     root,
     readProfile,
-    getSelectedOption,
+    refreshForSelectedAircraft,
     setProfile
   }
 }
@@ -7321,19 +7375,32 @@ function replaceLodSelectOptions(
   select: HTMLSelectElement,
   lodCount: number,
   firstAllowedLodIndex: number,
-  selectedLod: number | null | undefined
+  selectedLod: number | null | undefined,
+  allowGlobal = false
 ): void {
-  select.replaceChildren(createSettingsOption('auto', 'Auto'))
+  select.replaceChildren()
+  if (allowGlobal) {
+    select.appendChild(createSettingsOption('global', 'Global'))
+  }
+  select.appendChild(createSettingsOption('auto', 'Auto'))
   for (let index = firstAllowedLodIndex; index < lodCount; index += 1) {
     select.appendChild(createSettingsOption(String(index), `LOD${String(index).padStart(2, '0')}`))
   }
-  select.value = selectedLod == null ? 'auto' : String(selectedLod)
+  select.value = selectedLod === undefined && allowGlobal
+    ? 'global'
+    : selectedLod == null ? 'auto' : String(selectedLod)
   if (select.selectedIndex < 0) {
-    select.value = 'auto'
+    select.value = allowGlobal ? 'global' : 'auto'
   }
 }
 
-function parseSettingsNullableInteger(value: string): number | null {
+function parseSettingsNullableInteger(
+  value: string,
+  inheritOnBlank = false
+): number | null | undefined {
+  if (value === 'global' || (inheritOnBlank && value.trim() === '')) {
+    return undefined
+  }
   if (value === '' || value === 'auto') {
     return null
   }
@@ -7341,12 +7408,62 @@ function parseSettingsNullableInteger(value: string): number | null {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : null
 }
 
-function parseSettingsNullableNumber(value: string): number | null {
+function parseSettingsNullableNumber(
+  value: string,
+  inheritOnBlank = false
+): number | null | undefined {
   if (value.trim() === '') {
-    return null
+    return inheritOnBlank ? undefined : null
   }
   const parsed = Number.parseFloat(value)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function formatSettingsBooleanValue(value: boolean | undefined, allowGlobal: boolean): string {
+  if (value == null && allowGlobal) {
+    return 'global'
+  }
+  return value === false ? 'off' : 'on'
+}
+
+function parseSettingsBooleanValue(
+  value: string,
+  allowGlobal: boolean
+): boolean | undefined {
+  if (allowGlobal && value === 'global') {
+    return undefined
+  }
+  return value !== 'off'
+}
+
+function parseSettingsExteriorInteriorMode(
+  value: string,
+  allowGlobal: boolean
+): ExteriorInteriorMode | undefined {
+  if (allowGlobal && value === 'global') {
+    return undefined
+  }
+  return value === 'sync' || value === 'off' ? value : 'deferred'
+}
+
+function parseSettingsGaugeMode(
+  value: string,
+  allowGlobal: boolean
+): VCockpitGaugeMode | undefined {
+  if (allowGlobal && value === 'global') {
+    return undefined
+  }
+  return value === 'overlay' || value === 'video' ? value : 'texture'
+}
+
+function parseSettingsCockpitTextures(
+  value: string,
+  allowGlobal: boolean
+): ViewerConfigProfile['cockpitTextures'] {
+  if (allowGlobal && value === 'global') {
+    return undefined
+  }
+  return value === 'range-low' ? 'range-low' : 'off'
 }
 
 function createSettingsField(labelText: string, control: HTMLElement): HTMLLabelElement {
@@ -7417,16 +7534,6 @@ function styleSettingsTabButton(button: HTMLButtonElement, active: boolean): voi
     : 'rgba(15, 24, 34, 0.82)'
   button.style.color = active ? '#f7fbff' : 'rgba(243, 247, 251, 0.72)'
   button.style.fontWeight = active ? '700' : '500'
-}
-
-function createSettingsActions(...buttons: readonly HTMLButtonElement[]): HTMLDivElement {
-  const actions = document.createElement('div')
-  actions.style.display = 'grid'
-  actions.style.gridTemplateColumns = `repeat(${buttons.length}, minmax(0, 1fr))`
-  actions.style.gap = '8px'
-  actions.style.marginTop = '12px'
-  actions.append(...buttons)
-  return actions
 }
 
 function createActionButton(label: string): HTMLButtonElement {
