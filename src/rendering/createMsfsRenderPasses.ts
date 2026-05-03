@@ -36,6 +36,11 @@ type BlendGBufferMesh = Mesh & {
   material: MsfsMaterial
 }
 
+type DepthCopyRenderer = AppRenderer & {
+  copyFramebufferToTexture?: (texture: unknown) => void
+  getDrawingBufferSize?: (target: Vector2) => Vector2
+}
+
 const depthTextureSize = new Vector2()
 
 export interface MsfsRenderPasses {
@@ -200,20 +205,15 @@ function copyBlendGBufferSceneDepth(
     return
   }
 
-  const copyFramebufferToTexture =
-    (renderer as AppRenderer & {
-      copyFramebufferToTexture?: (texture: unknown) => void
-      getDrawingBufferSize?: (target: Vector2) => Vector2
-    }).copyFramebufferToTexture
-  const getDrawingBufferSize =
-    (renderer as AppRenderer & {
-      getDrawingBufferSize?: (target: Vector2) => Vector2
-    }).getDrawingBufferSize
-  if (copyFramebufferToTexture == null || getDrawingBufferSize == null) {
+  const depthCopyRenderer = renderer as DepthCopyRenderer
+  if (
+    depthCopyRenderer.copyFramebufferToTexture == null ||
+    depthCopyRenderer.getDrawingBufferSize == null
+  ) {
     return
   }
 
-  getDrawingBufferSize.call(renderer, depthTextureSize)
+  depthCopyRenderer.getDrawingBufferSize(depthTextureSize)
   const depthTexture = getMsfsBlendGBufferDepthTexture()
   if (
     depthTexture.image.width !== depthTextureSize.x ||
@@ -224,7 +224,7 @@ function copyBlendGBufferSceneDepth(
     depthTexture.needsUpdate = true
   }
 
-  copyFramebufferToTexture.call(renderer, depthTexture)
+  depthCopyRenderer.copyFramebufferToTexture(depthTexture)
 }
 
 function hasBlendGBufferDepthMaskMaterial(materials: Iterable<Material>): boolean {

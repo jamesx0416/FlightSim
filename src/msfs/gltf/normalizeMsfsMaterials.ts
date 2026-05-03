@@ -419,15 +419,12 @@ function projectBlendGBufferDecals(
   parser: GltfParserLike | undefined
 ): void {
   root.updateWorldMatrix(true, true)
-
-  const projectedBlendMeshes = new WeakSet<MeshWithGeometry>()
-  projectSameMeshBlendGBufferDecals(root, parser, projectedBlendMeshes)
+  projectSameMeshBlendGBufferDecals(root, parser)
 }
 
 function projectSameMeshBlendGBufferDecals(
   root: Object3D,
-  parser: GltfParserLike | undefined,
-  projectedBlendMeshes: WeakSet<MeshWithGeometry>
+  parser: GltfParserLike | undefined
 ): void {
   if (parser == null) {
     return
@@ -470,7 +467,7 @@ function projectSameMeshBlendGBufferDecals(
       const decalPrimitives = primitives
         .filter(primitive =>
           shouldProjectBlendGBufferPrimitive(primitive.material) &&
-          getSkinnedMeshSkeletonSignature(primitive.mesh) != null
+          isSkinnedMeshWithBones(primitive.mesh)
         )
         .sort((left, right) => left.primitiveIndex - right.primitiveIndex)
 
@@ -493,7 +490,6 @@ function projectSameMeshBlendGBufferDecals(
           decalPrimitive.material,
           projectionDepthAllowance
         )
-        projectedBlendMeshes.add(decalPrimitive.mesh)
       }
     }
   }
@@ -511,7 +507,7 @@ function shouldProjectBlendGBufferPrimitive(material: Material | MsfsMaterial): 
   return usesBlendGBufferColorMaterial(material)
 }
 
-function getSkinnedMeshSkeletonSignature(mesh: MeshWithGeometry): string | null {
+function isSkinnedMeshWithBones(mesh: MeshWithGeometry): boolean {
   const skeleton = (mesh as MeshWithGeometry & {
     readonly isSkinnedMesh?: boolean
     readonly skeleton?: {
@@ -519,11 +515,9 @@ function getSkinnedMeshSkeletonSignature(mesh: MeshWithGeometry): string | null 
     }
   }).skeleton
   const bones = skeleton?.bones
-  if ((mesh as { readonly isSkinnedMesh?: boolean }).isSkinnedMesh !== true || bones == null || bones.length === 0) {
-    return null
-  }
-
-  return bones.map(bone => bone.name).join('\0')
+  return (mesh as { readonly isSkinnedMesh?: boolean }).isSkinnedMesh === true &&
+    bones != null &&
+    bones.length > 0
 }
 
 function buildDecalProjectionTriangles(
