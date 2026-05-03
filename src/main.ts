@@ -15,6 +15,7 @@ import {
   Object3D,
   PerspectiveCamera,
   Scene,
+  SkinnedMesh,
   SRGBColorSpace,
   Texture,
   Vector3,
@@ -371,6 +372,10 @@ async function init(): Promise<void> {
   centerObjectAtOrigin(aircraftRoot)
   fitCameraToObject(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
+  const cameraDepthClipController = createCameraDepthClipController(camera, aircraftRoot)
+  cameraDepthClipController.update()
+  ;(globalThis as Record<string, unknown>).__lastCameraDepthClipController =
+    cameraDepthClipController
   void loadAircraftSelectorOptions(
     discoveredPackageRoots,
     packageData,
@@ -791,6 +796,7 @@ async function init(): Promise<void> {
 
     loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
     ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
+    cameraDepthClipController.refreshBounds()
     const runtimeRebuildStartMs = performance.now()
     rebuildRuntimeForLoadedModel()
     recordSwapPhase('interior-swap:runtime-rebuild', runtimeRebuildStartMs)
@@ -1376,6 +1382,7 @@ async function init(): Promise<void> {
     ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
     rebuildRuntimeForLoadedModel()
     renderPasses.refresh()
+    cameraDepthClipController.refreshBounds()
   }
 
   const applyViewerSettingsToLoadedAircraft = async (
@@ -1480,6 +1487,7 @@ async function init(): Promise<void> {
       if (!cockpitCameraController.isActive()) {
         controls.update()
       }
+      cameraDepthClipController.update()
       const cameraEndMs = performance.now()
       loadedModel.interior?.vcockpitBinding?.update(
         performance.now(),
@@ -1513,6 +1521,7 @@ async function init(): Promise<void> {
       if (!cockpitCameraController.isActive()) {
         controls.update()
       }
+      cameraDepthClipController.update()
       loadedModel.interior?.vcockpitBinding?.update(
         performance.now(),
         camera,
@@ -6322,6 +6331,168 @@ function fitCameraToObject(
   camera.updateProjectionMatrix()
   controls.target.copy(viewerCenter)
   controls.update()
+}
+
+type CameraDepthClipController = {
+  refreshBounds(): void
+  update(): void
+}
+
+type CameraDepthClipBound = {
+  readonly mesh: Mesh
+  readonly localBox: Box3
+}
+
+function createCameraDepthClipController(
+  camera: PerspectiveCamera,
+  object: Group
+): CameraDepthClipController {
+  const cameraSpaceCorner = new Vector3()
+  const cameraWorldPosition = new Vector3()
+  const meshWorldBox = new Box3()
+  const meshBounds: CameraDepthClipBound[] = []
+
+  const refreshBounds = (): void => {
+    meshBounds.length = 0
+    object.updateWorldMatrix(true, true)
+    object.traverse(node => {
+      if (!(node instanceof Mesh) || node.geometry == null) {
+        return
+      }
+
+      if (node instanceof SkinnedMesh) {
+        node.computeBoundingBox()
+      } else if (node.geometry.boundingBox == null) {
+        node.geometry.computeBoundingBox()
+      }
+
+      const localBox =
+        node instanceof SkinnedMesh
+          ? node.boundingBox
+          : node.geometry.boundingBox
+
+      if (localBox == null || localBox.isEmpty()) {
+        return
+      }
+
+      meshBounds.push({
+        mesh: node,
+        localBox: localBox.clone()
+      })
+    })
+  }
+
+  const update = (): void => {
+    if (meshBounds.length === 0) {
+      return
+    }
+
+    camera.updateMatrixWorld()
+    object.updateWorldMatrix(true, true)
+    camera.getWorldPosition(cameraWorldPosition)
+    let nearestDepth = Number.POSITIVE_INFINITY
+    let farthestDepth = 0
+    let intersectsCamera = false
+
+    for (const { mesh, localBox } of meshBounds) {
+      if (!isVisibleInHierarchy(mesh)) {
+        continue
+      }
+
+      meshWorldBox.makeEmpty()
+      forEachBoxCorner(localBox, cameraSpaceCorner, corner => {
+        meshWorldBox.expandByPoint(corner.applyMatrix4(mesh.matrixWorld))
+      })
+
+      if (meshWorldBox.isEmpty()) {
+        continue
+      }
+
+      if (meshWorldBox.containsPoint(cameraWorldPosition)) {
+        intersectsCamera = true
+      }
+
+      let meshNearestDepth = Number.POSITIVE_INFINITY
+      let meshFarthestDepth = 0
+      forEachBoxCorner(meshWorldBox, cameraSpaceCorner, corner => {
+        corner.applyMatrix4(camera.matrixWorldInverse)
+        const depth = -corner.z
+        if (depth <= 0) {
+          return
+        }
+        meshNearestDepth = Math.min(meshNearestDepth, depth)
+        meshFarthestDepth = Math.max(meshFarthestDepth, depth)
+      })
+
+      if (meshFarthestDepth <= 0) {
+        continue
+      }
+
+      farthestDepth = Math.max(farthestDepth, meshFarthestDepth)
+      nearestDepth = Math.min(nearestDepth, meshNearestDepth)
+    }
+
+    if (farthestDepth <= 0) {
+      return
+    }
+
+    const nextNear = intersectsCamera
+      ? MIN_CAMERA_CLIP_NEAR
+      : Math.max(MIN_CAMERA_CLIP_NEAR, nearestDepth)
+    const nextFar = Math.max(nextNear + MIN_CAMERA_CLIP_RANGE, farthestDepth)
+
+    if (!shouldUpdateCameraClipPlane(camera.near, nextNear)) {
+      if (!shouldUpdateCameraClipPlane(camera.far, nextFar)) {
+        return
+      }
+    }
+
+    camera.near = nextNear
+    camera.far = nextFar
+    camera.updateProjectionMatrix()
+  }
+
+  refreshBounds()
+
+  return {
+    refreshBounds: () => {
+      refreshBounds()
+      update()
+    },
+    update
+  }
+}
+
+const MIN_CAMERA_CLIP_NEAR = 0.01
+const MIN_CAMERA_CLIP_RANGE = 0.01
+
+function shouldUpdateCameraClipPlane(current: number, next: number): boolean {
+  return Math.abs(current - next) > Math.max(0.001, Math.abs(next) * 0.001)
+}
+
+function forEachBoxCorner(
+  box: Box3,
+  target: Vector3,
+  callback: (corner: Vector3) => void
+): void {
+  for (const x of [box.min.x, box.max.x]) {
+    for (const y of [box.min.y, box.max.y]) {
+      for (const z of [box.min.z, box.max.z]) {
+        callback(target.set(x, y, z))
+      }
+    }
+  }
+}
+
+function isVisibleInHierarchy(object: Object3D): boolean {
+  let current: Object3D | null = object
+  while (current != null) {
+    if (!current.visible) {
+      return false
+    }
+    current = current.parent
+  }
+  return true
 }
 
 function estimateObjectVerticalScreenSizePercent(
