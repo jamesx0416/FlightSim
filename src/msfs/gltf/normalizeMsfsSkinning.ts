@@ -10,6 +10,8 @@ import {
   Uint8BufferAttribute,
 } from 'three'
 
+export const MSFS_DISCARDED_SKINNING_TRANSFORM_USER_DATA_KEY = 'msfsDiscardedSkinningTransform'
+
 export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void }): void {
   const parentWrapperGroups = new Set<Object3D>()
   const rigidRotationRootMeshes: SkinnedMesh[] = []
@@ -99,6 +101,8 @@ function resetSkinnedMeshObjectTransform(mesh: SkinnedMesh): void {
     return
   }
 
+  mesh.updateMatrix()
+  recordDiscardedSkinnedTransform(mesh, mesh.matrix)
   mesh.position.set(0, 0, 0)
   mesh.quaternion.identity()
   mesh.scale.set(1, 1, 1)
@@ -116,6 +120,7 @@ function resetParentWrapperTransform(group: Object3D): void {
     return
   }
 
+  const children: SkinnedMesh[] = []
   for (const child of group.children) {
     if (!(child instanceof SkinnedMesh) || child.skeleton == null) {
       continue
@@ -124,7 +129,11 @@ function resetParentWrapperTransform(group: Object3D): void {
     if (!isIdentityTranslation(child) || !isIdentityScale(child) || !isIdentityQuaternion(child)) {
       return
     }
+    children.push(child)
+  }
 
+  for (const child of children) {
+    recordDiscardedSkinnedTransform(child, group.matrix)
     child.bind(child.skeleton, IDENTITY_MATRIX)
   }
 
@@ -136,6 +145,19 @@ function resetParentWrapperTransform(group: Object3D): void {
 }
 
 const IDENTITY_MATRIX = new Matrix4()
+
+function recordDiscardedSkinnedTransform(mesh: SkinnedMesh, transform: Matrix4): void {
+  if (matrixApproximatelyEquals(transform, IDENTITY_MATRIX)) {
+    return
+  }
+
+  const userData = mesh.userData as Record<string, unknown>
+  const existing = userData[MSFS_DISCARDED_SKINNING_TRANSFORM_USER_DATA_KEY]
+  userData[MSFS_DISCARDED_SKINNING_TRANSFORM_USER_DATA_KEY] =
+    existing instanceof Matrix4
+      ? transform.clone().multiply(existing)
+      : transform.clone()
+}
 
 function isSkinnedWrapperGroup(object: Object3D | null | undefined): object is Object3D {
   if (object == null) {
