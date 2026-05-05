@@ -387,6 +387,9 @@ This section tracks the next authoritative, aircraft-generic loader work.
 
 This checklist tracks authoritative MSFS stock support work against the mounted public Asobo XML set and mirrored CFG docs.
 
+Active checklist location:
+- In this checkout, this section is the active stock-support checklist referenced by the project instructions. There is no repo-root `stock-support-todo.md` file at the moment, so update this section and [stock-support-scope.md](stock-support-scope.md) until that file is restored or intentionally split out.
+
 Rules:
 - Prefer the official mounted XML/docs over local approximations.
 - Keep fixes generic and reusable across aircraft.
@@ -684,7 +687,27 @@ Scope note:
   - The exact `WingFlex` node deformation math remains blocked by missing public documentation; do not re-enable the prior transform approximation unless authoritative math becomes available.
 - [ ] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.
 
-### 8. Prototype Experimental Native HTML Gauge Texture Path
+### 8. Finish Selectable Cockpit / Interior LOD Support
+
+- [ ] Finish generic `?interiorLod=` support for cockpit/interior-view model loading.
+  Current status:
+  - local implementation is in progress in `src/main.ts`
+  - `docs/query-parameters.md` has been updated locally to describe `interiorLod`
+  - the change still needs typecheck/lint and browser verification before this item can be checked
+  Required behavior:
+  - omitted, empty, or `auto` keeps the default cockpit/interior-view path
+  - explicit values are validated as zero-based nonnegative integers
+  - selected values are clamped to available interior LODs only after the active aircraft/interior model is known
+  - cockpit activation, cockpit benchmarks, range-low cockpit texture loading, VCockpit surface binding, cockpit static batching experiments, runtime diagnostics, settings profiles, and query documentation all refer to the selected cockpit/interior LOD rather than assuming LOD00
+  Verification before checkoff:
+  - run typecheck/lint
+  - verify the default A330 route still starts cleanly
+  - verify an A320 fixture route with default `auto`
+  - verify at least one explicit `interiorLod=0` route
+  - verify at least one explicit nonzero `interiorLod` route on a fixture that exposes it
+  - keep this generic; do not add aircraft-name, material-name, or package-specific exceptions
+
+### 9. Prototype Experimental Native HTML Gauge Texture Path
 
 - [ ] Evaluate Three.js `r184+` `HTMLTexture` / HTML-in-Canvas support against the current WebGPU-first renderer stack.
 - [ ] Add a query-gated `?vcockpitGaugeMode=htmlTexture` prototype that is used only when native browser feature detection succeeds.
