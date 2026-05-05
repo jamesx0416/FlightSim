@@ -689,11 +689,20 @@ Scope note:
 
 ### 8. Finish Selectable Cockpit / Interior LOD Support
 
-- [ ] Finish generic `?interiorLod=` support for cockpit/interior-view model loading.
+- [x] Finish generic `?interiorLod=` support for cockpit/interior-view model loading.
   Current status:
   - local implementation is in progress in `src/main.ts`
   - `docs/query-parameters.md` has been updated locally to describe `interiorLod`
-  - the change still needs typecheck/lint and browser verification before this item can be checked
+  - 2026-05-05: `bunx tsc --noEmit` equivalent via MCP TypeScript check passed with 0 diagnostics
+  - 2026-05-05: added `typecheck` and `lint` package scripts backed by the repo's existing strict TypeScript validation; `bun run lint` passed
+  - 2026-05-05: default A330 route opened cleanly through `agent-browser`; screenshot saved at `backups/agent-browser/interior-lod-verification/default-a330.png`
+  - 2026-05-05: `/tmp/headwindsim-aircraft-a330-900/` and `/tmp/flybywire-aircraft-a320-neo/` fixture package roots were not present, so fixture-package A320/A330 route verification is blocked in this environment
+  - 2026-05-05: `agent-browser` repeatedly reached explicit `interiorLod` routes but became unresponsive during screenshot capture even with a 20-second wait; direct Chrome headless captures with `--disable-gpu` completed, but those screenshots are invalid because the viewer failed with `Error creating WebGL context`
+  - 2026-05-05: `agent-browser` investigation found the normal headless route drives Chrome's SwiftShader WebGL GPU helper above 300% CPU after viewer initialization; disabling all 3D APIs keeps `agent-browser` responsive but prevents the viewer from creating WebGL, and headed mode avoids the CPU spike but still hangs in `agent-browser screenshot` after the live canvas route initializes
+  - 2026-05-05: forcing `agent-browser` Chrome onto WebGPU with `--enable-unsafe-webgpu,--enable-dawn-features=allow_unsafe_apis` kept the `?interiorLod=0` route responsive after a 20-second wait; runtime eval confirmed `WebGPUBackend`, and screenshot succeeded at `backups/agent-browser/interior-lod-verification/a330-interior-lod-0-agentbrowser-webgpu2-wait20.png`
+  - 2026-05-05: the same WebGPU setup confirmed `WebGPUBackend` for `?interiorLod=1` after the 20-second wait, but still hung during screenshot capture; LOD1 visual verification remains pending
+  - 2026-05-05: pressing `C` without focusing the canvas did not activate cockpit view; after focusing the canvas first, cockpit activation entered a heavier load path and did not return runtime stats within the timeout, even with `vcockpitSurfaces=off&cockpitTextures=range-low`; selected active interior LOD confirmation remains pending
+  - 2026-05-05: user manually verified the remaining `interiorLod` runtime/visual behavior and requested this item be checked off
   Required behavior:
   - omitted, empty, or `auto` keeps the default cockpit/interior-view path
   - explicit values are validated as zero-based nonnegative integers

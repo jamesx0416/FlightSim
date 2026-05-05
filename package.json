@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "sh -c 'portless proxy start --port 3000 --https && trap \"portless proxy stop -p 3000\" EXIT INT TERM; portless run vite'",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit",
     "build": "vite build",
     "preview": "vite preview",
     "download:msfs-doc-xmls": "bun scripts/download-msfs-doc-xmls.mjs",
