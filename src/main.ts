@@ -142,6 +142,7 @@ type ViewerConfigProfile = {
   readonly packageRoot?: string
   readonly aircraftId?: string
   readonly lod?: number | null
+  readonly interiorLod?: number | null
   readonly exteriorInteriorMode?: ExteriorInteriorMode
   readonly exteriorInteriorLod?: number | null
   readonly vcockpitSurfaces?: boolean
@@ -174,6 +175,7 @@ type ViewerSettingsApplyEvent = {
 
 type ViewerRuntimeSettingsSnapshot = {
   readonly exteriorLod: number | null
+  readonly interiorLod: number | null
   readonly exteriorInteriorMode: ExteriorInteriorMode
   readonly exteriorInteriorLod: number | null
   readonly vcockpitSurfaces: boolean
@@ -258,6 +260,7 @@ async function init(): Promise<void> {
     aircraftConfigProfile
   )
   let requestedLodIndex = resolveRequestedLodIndex(effectiveSearchParams)
+  let requestedInteriorLodIndex = resolveRequestedInteriorLodIndex(effectiveSearchParams)
   let requestedExteriorInteriorLodIndex =
     resolveRequestedExteriorInteriorLodIndex(effectiveSearchParams)
   let exteriorInteriorMode = getExteriorInteriorMode(effectiveSearchParams)
@@ -811,10 +814,23 @@ async function init(): Promise<void> {
 
   let exteriorViewInterior = loadedModel.interior
   let exteriorViewInteriorLoadPromise: Promise<LoadedModelComponent | null> | null = null
-  let cachedCockpitInteriorLod00: LoadedModelComponent | null =
-    loadedModel.interior?.loadedLodIndex === 0 ? loadedModel.interior : null
-  let shouldUseCockpitInteriorLod00 = false
-  let hasRequestedCockpitInteriorLod00 = false
+  const getCockpitInteriorPreferredLodIndex = (): number | null => {
+    const interiorModel = aircraft.interiorModel
+    if (interiorModel == null || interiorModel.lods.length === 0) {
+      return null
+    }
+
+    return Math.min(
+      Math.max(requestedInteriorLodIndex ?? 0, 0),
+      interiorModel.lods.length - 1
+    )
+  }
+  let cachedCockpitInterior: LoadedModelComponent | null =
+    loadedModel.interior?.loadedLodIndex === getCockpitInteriorPreferredLodIndex()
+      ? loadedModel.interior
+      : null
+  let shouldUseCockpitInterior = false
+  let hasRequestedCockpitInterior = false
   let interiorLodUpgradePromise: Promise<void> | null = null
   const shouldLoadExteriorViewInterior = (): boolean => {
     return (
@@ -915,23 +931,23 @@ async function init(): Promise<void> {
     return exteriorViewInteriorLoadPromise
   }
 
-  const requestInteriorLod00Upgrade = (): void => {
-    if (!hasRequestedCockpitInteriorLod00) {
+  const requestInteriorLodUpgrade = (): void => {
+    if (!hasRequestedCockpitInterior) {
       return
     }
 
-    if (cachedCockpitInteriorLod00 != null) {
+    if (cachedCockpitInterior != null) {
       if (
-        shouldUseCockpitInteriorLod00 &&
-        loadedModel.interior !== cachedCockpitInteriorLod00
+        shouldUseCockpitInterior &&
+        loadedModel.interior !== cachedCockpitInterior
       ) {
         recordCockpitBenchmarkEvent('cockpit:interior-upgrade:cache-hit', {
-          loadedLodIndex: cachedCockpitInteriorLod00.loadedLodIndex,
+          loadedLodIndex: cachedCockpitInterior.loadedLodIndex,
           resourceStats:
-            cachedCockpitInteriorLod00.resourceStats ??
-            collectModelResourceStats(cachedCockpitInteriorLod00.scene)
+            cachedCockpitInterior.resourceStats ??
+            collectModelResourceStats(cachedCockpitInterior.scene)
         })
-        setActiveInteriorComponent(cachedCockpitInteriorLod00)
+        setActiveInteriorComponent(cachedCockpitInterior)
       }
       return
     }
@@ -958,7 +974,7 @@ async function init(): Promise<void> {
           interiorModel,
           {
             kind: 'interior',
-            preferredLodIndex: 0,
+            preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
             fallbackToOtherLods: false,
             textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
             stripTextures: !shouldLoadCockpitRangeTextures(effectiveSearchParams),
@@ -982,8 +998,8 @@ async function init(): Promise<void> {
             behaviorSet: compiledBehaviors
           }
         )
-        cachedCockpitInteriorLod00 = nextInterior
-        if (!shouldUseCockpitInteriorLod00 || loadedModel.interior === nextInterior) {
+        cachedCockpitInterior = nextInterior
+        if (!shouldUseCockpitInterior || loadedModel.interior === nextInterior) {
           nextInterior.vcockpitBinding?.setActive(loadedModel.interior === nextInterior)
         }
         recordCockpitBenchmarkEvent('cockpit:interior-upgrade:component-loaded', {
@@ -992,7 +1008,7 @@ async function init(): Promise<void> {
           resourceStats: nextInterior.resourceStats
         })
 
-        if (shouldUseCockpitInteriorLod00 && loadedModel.interior !== nextInterior) {
+        if (shouldUseCockpitInterior && loadedModel.interior !== nextInterior) {
           setActiveInteriorComponent(nextInterior)
         }
 
@@ -1017,7 +1033,7 @@ async function init(): Promise<void> {
   }
 
   const restoreExteriorInteriorLod = (): void => {
-    shouldUseCockpitInteriorLod00 = false
+    shouldUseCockpitInterior = false
     if (loadedModel.interior === exteriorViewInterior) {
       return
     }
@@ -1034,9 +1050,9 @@ async function init(): Promise<void> {
     loadedModel.exterior.scene,
     aircraft,
     () => {
-      shouldUseCockpitInteriorLod00 = true
-      hasRequestedCockpitInteriorLod00 = true
-      requestInteriorLod00Upgrade()
+      shouldUseCockpitInterior = true
+      hasRequestedCockpitInterior = true
+      requestInteriorLodUpgrade()
     },
     restoreExteriorInteriorLod,
     (mode, source) => {
@@ -1097,16 +1113,17 @@ async function init(): Promise<void> {
       )
       await waitForAnimationFrames(3)
 
-      const coldAvailable = cachedCockpitInteriorLod00 == null
+      const coldAvailable = cachedCockpitInterior == null
+      const targetCockpitInteriorLodIndex = getCockpitInteriorPreferredLodIndex()
       await captureCockpitBenchmarkSnapshot('benchmark:cold:before')
       if (coldAvailable) {
         cockpitCameraController.enter('benchmark')
         await waitForCockpitBenchmarkCondition(
           () =>
             cockpitCameraController.isActive() &&
-            loadedModel.interior?.loadedLodIndex === 0,
+            loadedModel.interior?.loadedLodIndex === targetCockpitInteriorLodIndex,
           120_000,
-          'cold cockpit LOD00 activation'
+          'cold cockpit interior LOD activation'
         )
         recordCockpitBenchmarkEvent('benchmark:cold:active-interior')
         await waitForAnimationFrames(3)
@@ -1114,7 +1131,7 @@ async function init(): Promise<void> {
         await captureCockpitBenchmarkSnapshot('benchmark:cold:after')
       } else {
         recordCockpitBenchmarkEvent('benchmark:cold:skipped', {
-          reason: 'Interior LOD00 was already cached before the benchmark run started.'
+          reason: 'Selected cockpit interior LOD was already cached before the benchmark run started.'
         })
       }
 
@@ -1136,9 +1153,9 @@ async function init(): Promise<void> {
       await waitForCockpitBenchmarkCondition(
         () =>
           cockpitCameraController.isActive() &&
-          loadedModel.interior?.loadedLodIndex === 0,
+          loadedModel.interior?.loadedLodIndex === targetCockpitInteriorLodIndex,
         10_000,
-        'warm cockpit LOD00 activation'
+        'warm cockpit interior LOD activation'
       )
       recordCockpitBenchmarkEvent('benchmark:warm:active-interior')
       await waitForAnimationFrames(3)
@@ -1159,7 +1176,7 @@ async function init(): Promise<void> {
           activeInteriorLabel: 'benchmark:cold:active-interior',
           skipReason: coldAvailable
             ? null
-            : 'Interior LOD00 was already cached before the benchmark run started.'
+            : 'Selected cockpit interior LOD was already cached before the benchmark run started.'
         }),
         cachedExterior: summarizeCockpitBenchmarkPhase(events, {
           startLabel: 'cockpit:toggle:exit',
@@ -1193,12 +1210,14 @@ async function init(): Promise<void> {
       aircraftId: aircraft.id,
       cockpitCameraAvailable: cockpitCameraController.isAvailable(),
       cockpitViewActive: cockpitCameraController.isActive(),
+      selectedInteriorLodIndex: getCockpitInteriorPreferredLodIndex(),
       activeInteriorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
-      cachedInteriorLod00Available: cachedCockpitInteriorLod00 != null,
+      cachedInteriorAvailable: cachedCockpitInterior != null,
+      cachedInteriorLod00Available: cachedCockpitInterior?.loadedLodIndex === 0,
       activeInteriorLoadDiagnostics: loadedModel.interior?.loadDiagnostics ?? null,
       activeInteriorResourceStats: loadedModel.interior?.resourceStats ?? null,
-      cachedInteriorLod00LoadDiagnostics: cachedCockpitInteriorLod00?.loadDiagnostics ?? null,
-      cachedInteriorLod00ResourceStats: cachedCockpitInteriorLod00?.resourceStats ?? null,
+      cachedInteriorLoadDiagnostics: cachedCockpitInterior?.loadDiagnostics ?? null,
+      cachedInteriorResourceStats: cachedCockpitInterior?.resourceStats ?? null,
       benchmarkRunning: activeCockpitBenchmarkEvents != null,
       lastResult: lastCockpitBenchmarkResult
     }),
@@ -1238,6 +1257,7 @@ async function init(): Promise<void> {
   const setActiveEffectiveSearchParams = (nextSearchParams: URLSearchParams): void => {
     effectiveSearchParams = nextSearchParams
     requestedLodIndex = resolveRequestedLodIndex(effectiveSearchParams)
+    requestedInteriorLodIndex = resolveRequestedInteriorLodIndex(effectiveSearchParams)
     requestedExteriorInteriorLodIndex =
       resolveRequestedExteriorInteriorLodIndex(effectiveSearchParams)
     exteriorInteriorMode = getExteriorInteriorMode(effectiveSearchParams)
@@ -1251,9 +1271,9 @@ async function init(): Promise<void> {
   }
 
   const invalidateCachedCockpitInterior = (): void => {
-    const previousCachedCockpitInterior = cachedCockpitInteriorLod00
-    cachedCockpitInteriorLod00 = null
-    hasRequestedCockpitInteriorLod00 = false
+    const previousCachedCockpitInterior = cachedCockpitInterior
+    cachedCockpitInterior = null
+    hasRequestedCockpitInterior = false
     if (
       previousCachedCockpitInterior != null &&
       previousCachedCockpitInterior !== loadedModel.interior &&
@@ -1263,7 +1283,7 @@ async function init(): Promise<void> {
     }
   }
 
-  const loadCockpitInteriorLod00WithActiveSettings =
+  const loadCockpitInteriorWithActiveSettings =
     async (): Promise<LoadedModelComponent | null> => {
       const interiorModel = aircraft.interiorModel
       if (interiorModel == null) {
@@ -1276,7 +1296,7 @@ async function init(): Promise<void> {
         interiorModel,
         {
           kind: 'interior',
-          preferredLodIndex: 0,
+          preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
           fallbackToOtherLods: false,
           textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
           stripTextures: !shouldLoadCockpitRangeTextures(effectiveSearchParams),
@@ -1302,18 +1322,18 @@ async function init(): Promise<void> {
       )
     }
 
-  const reloadCockpitInteriorLod00WithActiveSettings = async (): Promise<void> => {
-    const previousCockpitInterior = cachedCockpitInteriorLod00
-    const nextCockpitInterior = await loadCockpitInteriorLod00WithActiveSettings()
+  const reloadCockpitInteriorWithActiveSettings = async (): Promise<void> => {
+    const previousCockpitInterior = cachedCockpitInterior
+    const nextCockpitInterior = await loadCockpitInteriorWithActiveSettings()
     if (nextCockpitInterior == null) {
       invalidateCachedCockpitInterior()
       return
     }
 
-    cachedCockpitInteriorLod00 = nextCockpitInterior
-    hasRequestedCockpitInteriorLod00 = cockpitCameraController.isActive()
+    cachedCockpitInterior = nextCockpitInterior
+    hasRequestedCockpitInterior = cockpitCameraController.isActive()
     if (cockpitCameraController.isActive()) {
-      shouldUseCockpitInteriorLod00 = true
+      shouldUseCockpitInterior = true
       setActiveInteriorComponent(nextCockpitInterior)
     } else {
       nextCockpitInterior.vcockpitBinding?.setActive(false)
@@ -1339,7 +1359,7 @@ async function init(): Promise<void> {
 
     if (
       previousExteriorInterior != null &&
-      previousExteriorInterior !== cachedCockpitInteriorLod00 &&
+      previousExteriorInterior !== cachedCockpitInterior &&
       previousExteriorInterior !== loadedModel.interior
     ) {
       disposeLoadedModelComponent(previousExteriorInterior)
@@ -1402,6 +1422,7 @@ async function init(): Promise<void> {
 
     const actions: string[] = []
     const exteriorLodChanged = previousSettings.exteriorLod !== nextSettings.exteriorLod
+    const interiorLodChanged = previousSettings.interiorLod !== nextSettings.interiorLod
     const exteriorInteriorChanged =
       previousSettings.exteriorInteriorMode !== nextSettings.exteriorInteriorMode ||
       previousSettings.exteriorInteriorLod !== nextSettings.exteriorInteriorLod
@@ -1444,9 +1465,9 @@ async function init(): Promise<void> {
       actions.push(nextSettings.cockpitPerf ? 'enabled cockpit perf' : 'disabled cockpit perf')
     }
 
-    if (vcockpitBindingChanged || cockpitTextureChanged) {
+    if (interiorLodChanged || vcockpitBindingChanged || cockpitTextureChanged) {
       if (cockpitCameraController.isActive()) {
-        await reloadCockpitInteriorLod00WithActiveSettings()
+        await reloadCockpitInteriorWithActiveSettings()
         actions.push('reloaded cockpit interior')
       } else {
         invalidateCachedCockpitInterior()
@@ -2255,12 +2276,29 @@ function resolveRequestedExteriorInteriorLodIndex(
   return parsed
 }
 
+function resolveRequestedInteriorLodIndex(searchParams: URLSearchParams): number | null {
+  const rawValue = searchParams.get('interiorLod')
+  if (rawValue == null || rawValue.trim() === '' || rawValue.trim().toLowerCase() === 'auto') {
+    return null
+  }
+
+  const parsed = Number.parseInt(rawValue, 10)
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(
+      `Invalid interiorLod query parameter "${rawValue}". Expected "auto" or a zero-based integer.`
+    )
+  }
+
+  return parsed
+}
+
 const VIEWER_CONFIG_STORAGE_KEY = 'msfs.viewer.config.v1'
 
 const PROFILE_QUERY_KEYS = [
   'package',
   'aircraft',
   'lod',
+  'interiorLod',
   'exteriorInterior',
   'syncExteriorInterior',
   'exteriorInteriorLod',
@@ -2337,6 +2375,7 @@ function normalizeViewerConfigProfile(value: unknown): ViewerConfigProfile {
     packageRoot: typeof record.packageRoot === 'string' ? record.packageRoot : undefined,
     aircraftId: typeof record.aircraftId === 'string' ? record.aircraftId : undefined,
     lod: normalizeNullableInteger(record.lod),
+    interiorLod: normalizeNullableInteger(record.interiorLod),
     exteriorInteriorMode: normalizeExteriorInteriorMode(record.exteriorInteriorMode),
     exteriorInteriorLod: normalizeNullableInteger(record.exteriorInteriorLod),
     vcockpitSurfaces: normalizeOptionalBoolean(record.vcockpitSurfaces),
@@ -2416,6 +2455,7 @@ function applyViewerConfigProfileToSearchParams(
   setProfileSearchParam(searchParams, 'package', profile.packageRoot, overwrite)
   setProfileSearchParam(searchParams, 'aircraft', profile.aircraftId, overwrite)
   setNullableIntegerSearchParam(searchParams, 'lod', profile.lod, overwrite)
+  setNullableIntegerSearchParam(searchParams, 'interiorLod', profile.interiorLod, overwrite)
   setExteriorInteriorModeSearchParam(searchParams, profile.exteriorInteriorMode, overwrite)
   setNullableIntegerSearchParam(
     searchParams,
@@ -7666,6 +7706,7 @@ function createSettingsProfileEditor(options: {
   form.addEventListener('submit', event => event.preventDefault())
 
   const exteriorLodSelect = createSettingsSelect('Exterior LOD')
+  const interiorLodSelect = createSettingsSelect('Interior LOD')
   const exteriorInteriorModeSelect = createSettingsSelect('Exterior Interior')
   const exteriorInteriorLodSelect = createSettingsSelect('Exterior Interior LOD')
   const vcockpitSurfacesSelect = createSettingsSelect('VCockpit Surfaces')
@@ -7720,6 +7761,7 @@ function createSettingsProfileEditor(options: {
 
   const refreshLodOptions = (
     lod: number | null | undefined,
+    interiorLod: number | null | undefined,
     exteriorInteriorLod: number | null | undefined
   ): void => {
     const selectedOption = options.getSelectedOption()
@@ -7728,6 +7770,13 @@ function createSettingsProfileEditor(options: {
       selectedOption.aircraft.model?.lods.length ?? 0,
       0,
       lod,
+      inheritsFromGlobal
+    )
+    replaceLodSelectOptions(
+      interiorLodSelect,
+      selectedOption.aircraft.interiorModel?.lods.length ?? 0,
+      0,
+      interiorLod,
       inheritsFromGlobal
     )
     replaceLodSelectOptions(
@@ -7742,7 +7791,11 @@ function createSettingsProfileEditor(options: {
   }
 
   const setProfile = (profile: ViewerConfigProfile): void => {
-    refreshLodOptions(profile.lod, profile.exteriorInteriorLod)
+    refreshLodOptions(profile.lod, profile.interiorLod, profile.exteriorInteriorLod)
+    interiorLodSelect.value =
+      profile.interiorLod === undefined && inheritsFromGlobal
+        ? 'global'
+        : profile.interiorLod == null ? 'auto' : String(profile.interiorLod)
     exteriorInteriorModeSelect.value =
       profile.exteriorInteriorMode ?? (inheritsFromGlobal ? 'global' : 'deferred')
     exteriorInteriorLodSelect.value =
@@ -7781,6 +7834,7 @@ function createSettingsProfileEditor(options: {
   const readProfile = (): ViewerConfigProfile => {
     return {
       lod: parseSettingsNullableInteger(exteriorLodSelect.value),
+      interiorLod: parseSettingsNullableInteger(interiorLodSelect.value),
       exteriorInteriorMode: parseSettingsExteriorInteriorMode(
         exteriorInteriorModeSelect.value,
         inheritsFromGlobal
@@ -7824,12 +7878,14 @@ function createSettingsProfileEditor(options: {
   const refreshForSelectedAircraft = (): void => {
     refreshLodOptions(
       parseSettingsNullableInteger(exteriorLodSelect.value, inheritsFromGlobal),
+      parseSettingsNullableInteger(interiorLodSelect.value, inheritsFromGlobal),
       parseSettingsNullableInteger(exteriorInteriorLodSelect.value, inheritsFromGlobal)
     )
   }
 
   form.append(
     createSettingsField('Exterior LOD', exteriorLodSelect),
+    createSettingsField('Interior LOD', interiorLodSelect),
     createSettingsField('Exterior Interior', exteriorInteriorModeSelect),
     createSettingsField('Exterior Interior LOD', exteriorInteriorLodSelect),
     createSettingsField('VCockpit Surfaces', vcockpitSurfacesSelect),
@@ -7862,6 +7918,7 @@ function createViewerConfigProfileFromSearchParams(
     packageRoot: searchParams.get('package') ?? undefined,
     aircraftId: searchParams.get('aircraft') ?? undefined,
     lod: resolveRequestedLodIndex(searchParams),
+    interiorLod: resolveRequestedInteriorLodIndex(searchParams),
     exteriorInteriorMode: getExteriorInteriorMode(searchParams),
     exteriorInteriorLod: resolveRequestedExteriorInteriorLodIndex(searchParams),
     vcockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
@@ -7884,6 +7941,7 @@ function createViewerRuntimeSettingsSnapshot(
 ): ViewerRuntimeSettingsSnapshot {
   return {
     exteriorLod: resolveRequestedLodIndex(searchParams),
+    interiorLod: resolveRequestedInteriorLodIndex(searchParams),
     exteriorInteriorMode: getExteriorInteriorMode(searchParams),
     exteriorInteriorLod: resolveRequestedExteriorInteriorLodIndex(searchParams),
     vcockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
