@@ -168,11 +168,58 @@ export class AircraftRuntime {
   }
 }
 
-export class DemoRuntimeHost implements RuntimeHostServices {
+export type RuntimeVariableNamespace = 'A' | 'L' | 'O' | 'K' | 'H' | 'B' | 'E'
+
+export interface SharedRuntimeHostStats {
+  readonly variableReadCount: number
+  readonly variableWriteCount: number
+  readonly keyEventCount: number
+  readonly bridgeCallCount: number
+  readonly storedVariableCount: number
+  readonly defaultedVariableCount: number
+  readonly controlState: {
+    readonly gearTarget: number
+    readonly gearPosition: number
+    readonly flapsTarget: number
+    readonly flapsPosition: number
+    readonly spoilersTarget: number
+    readonly spoilersPosition: number
+    readonly aileronTarget: number
+    readonly aileronPosition: number
+    readonly elevatorTarget: number
+    readonly elevatorPosition: number
+    readonly rudderTarget: number
+    readonly rudderPosition: number
+    readonly parkingBrake: number
+  }
+}
+
+export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
+  private readonly defaultedKeys = new Set<string>()
   private readonly engineProfile: DemoEngineProfile
   private readonly wingFlexProfile: DemoWingFlexProfile
+  private variableReadCount = 0
+  private variableWriteCount = 0
+  private keyEventCount = 0
+  private bridgeCallCount = 0
+  private defaultedVariableCount = 0
+  private controlState = {
+    gearTarget: 0,
+    gearPosition: 0,
+    flapsTarget: 0,
+    flapsPosition: 0,
+    spoilersTarget: 0,
+    spoilersPosition: 0,
+    aileronTarget: 0,
+    aileronPosition: 0,
+    elevatorTarget: 0,
+    elevatorPosition: 0,
+    rudderTarget: 0,
+    rudderPosition: 0,
+    parkingBrake: 0
+  }
   private cycles: {
     readonly gearCycle: number
     readonly flapCycle: number
@@ -206,34 +253,65 @@ export class DemoRuntimeHost implements RuntimeHostServices {
 
   tick(dtSeconds: number): void {
     this.elapsedSeconds += dtSeconds
+    this.controlState.gearPosition = moveTowards(
+      this.controlState.gearPosition,
+      this.controlState.gearTarget,
+      dtSeconds * 1.75
+    )
+    this.controlState.flapsPosition = moveTowards(
+      this.controlState.flapsPosition,
+      this.controlState.flapsTarget,
+      dtSeconds * 0.85
+    )
+    this.controlState.spoilersPosition = moveTowards(
+      this.controlState.spoilersPosition,
+      this.controlState.spoilersTarget,
+      dtSeconds * 2.5
+    )
+    this.controlState.aileronPosition = moveTowards(
+      this.controlState.aileronPosition,
+      this.controlState.aileronTarget,
+      dtSeconds * 4
+    )
+    this.controlState.elevatorPosition = moveTowards(
+      this.controlState.elevatorPosition,
+      this.controlState.elevatorTarget,
+      dtSeconds * 4
+    )
+    this.controlState.rudderPosition = moveTowards(
+      this.controlState.rudderPosition,
+      this.controlState.rudderTarget,
+      dtSeconds * 4
+    )
     this.cycles = {
       // Default the standalone viewer to a stable in-flight cruise pose.
-      gearCycle: 0,
-      flapCycle: 0,
-      spoilerCycle: 0,
+      gearCycle: this.controlState.gearPosition,
+      flapCycle: this.controlState.flapsPosition,
+      spoilerCycle: this.controlState.spoilersPosition,
       engineCycle: this.engineProfile.cruiseN1Percent,
-      aileronCycle: 0,
-      elevatorCycle: 0,
-      rudderCycle: 0,
+      aileronCycle: this.controlState.aileronPosition,
+      elevatorCycle: this.controlState.elevatorPosition,
+      rudderCycle: this.controlState.rudderPosition,
       reverserCycle: 0,
       dtSeconds
     }
 
     this.values.set(normalizeRuntimeVariableKey('A:ANIMATION DELTA TIME'), dtSeconds)
-    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:0'), this.cycles.gearCycle * 100)
-    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:1'), this.cycles.gearCycle * 100)
-    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:2'), this.cycles.gearCycle * 100)
+    this.publishControlVariables()
   }
 
   readVariable(key: string, unit?: string | null): number {
+    this.variableReadCount += 1
     const normalizedKey = normalizeRuntimeVariableKey(key)
     if (!this.values.has(normalizedKey)) {
       const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
 
-      if (!resolved.handled) {
+      if (!resolved.handled || isRuntimeStoredVariableKey(normalizedKey)) {
         this.values.set(normalizedKey, resolved.value)
       }
-      if (!resolved.handled) {
+      if (!resolved.handled && !this.defaultedKeys.has(normalizedKey)) {
+        this.defaultedKeys.add(normalizedKey)
+        this.defaultedVariableCount += 1
         this.diagnostics.push({
           code: 'runtime_variable_defaulted',
           message: `Variable ${normalizedKey} is not provided by the demo host and defaulted to 0.`,
@@ -247,12 +325,67 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     return this.values.get(normalizedKey) ?? 0
   }
 
-  writeVariable(key: string, value: number, _unit?: string | null): void {
-    this.values.set(normalizeRuntimeVariableKey(key), value)
+  writeVariable(key: string, value: number, unit?: string | null): void {
+    this.variableWriteCount += 1
+    const normalizedKey = normalizeRuntimeVariableKey(key)
+    const numericValue = Number(value)
+    this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
+    this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
   }
 
   invokeKeyEvent(name: string, args: readonly number[]): void {
-    this.values.set(normalizeRuntimeVariableKey(`K:${name}`), args.at(-1) ?? 0)
+    this.keyEventCount += 1
+    const value = args.at(-1) ?? 1
+    const normalizedEventName = normalizeKeyEventName(name)
+    this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
+    this.applyKeyEvent(normalizedEventName, args)
+  }
+
+  invokeBridgeCall(name: string): void {
+    this.bridgeCallCount += 1
+    this.values.set(normalizeRuntimeVariableKey(`B:${name}`), this.bridgeCallCount)
+  }
+
+  getStats(): SharedRuntimeHostStats {
+    return {
+      variableReadCount: this.variableReadCount,
+      variableWriteCount: this.variableWriteCount,
+      keyEventCount: this.keyEventCount,
+      bridgeCallCount: this.bridgeCallCount,
+      storedVariableCount: this.values.size,
+      defaultedVariableCount: this.defaultedVariableCount,
+      controlState: { ...this.controlState }
+    }
+  }
+
+  getSnapshot(): Record<string, number> {
+    return Object.fromEntries(this.values)
+  }
+
+  private publishControlVariables(): void {
+    const gearPct = this.controlState.gearPosition * 100
+    const flapsPct = this.controlState.flapsPosition * 100
+    const spoilersPct = this.controlState.spoilersPosition * 100
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION'), gearPct)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:0'), gearPct)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:1'), gearPct)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:2'), gearPct)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR HANDLE POSITION'), this.controlState.gearTarget)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR CENTER POSITION'), gearPct)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR LEFT POSITION'), gearPct)
+    this.values.set(normalizeRuntimeVariableKey('A:GEAR RIGHT POSITION'), gearPct)
+    this.values.set(normalizeRuntimeVariableKey('A:FLAPS HANDLE PERCENT'), flapsPct)
+    this.values.set(normalizeRuntimeVariableKey('A:TRAILING EDGE FLAPS LEFT PERCENT'), flapsPct)
+    this.values.set(normalizeRuntimeVariableKey('A:TRAILING EDGE FLAPS RIGHT PERCENT'), flapsPct)
+    this.values.set(normalizeRuntimeVariableKey('A:LEADING EDGE FLAPS LEFT PERCENT'), flapsPct)
+    this.values.set(normalizeRuntimeVariableKey('A:LEADING EDGE FLAPS RIGHT PERCENT'), flapsPct)
+    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS HANDLE POSITION'), spoilersPct)
+    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS LEFT POSITION'), spoilersPct)
+    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS RIGHT POSITION'), spoilersPct)
+    this.values.set(normalizeRuntimeVariableKey('A:AILERON POSITION'), this.controlState.aileronPosition)
+    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR POSITION'), this.controlState.elevatorPosition)
+    this.values.set(normalizeRuntimeVariableKey('A:RUDDER POSITION'), this.controlState.rudderPosition)
+    this.values.set(normalizeRuntimeVariableKey('A:BRAKE PARKING POSITION'), this.controlState.parkingBrake)
   }
 
   private seedPreviewFlightState(flightState: ImportedFlightState | null): void {
@@ -302,6 +435,12 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     const upperKey = normalizeRuntimeVariableKey(key)
 
     if (upperKey === 'A:ANIMATION DELTA TIME') return handled(convertTimeUnit(cycles.dtSeconds, unit))
+    if (upperKey === 'E:SIMULATION TIME' || upperKey === 'A:E:SIMULATION TIME') {
+      return handled(convertTimeUnit(this.elapsedSeconds, unit))
+    }
+    if (upperKey === 'E:ABSOLUTE TIME' || upperKey === 'A:E:ABSOLUTE TIME') {
+      return handled(Date.now() / 1000 + 62135596800)
+    }
     if (upperKey === 'A:SIM ON GROUND') return handled(0)
     if (upperKey === 'A:SURFACE RELATIVE GROUND SPEED') return handled(0)
     if (upperKey === 'A:STRUCTURAL ICE PCT') return handled(convertPercentOver100Unit(0, unit))
@@ -309,7 +448,19 @@ export class DemoRuntimeHost implements RuntimeHostServices {
     if (upperKey === 'A:WINDSHIELD DEICE SWITCH') return handled(0)
     if (upperKey === 'A:STRUCTURAL DEICE SWITCH') return handled(0)
     if (upperKey === 'A:LIGHT BEACON') return handled(1)
-    if (upperKey.startsWith('O:')) return handled(this.values.get(upperKey) ?? 0)
+    if (upperKey.includes('BRIGHTNESS') || upperKey.includes('POTENTIOMETER')) {
+      return handled(normalizeUnit(unit) === 'percent over 100' ? 1 : 100)
+    }
+    if (isRuntimeStoredVariableKey(upperKey)) {
+      const storedValue = this.values.get(upperKey)
+      if (storedValue != null) {
+        return handled(storedValue)
+      }
+      const genericStoredValue = resolveGenericStoredVariableFallback(upperKey, unit)
+      if (genericStoredValue != null) {
+        return handled(genericStoredValue)
+      }
+    }
     if (upperKey.startsWith('A:CIRCUIT ON:')) return handled(1)
     if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(convertPercentUnit(100, unit))
     if (upperKey.startsWith('A:CIRCUIT CONNECTION ON:')) return handled(1)
@@ -375,7 +526,91 @@ export class DemoRuntimeHost implements RuntimeHostServices {
       value: this.values.get(upperKey) ?? 0
     }
   }
+
+  private applyVariableSideEffects(key: string, value: number, unit: string | null): void {
+    const normalizedValue = Number.isFinite(value) ? value : 0
+    if (key === 'A:GEAR HANDLE POSITION' || key === 'A:GEAR HANDLE') {
+      this.controlState.gearTarget = normalizedValue > 0 ? 1 : 0
+      return
+    }
+    if (key.includes('FLAPS HANDLE') || key.includes('FLAP') || key.includes('SLAT')) {
+      this.controlState.flapsTarget = clamp01(toPercentOver100(normalizedValue, unit))
+      return
+    }
+    if (key.includes('SPOILER')) {
+      this.controlState.spoilersTarget = clamp01(toPercentOver100(normalizedValue, unit))
+      return
+    }
+    if (key.includes('AILERON')) {
+      this.controlState.aileronTarget = clamp(normalizedValue, -1, 1)
+      return
+    }
+    if (key.includes('ELEVATOR')) {
+      this.controlState.elevatorTarget = clamp(normalizedValue, -1, 1)
+      return
+    }
+    if (key.includes('RUDDER')) {
+      this.controlState.rudderTarget = clamp(normalizedValue, -1, 1)
+      return
+    }
+    if (key.includes('PARKING') || key.includes('PARK BRAKE')) {
+      this.controlState.parkingBrake = normalizedValue > 0 ? 1 : 0
+    }
+  }
+
+  private applyKeyEvent(name: string, args: readonly number[]): void {
+    const value = Number(args.at(-1) ?? 0)
+    if (name === 'GEAR_UP') {
+      this.controlState.gearTarget = 0
+      return
+    }
+    if (name === 'GEAR_DOWN') {
+      this.controlState.gearTarget = 1
+      return
+    }
+    if (name === 'GEAR_TOGGLE') {
+      this.controlState.gearTarget = this.controlState.gearTarget > 0.5 ? 0 : 1
+      return
+    }
+    if (name === 'GEAR_SET') {
+      this.controlState.gearTarget = value > 0 ? 1 : 0
+      return
+    }
+    if (name === 'FLAPS_INCR') {
+      this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget + 0.25)
+      return
+    }
+    if (name === 'FLAPS_DECR') {
+      this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget - 0.25)
+      return
+    }
+    if (name === 'FLAPS_SET') {
+      this.controlState.flapsTarget = clamp01(value / 16_383)
+      return
+    }
+    if (name === 'AXIS_FLAPS_SET') {
+      this.controlState.flapsTarget = clamp01(Math.abs(value) / 16_383)
+      return
+    }
+    if (name === 'SPOILERS_SET' || name === 'AXIS_SPOILER_SET') {
+      this.controlState.spoilersTarget = clamp01(Math.abs(value) / 16_383)
+      return
+    }
+    if (name === 'SPOILERS_ARM_SET') {
+      this.controlState.spoilersTarget = value > 0 ? this.controlState.spoilersTarget : 0
+      return
+    }
+    if (name === 'PARKING_BRAKES' || name === 'PARKING_BRAKE_TOGGLE') {
+      this.controlState.parkingBrake = this.controlState.parkingBrake > 0.5 ? 0 : 1
+      return
+    }
+    if (name === 'PARKING_BRAKE_SET') {
+      this.controlState.parkingBrake = value > 0 ? 1 : 0
+    }
+  }
 }
+
+export class DemoRuntimeHost extends SharedMsfsRuntimeHost {}
 
 function toRequestedControlUnit(value: number, unit: string | null): number {
   const normalizedUnit = normalizeUnit(unit)
@@ -420,12 +655,66 @@ function convertTimeUnit(valueSeconds: number, unit: string | null): number {
   return valueSeconds
 }
 
+function resolveGenericStoredVariableFallback(key: string, unit: string | null): number | null {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit.includes('bool')) {
+    if (
+      key.includes('POWER') ||
+      key.includes('POWERED') ||
+      key.includes('ELECTRIC') ||
+      key.includes('ELEC') ||
+      key.includes('BUS') ||
+      key.includes('CIRCUIT') ||
+      key.includes('HEALTHY') ||
+      key.includes('AVAILABLE') ||
+      key.includes('VALID')
+    ) {
+      return 1
+    }
+    return 0
+  }
+  if (key.includes('BRIGHTNESS') || key.includes('POTENTIOMETER')) {
+    return normalizedUnit === 'percent over 100' ? 1 : 100
+  }
+  if (key.includes('POWER') || key.includes('POWERED') || key.includes('ELEC') || key.includes('BUS')) {
+    return 1
+  }
+  return null
+}
+
 function normalizeUnit(unit: string | null): string {
   return unit?.trim().toLowerCase() ?? ''
 }
 
 function normalizeRuntimeVariableKey(key: string): string {
-  return key.trim().toUpperCase()
+  const trimmed = key.trim()
+  if (/^[ALOKHBE]:/iu.test(trimmed)) {
+    return trimmed.toUpperCase()
+  }
+  return `A:${trimmed}`.toUpperCase()
+}
+
+function isRuntimeStoredVariableKey(key: string): boolean {
+  return /^[LOKHB]:/u.test(key)
+}
+
+function normalizeKeyEventName(name: string): string {
+  return name.trim().replace(/^\s*K:/iu, '').replace(/\s+/gu, '_').toUpperCase()
+}
+
+function clamp01(value: number): number {
+  return clamp(value, 0, 1)
+}
+
+function toPercentOver100(value: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'percent' || normalizedUnit === 'pct') {
+    return value / 100
+  }
+  if (Math.abs(value) > 1 && Math.abs(value) <= 100) {
+    return value / 100
+  }
+  return value
 }
 
 function parseFlightStateScalar(rawValue: string): number | null {
