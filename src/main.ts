@@ -426,6 +426,7 @@ async function init(): Promise<void> {
     hitCount: 0,
     executedCount: 0,
     lastTarget: null as string | null,
+    activeHeldTarget: null as string | null,
     lastHitObject: null as string | null,
     lastHitKind: null as 'interaction-volume' | 'visual-mesh' | null,
     lastMissReason: null as string | null,
@@ -1072,7 +1073,10 @@ async function init(): Promise<void> {
         readonly targets: readonly CockpitInteractionHitTarget[]
       }
     | null = null
-  const handleCockpitInteractionClick = (event: MouseEvent | PointerEvent): boolean => {
+  const handleCockpitInteractionPress = (
+    event: MouseEvent | PointerEvent,
+    options: { readonly holdFeedback: boolean }
+  ): string | null => {
     cockpitInteractionStats.attemptCount += 1
     cockpitInteractionStats.lastMissReason = null
     cockpitInteractionStats.lastHitKind = null
@@ -1081,7 +1085,7 @@ async function init(): Promise<void> {
     const rect = renderer.domElement.getBoundingClientRect()
     if (rect.width <= 0 || rect.height <= 0) {
       cockpitInteractionStats.lastMissReason = 'empty-renderer-rect'
-      return false
+      return null
     }
 
     cockpitInteractionPointer.set(
@@ -1109,11 +1113,12 @@ async function init(): Promise<void> {
         const target = hit.target
         cockpitInteractionStats.lastHitObject = target.sourceNode.name || target.sourceNode.type
         cockpitInteractionStats.lastHitKind = 'interaction-volume'
-        if (runtime.executeInteraction(target.binding.target)) {
+        if (runtime.executeInteraction(target.binding.target, { holdFeedback: options.holdFeedback })) {
           cockpitInteractionStats.executedCount += 1
           cockpitInteractionStats.lastTarget = target.binding.target
+          cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? target.binding.target : null
           cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
-          return true
+          return target.binding.target
         }
       }
     }
@@ -1121,23 +1126,35 @@ async function init(): Promise<void> {
     const hits = cockpitInteractionRaycaster.intersectObject(root, true)
     if (hits.length === 0) {
       cockpitInteractionStats.lastMissReason = 'raycast-miss'
-      return false
+      return null
     }
 
     cockpitInteractionStats.hitCount += 1
     for (const hit of hits) {
       cockpitInteractionStats.lastHitObject = hit.object.name || hit.object.type
       cockpitInteractionStats.lastHitKind = 'visual-mesh'
-      if (runtime.executeInteractionForObject(hit.object)) {
+      const executedTarget = runtime.executeInteractionForObject(hit.object, { holdFeedback: options.holdFeedback })
+      if (executedTarget != null) {
         cockpitInteractionStats.executedCount += 1
-        cockpitInteractionStats.lastTarget = hit.object.name || hit.object.type
+        cockpitInteractionStats.lastTarget = executedTarget
+        cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? executedTarget : null
         cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
-        return true
+        return executedTarget
       }
     }
 
     cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
-    return false
+    return null
+  }
+
+  const releaseCockpitInteractionPress = (target: string | null): void => {
+    if (target == null) {
+      return
+    }
+    runtime.releaseInteraction(target)
+    if (cockpitInteractionStats.activeHeldTarget === target) {
+      cockpitInteractionStats.activeHeldTarget = null
+    }
   }
 
   const getCockpitInteractionHitTargets = (
@@ -1189,7 +1206,8 @@ async function init(): Promise<void> {
     (mode, source) => {
       recordCockpitBenchmarkEvent(`cockpit:toggle:${mode}`, { source })
     },
-    handleCockpitInteractionClick
+    handleCockpitInteractionPress,
+    releaseCockpitInteractionPress
   )
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
     cockpitCameraController
@@ -7611,7 +7629,11 @@ function installCockpitCameraShortcut(
   onEnterCockpit?: () => void,
   onExitCockpit?: () => void,
   onToggleCockpitView?: (mode: 'enter' | 'exit', source: CockpitViewToggleSource) => void,
-  onCockpitClick?: (event: MouseEvent | PointerEvent) => boolean
+  onCockpitPress?: (
+    event: MouseEvent | PointerEvent,
+    options: { readonly holdFeedback: boolean }
+  ) => string | null,
+  onCockpitRelease?: (target: string | null) => void
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -7646,6 +7668,8 @@ function installCockpitCameraShortcut(
   let pointerDownX = 0
   let pointerDownY = 0
   let hasPointerMoved = false
+  let activeCockpitPressTarget: string | null = null
+  let suppressNextCanvasClick = false
   let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
   let exteriorVisibilityBeforeCockpit = exteriorScene.visible
   const previousTouchAction = domElement.style.touchAction
@@ -7767,6 +7791,7 @@ function installCockpitCameraShortcut(
     pointerDownX = event.clientX
     pointerDownY = event.clientY
     hasPointerMoved = false
+    activeCockpitPressTarget = onCockpitPress?.(event, { holdFeedback: true }) ?? null
     domElement.setPointerCapture(event.pointerId)
     event.preventDefault()
   }
@@ -7798,9 +7823,8 @@ function installCockpitCameraShortcut(
       return
     }
 
-    if (!hasPointerMoved) {
-      onCockpitClick?.(event)
-    }
+    onCockpitRelease?.(activeCockpitPressTarget)
+    activeCockpitPressTarget = null
     releasePointer()
     event.preventDefault()
   }
@@ -7809,9 +7833,38 @@ function installCockpitCameraShortcut(
     if (isCockpitViewActive || event.button !== 0) {
       return
     }
-    if (onCockpitClick?.(event)) {
+    if (suppressNextCanvasClick) {
+      suppressNextCanvasClick = false
+      event.preventDefault()
+      return
+    }
+    if (onCockpitPress?.(event, { holdFeedback: false }) != null) {
       event.preventDefault()
     }
+  }
+
+  const onCanvasPointerDown = (event: PointerEvent): void => {
+    if (isCockpitViewActive || (event.pointerType === 'mouse' && event.button !== 0)) {
+      return
+    }
+    const pressTarget = onCockpitPress?.(event, { holdFeedback: true }) ?? null
+    if (pressTarget != null) {
+      activePointerId = event.pointerId
+      activeCockpitPressTarget = pressTarget
+      suppressNextCanvasClick = true
+      domElement.setPointerCapture(event.pointerId)
+      event.preventDefault()
+    }
+  }
+
+  const onCanvasPointerUp = (event: PointerEvent): void => {
+    if (isCockpitViewActive || activePointerId !== event.pointerId || activeCockpitPressTarget == null) {
+      return
+    }
+    onCockpitRelease?.(activeCockpitPressTarget)
+    activeCockpitPressTarget = null
+    releasePointer()
+    event.preventDefault()
   }
 
   const onWheel = (event: WheelEvent): void => {
@@ -7828,8 +7881,11 @@ function installCockpitCameraShortcut(
   }
 
   window.addEventListener('keydown', onKeyDown)
+  domElement.addEventListener('pointerdown', onCanvasPointerDown)
   domElement.addEventListener('pointerdown', onPointerDown)
   domElement.addEventListener('pointermove', onPointerMove)
+  domElement.addEventListener('pointerup', onCanvasPointerUp)
+  domElement.addEventListener('pointercancel', onCanvasPointerUp)
   domElement.addEventListener('pointerup', onPointerUp)
   domElement.addEventListener('pointercancel', onPointerUp)
   domElement.addEventListener('click', onCanvasClick)
@@ -7837,8 +7893,11 @@ function installCockpitCameraShortcut(
   disposeCockpitCameraShortcut = () => {
     exitCockpitView()
     window.removeEventListener('keydown', onKeyDown)
+    domElement.removeEventListener('pointerdown', onCanvasPointerDown)
     domElement.removeEventListener('pointerdown', onPointerDown)
     domElement.removeEventListener('pointermove', onPointerMove)
+    domElement.removeEventListener('pointerup', onCanvasPointerUp)
+    domElement.removeEventListener('pointercancel', onCanvasPointerUp)
     domElement.removeEventListener('pointerup', onPointerUp)
     domElement.removeEventListener('pointercancel', onPointerUp)
     domElement.removeEventListener('click', onCanvasClick)
