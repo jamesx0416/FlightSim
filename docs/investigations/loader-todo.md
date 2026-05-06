@@ -418,6 +418,13 @@ Rules:
 - [x] Support `Process="Int|Float|Param"`.
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
+- [ ] Verify generic cockpit interaction press/release behavior on A330 and A320.
+  - Implemented data capture for interaction `MIN_HELD_DURATION`, `ANIM_DURATION`, `LEFT_LEAVE_CODE`, `LEFT_RELEASE_CODE`, and default-IM release variants from expanded behavior template parameters.
+  - Runtime now executes press code on pointerdown, release code on pointerup or after positive `MIN_HELD_DURATION`, and avoids hardcoded visual pulse timing.
+  - Browser verification is still required before this can be checked off.
+- [ ] Verify cockpit interaction occlusion on A330 and A320.
+  - Exact interaction-mesh picking now uses a cached non-interactive occluder mesh registry with bounding-box prefiltering, so seats/panels/materials can block controls without restoring full-scene cockpit raycasting.
+  - Browser verification is still required before this can be checked off.
 - [x] Replace remaining mirrored stock-template fallbacks where the general XML evaluator can do so safely.
   Verified:
   - the built-in stock-template fallback path has been removed from the compiler

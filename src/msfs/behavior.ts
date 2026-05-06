@@ -584,6 +584,7 @@ function traverseElement(
     if (callbackNode != null) {
       const interactionBinding = buildInteractionCodeBinding(
         callbackNode.textContent ?? '',
+        null,
         scopedState.params,
         scopedState.currentNode,
         state.path,
@@ -763,8 +764,15 @@ function expandTemplateUse(
     templateParams.get('LEFT_SINGLE_CODE_DEFAULT_IM')?.trim() ||
     ''
   if (leftSingleSource) {
+    const leftReleaseSource =
+      templateParams.get('LEFT_LEAVE_CODE')?.trim() ||
+      templateParams.get('LEFT_RELEASE_CODE')?.trim() ||
+      templateParams.get('LEFT_LEAVE_CODE_DEFAULT_IM')?.trim() ||
+      templateParams.get('LEFT_RELEASE_CODE_DEFAULT_IM')?.trim() ||
+      ''
     const interactionBinding = buildInteractionCodeBinding(
       leftSingleSource,
+      leftReleaseSource,
       templateParams,
       state.currentNode,
       state.path,
@@ -870,6 +878,7 @@ function buildVisibilityBinding(
 
 function buildInteractionCodeBinding(
   sourceCode: string,
+  releaseSourceCode: string | null,
   params: ReadonlyMap<string, string>,
   currentNode: string | null,
   sourcePath: string,
@@ -897,10 +906,26 @@ function buildInteractionCodeBinding(
     return null
   }
 
+  const releaseSource = substituteParameters(releaseSourceCode ?? '', params).trim()
+  const releaseExpression = releaseSource
+    ? compileRpnExpression(releaseSource, {
+        sourcePath,
+        sourceExpression: releaseSource,
+        diagnostics,
+        localVariableScope: resolveLocalVariableScope(params, currentNode, target)
+      })
+    : null
+  if (releaseSource && releaseExpression == null) {
+    return null
+  }
+
   return {
     target,
     feedbackTargets: collectInteractionFeedbackTargets(params, currentNode, target),
+    minHeldDurationSeconds: Math.max(parseNumber(params.get('MIN_HELD_DURATION'), 0), 0),
+    animationDurationSeconds: parseOptionalPositiveNumber(params.get('ANIM_DURATION')),
     expression,
+    releaseExpression,
     sourcePath,
     kind
   }
@@ -945,7 +970,8 @@ function pushUniqueInteractionBinding(
   const duplicate = bindings.some(candidate =>
     candidate.target === binding.target &&
     candidate.kind === binding.kind &&
-    candidate.expression.source === binding.expression.source
+    candidate.expression.source === binding.expression.source &&
+    candidate.releaseExpression?.source === binding.releaseExpression?.source
   )
   if (!duplicate) {
     bindings.push(binding)
@@ -1853,6 +1879,11 @@ function parseBoolean(value: string | undefined): boolean {
 function parseNumber(value: string | undefined, fallbackValue: number): number {
   const parsedValue = Number.parseFloat(value ?? '')
   return Number.isFinite(parsedValue) ? parsedValue : fallbackValue
+}
+
+function parseOptionalPositiveNumber(value: string | undefined): number | null {
+  const parsedValue = Number.parseFloat(value ?? '')
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null
 }
 
 function parseInteger(value: string | undefined, fallbackValue: number): number {
