@@ -50,6 +50,7 @@ import type {
   ImportDiagnostic,
   RuntimeState
 } from './msfs/types'
+import type { CompiledInteractionBinding } from './msfs/types'
 import type { ImportedModelDefinition } from './msfs/types'
 import {
   createAircraftEnvironment,
@@ -426,8 +427,10 @@ async function init(): Promise<void> {
     executedCount: 0,
     lastTarget: null as string | null,
     lastHitObject: null as string | null,
+    lastHitKind: null as 'interaction-volume' | 'visual-mesh' | null,
     lastMissReason: null as string | null,
-    interactionTargetCount: runtime.getInteractionBindings().length
+    interactionTargetCount: runtime.getInteractionBindings().length,
+    interactionHitVolumeCount: 0
   }
   ;(globalThis as Record<string, unknown>).__lastCockpitInteractionStats = cockpitInteractionStats
   type CockpitBenchmarkMemorySample = {
@@ -728,6 +731,7 @@ async function init(): Promise<void> {
     runtime.bindAnimations(loadedModel.animations)
     ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
     cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
+    cockpitInteractionHitVolumeCache = null
     runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
     runtimeState = runtime.update(0)
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
@@ -1061,11 +1065,19 @@ async function init(): Promise<void> {
   }
   const cockpitInteractionRaycaster = new Raycaster()
   const cockpitInteractionPointer = new Vector2()
+  let cockpitInteractionHitVolumeCache:
+    | {
+        readonly root: Object3D
+        readonly runtime: AircraftRuntime
+        readonly targets: readonly CockpitInteractionHitTarget[]
+      }
+    | null = null
   const handleCockpitInteractionClick = (event: MouseEvent | PointerEvent): boolean => {
     cockpitInteractionStats.attemptCount += 1
     cockpitInteractionStats.lastMissReason = null
+    cockpitInteractionStats.lastHitKind = null
 
-    const root = loadedModel.interior?.scene ?? loadedModel.scene
+    const root = loadedModel.interior?.scene ?? exteriorViewInterior?.scene ?? loadedModel.scene
     const rect = renderer.domElement.getBoundingClientRect()
     if (rect.width <= 0 || rect.height <= 0) {
       cockpitInteractionStats.lastMissReason = 'empty-renderer-rect'
@@ -1077,6 +1089,35 @@ async function init(): Promise<void> {
       -(((event.clientY - rect.top) / rect.height) * 2 - 1)
     )
     cockpitInteractionRaycaster.setFromCamera(cockpitInteractionPointer, camera)
+
+    const interactionHitTargets = getCockpitInteractionHitTargets(root, runtime)
+    const interactionHits = interactionHitTargets
+      .map(target => {
+        const point = cockpitInteractionRaycaster.ray.intersectBox(target.box, new Vector3())
+        return point == null
+          ? null
+          : {
+              target,
+              distance: point.distanceTo(cockpitInteractionRaycaster.ray.origin)
+            }
+      })
+      .filter((hit): hit is { readonly target: CockpitInteractionHitTarget; readonly distance: number } => hit != null)
+      .sort((left, right) => left.distance - right.distance)
+    if (interactionHits.length > 0) {
+      cockpitInteractionStats.hitCount += 1
+      for (const hit of interactionHits) {
+        const target = hit.target
+        cockpitInteractionStats.lastHitObject = target.sourceNode.name || target.sourceNode.type
+        cockpitInteractionStats.lastHitKind = 'interaction-volume'
+        if (runtime.executeInteraction(target.binding.target)) {
+          cockpitInteractionStats.executedCount += 1
+          cockpitInteractionStats.lastTarget = target.binding.target
+          cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
+          return true
+        }
+      }
+    }
+
     const hits = cockpitInteractionRaycaster.intersectObject(root, true)
     if (hits.length === 0) {
       cockpitInteractionStats.lastMissReason = 'raycast-miss'
@@ -1086,6 +1127,7 @@ async function init(): Promise<void> {
     cockpitInteractionStats.hitCount += 1
     for (const hit of hits) {
       cockpitInteractionStats.lastHitObject = hit.object.name || hit.object.type
+      cockpitInteractionStats.lastHitKind = 'visual-mesh'
       if (runtime.executeInteractionForObject(hit.object)) {
         cockpitInteractionStats.executedCount += 1
         cockpitInteractionStats.lastTarget = hit.object.name || hit.object.type
@@ -1096,6 +1138,39 @@ async function init(): Promise<void> {
 
     cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
     return false
+  }
+
+  const getCockpitInteractionHitTargets = (
+    root: Object3D,
+    activeRuntime: AircraftRuntime
+  ): readonly CockpitInteractionHitTarget[] => {
+    if (
+      cockpitInteractionHitVolumeCache != null &&
+      cockpitInteractionHitVolumeCache.root === root &&
+      cockpitInteractionHitVolumeCache.runtime === activeRuntime
+    ) {
+      return cockpitInteractionHitVolumeCache.targets
+    }
+
+    const targets = createCockpitInteractionHitTargets(
+      root,
+      activeRuntime.getInteractionBindings()
+    )
+    cockpitInteractionHitVolumeCache = {
+      root,
+      runtime: activeRuntime,
+      targets
+    }
+    cockpitInteractionStats.interactionTargetCount = activeRuntime.getInteractionBindings().length
+    cockpitInteractionStats.interactionHitVolumeCount = targets.length
+    ;(globalThis as Record<string, unknown>).__lastCockpitInteractionHitTargets =
+      targets.map(target => ({
+        target: target.binding.target,
+        sourceNode: target.sourceNode.name,
+        center: target.box.getCenter(new Vector3()).toArray(),
+        size: target.box.getSize(new Vector3()).toArray()
+      }))
+    return targets
   }
 
   const cockpitCameraController = installCockpitCameraShortcut(
@@ -1116,6 +1191,8 @@ async function init(): Promise<void> {
     },
     handleCockpitInteractionClick
   )
+  ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
+    cockpitCameraController
   if (exteriorInteriorMode === 'deferred') {
     requestAnimationFrame(() => {
       const idleCallback = (
@@ -7435,8 +7512,94 @@ type OrbitCameraSnapshot = {
   readonly zoom: number
 }
 
+type CockpitInteractionHitTarget = {
+  readonly binding: CompiledInteractionBinding
+  readonly sourceNode: Object3D
+  readonly box: Box3
+}
+
 const FEET_TO_METERS = 0.3048
 let disposeCockpitCameraShortcut: (() => void) | null = null
+
+function createCockpitInteractionHitTargets(
+  root: Object3D,
+  bindings: readonly CompiledInteractionBinding[]
+): readonly CockpitInteractionHitTarget[] {
+  const nodesByName = new Map<string, Object3D>()
+  root.updateWorldMatrix(true, true)
+  root.traverse(node => {
+    if (!node.name) {
+      return
+    }
+    if (!nodesByName.has(node.name)) {
+      nodesByName.set(node.name, node)
+    }
+    const lowerName = node.name.toLowerCase()
+    if (!nodesByName.has(lowerName)) {
+      nodesByName.set(lowerName, node)
+    }
+  })
+
+  const targets: CockpitInteractionHitTarget[] = []
+  const seen = new Set<string>()
+  for (const binding of bindings) {
+    const node = resolveCockpitInteractionNode(binding, nodesByName)
+    if (node == null) {
+      continue
+    }
+    const key = `${binding.target}\n${node.uuid}`
+    if (seen.has(key)) {
+      continue
+    }
+    seen.add(key)
+
+    const bounds = new Box3().setFromObject(node)
+    if (bounds.isEmpty()) {
+      continue
+    }
+
+    const size = bounds.getSize(new Vector3())
+    const maxDimension = Math.max(size.x, size.y, size.z)
+    if (!Number.isFinite(maxDimension) || maxDimension <= 1e-6) {
+      continue
+    }
+
+    const minDimension = 0.002
+    const expandedBounds = bounds.clone()
+    const expandedSize = expandedBounds.getSize(new Vector3())
+    if (expandedSize.x < minDimension) {
+      expandedBounds.expandByVector(new Vector3((minDimension - expandedSize.x) / 2, 0, 0))
+    }
+    if (expandedSize.y < minDimension) {
+      expandedBounds.expandByVector(new Vector3(0, (minDimension - expandedSize.y) / 2, 0))
+    }
+    if (expandedSize.z < minDimension) {
+      expandedBounds.expandByVector(new Vector3(0, 0, (minDimension - expandedSize.z) / 2))
+    }
+    targets.push({ binding, sourceNode: node, box: expandedBounds })
+  }
+
+  return targets
+}
+
+function resolveCockpitInteractionNode(
+  binding: CompiledInteractionBinding,
+  nodesByName: ReadonlyMap<string, Object3D>
+): Object3D | null {
+  for (const name of [binding.target, ...binding.feedbackTargets]) {
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      continue
+    }
+    const node =
+      nodesByName.get(trimmedName) ??
+      nodesByName.get(trimmedName.toLowerCase())
+    if (node != null) {
+      return node
+    }
+  }
+  return null
+}
 
 function installCockpitCameraShortcut(
   domElement: HTMLElement,
