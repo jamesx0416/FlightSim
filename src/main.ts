@@ -1,6 +1,7 @@
 import {
   AmbientLight,
   Box3,
+  Box3Helper,
   CanvasTexture,
   Clock,
   Color,
@@ -158,6 +159,7 @@ type ViewerConfigProfile = {
   readonly cockpitMergeStatic?: boolean
   readonly cockpitInstanceStatic?: boolean
   readonly cockpitPerf?: boolean
+  readonly cockpitInteractionHitboxes?: boolean
   readonly rawQuery?: string
 }
 
@@ -191,6 +193,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly cockpitMergeStatic: boolean
   readonly cockpitInstanceStatic: boolean
   readonly cockpitPerf: boolean
+  readonly cockpitInteractionHitboxes: boolean
   readonly extraQuery: string
 }
 
@@ -733,6 +736,7 @@ async function init(): Promise<void> {
     ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
     cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
     cockpitInteractionHitVolumeCache = null
+    syncCockpitInteractionHitboxHelpers()
     runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
     runtimeState = runtime.update(0)
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
@@ -1190,6 +1194,33 @@ async function init(): Promise<void> {
     return targets
   }
 
+  const syncCockpitInteractionHitboxHelpers = (): void => {
+    if (cockpitInteractionHitboxHelperGroup != null) {
+      scene.remove(cockpitInteractionHitboxHelperGroup)
+      cockpitInteractionHitboxHelperGroup.clear()
+      cockpitInteractionHitboxHelperGroup = null
+    }
+
+    if (!shouldShowCockpitInteractionHitboxes(effectiveSearchParams)) {
+      ;(globalThis as Record<string, unknown>).__lastCockpitInteractionHitboxHelpers = []
+      return
+    }
+
+    const root = loadedModel.interior?.scene ?? exteriorViewInterior?.scene ?? loadedModel.scene
+    const targets = getCockpitInteractionHitTargets(root, runtime)
+    const group = new Group()
+    group.name = 'cockpit-interaction-hitbox-helpers'
+    for (const target of targets) {
+      const helper = new Box3Helper(target.box, 0x2de36f)
+      helper.name = `hitbox:${target.binding.target}`
+      group.add(helper)
+    }
+    cockpitInteractionHitboxHelperGroup = group
+    scene.add(group)
+    ;(globalThis as Record<string, unknown>).__lastCockpitInteractionHitboxHelpers =
+      targets.map(target => target.binding.target)
+  }
+
   const cockpitCameraController = installCockpitCameraShortcut(
     renderer.domElement,
     camera,
@@ -1201,6 +1232,7 @@ async function init(): Promise<void> {
       shouldUseCockpitInterior = true
       hasRequestedCockpitInterior = true
       requestInteriorLodUpgrade()
+      syncCockpitInteractionHitboxHelpers()
     },
     restoreExteriorInteriorLod,
     (mode, source) => {
@@ -1386,6 +1418,7 @@ async function init(): Promise<void> {
     ? createCockpitPerfDiagnostics(aircraft, () => loadedModel)
     : createDisabledCockpitPerfDiagnostics(aircraft, () => loadedModel)
   ;(globalThis as Record<string, unknown>).__cockpitPerf = cockpitPerfDiagnostics
+  let cockpitInteractionHitboxHelperGroup: Group | null = null
   updateOverlay(
     overlay,
     packageRoot,
@@ -1592,6 +1625,8 @@ async function init(): Promise<void> {
       previousSettings.cockpitMergeStatic !== nextSettings.cockpitMergeStatic ||
       previousSettings.cockpitInstanceStatic !== nextSettings.cockpitInstanceStatic
     const cockpitPerfChanged = previousSettings.cockpitPerf !== nextSettings.cockpitPerf
+    const cockpitInteractionHitboxesChanged =
+      previousSettings.cockpitInteractionHitboxes !== nextSettings.cockpitInteractionHitboxes
     const extraQueryChanged = previousSettings.extraQuery !== nextSettings.extraQuery
 
     if (exteriorLodChanged) {
@@ -1616,6 +1651,15 @@ async function init(): Promise<void> {
     if (cockpitPerfChanged) {
       setCockpitPerfDiagnosticsEnabled(nextSettings.cockpitPerf)
       actions.push(nextSettings.cockpitPerf ? 'enabled cockpit perf' : 'disabled cockpit perf')
+    }
+
+    if (cockpitInteractionHitboxesChanged) {
+      syncCockpitInteractionHitboxHelpers()
+      actions.push(
+        nextSettings.cockpitInteractionHitboxes
+          ? 'enabled interaction hitboxes'
+          : 'disabled interaction hitboxes'
+      )
     }
 
     if (interiorLodChanged || vcockpitBindingChanged || cockpitTextureChanged) {
@@ -2375,6 +2419,10 @@ function shouldDebugVCockpitGauges(searchParams: URLSearchParams): boolean {
   return searchParams.has('vcockpitGaugeDebug')
 }
 
+function shouldShowCockpitInteractionHitboxes(searchParams: URLSearchParams): boolean {
+  return isEnabledFlagSearchParam(searchParams, 'cockpitInteractionHitboxes')
+}
+
 function isEnabledFlagSearchParam(searchParams: URLSearchParams, key: string): boolean {
   const rawValue = searchParams.get(key)
   if (rawValue == null) {
@@ -2465,7 +2513,8 @@ const PROFILE_QUERY_KEYS = [
   'cockpitTextureSize',
   'cockpitMergeStatic',
   'cockpitInstanceStatic',
-  'cockpitPerf'
+  'cockpitPerf',
+  'cockpitInteractionHitboxes'
 ] as const
 
 function loadViewerConfigStore(): ViewerConfigStore {
@@ -2541,6 +2590,7 @@ function normalizeViewerConfigProfile(value: unknown): ViewerConfigProfile {
     cockpitMergeStatic: normalizeOptionalBoolean(record.cockpitMergeStatic),
     cockpitInstanceStatic: normalizeOptionalBoolean(record.cockpitInstanceStatic),
     cockpitPerf: normalizeOptionalBoolean(record.cockpitPerf),
+    cockpitInteractionHitboxes: normalizeOptionalBoolean(record.cockpitInteractionHitboxes),
     rawQuery: typeof record.rawQuery === 'string' ? record.rawQuery : undefined
   }
 }
@@ -2641,6 +2691,12 @@ function applyViewerConfigProfileToSearchParams(
   setFlagSearchParam(searchParams, 'cockpitMergeStatic', profile.cockpitMergeStatic, overwrite)
   setFlagSearchParam(searchParams, 'cockpitInstanceStatic', profile.cockpitInstanceStatic, overwrite)
   setFlagSearchParam(searchParams, 'cockpitPerf', profile.cockpitPerf, overwrite)
+  setFlagSearchParam(
+    searchParams,
+    'cockpitInteractionHitboxes',
+    profile.cockpitInteractionHitboxes,
+    overwrite
+  )
 }
 
 function applyRawQueryToSearchParams(
@@ -7665,11 +7721,7 @@ function installCockpitCameraShortcut(
   let activePointerId: number | null = null
   let lastPointerX = 0
   let lastPointerY = 0
-  let pointerDownX = 0
-  let pointerDownY = 0
-  let hasPointerMoved = false
   let activeCockpitPressTarget: string | null = null
-  let suppressNextCanvasClick = false
   let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
   let exteriorVisibilityBeforeCockpit = exteriorScene.visible
   const previousTouchAction = domElement.style.touchAction
@@ -7788,9 +7840,6 @@ function installCockpitCameraShortcut(
     activePointerId = event.pointerId
     lastPointerX = event.clientX
     lastPointerY = event.clientY
-    pointerDownX = event.clientX
-    pointerDownY = event.clientY
-    hasPointerMoved = false
     activeCockpitPressTarget = onCockpitPress?.(event, { holdFeedback: true }) ?? null
     domElement.setPointerCapture(event.pointerId)
     event.preventDefault()
@@ -7803,9 +7852,6 @@ function installCockpitCameraShortcut(
 
     const deltaX = event.clientX - lastPointerX
     const deltaY = event.clientY - lastPointerY
-    if (Math.hypot(event.clientX - pointerDownX, event.clientY - pointerDownY) > 5) {
-      hasPointerMoved = true
-    }
     lastPointerX = event.clientX
     lastPointerY = event.clientY
     yawOffsetRadians += deltaX * LOOK_RADIANS_PER_PIXEL
@@ -7829,44 +7875,6 @@ function installCockpitCameraShortcut(
     event.preventDefault()
   }
 
-  const onCanvasClick = (event: MouseEvent): void => {
-    if (isCockpitViewActive || event.button !== 0) {
-      return
-    }
-    if (suppressNextCanvasClick) {
-      suppressNextCanvasClick = false
-      event.preventDefault()
-      return
-    }
-    if (onCockpitPress?.(event, { holdFeedback: false }) != null) {
-      event.preventDefault()
-    }
-  }
-
-  const onCanvasPointerDown = (event: PointerEvent): void => {
-    if (isCockpitViewActive || (event.pointerType === 'mouse' && event.button !== 0)) {
-      return
-    }
-    const pressTarget = onCockpitPress?.(event, { holdFeedback: true }) ?? null
-    if (pressTarget != null) {
-      activePointerId = event.pointerId
-      activeCockpitPressTarget = pressTarget
-      suppressNextCanvasClick = true
-      domElement.setPointerCapture(event.pointerId)
-      event.preventDefault()
-    }
-  }
-
-  const onCanvasPointerUp = (event: PointerEvent): void => {
-    if (isCockpitViewActive || activePointerId !== event.pointerId || activeCockpitPressTarget == null) {
-      return
-    }
-    onCockpitRelease?.(activeCockpitPressTarget)
-    activeCockpitPressTarget = null
-    releasePointer()
-    event.preventDefault()
-  }
-
   const onWheel = (event: WheelEvent): void => {
     if (!isCockpitViewActive) {
       return
@@ -7881,26 +7889,18 @@ function installCockpitCameraShortcut(
   }
 
   window.addEventListener('keydown', onKeyDown)
-  domElement.addEventListener('pointerdown', onCanvasPointerDown)
   domElement.addEventListener('pointerdown', onPointerDown)
   domElement.addEventListener('pointermove', onPointerMove)
-  domElement.addEventListener('pointerup', onCanvasPointerUp)
-  domElement.addEventListener('pointercancel', onCanvasPointerUp)
   domElement.addEventListener('pointerup', onPointerUp)
   domElement.addEventListener('pointercancel', onPointerUp)
-  domElement.addEventListener('click', onCanvasClick)
   domElement.addEventListener('wheel', onWheel, { passive: false })
   disposeCockpitCameraShortcut = () => {
     exitCockpitView()
     window.removeEventListener('keydown', onKeyDown)
-    domElement.removeEventListener('pointerdown', onCanvasPointerDown)
     domElement.removeEventListener('pointerdown', onPointerDown)
     domElement.removeEventListener('pointermove', onPointerMove)
-    domElement.removeEventListener('pointerup', onCanvasPointerUp)
-    domElement.removeEventListener('pointercancel', onCanvasPointerUp)
     domElement.removeEventListener('pointerup', onPointerUp)
     domElement.removeEventListener('pointercancel', onPointerUp)
-    domElement.removeEventListener('click', onCanvasClick)
     domElement.removeEventListener('wheel', onWheel)
   }
 
@@ -8732,6 +8732,7 @@ function createSettingsProfileEditor(options: {
   const cockpitMergeSelect = createSettingsSelect('Cockpit Merge Static')
   const cockpitInstanceSelect = createSettingsSelect('Cockpit Instance Static')
   const cockpitPerfSelect = createSettingsSelect('Cockpit Perf')
+  const cockpitInteractionHitboxesSelect = createSettingsSelect('Interaction Hitboxes')
   const rawQueryTextarea = createSettingsTextarea('Extra Query')
 
   const appendGlobalOption = (select: HTMLSelectElement): void => {
@@ -8767,7 +8768,12 @@ function createSettingsProfileEditor(options: {
     createSettingsOption('off', 'Off'),
     createSettingsOption('range-low', 'Range low')
   )
-  for (const select of [cockpitMergeSelect, cockpitInstanceSelect, cockpitPerfSelect]) {
+  for (const select of [
+    cockpitMergeSelect,
+    cockpitInstanceSelect,
+    cockpitPerfSelect,
+    cockpitInteractionHitboxesSelect
+  ]) {
     appendGlobalOption(select)
     select.append(createSettingsOption('off', 'Off'), createSettingsOption('on', 'On'))
   }
@@ -8841,6 +8847,10 @@ function createSettingsProfileEditor(options: {
       inheritsFromGlobal
     )
     cockpitPerfSelect.value = formatSettingsBooleanValue(profile.cockpitPerf, inheritsFromGlobal)
+    cockpitInteractionHitboxesSelect.value = formatSettingsBooleanValue(
+      profile.cockpitInteractionHitboxes,
+      inheritsFromGlobal
+    )
     rawQueryTextarea.value = profile.rawQuery ?? ''
   }
 
@@ -8881,6 +8891,10 @@ function createSettingsProfileEditor(options: {
         inheritsFromGlobal
       ),
       cockpitPerf: parseSettingsBooleanValue(cockpitPerfSelect.value, inheritsFromGlobal),
+      cockpitInteractionHitboxes: parseSettingsBooleanValue(
+        cockpitInteractionHitboxesSelect.value,
+        inheritsFromGlobal
+      ),
       rawQuery:
         inheritsFromGlobal && rawQueryTextarea.value.trim() === ''
           ? undefined
@@ -8911,6 +8925,7 @@ function createSettingsProfileEditor(options: {
     createSettingsField('Cockpit Merge Static', cockpitMergeSelect),
     createSettingsField('Cockpit Instance Static', cockpitInstanceSelect),
     createSettingsField('Cockpit Perf', cockpitPerfSelect),
+    createSettingsField('Interaction Hitboxes', cockpitInteractionHitboxesSelect),
     createSettingsField('Extra Query', rawQueryTextarea)
   )
 
@@ -8945,7 +8960,8 @@ function createViewerConfigProfileFromSearchParams(
       : null,
     cockpitMergeStatic: isEnabledFlagSearchParam(searchParams, 'cockpitMergeStatic'),
     cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
-    cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf')
+    cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf'),
+    cockpitInteractionHitboxes: shouldShowCockpitInteractionHitboxes(searchParams)
   }
 }
 
@@ -8969,6 +8985,7 @@ function createViewerRuntimeSettingsSnapshot(
     cockpitMergeStatic: isEnabledFlagSearchParam(searchParams, 'cockpitMergeStatic'),
     cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
     cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf'),
+    cockpitInteractionHitboxes: shouldShowCockpitInteractionHitboxes(searchParams),
     extraQuery: getUnmanagedRawQuery(`?${searchParams.toString()}`)
   }
 }
