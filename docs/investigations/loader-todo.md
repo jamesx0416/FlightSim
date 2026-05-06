@@ -239,6 +239,7 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
   - sandboxed HTML gauges get a minimal generic `BaseInstrument` / `registerInstrument` host so template-based gauges can mount visible DOM.
   - the iframe bridge provides a generic demo `simvar` backend with power/brightness/default flight values so standalone gauges are not all driven by null/zero host data.
   - the iframe bridge provides generic MSFS browser-host shims for `vcockpit-panel`, `RunwayDesignator`, `Avionics.Utils`, `EmptyCallback`, `GameState`, listener handles, fast registered simvars, global vars, and dynamic `coui://html_ui` image/style URLs.
+  - the iframe bridge now tracks generic host API usage and unsupported calls, preserves written SimVar/game-var values for later reads, exposes storage/listener diagnostics, and rewrites dynamic `/JS`, `/Pages`, `/html_ui`, and `coui://html_ui` resource URLs from attributes and inline CSS.
   - accessible non-WASM iframe DOM is composited into the bound cockpit `CanvasTexture` with an origin-clean SVG/canvas/text renderer so browser `foreignObject` tainting does not upload black GPU textures.
   - `?vcockpitGaugeMode=overlay` adds an experimental direct-HTML path that projects live gauge iframes over matched VCockpit material bounds instead of converting DOM into images/textures every refresh.
   - `?vcockpitGaugeMode=video` adds an experimental mesh-texture path that streams the composited VCockpit canvas through `captureStream()` into a Three `VideoTexture`, with `?vcockpitGaugeVideoFps=` controlling the stream frame rate.
@@ -255,6 +256,7 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
   - live LOD00 verification on the A339X package captures 15 non-WASM HTML gauges without blocking LOD00 binding; WASM instruments and EFB host/runtime gaps remain explicitly deferred or diagnosed.
   - `?vcockpitGaugeDebug` keeps placeholder labels and gauge status overlays available for verification; the default path hides those overlays from cockpit screens.
   - binding and gauge diagnostics are exposed through `globalThis.__lastVCockpitSurfaceBinding`.
+  - per-gauge capture stats now include bridge stats, script/load errors, blocked asset errors, render status, dirty/update counts, capture attempts, and last capture errors so loaded/rendered gauges, missing assets, iframe errors, deferred WASM, unsupported legacy gauges, and unsupported bridge API calls can be distinguished at runtime.
   - legacy gauge hosting, WASM instruments, and fuller simulator/instrument API bridge coverage remain intentionally deferred.
 - Keep the path opt-in until progressive aircraft loading exists, so cockpit work does not become the default startup-time regression while exterior iteration is still the main workflow.
 - Use the official `cockpit.cfg` / `panel.cfg` docs as the contract, not A320-specific HTML names or hardcoded instrument layouts.
