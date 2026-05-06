@@ -25,6 +25,7 @@ export class AircraftRuntime {
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
   private readonly interactionFeedbackTimers = new Map<string, number>()
+  private readonly heldInteractionFeedbackTargets = new Map<string, number>()
   private readonly wingFlexBindings: readonly RuntimeWingFlexBinding[]
   private interactionExecutionCount = 0
 
@@ -136,23 +137,26 @@ export class AircraftRuntime {
     return this.interactionExecutionCount
   }
 
-  executeInteraction(target: string): boolean {
+  executeInteraction(target: string, options: { readonly holdFeedback?: boolean } = {}): boolean {
     const binding = this.findInteractionBindingForTarget(target)
     if (binding == null) {
       return false
     }
 
-    this.executeInteractionBinding(binding)
+    this.executeInteractionBinding(binding, options)
     return true
   }
 
-  executeInteractionForObject(object: Object3D): boolean {
+  executeInteractionForObject(
+    object: Object3D,
+    options: { readonly holdFeedback?: boolean } = {}
+  ): string | null {
     let current: Object3D | null = object
     while (current != null) {
       const binding = this.findInteractionBindingForTarget(current.name)
       if (binding != null) {
-        this.executeInteractionBinding(binding)
-        return true
+        this.executeInteractionBinding(binding, options)
+        return binding.target
       }
       if (current === this.sceneRoot) {
         break
@@ -160,7 +164,17 @@ export class AircraftRuntime {
       current = current.parent
     }
 
-    return false
+    return null
+  }
+
+  releaseInteraction(target: string): boolean {
+    const binding = this.findInteractionBindingForTarget(target)
+    if (binding == null) {
+      return false
+    }
+
+    this.releaseInteractionFeedback(binding)
+    return true
   }
 
   private runUpdateBindings(dtSeconds: number): void {
@@ -237,8 +251,11 @@ export class AircraftRuntime {
     )
   }
 
-  private executeInteractionBinding(binding: CompiledInteractionBinding): void {
-    this.triggerInteractionFeedback(binding)
+  private executeInteractionBinding(
+    binding: CompiledInteractionBinding,
+    options: { readonly holdFeedback?: boolean } = {}
+  ): void {
+    this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
     evaluateCompiledExpression(binding.expression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
@@ -247,17 +264,50 @@ export class AircraftRuntime {
     this.interactionExecutionCount += 1
   }
 
-  private triggerInteractionFeedback(binding: CompiledInteractionBinding): void {
+  private triggerInteractionFeedback(binding: CompiledInteractionBinding, mode: 'hold' | 'pulse'): void {
     const targets = binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]
     for (const target of targets) {
       const trimmedTarget = target.trim()
-      if (trimmedTarget) {
+      if (!trimmedTarget) {
+        continue
+      }
+      if (mode === 'hold') {
+        this.heldInteractionFeedbackTargets.set(
+          trimmedTarget,
+          (this.heldInteractionFeedbackTargets.get(trimmedTarget) ?? 0) + 1
+        )
+        this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 1)
+      } else {
         this.interactionFeedbackTimers.set(trimmedTarget, AircraftRuntime.interactionFeedbackSeconds)
       }
     }
   }
 
+  private releaseInteractionFeedback(binding: CompiledInteractionBinding): void {
+    const targets = binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]
+    for (const target of targets) {
+      const trimmedTarget = target.trim()
+      if (!trimmedTarget) {
+        continue
+      }
+
+      const nextHoldCount = (this.heldInteractionFeedbackTargets.get(trimmedTarget) ?? 0) - 1
+      if (nextHoldCount > 0) {
+        this.heldInteractionFeedbackTargets.set(trimmedTarget, nextHoldCount)
+      } else {
+        this.heldInteractionFeedbackTargets.delete(trimmedTarget)
+        if (!this.interactionFeedbackTimers.has(trimmedTarget)) {
+          this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 0)
+        }
+      }
+    }
+  }
+
   private publishInteractionFeedback(dtSeconds: number): void {
+    for (const target of this.heldInteractionFeedbackTargets.keys()) {
+      this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
+    }
+
     for (const [target, secondsRemaining] of [...this.interactionFeedbackTimers.entries()]) {
       if (secondsRemaining > 0) {
         this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
@@ -267,8 +317,10 @@ export class AircraftRuntime {
       if (nextSecondsRemaining > 0) {
         this.interactionFeedbackTimers.set(target, nextSecondsRemaining)
       } else {
-        this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 0)
         this.interactionFeedbackTimers.delete(target)
+        if (!this.heldInteractionFeedbackTargets.has(target)) {
+          this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 0)
+        }
       }
     }
   }
