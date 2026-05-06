@@ -146,7 +146,10 @@ export interface CompiledUpdateBinding {
 export interface CompiledInteractionBinding {
   readonly target: string
   readonly feedbackTargets: readonly string[]
+  readonly minHeldDurationSeconds: number
+  readonly animationDurationSeconds: number | null
   readonly expression: CompiledExpression
+  readonly releaseExpression: CompiledExpression | null
   readonly sourcePath: string
   readonly kind: 'leftSingle' | 'callback'
 }

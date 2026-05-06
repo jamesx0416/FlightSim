@@ -437,7 +437,9 @@ async function init(): Promise<void> {
     interactionHitVolumeCount: 0,
     interactionPickableMeshCount: 0,
     interactionMappedBindingCount: 0,
-    interactionFallbackHitboxCount: 0
+    interactionFallbackHitboxCount: 0,
+    interactionOccluderMeshCount: 0,
+    lastOccluderObject: null as string | null
   }
   ;(globalThis as Record<string, unknown>).__lastCockpitInteractionStats = cockpitInteractionStats
   type CockpitBenchmarkMemorySample = {
@@ -1087,6 +1089,7 @@ async function init(): Promise<void> {
     cockpitInteractionStats.attemptCount += 1
     cockpitInteractionStats.lastMissReason = null
     cockpitInteractionStats.lastHitKind = null
+    cockpitInteractionStats.lastOccluderObject = null
 
     const root = loadedModel.interior?.scene ?? exteriorViewInterior?.scene ?? loadedModel.scene
     const rect = renderer.domElement.getBoundingClientRect()
@@ -1108,6 +1111,10 @@ async function init(): Promise<void> {
       for (const hit of meshHits) {
         const binding = pickRegistry.bindingsByMesh.get(hit.object)
         if (binding == null) {
+          continue
+        }
+        if (isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
+          cockpitInteractionStats.lastMissReason = 'occluded'
           continue
         }
         const executedTarget = executeCockpitInteractionBinding(binding, hit.object, 'interaction-mesh', options)
@@ -1133,6 +1140,10 @@ async function init(): Promise<void> {
       cockpitInteractionStats.hitCount += 1
       for (const hit of fallbackHits) {
         const target = hit.target
+        if (isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
+          cockpitInteractionStats.lastMissReason = 'occluded'
+          continue
+        }
         const executedTarget = executeCockpitInteractionBinding(
           target.binding,
           target.sourceNode,
@@ -1157,6 +1168,45 @@ async function init(): Promise<void> {
 
     cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
     return null
+  }
+
+  const isCockpitInteractionHitOccluded = (
+    hitDistance: number,
+    pickRegistry: CockpitInteractionPickRegistry
+  ): boolean => {
+    const maxDistance = Math.max(hitDistance - 1e-4, 0)
+    if (maxDistance <= 0 || pickRegistry.occluderMeshes.length === 0) {
+      return false
+    }
+
+    const occluderCandidates: Mesh[] = []
+    for (const mesh of pickRegistry.occluderMeshes) {
+      if (!isRenderableMesh(mesh)) {
+        continue
+      }
+      mesh.updateWorldMatrix(true, false)
+      const bounds = new Box3().setFromObject(mesh)
+      if (bounds.isEmpty()) {
+        continue
+      }
+      const point = cockpitInteractionRaycaster.ray.intersectBox(bounds, new Vector3())
+      if (point == null) {
+        continue
+      }
+      const distance = point.distanceTo(cockpitInteractionRaycaster.ray.origin)
+      if (distance <= maxDistance) {
+        occluderCandidates.push(mesh)
+      }
+    }
+
+    const occluderHits = cockpitInteractionRaycaster.intersectObjects(occluderCandidates, false)
+    const occluderHit = occluderHits.find(hit => hit.distance <= maxDistance)
+    if (occluderHit == null) {
+      return false
+    }
+
+    cockpitInteractionStats.lastOccluderObject = occluderHit.object.name || occluderHit.object.type
+    return true
   }
 
   const executeCockpitInteractionBinding = (
@@ -1214,11 +1264,13 @@ async function init(): Promise<void> {
     cockpitInteractionStats.interactionPickableMeshCount = registry.meshes.length
     cockpitInteractionStats.interactionMappedBindingCount = registry.bindingsByMesh.size
     cockpitInteractionStats.interactionFallbackHitboxCount = registry.fallbackHitboxes.length
+    cockpitInteractionStats.interactionOccluderMeshCount = registry.occluderMeshes.length
     ;(globalThis as Record<string, unknown>).__lastCockpitInteractionPickRegistry = {
       meshes: registry.meshes.map(mesh => ({
         object: mesh.name,
         target: registry.bindingsByMesh.get(mesh)?.target ?? null
       })),
+      occluderMeshCount: registry.occluderMeshes.length,
       fallbackHitboxes: registry.fallbackHitboxes.map(target => ({
         target: target.binding.target,
         sourceNode: target.sourceNode.name,
@@ -1235,6 +1287,7 @@ async function init(): Promise<void> {
       cockpitInteractionHitboxHelperGroup.clear()
       cockpitInteractionHitboxHelperGroup = null
     }
+    cockpitInteractionMeshHelperPairs = []
 
     if (!shouldShowCockpitInteractionHitboxes(effectiveSearchParams)) {
       ;(globalThis as Record<string, unknown>).__lastCockpitInteractionHitboxHelpers = []
@@ -1259,6 +1312,7 @@ async function init(): Promise<void> {
       helper.matrix.copy(mesh.matrixWorld)
       helper.frustumCulled = false
       group.add(helper)
+      cockpitInteractionMeshHelperPairs.push({ source: mesh, helper })
     }
     for (const target of registry.fallbackHitboxes) {
       const helper = new Box3Helper(target.box, 0xff3333)
@@ -1269,6 +1323,18 @@ async function init(): Promise<void> {
     scene.add(group)
     ;(globalThis as Record<string, unknown>).__lastCockpitInteractionHitboxHelpers =
       registry.meshes.map(mesh => registry.bindingsByMesh.get(mesh)?.target ?? mesh.name)
+  }
+
+  const updateCockpitInteractionHitboxHelpers = (): void => {
+    if (cockpitInteractionHitboxHelperGroup == null) {
+      return
+    }
+
+    for (const { source, helper } of cockpitInteractionMeshHelperPairs) {
+      source.updateWorldMatrix(true, false)
+      helper.matrix.copy(source.matrixWorld)
+      helper.matrixWorldNeedsUpdate = true
+    }
   }
 
   const cockpitCameraController = installCockpitCameraShortcut(
@@ -1469,6 +1535,7 @@ async function init(): Promise<void> {
     : createDisabledCockpitPerfDiagnostics(aircraft, () => loadedModel)
   ;(globalThis as Record<string, unknown>).__cockpitPerf = cockpitPerfDiagnostics
   let cockpitInteractionHitboxHelperGroup: Group | null = null
+  let cockpitInteractionMeshHelperPairs: { readonly source: Mesh; readonly helper: Mesh }[] = []
   updateOverlay(
     overlay,
     packageRoot,
@@ -1762,6 +1829,7 @@ async function init(): Promise<void> {
         camera,
         renderer.domElement
       )
+      updateCockpitInteractionHitboxHelpers()
       const renderStartMs = performance.now()
       renderPasses.render()
       const renderEndMs = performance.now()
@@ -1795,6 +1863,7 @@ async function init(): Promise<void> {
         camera,
         renderer.domElement
       )
+      updateCockpitInteractionHitboxHelpers()
       renderPasses.render()
     }
     const nowMs = performance.now()
@@ -7646,6 +7715,7 @@ type CockpitInteractionPickRegistry = {
   readonly meshes: readonly Mesh[]
   readonly bindingsByMesh: ReadonlyMap<Object3D, CompiledInteractionBinding>
   readonly fallbackHitboxes: readonly CockpitInteractionFallbackHitbox[]
+  readonly occluderMeshes: readonly Mesh[]
 }
 
 const FEET_TO_METERS = 0.3048
@@ -7710,7 +7780,16 @@ function createCockpitInteractionPickRegistry(
     }
   }
 
-  return { meshes, bindingsByMesh, fallbackHitboxes }
+  const interactiveMeshSet = new Set(meshes)
+  const occluderMeshes: Mesh[] = []
+  root.traverse(node => {
+    if (!isRenderableMesh(node) || interactiveMeshSet.has(node) || !isCockpitInteractionOccluderMesh(node)) {
+      return
+    }
+    occluderMeshes.push(node)
+  })
+
+  return { meshes, bindingsByMesh, fallbackHitboxes, occluderMeshes }
 }
 
 function resolveCockpitInteractionNode(
@@ -7746,6 +7825,28 @@ function collectRenderableMeshDescendants(node: Object3D): Mesh[] {
 function isRenderableMesh(object: Object3D): object is Mesh {
   const maybeMesh = object as Mesh
   return maybeMesh.isMesh === true && maybeMesh.geometry != null && object.visible
+}
+
+function isCockpitInteractionOccluderMesh(mesh: Mesh): boolean {
+  const materials = Array.isArray(mesh.material)
+    ? mesh.material
+    : mesh.material != null
+      ? [mesh.material]
+      : []
+  if (materials.length === 0) {
+    return true
+  }
+
+  return materials.some(material => {
+    const materialRecord = material as Material & { readonly colorWrite?: boolean }
+    if (material.visible === false || materialRecord.colorWrite === false) {
+      return false
+    }
+    if (material.transparent && material.opacity <= 0.05) {
+      return false
+    }
+    return true
+  })
 }
 
 function getObjectDepthFromAncestor(object: Object3D, ancestor: Object3D): number {

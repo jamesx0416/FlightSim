@@ -16,7 +16,6 @@ import type {
 } from './types'
 
 export class AircraftRuntime {
-  private static readonly interactionFeedbackSeconds = 0.18
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
   private readonly nodes = new Map<string, Object3D>()
@@ -24,9 +23,14 @@ export class AircraftRuntime {
   private readonly animationValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
-  private readonly interactionFeedbackTimers = new Map<string, number>()
-  private readonly heldInteractionFeedbackTargets = new Map<string, number>()
+  private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
+  private readonly heldInteractionFeedbackTargets = new Map<
+    string,
+    { count: number; startedAtSeconds: number }
+  >()
   private readonly wingFlexBindings: readonly RuntimeWingFlexBinding[]
+  private readonly delayedInteractionReleases: RuntimeDelayedInteractionRelease[] = []
+  private interactionFeedbackClockSeconds = 0
   private interactionExecutionCount = 0
 
   constructor(
@@ -71,8 +75,10 @@ export class AircraftRuntime {
   }
 
   update(dtSeconds: number): RuntimeState {
+    this.interactionFeedbackClockSeconds += dtSeconds
     this.hostServices.tick(dtSeconds)
     this.runUpdateBindings(dtSeconds)
+    this.publishDelayedInteractionReleases()
     this.publishInteractionFeedback(dtSeconds)
 
     for (const binding of this.compiled.animationBindings) {
@@ -272,35 +278,106 @@ export class AircraftRuntime {
         continue
       }
       if (mode === 'hold') {
-        this.heldInteractionFeedbackTargets.set(
+        const previousState = this.heldInteractionFeedbackTargets.get(trimmedTarget)
+        this.heldInteractionFeedbackTargets.set(trimmedTarget, {
+          count: (previousState?.count ?? 0) + 1,
+          startedAtSeconds: previousState?.startedAtSeconds ?? this.interactionFeedbackClockSeconds
+        })
+        this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 1)
+      } else if (binding.minHeldDurationSeconds > 0) {
+        this.setInteractionFeedbackTimer(
           trimmedTarget,
-          (this.heldInteractionFeedbackTargets.get(trimmedTarget) ?? 0) + 1
+          binding.minHeldDurationSeconds,
+          binding.animationDurationSeconds == null
         )
         this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 1)
-      } else {
-        this.interactionFeedbackTimers.set(trimmedTarget, AircraftRuntime.interactionFeedbackSeconds)
       }
     }
   }
 
   private releaseInteractionFeedback(binding: CompiledInteractionBinding): void {
     const targets = binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]
+    let shouldRunReleaseExpression = true
+    let maxRemainingMinimumHoldSeconds = 0
     for (const target of targets) {
       const trimmedTarget = target.trim()
       if (!trimmedTarget) {
         continue
       }
 
-      const nextHoldCount = (this.heldInteractionFeedbackTargets.get(trimmedTarget) ?? 0) - 1
+      const previousState = this.heldInteractionFeedbackTargets.get(trimmedTarget)
+      const nextHoldCount = (previousState?.count ?? 0) - 1
       if (nextHoldCount > 0) {
-        this.heldInteractionFeedbackTargets.set(trimmedTarget, nextHoldCount)
+        this.heldInteractionFeedbackTargets.set(trimmedTarget, {
+          count: nextHoldCount,
+          startedAtSeconds: previousState?.startedAtSeconds ?? this.interactionFeedbackClockSeconds
+        })
       } else {
         this.heldInteractionFeedbackTargets.delete(trimmedTarget)
-        if (!this.interactionFeedbackTimers.has(trimmedTarget)) {
+        const elapsedSeconds =
+          previousState == null
+            ? 0
+            : this.interactionFeedbackClockSeconds - previousState.startedAtSeconds
+        const remainingMinimumHoldSeconds = Math.max(binding.minHeldDurationSeconds - elapsedSeconds, 0)
+        if (remainingMinimumHoldSeconds > 0) {
+          maxRemainingMinimumHoldSeconds = Math.max(maxRemainingMinimumHoldSeconds, remainingMinimumHoldSeconds)
+          this.setInteractionFeedbackTimer(
+            trimmedTarget,
+            remainingMinimumHoldSeconds,
+            binding.animationDurationSeconds == null
+          )
+          this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 1)
+          shouldRunReleaseExpression = false
+          continue
+        }
+        if (!this.interactionFeedbackTimers.has(trimmedTarget) && binding.animationDurationSeconds == null) {
           this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 0)
         }
       }
     }
+    if (shouldRunReleaseExpression) {
+      this.executeInteractionReleaseBinding(binding)
+    } else if (binding.releaseExpression != null) {
+      this.delayedInteractionReleases.push({
+        binding,
+        releaseAtSeconds: this.interactionFeedbackClockSeconds + maxRemainingMinimumHoldSeconds
+      })
+    }
+  }
+
+  private executeInteractionReleaseBinding(binding: CompiledInteractionBinding): void {
+    if (binding.releaseExpression == null) {
+      return
+    }
+
+    evaluateCompiledExpression(binding.releaseExpression, {
+      readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+      writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
+      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
+    })
+  }
+
+  private publishDelayedInteractionReleases(): void {
+    for (let index = this.delayedInteractionReleases.length - 1; index >= 0; index -= 1) {
+      const delayedRelease = this.delayedInteractionReleases[index]
+      if (delayedRelease == null || delayedRelease.releaseAtSeconds > this.interactionFeedbackClockSeconds) {
+        continue
+      }
+      this.executeInteractionReleaseBinding(delayedRelease.binding)
+      this.delayedInteractionReleases.splice(index, 1)
+    }
+  }
+
+  private setInteractionFeedbackTimer(
+    target: string,
+    remainingSeconds: number,
+    resetOnExpire: boolean
+  ): void {
+    const previousTimer = this.interactionFeedbackTimers.get(target)
+    this.interactionFeedbackTimers.set(target, {
+      remainingSeconds: Math.max(previousTimer?.remainingSeconds ?? 0, remainingSeconds),
+      resetOnExpire: (previousTimer?.resetOnExpire ?? false) || resetOnExpire
+    })
   }
 
   private publishInteractionFeedback(dtSeconds: number): void {
@@ -308,17 +385,20 @@ export class AircraftRuntime {
       this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
     }
 
-    for (const [target, secondsRemaining] of [...this.interactionFeedbackTimers.entries()]) {
-      if (secondsRemaining > 0) {
+    for (const [target, timer] of [...this.interactionFeedbackTimers.entries()]) {
+      if (timer.remainingSeconds > 0) {
         this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
       }
 
-      const nextSecondsRemaining = secondsRemaining - dtSeconds
+      const nextSecondsRemaining = timer.remainingSeconds - dtSeconds
       if (nextSecondsRemaining > 0) {
-        this.interactionFeedbackTimers.set(target, nextSecondsRemaining)
+        this.interactionFeedbackTimers.set(target, {
+          ...timer,
+          remainingSeconds: nextSecondsRemaining
+        })
       } else {
         this.interactionFeedbackTimers.delete(target)
-        if (!this.heldInteractionFeedbackTargets.has(target)) {
+        if (!this.heldInteractionFeedbackTargets.has(target) && timer.resetOnExpire) {
           this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 0)
         }
       }
@@ -991,6 +1071,16 @@ interface RuntimeWingFlexNode {
   readonly localFlexDirection: Vector3
   cumulativeSpan: number
   readonly appliedOffset: Vector3
+}
+
+interface RuntimeInteractionFeedbackTimer {
+  readonly remainingSeconds: number
+  readonly resetOnExpire: boolean
+}
+
+interface RuntimeDelayedInteractionRelease {
+  readonly binding: CompiledInteractionBinding
+  readonly releaseAtSeconds: number
 }
 
 interface RuntimeWingFlexBinding {
