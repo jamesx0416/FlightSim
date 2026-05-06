@@ -206,6 +206,10 @@ function copyBlendGBufferSceneDepth(
   }
 
   const depthCopyRenderer = renderer as DepthCopyRenderer
+  if ((renderer as AppRenderer & { readonly backend?: { readonly isWebGPUBackend?: boolean } }).backend?.isWebGPUBackend === true) {
+    return
+  }
+
   if (
     depthCopyRenderer.copyFramebufferToTexture == null ||
     depthCopyRenderer.getDrawingBufferSize == null

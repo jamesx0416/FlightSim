@@ -40,7 +40,7 @@ import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
-import { AircraftRuntime, DemoRuntimeHost } from './msfs/runtime'
+import { AircraftRuntime, SharedMsfsRuntimeHost } from './msfs/runtime'
 import type {
   CompiledBehaviorSet,
   ImportedAircraft,
@@ -344,6 +344,8 @@ async function init(): Promise<void> {
     rendererInfo
   )
   setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
+  const runtimeHost = new SharedMsfsRuntimeHost([], aircraft)
+  ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
   const gltfPromise = loadAircraftGltf(aircraftModelLoadContext, {
     preferredLodIndex: requestedLodIndex,
     loadExteriorInterior: syncExteriorInterior,
@@ -354,7 +356,8 @@ async function init(): Promise<void> {
     vcockpitGaugeVideoFps: getVCockpitGaugeVideoFps(effectiveSearchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(effectiveSearchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(effectiveSearchParams),
-    debugVCockpitGauges: shouldDebugVCockpitGauges(effectiveSearchParams)
+    debugVCockpitGauges: shouldDebugVCockpitGauges(effectiveSearchParams),
+    runtimeHost
   })
   const [initialCompiledBehaviors, gltf] = await Promise.all([
     compiledBehaviorsPromise,
@@ -411,10 +414,8 @@ async function init(): Promise<void> {
       console.warn('Failed to populate aircraft selector options.', error)
     })
 
-  const runtimeHost = new DemoRuntimeHost(compiledBehaviors.diagnostics as never, aircraft)
   let runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
   let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
-  ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
   runtime.bindAnimations(loadedModel.animations)
   type CockpitBenchmarkMemorySample = {
     readonly usedJSHeapSize: number | null
@@ -895,7 +896,8 @@ async function init(): Promise<void> {
           preferredLodIndex: getExteriorViewInteriorPreferredLodIndex(),
           firstAllowedLodIndex: getExteriorViewInteriorFirstAllowedLodIndex(),
           bindVCockpitSurfaces: false,
-          liveVCockpitGauges: false
+          liveVCockpitGauges: false,
+          runtimeHost
         }
       ),
       ensureFullCompiledBehaviors()
@@ -995,7 +997,8 @@ async function init(): Promise<void> {
             collectResourceStats:
               isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf') ||
               activeCockpitBenchmarkEvents != null,
-            behaviorSet: compiledBehaviors
+            behaviorSet: compiledBehaviors,
+            runtimeHost
           }
         )
         cachedCockpitInterior = nextInterior
@@ -1317,7 +1320,8 @@ async function init(): Promise<void> {
           collectResourceStats:
             isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf') ||
             activeCockpitBenchmarkEvents != null,
-          behaviorSet: compiledBehaviors
+          behaviorSet: compiledBehaviors,
+          runtimeHost
         }
       )
     }
@@ -2087,7 +2091,7 @@ function collectRuntimeMaterialState(root: Group): RuntimeMaterialState {
 
 function syncRuntimeMaterialState(
   materialState: RuntimeMaterialState,
-  runtimeHost: DemoRuntimeHost
+  runtimeHost: SharedMsfsRuntimeHost
 ): void {
   const structuralIce = clamp01(
     runtimeHost.readVariable('A:STRUCTURAL ICE PCT', 'percent over 100')
@@ -2661,6 +2665,7 @@ async function loadAircraftGltf(
     readonly vcockpitGaugeCaptureFps?: number
     readonly vcockpitGaugeRasterScale?: number
     readonly debugVCockpitGauges?: boolean
+    readonly runtimeHost?: SharedMsfsRuntimeHost
   } = {}
 ): Promise<LoadedAircraftModel> {
   const { aircraft } = context
@@ -2670,7 +2675,8 @@ async function loadAircraftGltf(
 
   const exterior = await loadAircraftModelComponent(context, aircraft.model, {
     kind: 'exterior',
-    preferredLodIndex: options.preferredLodIndex ?? null
+    preferredLodIndex: options.preferredLodIndex ?? null,
+    runtimeHost: options.runtimeHost
   })
   const interior =
     options.loadExteriorInterior === true &&
@@ -2689,7 +2695,8 @@ async function loadAircraftGltf(
             ? 1
             : null,
           bindVCockpitSurfaces: false,
-          liveVCockpitGauges: false
+          liveVCockpitGauges: false,
+          runtimeHost: options.runtimeHost
         })
       : null
 
@@ -2715,6 +2722,7 @@ async function loadAircraftModelComponent(
     readonly vcockpitGaugeCaptureFps?: number
     readonly vcockpitGaugeRasterScale?: number
     readonly debugVCockpitGauges?: boolean
+    readonly runtimeHost?: SharedMsfsRuntimeHost
     readonly collectResourceStats?: boolean
     readonly behaviorSet?: CompiledBehaviorSet
   }
@@ -2795,7 +2803,8 @@ async function loadAircraftModelComponent(
       options.vcockpitGaugeVideoFps ?? 15,
       options.vcockpitGaugeCaptureFps ?? VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ,
       options.vcockpitGaugeRasterScale ?? 1,
-      options.debugVCockpitGauges === true
+      options.debugVCockpitGauges === true,
+      options.runtimeHost ?? new SharedMsfsRuntimeHost([], context.aircraft)
     )
     recordPhase('component:bind-vcockpit-surfaces', vcockpitStartMs, {
       surfaceCount: vcockpitBinding.surfaces.length,
@@ -2915,7 +2924,13 @@ type VCockpitHtmlGaugeRuntime = {
   readonly gauge: VCockpitGaugeEntry | null
   readonly source: string
   readonly resolvedUrl: string | null
-  readonly status: 'loaded' | 'missing' | 'deferred-wasm' | 'iframe-error'
+  readonly status:
+    | 'loaded'
+    | 'loaded-wasm-bridge'
+    | 'missing'
+    | 'deferred-native-wasm'
+    | 'iframe-error'
+    | 'unsupported-native-abi'
   iframe: HTMLIFrameElement | null
   captured: boolean
   captureImage: HTMLCanvasElement | null
@@ -3111,6 +3126,90 @@ function mergeVCockpitGaugeDirtyKind(
   return 'canvas'
 }
 
+function isLoadedVCockpitHtmlGaugeStatus(
+  status: VCockpitHtmlGaugeRuntime['status']
+): boolean {
+  return status === 'loaded' || status === 'loaded-wasm-bridge'
+}
+
+function getSurfaceHostedGaugeEntries(surface: VCockpitSurface): readonly VCockpitGaugeEntry[] {
+  return [...surface.htmlGauges, ...surface.wasmInstruments]
+}
+
+type VCockpitGaugeRuntimeRequest = {
+  readonly type: 'msfs-vcockpit-runtime-request'
+  readonly id: number
+  readonly op: 'readVariable' | 'writeVariable' | 'keyEvent' | 'bridgeCall'
+  readonly name?: string
+  readonly unit?: string | null
+  readonly value?: number
+  readonly args?: readonly number[]
+}
+
+type VCockpitGaugeRuntimeResponse = {
+  readonly type: 'msfs-vcockpit-runtime-response'
+  readonly id: number
+  readonly ok: boolean
+  readonly value?: number
+  readonly error?: string
+}
+
+function isVCockpitGaugeRuntimeRequest(value: unknown): value is VCockpitGaugeRuntimeRequest {
+  if (typeof value !== 'object' || value == null) {
+    return false
+  }
+  const record = value as Record<string, unknown>
+  return (
+    record.type === 'msfs-vcockpit-runtime-request' &&
+    typeof record.id === 'number' &&
+    (
+      record.op === 'readVariable' ||
+      record.op === 'writeVariable' ||
+      record.op === 'keyEvent' ||
+      record.op === 'bridgeCall'
+    )
+  )
+}
+
+function handleVCockpitGaugeRuntimeRequest(
+  request: VCockpitGaugeRuntimeRequest,
+  runtimeHost: SharedMsfsRuntimeHost
+): VCockpitGaugeRuntimeResponse {
+  try {
+    runtimeHost.invokeBridgeCall(request.op)
+    if (request.op === 'readVariable') {
+      return {
+        type: 'msfs-vcockpit-runtime-response',
+        id: request.id,
+        ok: true,
+        value: runtimeHost.readVariable(request.name ?? '', request.unit ?? null)
+      }
+    }
+    if (request.op === 'writeVariable') {
+      runtimeHost.writeVariable(request.name ?? '', Number(request.value ?? 0), request.unit ?? null)
+      return {
+        type: 'msfs-vcockpit-runtime-response',
+        id: request.id,
+        ok: true,
+        value: Number(request.value ?? 0)
+      }
+    }
+    if (request.op === 'keyEvent') {
+      runtimeHost.invokeKeyEvent(request.name ?? '', request.args ?? [])
+      return { type: 'msfs-vcockpit-runtime-response', id: request.id, ok: true, value: 0 }
+    }
+    runtimeHost.invokeBridgeCall(request.name ?? request.op)
+    return { type: 'msfs-vcockpit-runtime-response', id: request.id, ok: true, value: 0 }
+  } catch (error) {
+    return {
+      type: 'msfs-vcockpit-runtime-response',
+      id: request.id,
+      ok: false,
+      error: error instanceof Error ? error.message : String(error)
+    }
+  }
+}
+
 async function bindVCockpitPlaceholderSurfaces(
   root: Object3D,
   aircraft: ImportedAircraft,
@@ -3120,7 +3219,8 @@ async function bindVCockpitPlaceholderSurfaces(
   videoFps: number,
   captureFps: number,
   rasterScale: number,
-  debugHtmlGaugeOverlay: boolean
+  debugHtmlGaugeOverlay: boolean,
+  runtimeHost: SharedMsfsRuntimeHost
 ): Promise<VCockpitSurfaceBindingResult> {
   const parsed = parseVCockpitSurfaces(aircraft)
   const diagnostics: ImportDiagnostic[] = [...parsed.diagnostics]
@@ -3143,6 +3243,19 @@ async function bindVCockpitPlaceholderSurfaces(
   let active = true
   let disposed = false
   let materialBindingCount = 0
+  const onGaugeBridgeRequest = (event: MessageEvent): void => {
+    if (disposed || !isVCockpitGaugeRuntimeRequest(event.data)) {
+      return
+    }
+
+    const sourceWindow = event.source as Window | null
+    if (sourceWindow == null || htmlGaugeRuntimeByWindow.get(sourceWindow) == null) {
+      return
+    }
+
+    const response = handleVCockpitGaugeRuntimeRequest(event.data, runtimeHost)
+    sourceWindow.postMessage(response, '*')
+  }
   const markGaugeRuntimeDirty = (
     runtime: VCockpitHtmlGaugeRuntime,
     version: number | null,
@@ -3171,6 +3284,7 @@ async function bindVCockpitPlaceholderSurfaces(
     markGaugeRuntimeDirty(runtime, event.data.version, event.data.kind)
   }
   window.addEventListener('message', onGaugeDirtyMessage)
+  window.addEventListener('message', onGaugeBridgeRequest)
   const setActive = (nextActive: boolean): void => {
     if (active === nextActive) {
       return
@@ -3179,7 +3293,7 @@ async function bindVCockpitPlaceholderSurfaces(
     active = nextActive
     for (const runtime of htmlGaugeRuntimes) {
       setVCockpitHtmlGaugeRuntimeActive(runtime, nextActive)
-      if (nextActive && runtime.status === 'loaded' && !runtime.captured) {
+      if (nextActive && isLoadedVCockpitHtmlGaugeStatus(runtime.status) && !runtime.captured) {
         markGaugeRuntimeDirty(runtime, getHtmlGaugeChangeVersion(runtime), 'dom')
       }
     }
@@ -3196,7 +3310,7 @@ async function bindVCockpitPlaceholderSurfaces(
     surface: VCockpitSurface,
     surfaceTextureRuntime: VCockpitSurfaceTextureRuntime
   ): void => {
-    for (const gauge of surface.htmlGauges) {
+    for (const gauge of getSurfaceHostedGaugeEntries(surface)) {
       void scheduleVCockpitHtmlGaugeRuntimeLoad(() => {
         if (disposed) {
           return Promise.resolve(createAbandonedVCockpitHtmlGaugeRuntime(surface, gauge))
@@ -3223,7 +3337,7 @@ async function bindVCockpitPlaceholderSurfaces(
           htmlGaugeRuntimeByWindow.set(runtime.iframe.contentWindow, runtime)
         }
         setVCockpitHtmlGaugeRuntimeActive(runtime, active)
-        if (runtime.status === 'loaded') {
+        if (isLoadedVCockpitHtmlGaugeStatus(runtime.status)) {
           markGaugeRuntimeDirty(runtime, getHtmlGaugeChangeVersion(runtime), 'dom')
         }
         drawVCockpitPlaceholderSurface(
@@ -3370,11 +3484,11 @@ async function bindVCockpitPlaceholderSurfaces(
     videoFps: effectiveGaugeMode === 'video' ? videoFps : null,
     rasterScale: effectiveRasterScale,
     htmlGaugeCount: parsed.surfaces.reduce(
-      (total, surface) => total + surface.htmlGauges.length,
+      (total, surface) => total + getSurfaceHostedGaugeEntries(surface).length,
       0
     ),
     get loadedHtmlGaugeCount() {
-      return htmlGaugeRuntimes.filter(runtime => runtime.status === 'loaded').length
+      return htmlGaugeRuntimes.filter(runtime => isLoadedVCockpitHtmlGaugeStatus(runtime.status)).length
     },
     get capturedHtmlGaugeCount() {
       return htmlGaugeRuntimes.filter(runtime => runtime.captured).length
@@ -3389,6 +3503,7 @@ async function bindVCockpitPlaceholderSurfaces(
         averageCaptureDurationMs: surfaceRuntime.averageCaptureDurationMs,
         currentCaptureIntervalMs: getVCockpitSurfaceCaptureIntervalMs(surfaceRuntime),
         dirtyGaugeCount: surfaceRuntime.htmlGaugeRuntimes.filter(runtime => runtime.needsCapture).length,
+        runtimeHost: runtimeHost.getStats(),
         gauges: surfaceRuntime.htmlGaugeRuntimes.map(getVCockpitHtmlGaugeRuntimeStats)
       }))
     },
@@ -3416,6 +3531,7 @@ async function bindVCockpitPlaceholderSurfaces(
       disposed = true
       active = false
       window.removeEventListener('message', onGaugeDirtyMessage)
+      window.removeEventListener('message', onGaugeBridgeRequest)
       for (const surfaceRuntime of surfaceTextureRuntimes) {
         disposeVCockpitSurfaceTextureRuntime(surfaceRuntime)
       }
@@ -3464,46 +3580,25 @@ async function createVCockpitHtmlGaugeRuntime(
   rasterScale: number,
   diagnostics: ImportDiagnostic[]
 ): Promise<VCockpitHtmlGaugeRuntime> {
-  if (isWasmBackedHtmlGauge(gauge)) {
-    diagnostics.push({
-      code: 'vcockpit-html-gauge-wasm-deferred',
-      severity: 'info',
-      sourcePath: surface.panelPath,
-      message: `${surface.sectionName} ${gauge.key} uses a WASM-backed HTML host and is deferred.`
-    })
-    return {
-      surface: surface.sectionName,
-      textureName: surface.textureName,
-      gaugeKey: gauge.key,
-      gauge: null,
-      source: gauge.source,
-      resolvedUrl: null,
-      status: 'deferred-wasm',
-      iframe: null,
-      captured: false,
-      captureImage: null,
-      captureAttemptCount: 0,
-      lastCaptureError: null,
-      lastVisualSignature: null,
-      lastChangeVersion: null,
-      lastRenderStatus: 'pending',
-      lastRenderKind: null,
-      pendingChangeVersion: null,
-      pendingDirtyKind: null,
-      needsCapture: false,
-      staticCaptureImage: null,
-      staticCaptureSignature: null
-    } satisfies VCockpitHtmlGaugeRuntime
-  }
-
   const resolvedUrl = resolvePanelAssetUrl(gauge.source)
   if (resolvedUrl == null) {
+    const wasmBacked = isWasmBackedHtmlGauge(gauge)
     diagnostics.push({
-      code: 'vcockpit-html-gauge-missing-asset',
+      code: wasmBacked
+        ? 'vcockpit-html-gauge-wasm-host-missing'
+        : 'vcockpit-html-gauge-missing-asset',
       severity: 'warning',
       sourcePath: surface.panelPath,
       message: `${surface.sectionName} ${gauge.key} could not resolve ${gauge.source}.`
     })
+    if (wasmBacked) {
+      diagnostics.push({
+        code: 'vcockpit-html-gauge-native-wasm-unsupported',
+        severity: 'info',
+        sourcePath: surface.panelPath,
+        message: `${surface.sectionName} ${gauge.key} references a native MSFS WASM-backed host, but no host HTML was available to bridge; native ABI execution is not emulated.`
+      })
+    }
     return {
       surface: surface.sectionName,
       textureName: surface.textureName,
@@ -3533,7 +3628,8 @@ async function createVCockpitHtmlGaugeRuntime(
     surface,
     gauge,
     resolvedUrl,
-    rasterScale
+    rasterScale,
+    diagnostics
   )
   if (loadResult.status !== 'loaded') {
     diagnostics.push({
@@ -3544,6 +3640,16 @@ async function createVCockpitHtmlGaugeRuntime(
       details: loadResult.error ?? undefined
     })
   }
+  const wasmBridge = isWasmBackedHtmlGauge(gauge)
+  if (wasmBridge && loadResult.status === 'loaded') {
+    diagnostics.push({
+      code: 'vcockpit-html-gauge-wasm-bridge-loaded',
+      severity: 'info',
+      sourcePath: surface.panelPath,
+      message: `${surface.sectionName} ${gauge.key} loaded as a bridge-first WASM-backed HTML host; native MSFS WASM ABI execution is not emulated.`
+    })
+  }
+
   return {
     surface: surface.sectionName,
     textureName: surface.textureName,
@@ -3551,7 +3657,9 @@ async function createVCockpitHtmlGaugeRuntime(
     gauge,
     source: gauge.source,
     resolvedUrl,
-    status: loadResult.status,
+    status: loadResult.status === 'loaded' && wasmBridge
+      ? 'loaded-wasm-bridge'
+      : loadResult.status,
     iframe: loadResult.iframe,
     captured: false,
     captureImage: null,
@@ -3571,6 +3679,7 @@ async function createVCockpitHtmlGaugeRuntime(
 
 function isWasmBackedHtmlGauge(gauge: VCockpitGaugeEntry): boolean {
   return (
+    gauge.kind === 'wasmInstrument' ||
     gauge.source.toLowerCase().startsWith('wasminstrument/') ||
     gauge.source.toLowerCase().includes('wasm_module=')
   )
@@ -3580,7 +3689,8 @@ async function createSandboxedHtmlGaugeFrame(
   surface: VCockpitSurface,
   gauge: VCockpitGaugeEntry,
   resolvedUrl: string,
-  rasterScale: number
+  rasterScale: number,
+  diagnostics: ImportDiagnostic[]
 ): Promise<{
   readonly status: 'loaded' | 'iframe-error'
   readonly iframe: HTMLIFrameElement | null
@@ -3599,6 +3709,14 @@ async function createSandboxedHtmlGaugeFrame(
   }
 
   const sourceHtml = await htmlResponse.text()
+  if (isWasmBackedHtmlGauge(gauge)) {
+    diagnostics.push({
+      code: 'vcockpit-html-gauge-native-wasm-unsupported',
+      severity: 'info',
+      sourcePath: surface.panelPath,
+      message: `${surface.sectionName} ${gauge.key} may request a native MSFS WASM module; this loader records those requests but does not emulate the native ABI.`
+    })
+  }
   const iframe = document.createElement('iframe')
   iframe.dataset.msfsVCockpitSurface = surface.sectionName
   iframe.dataset.msfsVCockpitTexture = surface.textureName
@@ -3606,7 +3724,7 @@ async function createSandboxedHtmlGaugeFrame(
   iframe.sandbox.add('allow-scripts')
   iframe.sandbox.add('allow-same-origin')
   iframe.loading = 'eager'
-  iframe.srcdoc = adaptMsfsHtmlGaugeDocument(sourceHtml, resolvedUrl)
+  iframe.srcdoc = adaptMsfsHtmlGaugeDocument(sourceHtml, resolvedUrl, gauge)
   iframe.style.position = 'fixed'
   iframe.style.left = '-10000px'
   iframe.style.top = '0'
@@ -3658,7 +3776,11 @@ async function createSandboxedHtmlGaugeFrame(
   return { status, iframe, error: null }
 }
 
-function adaptMsfsHtmlGaugeDocument(sourceHtml: string, resolvedUrl: string): string {
+function adaptMsfsHtmlGaugeDocument(
+  sourceHtml: string,
+  resolvedUrl: string,
+  gauge: VCockpitGaugeEntry
+): string {
   const htmlUiRootUrl = getHtmlUiRootUrl(resolvedUrl)
   const updateThrottleMs = getVCockpitGaugeUpdateThrottleMs(
     new URLSearchParams(window.location.search)
@@ -3672,11 +3794,44 @@ function adaptMsfsHtmlGaugeDocument(sourceHtml: string, resolvedUrl: string): st
   base.href = documentDirectoryUrl
   document.head.prepend(base)
 
+  const viewportStyle = document.createElement('style')
+  viewportStyle.textContent = `
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    [id$="_CONTENT"],
+    #Mainframe,
+    #MSFS_REACT_MOUNT {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+    }
+    [id$="_CONTENT"] div {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+    }
+    svg[class$="-svg"],
+    svg[class*="-svg "],
+    canvas[class$="-canvas"],
+    canvas[class*="-canvas "] {
+      width: 100%;
+      height: 100%;
+    }
+  `
+  document.head.prepend(viewportStyle)
+
   const bridgeScript = document.createElement('script')
   bridgeScript.textContent = createVCockpitGaugeBridgeScript(
     htmlUiRootUrl,
     resolvedUrl,
-    updateThrottleMs
+    updateThrottleMs,
+    gauge.kind,
+    isWasmBackedHtmlGauge(gauge)
   )
   document.head.prepend(bridgeScript)
 
@@ -3736,6 +3891,16 @@ function getHtmlUiRootUrl(resolvedUrl: string): string {
   return resolvedUrl.slice(0, markerIndex + marker.length)
 }
 
+function getPackageRootUrlFromHtmlUiRootUrl(htmlUiRootUrl: string): string {
+  const marker = '/html_ui/'
+  const markerIndex = htmlUiRootUrl.toLowerCase().indexOf(marker)
+  if (markerIndex < 0) {
+    return htmlUiRootUrl
+  }
+
+  return htmlUiRootUrl.slice(0, markerIndex + 1)
+}
+
 function resolveMsfsHtmlAssetUrl(
   source: string,
   htmlUiRootUrl: string,
@@ -3762,14 +3927,21 @@ function resolveMsfsHtmlAssetUrl(
 function createVCockpitGaugeBridgeScript(
   htmlUiRootUrl: string,
   resolvedUrl: string,
-  updateThrottleMs: number | null
+  updateThrottleMs: number | null,
+  gaugeKind: VCockpitGaugeEntry['kind'],
+  wasmBridge: boolean
 ): string {
+  const packageRootUrl = getPackageRootUrlFromHtmlUiRootUrl(htmlUiRootUrl)
   return `
 (() => {
   const noop = () => {};
   const zero = () => 0;
   const htmlUiRootUrl = ${JSON.stringify(htmlUiRootUrl)};
+  const packageRootUrl = ${JSON.stringify(packageRootUrl)};
   const gaugeDocumentUrl = ${JSON.stringify(resolvedUrl)};
+  const gaugeKind = ${JSON.stringify(gaugeKind)};
+  const wasmBridge = ${JSON.stringify(wasmBridge)};
+  const gaugeDocumentDirectoryUrl = new URL('.', gaugeDocumentUrl).toString();
   const instrumentUpdateMs = ${JSON.stringify(updateThrottleMs)};
   const resolveMsfsResourceUrl = value => {
     const text = String(value ?? '');
@@ -3783,7 +3955,18 @@ function createVCockpitGaugeBridgeScript(
     }
     if (text.startsWith('/')) {
       try {
-        return new URL(text.slice(1), htmlUiRootUrl).toString();
+        const normalized = text.replace(/^\\/+/, '');
+        return new URL(
+          normalized,
+          /^(?:vfs|html_ui)(?:\\/|$)/iu.test(normalized) ? packageRootUrl : htmlUiRootUrl
+        ).toString();
+      } catch {
+        return text;
+      }
+    }
+    if (/^(?:\\.\\.?\\/|[^:?#]+(?:\\/|$))/u.test(text)) {
+      try {
+        return new URL(text, gaugeDocumentDirectoryUrl).toString();
       } catch {
         return text;
       }
@@ -3833,6 +4016,7 @@ function createVCockpitGaugeBridgeScript(
   }
   const gaugeErrors = [];
   const gaugeAssetErrors = [];
+  const gaugeResourceErrors = [];
   const recordGaugeError = error => {
     if (gaugeErrors.length >= 100) {
       gaugeErrors.splice(0, gaugeErrors.length - 99);
@@ -3855,8 +4039,19 @@ function createVCockpitGaugeBridgeScript(
       outerHTML: String(target?.outerHTML ?? '').slice(0, 500)
     });
   };
+  const recordGaugeResourceError = (source, status, statusText = '') => {
+    if (gaugeResourceErrors.length >= 100) {
+      gaugeResourceErrors.splice(0, gaugeResourceErrors.length - 99);
+    }
+    gaugeResourceErrors.push({
+      source: String(source ?? ''),
+      status: Number(status ?? 0),
+      statusText: String(statusText ?? '')
+    });
+  };
   globalThis.__msfsGaugeErrors = gaugeErrors;
   globalThis.__msfsGaugeAssetErrors = gaugeAssetErrors;
+  globalThis.__msfsGaugeResourceErrors = gaugeResourceErrors;
   window.addEventListener('error', event => {
     recordGaugeError(event);
     const target = event.target;
@@ -3867,11 +4062,43 @@ function createVCockpitGaugeBridgeScript(
   window.addEventListener('unhandledrejection', event => {
     recordGaugeError(event);
   });
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    const source = input instanceof Request ? input.url : input;
+    const resolvedSource = resolveMsfsResourceUrl(source);
+    if (/\\.wasm(?:[?#]|$)/iu.test(String(resolvedSource))) {
+      recordUnsupportedBridgeCall('nativeWasm.fetch', [resolvedSource]);
+    }
+    const request = input instanceof Request
+      ? new Request(resolvedSource, input)
+      : resolvedSource;
+    return nativeFetch(request, init).then(response => {
+      const contentType = response.headers.get('content-type') ?? '';
+      if (!response.ok || (/\\/vfs\\//iu.test(String(resolvedSource)) && contentType.includes('text/html'))) {
+        recordGaugeResourceError(resolvedSource, response.status, response.statusText);
+      }
+      return response;
+    });
+  };
+  const nativeXhrOpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method, url, ...args) {
+    const resolvedUrl = resolveMsfsResourceUrl(url);
+    if (/\\.wasm(?:[?#]|$)/iu.test(String(resolvedUrl))) {
+      recordUnsupportedBridgeCall('nativeWasm.xhr', [resolvedUrl]);
+    }
+    return nativeXhrOpen.call(this, method, resolvedUrl, ...args);
+  };
   const bridgeStats = {
     unsupportedCalls: [],
     apiCallCounts: {},
     registeredSimVarCount: 0,
     storedSimVarCount: 0,
+    runtimeRequestCount: 0,
+    runtimeResponseCount: 0,
+    runtimeErrorCount: 0,
+    keyEventCount: 0,
+    wasmBridge,
+    gaugeKind,
     listenerCount: 0,
     storageWriteCount: 0
   };
@@ -3898,6 +4125,44 @@ function createVCockpitGaugeBridgeScript(
       })
     });
   };
+  let nextRuntimeRequestId = 1;
+  const pendingRuntimeRequests = new Map();
+  window.addEventListener('message', event => {
+    const data = event.data;
+    if (data?.type !== 'msfs-vcockpit-runtime-response') {
+      return;
+    }
+    const pending = pendingRuntimeRequests.get(data.id);
+    if (pending == null) {
+      return;
+    }
+    pendingRuntimeRequests.delete(data.id);
+    bridgeStats.runtimeResponseCount += 1;
+    if (data.ok === false) {
+      bridgeStats.runtimeErrorCount += 1;
+      pending.reject(new Error(String(data.error ?? 'MSFS runtime bridge request failed')));
+      return;
+    }
+    pending.resolve(data.value);
+  });
+  const postRuntimeRequest = payload => new Promise((resolve, reject) => {
+    const id = nextRuntimeRequestId++;
+    bridgeStats.runtimeRequestCount += 1;
+    pendingRuntimeRequests.set(id, { resolve, reject });
+    window.parent?.postMessage({
+      type: 'msfs-vcockpit-runtime-request',
+      id,
+      ...payload
+    }, '*');
+    window.setTimeout(() => {
+      if (!pendingRuntimeRequests.has(id)) {
+        return;
+      }
+      pendingRuntimeRequests.delete(id);
+      bridgeStats.runtimeErrorCount += 1;
+      reject(new Error('MSFS runtime bridge request timed out'));
+    }, 2000);
+  });
   let gaugeChangeVersion = 1;
   let pendingDirtyMessage = false;
   let dirtyMessageCount = 0;
@@ -3907,6 +4172,7 @@ function createVCockpitGaugeBridgeScript(
   let lastDirtyMarkMs = -Infinity;
   let pendingDirtyKind = null;
   let gaugeRuntimeActive = true;
+  let runtimeBridgeActive = false;
   const dirtyStats = {
     dirtyMessageCount,
     postedDirtyMessageCount,
@@ -3924,6 +4190,7 @@ function createVCockpitGaugeBridgeScript(
   window.addEventListener('message', event => {
     const data = event.data;
     if (data?.type === 'msfs-vcockpit-gauge-active') {
+      runtimeBridgeActive = true;
       setGaugeRuntimeActive(data.active);
     }
   });
@@ -4044,12 +4311,16 @@ function createVCockpitGaugeBridgeScript(
       panel.style.display = 'none';
       body.appendChild(panel);
     }
-    let gaugeHost = Array.from(panel.children).find(child => child.tagName.toLowerCase() !== 'wasm-instrument');
+    const desiredTagName = gaugeKind === 'wasmInstrument' ? 'wasm-instrument' : 'html-gauge';
+    let gaugeHost = Array.from(panel.children).find(child => child.tagName.toLowerCase() === desiredTagName);
     if (gaugeHost == null) {
-      gaugeHost = document.createElement('html-gauge');
+      gaugeHost = document.createElement(desiredTagName);
       panel.appendChild(gaugeHost);
     }
     gaugeHost.setAttribute('url', gaugeDocumentUrl);
+    if (wasmBridge) {
+      gaugeHost.setAttribute('wasm-bridge', 'unsupported-native-abi');
+    }
   };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', observeGaugeDomChanges, { once: true });
@@ -4060,8 +4331,17 @@ function createVCockpitGaugeBridgeScript(
   const registeredSimVars = new Map();
   const registeredSimVarById = [];
   const simVarValues = new Map();
+  const runtimeReadRequests = new Map();
+  const runtimeReadRequestTimes = new Map();
+  const normalizeRuntimeBridgeVariableName = (name, source = '') => {
+    const text = String(name ?? '').trim();
+    if (/^[ALOKHBE]:/iu.test(text)) return text.toUpperCase();
+    if (String(source).toLowerCase() === 'gamevar') return 'A:' + text.toUpperCase();
+    if (String(source).toLowerCase() === 'globalvar') return 'A:' + text.toUpperCase();
+    return 'A:' + text.toUpperCase();
+  };
   const normalizeSimVarKey = (name, unit = '', source = '') =>
-    String(source).toLowerCase() + '|' + String(name).toLowerCase() + '|' + String(unit).toLowerCase();
+    normalizeRuntimeBridgeVariableName(name, source).toLowerCase() + '|' + String(unit).toLowerCase();
   const readDemoSimVar = (name, unit) => {
     const normalizedName = String(name ?? '').toLowerCase();
     const normalizedUnit = String(unit ?? '').toLowerCase();
@@ -4082,6 +4362,9 @@ function createVCockpitGaugeBridgeScript(
     if (normalizedName.includes('absolute time')) {
       return Date.now() / 1000 + 62135596800;
     }
+    if (normalizedName.includes('simulation time')) {
+      return performance.now() / 1000;
+    }
     if (normalizedName.includes('latitude')) return 0;
     if (normalizedName.includes('longitude')) return 0;
     if (normalizedName.includes('altitude')) return 10000;
@@ -4096,6 +4379,58 @@ function createVCockpitGaugeBridgeScript(
     if (normalizedUnit.includes('percent')) return 100;
     return 0;
   };
+  const readBoolSimVar = name => readDemoSimVar(name, 'Bool') === 1;
+  const readNumberSimVar = (name, unit = 'Number') => Number(readDemoSimVar(name, unit)) || 0;
+  const createSimplaneFallback = () => new Proxy({
+    getAltitude: () => readNumberSimVar('PLANE ALTITUDE', 'Feet'),
+    getAltitudeAboveGround: () => readNumberSimVar('PLANE ALT ABOVE GROUND', 'Feet'),
+    getIndicatedSpeed: () => readNumberSimVar('AIRSPEED INDICATED', 'Knots'),
+    getTrueSpeed: () => readNumberSimVar('AIRSPEED TRUE', 'Knots'),
+    getMachSpeed: () => readNumberSimVar('AIRSPEED MACH', 'Mach'),
+    getVerticalSpeed: () => readNumberSimVar('VERTICAL SPEED', 'Feet per minute'),
+    getHeadingMagnetic: () => readNumberSimVar('PLANE HEADING DEGREES MAGNETIC', 'Degrees'),
+    getHeadingTrue: () => readNumberSimVar('PLANE HEADING DEGREES TRUE', 'Degrees'),
+    getTrackAngle: () => readNumberSimVar('GPS GROUND TRUE TRACK', 'Degrees'),
+    getGroundSpeed: () => readNumberSimVar('GPS GROUND SPEED', 'Knots'),
+    getAutoPilotDisplayedAltitudeLockValue: () => readNumberSimVar('AUTOPILOT ALTITUDE LOCK VAR', 'Feet'),
+    getAutoPilotAltitudeLockValue: () => readNumberSimVar('AUTOPILOT ALTITUDE LOCK VAR', 'Feet'),
+    getAutoPilotSelectedAltitudeLockValue: () => readNumberSimVar('AUTOPILOT ALTITUDE LOCK VAR', 'Feet'),
+    getAutoPilotDisplayedHeadingValue: () => readNumberSimVar('AUTOPILOT HEADING LOCK DIR', 'Degrees'),
+    getAutoPilotHeadingLockValue: () => readNumberSimVar('AUTOPILOT HEADING LOCK DIR', 'Degrees'),
+    getAutoPilotAirspeedHoldValue: () => readNumberSimVar('AUTOPILOT AIRSPEED HOLD VAR', 'Knots'),
+    getAutoPilotMachHoldValue: () => readNumberSimVar('AUTOPILOT MACH HOLD VAR', 'Mach'),
+    getAutoPilotVerticalSpeedHoldValue: () => readNumberSimVar('AUTOPILOT VERTICAL HOLD VAR', 'Feet per minute'),
+    getAutoPilotFlightDirectorActive: () => readBoolSimVar('AUTOPILOT FLIGHT DIRECTOR ACTIVE'),
+    getAutoPilotActive: () => readBoolSimVar('AUTOPILOT MASTER'),
+    getIsGrounded: () => readBoolSimVar('SIM ON GROUND'),
+    getEngineActive: () => true,
+    getEngineThrottleMode: () => 0,
+    getEngineThrottleCommandedN1: () => 0,
+    getEngineThrottlePosition: () => 0,
+    getOrientationAxis: () => ({ pitch: 0, bank: 0, heading: readNumberSimVar('PLANE HEADING DEGREES TRUE', 'Degrees') }),
+    getCurrentLat: () => readNumberSimVar('PLANE LATITUDE', 'Degrees'),
+    getCurrentLon: () => readNumberSimVar('PLANE LONGITUDE', 'Degrees'),
+    getFlapsHandleIndex: () => 0,
+    getFlapsHandlePercent: () => 0,
+    getTrim: () => 0,
+    getTotalAirTemperature: () => readNumberSimVar('TOTAL AIR TEMPERATURE', 'Celsius'),
+    getAmbientTemperature: () => readNumberSimVar('AMBIENT TEMPERATURE', 'Celsius'),
+    getPressureSelectedMode: () => 'STD',
+    getPressureValue: () => readNumberSimVar('KOHLSMAN SETTING HG', 'inHg')
+  }, {
+    get(target, property) {
+      if (property in target) {
+        return target[property];
+      }
+      if (typeof property === 'string' && property.startsWith('get')) {
+        return (...args) => {
+          recordUnsupportedBridgeCall('Simplane.' + property, args);
+          return property.startsWith('getIs') || property.endsWith('Active') ? false : 0;
+        };
+      }
+      return undefined;
+    }
+  });
   const registerSimVar = (name, unit, source = '') => {
     const key = String(source) + '|' + String(name) + '|' + String(unit);
     if (registeredSimVars.has(key)) {
@@ -4129,18 +4464,41 @@ function createVCockpitGaugeBridgeScript(
     return value;
   };
   const readTrackedDemoSimVar = (name, unit, source = '') => {
+    const runtimeName = normalizeRuntimeBridgeVariableName(name, source);
     const storedKey = normalizeSimVarKey(name, unit, source);
-    const fallbackKey = normalizeSimVarKey(name, unit, '');
+    const fallbackKey = normalizeSimVarKey(runtimeName, unit, '');
     const value = simVarValues.has(storedKey)
       ? simVarValues.get(storedKey)
-      : simVarValues.has(fallbackKey)
-        ? simVarValues.get(fallbackKey)
-        : readDemoSimVar(name, unit);
+        : simVarValues.has(fallbackKey)
+          ? simVarValues.get(fallbackKey)
+          : readDemoSimVar(name, unit);
+    const nowMs = performance.now();
+    const lastRequestMs = runtimeReadRequestTimes.get(storedKey) ?? -Infinity;
+    if (runtimeBridgeActive && !runtimeReadRequests.has(storedKey) && nowMs - lastRequestMs > 250) {
+      runtimeReadRequestTimes.set(storedKey, nowMs);
+      const request = postRuntimeRequest({
+        op: 'readVariable',
+        name: runtimeName,
+        unit
+      }).then(nextValue => {
+        const numericValue = Number(nextValue);
+        if (Number.isFinite(numericValue)) {
+          simVarValues.set(storedKey, numericValue);
+          bridgeStats.storedSimVarCount = simVarValues.size;
+        }
+      }).catch(() => {
+        // The cached/fallback value remains usable; aggregate timeout counts live in bridgeStats.
+      }).finally(() => {
+        runtimeReadRequests.delete(storedKey);
+      });
+      runtimeReadRequests.set(storedKey, request);
+    }
     return recordDependencyValue(source, name, unit, value);
   };
   const readCurrentSimVar = (name, unit, source = '') => {
+    const runtimeName = normalizeRuntimeBridgeVariableName(name, source);
     const storedKey = normalizeSimVarKey(name, unit, source);
-    const fallbackKey = normalizeSimVarKey(name, unit, '');
+    const fallbackKey = normalizeSimVarKey(runtimeName, unit, '');
     return simVarValues.has(storedKey)
       ? simVarValues.get(storedKey)
       : simVarValues.has(fallbackKey)
@@ -4148,10 +4506,34 @@ function createVCockpitGaugeBridgeScript(
         : readDemoSimVar(name, unit);
   };
   const writeTrackedSimVar = (name, unit, value, source = '') => {
-    simVarValues.set(normalizeSimVarKey(name, unit, source), value);
+    const runtimeName = normalizeRuntimeBridgeVariableName(name, source);
+    const numericValue = Number(value);
+    simVarValues.set(normalizeSimVarKey(runtimeName, unit, source), Number.isFinite(numericValue) ? numericValue : 0);
     bridgeStats.storedSimVarCount = simVarValues.size;
     markGaugeChanged('unknown');
-    return Promise.resolve();
+    if (/^K:/iu.test(runtimeName)) {
+      return triggerRuntimeKeyEvent(runtimeName.slice(2), [Number(value ?? 0)]);
+    }
+    return postRuntimeRequest({
+      op: 'writeVariable',
+      name: runtimeName,
+      unit,
+      value: Number.isFinite(numericValue) ? numericValue : 0
+    }).catch(error => {
+      recordUnsupportedBridgeCall('runtime.writeVariable', [runtimeName, String(error?.message ?? error)]);
+    });
+  };
+  const triggerRuntimeKeyEvent = (name, args = []) => {
+    incrementBridgeCall('KeyEvent:' + String(name ?? ''));
+    bridgeStats.keyEventCount += 1;
+    markGaugeChanged('unknown');
+    return postRuntimeRequest({
+      op: 'keyEvent',
+      name: String(name ?? '').replace(/^K:/iu, ''),
+      args: Array.from(args).map(value => Number(value) || 0)
+    }).catch(error => {
+      recordUnsupportedBridgeCall('runtime.keyEvent', [name, String(error?.message ?? error)]);
+    });
   };
   const readTrackedRegisteredSimVar = id => {
     const entry = registeredSimVarById[id];
@@ -4207,6 +4589,12 @@ function createVCockpitGaugeBridgeScript(
     onGameStateChanged() {}
     onFlightStart() {}
     onSoundEnd() {}
+  }
+  class CodexWasmInstrument extends CodexBaseInstrument {
+    connectedCallback() {
+      super.connectedCallback();
+      this.dataset.msfsWasmBridge = 'true';
+    }
   }
   class LatLongAlt {
     constructor(latOrValue = 0, long = 0, alt = 0) {
@@ -4275,6 +4663,9 @@ function createVCockpitGaugeBridgeScript(
     }
   }
   globalThis.BaseInstrument ??= CodexBaseInstrument;
+  if (!customElements.get('wasm-instrument')) {
+    customElements.define('wasm-instrument', CodexWasmInstrument);
+  }
   globalThis.LatLongAlt ??= LatLongAlt;
   globalThis.LatLongAltPBH ??= LatLongAltPBH;
   globalThis.PitchBankHeading ??= PitchBankHeading;
@@ -4309,6 +4700,7 @@ function createVCockpitGaugeBridgeScript(
     RUNWAY_DESIGNATOR_B: 6
   };
   globalThis.EmptyCallback ??= { Void: noop };
+  globalThis.Simplane ??= createSimplaneFallback();
   globalThis.GameState ??= {
     briefing: 0,
     loading: 1,
@@ -4415,54 +4807,55 @@ function createVCockpitGaugeBridgeScript(
     };
     window.requestAnimationFrame(update);
   };
-  globalThis.SimVar ??= {};
-  globalThis.SimVar.GetRegisteredId ??= (name, unit, source = 'SimVar') => {
+  globalThis.SimVar = { ...(globalThis.SimVar ?? {}) };
+  globalThis.SimVar.GetRegisteredId = (name, unit, source = 'SimVar') => {
     incrementBridgeCall('SimVar.GetRegisteredId');
     return registerSimVar(name, unit, source);
   };
-  globalThis.SimVar.GetSimVarValue ??= (name, unit) => {
+  globalThis.SimVar.GetSimVarValue = (name, unit) => {
     incrementBridgeCall('SimVar.GetSimVarValue');
     return readTrackedDemoSimVar(name, unit, 'SimVar');
   };
-  globalThis.SimVar.GetSimVarValueFastReg ??= id => {
+  globalThis.SimVar.GetSimVarValueFastReg = id => {
     incrementBridgeCall('SimVar.GetSimVarValueFastReg');
     return readTrackedRegisteredSimVar(id);
   };
-  globalThis.SimVar.SetSimVarValue ??= (name, unit, value) => {
+  globalThis.SimVar.SetSimVarValue = (name, unit, value) => {
     incrementBridgeCall('SimVar.SetSimVarValue');
     return writeTrackedSimVar(name, unit, value, 'SimVar');
   };
-  globalThis.SimVar.GetGameVarValue ??= (name, unit) => {
+  globalThis.SimVar.GetGameVarValue = (name, unit) => {
     incrementBridgeCall('SimVar.GetGameVarValue');
     return readTrackedDemoSimVar(name, unit, 'GameVar');
   };
-  globalThis.SimVar.SetGameVarValue ??= (name, unit, value) => {
+  globalThis.SimVar.SetGameVarValue = (name, unit, value) => {
     incrementBridgeCall('SimVar.SetGameVarValue');
     return writeTrackedSimVar(name, unit, value, 'GameVar');
   };
-  globalThis.SimVar.GetGlobalVarValue ??= (name, unit) => {
+  globalThis.SimVar.GetGlobalVarValue = (name, unit) => {
     incrementBridgeCall('SimVar.GetGlobalVarValue');
     return readTrackedDemoSimVar(name, unit, 'GlobalVar');
   };
-  globalThis.SimVar.SetGlobalVarValue ??= (name, unit, value) => {
-    recordUnsupportedBridgeCall('SimVar.SetGlobalVarValue', [name, unit, value]);
-    return Promise.resolve();
+  globalThis.SimVar.SetGlobalVarValue = (name, unit, value) => {
+    incrementBridgeCall('SimVar.SetGlobalVarValue');
+    return writeTrackedSimVar(name, unit, value, 'GlobalVar');
   };
-  globalThis.SimVar.SetBatchSimVarValue ??= values => {
+  globalThis.SimVar.SetBatchSimVarValue = values => {
     incrementBridgeCall('SimVar.SetBatchSimVarValue');
     const entries = values == null
       ? []
       : typeof values[Symbol.iterator] === 'function'
         ? Array.from(values)
         : Object.values(values);
+    const writes = [];
     for (const entry of entries) {
       if (Array.isArray(entry)) {
-        writeTrackedSimVar(entry[0], entry[1], entry[2], 'SimVar');
+        writes.push(writeTrackedSimVar(entry[0], entry[1], entry[2], 'SimVar'));
       } else if (entry != null && typeof entry === 'object') {
-        writeTrackedSimVar(entry.name, entry.unit, entry.value, 'SimVar');
+        writes.push(writeTrackedSimVar(entry.name, entry.unit, entry.value, 'SimVar'));
       }
     }
-    return Promise.resolve();
+    return Promise.all(writes).then(() => undefined);
   };
   const createListenerHandle = name => {
     incrementBridgeCall(name);
@@ -4531,9 +4924,29 @@ function createVCockpitGaugeBridgeScript(
     window.setTimeout(() => callback?.(), 0);
     return handle;
   };
+  globalThis.SendKeyEvent ??= (name, ...args) => triggerRuntimeKeyEvent(name, args);
+  globalThis.TriggerKeyEvent ??= (name, ...args) => triggerRuntimeKeyEvent(name, args);
+  globalThis.LaunchFlowEvent ??= (name, ...args) => triggerRuntimeKeyEvent(name, args);
+  globalThis.KeyEventManager ??= {
+    triggerKey: (name, ...args) => triggerRuntimeKeyEvent(name, args),
+    triggerKeyEvent: (name, ...args) => triggerRuntimeKeyEvent(name, args),
+    sendKeyEvent: (name, ...args) => triggerRuntimeKeyEvent(name, args)
+  };
   globalThis.Coherent ??= {
     call: (name, ...args) => {
-      recordUnsupportedBridgeCall('Coherent.call:' + String(name ?? ''), args);
+      const normalizedCallName = String(name ?? '');
+      const registeredWriteMatch = /^setValueReg_(?:Number|Bool|String)$/u.exec(normalizedCallName);
+      if (registeredWriteMatch != null) {
+        const entry = registeredSimVarById[Number(args[0])];
+        if (entry != null) {
+          incrementBridgeCall('Coherent.call:' + normalizedCallName);
+          return writeTrackedSimVar(entry.name, entry.unit, args[1], entry.source);
+        }
+      }
+      if (/^K:/iu.test(normalizedCallName)) {
+        return triggerRuntimeKeyEvent(name, args);
+      }
+      recordUnsupportedBridgeCall('Coherent.call:' + normalizedCallName, args);
       return Promise.resolve();
     },
     on: name => createListenerHandle('Coherent.on:' + String(name ?? '')),
@@ -4857,11 +5270,13 @@ function drawVCockpitGaugeStatusOverlay(
 function getVCockpitGaugeStatusColor(status: VCockpitHtmlGaugeRuntime['status']): string {
   switch (status) {
     case 'loaded':
+    case 'loaded-wasm-bridge':
       return '#6ee7a8'
-    case 'deferred-wasm':
+    case 'deferred-native-wasm':
       return '#f6c85f'
     case 'missing':
     case 'iframe-error':
+    case 'unsupported-native-abi':
       return '#ff7a7a'
   }
 }
@@ -4961,7 +5376,7 @@ function updateVCockpitHtmlGaugeOverlayRuntimes(
     for (const gaugeRuntime of surfaceRuntime.htmlGaugeRuntimes) {
       const iframe = gaugeRuntime.iframe
       const gauge = gaugeRuntime.gauge
-      if (gaugeRuntime.status !== 'loaded' || iframe == null || gauge == null) {
+      if (!isLoadedVCockpitHtmlGaugeStatus(gaugeRuntime.status) || iframe == null || gauge == null) {
         if (iframe != null) {
           iframe.style.visibility = 'hidden'
         }
@@ -5109,7 +5524,7 @@ function isRenderableVCockpitHtmlGaugeRuntime(
   runtime: VCockpitHtmlGaugeRuntime
 ): boolean {
   return (
-    runtime.status === 'loaded' &&
+    isLoadedVCockpitHtmlGaugeStatus(runtime.status) &&
     runtime.iframe != null &&
     runtime.gauge != null
   )
@@ -5239,7 +5654,7 @@ async function captureVCockpitSurfaceTexture(
     }
 
     if (
-      gaugeRuntime.status !== 'loaded' ||
+      !isLoadedVCockpitHtmlGaugeStatus(gaugeRuntime.status) ||
       gaugeRuntime.iframe == null ||
       gauge == null ||
       (
@@ -5438,6 +5853,7 @@ function getVCockpitHtmlGaugeRuntimeStats(
         readonly __msfsGaugeBridgeStats?: unknown
         readonly __msfsGaugeErrors?: unknown
         readonly __msfsGaugeAssetErrors?: unknown
+        readonly __msfsGaugeResourceErrors?: unknown
       })
     | null
     | undefined
@@ -5461,7 +5877,8 @@ function getVCockpitHtmlGaugeRuntimeStats(
     instrumentStats: frameWindow?.__msfsInstrumentRuntimeStats ?? null,
     bridgeStats: frameWindow?.__msfsGaugeBridgeStats ?? null,
     scriptErrors: frameWindow?.__msfsGaugeErrors ?? null,
-    assetErrors: frameWindow?.__msfsGaugeAssetErrors ?? null
+    assetErrors: frameWindow?.__msfsGaugeAssetErrors ?? null,
+    resourceErrors: frameWindow?.__msfsGaugeResourceErrors ?? null
   }
 }
 
@@ -5866,6 +6283,7 @@ async function loadGaugeSvgImage(
   const clone = svgElement.cloneNode(true) as SVGSVGElement
   clone.querySelectorAll('script, foreignObject').forEach(element => element.remove())
   removeUnsafeSvgExternalReferences(clone)
+  sanitizeGaugeSvgForImageLoad(clone)
   clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
   clone.setAttribute('width', `${width}`)
   clone.setAttribute('height', `${height}`)
@@ -5897,6 +6315,40 @@ async function loadGaugeSvgImage(
     })
   gaugeSvgImageCache.set(svgElement, nextCache)
   return nextCache.promise
+}
+
+function sanitizeGaugeSvgForImageLoad(svgElement: SVGSVGElement): void {
+  const lengthAttributes = [
+    'x',
+    'y',
+    'x1',
+    'y1',
+    'x2',
+    'y2',
+    'cx',
+    'cy',
+    'r',
+    'rx',
+    'ry',
+    'width',
+    'height'
+  ]
+  for (const element of [svgElement, ...svgElement.querySelectorAll<Element>('*')]) {
+    const transform = element.getAttribute('transform')
+    if (
+      transform != null &&
+      /\b(?:matrix3d|perspective|rotate[XYZ]|translateZ|scaleZ)\s*\(/iu.test(transform)
+    ) {
+      element.removeAttribute('transform')
+    }
+
+    for (const attribute of lengthAttributes) {
+      const value = element.getAttribute(attribute)
+      if (value != null && /\bNaN\b/iu.test(value)) {
+        element.removeAttribute(attribute)
+      }
+    }
+  }
 }
 
 function removeUnsafeSvgExternalReferences(svgElement: SVGSVGElement): void {

@@ -130,14 +130,6 @@ export function parseVCockpitSurfaces(aircraft: ImportedAircraft): ParsedVCockpi
         message: `${surface.sectionName} ${gauge.key} is parsed but legacy gauge hosting is not implemented yet.`
       })
     }
-    for (const instrument of surface.wasmInstruments) {
-      diagnostics.push({
-        code: 'vcockpit-wasm-instrument-deferred',
-        severity: 'info',
-        sourcePath: surface.panelPath,
-        message: `${surface.sectionName} ${instrument.key} is parsed but WASM instrument hosting is not implemented yet.`
-      })
-    }
   }
 
   return { surfaces, diagnostics }

@@ -138,6 +138,9 @@ export function createNodeMaterialFactory(
 
     if (
       (material as Material & { readonly isShaderMaterial?: boolean }).isShaderMaterial === true ||
+      (material as Material & { readonly isRawShaderMaterial?: boolean }).isRawShaderMaterial === true ||
+      material.type === 'ShaderMaterial' ||
+      material.type === 'RawShaderMaterial' ||
       (
         (material as Material & { readonly isMeshStandardMaterial?: boolean }).isMeshStandardMaterial !== true &&
         (material as Material & { readonly isMeshPhysicalMaterial?: boolean }).isMeshPhysicalMaterial !== true
