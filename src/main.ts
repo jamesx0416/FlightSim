@@ -431,10 +431,13 @@ async function init(): Promise<void> {
     lastTarget: null as string | null,
     activeHeldTarget: null as string | null,
     lastHitObject: null as string | null,
-    lastHitKind: null as 'interaction-volume' | 'visual-mesh' | null,
+    lastHitKind: null as 'interaction-mesh' | 'fallback-hitbox' | null,
     lastMissReason: null as string | null,
     interactionTargetCount: runtime.getInteractionBindings().length,
-    interactionHitVolumeCount: 0
+    interactionHitVolumeCount: 0,
+    interactionPickableMeshCount: 0,
+    interactionMappedBindingCount: 0,
+    interactionFallbackHitboxCount: 0
   }
   ;(globalThis as Record<string, unknown>).__lastCockpitInteractionStats = cockpitInteractionStats
   type CockpitBenchmarkMemorySample = {
@@ -735,7 +738,7 @@ async function init(): Promise<void> {
     runtime.bindAnimations(loadedModel.animations)
     ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
     cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
-    cockpitInteractionHitVolumeCache = null
+    cockpitInteractionPickRegistryCache = null
     syncCockpitInteractionHitboxHelpers()
     runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
     runtimeState = runtime.update(0)
@@ -1070,11 +1073,11 @@ async function init(): Promise<void> {
   }
   const cockpitInteractionRaycaster = new Raycaster()
   const cockpitInteractionPointer = new Vector2()
-  let cockpitInteractionHitVolumeCache:
+  let cockpitInteractionPickRegistryCache:
     | {
         readonly root: Object3D
         readonly runtime: AircraftRuntime
-        readonly targets: readonly CockpitInteractionHitTarget[]
+        readonly registry: CockpitInteractionPickRegistry
       }
     | null = null
   const handleCockpitInteractionPress = (
@@ -1098,8 +1101,23 @@ async function init(): Promise<void> {
     )
     cockpitInteractionRaycaster.setFromCamera(cockpitInteractionPointer, camera)
 
-    const interactionHitTargets = getCockpitInteractionHitTargets(root, runtime)
-    const interactionHits = interactionHitTargets
+    const pickRegistry = getCockpitInteractionPickRegistry(root, runtime)
+    const meshHits = cockpitInteractionRaycaster.intersectObjects([...pickRegistry.meshes], false)
+    if (meshHits.length > 0) {
+      cockpitInteractionStats.hitCount += 1
+      for (const hit of meshHits) {
+        const binding = pickRegistry.bindingsByMesh.get(hit.object)
+        if (binding == null) {
+          continue
+        }
+        const executedTarget = executeCockpitInteractionBinding(binding, hit.object, 'interaction-mesh', options)
+        if (executedTarget != null) {
+          return executedTarget
+        }
+      }
+    }
+
+    const fallbackHits = pickRegistry.fallbackHitboxes
       .map(target => {
         const point = cockpitInteractionRaycaster.ray.intersectBox(target.box, new Vector3())
         return point == null
@@ -1109,45 +1127,54 @@ async function init(): Promise<void> {
               distance: point.distanceTo(cockpitInteractionRaycaster.ray.origin)
             }
       })
-      .filter((hit): hit is { readonly target: CockpitInteractionHitTarget; readonly distance: number } => hit != null)
+      .filter((hit): hit is { readonly target: CockpitInteractionFallbackHitbox; readonly distance: number } => hit != null)
       .sort((left, right) => left.distance - right.distance)
-    if (interactionHits.length > 0) {
+    if (fallbackHits.length > 0) {
       cockpitInteractionStats.hitCount += 1
-      for (const hit of interactionHits) {
+      for (const hit of fallbackHits) {
         const target = hit.target
-        cockpitInteractionStats.lastHitObject = target.sourceNode.name || target.sourceNode.type
-        cockpitInteractionStats.lastHitKind = 'interaction-volume'
-        if (runtime.executeInteraction(target.binding.target, { holdFeedback: options.holdFeedback })) {
-          cockpitInteractionStats.executedCount += 1
-          cockpitInteractionStats.lastTarget = target.binding.target
-          cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? target.binding.target : null
-          cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
-          return target.binding.target
+        const executedTarget = executeCockpitInteractionBinding(
+          target.binding,
+          target.sourceNode,
+          'fallback-hitbox',
+          options
+        )
+        if (executedTarget != null) {
+          return executedTarget
         }
       }
     }
 
-    const hits = cockpitInteractionRaycaster.intersectObject(root, true)
-    if (hits.length === 0) {
+    if (pickRegistry.meshes.length === 0 && pickRegistry.fallbackHitboxes.length === 0) {
+      cockpitInteractionStats.lastMissReason = 'empty-interaction-registry'
+      return null
+    }
+
+    if (meshHits.length === 0 && fallbackHits.length === 0) {
       cockpitInteractionStats.lastMissReason = 'raycast-miss'
       return null
     }
 
-    cockpitInteractionStats.hitCount += 1
-    for (const hit of hits) {
-      cockpitInteractionStats.lastHitObject = hit.object.name || hit.object.type
-      cockpitInteractionStats.lastHitKind = 'visual-mesh'
-      const executedTarget = runtime.executeInteractionForObject(hit.object, { holdFeedback: options.holdFeedback })
-      if (executedTarget != null) {
-        cockpitInteractionStats.executedCount += 1
-        cockpitInteractionStats.lastTarget = executedTarget
-        cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? executedTarget : null
-        cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
-        return executedTarget
-      }
+    cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
+    return null
+  }
+
+  const executeCockpitInteractionBinding = (
+    binding: CompiledInteractionBinding,
+    hitObject: Object3D,
+    hitKind: 'interaction-mesh' | 'fallback-hitbox',
+    options: { readonly holdFeedback: boolean }
+  ): string | null => {
+    cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
+    cockpitInteractionStats.lastHitKind = hitKind
+    if (runtime.executeInteraction(binding.target, { holdFeedback: options.holdFeedback })) {
+      cockpitInteractionStats.executedCount += 1
+      cockpitInteractionStats.lastTarget = binding.target
+      cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? binding.target : null
+      cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
+      return binding.target
     }
 
-    cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
     return null
   }
 
@@ -1161,37 +1188,45 @@ async function init(): Promise<void> {
     }
   }
 
-  const getCockpitInteractionHitTargets = (
+  const getCockpitInteractionPickRegistry = (
     root: Object3D,
     activeRuntime: AircraftRuntime
-  ): readonly CockpitInteractionHitTarget[] => {
+  ): CockpitInteractionPickRegistry => {
     if (
-      cockpitInteractionHitVolumeCache != null &&
-      cockpitInteractionHitVolumeCache.root === root &&
-      cockpitInteractionHitVolumeCache.runtime === activeRuntime
+      cockpitInteractionPickRegistryCache != null &&
+      cockpitInteractionPickRegistryCache.root === root &&
+      cockpitInteractionPickRegistryCache.runtime === activeRuntime
     ) {
-      return cockpitInteractionHitVolumeCache.targets
+      return cockpitInteractionPickRegistryCache.registry
     }
 
-    const targets = createCockpitInteractionHitTargets(
+    const registry = createCockpitInteractionPickRegistry(
       root,
       activeRuntime.getInteractionBindings()
     )
-    cockpitInteractionHitVolumeCache = {
+    cockpitInteractionPickRegistryCache = {
       root,
       runtime: activeRuntime,
-      targets
+      registry
     }
     cockpitInteractionStats.interactionTargetCount = activeRuntime.getInteractionBindings().length
-    cockpitInteractionStats.interactionHitVolumeCount = targets.length
-    ;(globalThis as Record<string, unknown>).__lastCockpitInteractionHitTargets =
-      targets.map(target => ({
+    cockpitInteractionStats.interactionHitVolumeCount = registry.fallbackHitboxes.length
+    cockpitInteractionStats.interactionPickableMeshCount = registry.meshes.length
+    cockpitInteractionStats.interactionMappedBindingCount = registry.bindingsByMesh.size
+    cockpitInteractionStats.interactionFallbackHitboxCount = registry.fallbackHitboxes.length
+    ;(globalThis as Record<string, unknown>).__lastCockpitInteractionPickRegistry = {
+      meshes: registry.meshes.map(mesh => ({
+        object: mesh.name,
+        target: registry.bindingsByMesh.get(mesh)?.target ?? null
+      })),
+      fallbackHitboxes: registry.fallbackHitboxes.map(target => ({
         target: target.binding.target,
         sourceNode: target.sourceNode.name,
         center: target.box.getCenter(new Vector3()).toArray(),
         size: target.box.getSize(new Vector3()).toArray()
       }))
-    return targets
+    }
+    return registry
   }
 
   const syncCockpitInteractionHitboxHelpers = (): void => {
@@ -1207,18 +1242,33 @@ async function init(): Promise<void> {
     }
 
     const root = loadedModel.interior?.scene ?? exteriorViewInterior?.scene ?? loadedModel.scene
-    const targets = getCockpitInteractionHitTargets(root, runtime)
+    const registry = getCockpitInteractionPickRegistry(root, runtime)
     const group = new Group()
     group.name = 'cockpit-interaction-hitbox-helpers'
-    for (const target of targets) {
-      const helper = new Box3Helper(target.box, 0x2de36f)
-      helper.name = `hitbox:${target.binding.target}`
+    const meshHelperMaterial = new MeshBasicMaterial({
+      color: 0x2de36f,
+      transparent: true,
+      opacity: 0.22,
+      wireframe: true,
+      depthWrite: false
+    })
+    for (const mesh of registry.meshes) {
+      const helper = new Mesh(mesh.geometry, meshHelperMaterial)
+      helper.name = `pickable-mesh:${registry.bindingsByMesh.get(mesh)?.target ?? mesh.name}`
+      helper.matrixAutoUpdate = false
+      helper.matrix.copy(mesh.matrixWorld)
+      helper.frustumCulled = false
+      group.add(helper)
+    }
+    for (const target of registry.fallbackHitboxes) {
+      const helper = new Box3Helper(target.box, 0xff3333)
+      helper.name = `fallback-hitbox:${target.binding.target}`
       group.add(helper)
     }
     cockpitInteractionHitboxHelperGroup = group
     scene.add(group)
     ;(globalThis as Record<string, unknown>).__lastCockpitInteractionHitboxHelpers =
-      targets.map(target => target.binding.target)
+      registry.meshes.map(mesh => registry.bindingsByMesh.get(mesh)?.target ?? mesh.name)
   }
 
   const cockpitCameraController = installCockpitCameraShortcut(
@@ -7586,19 +7636,25 @@ type OrbitCameraSnapshot = {
   readonly zoom: number
 }
 
-type CockpitInteractionHitTarget = {
+type CockpitInteractionFallbackHitbox = {
   readonly binding: CompiledInteractionBinding
   readonly sourceNode: Object3D
   readonly box: Box3
 }
 
+type CockpitInteractionPickRegistry = {
+  readonly meshes: readonly Mesh[]
+  readonly bindingsByMesh: ReadonlyMap<Object3D, CompiledInteractionBinding>
+  readonly fallbackHitboxes: readonly CockpitInteractionFallbackHitbox[]
+}
+
 const FEET_TO_METERS = 0.3048
 let disposeCockpitCameraShortcut: (() => void) | null = null
 
-function createCockpitInteractionHitTargets(
+function createCockpitInteractionPickRegistry(
   root: Object3D,
   bindings: readonly CompiledInteractionBinding[]
-): readonly CockpitInteractionHitTarget[] {
+): CockpitInteractionPickRegistry {
   const nodesByName = new Map<string, Object3D>()
   root.updateWorldMatrix(true, true)
   root.traverse(node => {
@@ -7614,7 +7670,10 @@ function createCockpitInteractionHitTargets(
     }
   })
 
-  const targets: CockpitInteractionHitTarget[] = []
+  const meshes: Mesh[] = []
+  const bindingsByMesh = new Map<Object3D, CompiledInteractionBinding>()
+  const bindingDepthByMesh = new Map<Object3D, number>()
+  const fallbackHitboxes: CockpitInteractionFallbackHitbox[] = []
   const seen = new Set<string>()
   for (const binding of bindings) {
     const node = resolveCockpitInteractionNode(binding, nodesByName)
@@ -7627,33 +7686,31 @@ function createCockpitInteractionHitTargets(
     }
     seen.add(key)
 
-    const bounds = new Box3().setFromObject(node)
-    if (bounds.isEmpty()) {
+    const nodeMeshes = collectRenderableMeshDescendants(node)
+    if (nodeMeshes.length === 0) {
+      fallbackHitboxes.push({
+        binding,
+        sourceNode: node,
+        box: createCockpitInteractionFallbackBox(node)
+      })
       continue
     }
 
-    const size = bounds.getSize(new Vector3())
-    const maxDimension = Math.max(size.x, size.y, size.z)
-    if (!Number.isFinite(maxDimension) || maxDimension <= 1e-6) {
-      continue
+    for (const mesh of nodeMeshes) {
+      const depth = getObjectDepthFromAncestor(mesh, node)
+      const previousDepth = bindingDepthByMesh.get(mesh)
+      if (previousDepth != null && previousDepth <= depth) {
+        continue
+      }
+      if (previousDepth == null) {
+        meshes.push(mesh)
+      }
+      bindingsByMesh.set(mesh, binding)
+      bindingDepthByMesh.set(mesh, depth)
     }
-
-    const minDimension = 0.002
-    const expandedBounds = bounds.clone()
-    const expandedSize = expandedBounds.getSize(new Vector3())
-    if (expandedSize.x < minDimension) {
-      expandedBounds.expandByVector(new Vector3((minDimension - expandedSize.x) / 2, 0, 0))
-    }
-    if (expandedSize.y < minDimension) {
-      expandedBounds.expandByVector(new Vector3(0, (minDimension - expandedSize.y) / 2, 0))
-    }
-    if (expandedSize.z < minDimension) {
-      expandedBounds.expandByVector(new Vector3(0, 0, (minDimension - expandedSize.z) / 2))
-    }
-    targets.push({ binding, sourceNode: node, box: expandedBounds })
   }
 
-  return targets
+  return { meshes, bindingsByMesh, fallbackHitboxes }
 }
 
 function resolveCockpitInteractionNode(
@@ -7673,6 +7730,41 @@ function resolveCockpitInteractionNode(
     }
   }
   return null
+}
+
+function collectRenderableMeshDescendants(node: Object3D): Mesh[] {
+  const meshes: Mesh[] = []
+  node.traverse(descendant => {
+    if (!isRenderableMesh(descendant)) {
+      return
+    }
+    meshes.push(descendant)
+  })
+  return meshes
+}
+
+function isRenderableMesh(object: Object3D): object is Mesh {
+  const maybeMesh = object as Mesh
+  return maybeMesh.isMesh === true && maybeMesh.geometry != null && object.visible
+}
+
+function getObjectDepthFromAncestor(object: Object3D, ancestor: Object3D): number {
+  let depth = 0
+  let current: Object3D | null = object
+  while (current != null && current !== ancestor) {
+    depth += 1
+    current = current.parent
+  }
+  return current === ancestor ? depth : -1
+}
+
+function createCockpitInteractionFallbackBox(node: Object3D): Box3 {
+  const center = node.getWorldPosition(new Vector3())
+  const halfSize = 0.015
+  return new Box3(
+    new Vector3(center.x - halfSize, center.y - halfSize, center.z - halfSize),
+    new Vector3(center.x + halfSize, center.y + halfSize, center.z + halfSize)
+  )
 }
 
 function installCockpitCameraShortcut(
