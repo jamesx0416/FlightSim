@@ -4,6 +4,7 @@ interface CompileOptions {
   readonly sourcePath: string
   readonly sourceExpression: string
   readonly diagnostics: ImportDiagnostic[]
+  readonly localVariableScope?: string | null
 }
 
 const BINARY_OPERATORS = new Map<string, Instruction['op']>([
@@ -157,7 +158,7 @@ function compileInstructionBlock(
       continue
     }
 
-    const variableReference = extractVariableReference(normalized)
+    const variableReference = extractVariableReference(normalized, options.localVariableScope ?? null)
     if (variableReference != null) {
       variableKeys.add(formatVariableSymbol(variableReference.key, variableReference.unit))
       instructions.push({
@@ -174,7 +175,7 @@ function compileInstructionBlock(
       continue
     }
 
-    const variableWriteReference = extractVariableWriteReference(normalized)
+    const variableWriteReference = extractVariableWriteReference(normalized, options.localVariableScope ?? null)
     if (variableWriteReference != null) {
       variableKeys.add(formatVariableSymbol(variableWriteReference.key, variableWriteReference.unit))
       instructions.push({
@@ -558,29 +559,43 @@ function tokenizeRpn(source: string): string[] {
 }
 
 function extractVariableReference(
-  token: string
+  token: string,
+  localVariableScope: string | null
 ): { readonly key: string; readonly unit: string | null } | null {
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
-  const variableMatch = /^(A|L|O):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
+  const variableMatch = /^(A|L|O|B|H|E):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
   if (!variableMatch) return null
+  const namespace = variableMatch[1].toUpperCase()
+  const variableName = variableMatch[2].trim()
   return {
-    key: `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`,
+    key: namespace === 'O' ? scopeObjectVariableKey(variableName, localVariableScope) : `${namespace}:${variableName}`,
     unit: variableMatch[3]?.trim() || null
   }
 }
 
 function extractVariableWriteReference(
-  token: string
+  token: string,
+  localVariableScope: string | null
 ): { readonly key: string; readonly unit: string | null } | null {
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
-  const variableMatch = /^>(A|L|O):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
+  const variableMatch = /^>(A|L|O|B|H):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
   if (!variableMatch) return null
+  const namespace = variableMatch[1].toUpperCase()
+  const variableName = variableMatch[2].trim()
   return {
-    key: `${variableMatch[1].toUpperCase()}:${variableMatch[2].trim()}`,
+    key: namespace === 'O' ? scopeObjectVariableKey(variableName, localVariableScope) : `${namespace}:${variableName}`,
     unit: variableMatch[3]?.trim() || null
   }
+}
+
+function scopeObjectVariableKey(variableName: string, localVariableScope: string | null): string {
+  const scope = localVariableScope?.trim()
+  if (!scope) {
+    return `O:${variableName}`
+  }
+  return `O:${scope}:${variableName}`
 }
 
 function formatVariableSymbol(key: string, unit: string | null): string {

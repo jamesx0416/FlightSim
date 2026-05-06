@@ -143,12 +143,21 @@ export interface CompiledUpdateBinding {
   readonly once: boolean
 }
 
+export interface CompiledInteractionBinding {
+  readonly target: string
+  readonly feedbackTargets: readonly string[]
+  readonly expression: CompiledExpression
+  readonly sourcePath: string
+  readonly kind: 'leftSingle' | 'callback'
+}
+
 export interface CompiledBehaviorSet {
   readonly irVersion: 'msfs-behavior/v1'
   readonly aircraftId: string
   readonly animationBindings: readonly CompiledAnimationBinding[]
   readonly visibilityBindings: readonly CompiledVisibilityBinding[]
   readonly updateBindings: readonly CompiledUpdateBinding[]
+  readonly interactionBindings: readonly CompiledInteractionBinding[]
   readonly variableKeys: readonly string[]
   readonly builtinFallbackHits: readonly string[]
   readonly diagnostics: readonly ImportDiagnostic[]

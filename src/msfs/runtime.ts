@@ -3,6 +3,7 @@ import { AnimationMixer, type Object3D, Vector3 } from 'three'
 import { evaluateCompiledExpression } from './rpn'
 import type {
   CompiledBehaviorSet,
+  CompiledInteractionBinding,
   CompiledUpdateBinding,
   ImportedAircraft,
   ImportedCfgFile,
@@ -15,6 +16,7 @@ import type {
 } from './types'
 
 export class AircraftRuntime {
+  private static readonly interactionFeedbackSeconds = 0.18
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
   private readonly nodes = new Map<string, Object3D>()
@@ -22,7 +24,9 @@ export class AircraftRuntime {
   private readonly animationValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
+  private readonly interactionFeedbackTimers = new Map<string, number>()
   private readonly wingFlexBindings: readonly RuntimeWingFlexBinding[]
+  private interactionExecutionCount = 0
 
   constructor(
     private readonly compiled: CompiledBehaviorSet,
@@ -68,11 +72,11 @@ export class AircraftRuntime {
   update(dtSeconds: number): RuntimeState {
     this.hostServices.tick(dtSeconds)
     this.runUpdateBindings(dtSeconds)
+    this.publishInteractionFeedback(dtSeconds)
 
     for (const binding of this.compiled.animationBindings) {
       const evaluatedValue = evaluateCompiledExpression(binding.expression, {
-        readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
-        writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit)
+        readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
       })
       const previousValue = this.animationValues.get(binding.target) ?? 0
       const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
@@ -98,8 +102,7 @@ export class AircraftRuntime {
     for (const binding of this.compiled.visibilityBindings) {
       const isVisible =
         evaluateCompiledExpression(binding.expression, {
-          readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
-          writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit)
+          readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
         }) !== 0
 
       this.nodeVisibilities.set(binding.target, isVisible)
@@ -125,6 +128,41 @@ export class AircraftRuntime {
     this.mixer.uncacheRoot(this.sceneRoot)
   }
 
+  getInteractionBindings(): readonly CompiledInteractionBinding[] {
+    return this.compiled.interactionBindings
+  }
+
+  getInteractionExecutionCount(): number {
+    return this.interactionExecutionCount
+  }
+
+  executeInteraction(target: string): boolean {
+    const binding = this.findInteractionBindingForTarget(target)
+    if (binding == null) {
+      return false
+    }
+
+    this.executeInteractionBinding(binding)
+    return true
+  }
+
+  executeInteractionForObject(object: Object3D): boolean {
+    let current: Object3D | null = object
+    while (current != null) {
+      const binding = this.findInteractionBindingForTarget(current.name)
+      if (binding != null) {
+        this.executeInteractionBinding(binding)
+        return true
+      }
+      if (current === this.sceneRoot) {
+        break
+      }
+      current = current.parent
+    }
+
+    return false
+  }
+
   private runUpdateBindings(dtSeconds: number): void {
     for (const binding of this.compiled.updateBindings) {
       const state = this.updateState.get(binding) ?? { elapsedSeconds: 0, ranOnce: false }
@@ -147,7 +185,8 @@ export class AircraftRuntime {
 
       evaluateCompiledExpression(binding.expression, {
         readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
-        writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit)
+        writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit),
+        invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
       })
 
       state.ranOnce = true
@@ -164,6 +203,73 @@ export class AircraftRuntime {
       applyWingFlexChain(binding.rightWing, rightFlex, binding)
       applyWingFlexEnginePivots(binding.leftEnginePivots, binding.leftWing, leftFlex, binding)
       applyWingFlexEnginePivots(binding.rightEnginePivots, binding.rightWing, rightFlex, binding)
+    }
+  }
+
+  private findInteractionBindingForTarget(target: string): CompiledInteractionBinding | null {
+    const trimmedTarget = target.trim()
+    if (!trimmedTarget) {
+      return null
+    }
+
+    const lowercaseTarget = trimmedTarget.toLowerCase()
+    const canonicalTarget = canonicalizeNodeAnimationName(trimmedTarget)
+    const exactBinding = this.compiled.interactionBindings.find(binding => binding.target.trim() === trimmedTarget)
+    if (exactBinding != null) {
+      return exactBinding
+    }
+
+    const caseInsensitiveBinding = this.compiled.interactionBindings.find(
+      binding => binding.target.trim().toLowerCase() === lowercaseTarget
+    )
+    if (caseInsensitiveBinding != null) {
+      return caseInsensitiveBinding
+    }
+
+    if (canonicalTarget === '') {
+      return null
+    }
+
+    return (
+      this.compiled.interactionBindings.find(
+        binding => canonicalizeNodeAnimationName(binding.target.trim()) === canonicalTarget
+      ) ?? null
+    )
+  }
+
+  private executeInteractionBinding(binding: CompiledInteractionBinding): void {
+    this.triggerInteractionFeedback(binding)
+    evaluateCompiledExpression(binding.expression, {
+      readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+      writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
+      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
+    })
+    this.interactionExecutionCount += 1
+  }
+
+  private triggerInteractionFeedback(binding: CompiledInteractionBinding): void {
+    const targets = binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]
+    for (const target of targets) {
+      const trimmedTarget = target.trim()
+      if (trimmedTarget) {
+        this.interactionFeedbackTimers.set(trimmedTarget, AircraftRuntime.interactionFeedbackSeconds)
+      }
+    }
+  }
+
+  private publishInteractionFeedback(dtSeconds: number): void {
+    for (const [target, secondsRemaining] of [...this.interactionFeedbackTimers.entries()]) {
+      if (secondsRemaining > 0) {
+        this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
+      }
+
+      const nextSecondsRemaining = secondsRemaining - dtSeconds
+      if (nextSecondsRemaining > 0) {
+        this.interactionFeedbackTimers.set(target, nextSecondsRemaining)
+      } else {
+        this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 0)
+        this.interactionFeedbackTimers.delete(target)
+      }
     }
   }
 }
@@ -529,6 +635,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applyVariableSideEffects(key: string, value: number, unit: string | null): void {
     const normalizedValue = Number.isFinite(value) ? value : 0
+    if (/^[BHK]:/u.test(key) && this.applyGenericControlEventName(key.slice(2), normalizedValue)) {
+      return
+    }
+    if (!key.startsWith('A:')) {
+      return
+    }
     if (key === 'A:GEAR HANDLE POSITION' || key === 'A:GEAR HANDLE') {
       this.controlState.gearTarget = normalizedValue > 0 ? 1 : 0
       return
@@ -560,6 +672,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applyKeyEvent(name: string, args: readonly number[]): void {
     const value = Number(args.at(-1) ?? 0)
+    if (name === 'ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE') {
+      const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      if (Number.isFinite(circuitIndex)) {
+        const circuitKey = normalizeRuntimeVariableKey(`A:CIRCUIT CONNECTION ON:${circuitIndex}`)
+        const currentValue = this.values.get(circuitKey) ?? 1
+        this.values.set(circuitKey, currentValue > 0 ? 0 : 1)
+      }
+      return
+    }
     if (name === 'GEAR_UP') {
       this.controlState.gearTarget = 0
       return
@@ -606,7 +727,68 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
     if (name === 'PARKING_BRAKE_SET') {
       this.controlState.parkingBrake = value > 0 ? 1 : 0
+      return
     }
+    this.applyGenericControlEventName(name, value)
+  }
+
+  private applyGenericControlEventName(name: string, value: number): boolean {
+    const normalizedName = normalizeKeyEventName(name)
+    if (normalizedName.includes('GEAR')) {
+      if (normalizedName.includes('UP') || normalizedName.includes('RETRACT')) {
+        this.controlState.gearTarget = 0
+        return true
+      }
+      if (normalizedName.includes('DOWN') || normalizedName.includes('EXTEND')) {
+        this.controlState.gearTarget = 1
+        return true
+      }
+      if (normalizedName.includes('TOGGLE')) {
+        this.controlState.gearTarget = this.controlState.gearTarget > 0.5 ? 0 : 1
+        return true
+      }
+      if (normalizedName.includes('SET') || normalizedName.includes('HANDLE')) {
+        this.controlState.gearTarget = value > 0 ? 1 : 0
+        return true
+      }
+    }
+
+    if (normalizedName.includes('FLAP') || normalizedName.includes('SLAT')) {
+      if (normalizedName.includes('INCR') || normalizedName.includes('INC') || normalizedName.includes('DOWN')) {
+        this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget + 0.25)
+        return true
+      }
+      if (normalizedName.includes('DECR') || normalizedName.includes('DEC') || normalizedName.includes('UP')) {
+        this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget - 0.25)
+        return true
+      }
+      if (normalizedName.includes('SET') || normalizedName.includes('AXIS') || normalizedName.includes('HANDLE')) {
+        this.controlState.flapsTarget = clamp01(toPercentOver100(value, null))
+        return true
+      }
+    }
+
+    if (normalizedName.includes('SPOILER')) {
+      if (normalizedName.includes('SET') || normalizedName.includes('AXIS') || normalizedName.includes('HANDLE')) {
+        this.controlState.spoilersTarget = clamp01(toPercentOver100(value, null))
+        return true
+      }
+      if (normalizedName.includes('ARM') && value <= 0) {
+        this.controlState.spoilersTarget = 0
+        return true
+      }
+    }
+
+    if (normalizedName.includes('PARKING') || normalizedName.includes('PARK_BRAKE')) {
+      if (normalizedName.includes('TOGGLE')) {
+        this.controlState.parkingBrake = this.controlState.parkingBrake > 0.5 ? 0 : 1
+      } else {
+        this.controlState.parkingBrake = value > 0 ? 1 : 0
+      }
+      return true
+    }
+
+    return false
   }
 }
 
