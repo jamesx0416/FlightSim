@@ -14,10 +14,12 @@ import {
   MeshBasicMaterial,
   Object3D,
   PerspectiveCamera,
+  Raycaster,
   Scene,
   SkinnedMesh,
   SRGBColorSpace,
   Texture,
+  Vector2,
   Vector3,
   VideoTexture
 } from 'three'
@@ -417,6 +419,17 @@ async function init(): Promise<void> {
   let runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
   let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
   runtime.bindAnimations(loadedModel.animations)
+  ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
+  const cockpitInteractionStats = {
+    attemptCount: 0,
+    hitCount: 0,
+    executedCount: 0,
+    lastTarget: null as string | null,
+    lastHitObject: null as string | null,
+    lastMissReason: null as string | null,
+    interactionTargetCount: runtime.getInteractionBindings().length
+  }
+  ;(globalThis as Record<string, unknown>).__lastCockpitInteractionStats = cockpitInteractionStats
   type CockpitBenchmarkMemorySample = {
     readonly usedJSHeapSize: number | null
     readonly totalJSHeapSize: number | null
@@ -713,6 +726,8 @@ async function init(): Promise<void> {
     runtime.dispose()
     runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
     runtime.bindAnimations(loadedModel.animations)
+    ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
+    cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
     runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
     runtimeState = runtime.update(0)
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
@@ -1044,6 +1059,44 @@ async function init(): Promise<void> {
     setActiveInteriorComponent(exteriorViewInterior)
     void ensureExteriorViewInteriorLoaded()
   }
+  const cockpitInteractionRaycaster = new Raycaster()
+  const cockpitInteractionPointer = new Vector2()
+  const handleCockpitInteractionClick = (event: MouseEvent | PointerEvent): boolean => {
+    cockpitInteractionStats.attemptCount += 1
+    cockpitInteractionStats.lastMissReason = null
+
+    const root = loadedModel.interior?.scene ?? loadedModel.scene
+    const rect = renderer.domElement.getBoundingClientRect()
+    if (rect.width <= 0 || rect.height <= 0) {
+      cockpitInteractionStats.lastMissReason = 'empty-renderer-rect'
+      return false
+    }
+
+    cockpitInteractionPointer.set(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+    )
+    cockpitInteractionRaycaster.setFromCamera(cockpitInteractionPointer, camera)
+    const hits = cockpitInteractionRaycaster.intersectObject(root, true)
+    if (hits.length === 0) {
+      cockpitInteractionStats.lastMissReason = 'raycast-miss'
+      return false
+    }
+
+    cockpitInteractionStats.hitCount += 1
+    for (const hit of hits) {
+      cockpitInteractionStats.lastHitObject = hit.object.name || hit.object.type
+      if (runtime.executeInteractionForObject(hit.object)) {
+        cockpitInteractionStats.executedCount += 1
+        cockpitInteractionStats.lastTarget = hit.object.name || hit.object.type
+        cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
+        return true
+      }
+    }
+
+    cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
+    return false
+  }
 
   const cockpitCameraController = installCockpitCameraShortcut(
     renderer.domElement,
@@ -1060,7 +1113,8 @@ async function init(): Promise<void> {
     restoreExteriorInteriorLod,
     (mode, source) => {
       recordCockpitBenchmarkEvent(`cockpit:toggle:${mode}`, { source })
-    }
+    },
+    handleCockpitInteractionClick
   )
   if (exteriorInteriorMode === 'deferred') {
     requestAnimationFrame(() => {
@@ -7393,7 +7447,8 @@ function installCockpitCameraShortcut(
   aircraft: ImportedAircraft,
   onEnterCockpit?: () => void,
   onExitCockpit?: () => void,
-  onToggleCockpitView?: (mode: 'enter' | 'exit', source: CockpitViewToggleSource) => void
+  onToggleCockpitView?: (mode: 'enter' | 'exit', source: CockpitViewToggleSource) => void,
+  onCockpitClick?: (event: MouseEvent | PointerEvent) => boolean
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -7425,6 +7480,9 @@ function installCockpitCameraShortcut(
   let activePointerId: number | null = null
   let lastPointerX = 0
   let lastPointerY = 0
+  let pointerDownX = 0
+  let pointerDownY = 0
+  let hasPointerMoved = false
   let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
   let exteriorVisibilityBeforeCockpit = exteriorScene.visible
   const previousTouchAction = domElement.style.touchAction
@@ -7543,6 +7601,9 @@ function installCockpitCameraShortcut(
     activePointerId = event.pointerId
     lastPointerX = event.clientX
     lastPointerY = event.clientY
+    pointerDownX = event.clientX
+    pointerDownY = event.clientY
+    hasPointerMoved = false
     domElement.setPointerCapture(event.pointerId)
     event.preventDefault()
   }
@@ -7554,6 +7615,9 @@ function installCockpitCameraShortcut(
 
     const deltaX = event.clientX - lastPointerX
     const deltaY = event.clientY - lastPointerY
+    if (Math.hypot(event.clientX - pointerDownX, event.clientY - pointerDownY) > 5) {
+      hasPointerMoved = true
+    }
     lastPointerX = event.clientX
     lastPointerY = event.clientY
     yawOffsetRadians += deltaX * LOOK_RADIANS_PER_PIXEL
@@ -7571,7 +7635,20 @@ function installCockpitCameraShortcut(
       return
     }
 
+    if (!hasPointerMoved) {
+      onCockpitClick?.(event)
+    }
     releasePointer()
+    event.preventDefault()
+  }
+
+  const onCanvasClick = (event: MouseEvent): void => {
+    if (isCockpitViewActive || event.button !== 0) {
+      return
+    }
+    if (onCockpitClick?.(event)) {
+      event.preventDefault()
+    }
   }
 
   const onWheel = (event: WheelEvent): void => {
@@ -7592,6 +7669,7 @@ function installCockpitCameraShortcut(
   domElement.addEventListener('pointermove', onPointerMove)
   domElement.addEventListener('pointerup', onPointerUp)
   domElement.addEventListener('pointercancel', onPointerUp)
+  domElement.addEventListener('click', onCanvasClick)
   domElement.addEventListener('wheel', onWheel, { passive: false })
   disposeCockpitCameraShortcut = () => {
     exitCockpitView()
@@ -7600,6 +7678,7 @@ function installCockpitCameraShortcut(
     domElement.removeEventListener('pointermove', onPointerMove)
     domElement.removeEventListener('pointerup', onPointerUp)
     domElement.removeEventListener('pointercancel', onPointerUp)
+    domElement.removeEventListener('click', onCanvasClick)
     domElement.removeEventListener('wheel', onWheel)
   }
 
@@ -8907,6 +8986,7 @@ function updateOverlay(
   compiledBehaviors: {
     readonly animationBindings: readonly unknown[]
     readonly visibilityBindings: readonly unknown[]
+    readonly interactionBindings?: readonly unknown[]
     readonly variableKeys: readonly string[]
     readonly diagnostics: readonly { readonly severity: string; readonly message: string }[]
   },
@@ -8945,6 +9025,7 @@ function updateOverlay(
     '',
     `Animations compiled: ${compiledBehaviors.animationBindings.length}`,
     `Visibility bindings: ${compiledBehaviors.visibilityBindings.length}`,
+    `Interaction bindings: ${compiledBehaviors.interactionBindings?.length ?? 0}`,
     `Variable symbols: ${compiledBehaviors.variableKeys.length}`,
     `Diagnostics: ${errors} error / ${warnings} warning / ${diagnostics.length - errors - warnings} info`,
     `Package diagnostics: ${packageData.diagnostics.length}`,

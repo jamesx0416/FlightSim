@@ -2,6 +2,7 @@ import { compileRpnExpression, evaluateCompiledExpression } from './rpn'
 import type {
   CompiledAnimationBinding,
   CompiledBehaviorSet,
+  CompiledInteractionBinding,
   CompiledUpdateBinding,
   CompiledVisibilityBinding,
   ImportDiagnostic,
@@ -83,6 +84,7 @@ export async function compileMsfs2020Behaviors(
       animationBindings: [],
       visibilityBindings: [],
       updateBindings: [],
+      interactionBindings: [],
       variableKeys: [],
       builtinFallbackHits: [],
       diagnostics
@@ -111,6 +113,7 @@ export async function compileMsfs2020Behaviors(
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
   const updateBindings: CompiledUpdateBinding[] = []
+  const interactionBindings: CompiledInteractionBinding[] = []
   const rootParams = new Map<string, string>()
   for (const loadedDocument of loadedDocuments.values()) {
     collectDefinitions(loadedDocument.document, templateMap, parameterFunctionMap, rootParams)
@@ -139,7 +142,8 @@ export async function compileMsfs2020Behaviors(
       context,
       animationBindings,
       visibilityBindings,
-      updateBindings
+      updateBindings,
+      interactionBindings
     )
   }
 
@@ -159,6 +163,11 @@ export async function compileMsfs2020Behaviors(
       variableKeys.add(key)
     }
   }
+  for (const binding of interactionBindings) {
+    for (const key of binding.expression.variableKeys) {
+      variableKeys.add(key)
+    }
+  }
 
   const compiled: CompiledBehaviorSet = {
     irVersion: 'msfs-behavior/v1',
@@ -166,6 +175,7 @@ export async function compileMsfs2020Behaviors(
     animationBindings,
     visibilityBindings,
     updateBindings,
+    interactionBindings,
     variableKeys: [...variableKeys].sort(),
     builtinFallbackHits: [...context.builtinFallbackHits].sort(),
     diagnostics
@@ -483,7 +493,8 @@ function traverseElement(
   context: CompileContext,
   animationBindings: CompiledAnimationBinding[],
   visibilityBindings: CompiledVisibilityBinding[],
-  updateBindings: CompiledUpdateBinding[]
+  updateBindings: CompiledUpdateBinding[],
+  interactionBindings: CompiledInteractionBinding[]
 ): void {
   const elementTagName = getElementTagName(element)
 
@@ -501,7 +512,7 @@ function traverseElement(
     const branch = selectConditionBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
       }
     }
     return
@@ -511,7 +522,7 @@ function traverseElement(
     const branch = selectSwitchBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
       }
     }
     return
@@ -533,13 +544,19 @@ function traverseElement(
       ) {
         continue
       }
-      traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
+      traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
     }
     return
   }
 
   if (elementTagName === 'Update') {
-    const updateBinding = buildUpdateNodeBinding(element, scopedState.params, state.path, context.diagnostics)
+    const updateBinding = buildUpdateNodeBinding(
+      element,
+      scopedState.params,
+      scopedState.currentNode,
+      state.path,
+      context.diagnostics
+    )
     if (updateBinding != null) {
       updateBindings.push(updateBinding)
     }
@@ -547,11 +564,36 @@ function traverseElement(
   }
 
   if (elementTagName === 'Animation') {
-    const animationBinding = buildAnimationNodeBinding(element, scopedState.params, state.path, context.diagnostics)
+    const animationBinding = buildAnimationNodeBinding(
+      element,
+      scopedState.params,
+      scopedState.currentNode,
+      state.path,
+      context.diagnostics
+    )
     if (animationBinding != null) {
       animationBindings.push(animationBinding)
     }
     return
+  }
+
+  if (elementTagName === 'MouseRect') {
+    const callbackNode =
+      getDirectChild(element, 'CallbackCode') ??
+      getDirectChild(element, 'CallbackDragging')
+    if (callbackNode != null) {
+      const interactionBinding = buildInteractionCodeBinding(
+        callbackNode.textContent ?? '',
+        scopedState.params,
+        scopedState.currentNode,
+        state.path,
+        'callback',
+        context.diagnostics
+      )
+      if (interactionBinding != null) {
+        pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+      }
+    }
   }
 
   if (elementTagName === 'Loop') {
@@ -575,7 +617,8 @@ function traverseElement(
             context,
             animationBindings,
             visibilityBindings,
-            updateBindings
+            updateBindings,
+            interactionBindings
           )
         }
       }
@@ -590,7 +633,8 @@ function traverseElement(
       context,
       animationBindings,
       visibilityBindings,
-      updateBindings
+      updateBindings,
+      interactionBindings
     )
     return
   }
@@ -602,7 +646,7 @@ function traverseElement(
     ) {
       continue
     }
-    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings)
+    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
   }
 }
 
@@ -612,7 +656,8 @@ function expandTemplateUse(
   context: CompileContext,
   animationBindings: CompiledAnimationBinding[],
   visibilityBindings: CompiledVisibilityBinding[],
-  updateBindings: CompiledUpdateBinding[]
+  updateBindings: CompiledUpdateBinding[],
+  interactionBindings: CompiledInteractionBinding[]
 ): void {
   const templateName = substituteParameters(
     getAttributeValue(useTemplateNode, 'Name') ?? '',
@@ -649,11 +694,13 @@ function expandTemplateUse(
       mergedParams.get('ANIM_CODE')?.trim()
         ? buildAnimationBinding(
             mergedParams,
+            state.currentNode,
             state.path,
             context.diagnostics
           )
         : buildAnimationSimBinding(
             mergedParams,
+            state.currentNode,
             state.path,
             context.diagnostics
           )
@@ -666,6 +713,7 @@ function expandTemplateUse(
   if (ANIMATION_TEMPLATE_NAMES.has(normalizedTemplateName)) {
     const animationBinding = buildAnimationBinding(
       mergedParams,
+      state.currentNode,
       state.path,
       context.diagnostics
     )
@@ -710,6 +758,24 @@ function expandTemplateUse(
   }
   applyParameterBlocks(templateNode, 'override', templateParams, state.path, context.diagnostics)
 
+  const leftSingleSource =
+    templateParams.get('LEFT_SINGLE_CODE')?.trim() ||
+    templateParams.get('LEFT_SINGLE_CODE_DEFAULT_IM')?.trim() ||
+    ''
+  if (leftSingleSource) {
+    const interactionBinding = buildInteractionCodeBinding(
+      leftSingleSource,
+      templateParams,
+      state.currentNode,
+      state.path,
+      'leftSingle',
+      context.diagnostics
+    )
+    if (interactionBinding != null) {
+      pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+    }
+  }
+
   const nextState: TraversalState = {
     ...state,
     params: templateParams,
@@ -723,12 +789,13 @@ function expandTemplateUse(
     ) {
       continue
     }
-    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings)
+    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
   }
 }
 
 function buildAnimationBinding(
   params: ReadonlyMap<string, string>,
+  currentNode: string | null,
   sourcePath: string,
   diagnostics: ImportDiagnostic[]
 ): CompiledAnimationBinding | null {
@@ -744,7 +811,12 @@ function buildAnimationBinding(
     return null
   }
 
-  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
+  const expression = compileRpnExpression(source, {
+    sourcePath,
+    sourceExpression: source,
+    diagnostics,
+    localVariableScope: resolveLocalVariableScope(params, currentNode, target)
+  })
   if (expression == null) return null
 
   const length = Number.parseFloat(params.get('ANIM_LENGTH') ?? '100') || 100
@@ -781,7 +853,12 @@ function buildVisibilityBinding(
     return null
   }
 
-  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
+  const expression = compileRpnExpression(source, {
+    sourcePath,
+    sourceExpression: source,
+    diagnostics,
+    localVariableScope: resolveLocalVariableScope(params, currentNode, target)
+  })
   if (expression == null) return null
 
   return {
@@ -791,8 +868,93 @@ function buildVisibilityBinding(
   }
 }
 
+function buildInteractionCodeBinding(
+  sourceCode: string,
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  kind: CompiledInteractionBinding['kind'],
+  diagnostics: ImportDiagnostic[]
+): CompiledInteractionBinding | null {
+  const target =
+    params.get('NODE_ID')?.trim() ||
+    currentNode?.trim() ||
+    params.get('ANIM_NAME')?.trim() ||
+    ''
+  const source = substituteParameters(sourceCode, params).trim()
+
+  if (!target || !source) {
+    return null
+  }
+
+  const expression = compileRpnExpression(source, {
+    sourcePath,
+    sourceExpression: source,
+    diagnostics,
+    localVariableScope: resolveLocalVariableScope(params, currentNode, target)
+  })
+  if (expression == null) {
+    return null
+  }
+
+  return {
+    target,
+    feedbackTargets: collectInteractionFeedbackTargets(params, currentNode, target),
+    expression,
+    sourcePath,
+    kind
+  }
+}
+
+function collectInteractionFeedbackTargets(
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  target: string
+): readonly string[] {
+  const targets = new Set<string>()
+  for (const candidate of [
+    target,
+    params.get('ANIM_NAME')?.trim() ?? '',
+    currentNode?.trim() ?? '',
+    params.get('NODE_ID')?.trim() ?? ''
+  ]) {
+    if (candidate) {
+      targets.add(candidate)
+    }
+  }
+  return [...targets]
+}
+
+function resolveLocalVariableScope(
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  target: string | null
+): string | null {
+  return (
+    params.get('NODE_ID')?.trim() ||
+    currentNode?.trim() ||
+    target?.trim() ||
+    null
+  )
+}
+
+function pushUniqueInteractionBinding(
+  bindings: CompiledInteractionBinding[],
+  binding: CompiledInteractionBinding
+): void {
+  const duplicate = bindings.some(candidate =>
+    candidate.target === binding.target &&
+    candidate.kind === binding.kind &&
+    candidate.expression.source === binding.expression.source
+  )
+  if (!duplicate) {
+    bindings.push(binding)
+  }
+}
+
 function buildAnimationSimBinding(
   params: ReadonlyMap<string, string>,
+  currentNode: string | null,
   sourcePath: string,
   diagnostics: ImportDiagnostic[]
 ): CompiledAnimationBinding | null {
@@ -822,6 +984,7 @@ function buildAnimationSimBinding(
       ['ANIM_DELTA', params.get('ANIM_DELTA')?.trim() || '0'],
       ['ANIM_LAG', lag]
     ]),
+    currentNode,
     sourcePath,
     diagnostics
   )
@@ -1212,6 +1375,7 @@ function resolveProcessedParameterValue(
 function buildUpdateNodeBinding(
   updateNode: Element,
   params: ReadonlyMap<string, string>,
+  currentNode: string | null,
   sourcePath: string,
   diagnostics: ImportDiagnostic[]
 ): CompiledUpdateBinding | null {
@@ -1226,7 +1390,12 @@ function buildUpdateNodeBinding(
     return null
   }
 
-  const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
+  const expression = compileRpnExpression(source, {
+    sourcePath,
+    sourceExpression: source,
+    diagnostics,
+    localVariableScope: resolveLocalVariableScope(params, currentNode, null)
+  })
   if (expression == null) {
     return null
   }
@@ -1250,6 +1419,7 @@ function buildUpdateNodeBinding(
 function buildAnimationNodeBinding(
   animationNode: Element,
   params: ReadonlyMap<string, string>,
+  currentNode: string | null,
   sourcePath: string,
   diagnostics: ImportDiagnostic[]
 ): CompiledAnimationBinding | null {
@@ -1303,7 +1473,12 @@ function buildAnimationNodeBinding(
       return null
     }
 
-    const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
+    const expression = compileRpnExpression(source, {
+      sourcePath,
+      sourceExpression: source,
+      diagnostics,
+      localVariableScope: resolveLocalVariableScope(params, currentNode, target)
+    })
     if (expression == null) {
       return null
     }
@@ -1339,7 +1514,12 @@ function buildAnimationNodeBinding(
     const scale = substituteParameters(getDirectChild(simNode, 'Scale')?.textContent ?? '1', params).trim() || '1'
     const bias = substituteParameters(getDirectChild(simNode, 'Bias')?.textContent ?? '0', params).trim() || '0'
     const source = `(A:${variable}, ${units}) ${scale} * ${bias} +`
-    const expression = compileRpnExpression(source, { sourcePath, sourceExpression: source, diagnostics })
+    const expression = compileRpnExpression(source, {
+      sourcePath,
+      sourceExpression: source,
+      diagnostics,
+      localVariableScope: resolveLocalVariableScope(params, currentNode, target)
+    })
     if (expression == null) {
       return null
     }
