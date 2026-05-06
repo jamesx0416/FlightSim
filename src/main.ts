@@ -2923,6 +2923,8 @@ type VCockpitHtmlGaugeRuntime = {
   lastCaptureError: string | null
   lastVisualSignature: string | null
   lastChangeVersion: number | null
+  lastRenderStatus: 'pending' | 'captured' | 'skipped-clean' | 'error'
+  lastRenderKind: VCockpitGaugeDirtyKind | 'static' | null
   pendingChangeVersion: number | null
   pendingDirtyKind: VCockpitGaugeDirtyKind | null
   needsCapture: boolean
@@ -3445,6 +3447,8 @@ function createAbandonedVCockpitHtmlGaugeRuntime(
     lastCaptureError: null,
     lastVisualSignature: null,
     lastChangeVersion: null,
+    lastRenderStatus: 'error',
+    lastRenderKind: null,
     pendingChangeVersion: null,
     pendingDirtyKind: null,
     needsCapture: false,
@@ -3482,6 +3486,8 @@ async function createVCockpitHtmlGaugeRuntime(
       lastCaptureError: null,
       lastVisualSignature: null,
       lastChangeVersion: null,
+      lastRenderStatus: 'pending',
+      lastRenderKind: null,
       pendingChangeVersion: null,
       pendingDirtyKind: null,
       needsCapture: false,
@@ -3513,6 +3519,8 @@ async function createVCockpitHtmlGaugeRuntime(
       lastCaptureError: null,
       lastVisualSignature: null,
       lastChangeVersion: null,
+      lastRenderStatus: 'error',
+      lastRenderKind: null,
       pendingChangeVersion: null,
       pendingDirtyKind: null,
       needsCapture: false,
@@ -3532,7 +3540,8 @@ async function createVCockpitHtmlGaugeRuntime(
       code: 'vcockpit-html-gauge-frame-error',
       severity: 'warning',
       sourcePath: surface.panelPath,
-      message: `${surface.sectionName} ${gauge.key} failed to load ${gauge.source}.`
+      message: `${surface.sectionName} ${gauge.key} failed to load ${gauge.source}.`,
+      details: loadResult.error ?? undefined
     })
   }
   return {
@@ -3550,6 +3559,8 @@ async function createVCockpitHtmlGaugeRuntime(
     lastCaptureError: null,
     lastVisualSignature: null,
     lastChangeVersion: null,
+    lastRenderStatus: loadResult.status === 'loaded' ? 'pending' : 'error',
+    lastRenderKind: null,
     pendingChangeVersion: null,
     pendingDirtyKind: loadResult.status === 'loaded' ? 'dom' : null,
     needsCapture: loadResult.status === 'loaded',
@@ -3573,10 +3584,18 @@ async function createSandboxedHtmlGaugeFrame(
 ): Promise<{
   readonly status: 'loaded' | 'iframe-error'
   readonly iframe: HTMLIFrameElement | null
+  readonly error: string | null
 }> {
-  const htmlResponse = await fetch(resolvedUrl)
+  const htmlResponse = await fetch(resolvedUrl).catch(error => error)
+  if (htmlResponse instanceof Error) {
+    return { status: 'iframe-error', iframe: null, error: htmlResponse.message }
+  }
   if (!htmlResponse.ok) {
-    return { status: 'iframe-error', iframe: null }
+    return {
+      status: 'iframe-error',
+      iframe: null,
+      error: `HTTP ${htmlResponse.status} ${htmlResponse.statusText}`.trim()
+    }
   }
 
   const sourceHtml = await htmlResponse.text()
@@ -3603,8 +3622,12 @@ async function createSandboxedHtmlGaugeFrame(
   iframe.style.pointerEvents = 'none'
   iframe.style.visibility = 'hidden'
 
+  let iframeError: string | null = null
   const status = await new Promise<'loaded' | 'iframe-error'>(resolve => {
-    const timeoutId = window.setTimeout(() => resolve('iframe-error'), 5000)
+    const timeoutId = window.setTimeout(() => {
+      iframeError = 'iframe load timed out after 5000 ms'
+      resolve('iframe-error')
+    }, 5000)
     iframe.addEventListener(
       'load',
       () => {
@@ -3615,7 +3638,10 @@ async function createSandboxedHtmlGaugeFrame(
     )
     iframe.addEventListener(
       'error',
-      () => {
+      event => {
+        iframeError = event instanceof ErrorEvent
+          ? event.message
+          : 'iframe emitted an error event'
         window.clearTimeout(timeoutId)
         resolve('iframe-error')
       },
@@ -3626,10 +3652,10 @@ async function createSandboxedHtmlGaugeFrame(
 
   if (status !== 'loaded') {
     iframe.remove()
-    return { status, iframe: null }
+    return { status, iframe: null, error: iframeError }
   }
 
-  return { status, iframe }
+  return { status, iframe, error: null }
 }
 
 function adaptMsfsHtmlGaugeDocument(sourceHtml: string, resolvedUrl: string): string {
@@ -3755,11 +3781,18 @@ function createVCockpitGaugeBridgeScript(
         return text;
       }
     }
+    if (text.startsWith('/')) {
+      try {
+        return new URL(text.slice(1), htmlUiRootUrl).toString();
+      } catch {
+        return text;
+      }
+    }
     return text;
   };
   const rewriteStyleUrls = value => String(value ?? '').replace(
-    /url\\((['"]?)coui:\\/\\/html_ui\\/([^'")]+)\\1\\)/giu,
-    (_match, quote, path) => 'url(' + quote + resolveMsfsResourceUrl('coui://html_ui/' + path) + quote + ')'
+    /url\\((['"]?)(coui:\\/\\/html_ui\\/[^'")]+|\\/(?:JS|Pages|html_ui)\\/[^'")]+)\\1\\)/giu,
+    (_match, quote, path) => 'url(' + quote + resolveMsfsResourceUrl(path) + quote + ')'
   );
   const nativeSetAttribute = Element.prototype.setAttribute;
   Element.prototype.setAttribute = function(name, value) {
@@ -3787,7 +3820,19 @@ function createVCockpitGaugeBridgeScript(
   CSSStyleDeclaration.prototype.setProperty = function(property, value, priority) {
     return nativeStyleSetProperty.call(this, property, rewriteStyleUrls(value), priority);
   };
+  const cssTextDescriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cssText');
+  if (cssTextDescriptor?.set != null && cssTextDescriptor?.get != null) {
+    Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', {
+      configurable: true,
+      enumerable: cssTextDescriptor.enumerable,
+      get: cssTextDescriptor.get,
+      set(value) {
+        cssTextDescriptor.set.call(this, rewriteStyleUrls(value));
+      }
+    });
+  }
   const gaugeErrors = [];
+  const gaugeAssetErrors = [];
   const recordGaugeError = error => {
     if (gaugeErrors.length >= 100) {
       gaugeErrors.splice(0, gaugeErrors.length - 99);
@@ -3799,13 +3844,60 @@ function createVCockpitGaugeBridgeScript(
       colno: Number(error?.colno ?? 0)
     });
   };
+  const recordGaugeAssetError = event => {
+    if (gaugeAssetErrors.length >= 100) {
+      gaugeAssetErrors.splice(0, gaugeAssetErrors.length - 99);
+    }
+    const target = event?.target;
+    gaugeAssetErrors.push({
+      tagName: String(target?.tagName ?? ''),
+      source: String(target?.currentSrc ?? target?.src ?? target?.href ?? target?.data ?? ''),
+      outerHTML: String(target?.outerHTML ?? '').slice(0, 500)
+    });
+  };
   globalThis.__msfsGaugeErrors = gaugeErrors;
+  globalThis.__msfsGaugeAssetErrors = gaugeAssetErrors;
   window.addEventListener('error', event => {
     recordGaugeError(event);
+    const target = event.target;
+    if (target instanceof HTMLElement && target !== window) {
+      recordGaugeAssetError(event);
+    }
   }, true);
   window.addEventListener('unhandledrejection', event => {
     recordGaugeError(event);
   });
+  const bridgeStats = {
+    unsupportedCalls: [],
+    apiCallCounts: {},
+    registeredSimVarCount: 0,
+    storedSimVarCount: 0,
+    listenerCount: 0,
+    storageWriteCount: 0
+  };
+  globalThis.__msfsGaugeBridgeStats = bridgeStats;
+  const incrementBridgeCall = name => {
+    bridgeStats.apiCallCounts[name] = (bridgeStats.apiCallCounts[name] ?? 0) + 1;
+  };
+  const recordUnsupportedBridgeCall = (name, args = []) => {
+    incrementBridgeCall(name);
+    if (bridgeStats.unsupportedCalls.length >= 100) {
+      bridgeStats.unsupportedCalls.splice(0, bridgeStats.unsupportedCalls.length - 99);
+    }
+    bridgeStats.unsupportedCalls.push({
+      name: String(name),
+      args: Array.from(args).slice(0, 8).map(value => {
+        if (value == null || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
+          return value;
+        }
+        try {
+          return JSON.stringify(value).slice(0, 300);
+        } catch {
+          return Object.prototype.toString.call(value);
+        }
+      })
+    });
+  };
   let gaugeChangeVersion = 1;
   let pendingDirtyMessage = false;
   let dirtyMessageCount = 0;
@@ -3967,6 +4059,9 @@ function createVCockpitGaugeBridgeScript(
   ensureVCockpitPanelHost();
   const registeredSimVars = new Map();
   const registeredSimVarById = [];
+  const simVarValues = new Map();
+  const normalizeSimVarKey = (name, unit = '', source = '') =>
+    String(source).toLowerCase() + '|' + String(name).toLowerCase() + '|' + String(unit).toLowerCase();
   const readDemoSimVar = (name, unit) => {
     const normalizedName = String(name ?? '').toLowerCase();
     const normalizedUnit = String(unit ?? '').toLowerCase();
@@ -4009,6 +4104,7 @@ function createVCockpitGaugeBridgeScript(
     const id = registeredSimVarById.length;
     registeredSimVars.set(key, id);
     registeredSimVarById.push({ name, unit, source });
+    bridgeStats.registeredSimVarCount = registeredSimVarById.length;
     return id;
   };
   const normalizeDependencyValue = value => {
@@ -4033,8 +4129,29 @@ function createVCockpitGaugeBridgeScript(
     return value;
   };
   const readTrackedDemoSimVar = (name, unit, source = '') => {
-    const value = readDemoSimVar(name, unit);
+    const storedKey = normalizeSimVarKey(name, unit, source);
+    const fallbackKey = normalizeSimVarKey(name, unit, '');
+    const value = simVarValues.has(storedKey)
+      ? simVarValues.get(storedKey)
+      : simVarValues.has(fallbackKey)
+        ? simVarValues.get(fallbackKey)
+        : readDemoSimVar(name, unit);
     return recordDependencyValue(source, name, unit, value);
+  };
+  const readCurrentSimVar = (name, unit, source = '') => {
+    const storedKey = normalizeSimVarKey(name, unit, source);
+    const fallbackKey = normalizeSimVarKey(name, unit, '');
+    return simVarValues.has(storedKey)
+      ? simVarValues.get(storedKey)
+      : simVarValues.has(fallbackKey)
+        ? simVarValues.get(fallbackKey)
+        : readDemoSimVar(name, unit);
+  };
+  const writeTrackedSimVar = (name, unit, value, source = '') => {
+    simVarValues.set(normalizeSimVarKey(name, unit, source), value);
+    bridgeStats.storedSimVarCount = simVarValues.size;
+    markGaugeChanged('unknown');
+    return Promise.resolve();
   };
   const readTrackedRegisteredSimVar = id => {
     const entry = registeredSimVarById[id];
@@ -4048,7 +4165,7 @@ function createVCockpitGaugeBridgeScript(
     if (input == null) {
       return true;
     }
-    return normalizeDependencyValue(readDemoSimVar(input.name, input.unit)) !== previousValue;
+    return normalizeDependencyValue(readCurrentSimVar(input.name, input.unit, input.source)) !== previousValue;
   };
   globalThis.simvar ??= {
     getValueReg: id => readTrackedRegisteredSimVar(id),
@@ -4163,6 +4280,25 @@ function createVCockpitGaugeBridgeScript(
   globalThis.PitchBankHeading ??= PitchBankHeading;
   globalThis.PID_STRUCT ??= PID_STRUCT;
   globalThis.XYZ ??= XYZ;
+  globalThis.Vec2 ??= class Vec2 {
+    constructor(x = 0, y = 0) {
+      this.x = Number(x);
+      this.y = Number(y);
+    }
+  };
+  globalThis.Vec3 ??= class Vec3 {
+    constructor(x = 0, y = 0, z = 0) {
+      this.x = Number(x);
+      this.y = Number(y);
+      this.z = Number(z);
+    }
+  };
+  globalThis.Size ??= class Size {
+    constructor(width = 0, height = 0) {
+      this.width = Number(width);
+      this.height = Number(height);
+    }
+  };
   globalThis.RunwayDesignator ??= {
     RUNWAY_DESIGNATOR_NONE: 0,
     RUNWAY_DESIGNATOR_LEFT: 1,
@@ -4280,20 +4416,105 @@ function createVCockpitGaugeBridgeScript(
     window.requestAnimationFrame(update);
   };
   globalThis.SimVar ??= {};
-  globalThis.SimVar.GetRegisteredId ??= registerSimVar;
-  globalThis.SimVar.GetSimVarValue ??= (name, unit) => readTrackedDemoSimVar(name, unit, 'SimVar');
-  globalThis.SimVar.GetSimVarValueFastReg ??= id => readTrackedRegisteredSimVar(id);
-  globalThis.SimVar.SetSimVarValue ??= () => Promise.resolve();
-  globalThis.SimVar.GetGameVarValue ??= (name, unit) => readTrackedDemoSimVar(name, unit, 'GameVar');
-  globalThis.SimVar.GetGlobalVarValue ??= (name, unit) => readTrackedDemoSimVar(name, unit, 'GlobalVar');
-  const createListenerHandle = () => ({
-    on: noop,
-    off: noop,
-    clear: noop,
-    triggerToAllSubscribers: noop
-  });
-  globalThis.RegisterViewListener ??= () => createListenerHandle();
+  globalThis.SimVar.GetRegisteredId ??= (name, unit, source = 'SimVar') => {
+    incrementBridgeCall('SimVar.GetRegisteredId');
+    return registerSimVar(name, unit, source);
+  };
+  globalThis.SimVar.GetSimVarValue ??= (name, unit) => {
+    incrementBridgeCall('SimVar.GetSimVarValue');
+    return readTrackedDemoSimVar(name, unit, 'SimVar');
+  };
+  globalThis.SimVar.GetSimVarValueFastReg ??= id => {
+    incrementBridgeCall('SimVar.GetSimVarValueFastReg');
+    return readTrackedRegisteredSimVar(id);
+  };
+  globalThis.SimVar.SetSimVarValue ??= (name, unit, value) => {
+    incrementBridgeCall('SimVar.SetSimVarValue');
+    return writeTrackedSimVar(name, unit, value, 'SimVar');
+  };
+  globalThis.SimVar.GetGameVarValue ??= (name, unit) => {
+    incrementBridgeCall('SimVar.GetGameVarValue');
+    return readTrackedDemoSimVar(name, unit, 'GameVar');
+  };
+  globalThis.SimVar.SetGameVarValue ??= (name, unit, value) => {
+    incrementBridgeCall('SimVar.SetGameVarValue');
+    return writeTrackedSimVar(name, unit, value, 'GameVar');
+  };
+  globalThis.SimVar.GetGlobalVarValue ??= (name, unit) => {
+    incrementBridgeCall('SimVar.GetGlobalVarValue');
+    return readTrackedDemoSimVar(name, unit, 'GlobalVar');
+  };
+  globalThis.SimVar.SetGlobalVarValue ??= (name, unit, value) => {
+    recordUnsupportedBridgeCall('SimVar.SetGlobalVarValue', [name, unit, value]);
+    return Promise.resolve();
+  };
+  globalThis.SimVar.SetBatchSimVarValue ??= values => {
+    incrementBridgeCall('SimVar.SetBatchSimVarValue');
+    const entries = values == null
+      ? []
+      : typeof values[Symbol.iterator] === 'function'
+        ? Array.from(values)
+        : Object.values(values);
+    for (const entry of entries) {
+      if (Array.isArray(entry)) {
+        writeTrackedSimVar(entry[0], entry[1], entry[2], 'SimVar');
+      } else if (entry != null && typeof entry === 'object') {
+        writeTrackedSimVar(entry.name, entry.unit, entry.value, 'SimVar');
+      }
+    }
+    return Promise.resolve();
+  };
+  const createListenerHandle = name => {
+    incrementBridgeCall(name);
+    bridgeStats.listenerCount += 1;
+    const listeners = new Map();
+    const subscribe = (eventName, listener) => {
+      if (typeof listener !== 'function') {
+        return;
+      }
+      const key = String(eventName ?? '');
+      const existing = listeners.get(key) ?? new Set();
+      existing.add(listener);
+      listeners.set(key, existing);
+    };
+    const unsubscribe = (eventName, listener) => {
+      if (eventName == null) {
+        listeners.clear();
+        return;
+      }
+      const existing = listeners.get(String(eventName));
+      if (listener == null) {
+        existing?.clear();
+      } else {
+        existing?.delete(listener);
+      }
+    };
+    const trigger = (eventName, ...args) => {
+      const invoke = callback => callback(...args);
+      listeners.get(String(eventName ?? ''))?.forEach(invoke);
+      listeners.get('*')?.forEach(invoke);
+    };
+    return {
+      name,
+      on: subscribe,
+      off: unsubscribe,
+      clear: () => listeners.clear(),
+      triggerToAllSubscribers: trigger,
+      trigger,
+      call: (...args) => {
+        recordUnsupportedBridgeCall(name + '.call', args);
+        return Promise.resolve();
+      },
+      unregister: () => listeners.clear()
+    };
+  };
+  globalThis.RegisterViewListener ??= (name, callback) => {
+    const handle = createListenerHandle('RegisterViewListener:' + String(name ?? ''));
+    window.setTimeout(() => callback?.(), 0);
+    return handle;
+  };
   globalThis.RegisterGenericDataListener ??= callback => {
+    incrementBridgeCall('RegisterGenericDataListener');
     const listeners = new Map();
     const handle = {
       onDataReceived: (key, listener) => {
@@ -4311,13 +4532,34 @@ function createVCockpitGaugeBridgeScript(
     return handle;
   };
   globalThis.Coherent ??= {
-    call: () => Promise.resolve(),
-    on: () => createListenerHandle(),
+    call: (name, ...args) => {
+      recordUnsupportedBridgeCall('Coherent.call:' + String(name ?? ''), args);
+      return Promise.resolve();
+    },
+    on: name => createListenerHandle('Coherent.on:' + String(name ?? '')),
     off: noop,
-    trigger: noop
+    trigger: noop,
+    triggerToAllSubscribers: noop
   };
-  globalThis.GetStoredData ??= key => localStorage.getItem(String(key)) ?? '';
-  globalThis.SetStoredData ??= (key, value) => localStorage.setItem(String(key), String(value));
+  globalThis.GetStoredData ??= key => {
+    incrementBridgeCall('GetStoredData');
+    return localStorage.getItem(String(key)) ?? '';
+  };
+  globalThis.SetStoredData ??= (key, value) => {
+    incrementBridgeCall('SetStoredData');
+    bridgeStats.storageWriteCount += 1;
+    localStorage.setItem(String(key), String(value));
+  };
+  globalThis.DeleteStoredData ??= key => {
+    incrementBridgeCall('DeleteStoredData');
+    localStorage.removeItem(String(key));
+  };
+  globalThis.DataStorage ??= {
+    get: key => globalThis.GetStoredData(key),
+    set: (key, value) => globalThis.SetStoredData(key, value),
+    delete: key => globalThis.DeleteStoredData(key),
+    searchData: prefix => Object.keys(localStorage).filter(key => key.startsWith(String(prefix ?? '')))
+  };
   const genericUtils = {
     Clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
     clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
@@ -5029,6 +5271,7 @@ async function captureVCockpitSurfaceTexture(
             gaugeRuntime.pendingChangeVersion = null
             gaugeRuntime.pendingDirtyKind = null
             gaugeRuntime.needsCapture = false
+            gaugeRuntime.lastRenderStatus = 'skipped-clean'
             continue
           }
           assertHtmlGaugeHasRenderableContent(gaugeRuntime)
@@ -5042,12 +5285,15 @@ async function captureVCockpitSurfaceTexture(
             gaugeRuntime.pendingChangeVersion = null
             gaugeRuntime.pendingDirtyKind = null
             gaugeRuntime.needsCapture = false
+            gaugeRuntime.lastRenderStatus = 'skipped-clean'
             continue
           }
         } else {
           assertHtmlGaugeHasRenderableContent(gaugeRuntime)
         }
 
+        const renderKind =
+          gaugeRuntime.pendingDirtyKind ?? (gaugeRuntime.captured ? 'unknown' : 'dom')
         if (!surfaceWasCleared && gaugeRuntime.needsCapture) {
           surfaceRuntime.context.fillStyle = getVCockpitSurfaceBackgroundFillStyle(
             surfaceRuntime.surface
@@ -5063,22 +5309,25 @@ async function captureVCockpitSurfaceTexture(
           y,
           width,
           height,
-          gaugeRuntime.pendingDirtyKind ?? (gaugeRuntime.captured ? 'unknown' : 'dom')
+          renderKind
         )
         gaugeRuntime.lastChangeVersion = changeVersion
         gaugeRuntime.pendingChangeVersion = null
         gaugeRuntime.pendingDirtyKind = null
         gaugeRuntime.needsCapture = false
         gaugeRuntime.lastVisualSignature = visualSignature
+        gaugeRuntime.lastRenderKind = renderKind
         surfaceDirty = true
       } else {
         assertHtmlGaugeHasRenderableContent(gaugeRuntime)
         const image = await captureHtmlGaugeFrameImage(gaugeRuntime, width, height)
         surfaceRuntime.context.drawImage(image, x, y, width, height)
         gaugeRuntime.captureImage = image
+        gaugeRuntime.lastRenderKind = 'static'
         surfaceDirty = true
       }
       gaugeRuntime.captured = true
+      gaugeRuntime.lastRenderStatus = 'captured'
       if (surfaceRuntime.liveCapture) {
         gaugeRuntime.captureImage = null
       }
@@ -5104,6 +5353,8 @@ async function captureVCockpitSurfaceTexture(
       gaugeRuntime.pendingDirtyKind = null
       gaugeRuntime.needsCapture = !surfaceRuntime.liveCapture
       gaugeRuntime.captured = false
+      gaugeRuntime.lastRenderStatus = 'error'
+      gaugeRuntime.lastRenderKind = null
       if (
         !surfaceRuntime.liveCapture &&
         gaugeRuntime.captureAttemptCount >= VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS
@@ -5184,6 +5435,9 @@ function getVCockpitHtmlGaugeRuntimeStats(
     | (Window & {
         readonly __msfsGaugeDirtyStats?: unknown
         readonly __msfsInstrumentRuntimeStats?: unknown
+        readonly __msfsGaugeBridgeStats?: unknown
+        readonly __msfsGaugeErrors?: unknown
+        readonly __msfsGaugeAssetErrors?: unknown
       })
     | null
     | undefined
@@ -5194,6 +5448,9 @@ function getVCockpitHtmlGaugeRuntimeStats(
     captured: gaugeRuntime.captured,
     needsCapture: gaugeRuntime.needsCapture,
     pendingDirtyKind: gaugeRuntime.pendingDirtyKind,
+    lastRenderStatus: gaugeRuntime.lastRenderStatus,
+    lastRenderKind: gaugeRuntime.lastRenderKind,
+    lastCaptureError: gaugeRuntime.lastCaptureError,
     hasStaticCaptureImage: gaugeRuntime.staticCaptureImage != null,
     captureAttemptCount: gaugeRuntime.captureAttemptCount,
     changeVersion: getHtmlGaugeChangeVersion(gaugeRuntime),
@@ -5201,7 +5458,10 @@ function getVCockpitHtmlGaugeRuntimeStats(
     canvasCount: frameDocument?.querySelectorAll('canvas').length ?? null,
     svgCount: frameDocument?.querySelectorAll('svg').length ?? null,
     dirtyStats: frameWindow?.__msfsGaugeDirtyStats ?? null,
-    instrumentStats: frameWindow?.__msfsInstrumentRuntimeStats ?? null
+    instrumentStats: frameWindow?.__msfsInstrumentRuntimeStats ?? null,
+    bridgeStats: frameWindow?.__msfsGaugeBridgeStats ?? null,
+    scriptErrors: frameWindow?.__msfsGaugeErrors ?? null,
+    assetErrors: frameWindow?.__msfsGaugeAssetErrors ?? null
   }
 }
 
