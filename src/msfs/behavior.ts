@@ -753,10 +753,10 @@ function expandTemplateUse(
   }
 
   const templateParams = new Map<string, string>(state.params)
-  applyParameterBlocks(templateNode, 'default', templateParams, state.path, context.diagnostics)
   for (const [key, value] of childParams) {
     templateParams.set(key, value)
   }
+  applyParameterBlocks(templateNode, 'default', templateParams, state.path, context.diagnostics)
   applyParameterBlocks(templateNode, 'override', templateParams, state.path, context.diagnostics)
 
   const leftSingleSource =
@@ -1357,7 +1357,7 @@ function collectParameterEntries(
       continue
     }
 
-    const value = resolveProcessedParameterValue(child, scopedParams, sourcePath, diagnostics)
+    const value = resolveProcessedParameterValue(child, scopedParams, sourcePath, diagnostics, params)
     values.set(key, value)
     scopedParams.set(key, value)
   }
@@ -1367,7 +1367,8 @@ function resolveProcessedParameterValue(
   node: Element,
   params: ReadonlyMap<string, string>,
   sourcePath: string,
-  diagnostics: ImportDiagnostic[]
+  diagnostics: ImportDiagnostic[],
+  inheritedParams?: ReadonlyMap<string, string>
 ): string {
   const substituted = substituteParameters(node.textContent ?? '', params).trim()
   const process = (getAttributeValue(node, 'Process') ?? '').trim().toLowerCase()
@@ -1376,6 +1377,12 @@ function resolveProcessedParameterValue(
   }
 
   if (process === 'param') {
+    if (inheritedParams != null) {
+      const inheritedKey = substituteParameters(node.textContent ?? '', inheritedParams).trim()
+      if (inheritedKey && params.has(inheritedKey)) {
+        return params.get(inheritedKey) ?? ''
+      }
+    }
     return params.get(substituted) ?? ''
   }
 
