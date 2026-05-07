@@ -1377,13 +1377,16 @@ function resolveProcessedParameterValue(
   }
 
   if (process === 'param') {
+    if (params.has(substituted)) {
+      return params.get(substituted) ?? ''
+    }
     if (inheritedParams != null) {
       const inheritedKey = substituteParameters(node.textContent ?? '', inheritedParams).trim()
       if (inheritedKey && params.has(inheritedKey)) {
         return params.get(inheritedKey) ?? ''
       }
     }
-    return params.get(substituted) ?? ''
+    return ''
   }
 
   if (process === 'int' || process === 'float') {
