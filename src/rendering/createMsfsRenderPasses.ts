@@ -1,7 +1,6 @@
 import {
   DepthFormat,
   Mesh,
-  MeshBasicMaterial,
   RenderTarget,
   UnsignedIntType,
   Vector2,
@@ -10,6 +9,7 @@ import {
   type Camera,
   type Material
 } from 'three'
+import { MeshBasicNodeMaterial } from 'three/webgpu'
 
 import {
   getMsfsBlendGBufferDepthTexture,
@@ -52,7 +52,7 @@ type RenderTargetRenderer = AppRenderer & {
 }
 
 const depthTextureSize = new Vector2()
-const depthOnlyMaterial = new MeshBasicMaterial({
+const depthOnlyMaterial = new MeshBasicNodeMaterial({
   colorWrite: false,
   depthTest: true,
   depthWrite: true
@@ -270,7 +270,7 @@ function copyBlendGBufferSceneDepth(
   }
 
   const depthCopyRenderer = renderer as DepthCopyRenderer
-  if ((renderer as AppRenderer & { readonly backend?: { readonly isWebGPUBackend?: boolean } }).backend?.isWebGPUBackend === true) {
+  if (isWebGpuRenderer(renderer)) {
     return false
   }
 
@@ -283,6 +283,8 @@ function copyBlendGBufferSceneDepth(
 
   depthCopyRenderer.getDrawingBufferSize(depthTextureSize)
   const depthTexture = getMsfsBlendGBufferDepthTexture()
+  depthTexture.format = DepthFormat
+  depthTexture.type = UnsignedIntType
   if (
     depthTexture.image.width !== depthTextureSize.x ||
     depthTexture.image.height !== depthTextureSize.y
