@@ -141,6 +141,7 @@ type CockpitCameraController = {
 type CockpitViewToggleSource = 'keyboard' | 'benchmark'
 type VCockpitGaugeMode = 'texture' | 'overlay' | 'video'
 type ExteriorInteriorMode = 'deferred' | 'sync' | 'off'
+type CockpitTextureMode = 'range-low' | 'full'
 
 type ViewerConfigProfile = {
   readonly packageRoot?: string
@@ -154,7 +155,7 @@ type ViewerConfigProfile = {
   readonly vcockpitGaugeMode?: VCockpitGaugeMode
   readonly vcockpitGaugeCaptureFps?: number | null
   readonly vcockpitGaugeRasterScale?: number | null
-  readonly cockpitTextures?: 'off' | 'range-low'
+  readonly cockpitTextures?: CockpitTextureMode
   readonly cockpitTextureSize?: number | null
   readonly cockpitMergeStatic?: boolean
   readonly cockpitInstanceStatic?: boolean
@@ -188,7 +189,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly vcockpitGaugeMode: VCockpitGaugeMode
   readonly vcockpitGaugeCaptureFps: number
   readonly vcockpitGaugeRasterScale: number
-  readonly cockpitTextures: 'off' | 'range-low'
+  readonly cockpitTextures: CockpitTextureMode
   readonly cockpitTextureSize: number | null
   readonly cockpitMergeStatic: boolean
   readonly cockpitInstanceStatic: boolean
@@ -1008,7 +1009,6 @@ async function init(): Promise<void> {
             preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
             fallbackToOtherLods: false,
             textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
-            stripTextures: !shouldLoadCockpitRangeTextures(effectiveSearchParams),
             instanceStaticMeshes: isEnabledFlagSearchParam(
               effectiveSearchParams,
               'cockpitInstanceStatic'
@@ -1601,7 +1601,6 @@ async function init(): Promise<void> {
           preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
           fallbackToOtherLods: false,
           textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
-          stripTextures: !shouldLoadCockpitRangeTextures(effectiveSearchParams),
           instanceStaticMeshes: isEnabledFlagSearchParam(
             effectiveSearchParams,
             'cockpitInstanceStatic'
@@ -2431,20 +2430,22 @@ function clamp01(value: number): number {
 }
 
 function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDSLoadOptions {
-  if (shouldLoadCockpitRangeTextures(searchParams)) {
+  if (getCockpitTextureMode(searchParams) === 'range-low') {
     return {
       rangeMaxTextureSize: getCockpitRangeTextureSize(searchParams),
       rangeFallback: 'placeholder'
     }
   }
 
-  return {
-    skipTextures: true
-  }
+  return {}
+}
+
+function getCockpitTextureMode(searchParams: URLSearchParams): CockpitTextureMode {
+  return searchParams.get('cockpitTextures') === 'full' ? 'full' : 'range-low'
 }
 
 function shouldLoadCockpitRangeTextures(searchParams: URLSearchParams): boolean {
-  return searchParams.get('cockpitTextures') === 'range-low'
+  return getCockpitTextureMode(searchParams) === 'range-low'
 }
 
 function shouldBindVCockpitSurfaces(searchParams: URLSearchParams): boolean {
@@ -2704,7 +2705,10 @@ function normalizeViewerConfigProfile(value: unknown): ViewerConfigProfile {
     vcockpitGaugeMode: normalizeVCockpitGaugeMode(record.vcockpitGaugeMode),
     vcockpitGaugeCaptureFps: normalizeNullableNumber(record.vcockpitGaugeCaptureFps),
     vcockpitGaugeRasterScale: normalizeNullableNumber(record.vcockpitGaugeRasterScale),
-    cockpitTextures: record.cockpitTextures === 'range-low' ? 'range-low' : record.cockpitTextures === 'off' ? 'off' : undefined,
+    cockpitTextures:
+      record.cockpitTextures === 'full'
+        ? 'full'
+        : record.cockpitTextures === 'range-low' ? 'range-low' : undefined,
     cockpitTextureSize: normalizeNullableInteger(record.cockpitTextureSize),
     cockpitMergeStatic: normalizeOptionalBoolean(record.cockpitMergeStatic),
     cockpitInstanceStatic: normalizeOptionalBoolean(record.cockpitInstanceStatic),
@@ -8958,8 +8962,8 @@ function createSettingsProfileEditor(options: {
   )
   appendGlobalOption(cockpitTexturesSelect)
   cockpitTexturesSelect.append(
-    createSettingsOption('off', 'Off'),
-    createSettingsOption('range-low', 'Range low')
+    createSettingsOption('range-low', 'Range low'),
+    createSettingsOption('full', 'Full')
   )
   for (const select of [
     cockpitMergeSelect,
@@ -9024,7 +9028,8 @@ function createSettingsProfileEditor(options: {
     )
     vcockpitGaugeModeSelect.value =
       profile.vcockpitGaugeMode ?? (inheritsFromGlobal ? 'global' : 'texture')
-    cockpitTexturesSelect.value = profile.cockpitTextures ?? (inheritsFromGlobal ? 'global' : 'off')
+    cockpitTexturesSelect.value =
+      profile.cockpitTextures ?? (inheritsFromGlobal ? 'global' : 'range-low')
     cockpitTextureSizeInput.value =
       profile.cockpitTextureSize == null ? '' : String(profile.cockpitTextureSize)
     vcockpitCaptureFpsInput.value =
@@ -9147,7 +9152,7 @@ function createViewerConfigProfileFromSearchParams(
     vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
-    cockpitTextures: shouldLoadCockpitRangeTextures(searchParams) ? 'range-low' : 'off',
+    cockpitTextures: getCockpitTextureMode(searchParams),
     cockpitTextureSize: searchParams.has('cockpitTextureSize')
       ? getCockpitRangeTextureSize(searchParams)
       : null,
@@ -9171,7 +9176,7 @@ function createViewerRuntimeSettingsSnapshot(
     vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
-    cockpitTextures: shouldLoadCockpitRangeTextures(searchParams) ? 'range-low' : 'off',
+    cockpitTextures: getCockpitTextureMode(searchParams),
     cockpitTextureSize: searchParams.has('cockpitTextureSize')
       ? getCockpitRangeTextureSize(searchParams)
       : null,
@@ -9285,7 +9290,7 @@ function parseSettingsCockpitTextures(
   if (allowGlobal && value === 'global') {
     return undefined
   }
-  return value === 'range-low' ? 'range-low' : 'off'
+  return value === 'full' ? 'full' : 'range-low'
 }
 
 function createSettingsField(labelText: string, control: HTMLElement): HTMLLabelElement {

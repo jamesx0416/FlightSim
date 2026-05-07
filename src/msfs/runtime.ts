@@ -699,9 +699,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         return handled(genericStoredValue)
       }
     }
-    if (upperKey.startsWith('A:CIRCUIT ON:')) return handled(1)
+    if (isPoweredCircuitStateKey(upperKey)) return handled(1)
     if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(convertPercentUnit(100, unit))
-    if (upperKey.startsWith('A:CIRCUIT CONNECTION ON:')) return handled(1)
+    if (isPoweredBusConnectionKey(upperKey)) return handled(1)
     if (upperKey.startsWith('A:INTERACTIVE POINT OPEN:')) return handled(convertPercentUnit(0, unit))
     if (upperKey.startsWith('A:ENG ANTI ICE:')) return handled(0)
     if (upperKey.startsWith('A:PROP DEICE SWITCH:')) return handled(0)
@@ -994,6 +994,18 @@ function resolveGenericStoredVariableFallback(key: string, unit: string | null):
     return 1
   }
   return null
+}
+
+function isPoweredCircuitStateKey(key: string): boolean {
+  return (
+    /^A:CIRCUIT(?: [A-Z0-9_ ]+)? ON(?::|$)/u.test(key) ||
+    /^A:CIRCUIT SWITCH ON(?::|$)/u.test(key) ||
+    /^A:CIRCUIT CONNECTION ON(?::|$)/u.test(key)
+  )
+}
+
+function isPoweredBusConnectionKey(key: string): boolean {
+  return /^A:(?:\d+:)?BUS CONNECTION ON(?::|$)/u.test(key)
 }
 
 function normalizeUnit(unit: string | null): string {
