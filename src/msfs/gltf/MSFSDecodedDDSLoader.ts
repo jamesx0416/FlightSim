@@ -14,6 +14,7 @@ import {
 
 import {
   MSFSDDSLoader,
+  shouldBypassDdsRangeReduction,
   type MSFSDDSLoadOptions,
   type MSFSDDSPlaceholderKind
 } from './MSFSDDSLoader'
@@ -179,8 +180,20 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     const itemUrl = resolveTextureUrl(this.path, url)
     const resolvedUrl = this.manager.resolveURL(itemUrl)
     this.manager.itemStart(resolvedUrl)
-    void this.fetchRangeTexture(resolvedUrl, onProgress)
+    void shouldBypassDdsRangeReduction(resolvedUrl, this.requestHeader)
+      .then(bypassRangeReduction => {
+        if (bypassRangeReduction) {
+          this.manager.itemEnd(resolvedUrl)
+          this.loadFullTexture(url, texture, onLoad, onProgress, onError)
+          return undefined
+        }
+
+        return this.fetchRangeTexture(resolvedUrl, onProgress)
+      })
       .then(parsed => {
+        if (parsed === undefined) {
+          return
+        }
         if (parsed == null) {
           applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
         } else {
@@ -201,6 +214,52 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         onLoad?.(texture)
         console.warn('Decoded DDS range mip load fell back to a placeholder.', error)
       })
+  }
+
+  private loadFullTexture(
+    url: string,
+    texture: Texture,
+    onLoad: ((data: Texture) => void) | undefined,
+    onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined,
+    onError: ((error: unknown) => void) | undefined
+  ): void {
+    const fileLoader = new FileLoader(this.manager)
+    fileLoader.setPath(this.path)
+    fileLoader.setResponseType('arraybuffer')
+    fileLoader.setRequestHeader(this.requestHeader)
+    fileLoader.setWithCredentials(this.withCredentials)
+
+    fileLoader.load(
+      url,
+      buffer => {
+        try {
+          applyDecodedTexture(
+            texture,
+            this.parse(buffer as ArrayBuffer, {
+              loadMipmaps: this.options.loadMipmaps !== false,
+              maxTextureSize: this.options.initialMaxTextureSize ?? this.options.maxTextureSize
+            })
+          )
+          onLoad?.(texture)
+        } catch {
+          try {
+            onLoad?.(
+              createCompressedTexture(
+                new MSFSDDSLoader(this.manager, this.options).parse(buffer as ArrayBuffer, {
+                  loadMipmaps: this.options.loadMipmaps !== false,
+                  maxTextureSize: this.options.initialMaxTextureSize ?? this.options.maxTextureSize
+                })
+              )
+            )
+          } catch (error) {
+            onError?.(error)
+            this.manager.itemError(url)
+          }
+        }
+      },
+      onProgress,
+      onError
+    )
   }
 
   private async fetchRangeTexture(

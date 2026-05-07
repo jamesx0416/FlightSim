@@ -245,6 +245,7 @@ const MSFS_MATERIAL_DRAW_ORDER_MIN = -999
 const msfsBlendGBufferProjectionDepthAllowance = uniform(0).onObjectUpdate(({ material }) =>
   getMsfsBlendGBufferProjectionDepthAllowance(material as Material | MsfsMaterial | null | undefined)
 )
+const msfsBlendGBufferDepthMaskEnabled = uniform(1)
 
 const RESOLVED_COLOR_FRAGMENT_CHUNK = `#if defined( USE_COLOR_ALPHA )
 
@@ -307,6 +308,10 @@ const msfsBlendGBufferDepthTexture = new DepthTexture(1, 1)
 
 export function getMsfsBlendGBufferDepthTexture(): DepthTexture {
   return msfsBlendGBufferDepthTexture
+}
+
+export function setMsfsBlendGBufferDepthMaskEnabled(enabled: boolean): void {
+  msfsBlendGBufferDepthMaskEnabled.value = enabled ? 1 : 0
 }
 
 export async function normalizeMsfsMaterials(
@@ -1450,7 +1455,10 @@ function createMsfsBlendGBufferDepthMaskNode() {
     .add(sceneDepth.fwidth())
     .add(msfsBlendGBufferProjectionDepthAllowance.div(cameraFar.sub(cameraNear)))
 
-  return decalDepth.lessThanEqual(sceneDepth.add(sameSurfaceDepthAllowance)).select(1, 0)
+  const depthMask = decalDepth
+    .lessThanEqual(sceneDepth.add(sameSurfaceDepthAllowance))
+    .select(1, 0)
+  return msfsBlendGBufferDepthMaskEnabled.lessThan(0.5).select(1, depthMask)
 }
 
 function getMsfsBlendGBufferProjectionDepthAllowance(

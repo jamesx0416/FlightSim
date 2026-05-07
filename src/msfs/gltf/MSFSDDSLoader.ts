@@ -221,8 +221,20 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     const itemUrl = resolveTextureUrl(this.path, requestUrl)
     const resolvedUrl = this.manager.resolveURL(itemUrl)
     this.manager.itemStart(resolvedUrl)
-    void this.fetchRangeMipTexture(resolvedUrl, onProgress)
+    void shouldBypassDdsRangeReduction(resolvedUrl, this.requestHeader)
+      .then(bypassRangeReduction => {
+        if (bypassRangeReduction) {
+          this.manager.itemEnd(resolvedUrl)
+          this.loadFullTexture(requestUrl, onParsed, onProgress, onError, fallbackLoader)
+          return undefined
+        }
+
+        return this.fetchRangeMipTexture(resolvedUrl, onProgress)
+      })
       .then(texDatas => {
+        if (texDatas === undefined) {
+          return
+        }
         if (texDatas == null) {
           this.manager.itemEnd(resolvedUrl)
           this.loadRangeFallback(
@@ -266,23 +278,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     cause?: unknown
   ): void {
     if (this.options.rangeFallback === 'full') {
-      fallbackLoader.load(
-        requestUrl,
-        buffer => {
-          try {
-            const texDatas = this.parse(buffer as ArrayBuffer, {
-              loadMipmaps: this.options.loadMipmaps !== false,
-              maxTextureSize: this.options.initialMaxTextureSize ?? this.options.maxTextureSize
-            })
-            onParsed(texDatas)
-          } catch (error) {
-            onError?.(error)
-            this.manager.itemError(requestUrl)
-          }
-        },
-        onProgress,
-        onError
-      )
+      this.loadFullTexture(requestUrl, onParsed, onProgress, onError, fallbackLoader)
       return
     }
 
@@ -293,6 +289,32 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     if (cause != null) {
       console.warn('DDS range mip load fell back to a placeholder.', cause)
     }
+  }
+
+  private loadFullTexture(
+    requestUrl: string,
+    onParsed: (texDatas: DdsParseResult) => void,
+    onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined,
+    onError: ((error: unknown) => void) | undefined,
+    loader: FileLoader
+  ): void {
+    loader.load(
+      requestUrl,
+      buffer => {
+        try {
+          const texDatas = this.parse(buffer as ArrayBuffer, {
+            loadMipmaps: this.options.loadMipmaps !== false,
+            maxTextureSize: this.options.initialMaxTextureSize ?? this.options.maxTextureSize
+          })
+          onParsed(texDatas)
+        } catch (error) {
+          onError?.(error)
+          this.manager.itemError(requestUrl)
+        }
+      },
+      onProgress,
+      onError
+    )
   }
 
   private async fetchRangeMipTexture(
@@ -821,6 +843,33 @@ async function fetchArrayBufferRange(
   }
 
   return response.arrayBuffer()
+}
+
+export async function shouldBypassDdsRangeReduction(
+  url: string,
+  requestHeader: Record<string, string>
+): Promise<boolean> {
+  if (url.startsWith('data:') || url.startsWith('blob:')) {
+    return false
+  }
+
+  let response: Response
+  try {
+    response = await fetch(`${url}.FLAGS`, {
+      headers: requestHeader,
+      credentials: 'same-origin'
+    })
+  } catch {
+    return false
+  }
+
+  if (!response.ok) {
+    await response.body?.cancel()
+    return false
+  }
+
+  const flags = (await response.text()).toUpperCase()
+  return flags.includes('+NOREDUCE') || /\bNOREDUCE\b/.test(flags)
 }
 
 const DDS_MAGIC = 0x20534444
