@@ -9,6 +9,7 @@ import {
 
 import {
   getMsfsBlendGBufferDepthTexture,
+  setMsfsBlendGBufferDepthMaskEnabled,
   usesBlendGBufferColorMaterial,
   usesBlendGBufferMaterial
 } from '../msfs/gltf/normalizeMsfsMaterials'
@@ -133,13 +134,19 @@ export function createMsfsRenderPasses(
         restoreMaterialRenderState(colorBlendMaterials, originalMaterialState)
         hideMaterials(componentOnlyBlendMaterials, originalMaterialState)
         hideMaterials(nonBlendMaterialsOnBlendMeshes, originalMaterialState)
-        configureBlendGBufferMaterialsForDecalPass(colorBlendMaterials, originalMaterialState)
-        copyBlendGBufferSceneDepth(renderer, colorBlendMaterials)
+        const useDepthMask = copyBlendGBufferSceneDepth(renderer, colorBlendMaterials)
+        configureBlendGBufferMaterialsForDecalPass(
+          colorBlendMaterials,
+          originalMaterialState,
+          useDepthMask
+        )
+        setMsfsBlendGBufferDepthMaskEnabled(useDepthMask)
         camera.layers.mask = decalLayerMask
         scene.background = null
         renderer.autoClear = false
         renderer.render(scene, camera)
       } finally {
+        setMsfsBlendGBufferDepthMaskEnabled(true)
         restoreMaterialRenderState(
           originalMaterialState.keys(),
           originalMaterialState
@@ -181,17 +188,19 @@ function hideMaterials(
 
 function configureBlendGBufferMaterialsForDecalPass(
   materials: Iterable<Material>,
-  originalMaterialState: Map<MsfsMaterial, MaterialRenderState>
+  originalMaterialState: Map<MsfsMaterial, MaterialRenderState>,
+  useDepthMask: boolean
 ): void {
   for (const material of materials) {
     const msfsMaterial = material as MsfsMaterial
     const hasDepthMask = msfsMaterial.userData?.msfsBlendGBufferDepthMask === true
+    const useMaterialDepthMask = hasDepthMask && useDepthMask
     preserveMaterialRenderState(msfsMaterial, originalMaterialState)
     msfsMaterial.visible = originalMaterialState.get(msfsMaterial)?.visible ?? msfsMaterial.visible
-    msfsMaterial.depthTest = !hasDepthMask
+    msfsMaterial.depthTest = !useMaterialDepthMask
     msfsMaterial.depthWrite = false
     msfsMaterial.polygonOffset =
-      hasDepthMask
+      useMaterialDepthMask
         ? false
         : originalMaterialState.get(msfsMaterial)?.polygonOffset ?? msfsMaterial.polygonOffset ?? false
   }
@@ -200,21 +209,21 @@ function configureBlendGBufferMaterialsForDecalPass(
 function copyBlendGBufferSceneDepth(
   renderer: AppRenderer,
   materials: Iterable<Material>
-): void {
+): boolean {
   if (!hasBlendGBufferDepthMaskMaterial(materials)) {
-    return
+    return false
   }
 
   const depthCopyRenderer = renderer as DepthCopyRenderer
   if ((renderer as AppRenderer & { readonly backend?: { readonly isWebGPUBackend?: boolean } }).backend?.isWebGPUBackend === true) {
-    return
+    return false
   }
 
   if (
     depthCopyRenderer.copyFramebufferToTexture == null ||
     depthCopyRenderer.getDrawingBufferSize == null
   ) {
-    return
+    return false
   }
 
   depthCopyRenderer.getDrawingBufferSize(depthTextureSize)
@@ -229,6 +238,7 @@ function copyBlendGBufferSceneDepth(
   }
 
   depthCopyRenderer.copyFramebufferToTexture(depthTexture)
+  return true
 }
 
 function hasBlendGBufferDepthMaskMaterial(materials: Iterable<Material>): boolean {
