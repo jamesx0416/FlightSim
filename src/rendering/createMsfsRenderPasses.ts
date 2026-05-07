@@ -1,7 +1,6 @@
 import {
   DepthFormat,
   Mesh,
-  RenderTarget,
   UnsignedIntType,
   Vector2,
   type Object3D,
@@ -9,7 +8,6 @@ import {
   type Camera,
   type Material
 } from 'three'
-import { MeshBasicNodeMaterial } from 'three/webgpu'
 
 import {
   getMsfsBlendGBufferDepthTexture,
@@ -46,18 +44,7 @@ type DepthCopyRenderer = AppRenderer & {
   getDrawingBufferSize?: (target: Vector2) => Vector2
 }
 
-type RenderTargetRenderer = AppRenderer & {
-  getRenderTarget(): RenderTarget | null
-  setRenderTarget(renderTarget: RenderTarget | null): void
-}
-
 const depthTextureSize = new Vector2()
-const depthOnlyMaterial = new MeshBasicNodeMaterial({
-  colorWrite: false,
-  depthTest: true,
-  depthWrite: true
-})
-depthOnlyMaterial.name = 'MSFS_BLEND_GBUFFER_DEPTH_ONLY'
 
 export interface MsfsRenderPasses {
   readonly hasBlendGBufferDecals: boolean
@@ -77,7 +64,6 @@ export function createMsfsRenderPasses(
   const componentOnlyBlendMaterials = new Set<Material>()
   const nonBlendMaterialsOnBlendMeshes = new Set<Material>()
   const originalBlendMeshLayerMasks = new Map<Mesh, number>()
-  let depthRenderTarget: RenderTarget | null = null
   let decalLayerMask = findLayerMaskOutsideCamera(camera)
 
   const refresh = (): void => {
@@ -145,14 +131,12 @@ export function createMsfsRenderPasses(
       try {
         renderer.autoClear = true
         hideMaterials(allBlendMaterials, originalMaterialState)
-        const renderTargetDepthAvailable = renderBasePassToDepthTarget(renderer, scene, camera)
         renderer.render(scene, camera)
 
         restoreMaterialRenderState(colorBlendMaterials, originalMaterialState)
         hideMaterials(componentOnlyBlendMaterials, originalMaterialState)
         hideMaterials(nonBlendMaterialsOnBlendMeshes, originalMaterialState)
-        const useDepthMask =
-          renderTargetDepthAvailable || copyBlendGBufferSceneDepth(renderer, colorBlendMaterials)
+        const useDepthMask = copyBlendGBufferSceneDepth(renderer, colorBlendMaterials)
         configureBlendGBufferMaterialsForDecalPass(
           colorBlendMaterials,
           originalMaterialState,
@@ -174,43 +158,6 @@ export function createMsfsRenderPasses(
         renderer.autoClear = originalAutoClear
       }
     },
-  }
-
-  function renderBasePassToDepthTarget(
-    renderer: AppRenderer,
-    scene: Scene,
-    camera: Camera
-  ): boolean {
-    if (!isWebGpuRenderer(renderer) || !hasBlendGBufferDepthMaskMaterial(colorBlendMaterials)) {
-      return false
-    }
-
-    const renderTargetRenderer = renderer as RenderTargetRenderer
-    if (
-      typeof renderTargetRenderer.getRenderTarget !== 'function' ||
-      typeof renderTargetRenderer.setRenderTarget !== 'function' ||
-      typeof renderer.getDrawingBufferSize !== 'function'
-    ) {
-      return false
-    }
-
-    renderer.getDrawingBufferSize(depthTextureSize)
-    const width = Math.max(1, Math.floor(depthTextureSize.x))
-    const height = Math.max(1, Math.floor(depthTextureSize.y))
-    depthRenderTarget = ensureBlendGBufferDepthRenderTarget(depthRenderTarget, width, height)
-
-    const previousRenderTarget = renderTargetRenderer.getRenderTarget()
-    const previousOverrideMaterial = scene.overrideMaterial
-    try {
-      renderTargetRenderer.setRenderTarget(depthRenderTarget)
-      scene.overrideMaterial = depthOnlyMaterial
-      renderer.render(scene, camera)
-    } finally {
-      scene.overrideMaterial = previousOverrideMaterial
-      renderTargetRenderer.setRenderTarget(previousRenderTarget)
-    }
-
-    return true
   }
 }
 
@@ -306,41 +253,6 @@ function hasBlendGBufferDepthMaskMaterial(materials: Iterable<Material>): boolea
   }
 
   return false
-}
-
-function ensureBlendGBufferDepthRenderTarget(
-  renderTarget: RenderTarget | null,
-  width: number,
-  height: number
-): RenderTarget {
-  const depthTexture = getMsfsBlendGBufferDepthTexture()
-  depthTexture.format = DepthFormat
-  depthTexture.type = UnsignedIntType
-  if (
-    depthTexture.image.width !== width ||
-    depthTexture.image.height !== height
-  ) {
-    depthTexture.image.width = width
-    depthTexture.image.height = height
-    depthTexture.needsUpdate = true
-  }
-
-  if (renderTarget == null) {
-    return new RenderTarget(width, height, {
-      depthBuffer: true,
-      depthTexture,
-      samples: 0
-    })
-  }
-
-  if (renderTarget.width !== width || renderTarget.height !== height) {
-    renderTarget.setSize(width, height)
-  }
-  if (renderTarget.depthTexture !== depthTexture) {
-    renderTarget.depthTexture = depthTexture
-  }
-
-  return renderTarget
 }
 
 function isWebGpuRenderer(renderer: AppRenderer): boolean {
