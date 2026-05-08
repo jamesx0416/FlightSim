@@ -812,6 +812,36 @@ function expandTemplateUse(
       pushUniqueInteractionBinding(interactionBindings, interactionBinding)
     }
   }
+  if (!leftSingleSource && !eventId) {
+    const fallbackCodeSource = getInteractionFallbackCodeSource(templateParams)
+    const fallbackEventId = fallbackCodeSource ? '' : getInteractionFallbackEventId(templateParams)
+    if (fallbackCodeSource) {
+      const interactionBinding = buildInteractionCodeBinding(
+        fallbackCodeSource,
+        null,
+        templateParams,
+        state.currentNode,
+        state.path,
+        'callback',
+        context.diagnostics
+      )
+      if (interactionBinding != null) {
+        pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+      }
+    } else if (fallbackEventId) {
+      const interactionBinding = buildInteractionEventBinding(
+        fallbackEventId,
+        templateParams,
+        state.currentNode,
+        state.path,
+        'callback',
+        context.diagnostics
+      )
+      if (interactionBinding != null) {
+        pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+      }
+    }
+  }
 
   const nextState: TraversalState = {
     ...state,
@@ -982,6 +1012,59 @@ function buildInteractionEventBinding(
     kind,
     diagnostics
   )
+}
+
+function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): string {
+  return getFirstUsableInteractionParameter(params, [
+    'CLOCKWISE_CODE_DEFAULT_IM',
+    'CLOCKWISE_CODE',
+    'CLOCKWISE_CODE_DRAG_IM',
+    'POSITIVE_AXIS_CODE_DEFAULT_IM',
+    'POSITIVE_AXIS_CODE',
+    'POSITIVE_AXIS_CODE_DRAG_IM',
+    'WHEEL_UP_CODE',
+    'CODE_RIGHT',
+    'CODE_UP',
+    'UP_CODE',
+    'ANTICLOCKWISE_CODE_DEFAULT_IM',
+    'ANTICLOCKWISE_CODE',
+    'ANTICLOCKWISE_CODE_DRAG_IM',
+    'NEGATIVE_AXIS_CODE_DEFAULT_IM',
+    'NEGATIVE_AXIS_CODE',
+    'NEGATIVE_AXIS_CODE_DRAG_IM',
+    'WHEEL_DOWN_CODE',
+    'CODE_LEFT',
+    'CODE_DN',
+    'DOWN_CODE',
+    'LEFT_DOWN_CODE',
+    'LEFT_UP_CODE'
+  ])
+}
+
+function getInteractionFallbackEventId(params: ReadonlyMap<string, string>): string {
+  return getFirstUsableInteractionParameter(params, [
+    'CLOCKWISE_EVENTID',
+    'ANTICLOCKWISE_EVENTID',
+    'DRAG_EVENTID_SET'
+  ])
+}
+
+function getFirstUsableInteractionParameter(
+  params: ReadonlyMap<string, string>,
+  names: readonly string[]
+): string {
+  for (const name of names) {
+    const value = params.get(name)?.trim() ?? ''
+    if (!isNoopInteractionParameter(value)) {
+      return value
+    }
+  }
+  return ''
+}
+
+function isNoopInteractionParameter(value: string): boolean {
+  const normalized = value.trim()
+  return normalized === '' || normalized === '0' || normalized.toLowerCase() === 'false'
 }
 
 function collectInteractionFeedbackTargets(
