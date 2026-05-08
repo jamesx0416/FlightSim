@@ -650,12 +650,12 @@ async function importModelDefinition(
   const modelCfgSections = parseCfg(modelCfgText)
   const modelOptionsSection = getCfgSection(modelCfgSections, 'model.options')
   const modelsSection = getCfgSection(modelCfgSections, 'models')
-  const behaviorFile = modelsSection?.values.get(options.modelKind)
+  const behaviorFile = getModelBehaviorFile(modelsSection, options.modelKind)
   if (!behaviorFile) {
     if (options.required) {
       context.diagnostics.push({
         code: 'model_behavior_missing',
-        message: `No [models].${options.modelKind} entry was found in ${modelCfgPath}.`,
+        message: `No ${getModelBehaviorConfigKeyLabel(options.modelKind)} entry was found in ${modelCfgPath}.`,
         severity: 'warning',
         sourcePath: modelCfgPath
       })
@@ -1078,6 +1078,34 @@ async function addTextureFallbackDirectories(
       visitedDirectories
     )
   }
+}
+
+function getModelBehaviorFile(
+  modelsSection: ReturnType<typeof parseCfg>[number] | null | undefined,
+  modelKind: 'normal' | 'interior'
+): string | undefined {
+  if (modelsSection == null) {
+    return undefined
+  }
+
+  const primaryBehaviorFile = modelsSection.values.get(modelKind)
+  if (primaryBehaviorFile) {
+    return primaryBehaviorFile
+  }
+
+  if (modelKind === 'normal') {
+    return modelsSection.values.get('exterior')
+  }
+
+  return undefined
+}
+
+function getModelBehaviorConfigKeyLabel(modelKind: 'normal' | 'interior'): string {
+  if (modelKind === 'normal') {
+    return '[models].normal or [models].exterior'
+  }
+
+  return `[models].${modelKind}`
 }
 
 function getModelDirectoryCandidates(
