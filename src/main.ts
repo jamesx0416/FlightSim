@@ -15,6 +15,7 @@ import {
   MeshBasicMaterial,
   Object3D,
   PerspectiveCamera,
+  PropertyBinding,
   Raycaster,
   Scene,
   SkinnedMesh,
@@ -22,7 +23,8 @@ import {
   Texture,
   Vector2,
   Vector3,
-  VideoTexture
+  VideoTexture,
+  type AnimationClip
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -1252,7 +1254,8 @@ async function init(): Promise<void> {
 
     const registry = createCockpitInteractionPickRegistry(
       root,
-      activeRuntime.getInteractionBindings()
+      activeRuntime.getInteractionBindings(),
+      loadedModel.animations
     )
     cockpitInteractionPickRegistryCache = {
       root,
@@ -7727,7 +7730,8 @@ let disposeCockpitCameraShortcut: (() => void) | null = null
 
 function createCockpitInteractionPickRegistry(
   root: Object3D,
-  bindings: readonly CompiledInteractionBinding[]
+  bindings: readonly CompiledInteractionBinding[],
+  animations: readonly AnimationClip[]
 ): CockpitInteractionPickRegistry {
   const nodesByName = new Map<string, Object3D>()
   root.updateWorldMatrix(true, true)
@@ -7743,6 +7747,7 @@ function createCockpitInteractionPickRegistry(
       nodesByName.set(lowerName, node)
     }
   })
+  const animationNodesByName = buildAnimationNodesByName(animations, nodesByName)
 
   const meshes: Mesh[] = []
   const bindingsByMesh = new Map<Object3D, CompiledInteractionBinding>()
@@ -7750,7 +7755,7 @@ function createCockpitInteractionPickRegistry(
   const fallbackHitboxes: CockpitInteractionFallbackHitbox[] = []
   const seen = new Set<string>()
   for (const binding of bindings) {
-    const node = resolveCockpitInteractionNode(binding, nodesByName)
+    const node = resolveCockpitInteractionNode(binding, nodesByName, animationNodesByName)
     if (node == null) {
       continue
     }
@@ -7798,7 +7803,8 @@ function createCockpitInteractionPickRegistry(
 
 function resolveCockpitInteractionNode(
   binding: CompiledInteractionBinding,
-  nodesByName: ReadonlyMap<string, Object3D>
+  nodesByName: ReadonlyMap<string, Object3D>,
+  animationNodesByName: ReadonlyMap<string, readonly Object3D[]>
 ): Object3D | null {
   for (const name of [binding.target, ...binding.feedbackTargets]) {
     const trimmedName = name.trim()
@@ -7811,8 +7817,41 @@ function resolveCockpitInteractionNode(
     if (node != null) {
       return node
     }
+    const animatedNodes =
+      animationNodesByName.get(trimmedName) ??
+      animationNodesByName.get(trimmedName.toLowerCase())
+    if (animatedNodes != null) {
+      const renderableNode = animatedNodes.find(candidate => collectRenderableMeshDescendants(candidate).length > 0)
+      return renderableNode ?? animatedNodes[0] ?? null
+    }
   }
   return null
+}
+
+function buildAnimationNodesByName(
+  animations: readonly AnimationClip[],
+  nodesByName: ReadonlyMap<string, Object3D>
+): ReadonlyMap<string, readonly Object3D[]> {
+  const animationNodesByName = new Map<string, Object3D[]>()
+  for (const animation of animations) {
+    const nodes: Object3D[] = []
+    const seenNodes = new Set<string>()
+    for (const track of animation.tracks) {
+      const trackTarget = PropertyBinding.parseTrackName(track.name).nodeName
+      const node = nodesByName.get(trackTarget) ?? nodesByName.get(trackTarget.toLowerCase())
+      if (node == null || seenNodes.has(node.uuid)) {
+        continue
+      }
+      seenNodes.add(node.uuid)
+      nodes.push(node)
+    }
+    if (nodes.length === 0) {
+      continue
+    }
+    animationNodesByName.set(animation.name, nodes)
+    animationNodesByName.set(animation.name.toLowerCase(), nodes)
+  }
+  return animationNodesByName
 }
 
 function collectRenderableMeshDescendants(node: Object3D): Mesh[] {
