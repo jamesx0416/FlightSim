@@ -1204,7 +1204,26 @@ function collectInteractionFeedbackTargets(
   }
   addPartIdTarget(params.get('PART_ID')?.trim() ?? '')
   addPartIdTarget(params.get('OTHER_PART_ID')?.trim() ?? '')
+  for (const [key, value] of params) {
+    if (isInteractionTargetParameterName(key)) {
+      addTarget(value)
+    }
+  }
   return [...targets]
+}
+
+function isInteractionTargetParameterName(key: string): boolean {
+  const normalized = key.trim().toUpperCase()
+  return (
+    normalized === 'NODE_ID' ||
+    normalized === 'ANIM_NAME' ||
+    normalized === 'HIGHLIGHT_NODE_ID' ||
+    normalized === 'DRAG_NODE_ID' ||
+    normalized.endsWith('_NODE_ID') ||
+    normalized.startsWith('NODE_ID_') ||
+    normalized.endsWith('_ANIM_NAME') ||
+    normalized.startsWith('ANIM_NAME_')
+  )
 }
 
 function resolveLocalVariableScope(

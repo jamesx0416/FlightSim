@@ -53,7 +53,7 @@ export function compileRpnExpression(
   options: CompileOptions
 ): CompiledExpression | null {
   const variableKeys = new Set<string>()
-  const tokens = tokenizeRpn(source)
+  const tokens = tokenizeRpn(rewriteStringKeyEventWrites(source))
   const compiled = compileInstructionBlock(tokens, 0, options, variableKeys)
   if (compiled == null || compiled.nextIndex !== tokens.length) {
     return null
@@ -64,6 +64,13 @@ export function compileRpnExpression(
     instructions: compiled.instructions,
     variableKeys: [...variableKeys]
   }
+}
+
+function rewriteStringKeyEventWrites(source: string): string {
+  return source.replace(
+    /'([^']+)'\s*\(>\s*F:KeyEvent\s*\)/giu,
+    (_match, eventName: string) => `(>K:${eventName.trim()})`
+  )
 }
 
 function compileInstructionBlock(
