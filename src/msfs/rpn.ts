@@ -564,7 +564,7 @@ function extractVariableReference(
 ): { readonly key: string; readonly unit: string | null } | null {
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
-  const variableMatch = /^(A|L|O|B|H|E):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
+  const variableMatch = /^(A|L|O|B|H|E|I):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
   if (!variableMatch) return null
   const namespace = variableMatch[1].toUpperCase()
   const variableName = variableMatch[2].trim()
@@ -580,7 +580,7 @@ function extractVariableWriteReference(
 ): { readonly key: string; readonly unit: string | null } | null {
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
-  const variableMatch = /^>(A|L|O|B|H):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
+  const variableMatch = /^>(A|L|O|B|H|I):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
   if (!variableMatch) return null
   const namespace = variableMatch[1].toUpperCase()
   const variableName = variableMatch[2].trim()
