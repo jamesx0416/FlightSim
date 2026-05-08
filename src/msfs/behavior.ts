@@ -577,6 +577,33 @@ function traverseElement(
     return
   }
 
+  if (elementTagName === 'UseInputEvent') {
+    const inputEventParams = new Map(scopedState.params)
+    for (const [key, value] of collectImmediateParameters(
+      element,
+      scopedState.params,
+      state.path,
+      context.diagnostics
+    )) {
+      inputEventParams.set(key, value)
+    }
+    const inputEventSource = getInteractionUseInputEventCodeSource(inputEventParams)
+    if (inputEventSource) {
+      const interactionBinding = buildInteractionCodeBinding(
+        inputEventSource,
+        null,
+        inputEventParams,
+        scopedState.currentNode,
+        state.path,
+        'callback',
+        context.diagnostics
+      )
+      if (interactionBinding != null) {
+        pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+      }
+    }
+  }
+
   if (elementTagName === 'MouseRect') {
     const callbackNode =
       getDirectChild(element, 'CallbackCode') ??
@@ -1023,9 +1050,13 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
     'POSITIVE_AXIS_CODE',
     'POSITIVE_AXIS_CODE_DRAG_IM',
     'WHEEL_UP_CODE',
+    'JOYSTICK_X_CODE_RIGHT',
+    'JOYSTICK_Y_CODE_UP',
     'CODE_RIGHT',
     'CODE_UP',
     'UP_CODE',
+    'RIGHT_CODE_EXTERNAL',
+    'UP_CODE_EXTERNAL',
     'ANTICLOCKWISE_CODE_DEFAULT_IM',
     'ANTICLOCKWISE_CODE',
     'ANTICLOCKWISE_CODE_DRAG_IM',
@@ -1033,20 +1064,89 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
     'NEGATIVE_AXIS_CODE',
     'NEGATIVE_AXIS_CODE_DRAG_IM',
     'WHEEL_DOWN_CODE',
+    'JOYSTICK_X_CODE_LEFT',
+    'JOYSTICK_Y_CODE_DOWN',
     'CODE_LEFT',
     'CODE_DN',
     'DOWN_CODE',
+    'LEFT_CODE_EXTERNAL',
+    'DOWN_CODE_EXTERNAL',
+    'JOYSTICK_LEFT_SINGLE_CODE',
+    'JOYSTICK_RELEASE_CODE',
+    'ON_EVENT',
+    'ON_PUSH_EVENT',
+    'ON_PULL_EVENT',
+    'SET_STATE_EXTERNAL',
+    'IE_INC_CODE',
+    'IE_DEC_CODE',
+    'IE_STANDBY_CODE',
     'LEFT_DOWN_CODE',
     'LEFT_UP_CODE'
-  ])
+  ]) || buildInteractionGateCodeSource(params)
 }
 
 function getInteractionFallbackEventId(params: ReadonlyMap<string, string>): string {
   return getFirstUsableInteractionParameter(params, [
     'CLOCKWISE_EVENTID',
     'ANTICLOCKWISE_EVENTID',
-    'DRAG_EVENTID_SET'
+    'DRAG_EVENTID_SET',
+    'EVENTID_SET'
   ])
+}
+
+function getInteractionUseInputEventCodeSource(params: ReadonlyMap<string, string>): string {
+  const directSource = getFirstUsableInteractionParameter(params, [
+    'SET_STATE_EXTERNAL',
+    'IE_INC_CODE',
+    'IE_DEC_CODE',
+    'IE_STANDBY_CODE',
+    'ON_EVENT',
+    'ON_PUSH_EVENT',
+    'ON_PULL_EVENT'
+  ])
+  if (directSource) {
+    return directSource
+  }
+
+  for (const [key, value] of params) {
+    const normalizedKey = key.trim().toUpperCase()
+    if (
+      normalizedKey.startsWith('SET_STATE_') ||
+      normalizedKey.startsWith('BINDING_INC_') ||
+      normalizedKey.startsWith('BINDING_DEC_') ||
+      normalizedKey.startsWith('BINDING_SET_')
+    ) {
+      const normalizedValue = value.trim()
+      if (!isNoopInteractionParameter(normalizedValue) && !/^[A-Z][A-Z0-9_]*$/u.test(normalizedValue)) {
+        return normalizedValue
+      }
+    }
+  }
+
+  return ''
+}
+
+function buildInteractionGateCodeSource(params: ReadonlyMap<string, string>): string {
+  const eventIdSet = params.get('EVENTID_SET')?.trim() ?? ''
+  if (eventIdSet) {
+    const simvar = params.get('SIMVAR')?.trim() ?? ''
+    const simvarUnits = params.get('SIMVAR_UNITS')?.trim() || 'number'
+    const increment = params.get('INCREMENT')?.trim() || params.get('DRAG_SPEED')?.trim() || '1'
+    const eventConversion = params.get('EVENTID_CONVERSION')?.trim() ?? ''
+    if (simvar) {
+      return `(A:${simvar}, ${simvarUnits}) ${increment} + ${eventConversion} (>K:${eventIdSet})`
+    }
+    return `1 (>K:${eventIdSet})`
+  }
+
+  const positionType = params.get('POSITION_TYPE')?.trim() || 'O'
+  const positionVar = params.get('POSITION_VAR')?.trim() ?? ''
+  if (!positionVar) {
+    return ''
+  }
+  const stepsNumber = params.get('STEPS_NUMBER')?.trim() || '100'
+  const dragSpeed = params.get('DRAG_SPEED')?.trim() || '1'
+  return `(${positionType}:${positionVar}) ${dragSpeed} + ${stepsNumber} min (>${positionType}:${positionVar})`
 }
 
 function getFirstUsableInteractionParameter(
