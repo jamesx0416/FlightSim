@@ -1091,7 +1091,7 @@ async function init(): Promise<void> {
     cockpitInteractionStats.lastHitKind = null
     cockpitInteractionStats.lastOccluderObject = null
 
-    const root = loadedModel.interior?.scene ?? exteriorViewInterior?.scene ?? loadedModel.scene
+    const root = loadedModel.scene
     const rect = renderer.domElement.getBoundingClientRect()
     if (rect.width <= 0 || rect.height <= 0) {
       cockpitInteractionStats.lastMissReason = 'empty-renderer-rect'
@@ -1294,7 +1294,7 @@ async function init(): Promise<void> {
       return
     }
 
-    const root = loadedModel.interior?.scene ?? exteriorViewInterior?.scene ?? loadedModel.scene
+    const root = loadedModel.scene
     const registry = getCockpitInteractionPickRegistry(root, runtime)
     const group = new Group()
     group.name = 'cockpit-interaction-hitbox-helpers'

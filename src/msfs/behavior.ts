@@ -595,6 +595,21 @@ function traverseElement(
         pushUniqueInteractionBinding(interactionBindings, interactionBinding)
       }
     }
+    const eventIdNode = getDirectChild(element, 'EventID')
+    const eventId = substituteParameters(eventIdNode?.textContent ?? '', scopedState.params).trim()
+    if (eventId) {
+      const interactionBinding = buildInteractionEventBinding(
+        eventId,
+        scopedState.params,
+        scopedState.currentNode,
+        state.path,
+        'callback',
+        context.diagnostics
+      )
+      if (interactionBinding != null) {
+        pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+      }
+    }
   }
 
   if (elementTagName === 'Loop') {
@@ -783,6 +798,20 @@ function expandTemplateUse(
       pushUniqueInteractionBinding(interactionBindings, interactionBinding)
     }
   }
+  const eventId = templateParams.get('EVENTID')?.trim() ?? ''
+  if (eventId) {
+    const interactionBinding = buildInteractionEventBinding(
+      eventId,
+      templateParams,
+      state.currentNode,
+      state.path,
+      'leftSingle',
+      context.diagnostics
+    )
+    if (interactionBinding != null) {
+      pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+    }
+  }
 
   const nextState: TraversalState = {
     ...state,
@@ -889,6 +918,7 @@ function buildInteractionCodeBinding(
     params.get('NODE_ID')?.trim() ||
     currentNode?.trim() ||
     params.get('ANIM_NAME')?.trim() ||
+    params.get('PART_ID')?.trim() ||
     ''
   const source = substituteParameters(sourceCode, params).trim()
 
@@ -931,22 +961,66 @@ function buildInteractionCodeBinding(
   }
 }
 
+function buildInteractionEventBinding(
+  eventId: string,
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  kind: CompiledInteractionBinding['kind'],
+  diagnostics: ImportDiagnostic[]
+): CompiledInteractionBinding | null {
+  const normalizedEventId = eventId.replace(/^\s*K:/iu, '').trim()
+  if (!normalizedEventId) {
+    return null
+  }
+  return buildInteractionCodeBinding(
+    `(>K:${normalizedEventId})`,
+    null,
+    params,
+    currentNode,
+    sourcePath,
+    kind,
+    diagnostics
+  )
+}
+
 function collectInteractionFeedbackTargets(
   params: ReadonlyMap<string, string>,
   currentNode: string | null,
   target: string
 ): readonly string[] {
   const targets = new Set<string>()
+  const addTarget = (candidate: string): void => {
+    const trimmed = candidate.trim()
+    if (trimmed) {
+      targets.add(trimmed)
+    }
+  }
+  const addPartIdTarget = (candidate: string): void => {
+    const trimmed = candidate.trim()
+    if (!trimmed) {
+      return
+    }
+    addTarget(trimmed)
+    const id = params.get('ID')?.trim() ?? ''
+    if (id && !parseBoolean(params.get('NO_ID_IN_PARTID'))) {
+      addTarget(`${trimmed}${id}`)
+    }
+  }
   for (const candidate of [
     target,
     params.get('ANIM_NAME')?.trim() ?? '',
     currentNode?.trim() ?? '',
-    params.get('NODE_ID')?.trim() ?? ''
+    params.get('NODE_ID')?.trim() ?? '',
+    params.get('HIGHLIGHT_NODE_ID')?.trim() ?? '',
+    params.get('DRAG_NODE_ID')?.trim() ?? '',
+    params.get('HITBOX_UP_NODE_ID')?.trim() ?? '',
+    params.get('HITBOX_DOWN_NODE_ID')?.trim() ?? ''
   ]) {
-    if (candidate) {
-      targets.add(candidate)
-    }
+    addTarget(candidate)
   }
+  addPartIdTarget(params.get('PART_ID')?.trim() ?? '')
+  addPartIdTarget(params.get('OTHER_PART_ID')?.trim() ?? '')
   return [...targets]
 }
 
