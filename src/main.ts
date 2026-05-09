@@ -3671,7 +3671,6 @@ async function bindVCockpitPlaceholderSurfaces(
           surface,
           gauge,
           resolvePanelAssetUrl,
-          effectiveRasterScale,
           diagnostics
         )
       })
@@ -3928,7 +3927,6 @@ async function createVCockpitHtmlGaugeRuntime(
   surface: VCockpitSurface,
   gauge: VCockpitGaugeEntry,
   resolvePanelAssetUrl: (source: string) => string | null,
-  rasterScale: number,
   diagnostics: ImportDiagnostic[]
 ): Promise<VCockpitHtmlGaugeRuntime> {
   const resolvedUrl = resolvePanelAssetUrl(gauge.source)
@@ -3979,7 +3977,6 @@ async function createVCockpitHtmlGaugeRuntime(
     surface,
     gauge,
     resolvedUrl,
-    rasterScale,
     diagnostics
   )
   if (loadResult.status !== 'loaded') {
@@ -4040,7 +4037,6 @@ async function createSandboxedHtmlGaugeFrame(
   surface: VCockpitSurface,
   gauge: VCockpitGaugeEntry,
   resolvedUrl: string,
-  rasterScale: number,
   diagnostics: ImportDiagnostic[]
 ): Promise<{
   readonly status: 'loaded' | 'iframe-error'
@@ -4079,14 +4075,8 @@ async function createSandboxedHtmlGaugeFrame(
   iframe.style.position = 'fixed'
   iframe.style.left = '-10000px'
   iframe.style.top = '0'
-  iframe.style.width = `${scaleVCockpitRasterDimension(
-    gauge.width ?? surface.pixelSize?.width ?? 1,
-    rasterScale
-  )}px`
-  iframe.style.height = `${scaleVCockpitRasterDimension(
-    gauge.height ?? surface.pixelSize?.height ?? 1,
-    rasterScale
-  )}px`
+  iframe.style.width = `${Math.max(1, Math.round(gauge.width ?? surface.pixelSize?.width ?? 1))}px`
+  iframe.style.height = `${Math.max(1, Math.round(gauge.height ?? surface.pixelSize?.height ?? 1))}px`
   iframe.style.border = '0'
   iframe.style.pointerEvents = 'none'
   iframe.style.visibility = 'hidden'
@@ -6308,6 +6298,7 @@ async function drawHtmlGaugeLiveFrameToContext(
   context.save()
   context.translate(x, y)
   try {
+    applyHtmlGaugeCaptureScale(context, frameDocument, width, height)
     await drawGaugeCanvases(context, root)
   } finally {
     context.restore()
@@ -6526,6 +6517,7 @@ async function drawHtmlGaugeDocumentToContext(
   context.save()
   context.translate(x, y)
   try {
+    applyHtmlGaugeCaptureScale(context, frameDocument, width, height)
     await drawGaugeCanvases(context, root)
     await drawGaugeSvgs(context, frameDocument, root)
     drawGaugeText(context, root)
@@ -6554,10 +6546,34 @@ async function drawHtmlGaugeStaticDocumentToContext(
   context.save()
   context.translate(x, y)
   try {
+    applyHtmlGaugeCaptureScale(context, frameDocument, width, height)
     await drawGaugeSvgs(context, frameDocument, root)
     drawGaugeText(context, root)
   } finally {
     context.restore()
+  }
+}
+
+function applyHtmlGaugeCaptureScale(
+  context: CanvasRenderingContext2D,
+  frameDocument: Document,
+  outputWidth: number,
+  outputHeight: number
+): void {
+  const viewportSize = getHtmlGaugeViewportSize(frameDocument)
+  context.scale(
+    outputWidth / viewportSize.width,
+    outputHeight / viewportSize.height
+  )
+}
+
+function getHtmlGaugeViewportSize(frameDocument: Document): { readonly width: number; readonly height: number } {
+  const view = frameDocument.defaultView
+  const documentElement = frameDocument.documentElement
+  const body = frameDocument.body
+  return {
+    width: Math.max(1, view?.innerWidth ?? documentElement?.clientWidth ?? body?.clientWidth ?? 1),
+    height: Math.max(1, view?.innerHeight ?? documentElement?.clientHeight ?? body?.clientHeight ?? 1)
   }
 }
 
