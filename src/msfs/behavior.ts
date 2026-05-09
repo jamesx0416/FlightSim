@@ -733,6 +733,9 @@ function expandTemplateUse(
   }
 
   if (normalizedTemplateName === 'ASOBO_GT_ANIM') {
+    if (!hasAnimationTarget(mergedParams)) {
+      return
+    }
     const animationBinding =
       mergedParams.get('ANIM_CODE')?.trim()
         ? buildAnimationBinding(
@@ -741,12 +744,14 @@ function expandTemplateUse(
             state.path,
             context.diagnostics
           )
-        : buildAnimationSimBinding(
-            mergedParams,
-            state.currentNode,
-            state.path,
-            context.diagnostics
-          )
+        : hasAnimationSimSource(mergedParams)
+          ? buildAnimationSimBinding(
+              mergedParams,
+              state.currentNode,
+              state.path,
+              context.diagnostics
+            )
+          : null
     if (animationBinding != null) {
       animationBindings.push(animationBinding)
     }
@@ -754,6 +759,9 @@ function expandTemplateUse(
   }
 
   if (ANIMATION_TEMPLATE_NAMES.has(normalizedTemplateName)) {
+    if (!hasAnimationTarget(mergedParams) || !mergedParams.get('ANIM_CODE')?.trim()) {
+      return
+    }
     const animationBinding = buildAnimationBinding(
       mergedParams,
       state.currentNode,
@@ -960,6 +968,14 @@ function buildVisibilityBinding(
     expression,
     sourcePath
   }
+}
+
+function hasAnimationTarget(params: ReadonlyMap<string, string>): boolean {
+  return Boolean(params.get('ANIM_NAME')?.trim())
+}
+
+function hasAnimationSimSource(params: ReadonlyMap<string, string>): boolean {
+  return Boolean(params.get('ANIM_SIMVAR')?.trim())
 }
 
 function buildInteractionCodeBinding(

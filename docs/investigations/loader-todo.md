@@ -434,6 +434,12 @@ Rules:
     - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 735 animation bindings, 811 interaction bindings, 617 update bindings, and 456 visibility bindings with zero unsupported RPN diagnostics.
     - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 719 interaction bindings, 537 update bindings, and 383 visibility bindings with zero unsupported RPN diagnostics.
     - Screenshots captured to `/tmp/screenshot-1778336474838.png` and `/tmp/screenshot-1778336519179.png`.
+- [x] Treat empty stock animation-template expansions as no-ops.
+  - Stock `ASOBO_GT_Anim` / `ASOBO_GT_Anim_Code` shortcut compilation now skips expansions whose required `ANIM_NAME` and animation source parameters resolve empty, while direct `<Animation>` nodes still emit validation diagnostics when malformed.
+  - Verified with `agent-browser` on 2026-05-09:
+    - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 735 animation bindings, 811 interaction bindings, 617 update bindings, and 456 visibility bindings with zero `animation_params_missing` diagnostics.
+    - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 719 interaction bindings, 537 update bindings, and 383 visibility bindings with zero `animation_params_missing` diagnostics.
+    - Screenshots captured to `/tmp/screenshot-1778336775658.png` and `/tmp/screenshot-1778336805084.png`.
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
 - [x] Verify generic cockpit interaction press/release behavior on A330 and A320.
@@ -453,6 +459,10 @@ Rules:
   Verified:
   - the built-in stock-template fallback path has been removed from the compiler
   - the active A320/A330 fixture routes still compile and run cleanly through the mounted official XML path with `builtinFallbackHits = []`
+- [ ] Resolve `FBW_AIRBUS_Update_PTU_Template`.
+  - Blocked on missing package content: both active fixture model XMLs reference `FBW_AIRBUS_Update_PTU_Template`, but that template is not defined in either aircraft package or the mounted stock XML set.
+  - `vendor/msfs-stock/ModelBehaviorDefs/Asobo/Airliner/Airbus.xml` defines `ASOBO_AIRBUS_Update_PTU_Template`, but mapping `FBW_` to `ASOBO_` would be a package/vendor-specific alias guess, so no fallback was added.
+  - Current verified state: A330 and A320 routes each have exactly one behavior diagnostic, this missing template.
 
 #### Stock XML Files
 
