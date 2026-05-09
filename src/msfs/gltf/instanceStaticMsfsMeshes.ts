@@ -16,6 +16,7 @@ type InstancingCandidate = {
   readonly mesh: Mesh
   readonly geometry: BufferGeometry
   readonly material: Material
+  readonly anchor: Object3D
   readonly worldMatrix: Matrix4
 }
 
@@ -70,7 +71,8 @@ export function instanceStaticMsfsMeshes(
       mesh: object,
       geometry: object.geometry,
       material,
-      worldMatrix: getMatrixRelativeToAnchor(object, findInstancingAnchor(object, root, protectedNames))
+      anchor,
+      worldMatrix: getMatrixRelativeToAnchor(object, anchor)
     })
     batches.set(key, batch)
   })
@@ -111,7 +113,7 @@ export function instanceStaticMsfsMeshes(
     instancedMesh.instanceMatrix.needsUpdate = true
     instancedMesh.computeBoundingBox()
     instancedMesh.computeBoundingSphere()
-    findInstancingAnchor(canonical.mesh, root, protectedNames).add(instancedMesh)
+    canonical.anchor.add(instancedMesh)
     instancedMeshCount += batch.length
     instancedBatchCount += 1
   }
@@ -163,13 +165,21 @@ function findInstancingAnchor(
   protectedNames: ReadonlySet<string>
 ): Object3D {
   let current = object.parent
+  let nearestNamedAncestor: Object3D | null = null
   while (current != null && current !== root) {
     if (isProtectedByOwnName(current, protectedNames)) {
       return current
     }
+    if (nearestNamedAncestor == null && isMeaningfulStaticGroupName(current.name)) {
+      nearestNamedAncestor = current
+    }
     current = current.parent
   }
-  return root
+  return nearestNamedAncestor ?? root
+}
+
+function isMeaningfulStaticGroupName(name: string): boolean {
+  return name !== '' && !/^\d+$/.test(name)
 }
 
 function collectVisibleGeometries(root: Object3D): ReadonlySet<BufferGeometry> {
