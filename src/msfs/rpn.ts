@@ -578,7 +578,11 @@ function extractVariableReference(
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
   const variableMatch = /^(A|L|O|B|H|E|I):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
-  if (!variableMatch) return null
+  if (!variableMatch) {
+    return isUnqualifiedVariableName(content)
+      ? { key: scopeObjectVariableKey(content, localVariableScope), unit: null }
+      : null
+  }
   const namespace = variableMatch[1].toUpperCase()
   const variableName = variableMatch[2].trim()
   return {
@@ -594,13 +598,23 @@ function extractVariableWriteReference(
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
   const variableMatch = /^>(A|L|O|B|H|I):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
-  if (!variableMatch) return null
+  if (!variableMatch) {
+    const unqualifiedWriteMatch = /^>(.+)$/u.exec(content)
+    const variableName = unqualifiedWriteMatch?.[1]?.trim() ?? ''
+    return isUnqualifiedVariableName(variableName)
+      ? { key: scopeObjectVariableKey(variableName, localVariableScope), unit: null }
+      : null
+  }
   const namespace = variableMatch[1].toUpperCase()
   const variableName = variableMatch[2].trim()
   return {
     key: namespace === 'O' ? scopeObjectVariableKey(variableName, localVariableScope) : `${namespace}:${variableName}`,
     unit: variableMatch[3]?.trim() || null
   }
+}
+
+function isUnqualifiedVariableName(value: string): boolean {
+  return /^[A-Z_][A-Z0-9_.-]*$/iu.test(value)
 }
 
 function scopeObjectVariableKey(variableName: string, localVariableScope: string | null): string {
