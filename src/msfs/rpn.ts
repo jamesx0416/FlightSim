@@ -542,6 +542,12 @@ function tokenizeRpn(source: string): string[] {
       continue
     }
 
+    if (source.startsWith('(*', index)) {
+      const endIndex = source.indexOf('*)', index + 2)
+      index = endIndex >= 0 ? endIndex + 2 : source.length
+      continue
+    }
+
     if (character === '(') {
       let endIndex = index + 1
       while (endIndex < source.length && source[endIndex] !== ')') {
