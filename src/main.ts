@@ -1108,6 +1108,7 @@ async function init(): Promise<void> {
       -(((event.clientY - rect.top) / rect.height) * 2 - 1)
     )
     cockpitInteractionRaycaster.setFromCamera(cockpitInteractionPointer, camera)
+    let sawOccludedHit = false
 
     const pickRegistry = getCockpitInteractionPickRegistry(root, runtime)
     const meshHits = cockpitInteractionRaycaster.intersectObjects([...pickRegistry.meshes], false)
@@ -1119,6 +1120,7 @@ async function init(): Promise<void> {
           continue
         }
         if (isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
+          sawOccludedHit = true
           cockpitInteractionStats.lastMissReason = 'occluded'
           continue
         }
@@ -1146,6 +1148,7 @@ async function init(): Promise<void> {
       for (const hit of fallbackHits) {
         const target = hit.target
         if (isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
+          sawOccludedHit = true
           cockpitInteractionStats.lastMissReason = 'occluded'
           continue
         }
@@ -1163,6 +1166,11 @@ async function init(): Promise<void> {
 
     if (pickRegistry.meshes.length === 0 && pickRegistry.fallbackHitboxes.length === 0) {
       cockpitInteractionStats.lastMissReason = 'empty-interaction-registry'
+      return null
+    }
+
+    if (sawOccludedHit) {
+      cockpitInteractionStats.lastMissReason = 'occluded'
       return null
     }
 
