@@ -38,25 +38,26 @@ export interface AircraftEnvironmentInfo {
 
 export type NodeMaterialFactory = (material: Material) => NodeMaterial | null
 
-export async function createAppRenderer(): Promise<RendererInfo> {
+export async function createAppRenderer(searchParams = new URLSearchParams(window.location.search)): Promise<RendererInfo> {
   try {
     const renderer = new WebGPURenderer(await createWebGpuRendererOptions())
     await renderer.init()
-    return finalizeRenderer(renderer)
+    return finalizeRenderer(renderer, undefined, searchParams)
   } catch {
-    return createPreferredWebGlRenderer()
+    return createPreferredWebGlRenderer(searchParams)
   }
 }
 
-async function createPreferredWebGlRenderer(): Promise<RendererInfo> {
+async function createPreferredWebGlRenderer(searchParams: URLSearchParams): Promise<RendererInfo> {
   try {
     const renderer = new WebGPURenderer({ antialias: true, forceWebGL: true })
     await renderer.init()
-    return finalizeRenderer(renderer, 'webgl')
+    return finalizeRenderer(renderer, 'webgl', searchParams)
   } catch {
     return finalizeRenderer(
       new WebGLRenderer({ antialias: true }),
-      'legacy-webgl'
+      'legacy-webgl',
+      searchParams
     )
   }
 }
@@ -160,9 +161,10 @@ export function createNodeMaterialFactory(
 
 function finalizeRenderer(
   renderer: AppRenderer,
-  modeOverride?: RendererMode
+  modeOverride?: RendererMode,
+  searchParams = new URLSearchParams(window.location.search)
 ): RendererInfo {
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  renderer.setPixelRatio(getRendererPixelRatio(searchParams))
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.outputColorSpace = SRGBColorSpace
   renderer.toneMapping = ACESFilmicToneMapping
@@ -173,6 +175,12 @@ function finalizeRenderer(
     mode: modeOverride ?? resolveRendererMode(renderer),
     hasBcTextureCompression: getRendererFeature(renderer, 'texture-compression-bc'),
   }
+}
+
+export function getRendererPixelRatio(searchParams = new URLSearchParams(window.location.search)): number {
+  const parsed = Number.parseFloat(searchParams.get('rendererPixelRatio') ?? '')
+  const requestedPixelRatio = Math.max(0.5, Number.isFinite(parsed) ? parsed : 2)
+  return Math.min(2, window.devicePixelRatio, requestedPixelRatio)
 }
 
 function resolveRendererMode(renderer: AppRenderer): RendererMode {

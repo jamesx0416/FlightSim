@@ -288,7 +288,7 @@ async function init(): Promise<void> {
   })
 
   setGlobalLoadStage({ stage: 'renderer:create', aircraftId: aircraft.id })
-  const rendererInfo = await createAppRenderer()
+  const rendererInfo = await createAppRenderer(effectiveSearchParams)
   const { renderer } = rendererInfo
   renderer.setClearColor(backgroundColor, 1)
   const aircraftEnvironment = createAircraftEnvironment(renderer)
@@ -1786,6 +1786,12 @@ async function init(): Promise<void> {
       )
     }
 
+    if (rendererPixelRatioChanged) {
+      renderer.setPixelRatio(nextSettings.rendererPixelRatio)
+      renderer.setSize(window.innerWidth, window.innerHeight)
+      actions.push('updated renderer pixel ratio')
+    }
+
     if (interiorLodChanged || vcockpitBindingChanged || cockpitTextureChanged) {
       if (cockpitCameraController.isActive()) {
         await reloadCockpitInteriorWithActiveSettings()
@@ -2723,6 +2729,7 @@ function normalizeViewerConfigProfile(value: unknown): ViewerConfigProfile {
     cockpitInstanceStatic: normalizeOptionalBoolean(record.cockpitInstanceStatic),
     cockpitPerf: normalizeOptionalBoolean(record.cockpitPerf),
     cockpitInteractionHitboxes: normalizeOptionalBoolean(record.cockpitInteractionHitboxes),
+    rendererPixelRatio: normalizeNullableNumber(record.rendererPixelRatio),
     rawQuery: typeof record.rawQuery === 'string' ? record.rawQuery : undefined
   }
 }
@@ -2827,6 +2834,12 @@ function applyViewerConfigProfileToSearchParams(
     searchParams,
     'cockpitInteractionHitboxes',
     profile.cockpitInteractionHitboxes,
+    overwrite
+  )
+  setNullableNumberSearchParam(
+    searchParams,
+    'rendererPixelRatio',
+    profile.rendererPixelRatio,
     overwrite
   )
 }
@@ -3323,7 +3336,8 @@ type VCockpitSurfaceTextureRuntime = {
 const VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS = 6
 const VCOCKPIT_HTML_GAUGE_LOAD_CONCURRENCY = 1
 const VCOCKPIT_HTML_GAUGE_LOAD_IDLE_TIMEOUT_MS = 250
-const VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ = 15
+const VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ = 8
+const VCOCKPIT_HTML_GAUGE_DEFAULT_RASTER_SCALE = 0.75
 const VCOCKPIT_SURFACE_CAPTURE_CONCURRENCY = 1
 const CANVAS_ORIGIN_CLEAN_CACHE_MS = 10_000
 
@@ -7440,6 +7454,11 @@ function createCameraDepthClipController(
   const cameraWorldPosition = new Vector3()
   const meshWorldBox = new Box3()
   const meshBounds: CameraDepthClipBound[] = []
+  const lastCameraPosition = new Vector3(Number.NaN, Number.NaN, Number.NaN)
+  const lastCameraQuaternion = camera.quaternion.clone()
+  let lastCameraZoom = Number.NaN
+  let nextAllowedUpdateMs = 0
+  let forceNextUpdate = true
 
   const refreshBounds = (): void => {
     meshBounds.length = 0
@@ -7469,6 +7488,7 @@ function createCameraDepthClipController(
         localBox: localBox.clone()
       })
     })
+    forceNextUpdate = true
   }
 
   const update = (): void => {
@@ -7476,8 +7496,27 @@ function createCameraDepthClipController(
       return
     }
 
+    const nowMs = performance.now()
+    const cameraChanged =
+      forceNextUpdate ||
+      camera.position.distanceToSquared(lastCameraPosition) > 1e-6 ||
+      Math.abs(camera.quaternion.dot(lastCameraQuaternion)) < 0.999999 ||
+      Math.abs(camera.zoom - lastCameraZoom) > 1e-4
+    if (!cameraChanged && nowMs < nextAllowedUpdateMs) {
+      return
+    }
+    if (cameraChanged) {
+      lastCameraPosition.copy(camera.position)
+      lastCameraQuaternion.copy(camera.quaternion)
+      lastCameraZoom = camera.zoom
+    }
+    if (!forceNextUpdate && nowMs < nextAllowedUpdateMs) {
+      return
+    }
+    forceNextUpdate = false
+    nextAllowedUpdateMs = nowMs + CAMERA_DEPTH_CLIP_UPDATE_INTERVAL_MS
+
     camera.updateMatrixWorld()
-    object.updateWorldMatrix(true, true)
     camera.getWorldPosition(cameraWorldPosition)
     let nearestDepth = Number.POSITIVE_INFINITY
     let farthestDepth = 0
@@ -9241,6 +9280,7 @@ function createViewerRuntimeSettingsSnapshot(
     cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
     cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf'),
     cockpitInteractionHitboxes: shouldShowCockpitInteractionHitboxes(searchParams),
+    rendererPixelRatio: getRendererPixelRatio(searchParams),
     extraQuery: getUnmanagedRawQuery(`?${searchParams.toString()}`)
   }
 }
