@@ -146,12 +146,20 @@ export interface CompiledUpdateBinding {
 export interface CompiledInteractionBinding {
   readonly target: string
   readonly feedbackTargets: readonly string[]
+  readonly soundEvents: readonly CompiledInteractionSoundEvent[]
   readonly minHeldDurationSeconds: number
   readonly animationDurationSeconds: number | null
   readonly expression: CompiledExpression
   readonly releaseExpression: CompiledExpression | null
   readonly sourcePath: string
   readonly kind: 'leftSingle' | 'callback'
+}
+
+export interface CompiledInteractionSoundEvent {
+  readonly name: string
+  readonly phase: 'press' | 'release'
+  readonly normalizedTime: number | null
+  readonly sourceParameter: string
 }
 
 export interface CompiledBehaviorSet {
@@ -205,4 +213,14 @@ export interface RuntimeHostServices {
   readVariable(key: string, unit?: string | null): number
   writeVariable(key: string, value: number, unit?: string | null): void
   invokeKeyEvent?(name: string, args: readonly number[]): void
+  invokeSoundEvent?(
+    name: string,
+    event: {
+      readonly phase: 'press' | 'release'
+      readonly target: string
+      readonly normalizedTime: number | null
+      readonly sourcePath: string
+      readonly sourceParameter: string
+    }
+  ): void
 }

@@ -3,6 +3,7 @@ import type {
   CompiledAnimationBinding,
   CompiledBehaviorSet,
   CompiledInteractionBinding,
+  CompiledInteractionSoundEvent,
   CompiledUpdateBinding,
   CompiledVisibilityBinding,
   ImportDiagnostic,
@@ -1025,6 +1026,7 @@ function buildInteractionCodeBinding(
   return {
     target,
     feedbackTargets: collectInteractionFeedbackTargets(params, currentNode, target),
+    soundEvents: collectInteractionSoundEvents(params),
     minHeldDurationSeconds: Math.max(parseNumber(params.get('MIN_HELD_DURATION'), 0), 0),
     animationDurationSeconds: parseOptionalPositiveNumber(params.get('ANIM_DURATION')),
     expression,
@@ -1032,6 +1034,38 @@ function buildInteractionCodeBinding(
     sourcePath,
     kind
   }
+}
+
+function collectInteractionSoundEvents(params: ReadonlyMap<string, string>): readonly CompiledInteractionSoundEvent[] {
+  const events: CompiledInteractionSoundEvent[] = []
+  const addEvent = (
+    parameterName: string,
+    phase: CompiledInteractionSoundEvent['phase'],
+    normalizedTimeParameterName: string | null
+  ): void => {
+    const rawName = params.get(parameterName)?.trim() ?? ''
+    const name = substituteParameters(rawName, params).trim()
+    if (isNoopInteractionParameter(name) || name.includes('#')) {
+      return
+    }
+    const normalizedTime =
+      normalizedTimeParameterName == null
+        ? null
+        : parseOptionalPositiveNumber(
+            substituteParameters(params.get(normalizedTimeParameterName) ?? '', params).trim()
+          )
+    events.push({
+      name,
+      phase,
+      normalizedTime,
+      sourceParameter: parameterName
+    })
+  }
+
+  addEvent('WWISE_EVENT', 'press', 'NORMALIZED_TIME')
+  addEvent('WWISE_EVENT_1', 'press', 'NORMALIZED_TIME_1')
+  addEvent('WWISE_EVENT_2', 'release', 'NORMALIZED_TIME_2')
+  return events
 }
 
 function buildInteractionEventBinding(
