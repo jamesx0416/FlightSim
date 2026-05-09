@@ -1380,7 +1380,8 @@ function collectParameterBlock(
   blockNode: Element,
   params: ReadonlyMap<string, string>,
   sourcePath: string,
-  diagnostics: ImportDiagnostic[]
+  diagnostics: ImportDiagnostic[],
+  kind?: ParameterBlockKind
 ): Map<string, string> {
   const values = new Map<string, string>()
   collectParameterEntries(
@@ -1388,7 +1389,8 @@ function collectParameterBlock(
     params,
     values,
     sourcePath,
-    diagnostics
+    diagnostics,
+    kind === 'default' ? new Set(params.keys()) : undefined
   )
   return values
 }
@@ -1528,7 +1530,7 @@ function applyParameterBlocks(
       continue
     }
 
-    const values = collectParameterBlock(block, targetParams, sourcePath, diagnostics)
+    const values = collectParameterBlock(block, targetParams, sourcePath, diagnostics, kind)
     for (const [key, value] of values) {
       if (kind === 'default') {
         if (!targetParams.has(key)) {
@@ -1569,7 +1571,8 @@ function collectParameterEntries(
   params: ReadonlyMap<string, string>,
   values: Map<string, string>,
   sourcePath: string,
-  diagnostics: ImportDiagnostic[]
+  diagnostics: ImportDiagnostic[],
+  defaultExistingKeys?: ReadonlySet<string>
 ): void {
   const scopedParams = new Map<string, string>(params)
   for (const [key, value] of values) {
@@ -1591,7 +1594,8 @@ function collectParameterEntries(
           scopedParams,
           values,
           sourcePath,
-          diagnostics
+          diagnostics,
+          defaultExistingKeys
         )
         for (const [key, value] of values) {
           scopedParams.set(key, value)
@@ -1608,7 +1612,8 @@ function collectParameterEntries(
           scopedParams,
           values,
           sourcePath,
-          diagnostics
+          diagnostics,
+          defaultExistingKeys
         )
         for (const [key, value] of values) {
           scopedParams.set(key, value)
@@ -1658,7 +1663,8 @@ function collectParameterEntries(
             iterationParams,
             values,
             sourcePath,
-            diagnostics
+            diagnostics,
+            defaultExistingKeys
           )
           for (const [key, value] of values) {
             scopedParams.set(key, value)
@@ -1670,6 +1676,9 @@ function collectParameterEntries(
 
     const key = substituteParameters(getElementTagName(child), scopedParams).trim()
     if (!key) {
+      continue
+    }
+    if (defaultExistingKeys?.has(key) === true && !values.has(key)) {
       continue
     }
 
