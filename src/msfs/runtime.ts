@@ -4,6 +4,7 @@ import { evaluateCompiledExpression } from './rpn'
 import type {
   CompiledBehaviorSet,
   CompiledInteractionBinding,
+  CompiledInteractionSoundEvent,
   CompiledUpdateBinding,
   ImportedAircraft,
   ImportedCfgFile,
@@ -269,6 +270,7 @@ export class AircraftRuntime {
     options: RuntimeInteractionOptions = {}
   ): void {
     this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
+    this.invokeInteractionSoundEvents(binding, 'press')
     const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
     evaluateCompiledExpression(binding.expression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
@@ -355,6 +357,7 @@ export class AircraftRuntime {
   }
 
   private executeInteractionReleaseBinding(binding: CompiledInteractionBinding): void {
+    this.invokeInteractionSoundEvents(binding, 'release')
     if (binding.releaseExpression == null) {
       return
     }
@@ -364,6 +367,24 @@ export class AircraftRuntime {
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
     })
+  }
+
+  private invokeInteractionSoundEvents(
+    binding: CompiledInteractionBinding,
+    phase: CompiledInteractionSoundEvent['phase']
+  ): void {
+    for (const soundEvent of binding.soundEvents) {
+      if (soundEvent.phase !== phase) {
+        continue
+      }
+      this.hostServices.invokeSoundEvent?.(soundEvent.name, {
+        phase,
+        target: binding.target,
+        normalizedTime: soundEvent.normalizedTime,
+        sourcePath: binding.sourcePath,
+        sourceParameter: soundEvent.sourceParameter
+      })
+    }
   }
 
   private publishDelayedInteractionReleases(): void {
@@ -421,6 +442,7 @@ export interface SharedRuntimeHostStats {
   readonly variableReadCount: number
   readonly variableWriteCount: number
   readonly keyEventCount: number
+  readonly soundEventCount: number
   readonly bridgeCallCount: number
   readonly storedVariableCount: number
   readonly defaultedVariableCount: number
@@ -447,6 +469,16 @@ export interface SharedRuntimeHostStats {
   }
 }
 
+export interface RuntimeSoundEvent {
+  readonly name: string
+  readonly phase: 'press' | 'release'
+  readonly target: string
+  readonly normalizedTime: number | null
+  readonly sourcePath: string
+  readonly sourceParameter: string
+  readonly sequence: number
+}
+
 export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
@@ -457,8 +489,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private variableReadCount = 0
   private variableWriteCount = 0
   private keyEventCount = 0
+  private soundEventCount = 0
   private bridgeCallCount = 0
   private defaultedVariableCount = 0
+  private readonly recentSoundEvents: RuntimeSoundEvent[] = []
   private controlState = {
     gearTarget: 0,
     gearPosition: 0,
@@ -605,6 +639,35 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.applyKeyEvent(normalizedEventName, args)
   }
 
+  invokeSoundEvent(
+    name: string,
+    event: {
+      readonly phase: 'press' | 'release'
+      readonly target: string
+      readonly normalizedTime: number | null
+      readonly sourcePath: string
+      readonly sourceParameter: string
+    }
+  ): void {
+    const soundName = name.trim()
+    if (!soundName) {
+      return
+    }
+    this.soundEventCount += 1
+    this.recentSoundEvents.push({
+      name: soundName,
+      phase: event.phase,
+      target: event.target,
+      normalizedTime: event.normalizedTime,
+      sourcePath: event.sourcePath,
+      sourceParameter: event.sourceParameter,
+      sequence: this.soundEventCount
+    })
+    if (this.recentSoundEvents.length > 100) {
+      this.recentSoundEvents.splice(0, this.recentSoundEvents.length - 100)
+    }
+  }
+
   invokeBridgeCall(name: string): void {
     this.bridgeCallCount += 1
     this.values.set(normalizeRuntimeVariableKey(`B:${name}`), this.bridgeCallCount)
@@ -615,6 +678,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       variableReadCount: this.variableReadCount,
       variableWriteCount: this.variableWriteCount,
       keyEventCount: this.keyEventCount,
+      soundEventCount: this.soundEventCount,
       bridgeCallCount: this.bridgeCallCount,
       storedVariableCount: this.values.size,
       defaultedVariableCount: this.defaultedVariableCount,
@@ -625,6 +689,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   getSnapshot(): Record<string, number> {
     return Object.fromEntries(this.values)
+  }
+
+  getSoundEvents(): readonly RuntimeSoundEvent[] {
+    return this.recentSoundEvents.map(event => ({ ...event }))
   }
 
   private publishControlVariables(): void {
