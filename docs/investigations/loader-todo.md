@@ -418,13 +418,19 @@ Rules:
 - [x] Support `Process="Int|Float|Param"`.
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
-- [ ] Verify generic cockpit interaction press/release behavior on A330 and A320.
+- [x] Verify generic cockpit interaction press/release behavior on A330 and A320.
   - Implemented data capture for interaction `MIN_HELD_DURATION`, `ANIM_DURATION`, `LEFT_LEAVE_CODE`, `LEFT_RELEASE_CODE`, and default-IM release variants from expanded behavior template parameters.
   - Runtime now executes press code on pointerdown, release code on pointerup or after positive `MIN_HELD_DURATION`, and avoids hardcoded visual pulse timing.
-  - Browser verification is still required before this can be checked off.
-- [ ] Verify cockpit interaction occlusion on A330 and A320.
+  - Verified with `agent-browser` on 2026-05-09:
+    - A330 route `?cockpitInteractionHitboxes&cockpitPerf` entered cockpit LOD00 with 780 interaction bindings, 1210 mapped pickable meshes, and 12 fallback hitboxes; synthetic pointerdown/up on `PUSH_MCDUL_CLR` executed once, set `L:A32NX_MCDU_CLR_Pressed` to `1` on press, and returned it to `0` after release/update.
+    - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` entered cockpit LOD00 with 688 interaction bindings, 1115 mapped pickable meshes, and 20 fallback hitboxes; synthetic pointerdown/up on `PUSH_MCDUL_CLR` executed once, set `L:A32NX_MCDU_CLR_Pressed` to `1` on press, and returned it to `0` after release/update.
+    - Screenshots captured to `/tmp/msfs-a330-updated-cockpit.png`, `/tmp/msfs-a330-interaction-click.png`, `/tmp/msfs-a320-interactions.png`, and `/tmp/msfs-a320-interaction-click.png`.
+- [x] Verify cockpit interaction occlusion on A330 and A320.
   - Exact interaction-mesh picking now uses a cached non-interactive occluder mesh registry with bounding-box prefiltering, so seats/panels/materials can block controls without restoring full-scene cockpit raycasting.
-  - Browser verification is still required before this can be checked off.
+  - The miss diagnostic now preserves `lastMissReason = "occluded"` when all candidate hits are rejected by occlusion instead of overwriting the result with `no-bound-interaction`.
+  - Verified with `agent-browser` on 2026-05-09:
+    - A330 route reported 743 occluder meshes; an occlusion scenario with `SWITCH_CONSOLE_BRIGHT_FO` blocking `HANDLING_Switch_Wiper_left` produced no execution and `lastMissReason: "occluded"`.
+    - A320 route reported 1634 occluder meshes; an occlusion scenario with `WIPER_WIPER_L_1` blocking `COCKPIT_COFFEE_R` produced no execution and `lastMissReason: "occluded"`.
 - [x] Replace remaining mirrored stock-template fallbacks where the general XML evaluator can do so safely.
   Verified:
   - the built-in stock-template fallback path has been removed from the compiler
