@@ -184,13 +184,21 @@ function findStaticMeshAnchor(
   protectedNames: ReadonlySet<string>
 ): Object3D {
   let current = object.parent
+  let nearestNamedAncestor: Object3D | null = null
   while (current != null && current !== root) {
     if (isProtectedByOwnName(current, protectedNames)) {
       return current
     }
+    if (nearestNamedAncestor == null && isMeaningfulStaticGroupName(current.name)) {
+      nearestNamedAncestor = current
+    }
     current = current.parent
   }
-  return root
+  return nearestNamedAncestor ?? root
+}
+
+function isMeaningfulStaticGroupName(name: string): boolean {
+  return name !== '' && !/^\d+$/.test(name)
 }
 
 function getMatrixRelativeToAnchor(object: Object3D, anchor: Object3D): Matrix4 {
