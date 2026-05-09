@@ -439,14 +439,21 @@ export interface SharedRuntimeHostStats {
     readonly rudderPosition: number
     readonly parkingBrake: number
   }
+  readonly electricalState: {
+    readonly batterySwitch: number
+    readonly externalPowerSwitch: number
+    readonly externalPowerAvailable: number
+    readonly avionicsSwitch: number
+  }
 }
 
 export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
   private readonly defaultedKeys = new Set<string>()
-  private readonly engineProfile: DemoEngineProfile
   private readonly wingFlexProfile: DemoWingFlexProfile
+  private engineCycleTarget = 0
+  private throttleLeverPosition = 0
   private variableReadCount = 0
   private variableWriteCount = 0
   private keyEventCount = 0
@@ -467,6 +474,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     rudderPosition: 0,
     parkingBrake: 0
   }
+  private electricalState = {
+    batterySwitch: 0,
+    externalPowerSwitch: 0,
+    externalPowerAvailable: 1,
+    avionicsSwitch: 0
+  }
   private cycles: {
     readonly gearCycle: number
     readonly flapCycle: number
@@ -481,7 +494,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     gearCycle: 0,
     flapCycle: 0,
     spoilerCycle: 0,
-    engineCycle: 55,
+    engineCycle: 0,
     aileronCycle: 0,
     elevatorCycle: 0,
     rudderCycle: 0,
@@ -493,8 +506,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     private readonly diagnostics: ImportDiagnostic[],
     aircraft?: ImportedAircraft
   ) {
-    this.engineProfile = createDemoEngineProfile(aircraft)
     this.wingFlexProfile = createDemoWingFlexProfile(aircraft)
+    this.seedColdAndDarkState()
     this.seedPreviewFlightState(aircraft?.previewFlightState ?? null)
   }
 
@@ -531,11 +544,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       dtSeconds * 4
     )
     this.cycles = {
-      // Default the standalone viewer to a stable in-flight cruise pose.
       gearCycle: this.controlState.gearPosition,
       flapCycle: this.controlState.flapsPosition,
       spoilerCycle: this.controlState.spoilersPosition,
-      engineCycle: this.engineProfile.cruiseN1Percent,
+      engineCycle: this.engineCycleTarget,
       aileronCycle: this.controlState.aileronPosition,
       elevatorCycle: this.controlState.elevatorPosition,
       rudderCycle: this.controlState.rudderPosition,
@@ -545,6 +557,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     this.values.set(normalizeRuntimeVariableKey('A:ANIMATION DELTA TIME'), dtSeconds)
     this.publishControlVariables()
+    this.publishElectricalVariables()
   }
 
   readVariable(key: string, unit?: string | null): number {
@@ -553,7 +566,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (!this.values.has(normalizedKey)) {
       const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
 
-      if (!resolved.handled || isRuntimeStoredVariableKey(normalizedKey)) {
+      if (
+        !resolved.handled ||
+        (isRuntimeStoredVariableKey(normalizedKey) && !isDynamicRuntimeFallbackKey(normalizedKey))
+      ) {
         this.values.set(normalizedKey, resolved.value)
       }
       if (!resolved.handled && !this.defaultedKeys.has(normalizedKey)) {
@@ -577,6 +593,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
     this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
+    this.applyElectricalVariableSideEffects(normalizedKey, numericValue, unit ?? null)
     this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
   }
 
@@ -601,7 +618,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       bridgeCallCount: this.bridgeCallCount,
       storedVariableCount: this.values.size,
       defaultedVariableCount: this.defaultedVariableCount,
-      controlState: { ...this.controlState }
+      controlState: { ...this.controlState },
+      electricalState: { ...this.electricalState }
     }
   }
 
@@ -635,6 +653,27 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:BRAKE PARKING POSITION'), this.controlState.parkingBrake)
   }
 
+  private publishElectricalVariables(): void {
+    const powered = this.hasElectricalPower() ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MASTER BATTERY'), this.electricalState.batterySwitch)
+    this.values.set(normalizeRuntimeVariableKey('A:MASTER BATTERY SWITCH'), this.electricalState.batterySwitch)
+    this.values.set(normalizeRuntimeVariableKey('A:BATTERY SWITCH'), this.electricalState.batterySwitch)
+    this.values.set(normalizeRuntimeVariableKey('A:EXTERNAL POWER AVAILABLE'), this.electricalState.externalPowerAvailable)
+    this.values.set(normalizeRuntimeVariableKey('A:EXTERNAL POWER ON'), this.electricalState.externalPowerSwitch)
+    this.values.set(normalizeRuntimeVariableKey('A:AVIONICS MASTER SWITCH'), this.electricalState.avionicsSwitch)
+    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MAIN BUS VOLTAGE'), powered > 0 ? 28 : 0)
+    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL AVIONICS BUS VOLTAGE'), powered > 0 ? 28 : 0)
+  }
+
+  private seedColdAndDarkState(): void {
+    this.values.set(normalizeRuntimeVariableKey('A:SIM ON GROUND'), 1)
+    this.values.set(normalizeRuntimeVariableKey('A:LIGHT BEACON'), 0)
+    this.values.set(normalizeRuntimeVariableKey('A:LIGHT PANEL'), 0)
+    this.values.set(normalizeRuntimeVariableKey('A:LIGHT CABIN'), 0)
+    this.values.set(normalizeRuntimeVariableKey('A:LIGHT GLARESHIELD'), 0)
+    this.publishElectricalVariables()
+  }
+
   private seedPreviewFlightState(flightState: ImportedFlightState | null): void {
     if (flightState == null) {
       return
@@ -660,8 +699,209 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         if (parsedValue != null) {
           this.values.set(normalizeRuntimeVariableKey('A:SIM ON GROUND'), parsedValue)
         }
+        continue
+      }
+
+      if (normalizedSectionName === 'systems.0') {
+        this.seedSystemsFlightState(section)
+        continue
+      }
+
+      if (normalizedSectionName.startsWith('engine parameters.')) {
+        this.seedEngineFlightState(section)
+        continue
+      }
+
+      if (normalizedSectionName === 'controls.0') {
+        this.seedControlsFlightState(section)
+        continue
+      }
+
+      if (normalizedSectionName === 'switches.0') {
+        this.seedSwitchesFlightState(section)
       }
     }
+  }
+
+  private seedSystemsFlightState(section: ImportedCfgSection): void {
+    for (const [key, rawValue] of section.values) {
+      const parsedValue = parseFlightStateScalar(rawValue)
+      if (parsedValue == null) {
+        continue
+      }
+      const normalizedKey = key.toLowerCase()
+      if (normalizedKey === 'batteryswitch') {
+        this.setBatterySwitch(parsedValue)
+        continue
+      }
+      if (normalizedKey === 'externalpowerswitch') {
+        this.setExternalPowerSwitch(parsedValue)
+        continue
+      }
+      if (normalizedKey === 'avionicsswitch') {
+        this.electricalState.avionicsSwitch = parsedValue > 0 ? 1 : 0
+        continue
+      }
+      const potentiometerMatch = /^potentiometer\.(\d+)$/iu.exec(key)
+      if (potentiometerMatch != null) {
+        this.values.set(normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${potentiometerMatch[1]}`), parsedValue)
+      }
+    }
+  }
+
+  private seedEngineFlightState(section: ImportedCfgSection): void {
+    const engineIndex = parseEngineFlightStateIndex(section.name)
+    const engineSuffix = engineIndex == null ? '' : `:${engineIndex}`
+    const rpmValue = section.values.get('pct engine rpm')
+    const parsedRpm = rpmValue == null ? null : parseFlightStateScalar(rpmValue)
+    if (parsedRpm != null) {
+      const rpmPercent = toFlightStatePercent(parsedRpm)
+      this.engineCycleTarget = Math.max(this.engineCycleTarget, rpmPercent)
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG RPM${engineSuffix}`), rpmPercent)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N1${engineSuffix}`), rpmPercent)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG CORRECTED N1${engineSuffix}`), rpmPercent)
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION${engineSuffix}`), rpmPercent > 0 ? 1 : 0)
+    }
+
+    const throttleValue = section.values.get('throttleleverpct')
+    const parsedThrottle = throttleValue == null ? null : parseFlightStateScalar(throttleValue)
+    if (parsedThrottle != null) {
+      const throttlePercent = toFlightStatePercent(parsedThrottle)
+      this.throttleLeverPosition = Math.max(this.throttleLeverPosition, throttlePercent)
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:GENERAL ENG THROTTLE LEVER POSITION${engineSuffix}`),
+        throttlePercent
+      )
+    }
+
+    const generatorSwitchValue = section.values.get('generatorswitch')
+    const parsedGeneratorSwitch =
+      generatorSwitchValue == null ? null : parseFlightStateScalar(generatorSwitchValue)
+    if (parsedGeneratorSwitch != null) {
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR${engineSuffix}`),
+        parsedGeneratorSwitch > 0 ? 1 : 0
+      )
+    }
+  }
+
+  private seedControlsFlightState(section: ImportedCfgSection): void {
+    const gearHandle = parseFlightStateScalar(section.values.get('gearshandle') ?? '')
+    if (gearHandle != null) {
+      this.controlState.gearTarget = clamp01(toPercentOver100(gearHandle, 'percent'))
+      this.controlState.gearPosition = this.controlState.gearTarget
+    }
+    const flapsHandle = parseFlightStateScalar(section.values.get('flapshandle') ?? '')
+    if (flapsHandle != null) {
+      this.controlState.flapsTarget = clamp01(toPercentOver100(flapsHandle, 'percent'))
+      this.controlState.flapsPosition = this.controlState.flapsTarget
+    }
+    const spoilersHandle = parseFlightStateScalar(section.values.get('spoilershandle') ?? '')
+    if (spoilersHandle != null) {
+      this.controlState.spoilersTarget = clamp01(toPercentOver100(spoilersHandle, 'percent'))
+      this.controlState.spoilersPosition = this.controlState.spoilersTarget
+    }
+  }
+
+  private seedSwitchesFlightState(section: ImportedCfgSection): void {
+    const lightMappings: ReadonlyArray<readonly [string, string]> = [
+      ['BeaconLights', 'A:LIGHT BEACON'],
+      ['LandingLights', 'A:LIGHT LANDING'],
+      ['LogoLights', 'A:LIGHT LOGO'],
+      ['NavLights', 'A:LIGHT NAV'],
+      ['PanelLights', 'A:LIGHT PANEL'],
+      ['RecognitionLights', 'A:LIGHT RECOGNITION'],
+      ['StrobeLights', 'A:LIGHT STROBE'],
+      ['TaxiLights', 'A:LIGHT TAXI'],
+      ['WingLights', 'A:LIGHT WING'],
+      ['CabinLights', 'A:LIGHT CABIN'],
+      ['GlareshieldLights', 'A:LIGHT GLARESHIELD']
+    ]
+    for (const [flightStateKey, simVarKey] of lightMappings) {
+      const rawValue = section.values.get(flightStateKey.toLowerCase())
+      const parsedValue = rawValue == null ? null : parseFlightStateScalar(rawValue)
+      if (parsedValue != null) {
+        this.values.set(normalizeRuntimeVariableKey(simVarKey), parsedValue > 0 ? 1 : 0)
+      }
+    }
+  }
+
+  private setBatterySwitch(value: number): void {
+    const switchValue = value > 0 ? 1 : 0
+    this.electricalState.batterySwitch = switchValue
+    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MASTER BATTERY'), switchValue)
+    this.values.set(normalizeRuntimeVariableKey('A:MASTER BATTERY SWITCH'), switchValue)
+    this.values.set(normalizeRuntimeVariableKey('A:BATTERY SWITCH'), switchValue)
+  }
+
+  private setExternalPowerSwitch(value: number): void {
+    const switchValue = value > 0 ? 1 : 0
+    this.electricalState.externalPowerSwitch = switchValue
+    this.values.set(normalizeRuntimeVariableKey('A:EXTERNAL POWER ON'), switchValue)
+  }
+
+  private applyElectricalVariableSideEffects(key: string, value: number, unit: string | null): void {
+    const normalizedValue = Number.isFinite(value) && value > 0 ? 1 : 0
+    if (isBatteryControlKey(key)) {
+      this.electricalState.batterySwitch = this.hasStoredBatteryControlPower() ? 1 : normalizedValue
+      return
+    }
+    if (isExternalPowerControlKey(key)) {
+      this.electricalState.externalPowerSwitch = this.hasStoredExternalPower() ? 1 : normalizedValue
+      return
+    }
+    if (key === 'A:EXTERNAL POWER AVAILABLE' || key.includes('EXT_PWR_AVAIL')) {
+      this.electricalState.externalPowerAvailable = normalizedValue
+      return
+    }
+    if (key === 'A:AVIONICS MASTER SWITCH') {
+      this.electricalState.avionicsSwitch = normalizedValue
+      return
+    }
+    if (key.includes('THROTTLE LEVER POSITION')) {
+      this.throttleLeverPosition = toPercentOver100(value, unit) * 100
+      return
+    }
+    if (key.includes('GENERAL ENG RPM') || key.includes('TURB ENG N1')) {
+      this.engineCycleTarget = Math.max(0, toFlightStatePercent(value))
+    }
+  }
+
+  private hasElectricalPower(): boolean {
+    return (
+      this.electricalState.batterySwitch > 0 ||
+      this.electricalState.externalPowerSwitch > 0 ||
+      this.hasStoredBatteryControlPower() ||
+      this.hasStoredExternalPower() ||
+      (this.engineCycleTarget > 0 && this.hasStoredGeneratorPower())
+    )
+  }
+
+  private hasStoredBatteryControlPower(): boolean {
+    for (const [key, value] of this.values) {
+      if (value > 0 && isBatteryControlKey(key)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  private hasStoredExternalPower(): boolean {
+    for (const [key, value] of this.values) {
+      if (value > 0 && isExternalPowerControlKey(key)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  private hasStoredGeneratorPower(): boolean {
+    for (const [key, value] of this.values) {
+      if (value > 0 && isGeneratorControlKey(key)) {
+        return true
+      }
+    }
+    return false
   }
 
   private resolveHeuristicValue(
@@ -688,29 +928,39 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey === 'E:ABSOLUTE TIME' || upperKey === 'A:E:ABSOLUTE TIME') {
       return handled(Date.now() / 1000 + 62135596800)
     }
-    if (upperKey === 'A:SIM ON GROUND') return handled(0)
+    if (upperKey === 'A:SIM ON GROUND') return handled(1)
     if (upperKey === 'A:SURFACE RELATIVE GROUND SPEED') return handled(0)
     if (upperKey === 'A:STRUCTURAL ICE PCT') return handled(convertPercentOver100Unit(0, unit))
     if (upperKey === 'A:PITOT ICE PCT') return handled(convertPercentOver100Unit(0, unit))
     if (upperKey === 'A:WINDSHIELD DEICE SWITCH') return handled(0)
     if (upperKey === 'A:STRUCTURAL DEICE SWITCH') return handled(0)
-    if (upperKey === 'A:LIGHT BEACON') return handled(1)
+    if (upperKey === 'A:LIGHT BEACON') return handled(0)
     if (upperKey.includes('BRIGHTNESS') || upperKey.includes('POTENTIOMETER')) {
-      return handled(normalizeUnit(unit) === 'percent over 100' ? 1 : 100)
+      const poweredValue = this.hasElectricalPower() ? 100 : 0
+      return handled(normalizeUnit(unit) === 'percent over 100' ? poweredValue / 100 : poweredValue)
     }
     if (isRuntimeStoredVariableKey(upperKey)) {
       const storedValue = this.values.get(upperKey)
       if (storedValue != null) {
         return handled(storedValue)
       }
-      const genericStoredValue = resolveGenericStoredVariableFallback(upperKey, unit)
+      const genericStoredValue = resolveGenericStoredVariableFallback(
+        upperKey,
+        unit,
+        this.hasElectricalPower()
+      )
       if (genericStoredValue != null) {
         return handled(genericStoredValue)
       }
     }
-    if (isPoweredCircuitStateKey(upperKey)) return handled(1)
-    if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) return handled(convertPercentUnit(100, unit))
+    if (isCircuitConnectionStateKey(upperKey)) return handled(1)
+    if (isCircuitPowerStateKey(upperKey)) return handled(this.hasElectricalPower() ? 1 : 0)
+    if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) {
+      return handled(convertPercentUnit(this.hasElectricalPower() ? 100 : 0, unit))
+    }
     if (isPoweredBusConnectionKey(upperKey)) return handled(1)
+    if (isElectricalVoltageKey(upperKey)) return handled(this.hasElectricalPower() ? 28 : 0)
+    if (isElectricalPowerKey(upperKey)) return handled(this.hasElectricalPower() ? 1 : 0)
     if (upperKey.startsWith('A:INTERACTIVE POINT OPEN:')) return handled(convertPercentUnit(0, unit))
     if (upperKey.startsWith('A:ENG ANTI ICE:')) return handled(0)
     if (upperKey.startsWith('A:PROP DEICE SWITCH:')) return handled(0)
@@ -733,7 +983,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return handled(convertRpmUnit(cycles.engineCycle, unit))
     }
     if (upperKey.startsWith('A:GENERAL ENG THROTTLE LEVER POSITION:')) {
-      return handled(convertPercentUnit(this.engineProfile.cruisePowerPercent, unit))
+      return handled(convertPercentUnit(this.throttleLeverPosition, unit))
     }
     if (upperKey.startsWith('A:GENERAL ENG REVERSE THRUST ENGAGED:')) return handled(0)
     if (upperKey.includes('ENGINE_N1')) return handled(convertPercentUnit(cycles.engineCycle, unit))
@@ -813,13 +1063,69 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applyKeyEvent(name: string, args: readonly number[]): void {
     const value = Number(args.at(-1) ?? 0)
-    if (name === 'ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE') {
+    if (name.endsWith('ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE')) {
       const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
       if (Number.isFinite(circuitIndex)) {
         const circuitKey = normalizeRuntimeVariableKey(`A:CIRCUIT CONNECTION ON:${circuitIndex}`)
         const currentValue = this.values.get(circuitKey) ?? 1
         this.values.set(circuitKey, currentValue > 0 ? 0 : 1)
       }
+      return
+    }
+    if (name.endsWith('ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE')) {
+      const sourceBusIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      const targetBusIndex = Math.trunc(Number(args[1] ?? Number.NaN))
+      if (Number.isFinite(sourceBusIndex) && Number.isFinite(targetBusIndex)) {
+        const busKey = normalizeRuntimeVariableKey(`A:${sourceBusIndex}:BUS CONNECTION ON:${targetBusIndex}`)
+        const currentValue = this.values.get(busKey) ?? 1
+        this.values.set(busKey, currentValue > 0 ? 0 : 1)
+      }
+      return
+    }
+    if (name === 'APU_GENERATOR_SWITCH_TOGGLE') {
+      const generatorIndex = Math.trunc(Number(args[0] ?? 1))
+      const generatorKey = normalizeRuntimeVariableKey(`A:APU GENERATOR SWITCH:${generatorIndex}`)
+      const currentValue = this.values.get(generatorKey) ?? 0
+      this.values.set(generatorKey, currentValue > 0 ? 0 : 1)
+      return
+    }
+    const alternatorToggleMatch = /^TOGGLE_ALTERNATOR(\d+)$/u.exec(name)
+    if (alternatorToggleMatch != null) {
+      const alternatorKey = normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR:${alternatorToggleMatch[1]}`)
+      const currentValue = this.values.get(alternatorKey) ?? 0
+      this.values.set(alternatorKey, currentValue > 0 ? 0 : 1)
+      return
+    }
+    if (name === 'TOGGLE_MASTER_BATTERY' || name === 'MASTER_BATTERY_TOGGLE') {
+      this.setBatterySwitch(this.electricalState.batterySwitch > 0 ? 0 : 1)
+      return
+    }
+    if (name === 'MASTER_BATTERY_ON') {
+      this.setBatterySwitch(1)
+      return
+    }
+    if (name === 'MASTER_BATTERY_OFF') {
+      this.setBatterySwitch(0)
+      return
+    }
+    if (name === 'EXTERNAL_POWER_TOGGLE') {
+      this.setExternalPowerSwitch(this.electricalState.externalPowerSwitch > 0 ? 0 : 1)
+      return
+    }
+    if (name === 'EXTERNAL_POWER_ON') {
+      this.setExternalPowerSwitch(1)
+      return
+    }
+    if (name === 'EXTERNAL_POWER_OFF') {
+      this.setExternalPowerSwitch(0)
+      return
+    }
+    if (name === 'AVIONICS_MASTER_SET') {
+      this.electricalState.avionicsSwitch = value > 0 ? 1 : 0
+      return
+    }
+    if (name === 'AVIONICS_MASTER_TOGGLE') {
+      this.electricalState.avionicsSwitch = this.electricalState.avionicsSwitch > 0 ? 0 : 1
       return
     }
     if (name === 'GEAR_UP') {
@@ -978,43 +1284,118 @@ function convertTimeUnit(valueSeconds: number, unit: string | null): number {
   return valueSeconds
 }
 
-function resolveGenericStoredVariableFallback(key: string, unit: string | null): number | null {
+function resolveGenericStoredVariableFallback(
+  key: string,
+  unit: string | null,
+  electricalPower: boolean
+): number | null {
   const normalizedUnit = normalizeUnit(unit)
   if (normalizedUnit.includes('bool')) {
-    if (
-      key.includes('POWER') ||
-      key.includes('POWERED') ||
-      key.includes('ELECTRIC') ||
-      key.includes('ELEC') ||
-      key.includes('BUS') ||
-      key.includes('CIRCUIT') ||
-      key.includes('HEALTHY') ||
-      key.includes('AVAILABLE') ||
-      key.includes('VALID')
-    ) {
+    if (key.includes('HEALTHY') || key.includes('AVAILABLE') || key.includes('VALID')) {
       return 1
+    }
+    if (isElectricalPowerKey(key) || key.includes('POWERED') || key.includes('BUS') || key.includes('CIRCUIT')) {
+      return electricalPower ? 1 : 0
     }
     return 0
   }
   if (key.includes('BRIGHTNESS') || key.includes('POTENTIOMETER')) {
-    return normalizedUnit === 'percent over 100' ? 1 : 100
+    const poweredValue = electricalPower ? 100 : 0
+    return normalizedUnit === 'percent over 100' ? poweredValue / 100 : poweredValue
   }
   if (key.includes('POWER') || key.includes('POWERED') || key.includes('ELEC') || key.includes('BUS')) {
-    return 1
+    return electricalPower ? 1 : 0
   }
   return null
 }
 
-function isPoweredCircuitStateKey(key: string): boolean {
+function isCircuitPowerStateKey(key: string): boolean {
   return (
     /^A:CIRCUIT(?: [A-Z0-9_ ]+)? ON(?::|$)/u.test(key) ||
-    /^A:CIRCUIT SWITCH ON(?::|$)/u.test(key) ||
-    /^A:CIRCUIT CONNECTION ON(?::|$)/u.test(key)
+    /^A:CIRCUIT SWITCH ON(?::|$)/u.test(key)
   )
+}
+
+function isCircuitConnectionStateKey(key: string): boolean {
+  return /^A:CIRCUIT CONNECTION ON(?::|$)/u.test(key)
 }
 
 function isPoweredBusConnectionKey(key: string): boolean {
   return /^A:(?:\d+:)?BUS CONNECTION ON(?::|$)/u.test(key)
+}
+
+function isElectricalVoltageKey(key: string): boolean {
+  return key.startsWith('A:ELECTRICAL') && (key.includes('VOLTAGE') || key.includes('VOLTS'))
+}
+
+function isElectricalPowerKey(key: string): boolean {
+  return (
+    key === 'A:ELECTRICAL MASTER BATTERY' ||
+    key === 'A:MASTER BATTERY SWITCH' ||
+    key === 'A:BATTERY SWITCH' ||
+    key === 'A:EXTERNAL POWER ON' ||
+    key === 'A:AVIONICS MASTER SWITCH' ||
+    key.includes('_BUS_IS_POWERED') ||
+    key.includes('IS_POWERED') ||
+    (key.includes('ELECTRICAL') && (key.includes('POWER') || key.includes('SWITCH'))) ||
+    (key.includes('ELEC') && (key.includes('POWER') || key.includes('POWERED')))
+  )
+}
+
+function isDynamicRuntimeFallbackKey(key: string): boolean {
+  return (
+    isElectricalPowerKey(key) ||
+    isElectricalVoltageKey(key) ||
+    isCircuitPowerStateKey(key) ||
+    key.startsWith('A:CIRCUIT POWER SETTING:') ||
+    key.includes('BRIGHTNESS') ||
+    key.includes('POTENTIOMETER') ||
+    key.includes('POWERED') ||
+    key.includes('IS_POWERED')
+  )
+}
+
+function isBatteryControlKey(key: string): boolean {
+  if (key.includes('BUS') || key.includes('POWERED') || key.includes('VOLT') || key.includes('LOAD')) {
+    return false
+  }
+  if (key.includes('FAULT') || key.includes('LIGHT') || key.includes('POTENTIOMETER')) {
+    return false
+  }
+  return (
+    key === 'A:ELECTRICAL MASTER BATTERY' ||
+    key === 'A:MASTER BATTERY SWITCH' ||
+    key === 'A:BATTERY SWITCH' ||
+    ((key.includes('BATTERY') || /(?:^|_)BAT(?:_|TERY|\d)/u.test(key)) &&
+      (key.includes('SWITCH') ||
+        key.includes('MASTER') ||
+        key.includes('PB_IS_AUTO') ||
+        key.includes('PB_IS_ON') ||
+        key.endsWith('_IS_ON') ||
+        key.endsWith('_ON')))
+  )
+}
+
+function isExternalPowerControlKey(key: string): boolean {
+  if (key.includes('AVAILABLE') || key.includes('AVAIL') || key.includes('FAULT')) {
+    return false
+  }
+  return (
+    key === 'A:EXTERNAL POWER ON' ||
+    ((key.includes('EXTERNAL POWER') || key.includes('EXT_PWR')) &&
+      (key.includes('SWITCH') || key.includes('PB_IS_ON') || key.endsWith('_IS_ON') || key.endsWith('_ON')))
+  )
+}
+
+function isGeneratorControlKey(key: string): boolean {
+  if (key.includes('FAULT') || key.includes('LOAD') || key.includes('VOLT')) {
+    return false
+  }
+  return (
+    key.startsWith('A:APU GENERATOR SWITCH:') ||
+    key.startsWith('A:GENERAL ENG MASTER ALTERNATOR:') ||
+    (key.includes('GENERATOR') && (key.includes('SWITCH') || key.endsWith('_IS_ON') || key.endsWith('_ON')))
+  )
 }
 
 function normalizeUnit(unit: string | null): string {
@@ -1068,16 +1449,27 @@ function parseFlightStateScalar(rawValue: string): number | null {
   return Number.isFinite(parsedValue) ? parsedValue : null
 }
 
+function parseEngineFlightStateIndex(sectionName: string): number | null {
+  const match = /^engine parameters\.(\d+)\./iu.exec(sectionName)
+  if (match == null) {
+    return null
+  }
+  const parsedValue = Number.parseInt(match[1], 10)
+  return Number.isFinite(parsedValue) ? parsedValue : null
+}
+
+function toFlightStatePercent(value: number): number {
+  if (Math.abs(value) <= 1) {
+    return value * 100
+  }
+  return value
+}
+
 function handled(value: number): { readonly handled: true; readonly value: number } {
   return {
     handled: true,
     value
   }
-}
-
-interface DemoEngineProfile {
-  readonly cruiseN1Percent: number
-  readonly cruisePowerPercent: number
 }
 
 interface DemoWingFlexProfile {
@@ -1111,34 +1503,6 @@ interface RuntimeWingFlexBinding {
   readonly rightEnginePivots: readonly RuntimeWingFlexNode[]
   readonly maxAngleRadians: number
   readonly surfaceScalar: number
-}
-
-function createDemoEngineProfile(aircraft?: ImportedAircraft): DemoEngineProfile {
-  const enginesCfg = aircraft?.cfgFiles.find(file => file.kind === 'engines')
-  const targetPerformanceCfg = aircraft?.cfgFiles.find(file => file.kind === 'target_performance')
-  const generalEngineData = findCfgSection(enginesCfg, 'GENERALENGINEDATA')
-  const turbineEngineData = findCfgSection(enginesCfg, 'TURBINEENGINEDATA')
-
-  const lowIdleN1 = parseCfgNumber(turbineEngineData, 'low_idle_n1', 19.6)
-  const highN1 = parseCfgNumber(turbineEngineData, 'high_n1', 101)
-  const hasCruiseReference =
-    findCfgValue(targetPerformanceCfg, 'TARGET_PERFORMANCE', 'cruise_speed_level_flight_75pctpower') != null
-  const cruisePowerPercent = hasCruiseReference ? 75 : 60
-  const cruisePowerFraction = cruisePowerPercent / 100
-
-  const configuredEngineCount = countCfgKeys(generalEngineData, /^engine\.\d+$/iu)
-  const normalizedLowIdleN1 = clamp(lowIdleN1, 0, highN1)
-  const normalizedHighN1 = Math.max(normalizedLowIdleN1, highN1)
-  const cruiseN1Percent = clamp(
-    normalizedLowIdleN1 + (normalizedHighN1 - normalizedLowIdleN1) * cruisePowerFraction,
-    normalizedLowIdleN1,
-    normalizedHighN1
-  )
-
-  return {
-    cruiseN1Percent: configuredEngineCount > 0 ? cruiseN1Percent : 55,
-    cruisePowerPercent
-  }
 }
 
 function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexProfile {
@@ -1404,17 +1768,6 @@ function parseCfgNumber(
     return Number.isFinite(parsedValue) ? parsedValue : fallbackValue
   }
   return fallbackValue
-}
-
-function countCfgKeys(section: ImportedCfgSection | undefined, pattern: RegExp): number {
-  if (section == null) return 0
-  let count = 0
-  for (const key of section.values.keys()) {
-    if (pattern.test(key)) {
-      count += 1
-    }
-  }
-  return count
 }
 
 function selectCfgSectionWithKeys(

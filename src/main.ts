@@ -4694,19 +4694,28 @@ function createVCockpitGaugeBridgeScript(
   const readDemoSimVar = (name, unit) => {
     const normalizedName = String(name ?? '').toLowerCase();
     const normalizedUnit = String(unit ?? '').toLowerCase();
+    const hasPower =
+      simVarValues.get(normalizeSimVarKey('ELECTRICAL MASTER BATTERY', 'Bool', '')) === 1 ||
+      simVarValues.get(normalizeSimVarKey('EXTERNAL POWER ON', 'Bool', '')) === 1 ||
+      simVarValues.get(normalizeSimVarKey('APU GENERATOR SWITCH:1', 'Bool', '')) === 1 ||
+      simVarValues.get(normalizeSimVarKey('GENERAL ENG MASTER ALTERNATOR:1', 'Bool', '')) === 1 ||
+      simVarValues.get(normalizeSimVarKey('GENERAL ENG MASTER ALTERNATOR:2', 'Bool', '')) === 1;
     if (normalizedUnit.includes('bool')) {
+      if (normalizedName.includes('healthy') || normalizedName.includes('available') || normalizedName.includes('valid')) {
+        return 1;
+      }
       return normalizedName.includes('power') ||
         normalizedName.includes('powered') ||
         normalizedName.includes('electric') ||
         normalizedName.includes('bus') ||
         normalizedName.includes('circuit') ||
-        normalizedName.includes('light') ||
-        normalizedName.includes('healthy')
-        ? 1
+        normalizedName.includes('light')
+        ? hasPower ? 1 : 0
         : 0;
     }
     if (normalizedName.includes('brightness') || normalizedName.includes('potentiometer')) {
-      return normalizedUnit.includes('percent over 100') ? 1 : 100;
+      const poweredValue = hasPower ? 100 : 0;
+      return normalizedUnit.includes('percent over 100') ? poweredValue / 100 : poweredValue;
     }
     if (normalizedName.includes('absolute time')) {
       return Date.now() / 1000 + 62135596800;
@@ -4722,10 +4731,10 @@ function createVCockpitGaugeBridgeScript(
     if (normalizedName.includes('mach')) return 0.78;
     if (normalizedName.includes('ambient pressure')) return 29.92;
     if (normalizedName.includes('ambient temperature')) return 15;
-    if (normalizedName.includes('voltage') || normalizedName.includes('volts')) return 28;
-    if (normalizedName.includes('power') || normalizedName.includes('powered')) return 1;
-    if (normalizedUnit.includes('percent over 100')) return 1;
-    if (normalizedUnit.includes('percent')) return 100;
+    if (normalizedName.includes('voltage') || normalizedName.includes('volts')) return hasPower ? 28 : 0;
+    if (normalizedName.includes('power') || normalizedName.includes('powered')) return hasPower ? 1 : 0;
+    if (normalizedUnit.includes('percent over 100')) return hasPower ? 1 : 0;
+    if (normalizedUnit.includes('percent')) return hasPower ? 100 : 0;
     return 0;
   };
   const readBoolSimVar = name => readDemoSimVar(name, 'Bool') === 1;
