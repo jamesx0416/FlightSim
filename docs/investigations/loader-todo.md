@@ -428,6 +428,12 @@ Rules:
     - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 734 animation bindings, 811 interaction bindings, 616 update bindings, and 456 visibility bindings with zero unsupported `(M:Event)` diagnostics; remaining RPN diagnostics are unrelated `:1` and bare `{` cases.
     - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 719 interaction bindings, 536 update bindings, and 383 visibility bindings with zero unsupported `(M:Event)` diagnostics; the only remaining RPN diagnostic is the unrelated bare `{` case.
     - Screenshots captured to `/tmp/screenshot-1778336257793.png` and `/tmp/screenshot-1778336301535.png`.
+- [x] Support standalone RPN conditional blocks and register labels seen in mounted stock/built XML.
+  - The RPN compiler now treats standalone `{ ... }` blocks as conditional blocks and accepts `:N` register labels as label markers, without adding `gN` jump support until a verified active route needs it.
+  - Verified with `agent-browser` on 2026-05-09:
+    - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 735 animation bindings, 811 interaction bindings, 617 update bindings, and 456 visibility bindings with zero unsupported RPN diagnostics.
+    - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 719 interaction bindings, 537 update bindings, and 383 visibility bindings with zero unsupported RPN diagnostics.
+    - Screenshots captured to `/tmp/screenshot-1778336474838.png` and `/tmp/screenshot-1778336519179.png`.
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
 - [x] Verify generic cockpit interaction press/release behavior on A330 and A320.
