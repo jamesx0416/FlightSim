@@ -2,6 +2,8 @@
 
 The viewer reads these URL query parameters at startup. If a parameter is omitted, the runtime follows its normal default path unless noted.
 
+Maintenance rule: when a new supported query parameter is added to the viewer, add it to this document and to the settings/profile managed-query list when it should be saved by profiles.
+
 ## Package Selection
 
 | Parameter | Example | Feature |
@@ -11,6 +13,7 @@ The viewer reads these URL query parameters at startup. If a parameter is omitte
 | `lod` | `?lod=0` | Requests the initial zero-based LOD index. `0` means LOD00, `1` means LOD01, and so on. Empty values are ignored. Negative or non-integer values throw a startup error. |
 | `interiorLod` | `?interiorLod=1` | Requests the zero-based cockpit/interior-view LOD index. `0` means LOD00, `1` means LOD01, and so on. If omitted, empty, or `auto`, the viewer keeps the default interior-view path and loads LOD00. Negative or non-integer values throw a startup error. |
 | `syncExteriorInterior` | `?syncExteriorInterior` | Loads any `withExterior_showInterior` interior LOD synchronously before the first exterior view. By default, that interior is loaded progressively after the exterior first view is available. |
+| `rendererPixelRatio` | `?rendererPixelRatio=1` | Caps renderer pixel ratio for high-DPI displays. Values are clamped from `0.5` to `2` and never exceed the device pixel ratio; default is `2`. Lower values can reduce cockpit fill-rate cost and stutter on dense displays at the cost of sharpness. |
 
 ## Additional Package Roots
 

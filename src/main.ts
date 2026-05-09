@@ -59,6 +59,7 @@ import {
   createAircraftEnvironment,
   createAppRenderer,
   createNodeMaterialFactory,
+  getRendererPixelRatio,
   type NodeMaterialFactory,
   type RendererInfo
 } from './rendering/createAppRenderer'
@@ -163,6 +164,7 @@ type ViewerConfigProfile = {
   readonly cockpitInstanceStatic?: boolean
   readonly cockpitPerf?: boolean
   readonly cockpitInteractionHitboxes?: boolean
+  readonly rendererPixelRatio?: number | null
   readonly rawQuery?: string
 }
 
@@ -197,6 +199,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly cockpitInstanceStatic: boolean
   readonly cockpitPerf: boolean
   readonly cockpitInteractionHitboxes: boolean
+  readonly rendererPixelRatio: number
   readonly extraQuery: string
 }
 
@@ -1746,6 +1749,8 @@ async function init(): Promise<void> {
     const cockpitPerfChanged = previousSettings.cockpitPerf !== nextSettings.cockpitPerf
     const cockpitInteractionHitboxesChanged =
       previousSettings.cockpitInteractionHitboxes !== nextSettings.cockpitInteractionHitboxes
+    const rendererPixelRatioChanged =
+      previousSettings.rendererPixelRatio !== nextSettings.rendererPixelRatio
     const extraQueryChanged = previousSettings.extraQuery !== nextSettings.extraQuery
 
     if (exteriorLodChanged) {
@@ -2487,7 +2492,7 @@ function getVCockpitGaugeCaptureFps(searchParams: URLSearchParams): number {
 function getVCockpitGaugeRasterScale(searchParams: URLSearchParams): number {
   const parsed = parsePositiveQueryNumber(searchParams.get('vcockpitGaugeRasterScale'))
   if (parsed == null) {
-    return 1
+    return VCOCKPIT_HTML_GAUGE_DEFAULT_RASTER_SCALE
   }
 
   return Math.min(1, Math.max(0.25, parsed))
@@ -2637,7 +2642,8 @@ const PROFILE_QUERY_KEYS = [
   'cockpitMergeStatic',
   'cockpitInstanceStatic',
   'cockpitPerf',
-  'cockpitInteractionHitboxes'
+  'cockpitInteractionHitboxes',
+  'rendererPixelRatio'
 ] as const
 
 function loadViewerConfigStore(): ViewerConfigStore {
@@ -7548,6 +7554,7 @@ function createCameraDepthClipController(
 
 const MIN_CAMERA_CLIP_NEAR = 0.01
 const MIN_CAMERA_CLIP_RANGE = 0.01
+const CAMERA_DEPTH_CLIP_UPDATE_INTERVAL_MS = 125
 
 function shouldUpdateCameraClipPlane(current: number, next: number): boolean {
   return Math.abs(current - next) > Math.max(0.001, Math.abs(next) * 0.001)
@@ -8969,6 +8976,7 @@ function createSettingsProfileEditor(options: {
   const cockpitInstanceSelect = createSettingsSelect('Cockpit Instance Static')
   const cockpitPerfSelect = createSettingsSelect('Cockpit Perf')
   const cockpitInteractionHitboxesSelect = createSettingsSelect('Interaction Hitboxes')
+  const rendererPixelRatioInput = createSettingsInput('Renderer Pixel Ratio', 'number')
   const rawQueryTextarea = createSettingsTextarea('Extra Query')
 
   const appendGlobalOption = (select: HTMLSelectElement): void => {
@@ -9088,6 +9096,8 @@ function createSettingsProfileEditor(options: {
       profile.cockpitInteractionHitboxes,
       inheritsFromGlobal
     )
+    rendererPixelRatioInput.value =
+      profile.rendererPixelRatio == null ? '' : String(profile.rendererPixelRatio)
     rawQueryTextarea.value = profile.rawQuery ?? ''
   }
 
@@ -9132,6 +9142,10 @@ function createSettingsProfileEditor(options: {
         cockpitInteractionHitboxesSelect.value,
         inheritsFromGlobal
       ),
+      rendererPixelRatio: parseSettingsNullableNumber(
+        rendererPixelRatioInput.value,
+        inheritsFromGlobal
+      ),
       rawQuery:
         inheritsFromGlobal && rawQueryTextarea.value.trim() === ''
           ? undefined
@@ -9163,6 +9177,7 @@ function createSettingsProfileEditor(options: {
     createSettingsField('Cockpit Instance Static', cockpitInstanceSelect),
     createSettingsField('Cockpit Perf', cockpitPerfSelect),
     createSettingsField('Interaction Hitboxes', cockpitInteractionHitboxesSelect),
+    createSettingsField('Renderer Pixel Ratio', rendererPixelRatioInput),
     createSettingsField('Extra Query', rawQueryTextarea)
   )
 
@@ -9198,7 +9213,10 @@ function createViewerConfigProfileFromSearchParams(
     cockpitMergeStatic: isEnabledFlagSearchParam(searchParams, 'cockpitMergeStatic'),
     cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
     cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf'),
-    cockpitInteractionHitboxes: shouldShowCockpitInteractionHitboxes(searchParams)
+    cockpitInteractionHitboxes: shouldShowCockpitInteractionHitboxes(searchParams),
+    rendererPixelRatio: searchParams.has('rendererPixelRatio')
+      ? getRendererPixelRatio(searchParams)
+      : null
   }
 }
 
