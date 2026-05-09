@@ -101,7 +101,7 @@ function compileInstructionBlock(
       }
     }
 
-    if (normalized === 'if{') {
+    if (normalized === 'if{' || normalized === '{') {
       const thenBlock = compileInstructionBlock(tokens, index + 1, options, variableKeys, ['}', 'els{'])
       if (thenBlock == null) {
         return null
@@ -270,6 +270,10 @@ function compileInstructionBlock(
       case 'quit':
         instructions.push({ op: 'quit' })
         continue
+    }
+
+    if (isRegisterLabel(normalized)) {
+      continue
     }
 
     const binaryOperator = BINARY_OPERATORS.get(normalized)
@@ -770,6 +774,13 @@ function extractRegisterLoad(token: string): number | null {
     return null
   }
   return index
+}
+
+function isRegisterLabel(token: string): boolean {
+  const match = /^:(\d{1,2})$/u.exec(token)
+  if (!match) return false
+  const index = Number.parseInt(match[1], 10)
+  return Number.isInteger(index) && index >= 0 && index <= 49
 }
 
 function normalizeAngleDegrees(value: number): number {
