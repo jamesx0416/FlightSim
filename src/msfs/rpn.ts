@@ -182,6 +182,11 @@ function compileInstructionBlock(
       continue
     }
 
+    if (normalized === '(>)') {
+      instructions.push({ op: 'popDiscard' })
+      continue
+    }
+
     const variableWriteReference = extractVariableWriteReference(normalized, options.localVariableScope ?? null)
     if (variableWriteReference != null) {
       variableKeys.add(formatVariableSymbol(variableWriteReference.key, variableWriteReference.unit))

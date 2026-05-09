@@ -416,6 +416,12 @@ Rules:
 - [x] Support `<Parameters Type="Default|Override">`.
 - [x] Support parameter-block `Condition` / `Switch`.
 - [x] Support `Process="Int|Float|Param"`.
+- [x] Support empty RPN write sinks from blank optional template parameters.
+  - The RPN compiler now treats the exact empty write token `(>)` as a stack discard, matching generated stock-template code where an optional write target expands to empty rather than to a concrete variable/event.
+  - Verified with `agent-browser` on 2026-05-09:
+    - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 734 animation bindings, 810 interaction bindings, 616 update bindings, and 456 visibility bindings with zero unsupported `(>)` diagnostics; remaining RPN diagnostics are unrelated `(M:Event)`, `:1`, and bare `{` cases.
+    - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 718 interaction bindings, 536 update bindings, and 383 visibility bindings with zero unsupported `(>)` diagnostics; remaining RPN diagnostics are unrelated `(M:Event)` and bare `{` cases.
+    - Screenshots captured to `/tmp/screenshot-1778335823173.png` and `/tmp/screenshot-1778335870711.png`.
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
 - [x] Verify generic cockpit interaction press/release behavior on A330 and A320.
