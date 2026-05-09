@@ -48,6 +48,13 @@ const UNARY_OPERATORS = new Map<string, Instruction['op']>([
   ['rnor', 'normalizeRadians']
 ])
 
+const STRING_COMPARE_OPERATORS = new Map<string, Instruction['op']>([
+  ['scmp', 'stringCompare'],
+  ['scmi', 'stringCompareCaseInsensitive']
+])
+
+type StackValue = number | string
+
 export function compileRpnExpression(
   source: string,
   options: CompileOptions
@@ -159,6 +166,12 @@ function compileInstructionBlock(
       continue
     }
 
+    const stringLiteral = extractStringLiteral(normalized)
+    if (stringLiteral != null) {
+      instructions.push({ op: 'pushString', value: stringLiteral })
+      continue
+    }
+
     const numericValue = Number.parseFloat(normalized)
     if (Number.isFinite(numericValue) && /^[-+]?\d*\.?\d+(e[-+]?\d+)?$/iu.test(normalized)) {
       instructions.push({ op: 'pushNumber', value: numericValue })
@@ -168,11 +181,19 @@ function compileInstructionBlock(
     const variableReference = extractVariableReference(normalized, options.localVariableScope ?? null)
     if (variableReference != null) {
       variableKeys.add(formatVariableSymbol(variableReference.key, variableReference.unit))
-      instructions.push({
-        op: 'pushVariable',
-        key: variableReference.key,
-        unit: variableReference.unit
-      })
+      if (isStringVariableKey(variableReference.key)) {
+        instructions.push({
+          op: 'pushStringVariable',
+          key: variableReference.key,
+          unit: variableReference.unit
+        })
+      } else {
+        instructions.push({
+          op: 'pushVariable',
+          key: variableReference.key,
+          unit: variableReference.unit
+        })
+      }
       continue
     }
 
@@ -263,6 +284,12 @@ function compileInstructionBlock(
       continue
     }
 
+    const stringCompareOperator = STRING_COMPARE_OPERATORS.get(normalized)
+    if (stringCompareOperator) {
+      instructions.push({ op: stringCompareOperator } as Instruction)
+      continue
+    }
+
     options.diagnostics.push({
       code: 'rpn_token_unsupported',
       message: `Unsupported RPN token "${normalized}" prevented compilation.`,
@@ -283,21 +310,23 @@ export function evaluateCompiledExpression(
   expression: CompiledExpression,
   services: {
     readVariable: (key: string, unit?: string | null) => number
+    readStringVariable?: (key: string, unit?: string | null) => string
     writeVariable?: (key: string, value: number, unit?: string | null) => void
     invokeKeyEvent?: (name: string, args: readonly number[]) => void
     parameterValues?: readonly number[]
   }
 ): number {
-  const stack: number[] = []
+  const stack: StackValue[] = []
   executeInstructions(expression.instructions, stack, services, createEvaluationContext())
-  return stack.at(-1) ?? 0
+  return toNumber(stack.at(-1) ?? 0)
 }
 
 function executeInstructions(
   instructions: readonly Instruction[],
-  stack: number[],
+  stack: StackValue[],
   services: {
     readVariable: (key: string, unit?: string | null) => number
+    readStringVariable?: (key: string, unit?: string | null) => string
     writeVariable?: (key: string, value: number, unit?: string | null) => void
     invokeKeyEvent?: (name: string, args: readonly number[]) => void
     parameterValues?: readonly number[]
@@ -309,21 +338,27 @@ function executeInstructions(
       case 'pushNumber':
         stack.push(instruction.value)
         break
+      case 'pushString':
+        stack.push(instruction.value)
+        break
       case 'pushVariable':
         stack.push(services.readVariable(instruction.key, instruction.unit))
+        break
+      case 'pushStringVariable':
+        stack.push(services.readStringVariable?.(instruction.key, instruction.unit) ?? '')
         break
       case 'pushParameter':
         stack.push(services.parameterValues?.[instruction.index] ?? 0)
         break
       case 'writeVariable': {
-        const value = stack.pop() ?? 0
+        const value = toNumber(stack.pop() ?? 0)
         services.writeVariable?.(instruction.key, value, instruction.unit)
         break
       }
       case 'invokeKeyEvent': {
         const args = new Array<number>(Math.max(0, instruction.argCount))
         for (let index = args.length - 1; index >= 0; index -= 1) {
-          args[index] = stack.pop() ?? 0
+          args[index] = toNumber(stack.pop() ?? 0)
         }
         services.invokeKeyEvent?.(instruction.name, args)
         break
@@ -342,10 +377,10 @@ function executeInstructions(
         break
       }
       case 'increment':
-        stack.push((stack.pop() ?? 0) + 1)
+        stack.push(toNumber(stack.pop() ?? 0) + 1)
         break
       case 'decrement':
-        stack.push((stack.pop() ?? 0) - 1)
+        stack.push(toNumber(stack.pop() ?? 0) - 1)
         break
       case 'storeRegister': {
         const value = instruction.pop ? stack.pop() ?? 0 : stack.at(-1) ?? 0
@@ -356,7 +391,7 @@ function executeInstructions(
         stack.push(context.registers[instruction.index] ?? 0)
         break
       case 'if': {
-        const condition = stack.pop() ?? 0
+        const condition = toNumber(stack.pop() ?? 0)
         const shouldContinue = executeInstructions(
           condition !== 0 ? instruction.thenInstructions : instruction.elseInstructions,
           stack,
@@ -369,16 +404,16 @@ function executeInstructions(
         break
       }
       case 'ternary': {
-        const condition = stack.pop() ?? 0
+        const condition = toNumber(stack.pop() ?? 0)
         const falseValue = stack.pop() ?? 0
         const trueValue = stack.pop() ?? 0
         stack.push(condition !== 0 ? trueValue : falseValue)
         break
       }
       case 'case': {
-        const selector = Math.trunc(stack.pop() ?? 0)
-        const count = Math.max(0, Math.trunc(stack.pop() ?? 0))
-        const values = new Array<number>(count)
+        const selector = Math.trunc(toNumber(stack.pop() ?? 0))
+        const count = Math.max(0, Math.trunc(toNumber(stack.pop() ?? 0)))
+        const values = new Array<StackValue>(count)
         for (let valueIndex = count - 1; valueIndex >= 0; valueIndex -= 1) {
           values[valueIndex] = stack.pop() ?? 0
         }
@@ -391,143 +426,155 @@ function executeInstructions(
         stack.push(Math.PI)
         break
       case 'add':
-        stack.push((stack.pop() ?? 0) + (stack.pop() ?? 0))
+        stack.push(toNumber(stack.pop() ?? 0) + toNumber(stack.pop() ?? 0))
         break
       case 'sub': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left - right)
         break
       }
       case 'mul':
-        stack.push((stack.pop() ?? 0) * (stack.pop() ?? 0))
+        stack.push(toNumber(stack.pop() ?? 0) * toNumber(stack.pop() ?? 0))
         break
       case 'div': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(right === 0 ? 0 : left / right)
         break
       }
       case 'integerDiv': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(right === 0 ? 0 : Math.trunc(left / right))
         break
       }
       case 'mod': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(right === 0 ? 0 : left % right)
         break
       }
       case 'pow': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left ** right)
         break
       }
       case 'min': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(Math.min(left, right))
         break
       }
       case 'max': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(Math.max(left, right))
         break
       }
       case 'gt': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left > right ? 1 : 0)
         break
       }
       case 'lt': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left < right ? 1 : 0)
         break
       }
       case 'gte': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left >= right ? 1 : 0)
         break
       }
       case 'lte': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left <= right ? 1 : 0)
         break
       }
       case 'eq': {
         const right = stack.pop() ?? 0
         const left = stack.pop() ?? 0
-        stack.push(left === right ? 1 : 0)
+        stack.push(stackValuesEqual(left, right) ? 1 : 0)
         break
       }
       case 'neq': {
         const right = stack.pop() ?? 0
         const left = stack.pop() ?? 0
-        stack.push(left !== right ? 1 : 0)
+        stack.push(stackValuesEqual(left, right) ? 0 : 1)
         break
       }
       case 'and': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left !== 0 && right !== 0 ? 1 : 0)
         break
       }
       case 'or': {
-        const right = stack.pop() ?? 0
-        const left = stack.pop() ?? 0
+        const right = toNumber(stack.pop() ?? 0)
+        const left = toNumber(stack.pop() ?? 0)
         stack.push(left !== 0 || right !== 0 ? 1 : 0)
         break
       }
       case 'abs':
-        stack.push(Math.abs(stack.pop() ?? 0))
+        stack.push(Math.abs(toNumber(stack.pop() ?? 0)))
         break
       case 'ceil':
-        stack.push(Math.ceil(stack.pop() ?? 0))
+        stack.push(Math.ceil(toNumber(stack.pop() ?? 0)))
         break
       case 'floor':
-        stack.push(Math.floor(stack.pop() ?? 0))
+        stack.push(Math.floor(toNumber(stack.pop() ?? 0)))
         break
       case 'roundNearest':
-        stack.push(Math.round(stack.pop() ?? 0))
+        stack.push(Math.round(toNumber(stack.pop() ?? 0)))
         break
       case 'sign':
-        stack.push((stack.pop() ?? 0) < 0 ? -1 : 1)
+        stack.push(toNumber(stack.pop() ?? 0) < 0 ? -1 : 1)
         break
       case 'neg':
-        stack.push(-(stack.pop() ?? 0))
+        stack.push(-toNumber(stack.pop() ?? 0))
         break
       case 'not':
-        stack.push((stack.pop() ?? 0) === 0 ? 1 : 0)
+        stack.push(toNumber(stack.pop() ?? 0) === 0 ? 1 : 0)
         break
       case 'sqrt':
-        stack.push(Math.sqrt(stack.pop() ?? 0))
+        stack.push(Math.sqrt(toNumber(stack.pop() ?? 0)))
         break
       case 'sin':
-        stack.push(Math.sin(stack.pop() ?? 0))
+        stack.push(Math.sin(toNumber(stack.pop() ?? 0)))
         break
       case 'cos':
-        stack.push(Math.cos(stack.pop() ?? 0))
+        stack.push(Math.cos(toNumber(stack.pop() ?? 0)))
         break
       case 'degreesToRadians':
-        stack.push(((stack.pop() ?? 0) * Math.PI) / 180)
+        stack.push((toNumber(stack.pop() ?? 0) * Math.PI) / 180)
         break
       case 'radiansToDegrees':
-        stack.push(((stack.pop() ?? 0) * 180) / Math.PI)
+        stack.push((toNumber(stack.pop() ?? 0) * 180) / Math.PI)
         break
       case 'normalizeDegrees':
-        stack.push(normalizeAngleDegrees(stack.pop() ?? 0))
+        stack.push(normalizeAngleDegrees(toNumber(stack.pop() ?? 0)))
         break
       case 'normalizeRadians':
-        stack.push(normalizeAngleRadians(stack.pop() ?? 0))
+        stack.push(normalizeAngleRadians(toNumber(stack.pop() ?? 0)))
         break
+      case 'stringCompare': {
+        const right = toStringValue(stack.pop() ?? '')
+        const left = toStringValue(stack.pop() ?? '')
+        stack.push(compareStrings(left, right, false))
+        break
+      }
+      case 'stringCompareCaseInsensitive': {
+        const right = toStringValue(stack.pop() ?? '')
+        const left = toStringValue(stack.pop() ?? '')
+        stack.push(compareStrings(left, right, true))
+        break
+      }
     }
   }
 
@@ -551,6 +598,18 @@ function tokenizeRpn(source: string): string[] {
       const endIndex = source.indexOf('*)', index + 2)
       index = endIndex >= 0 ? endIndex + 2 : source.length
       continue
+    }
+
+    if (character === "'") {
+      let endIndex = index + 1
+      while (endIndex < source.length && source[endIndex] !== "'") {
+        endIndex += 1
+      }
+      if (endIndex < source.length) {
+        tokens.push(source.slice(index, endIndex + 1))
+        index = endIndex + 1
+        continue
+      }
     }
 
     if (character === '(') {
@@ -582,7 +641,7 @@ function extractVariableReference(
 ): { readonly key: string; readonly unit: string | null } | null {
   if (!token.startsWith('(') || !token.endsWith(')')) return null
   const content = token.slice(1, -1).trim()
-  const variableMatch = /^(A|L|O|B|H|E|I):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
+  const variableMatch = /^(A|L|O|B|H|E|I|M):([^,]+?)(?:,\s*(.+))?$/iu.exec(content)
   if (!variableMatch) {
     return isUnqualifiedVariableName(content)
       ? { key: scopeObjectVariableKey(content, localVariableScope), unit: null }
@@ -594,6 +653,15 @@ function extractVariableReference(
     key: namespace === 'O' ? scopeObjectVariableKey(variableName, localVariableScope) : `${namespace}:${variableName}`,
     unit: variableMatch[3]?.trim() || null
   }
+}
+
+function extractStringLiteral(token: string): string | null {
+  if (!token.startsWith("'") || !token.endsWith("'") || token.length < 2) return null
+  return token.slice(1, -1)
+}
+
+function isStringVariableKey(key: string): boolean {
+  return key.toUpperCase() === 'M:EVENT'
 }
 
 function extractVariableWriteReference(
@@ -669,12 +737,12 @@ function extractParameterIndex(token: string): number | null {
 }
 
 interface EvaluationContext {
-  readonly registers: number[]
+  readonly registers: StackValue[]
 }
 
 function createEvaluationContext(): EvaluationContext {
   return {
-    registers: new Array<number>(50).fill(0)
+    registers: new Array<StackValue>(50).fill(0)
   }
 }
 
@@ -713,4 +781,30 @@ function normalizeAngleRadians(value: number): number {
   const turn = Math.PI * 2
   const normalized = value % turn
   return normalized < 0 ? normalized + turn : normalized
+}
+
+function toNumber(value: StackValue): number {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0
+  }
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function toStringValue(value: StackValue): string {
+  return typeof value === 'string' ? value : String(value)
+}
+
+function stackValuesEqual(left: StackValue, right: StackValue): boolean {
+  if (typeof left === 'string' || typeof right === 'string') {
+    return toStringValue(left) === toStringValue(right)
+  }
+  return left === right
+}
+
+function compareStrings(left: string, right: string, caseInsensitive: boolean): number {
+  const normalizedLeft = caseInsensitive ? left.toLocaleLowerCase('en-US') : left
+  const normalizedRight = caseInsensitive ? right.toLocaleLowerCase('en-US') : right
+  if (normalizedLeft === normalizedRight) return 0
+  return normalizedLeft < normalizedRight ? -1 : 1
 }

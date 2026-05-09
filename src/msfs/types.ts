@@ -175,7 +175,9 @@ export interface RuntimeState {
 
 export type Instruction =
   | { readonly op: 'pushNumber'; readonly value: number }
+  | { readonly op: 'pushString'; readonly value: string }
   | { readonly op: 'pushVariable'; readonly key: string; readonly unit: string | null }
+  | { readonly op: 'pushStringVariable'; readonly key: string; readonly unit: string | null }
   | { readonly op: 'pushParameter'; readonly index: number }
   | { readonly op: 'writeVariable'; readonly key: string; readonly unit: string | null }
   | { readonly op: 'invokeKeyEvent'; readonly name: string; readonly argCount: number }
@@ -196,6 +198,7 @@ export type Instruction =
   | { readonly op: 'neg' | 'not' | 'abs' | 'ceil' | 'floor' | 'roundNearest' | 'sign' }
   | { readonly op: 'sqrt' | 'sin' | 'cos' | 'degreesToRadians' | 'radiansToDegrees' }
   | { readonly op: 'normalizeDegrees' | 'normalizeRadians' }
+  | { readonly op: 'stringCompare' | 'stringCompareCaseInsensitive' }
 
 export interface RuntimeHostServices {
   tick(dtSeconds: number): void
