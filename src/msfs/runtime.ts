@@ -22,6 +22,7 @@ export class AircraftRuntime {
   private readonly canonicalNodes = new Map<string, Object3D>()
   private readonly animationValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
+  private readonly runtimeState: RuntimeState
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
   private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
   private readonly heldInteractionFeedbackTargets = new Map<
@@ -40,6 +41,12 @@ export class AircraftRuntime {
     aircraft?: ImportedAircraft
   ) {
     this.mixer = new AnimationMixer(sceneRoot)
+    this.runtimeState = {
+      irVersion: 'msfs-runtime/v1',
+      animationValues: this.animationValues,
+      nodeVisibilities: this.nodeVisibilities,
+      diagnostics: this.compiled.diagnostics
+    }
 
     sceneRoot.traverse(node => {
       if (node.name) {
@@ -121,12 +128,7 @@ export class AircraftRuntime {
       }
     }
 
-    return {
-      irVersion: 'msfs-runtime/v1',
-      animationValues: new Map(this.animationValues),
-      nodeVisibilities: new Map(this.nodeVisibilities),
-      diagnostics: this.compiled.diagnostics
-    }
+    return this.runtimeState
   }
 
   dispose(): void {
