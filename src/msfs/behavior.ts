@@ -1082,7 +1082,7 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
     'IE_STANDBY_CODE',
     'LEFT_DOWN_CODE',
     'LEFT_UP_CODE'
-  ]) || buildInteractionGateCodeSource(params)
+  ]) || buildInteractionGateCodeSource(params) || buildInteractionSwitchPositionCodeSource(params)
 }
 
 function getInteractionFallbackEventId(params: ReadonlyMap<string, string>): string {
@@ -1147,6 +1147,46 @@ function buildInteractionGateCodeSource(params: ReadonlyMap<string, string>): st
   const stepsNumber = params.get('STEPS_NUMBER')?.trim() || '100'
   const dragSpeed = params.get('DRAG_SPEED')?.trim() || '1'
   return `(${positionType}:${positionVar}) ${dragSpeed} + ${stepsNumber} min (>${positionType}:${positionVar})`
+}
+
+function buildInteractionSwitchPositionCodeSource(params: ReadonlyMap<string, string>): string {
+  const positionType = params.get('SWITCH_POSITION_TYPE')?.trim() || 'O'
+  const positionVar = params.get('SWITCH_POSITION_VAR')?.trim() ?? ''
+  if (!positionVar) {
+    return ''
+  }
+
+  const stateCount = getInteractionSwitchStateCount(params)
+  if (stateCount < 2) {
+    return ''
+  }
+
+  const nextStateWrite = `(${positionType}:${positionVar}) 1 + ${stateCount} % s0 l0 (>${positionType}:${positionVar})`
+  const positionCodes = Array.from({ length: stateCount }, (_value, index) => {
+    const code = params.get(`CODE_POS_${index}`)?.trim() ?? ''
+    return code ? `l0 ${index} == if{ ${code} }` : ''
+  }).filter(Boolean)
+
+  return [nextStateWrite, ...positionCodes].join(' ')
+}
+
+function getInteractionSwitchStateCount(params: ReadonlyMap<string, string>): number {
+  const explicitStateCount = parseInteger(
+    substituteParameters(params.get('NUM_STATES') ?? params.get('KNOB_NUM_STATE') ?? '', params).trim(),
+    0
+  )
+  if (explicitStateCount >= 2) {
+    return explicitStateCount
+  }
+
+  let highestCodePosition = -1
+  for (const key of params.keys()) {
+    const match = /^CODE_POS_(\d+)$/iu.exec(key.trim())
+    if (match == null) continue
+    highestCodePosition = Math.max(highestCodePosition, parseInteger(match[1], -1))
+  }
+
+  return highestCodePosition + 1
 }
 
 function getFirstUsableInteractionParameter(
