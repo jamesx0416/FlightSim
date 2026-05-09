@@ -422,6 +422,12 @@ Rules:
     - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 734 animation bindings, 810 interaction bindings, 616 update bindings, and 456 visibility bindings with zero unsupported `(>)` diagnostics; remaining RPN diagnostics are unrelated `(M:Event)`, `:1`, and bare `{` cases.
     - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 718 interaction bindings, 536 update bindings, and 383 visibility bindings with zero unsupported `(>)` diagnostics; remaining RPN diagnostics are unrelated `(M:Event)` and bare `{` cases.
     - Screenshots captured to `/tmp/screenshot-1778335823173.png` and `/tmp/screenshot-1778335870711.png`.
+- [x] Support mouse-event RPN string comparisons used by stock `MouseRect` callback code.
+  - The RPN compiler/runtime now handles quoted string literals, `M:Event` string reads, and `scmp` / `scmi` string compare operators used by official `MouseFlags` / `CallbackCode` templates.
+  - Verified with `agent-browser` on 2026-05-09:
+    - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 734 animation bindings, 811 interaction bindings, 616 update bindings, and 456 visibility bindings with zero unsupported `(M:Event)` diagnostics; remaining RPN diagnostics are unrelated `:1` and bare `{` cases.
+    - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 719 interaction bindings, 536 update bindings, and 383 visibility bindings with zero unsupported `(M:Event)` diagnostics; the only remaining RPN diagnostic is the unrelated bare `{` case.
+    - Screenshots captured to `/tmp/screenshot-1778336257793.png` and `/tmp/screenshot-1778336301535.png`.
 - [x] Support direct `<Update ...>` nodes.
 - [x] Support `ASOBO_GT_Anim` in simvar and code forms.
 - [x] Verify generic cockpit interaction press/release behavior on A330 and A320.

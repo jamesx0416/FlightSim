@@ -15,6 +15,11 @@ import type {
   RuntimeState
 } from './types'
 
+interface RuntimeInteractionOptions {
+  readonly holdFeedback?: boolean
+  readonly mouseEvent?: string
+}
+
 export class AircraftRuntime {
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
@@ -145,7 +150,7 @@ export class AircraftRuntime {
     return this.interactionExecutionCount
   }
 
-  executeInteraction(target: string, options: { readonly holdFeedback?: boolean } = {}): boolean {
+  executeInteraction(target: string, options: RuntimeInteractionOptions = {}): boolean {
     const binding = this.findInteractionBindingForTarget(target)
     if (binding == null) {
       return false
@@ -157,7 +162,7 @@ export class AircraftRuntime {
 
   executeInteractionForObject(
     object: Object3D,
-    options: { readonly holdFeedback?: boolean } = {}
+    options: RuntimeInteractionOptions = {}
   ): string | null {
     let current: Object3D | null = object
     while (current != null) {
@@ -261,11 +266,13 @@ export class AircraftRuntime {
 
   private executeInteractionBinding(
     binding: CompiledInteractionBinding,
-    options: { readonly holdFeedback?: boolean } = {}
+    options: RuntimeInteractionOptions = {}
   ): void {
     this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
+    const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
     evaluateCompiledExpression(binding.expression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+      readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
     })
@@ -1424,6 +1431,10 @@ function selectCfgSectionWithKeys(
   }
 
   return sections.find(section => section != null)
+}
+
+function readRuntimeStringVariable(key: string, mouseEvent: string): string {
+  return key.toUpperCase() === 'M:EVENT' ? mouseEvent : ''
 }
 
 function clamp(value: number, min: number, max: number): number {
