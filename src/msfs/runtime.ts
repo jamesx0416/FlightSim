@@ -1566,7 +1566,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     const lightSetMatch = /^(.+)_LIGHTS_SET$/u.exec(name)
     if (lightSetMatch != null) {
-      this.setLightSwitch(lightSetMatch[1], Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      const { index, value } = getFlexibleIndexedSetEventArgs(args, 1)
+      this.setLightSwitch(lightSetMatch[1], value > 0 ? 1 : 0, index)
       return true
     }
 
@@ -1590,9 +1591,19 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     const lightToggleMatch = /^(.+)_LIGHTS_TOGGLE$/u.exec(name)
     if (lightToggleMatch != null) {
-      const variableKey = getLightSwitchVariableKey(lightToggleMatch[1])
-      const currentValue = this.values.get(variableKey) ?? 0
-      this.values.set(variableKey, currentValue > 0 ? 0 : 1)
+      this.toggleLightSwitch(lightToggleMatch[1], Number(args[0] ?? Number.NaN))
+      return true
+    }
+
+    const prefixedLightToggleMatch = /^TOGGLE_(.+)_LIGHTS$/u.exec(name)
+    if (prefixedLightToggleMatch != null) {
+      this.toggleLightSwitch(prefixedLightToggleMatch[1], Number(args[0] ?? Number.NaN))
+      return true
+    }
+
+    const directLightToggleMatch = /^(STROBES|BEACON|NAV|LOGO|LANDING|TAXI|WING|CABIN|PANEL|RECOGNITION)_TOGGLE$/u.exec(name)
+    if (directLightToggleMatch != null) {
+      this.toggleLightSwitch(directLightToggleMatch[1], Number(args[0] ?? Number.NaN))
       return true
     }
 
@@ -2858,8 +2869,23 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
-  private setLightSwitch(type: string, value: number): void {
-    this.values.set(getLightSwitchVariableKey(type), value > 0 ? 1 : 0)
+  private setLightSwitch(type: string, value: number, index?: number): void {
+    const normalizedValue = value > 0 ? 1 : 0
+    this.values.set(getLightSwitchVariableKey(type), normalizedValue)
+    if (index != null && Number.isFinite(index)) {
+      this.values.set(getLightSwitchVariableKey(type, Math.trunc(index)), normalizedValue)
+    }
+  }
+
+  private toggleLightSwitch(type: string, index?: number): void {
+    const unindexedKey = getLightSwitchVariableKey(type)
+    const indexedKey = index != null && Number.isFinite(index)
+      ? getLightSwitchVariableKey(type, Math.trunc(index))
+      : null
+    const currentValue = indexedKey == null
+      ? this.values.get(unindexedKey) ?? 0
+      : this.values.get(indexedKey) ?? this.values.get(unindexedKey) ?? 0
+    this.setLightSwitch(type, currentValue > 0 ? 0 : 1, index)
   }
 
   private applyFuelSystemKeyEvent(name: string, args: readonly number[]): boolean {
@@ -3476,7 +3502,7 @@ function normalizeKeyEventName(name: string): string {
   return name.trim().replace(/^\s*K:/iu, '').replace(/\s+/gu, '_').toUpperCase()
 }
 
-function getLightSwitchVariableKey(type: string): string {
+function getLightSwitchVariableKey(type: string, index?: number): string {
   const normalizedType = type.replace(/_/gu, ' ').trim().toUpperCase()
   const simvarType =
     normalizedType === 'STROBES' ? 'STROBE'
@@ -3489,8 +3515,9 @@ function getLightSwitchVariableKey(type: string): string {
                   : normalizedType === 'BEACON' ? 'BEACON'
                     : normalizedType === 'WING' ? 'WING'
                       : normalizedType === 'RECOGNITION' ? 'RECOGNITION'
-                        : normalizedType.endsWith('S') ? normalizedType.slice(0, -1) : normalizedType
-  return normalizeRuntimeVariableKey(`A:LIGHT ${simvarType}`)
+                  : normalizedType.endsWith('S') ? normalizedType.slice(0, -1) : normalizedType
+  const suffix = index == null ? '' : `:${index}`
+  return normalizeRuntimeVariableKey(`A:LIGHT ${simvarType}${suffix}`)
 }
 
 function getLightPowerSettingType(type: string): string {
