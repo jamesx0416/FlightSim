@@ -46,6 +46,7 @@ import { importBuiltMsfs2020Package } from './msfs/importer'
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './msfs/runtime'
+import { installViewerDevApi } from './devApi'
 import type {
   CompiledBehaviorSet,
   ImportedAircraft,
@@ -80,7 +81,7 @@ type AircraftSelectorOption = {
   readonly aircraft: ImportedAircraft
 }
 
-type LoadedModelComponent = {
+export type LoadedModelComponent = {
   readonly kind: 'exterior' | 'interior'
   readonly modelDefinition: ImportedModelDefinition
   readonly scene: Group
@@ -91,7 +92,7 @@ type LoadedModelComponent = {
   readonly vcockpitBinding: VCockpitSurfaceBindingResult | null
 }
 
-type LoadedAircraftModel = {
+export type LoadedAircraftModel = {
   readonly scene: Group
   readonly animations: GLTF['animations']
   readonly exterior: LoadedModelComponent
@@ -132,7 +133,7 @@ type ModelResourceStats = {
   readonly totalEstimatedBytes: number
 }
 
-type CockpitCameraController = {
+export type CockpitCameraController = {
   readonly isAvailable: () => boolean
   readonly dispose: () => void
   readonly isActive: () => boolean
@@ -146,7 +147,7 @@ type VCockpitGaugeMode = 'texture' | 'overlay' | 'video'
 type ExteriorInteriorMode = 'deferred' | 'sync' | 'off'
 type CockpitTextureMode = 'range-low' | 'full'
 
-type ViewerConfigProfile = {
+export type ViewerConfigProfile = {
   readonly packageRoot?: string
   readonly aircraftId?: string
   readonly lod?: number | null
@@ -205,7 +206,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly extraQuery: string
 }
 
-type FpsCounterSnapshot = {
+export type FpsCounterSnapshot = {
   readonly fps: number
   readonly averageFrameMs: number
   readonly lowFps: number
@@ -1838,6 +1839,54 @@ async function init(): Promise<void> {
 
   handleViewerSettingsApplied = applyViewerSettingsToLoadedAircraft
 
+  installViewerDevApi({
+    packageRoot,
+    packageData,
+    aircraft,
+    scene,
+    renderer,
+    camera,
+    controls,
+    rendererInfo,
+    getEffectiveSearchParams: () => effectiveSearchParams,
+    getCompiledBehaviors: () => compiledBehaviors,
+    getLoadedModel: () => loadedModel,
+    getRuntime: () => runtime,
+    getRuntimeHost: () => runtimeHost,
+    getRuntimeState: () => runtimeState,
+    getFpsSnapshot: () => fpsCounter.getSnapshot(),
+    getSettingsSnapshot: () => createViewerRuntimeSettingsSnapshot(effectiveSearchParams),
+    getCockpitPerfDiagnostics: () => cockpitPerfDiagnostics,
+    cockpitInteractionStats,
+    getCockpitInteractionPickRegistry: () =>
+      getCockpitInteractionPickRegistry(loadedModel.scene, runtime),
+    getCockpitCameraController: () => cockpitCameraController,
+    applySettings: async settings => {
+      const nextStore = loadViewerConfigStore()
+      const key = getViewerAircraftConfigKey(packageRoot, aircraft.id)
+      const previousProfile = nextStore.aircraft[key] ?? {}
+      const nextProfile: ViewerConfigProfile = {
+        ...previousProfile,
+        ...settings,
+        packageRoot,
+        aircraftId: aircraft.id
+      }
+      saveViewerConfigStore({
+        ...nextStore,
+        aircraft: {
+          ...nextStore.aircraft,
+          [key]: nextProfile
+        }
+      })
+      return applyViewerSettingsToLoadedAircraft({
+        scope: 'aircraft',
+        action: 'apply',
+        selectedPackageRoot: packageRoot,
+        selectedAircraftId: aircraft.id
+      })
+    }
+  })
+
   const handleResize = (): void => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
@@ -1939,7 +1988,7 @@ type CockpitPerfFrameSample = {
   readonly rendererGeometries: number
 }
 
-type CockpitPerfDiagnostics = {
+export type CockpitPerfDiagnostics = {
   readonly enabled: boolean
   readonly recordFrame: (sample: CockpitPerfFrameSample) => void
   readonly getSummary: () => Record<string, unknown>
@@ -3283,7 +3332,7 @@ function stripMaterialTextures(material: Material): void {
   material.needsUpdate = true
 }
 
-type VCockpitSurfaceBindingResult = {
+export type VCockpitSurfaceBindingResult = {
   readonly surfaces: readonly VCockpitSurface[]
   readonly boundSurfaceCount: number
   readonly materialBindingCount: number
@@ -3308,7 +3357,7 @@ type VCockpitSurfaceBindingResult = {
 
 type VCockpitGaugeDirtyKind = 'dom' | 'canvas' | 'unknown'
 
-type VCockpitHtmlGaugeRuntime = {
+export type VCockpitHtmlGaugeRuntime = {
   readonly surface: string
   readonly textureName: string
   readonly gaugeKey: string
@@ -8199,13 +8248,13 @@ type OrbitCameraSnapshot = {
   readonly zoom: number
 }
 
-type CockpitInteractionFallbackHitbox = {
+export type CockpitInteractionFallbackHitbox = {
   readonly binding: CompiledInteractionBinding
   readonly sourceNode: Object3D
   readonly box: Box3
 }
 
-type CockpitInteractionPickRegistry = {
+export type CockpitInteractionPickRegistry = {
   readonly meshes: readonly Mesh[]
   readonly bindingsByMesh: ReadonlyMap<Object3D, CompiledInteractionBinding>
   readonly fallbackHitboxes: readonly CockpitInteractionFallbackHitbox[]
