@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "sh -c 'portless proxy start --port 3000 --https && trap \"portless proxy stop -p 3000\" EXIT INT TERM; portless run vite'",
+    "dev": "sh -c 'portless proxy start --port 3000 --https && { bun scripts/kill-stale-agent-browsers.mjs & agent_browser_cleanup_pid=$!; trap \"kill $agent_browser_cleanup_pid 2>/dev/null; portless proxy stop -p 3000\" EXIT INT TERM; portless run vite; }'",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "build": "vite build",
