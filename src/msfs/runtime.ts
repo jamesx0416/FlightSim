@@ -1554,6 +1554,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    const lightPowerSettingMatch = /^(.+)_LIGHTS_POWER_SETTING_SET$/u.exec(name)
+    if (lightPowerSettingMatch != null) {
+      this.setLightPowerSetting(
+        lightPowerSettingMatch[1],
+        Number(args[1] ?? Number.NaN),
+        Number(args[0] ?? 0)
+      )
+      return true
+    }
+
     const lightSetMatch = /^(.+)_LIGHTS_SET$/u.exec(name)
     if (lightSetMatch != null) {
       this.setLightSwitch(lightSetMatch[1], Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
@@ -2836,6 +2846,18 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${Math.trunc(index)}`), clampedValue)
   }
 
+  private setLightPowerSetting(type: string, index: number, value: number): void {
+    const clampedValue = clamp(value, 0, 100)
+    const powerSettingType = getLightPowerSettingType(type)
+    this.values.set(normalizeRuntimeVariableKey(`A:LIGHT ${powerSettingType} POWER SETTING`), clampedValue)
+    if (Number.isFinite(index)) {
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:LIGHT ${powerSettingType} POWER SETTING:${Math.trunc(index)}`),
+        clampedValue
+      )
+    }
+  }
+
   private setLightSwitch(type: string, value: number): void {
     this.values.set(getLightSwitchVariableKey(type), value > 0 ? 1 : 0)
   }
@@ -3469,6 +3491,14 @@ function getLightSwitchVariableKey(type: string): string {
                       : normalizedType === 'RECOGNITION' ? 'RECOGNITION'
                         : normalizedType.endsWith('S') ? normalizedType.slice(0, -1) : normalizedType
   return normalizeRuntimeVariableKey(`A:LIGHT ${simvarType}`)
+}
+
+function getLightPowerSettingType(type: string): string {
+  const normalizedType = type.replace(/_/gu, ' ').trim().toUpperCase()
+  return normalizedType === 'STROBES' ? 'STROBE'
+    : normalizedType === 'NAV' ? 'NAV'
+      : normalizedType.endsWith('S') ? normalizedType.slice(0, -1)
+        : normalizedType
 }
 
 function clamp01(value: number): number {
