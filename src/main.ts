@@ -3652,7 +3652,7 @@ function handleVCockpitGaugeRuntimeRequest(
       runtimeHost.invokeKeyEvent(request.name ?? '', request.args ?? [])
       return { type: 'msfs-vcockpit-runtime-response', id: request.id, ok: true, value: 0 }
     }
-    runtimeHost.invokeBridgeCall(request.name ?? request.op)
+    runtimeHost.invokeBridgeCall(request.name ?? request.op, request.args ?? [1])
     return { type: 'msfs-vcockpit-runtime-response', id: request.id, ok: true, value: 0 }
   } catch (error) {
     return {
