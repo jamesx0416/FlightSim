@@ -694,7 +694,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         Number.isFinite(numericValue) ? numericValue : 0
       )
       if (!handledByBinding) {
-        this.applyGenericControlEventName(normalizedKey.slice(2), Number.isFinite(numericValue) ? numericValue : 0)
+        const inputEventName = normalizedKey.slice(2)
+        const inputEventValue = Number.isFinite(numericValue) ? numericValue : 0
+        this.applyGenericControlEventName(inputEventName, inputEventValue)
+        this.applyGenericInputEventStateName(inputEventName, inputEventValue)
       }
       return
     }
@@ -2891,6 +2894,20 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     return false
   }
+
+  private applyGenericInputEventStateName(name: string, value: number): boolean {
+    const normalizedName = normalizeRuntimeInputEventName(name)
+    if (!normalizedName) {
+      return false
+    }
+
+    const state = getGenericInputEventStateUpdate(normalizedName, value, this.values)
+    this.values.set(normalizeRuntimeVariableKey(`B:${normalizedName}`), state.eventValue)
+    if (state.baseName != null) {
+      this.values.set(normalizeRuntimeVariableKey(`B:${state.baseName}`), state.baseValue)
+    }
+    return true
+  }
 }
 
 export class DemoRuntimeHost extends SharedMsfsRuntimeHost {}
@@ -3220,6 +3237,49 @@ function controlEventPositionToRatio(value: number): number {
     return clamp01(Math.abs(value) / 16_384)
   }
   return clamp01(toPercentOver100(value, null))
+}
+
+function getGenericInputEventStateUpdate(
+  name: string,
+  value: number,
+  values: ReadonlyMap<string, number>
+): {
+  readonly eventValue: number
+  readonly baseName: string | null
+  readonly baseValue: number
+} {
+  const normalizedValue = Number.isFinite(value) ? value : 0
+  const suffixMatch = /_(PUSH|RELEASE|ON|OFF|TOGGLE|SET|INC|DEC)$/u.exec(name)
+  if (suffixMatch == null) {
+    return {
+      eventValue: normalizedValue,
+      baseName: null,
+      baseValue: normalizedValue
+    }
+  }
+
+  const suffix = suffixMatch[1]
+  const baseName = name.slice(0, -suffixMatch[0].length)
+  const baseKey = normalizeRuntimeVariableKey(`B:${baseName}`)
+  const currentBaseValue = values.get(baseKey) ?? 0
+  const step = Math.abs(normalizedValue) > 0 ? Math.abs(normalizedValue) : 1
+  const baseValue =
+    suffix === 'PUSH' || suffix === 'ON'
+      ? 1
+      : suffix === 'RELEASE' || suffix === 'OFF'
+        ? 0
+        : suffix === 'TOGGLE'
+          ? currentBaseValue > 0 ? 0 : 1
+          : suffix === 'SET'
+            ? normalizedValue
+            : suffix === 'INC'
+              ? currentBaseValue + step
+              : currentBaseValue - step
+  return {
+    eventValue: suffix === 'RELEASE' || suffix === 'OFF' ? 0 : normalizedValue || 1,
+    baseName,
+    baseValue
+  }
 }
 
 function normalizeKohlsmanHg(value: number): number {
