@@ -3745,9 +3745,17 @@ async function bindVCockpitPlaceholderSurfaces(
   ): void => {
     runtime.pendingChangeVersion = version
     runtime.pendingDirtyKind = mergeVCockpitGaugeDirtyKind(runtime.pendingDirtyKind, kind)
-    runtime.needsCapture = true
     const surfaceRuntime = surfaceTextureRuntimeByGaugeRuntime.get(runtime)
-    if (surfaceRuntime != null && !runtime.captured) {
+    if (surfaceRuntime == null) {
+      runtime.needsCapture = false
+      runtime.lastRenderStatus = isLoadedVCockpitHtmlGaugeStatus(runtime.status)
+        ? 'skipped-clean'
+        : runtime.lastRenderStatus
+      return
+    }
+
+    runtime.needsCapture = true
+    if (!runtime.captured) {
       surfaceRuntime.nextCaptureMs = performance.now()
     }
   }
@@ -3775,7 +3783,12 @@ async function bindVCockpitPlaceholderSurfaces(
     active = nextActive
     for (const runtime of htmlGaugeRuntimes) {
       setVCockpitHtmlGaugeRuntimeActive(runtime, nextActive)
-      if (nextActive && isLoadedVCockpitHtmlGaugeStatus(runtime.status) && !runtime.captured) {
+      if (
+        nextActive &&
+        isLoadedVCockpitHtmlGaugeStatus(runtime.status) &&
+        !runtime.captured &&
+        surfaceTextureRuntimeByGaugeRuntime.has(runtime)
+      ) {
         markGaugeRuntimeDirty(runtime, getHtmlGaugeChangeVersion(runtime), 'dom')
       }
     }
@@ -3841,6 +3854,63 @@ async function bindVCockpitPlaceholderSurfaces(
           details: error instanceof Error ? error.message : String(error)
         })
       })
+    }
+  }
+
+  const loadBackendWasmGaugeRuntimes = (surface: VCockpitSurface): void => {
+    for (const gauge of getSurfaceHostedGaugeEntries(surface).filter(isWasmBackedHtmlGauge)) {
+      void scheduleVCockpitHtmlGaugeRuntimeLoad(() => {
+        if (disposed) {
+          return Promise.resolve(createAbandonedVCockpitHtmlGaugeRuntime(surface, gauge))
+        }
+
+        return createVCockpitHtmlGaugeRuntime(
+          surface,
+          gauge,
+          resolvePanelAssetUrl,
+          diagnostics
+        )
+      })
+      .then(runtime => {
+        if (disposed) {
+          runtime.iframe?.remove()
+          return
+        }
+
+        runtime.needsCapture = false
+        runtime.pendingDirtyKind = null
+        runtime.lastRenderStatus = isLoadedVCockpitHtmlGaugeStatus(runtime.status)
+          ? 'skipped-clean'
+          : runtime.lastRenderStatus
+        htmlGaugeRuntimes.push(runtime)
+        if (runtime.iframe?.contentWindow != null) {
+          htmlGaugeRuntimeByWindow.set(runtime.iframe.contentWindow, runtime)
+        }
+        setVCockpitHtmlGaugeRuntimeActive(runtime, active)
+        if (isLoadedVCockpitHtmlGaugeStatus(runtime.status)) {
+          diagnostics.push({
+            code: 'vcockpit-backend-wasm-bridge-loaded',
+            severity: 'info',
+            sourcePath: surface.panelPath,
+            message: `${surface.sectionName} ${gauge.key} loaded as a backend-only WASM bridge host without texture capture or material binding.`
+          })
+        }
+      })
+      .catch(error => {
+        diagnostics.push({
+          code: 'vcockpit-backend-wasm-bridge-error',
+          severity: 'warning',
+          sourcePath: surface.panelPath,
+          message: `${surface.sectionName} backend-only WASM bridge runtimes could not be created.`,
+          details: error instanceof Error ? error.message : String(error)
+        })
+      })
+    }
+  }
+
+  for (const surface of parsed.surfaces) {
+    if (surface.normalizedTextureName === 'notexture') {
+      loadBackendWasmGaugeRuntimes(surface)
     }
   }
 
