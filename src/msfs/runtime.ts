@@ -2,8 +2,10 @@ import { AnimationMixer, type Object3D, Vector3 } from 'three'
 
 import { evaluateCompiledExpression } from './rpn'
 import type {
-  CompiledBehaviorSet,
   CompiledAnimationBinding,
+  CompiledBehaviorSet,
+  CompiledExpression,
+  CompiledInputEventBinding,
   CompiledInteractionBinding,
   CompiledInteractionSoundEvent,
   CompiledUpdateBinding,
@@ -60,6 +62,7 @@ export class AircraftRuntime {
       nodeVisibilities: this.nodeVisibilities,
       diagnostics: this.compiled.diagnostics
     }
+    this.hostServices.setInputEventBindings?.(this.compiled.inputEventBindings)
 
     sceneRoot.traverse(node => {
       if (node.name) {
@@ -526,6 +529,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private soundEventCount = 0
   private bridgeCallCount = 0
   private defaultedVariableCount = 0
+  private readonly inputEventBindings = new Map<string, CompiledExpression>()
+  private readonly activeInputEventBindings = new Set<string>()
   private readonly recentHtmlEvents: RuntimeHtmlEvent[] = []
   private readonly htmlEventListeners = new Set<RuntimeHtmlEventListener>()
   private readonly recentKeyEvents: RuntimeKeyEvent[] = []
@@ -679,6 +684,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.readCache.clear()
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
+    if (normalizedKey.startsWith('B:')) {
+      this.invokeInputEventBinding(
+        normalizedKey.slice(2),
+        Number.isFinite(numericValue) ? numericValue : 0
+      )
+      return
+    }
     this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
     if (normalizedKey.startsWith('H:')) {
       this.invokeHtmlEvent(normalizedKey.slice(2), [normalizedKey.slice(2), Number.isFinite(numericValue) ? numericValue : 0])
@@ -757,6 +769,36 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.recordSoundEvent(name, event)
   }
 
+  setInputEventBindings(bindings: readonly CompiledInputEventBinding[]): void {
+    this.inputEventBindings.clear()
+    for (const binding of bindings) {
+      this.inputEventBindings.set(normalizeRuntimeInputEventName(binding.name), binding.expression)
+    }
+  }
+
+  private invokeInputEventBinding(name: string, value: number): void {
+    this.bridgeCallCount += 1
+    const normalizedName = normalizeRuntimeInputEventName(name)
+    this.values.set(normalizeRuntimeVariableKey(`B:${normalizedName}`), this.bridgeCallCount)
+    const binding = this.inputEventBindings.get(normalizedName)
+    if (binding == null || this.activeInputEventBindings.has(normalizedName)) {
+      return
+    }
+
+    this.activeInputEventBindings.add(normalizedName)
+    try {
+      evaluateCompiledExpression(binding, {
+        readVariable: (key, unit) => this.readVariable(key, unit),
+        writeVariable: (key, nextValue, unit) => this.writeVariable(key, nextValue, unit),
+        invokeKeyEvent: (eventName, args) => this.invokeKeyEvent(eventName, args),
+        invokeHtmlEvent: (eventName, args) => this.invokeHtmlEvent(eventName, args),
+        parameterValues: [value]
+      })
+    } finally {
+      this.activeInputEventBindings.delete(normalizedName)
+    }
+  }
+
   private recordSoundEvent(
     name: string,
     event: {
@@ -787,8 +829,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   invokeBridgeCall(name: string): void {
-    this.bridgeCallCount += 1
-    this.values.set(normalizeRuntimeVariableKey(`B:${name}`), this.bridgeCallCount)
+    this.invokeInputEventBinding(name, 1)
   }
 
   getStats(): SharedRuntimeHostStats {
@@ -2063,6 +2104,10 @@ function normalizeRuntimeVariableKey(key: string): string {
     return trimmed.toUpperCase()
   }
   return `A:${trimmed}`.toUpperCase()
+}
+
+function normalizeRuntimeInputEventName(name: string): string {
+  return name.trim().replace(/^\s*B:/iu, '').toUpperCase()
 }
 
 function isRuntimeStoredVariableKey(key: string): boolean {
