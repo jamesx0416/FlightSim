@@ -2245,32 +2245,56 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyFuelSystemKeyEvent(name: string, args: readonly number[]): boolean {
-    const pumpMatch = /^FUELSYSTEM_PUMP_(TOGGLE|ON|OFF)$/u.exec(name)
+    const pumpMatch = /^FUELSYSTEM_PUMP_(TOGGLE|ON|OFF|SET)$/u.exec(name)
     if (pumpMatch != null) {
-      const pumpIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      const { index: pumpIndex, value: pumpValue } = pumpMatch[1] === 'SET'
+        ? getFlexibleIndexedSetEventArgs(args, 1)
+        : { index: Math.trunc(Number(args[0] ?? 1)), value: Number(args[0] ?? 0) }
       if (Number.isFinite(pumpIndex)) {
         const pumpKey = normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP SWITCH:${pumpIndex}`)
-        const nextValue =
-          pumpMatch[1] === 'TOGGLE'
-            ? (this.values.get(pumpKey) ?? 0) > 0 ? 0 : 1
+        const nextValue = pumpMatch[1] === 'TOGGLE'
+          ? (this.values.get(pumpKey) ?? 0) > 0 ? 0 : 1
+          : pumpMatch[1] === 'SET'
+            ? pumpValue > 0 ? 1 : 0
             : pumpMatch[1] === 'ON' ? 1 : 0
-        this.values.set(pumpKey, nextValue)
-        this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP ACTIVE:${pumpIndex}`), nextValue)
+        this.setFuelPumpState(pumpIndex, nextValue)
       }
       return true
     }
 
-    const valveMatch = /^FUELSYSTEM_VALVE_(TOGGLE|OPEN|CLOSE)$/u.exec(name)
+    const legacyPumpToggleMatch = /^TOGGLE_ELECT_FUEL_PUMP(\d*)$/u.exec(name)
+    if (legacyPumpToggleMatch != null) {
+      const explicitIndex = legacyPumpToggleMatch[1] === '' ? Number.NaN : Number.parseInt(legacyPumpToggleMatch[1], 10)
+      const pumpIndex = Number.isFinite(explicitIndex) ? explicitIndex : Math.trunc(Number(args[0] ?? 1))
+      if (Number.isFinite(pumpIndex)) {
+        const pumpKey = normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL PUMP SWITCH EX1:${pumpIndex}`)
+        const nextValue = (this.values.get(pumpKey) ?? 0) > 0 ? 0 : 1
+        this.setLegacyFuelPumpState(pumpIndex, nextValue)
+      }
+      return true
+    }
+
+    const legacyPumpSetMatch = /^ELECT_FUEL_PUMP(\d+)_SET$/u.exec(name)
+    if (legacyPumpSetMatch != null) {
+      const pumpIndex = Number.parseInt(legacyPumpSetMatch[1], 10)
+      this.setLegacyFuelPumpState(pumpIndex, Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      return true
+    }
+
+    const valveMatch = /^FUELSYSTEM_VALVE_(TOGGLE|OPEN|CLOSE|SET)$/u.exec(name)
     if (valveMatch != null) {
-      const valveIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      const { index: valveIndex, value: valveValue } = valveMatch[1] === 'SET'
+        ? getFlexibleIndexedSetEventArgs(args, 1)
+        : { index: Math.trunc(Number(args[0] ?? 1)), value: Number(args[0] ?? 0) }
       if (Number.isFinite(valveIndex)) {
         const valveKey = normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE OPEN:${valveIndex}`)
         const nextValue =
           valveMatch[1] === 'TOGGLE'
             ? (this.values.get(valveKey) ?? 0) > 0 ? 0 : 1
-            : valveMatch[1] === 'OPEN' ? 1 : 0
-        this.values.set(valveKey, nextValue)
-        this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE SWITCH:${valveIndex}`), nextValue)
+            : valveMatch[1] === 'SET'
+              ? valveValue > 0 ? 1 : 0
+              : valveMatch[1] === 'OPEN' ? 1 : 0
+        this.setFuelValveState(valveIndex, nextValue)
       }
       return true
     }
@@ -2284,7 +2308,47 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    const selectorSetMatch = /^FUEL_SELECTOR(?:_(\d+))?_SET$/u.exec(name)
+    if (selectorSetMatch != null) {
+      const selectorIndex = selectorSetMatch[1] == null ? 1 : Number.parseInt(selectorSetMatch[1], 10)
+      const setting = Number(args.at(-1) ?? Number.NaN)
+      if (Number.isFinite(selectorIndex) && Number.isFinite(setting)) {
+        this.values.set(normalizeRuntimeVariableKey(`A:FUEL TANK SELECTOR:${selectorIndex}`), setting)
+      }
+      return true
+    }
+
     return false
+  }
+
+  private setFuelPumpState(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const pumpIndex = Math.trunc(index)
+    const nextValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP SWITCH:${pumpIndex}`), nextValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP ACTIVE:${pumpIndex}`), nextValue)
+  }
+
+  private setLegacyFuelPumpState(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const pumpIndex = Math.trunc(index)
+    const nextValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL PUMP SWITCH EX1:${pumpIndex}`), nextValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL PUMP ACTIVE:${pumpIndex}`), nextValue)
+  }
+
+  private setFuelValveState(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const valveIndex = Math.trunc(index)
+    const nextValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE OPEN:${valveIndex}`), nextValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE SWITCH:${valveIndex}`), nextValue)
   }
 
   private toggleCircuitSwitch(circuitIndex: number): void {
@@ -2488,6 +2552,27 @@ function convertPercentToPosition16kUnit(value: number, unit: string | null): nu
 function position16kToPercent(value: number, allowNegative: boolean): number {
   const clampedValue = clamp(value, allowNegative ? -16_384 : 0, 16_384)
   return (clampedValue / 16_384) * 100
+}
+
+function getFlexibleIndexedSetEventArgs(args: readonly number[], defaultIndex: number): { index: number; value: number } {
+  if (args.length >= 2) {
+    const first = Number(args[0] ?? Number.NaN)
+    const second = Number(args[1] ?? Number.NaN)
+    if (Math.abs(first) <= 1 && Math.abs(second) > 1) {
+      return {
+        index: Math.trunc(second),
+        value: first
+      }
+    }
+    return {
+      index: Math.trunc(first),
+      value: second
+    }
+  }
+  return {
+    index: Math.trunc(Number(args[0] ?? defaultIndex)),
+    value: Number(args[0] ?? 0)
+  }
 }
 
 function isHandlingPercentPositionKey(key: string): boolean {
