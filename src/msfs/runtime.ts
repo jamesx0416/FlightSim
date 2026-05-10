@@ -1633,6 +1633,21 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyPressurizationKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'BLEED_AIR_SOURCE_CONTROL_SET') {
+      const value = Math.trunc(Number(args.at(-1) ?? 0))
+      this.values.set(normalizeRuntimeVariableKey('A:BLEED AIR SOURCE CONTROL'), value)
+      return true
+    }
+
+    if (name === 'ENGINE_BLEED_AIR_SOURCE_SET') {
+      const value = Number(args[0] ?? 0) > 0 ? 1 : 0
+      const engineIndex = Math.trunc(Number(args[1] ?? 1))
+      if (Number.isFinite(engineIndex) && engineIndex > 0) {
+        this.values.set(normalizeRuntimeVariableKey(`A:BLEED AIR ENGINE:${engineIndex}`), value)
+        return true
+      }
+    }
+
     if (name === 'PRESSURIZATION_PRESSURE_DUMP_SWITCH') {
       const key = normalizeRuntimeVariableKey('A:PRESSURIZATION DUMP SWITCH')
       const explicitValue = Number(args.at(-1) ?? Number.NaN)
@@ -1657,6 +1672,18 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applySafetyKeyEvent(name: string): boolean {
+    if (name === 'MASTER_WARNING_ACKNOWLEDGE') {
+      this.values.set(normalizeRuntimeVariableKey('A:MASTER WARNING ACKNOWLEDGED'), 1)
+      this.values.set(normalizeRuntimeVariableKey('A:MASTER WARNING ACTIVE'), 0)
+      return true
+    }
+
+    if (name === 'MASTER_CAUTION_ACKNOWLEDGE') {
+      this.values.set(normalizeRuntimeVariableKey('A:MASTER CAUTION ACKNOWLEDGED'), 1)
+      this.values.set(normalizeRuntimeVariableKey('A:MASTER CAUTION ACTIVE'), 0)
+      return true
+    }
+
     if (name === 'ANNUNCIATOR_SWITCH_ON' || name === 'ANNUNCIATOR_SWITCH_OFF') {
       this.values.set(normalizeRuntimeVariableKey('A:ANNUNCIATOR SWITCH'), name.endsWith('_ON') ? 1 : 0)
       return true
