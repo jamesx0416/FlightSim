@@ -105,6 +105,7 @@ type ViewerDevApi = {
   readonly readVar: (name: string, unit?: string | null) => DevApiResponse
   readonly writeVar: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly keyEvent: (name: string, args?: readonly number[]) => DevApiResponse
+  readonly bridgeCall: (name: string) => DevApiResponse
   readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'interaction' }) => DevApiResponse
   readonly watch: (
     targets: string | readonly string[],
@@ -448,6 +449,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         '__DevApi.checkParam(["vspeed", "altitude", "pressure", "location"])',
+        '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
         '__DevApi.report()'
       ],
       methods: Object.keys(window.__DevApi ?? {})
@@ -457,6 +459,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
+      runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location']
     }),
     report: () => ok('Collected viewer debug report.', {
@@ -554,6 +557,14 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     keyEvent: (name, args = []) => {
       context.getRuntimeHost().invokeKeyEvent(name, args)
       return ok(`Invoked key event ${name}.`, { name, args, recent: context.getRuntimeHost().getKeyEvents().at(-1) ?? null })
+    },
+    bridgeCall: name => {
+      context.getRuntimeHost().invokeBridgeCall(name)
+      return ok(`Invoked bridge call ${name}.`, {
+        name,
+        stats: context.getRuntimeHost().getStats(),
+        value: context.getRuntimeHost().readVariable(`B:${name}`)
+      })
     },
     events: (options = {}) => ok('Collected recent runtime events.', {
       key: options.kind == null || options.kind === 'key' ? context.getRuntimeHost().getKeyEvents() : [],
