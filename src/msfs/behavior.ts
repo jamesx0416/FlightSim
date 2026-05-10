@@ -977,6 +977,10 @@ function buildVisibilityBinding(
   const source =
     params.get('VISIBILITY_CODE')?.trim() ?? params.get('CODE')?.trim() ?? ''
 
+  if (isDisabledEmissiveDrivenVisibility(params, source)) {
+    return null
+  }
+
   if (!target || !source) {
     diagnostics.push({
       code: 'visibility_params_missing',
@@ -1000,6 +1004,27 @@ function buildVisibilityBinding(
     expression,
     sourcePath
   }
+}
+
+function isDisabledEmissiveDrivenVisibility(
+  params: ReadonlyMap<string, string>,
+  source: string
+): boolean {
+  if (!source.includes('0 >')) return false
+
+  const drivesVisibility = params.get('EMISSIVE_DRIVES_VISIBILITY')
+  if (drivesVisibility != null && !parseBoolean(drivesVisibility)) {
+    return true
+  }
+
+  for (let index = 1; index <= 4; index += 1) {
+    const sequenceDrivesVisibility = params.get(`SEQ${index}_EMISSIVE_DRIVES_VISIBILITY`)
+    if (sequenceDrivesVisibility != null && !parseBoolean(sequenceDrivesVisibility)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function hasAnimationTarget(params: ReadonlyMap<string, string>): boolean {
@@ -1287,6 +1312,12 @@ function getInteractionInputEventBridgeCodeSource(
     params
   )
   if (binding == null) {
+    if (bridgeName.endsWith('_Toggle')) {
+      return buildGeneratedTwoStateInputEventToggleCodeSource(
+        bridgeName.slice(0, -'_Toggle'.length),
+        params
+      )
+    }
     return ''
   }
 
@@ -1312,12 +1343,12 @@ function collectInteractionInputEventBridgeBindings(
     params.get('LEVER_ID')?.trim() ||
     getInteractionInputEventNameFromPresetId(params) ||
     ''
-  if (!inputEventSource || !inputEventName) {
+  if (!inputEventName) {
     return []
   }
 
   const bindings: CompiledInputEventBinding[] = []
-  const presetPrefix = `${inputEventSource}_${inputEventName}_`
+  const presetNames = getInteractionInputEventPresetNames(inputEventSource, inputEventName)
   for (const kind of ['INC', 'DEC', 'SET'] as const) {
     for (const [key, value] of params) {
       const match = new RegExp(`^BINDING_${kind}_(\\d*)$`, 'iu').exec(key.trim())
@@ -1350,15 +1381,99 @@ function collectInteractionInputEventBridgeBindings(
         continue
       }
 
-      bindings.push({
-        name: `${presetPrefix}${bindingName}`,
-        expression,
-        sourcePath
-      })
+      for (const presetName of presetNames) {
+        bindings.push({
+          name: `${presetName}_${bindingName}`,
+          expression,
+          sourcePath
+        })
+      }
     }
   }
 
+  for (const binding of collectGeneratedTwoStateInputEventBindings(
+    inputEventSource,
+    inputEventName,
+    params,
+    currentNode,
+    sourcePath,
+    diagnostics
+  )) {
+    bindings.push(binding)
+  }
+
   return bindings
+}
+
+function collectGeneratedTwoStateInputEventBindings(
+  inputEventSource: string,
+  inputEventName: string,
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): readonly CompiledInputEventBinding[] {
+  const getStateExternal = params.get('GET_STATE_EXTERNAL')?.trim() ?? ''
+  const setStateOff = params.get('SET_STATE_OFF')?.trim() || params.get('SET_STATE_0')?.trim() || ''
+  const setStateOn = params.get('SET_STATE_ON')?.trim() || params.get('SET_STATE_1')?.trim() || ''
+  if (!getStateExternal || !setStateOff || !setStateOn) {
+    return []
+  }
+
+  const simStateIsOn = params.get('SIM_STATE_IS_ON_EXTERNAL')?.trim() || 'l0'
+  const presetNames = getInteractionInputEventPresetNames(inputEventSource, inputEventName)
+  const bindings: CompiledInputEventBinding[] = []
+  for (const presetName of presetNames) {
+    const source = buildGeneratedTwoStateInputEventToggleCodeSource(presetName, params)
+    const expression = compileRpnExpression(source, {
+      sourcePath,
+      sourceExpression: source,
+      diagnostics,
+      localVariableScope: resolveLocalVariableScope(params, currentNode, inputEventName)
+    })
+    if (expression == null) {
+      continue
+    }
+    bindings.push({
+      name: `${presetName}_Toggle`,
+      expression,
+      sourcePath
+    })
+  }
+
+  return bindings
+}
+
+function buildGeneratedTwoStateInputEventToggleCodeSource(
+  presetName: string,
+  params: ReadonlyMap<string, string>
+): string {
+  const getStateExternal = params.get('GET_STATE_EXTERNAL')?.trim() ?? ''
+  const setStateOff = params.get('SET_STATE_OFF')?.trim() || params.get('SET_STATE_0')?.trim() || ''
+  const setStateOn = params.get('SET_STATE_ON')?.trim() || params.get('SET_STATE_1')?.trim() || ''
+  if (!presetName || !getStateExternal || !setStateOff || !setStateOn) {
+    return ''
+  }
+
+  const simStateIsOn = params.get('SIM_STATE_IS_ON_EXTERNAL')?.trim() || 'l0'
+  return [
+    `0 1 ${getStateExternal} ${simStateIsOn} ? s0`,
+    `l0 (>B:${presetName})`,
+    `l0 if{ ${setStateOn} } els{ ${setStateOff} }`
+  ].join(' ')
+}
+
+function getInteractionInputEventPresetNames(
+  inputEventSource: string,
+  inputEventName: string
+): readonly string[] {
+  const names = new Set<string>()
+  if (inputEventSource) {
+    names.add(`${inputEventSource}_${inputEventName}`)
+  }
+  names.add(inputEventName)
+  names.add(`_${inputEventName}`)
+  return [...names]
 }
 
 function getInteractionInputEventNameFromPresetId(params: ReadonlyMap<string, string>): string {

@@ -1058,6 +1058,8 @@ async function init(): Promise<void> {
           stage: 'gltf:interior-upgrade:ready',
           aircraftId: aircraft.id
         })
+        cockpitInteractionPickRegistryCache = null
+        syncCockpitInteractionHitboxHelpers()
       } catch (error) {
         setGlobalLoadStage({
           stage: 'gltf:interior-upgrade:error',
