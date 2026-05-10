@@ -4062,25 +4062,66 @@ async function createVCockpitHtmlGaugeRuntime(
   resolvePanelAssetUrl: (source: string) => string | null,
   diagnostics: ImportDiagnostic[]
 ): Promise<VCockpitHtmlGaugeRuntime> {
+  const wasmBacked = isWasmBackedHtmlGauge(gauge)
   const resolvedUrl = resolvePanelAssetUrl(gauge.source)
   if (resolvedUrl == null) {
-    const wasmBacked = isWasmBackedHtmlGauge(gauge)
+    if (wasmBacked) {
+      diagnostics.push({
+        code: 'vcockpit-html-gauge-wasm-bridge-synthetic-host',
+        severity: 'info',
+        sourcePath: surface.panelPath,
+        message: `${surface.sectionName} ${gauge.key} uses a synthetic bridge-first host for ${gauge.source}; native MSFS WASM ABI execution is not emulated.`
+      })
+
+      const syntheticUrl = createSyntheticWasmInstrumentHostUrl(gauge)
+      const loadResult = await createSandboxedHtmlGaugeFrame(
+        surface,
+        gauge,
+        syntheticUrl,
+        diagnostics,
+        createSyntheticWasmInstrumentHostHtml(gauge)
+      )
+      if (loadResult.status !== 'loaded') {
+        diagnostics.push({
+          code: 'vcockpit-html-gauge-frame-error',
+          severity: 'warning',
+          sourcePath: surface.panelPath,
+          message: `${surface.sectionName} ${gauge.key} failed to load synthetic bridge host for ${gauge.source}.`,
+          details: loadResult.error ?? undefined
+        })
+      }
+
+      return {
+        surface: surface.sectionName,
+        textureName: surface.textureName,
+        gaugeKey: gauge.key,
+        gauge,
+        source: gauge.source,
+        resolvedUrl: syntheticUrl,
+        status: loadResult.status === 'loaded' ? 'loaded-wasm-bridge' : loadResult.status,
+        iframe: loadResult.iframe,
+        captured: false,
+        captureImage: null,
+        captureAttemptCount: 0,
+        lastCaptureError: null,
+        lastVisualSignature: null,
+        lastChangeVersion: null,
+        lastRenderStatus: loadResult.status === 'loaded' ? 'pending' : 'error',
+        lastRenderKind: null,
+        pendingChangeVersion: null,
+        pendingDirtyKind: loadResult.status === 'loaded' ? 'dom' : null,
+        needsCapture: loadResult.status === 'loaded',
+        staticCaptureImage: null,
+        staticCaptureSignature: null
+      } satisfies VCockpitHtmlGaugeRuntime
+    }
+
     diagnostics.push({
-      code: wasmBacked
-        ? 'vcockpit-html-gauge-wasm-host-missing'
-        : 'vcockpit-html-gauge-missing-asset',
+      code: 'vcockpit-html-gauge-missing-asset',
       severity: 'warning',
       sourcePath: surface.panelPath,
       message: `${surface.sectionName} ${gauge.key} could not resolve ${gauge.source}.`
     })
-    if (wasmBacked) {
-      diagnostics.push({
-        code: 'vcockpit-html-gauge-native-wasm-unsupported',
-        severity: 'info',
-        sourcePath: surface.panelPath,
-        message: `${surface.sectionName} ${gauge.key} references a native MSFS WASM-backed host, but no host HTML was available to bridge; native ABI execution is not emulated.`
-      })
-    }
     return {
       surface: surface.sectionName,
       textureName: surface.textureName,
@@ -4121,8 +4162,7 @@ async function createVCockpitHtmlGaugeRuntime(
       details: loadResult.error ?? undefined
     })
   }
-  const wasmBridge = isWasmBackedHtmlGauge(gauge)
-  if (wasmBridge && loadResult.status === 'loaded') {
+  if (wasmBacked && loadResult.status === 'loaded') {
     diagnostics.push({
       code: 'vcockpit-html-gauge-wasm-bridge-loaded',
       severity: 'info',
@@ -4138,7 +4178,7 @@ async function createVCockpitHtmlGaugeRuntime(
     gauge,
     source: gauge.source,
     resolvedUrl,
-    status: loadResult.status === 'loaded' && wasmBridge
+    status: loadResult.status === 'loaded' && wasmBacked
       ? 'loaded-wasm-bridge'
       : loadResult.status,
     iframe: loadResult.iframe,
@@ -4166,29 +4206,80 @@ function isWasmBackedHtmlGauge(gauge: VCockpitGaugeEntry): boolean {
   )
 }
 
+function createSyntheticWasmInstrumentHostUrl(gauge: VCockpitGaugeEntry): string {
+  const url = new URL('synthetic-msfs-wasm-instrument-host.html', window.location.href)
+  url.searchParams.set('source', gauge.source)
+  return url.toString()
+}
+
+function createSyntheticWasmInstrumentHostHtml(gauge: VCockpitGaugeEntry): string {
+  const params = new URLSearchParams(gauge.source.split('?')[1] ?? '')
+  const wasmModule = params.get('wasm_module') ?? ''
+  const wasmGauge = params.get('wasm_gauge') ?? ''
+  return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      html,
+      body,
+      wasm-instrument {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+      wasm-instrument {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <wasm-instrument
+      data-msfs-wasm-module="${escapeHtmlAttribute(wasmModule)}"
+      data-msfs-wasm-gauge="${escapeHtmlAttribute(wasmGauge)}"
+      data-msfs-wasm-source="${escapeHtmlAttribute(gauge.source)}"></wasm-instrument>
+  </body>
+</html>`
+}
+
+function escapeHtmlAttribute(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+}
+
 async function createSandboxedHtmlGaugeFrame(
   surface: VCockpitSurface,
   gauge: VCockpitGaugeEntry,
   resolvedUrl: string,
-  diagnostics: ImportDiagnostic[]
+  diagnostics: ImportDiagnostic[],
+  sourceHtmlOverride?: string
 ): Promise<{
   readonly status: 'loaded' | 'iframe-error'
   readonly iframe: HTMLIFrameElement | null
   readonly error: string | null
 }> {
-  const htmlResponse = await fetch(resolvedUrl).catch(error => error)
-  if (htmlResponse instanceof Error) {
-    return { status: 'iframe-error', iframe: null, error: htmlResponse.message }
-  }
-  if (!htmlResponse.ok) {
-    return {
-      status: 'iframe-error',
-      iframe: null,
-      error: `HTTP ${htmlResponse.status} ${htmlResponse.statusText}`.trim()
+  let sourceHtml = sourceHtmlOverride
+  if (sourceHtml == null) {
+    const htmlResponse = await fetch(resolvedUrl).catch(error => error)
+    if (htmlResponse instanceof Error) {
+      return { status: 'iframe-error', iframe: null, error: htmlResponse.message }
     }
+    if (!htmlResponse.ok) {
+      return {
+        status: 'iframe-error',
+        iframe: null,
+        error: `HTTP ${htmlResponse.status} ${htmlResponse.statusText}`.trim()
+      }
+    }
+    sourceHtml = await htmlResponse.text()
   }
 
-  const sourceHtml = await htmlResponse.text()
+  const gaugeSourceHtml = sourceHtml ?? ''
   if (isWasmBackedHtmlGauge(gauge)) {
     diagnostics.push({
       code: 'vcockpit-html-gauge-native-wasm-unsupported',
@@ -4204,7 +4295,7 @@ async function createSandboxedHtmlGaugeFrame(
   iframe.sandbox.add('allow-scripts')
   iframe.sandbox.add('allow-same-origin')
   iframe.loading = 'eager'
-  iframe.srcdoc = adaptMsfsHtmlGaugeDocument(sourceHtml, resolvedUrl, gauge)
+  iframe.srcdoc = adaptMsfsHtmlGaugeDocument(gaugeSourceHtml, resolvedUrl, gauge)
   iframe.style.position = 'fixed'
   iframe.style.left = '-10000px'
   iframe.style.top = '0'
