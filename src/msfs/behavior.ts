@@ -1334,12 +1334,11 @@ function getInteractionInputEventBridgeCodeSource(
     return ''
   }
 
-  const eventSource = getInteractionInputEventBindingEventSource(binding.kind, params)
-  if (!eventSource) {
+  if (!binding.eventSource) {
     return ''
   }
 
-  return [...binding.parameterSources, eventSource].join(' ')
+  return [...binding.parameterSources, binding.eventSource].join(' ')
 }
 
 function collectInteractionInputEventBridgeBindings(
@@ -1375,7 +1374,12 @@ function collectInteractionInputEventBridgeBindings(
         match[1],
         params
       )
-      const eventSource = getInteractionInputEventBindingEventSource(kind, params)
+      const eventSource = getInteractionInputEventBindingEventSource(
+        kind,
+        match[1],
+        parameterSources,
+        params
+      )
       if (!eventSource) {
         continue
       }
@@ -1651,6 +1655,7 @@ function findInteractionInputEventBinding(
 ): {
   readonly kind: 'INC' | 'DEC' | 'SET'
   readonly parameterSources: readonly string[]
+  readonly eventSource: string
 } | null {
   const normalizedBindingName = bindingName.trim().toLowerCase()
   for (const kind of ['INC', 'DEC', 'SET'] as const) {
@@ -1667,11 +1672,18 @@ function findInteractionInputEventBinding(
         continue
       }
 
+      const parameterSources = collectInteractionInputEventBindingParameterSources(
+        kind,
+        match[1],
+        params
+      )
       return {
         kind,
-        parameterSources: collectInteractionInputEventBindingParameterSources(
+        parameterSources,
+        eventSource: getInteractionInputEventBindingEventSource(
           kind,
           match[1],
+          parameterSources,
           params
         )
       }
@@ -1704,24 +1716,36 @@ function collectInteractionInputEventBindingParameterSources(
 
 function getInteractionInputEventBindingEventSource(
   kind: 'INC' | 'DEC' | 'SET',
+  bindingIndex: string,
+  parameterSources: readonly string[],
   params: ReadonlyMap<string, string>
 ): string {
+  const explicitEventId = params.get(`BINDING_${kind}_${bindingIndex}_EVENT_ID`)?.trim() ?? ''
+  if (explicitEventId) {
+    return parameterSources.length > 1
+      ? `(>K:${parameterSources.length}:${explicitEventId})`
+      : `(>K:${explicitEventId})`
+  }
+
   switch (kind) {
     case 'INC':
       return getFirstUsableInteractionParameter(params, [
         'IE_INC_CODE',
         'INC_CODE',
+        'INC_EVENT',
         'SET_STATE_EXTERNAL'
       ])
     case 'DEC':
       return getFirstUsableInteractionParameter(params, [
         'IE_DEC_CODE',
         'DEC_CODE',
+        'DEC_EVENT',
         'SET_STATE_EXTERNAL'
       ])
     case 'SET':
       return getFirstUsableInteractionParameter(params, [
         'SET_CODE',
+        'SET_EVENT',
         'SET_STATE_EXTERNAL'
       ])
   }
