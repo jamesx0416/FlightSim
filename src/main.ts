@@ -4237,6 +4237,7 @@ function createSyntheticWasmInstrumentHostHtml(gauge: VCockpitGaugeEntry): strin
   </head>
   <body>
     <wasm-instrument
+      data-msfs-instrument="synthetic-wasm-bridge"
       data-msfs-wasm-module="${escapeHtmlAttribute(wasmModule)}"
       data-msfs-wasm-gauge="${escapeHtmlAttribute(wasmGauge)}"
       data-msfs-wasm-source="${escapeHtmlAttribute(gauge.source)}"></wasm-instrument>
@@ -5191,7 +5192,14 @@ function createVCockpitGaugeBridgeScript(
   class CodexWasmInstrument extends CodexBaseInstrument {
     connectedCallback() {
       super.connectedCallback();
+      this.dataset.msfsInstrument ??= 'synthetic-wasm-bridge';
       this.dataset.msfsWasmBridge = 'true';
+      if (!this.querySelector('[data-msfs-wasm-placeholder]')) {
+        const placeholder = document.createElement('span');
+        placeholder.dataset.msfsWasmPlaceholder = 'true';
+        placeholder.hidden = true;
+        this.appendChild(placeholder);
+      }
     }
   }
   class LatLongAlt {
