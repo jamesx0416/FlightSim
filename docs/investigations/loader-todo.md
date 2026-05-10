@@ -627,11 +627,11 @@ Scope note:
 - [x] `Common/Index.xml`
 - [x] `Common/Instrument.xml`
 - [x] `Common/LandingGear.xml`
-- [ ] `Common/Lighting.xml`
+- [x] `Common/Lighting.xml`
 - [ ] `Common/Passenger.xml`
 - [ ] `Common/Pilot.xml`
-- [ ] `Common/Pressurization.xml`
-- [ ] `Common/Safety.xml`
+- [x] `Common/Pressurization.xml`
+- [x] `Common/Safety.xml`
 
 ##### Common Inputs
 
@@ -645,7 +645,7 @@ Scope note:
 - [x] `Common/Inputs/Handling_Inputs.xml`
 - [x] `Common/Inputs/Instrument_Inputs.xml`
 - [x] `Common/Inputs/LandingGear_Inputs.xml`
-- [ ] `Common/Inputs/Lighting_Inputs.xml`
+- [x] `Common/Inputs/Lighting_Inputs.xml`
 - [x] `Common/Inputs/Passenger_Inputs.xml`
 - [x] `Common/Inputs/Pressurization_Inputs.xml`
 - [x] `Common/Inputs/Safety_Inputs.xml`
@@ -656,16 +656,16 @@ Scope note:
 - [ ] `Common/Subtemplates/Aircraft_Subtemplates.xml`
 - [x] `Common/Subtemplates/Autopilot_Subtemplates.xml`
 - [x] `Common/Subtemplates/Deice_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Electrical_Subtemplates.xml`
+- [x] `Common/Subtemplates/Electrical_Subtemplates.xml`
 - [x] `Common/Subtemplates/Engine_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Fuel_Subtemplates.xml`
 - [x] `Common/Subtemplates/Handling_Subtemplates.xml`
 - [x] `Common/Subtemplates/Instrument_Subtemplates.xml`
 - [x] `Common/Subtemplates/LandingGear_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Lighting_Subtemplates.xml`
+- [x] `Common/Subtemplates/Lighting_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Passenger_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Pressurization_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Safety_Subtemplates.xml`
+- [x] `Common/Subtemplates/Pressurization_Subtemplates.xml`
+- [x] `Common/Subtemplates/Safety_Subtemplates.xml`
 
 ##### Exterior
 
@@ -765,7 +765,8 @@ Scope note:
 Checked stock XML families in this batch are limited to the families covered by the generic runtime/input work and A320/A330 DevApi verification above:
 - Common aircraft, handling, landing-gear, fuel, electrical, deice, engine, instrument, common-procedure, and autopilot event support was implemented from the mounted public XML paths and verified on both fixture routes with screenshots under the matching `backups/agent-browser/*-support/` folders.
 - NAVCOM and Transponder support was implemented from `Asobo/NAVCOM/*` and `Asobo/Transponder/*` plus their input XMLs, then verified on both fixture routes with `backups/agent-browser/navcom-transponder-support/` screenshots.
-- Lighting, passenger, pressurization, safety, GPS, glass cockpit, generic complex, and misc XML families remain unchecked because their mounted stock XML contracts have not yet been exercised and verified as complete on both fixture routes.
+- Passenger, pilot, fuel subtemplates, GPS, glass cockpit, generic complex, and misc XML families remain unchecked because their mounted stock XML contracts have not yet been exercised and verified as complete on both fixture routes.
+- Lighting, pressurization, safety, and electrical subtemplate coverage is checked in this batch because the mounted XML paths were reviewed, generic compiler/runtime support exists for their stock input-event/key-event patterns, and A330/A320 DevApi verification with screenshots is recorded above under the matching support folders.
 
 #### CFG Reference Targets
 
