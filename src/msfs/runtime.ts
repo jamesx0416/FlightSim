@@ -2169,8 +2169,163 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyAutopilotAndTransponderKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'AP_MASTER') {
+      this.toggleAutopilotSimVar('AUTOPILOT MASTER')
+      if ((this.values.get(normalizeRuntimeVariableKey('A:AUTOPILOT MASTER')) ?? 0) > 0) {
+        this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT DISENGAGED'), 0)
+      }
+      return true
+    }
+
+    if (name === 'AUTOPILOT_ON') {
+      this.setAutopilotSimVar('AUTOPILOT MASTER', 1)
+      this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT DISENGAGED'), 0)
+      return true
+    }
+
     if (name === 'AUTOPILOT_OFF') {
-      this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT MASTER'), 0)
+      this.setAutopilotSimVar('AUTOPILOT MASTER', 0)
+      return true
+    }
+
+    if (name === 'AP_HDG_HOLD_ON') {
+      this.setAutopilotSimVar('AUTOPILOT HEADING LOCK', 1)
+      return true
+    }
+
+    const toggledAutopilotModes: Partial<Record<string, string>> = {
+      AP_HDG_HOLD: 'AUTOPILOT HEADING LOCK',
+      AP_PANEL_HEADING_HOLD: 'AUTOPILOT HEADING LOCK',
+      AP_ALT_HOLD: 'AUTOPILOT ALTITUDE LOCK',
+      FLIGHT_LEVEL_CHANGE: 'AUTOPILOT FLIGHT LEVEL CHANGE',
+      AP_FLIGHT_LEVEL_CHANGE: 'AUTOPILOT FLIGHT LEVEL CHANGE',
+      AP_PANEL_VS_HOLD: 'AUTOPILOT VERTICAL HOLD',
+      AP_NAV1_HOLD: 'AUTOPILOT NAV1 LOCK',
+      AP_BC_HOLD: 'AUTOPILOT BACKCOURSE HOLD',
+      YAW_DAMPER_TOGGLE: 'AUTOPILOT YAW DAMPER',
+      AP_WING_LEVELER: 'AUTOPILOT WING LEVELER',
+      AP_PITCH_LEVELER: 'AUTOPILOT PITCH HOLD',
+      AP_AIRSPEED_HOLD: 'AUTOPILOT AIRSPEED HOLD',
+      AP_PANEL_SPEED_HOLD: 'AUTOPILOT AIRSPEED HOLD',
+      AP_PANEL_SPEED_HOLD_TOGGLE: 'AUTOPILOT AIRSPEED HOLD',
+      AP_PANEL_MACH_HOLD: 'AUTOPILOT MACH HOLD',
+      AP_MANAGED_SPEED_IN_MACH_TOGGLE: 'AUTOPILOT MANAGED SPEED IN MACH',
+      AUTO_THROTTLE_ARM: 'AUTOPILOT THROTTLE ARM'
+    }
+    const toggledMode = toggledAutopilotModes[name]
+    if (toggledMode != null) {
+      this.toggleAutopilotSimVar(toggledMode)
+      return true
+    }
+
+    const onOffAutopilotModes: Partial<Record<string, readonly [string, number]>> = {
+      AP_WING_LEVELER_ON: ['AUTOPILOT WING LEVELER', 1],
+      AP_WING_LEVELER_OFF: ['AUTOPILOT WING LEVELER', 0],
+      AP_PITCH_LEVELER_ON: ['AUTOPILOT PITCH HOLD', 1],
+      AP_PITCH_LEVELER_OFF: ['AUTOPILOT PITCH HOLD', 0],
+      AP_AIRSPEED_ON: ['AUTOPILOT AIRSPEED HOLD', 1],
+      AP_AIRSPEED_OFF: ['AUTOPILOT AIRSPEED HOLD', 0],
+      AP_MACH_ON: ['AUTOPILOT MACH HOLD', 1],
+      AP_MACH_OFF: ['AUTOPILOT MACH HOLD', 0],
+      AP_N1_HOLD: ['AUTOPILOT RPM HOLD', 1]
+    }
+    const onOffMode = onOffAutopilotModes[name]
+    if (onOffMode != null) {
+      this.setAutopilotSimVar(onOffMode[0], onOffMode[1])
+      return true
+    }
+
+    if (name === 'AP_LOC_HOLD') {
+      this.toggleAutopilotSimVar('AUTOPILOT APPROACH HOLD')
+      this.setAutopilotSimVar('AUTOPILOT GLIDESLOPE HOLD', 0)
+      return true
+    }
+
+    if (name === 'AP_APR_HOLD') {
+      const active = (
+        (this.values.get(normalizeRuntimeVariableKey('A:AUTOPILOT APPROACH HOLD')) ?? 0) > 0 &&
+        (this.values.get(normalizeRuntimeVariableKey('A:AUTOPILOT GLIDESLOPE HOLD')) ?? 0) > 0
+      )
+      this.setAutopilotSimVar('AUTOPILOT APPROACH HOLD', active ? 0 : 1)
+      this.setAutopilotSimVar('AUTOPILOT GLIDESLOPE HOLD', active ? 0 : 1)
+      return true
+    }
+
+    if (name === 'TOGGLE_FLIGHT_DIRECTOR') {
+      const maybeIndex = Math.trunc(Number(args.at(-1) ?? 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex > 0 ? maybeIndex : 1
+      this.toggleAutopilotSimVar('AUTOPILOT FLIGHT DIRECTOR ACTIVE', index)
+      return true
+    }
+
+    if (name === 'AP_MAX_BANK_SET') {
+      const value = Math.max(0, Math.trunc(Number(args.at(-1) ?? 0)))
+      this.setAutopilotSimVar('AUTOPILOT MAX BANK ID', value)
+      return true
+    }
+
+    if (name === 'AP_SPD_VAR_SET') {
+      const value = Math.max(0, Number(args.at(-1) ?? 0))
+      const maybeIndex = Math.trunc(Number(args.length > 1 ? args[0] : 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex >= 0 ? maybeIndex : 1
+      this.setAutopilotSimVar('AUTOPILOT AIRSPEED HOLD VAR', value, index)
+      this.setAutopilotSimVar('AUTOPILOT AIRSPEED HOLD', 1)
+      return true
+    }
+
+    if (name === 'AP_MACH_VAR_SET') {
+      const rawValue = Math.max(0, Number(args.at(-1) ?? 0))
+      const value = rawValue > 2 ? rawValue / 100 : rawValue
+      const maybeIndex = Math.trunc(Number(args.length > 1 ? args[0] : 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex >= 0 ? maybeIndex : 1
+      this.setAutopilotSimVar('AUTOPILOT MACH HOLD VAR', value, index)
+      this.setAutopilotSimVar('AUTOPILOT MACH HOLD', 1)
+      return true
+    }
+
+    if (name === 'AP_SPD_VAR_INC' || name === 'AP_SPD_VAR_DEC') {
+      const key = normalizeRuntimeVariableKey('A:AUTOPILOT AIRSPEED HOLD VAR')
+      const currentValue = this.values.get(key) ?? 0
+      const nextValue = Math.max(0, currentValue + (name === 'AP_SPD_VAR_INC' ? 1 : -1))
+      this.setAutopilotSimVar('AUTOPILOT AIRSPEED HOLD VAR', nextValue)
+      this.setAutopilotSimVar('AUTOPILOT AIRSPEED HOLD', 1)
+      return true
+    }
+
+    if (name === 'AP_VS_VAR_SET_ENGLISH') {
+      const value = Number(args.at(-1) ?? 0)
+      const maybeIndex = Math.trunc(Number(args.length > 1 ? args[0] : 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex > 0 ? maybeIndex : 1
+      this.setAutopilotSimVar('AUTOPILOT VERTICAL HOLD VAR', value, index)
+      this.setAutopilotSimVar('AUTOPILOT VERTICAL HOLD', 1, index)
+      return true
+    }
+
+    if (name === 'AP_VS_VAR_INC' || name === 'AP_VS_VAR_DEC') {
+      const index = 1
+      const key = normalizeRuntimeVariableKey(`A:AUTOPILOT VERTICAL HOLD VAR:${index}`)
+      const baseKey = normalizeRuntimeVariableKey('A:AUTOPILOT VERTICAL HOLD VAR')
+      const currentValue = this.values.get(key) ?? this.values.get(baseKey) ?? 0
+      const nextValue = currentValue + (name === 'AP_VS_VAR_INC' ? 100 : -100)
+      this.setAutopilotSimVar('AUTOPILOT VERTICAL HOLD VAR', nextValue, index)
+      this.setAutopilotSimVar('AUTOPILOT VERTICAL HOLD', 1)
+      return true
+    }
+
+    if (name === 'AP_PITCH_REF_SET') {
+      const rawValue = Number(args.at(-1) ?? 0)
+      const value = clamp(rawValue / 16_384, -1, 1) * 15
+      this.setAutopilotSimVar('AUTOPILOT PITCH HOLD REF', value)
+      this.setAutopilotSimVar('AUTOPILOT PITCH HOLD', 1)
+      return true
+    }
+
+    if (name === 'AP_PITCH_REF_INC_UP' || name === 'AP_PITCH_REF_INC_DN') {
+      const key = normalizeRuntimeVariableKey('A:AUTOPILOT PITCH HOLD REF')
+      const currentValue = this.values.get(key) ?? 0
+      const nextValue = clamp(currentValue + (name === 'AP_PITCH_REF_INC_UP' ? 1 : -1), -15, 15)
+      this.setAutopilotSimVar('AUTOPILOT PITCH HOLD REF', nextValue)
+      this.setAutopilotSimVar('AUTOPILOT PITCH HOLD', 1)
       return true
     }
 
@@ -2196,6 +2351,23 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     return false
+  }
+
+  private setAutopilotSimVar(simVarName: string, value: number, index?: number): void {
+    const normalizedValue = Number.isFinite(value) ? value : 0
+    const baseKey = normalizeRuntimeVariableKey(`A:${simVarName}`)
+    this.values.set(baseKey, normalizedValue)
+    if (index != null && Number.isFinite(index)) {
+      this.values.set(normalizeRuntimeVariableKey(`A:${simVarName}:${Math.trunc(index)}`), normalizedValue)
+    }
+  }
+
+  private toggleAutopilotSimVar(simVarName: string, index?: number): void {
+    const key = normalizeRuntimeVariableKey(index != null && Number.isFinite(index)
+      ? `A:${simVarName}:${Math.trunc(index)}`
+      : `A:${simVarName}`)
+    const currentValue = this.values.get(key) ?? this.values.get(normalizeRuntimeVariableKey(`A:${simVarName}`)) ?? 0
+    this.setAutopilotSimVar(simVarName, currentValue > 0 ? 0 : 1, index)
   }
 
   private setEngineAntiIcePosition(index: number, percent: number): void {

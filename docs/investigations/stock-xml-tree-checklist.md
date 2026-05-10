@@ -4340,9 +4340,9 @@
               - [ ] `<Arg Valid="YD_OFF">` line 535
           - [ ] `<True>` line 538
             - [ ] `<Condition Valid="YD_ON">` line 539
-              - [ ] `<ON_AP_MASTER_SWITCH_ON>` line 540
+              - [x] `<ON_AP_MASTER_SWITCH_ON>` line 540
             - [ ] `<Condition Valid="YD_OFF">` line 542
-              - [ ] `<ON_AP_MASTER_SWITCH_OFF>` line 543
+              - [x] `<ON_AP_MASTER_SWITCH_OFF>` line 543
       - [ ] `<Parameters Type="Override">` line 548
         - [ ] `<Condition>` line 549
           - [ ] `<Test>` line 550
@@ -4351,9 +4351,9 @@
               - [ ] `<Arg Valid="FD_OFF">` line 553
           - [ ] `<True>` line 556
             - [ ] `<Condition Valid="FD_ON">` line 557
-              - [ ] `<ON_AP_MASTER_SWITCH_ON>` line 558
+              - [x] `<ON_AP_MASTER_SWITCH_ON>` line 558
             - [ ] `<Condition Valid="FD_OFF">` line 560
-              - [ ] `<ON_AP_MASTER_SWITCH_OFF>` line 561
+              - [x] `<ON_AP_MASTER_SWITCH_OFF>` line 561
       - [ ] `<Parameters Type="Override">` line 566
         - [ ] `<Condition>` line 567
           - [ ] `<Test>` line 568
@@ -4382,7 +4382,7 @@
         - [ ] `<SIMVAR_TO_WATCH_0>` line 615
         - [ ] `<GET_STATE_EXTERNAL>` line 616
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 617
-        - [ ] `<SET_STATE_EXTERNAL>` line 618
+        - [x] `<SET_STATE_EXTERNAL>` line 618
         - [ ] `<BTN_ID>` line 630 = `AP_#ID#`
     - [ ] `<Template Name="ASOBO_AUTOPILOT_Push_Disconnect_Template">` line 633
       - [ ] `<Parameters Type="Default">` line 634
@@ -4447,11 +4447,11 @@
           - [ ] `<True>` line 717
             - [ ] `<IS_SWITCH_ON>` line 718
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 719
-            - [ ] `<SET_STATE_EXTERNAL>` line 720
+            - [x] `<SET_STATE_EXTERNAL>` line 720
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 721
-            - [ ] `<BINDING_SET_0_EVENT_ID>` line 722 = `AP_HDG_HOLD`
+            - [x] `<BINDING_SET_0_EVENT_ID>` line 722 = `AP_HDG_HOLD`
           - [ ] `<False>` line 724
-            - [ ] `<SET_STATE_EXTERNAL>` line 725
+            - [x] `<SET_STATE_EXTERNAL>` line 725
             - [ ] `<IS_SWITCH_ON>` line 726
             - [ ] `<SIMVAR_TO_WATCH_0>` line 727
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 728
@@ -4482,8 +4482,8 @@
         - [ ] `<Switch Param="TYPE">` line 773
           - [ ] `<Case Value="HALF_BANK">` line 774
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 775
-            - [ ] `<SET_STATE_ON>` line 776
-            - [ ] `<SET_STATE_OFF>` line 777
+            - [x] `<SET_STATE_ON>` line 776
+            - [x] `<SET_STATE_OFF>` line 777
             - [ ] `<GET_STATE_EXTERNAL>` line 778
             - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 779
             - [ ] `<SIMVAR_TO_WATCH_0>` line 780
@@ -4496,7 +4496,7 @@
         - [ ] `<EMISSIVE_CODE_ACTIVE>` line 792
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 793
         - [ ] `<GET_STATE_EXTERNAL>` line 794
-        - [ ] `<SET_STATE_EXTERNAL>` line 796
+        - [x] `<SET_STATE_EXTERNAL>` line 796
         - [ ] `<BTN_ID>` line 797 = `Localizer_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 798 = `@TT_Package.AUTOPILOT_PUSH_LOC_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 799
@@ -4514,7 +4514,7 @@
         - [ ] `<EMISSIVE_CODE_ACTIVE>` line 818
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 819
         - [ ] `<GET_STATE_EXTERNAL>` line 820
-        - [ ] `<SET_STATE_EXTERNAL>` line 821
+        - [x] `<SET_STATE_EXTERNAL>` line 821
         - [ ] `<BTN_ID>` line 822 = `Approach_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 823 = `@TT_Package.AUTOPILOT_PUSH_APPROACH_ACTION`
         - [ ] `<TOOLTIP_TITLE>` line 824
@@ -4526,7 +4526,7 @@
         - [ ] `<SIMVAR_TO_WATCH_0>` line 833
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 834
         - [ ] `<GET_STATE_EXTERNAL>` line 835
-        - [ ] `<SET_STATE_EXTERNAL>` line 836
+        - [x] `<SET_STATE_EXTERNAL>` line 836
         - [ ] `<BTN_ID>` line 837 = `Backcourse_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 838 = `@TT_Package.AUTOPILOT_PUSH_BACKCOURSE_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 839
@@ -4548,7 +4548,7 @@
           - [ ] `<ON_STATE_CHANGED_NEW_STATE_TO_POS_EXTERNAL>` line 864
         - [ ] `<GET_STATE_EXTERNAL>` line 866
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 867
-        - [ ] `<SET_STATE_EXTERNAL>` line 868
+        - [x] `<SET_STATE_EXTERNAL>` line 868
         - [ ] `<TT_DESCRIPTION_ID>` line 869 = `@TT_Package.AUTOPILOT_PUSH_FLIGHTDIRECTOR_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 870
         - [ ] `<BTN_ID>` line 871 = `FD_#ID#_Mode`
@@ -4560,7 +4560,7 @@
         - [ ] `<SIMVAR_TO_WATCH_0>` line 880
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 881
         - [ ] `<GET_STATE_EXTERNAL>` line 882
-        - [ ] `<SET_STATE_EXTERNAL>` line 883
+        - [x] `<SET_STATE_EXTERNAL>` line 883
         - [ ] `<BTN_ID>` line 884 = `YD_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 885 = `@TT_Package.AUTOPILOT_PUSH_YAWDAMPER_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 886
@@ -4584,9 +4584,9 @@
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 911
             - [ ] `<SET_STATE_EXTERNAL>` line 912
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 913
-            - [ ] `<BINDING_SET_0_EVENT_ID>` line 914 = `AP_ALT_HOLD`
+            - [x] `<BINDING_SET_0_EVENT_ID>` line 914 = `AP_ALT_HOLD`
           - [ ] `<False>` line 916
-            - [ ] `<SET_STATE_EXTERNAL>` line 917
+            - [x] `<SET_STATE_EXTERNAL>` line 917
             - [ ] `<IS_SWITCH_ON>` line 918
             - [ ] `<SIMVAR_TO_WATCH_0>` line 919
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 920
@@ -4618,7 +4618,7 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 956
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 957
           - [ ] `<False>` line 959
-            - [ ] `<SET_STATE_EXTERNAL>` line 960
+            - [x] `<SET_STATE_EXTERNAL>` line 960
             - [ ] `<IS_SWITCH_ON>` line 961
             - [ ] `<SIMVAR_TO_WATCH_0>` line 962
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 963
@@ -4650,7 +4650,7 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 999
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 1000
           - [ ] `<False>` line 1002
-            - [ ] `<SET_STATE_EXTERNAL>` line 1003
+            - [x] `<SET_STATE_EXTERNAL>` line 1003
             - [ ] `<IS_SWITCH_ON>` line 1004
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1005
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1006
@@ -4685,7 +4685,7 @@
             - [ ] `<BTN_ID>` line 1045 = `LNAV_Mode`
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 1046
           - [ ] `<False>` line 1048
-            - [ ] `<SET_STATE_EXTERNAL>` line 1049
+            - [x] `<SET_STATE_EXTERNAL>` line 1049
             - [ ] `<IS_SWITCH_ON>` line 1050
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1051
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1052
@@ -4735,13 +4735,13 @@
         - [ ] `<DEFAULT_NAME>` line 1113 = `Level`
       - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1115
         - [ ] `<FREQUENCY>` line 1116
-        - [ ] `<UPDATE_CODE>` line 1117 = `(A:AUTOPILOT MASTER, Bool) ! if{ (A:AUTOPILOT WING LEVELER, Bool) if{ (>K:AP_WING_LEVELER_OFF) (>K:...`
+        - [x] `<UPDATE_CODE>` line 1117 = `(A:AUTOPILOT MASTER, Bool) ! if{ (A:AUTOPILOT WING LEVELER, Bool) if{ (>K:AP_WING_LEVELER_OFF) (>K:...`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1126
         - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1127
         - [ ] `<SIMVAR_TO_WATCH_0>` line 1128
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 1129
         - [ ] `<GET_STATE_EXTERNAL>` line 1130
-        - [ ] `<SET_STATE_EXTERNAL>` line 1131
+        - [x] `<SET_STATE_EXTERNAL>` line 1131
         - [ ] `<BTN_ID>` line 1148 = `Level_Mode`
         - [ ] `<TT_DESCRIPTION_ID>` line 1149 = `@TT_Package.AUTOPILOT_PUSH_LEVELMODE_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 1150
@@ -4847,14 +4847,14 @@
             - [ ] `<TOOLTIP_TITLE>` line 1303
             - [ ] `<BTN_ID>` line 1304 = `IAS_Mode`
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 1305
-            - [ ] `<BINDING_SET_0_EVENT_ID>` line 1306 = `AP_AIRSPEED_HOLD`
+            - [x] `<BINDING_SET_0_EVENT_ID>` line 1306 = `AP_AIRSPEED_HOLD`
           - [ ] `<False>` line 1308
             - [ ] `<Switch Param="TYPE">` line 1309
               - [ ] `<Case Value="AS04F">` line 1310
                 - [ ] `<SET_STATE_EXTERNAL>` line 1311
-                - [ ] `<BINDING_SET_0_EVENT_ID>` line 1325 = `AP_AIRSPEED_HOLD`
+                - [x] `<BINDING_SET_0_EVENT_ID>` line 1325 = `AP_AIRSPEED_HOLD`
               - [ ] `<Default>` line 1327
-                - [ ] `<SET_STATE_EXTERNAL>` line 1328
+                - [x] `<SET_STATE_EXTERNAL>` line 1328
             - [ ] `<IS_SWITCH_ON>` line 1331
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1332
             - [ ] `<SIMVAR_TO_WATCH_1>` line 1333
@@ -4880,7 +4880,7 @@
       - [ ] `<Parameters Type="Default">` line 1361
         - [ ] `<DEFAULT_NAME>` line 1362 = `SpeedHold`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1364
-        - [ ] `<SET_STATE_EXTERNAL>` line 1365
+        - [x] `<SET_STATE_EXTERNAL>` line 1365
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 1366
         - [ ] `<GET_STATE_EXTERNAL>` line 1367
         - [ ] `<SIMVAR_TO_WATCH_0>` line 1368
@@ -4897,7 +4897,7 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 1382
             - [ ] `<IS_SWITCH_ON>` line 1383
           - [ ] `<Case Value="AIRBUS">` line 1385
-            - [ ] `<SET_STATE_EXTERNAL>` line 1386
+            - [x] `<SET_STATE_EXTERNAL>` line 1386
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 1387
             - [ ] `<IS_SWITCH_ON>` line 1388
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1389
@@ -4935,7 +4935,7 @@
         - [ ] `<PART_ID>` line 1430 = `AUTOPILOT_Push_Standby`
         - [ ] `<DEFAULT_NAME>` line 1431 = `Standby`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1433
-        - [ ] `<SET_STATE_EXTERNAL>` line 1435
+        - [x] `<SET_STATE_EXTERNAL>` line 1435
         - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1436
         - [ ] `<TT_DESCRIPTION_ID>` line 1437 = `@TT_Package.AUTOPILOT_PUSH_STANDBY_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 1438
@@ -4945,9 +4945,9 @@
         - [ ] `<DEFAULT_NAME>` line 1444 = `VerticalSpeed_#DIRECTION#`
         - [ ] `<Switch Param="DIRECTION">` line 1445
           - [ ] `<Case Value="UP">` line 1446
-            - [ ] `<SET_STATE_EXTERNAL>` line 1447
+            - [x] `<SET_STATE_EXTERNAL>` line 1447
           - [ ] `<Case Value="DN">` line 1449
-            - [ ] `<SET_STATE_EXTERNAL>` line 1450
+            - [x] `<SET_STATE_EXTERNAL>` line 1450
         - [ ] `<VS_ID>` line 1453 = `1`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1455
         - [ ] `<TT_DESCRIPTION_ID>` line 1456 = `@TT_Package.AUTOPILOT_PUSH_VERTICALSPEED_ACTION`
@@ -5078,7 +5078,7 @@
             - [ ] `<INCREMENT_INDEX>` line 1624
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 1625
             - [ ] `<ANIM_NAME_KNOB>` line 1626
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 1627
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 1627
             - [ ] `<BTN_ID_EXTERNAL>` line 1628
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 1629
             - [ ] `<TT_VALUE_BTN>` line 1630
@@ -5184,7 +5184,7 @@
         - [ ] `<True>` line 1778
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1779
             - [ ] `<FREQUENCY>` line 1780
-            - [ ] `<UPDATE_CODE>` line 1781 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) ! if{ (L:XMLVAR_AirSpeedIsInMach) if{ (>K:AP_MACH_ON) } els...`
+            - [x] `<UPDATE_CODE>` line 1781 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) ! if{ (L:XMLVAR_AirSpeedIsInMach) if{ (>K:AP_MACH_ON) } els...`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Base_Template">` line 1793
         - [ ] `<IE_NAME>` line 1794 = `Speed_Mode`
         - [ ] `<INTERACTION_TYPE>` line 1795
@@ -5228,7 +5228,7 @@
               - [ ] `<ID_POS>` line 1846
             - [ ] `<Parameters Type="Override">` line 1848
               - [ ] `<ID_POS>` line 1849
-            - [ ] `<SET_STATE_#ID#>` line 1851
+            - [x] `<SET_STATE_#ID#>` line 1851
             - [ ] `<STATE#ID#_TEST>` line 1852
             - [ ] `<CODE_POS_#ID#>` line 1853
             - [ ] `<STR_STATE_#ID#>` line 1854
@@ -29749,13 +29749,13 @@
       - [ ] `<Parameters Type="Default">` line 336
         - [ ] `<Switch Param="DIRECTION">` line 337
           - [ ] `<Case Value="UP">` line 338
-            - [ ] `<VS_CODE>` line 339 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_INC) (>H:AP_DN) }`
-            - [ ] `<FLC_CODE>` line 340 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_DEC) }`
-            - [ ] `<FD_CODE>` line 341 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_UP) }`
+            - [x] `<VS_CODE>` line 339 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_INC) (>H:AP_DN) }`
+            - [x] `<FLC_CODE>` line 340 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_DEC) }`
+            - [x] `<FD_CODE>` line 341 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_UP) }`
           - [ ] `<Case Value="DN">` line 343
-            - [ ] `<VS_CODE>` line 344 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_DEC) (>H:AP_UP) }`
-            - [ ] `<FLC_CODE>` line 345 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_INC) }`
-            - [ ] `<FD_CODE>` line 346 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_DN) }`
+            - [x] `<VS_CODE>` line 344 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_DEC) (>H:AP_UP) }`
+            - [x] `<FLC_CODE>` line 345 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_INC) }`
+            - [x] `<FD_CODE>` line 346 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_DN) }`
         - [ ] `<EXTRA_OPTION>` line 349
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_VerticalSpeed_Direction_Template">` line 351
         - [ ] `<SET_STATE_EXTERNAL>` line 352
@@ -43010,9 +43010,9 @@
               - [ ] `<Arg Valid="YD_OFF">` line 535
           - [ ] `<True>` line 538
             - [ ] `<Condition Valid="YD_ON">` line 539
-              - [ ] `<ON_AP_MASTER_SWITCH_ON>` line 540
+              - [x] `<ON_AP_MASTER_SWITCH_ON>` line 540
             - [ ] `<Condition Valid="YD_OFF">` line 542
-              - [ ] `<ON_AP_MASTER_SWITCH_OFF>` line 543
+              - [x] `<ON_AP_MASTER_SWITCH_OFF>` line 543
       - [ ] `<Parameters Type="Override">` line 548
         - [ ] `<Condition>` line 549
           - [ ] `<Test>` line 550
@@ -43021,9 +43021,9 @@
               - [ ] `<Arg Valid="FD_OFF">` line 553
           - [ ] `<True>` line 556
             - [ ] `<Condition Valid="FD_ON">` line 557
-              - [ ] `<ON_AP_MASTER_SWITCH_ON>` line 558
+              - [x] `<ON_AP_MASTER_SWITCH_ON>` line 558
             - [ ] `<Condition Valid="FD_OFF">` line 560
-              - [ ] `<ON_AP_MASTER_SWITCH_OFF>` line 561
+              - [x] `<ON_AP_MASTER_SWITCH_OFF>` line 561
       - [ ] `<Parameters Type="Override">` line 566
         - [ ] `<Condition>` line 567
           - [ ] `<Test>` line 568
@@ -43052,7 +43052,7 @@
         - [ ] `<SIMVAR_TO_WATCH_0>` line 615
         - [ ] `<GET_STATE_EXTERNAL>` line 616
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 617
-        - [ ] `<SET_STATE_EXTERNAL>` line 618
+        - [x] `<SET_STATE_EXTERNAL>` line 618
         - [ ] `<BTN_ID>` line 630 = `AP_#ID#`
     - [ ] `<Template Name="ASOBO_AUTOPILOT_Push_Disconnect_Template">` line 633
       - [ ] `<Parameters Type="Default">` line 634
@@ -43117,11 +43117,11 @@
           - [ ] `<True>` line 717
             - [ ] `<IS_SWITCH_ON>` line 718
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 719
-            - [ ] `<SET_STATE_EXTERNAL>` line 720
+            - [x] `<SET_STATE_EXTERNAL>` line 720
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 721
-            - [ ] `<BINDING_SET_0_EVENT_ID>` line 722 = `AP_HDG_HOLD`
+            - [x] `<BINDING_SET_0_EVENT_ID>` line 722 = `AP_HDG_HOLD`
           - [ ] `<False>` line 724
-            - [ ] `<SET_STATE_EXTERNAL>` line 725
+            - [x] `<SET_STATE_EXTERNAL>` line 725
             - [ ] `<IS_SWITCH_ON>` line 726
             - [ ] `<SIMVAR_TO_WATCH_0>` line 727
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 728
@@ -43152,8 +43152,8 @@
         - [ ] `<Switch Param="TYPE">` line 773
           - [ ] `<Case Value="HALF_BANK">` line 774
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 775
-            - [ ] `<SET_STATE_ON>` line 776
-            - [ ] `<SET_STATE_OFF>` line 777
+            - [x] `<SET_STATE_ON>` line 776
+            - [x] `<SET_STATE_OFF>` line 777
             - [ ] `<GET_STATE_EXTERNAL>` line 778
             - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 779
             - [ ] `<SIMVAR_TO_WATCH_0>` line 780
@@ -43166,7 +43166,7 @@
         - [ ] `<EMISSIVE_CODE_ACTIVE>` line 792
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 793
         - [ ] `<GET_STATE_EXTERNAL>` line 794
-        - [ ] `<SET_STATE_EXTERNAL>` line 796
+        - [x] `<SET_STATE_EXTERNAL>` line 796
         - [ ] `<BTN_ID>` line 797 = `Localizer_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 798 = `@TT_Package.AUTOPILOT_PUSH_LOC_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 799
@@ -43184,7 +43184,7 @@
         - [ ] `<EMISSIVE_CODE_ACTIVE>` line 818
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 819
         - [ ] `<GET_STATE_EXTERNAL>` line 820
-        - [ ] `<SET_STATE_EXTERNAL>` line 821
+        - [x] `<SET_STATE_EXTERNAL>` line 821
         - [ ] `<BTN_ID>` line 822 = `Approach_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 823 = `@TT_Package.AUTOPILOT_PUSH_APPROACH_ACTION`
         - [ ] `<TOOLTIP_TITLE>` line 824
@@ -43196,7 +43196,7 @@
         - [ ] `<SIMVAR_TO_WATCH_0>` line 833
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 834
         - [ ] `<GET_STATE_EXTERNAL>` line 835
-        - [ ] `<SET_STATE_EXTERNAL>` line 836
+        - [x] `<SET_STATE_EXTERNAL>` line 836
         - [ ] `<BTN_ID>` line 837 = `Backcourse_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 838 = `@TT_Package.AUTOPILOT_PUSH_BACKCOURSE_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 839
@@ -43218,7 +43218,7 @@
           - [ ] `<ON_STATE_CHANGED_NEW_STATE_TO_POS_EXTERNAL>` line 864
         - [ ] `<GET_STATE_EXTERNAL>` line 866
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 867
-        - [ ] `<SET_STATE_EXTERNAL>` line 868
+        - [x] `<SET_STATE_EXTERNAL>` line 868
         - [ ] `<TT_DESCRIPTION_ID>` line 869 = `@TT_Package.AUTOPILOT_PUSH_FLIGHTDIRECTOR_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 870
         - [ ] `<BTN_ID>` line 871 = `FD_#ID#_Mode`
@@ -43230,7 +43230,7 @@
         - [ ] `<SIMVAR_TO_WATCH_0>` line 880
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 881
         - [ ] `<GET_STATE_EXTERNAL>` line 882
-        - [ ] `<SET_STATE_EXTERNAL>` line 883
+        - [x] `<SET_STATE_EXTERNAL>` line 883
         - [ ] `<BTN_ID>` line 884 = `YD_Button`
         - [ ] `<TT_DESCRIPTION_ID>` line 885 = `@TT_Package.AUTOPILOT_PUSH_YAWDAMPER_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 886
@@ -43254,9 +43254,9 @@
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 911
             - [ ] `<SET_STATE_EXTERNAL>` line 912
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 913
-            - [ ] `<BINDING_SET_0_EVENT_ID>` line 914 = `AP_ALT_HOLD`
+            - [x] `<BINDING_SET_0_EVENT_ID>` line 914 = `AP_ALT_HOLD`
           - [ ] `<False>` line 916
-            - [ ] `<SET_STATE_EXTERNAL>` line 917
+            - [x] `<SET_STATE_EXTERNAL>` line 917
             - [ ] `<IS_SWITCH_ON>` line 918
             - [ ] `<SIMVAR_TO_WATCH_0>` line 919
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 920
@@ -43288,7 +43288,7 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 956
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 957
           - [ ] `<False>` line 959
-            - [ ] `<SET_STATE_EXTERNAL>` line 960
+            - [x] `<SET_STATE_EXTERNAL>` line 960
             - [ ] `<IS_SWITCH_ON>` line 961
             - [ ] `<SIMVAR_TO_WATCH_0>` line 962
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 963
@@ -43320,7 +43320,7 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 999
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 1000
           - [ ] `<False>` line 1002
-            - [ ] `<SET_STATE_EXTERNAL>` line 1003
+            - [x] `<SET_STATE_EXTERNAL>` line 1003
             - [ ] `<IS_SWITCH_ON>` line 1004
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1005
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1006
@@ -43355,7 +43355,7 @@
             - [ ] `<BTN_ID>` line 1045 = `LNAV_Mode`
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 1046
           - [ ] `<False>` line 1048
-            - [ ] `<SET_STATE_EXTERNAL>` line 1049
+            - [x] `<SET_STATE_EXTERNAL>` line 1049
             - [ ] `<IS_SWITCH_ON>` line 1050
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1051
             - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1052
@@ -43405,13 +43405,13 @@
         - [ ] `<DEFAULT_NAME>` line 1113 = `Level`
       - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1115
         - [ ] `<FREQUENCY>` line 1116
-        - [ ] `<UPDATE_CODE>` line 1117 = `(A:AUTOPILOT MASTER, Bool) ! if{ (A:AUTOPILOT WING LEVELER, Bool) if{ (>K:AP_WING_LEVELER_OFF) (>K:...`
+        - [x] `<UPDATE_CODE>` line 1117 = `(A:AUTOPILOT MASTER, Bool) ! if{ (A:AUTOPILOT WING LEVELER, Bool) if{ (>K:AP_WING_LEVELER_OFF) (>K:...`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1126
         - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1127
         - [ ] `<SIMVAR_TO_WATCH_0>` line 1128
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 1129
         - [ ] `<GET_STATE_EXTERNAL>` line 1130
-        - [ ] `<SET_STATE_EXTERNAL>` line 1131
+        - [x] `<SET_STATE_EXTERNAL>` line 1131
         - [ ] `<BTN_ID>` line 1148 = `Level_Mode`
         - [ ] `<TT_DESCRIPTION_ID>` line 1149 = `@TT_Package.AUTOPILOT_PUSH_LEVELMODE_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 1150
@@ -43517,14 +43517,14 @@
             - [ ] `<TOOLTIP_TITLE>` line 1303
             - [ ] `<BTN_ID>` line 1304 = `IAS_Mode`
             - [ ] `<LOCAL_VAR_TO_WATCH_0>` line 1305
-            - [ ] `<BINDING_SET_0_EVENT_ID>` line 1306 = `AP_AIRSPEED_HOLD`
+            - [x] `<BINDING_SET_0_EVENT_ID>` line 1306 = `AP_AIRSPEED_HOLD`
           - [ ] `<False>` line 1308
             - [ ] `<Switch Param="TYPE">` line 1309
               - [ ] `<Case Value="AS04F">` line 1310
                 - [ ] `<SET_STATE_EXTERNAL>` line 1311
-                - [ ] `<BINDING_SET_0_EVENT_ID>` line 1325 = `AP_AIRSPEED_HOLD`
+                - [x] `<BINDING_SET_0_EVENT_ID>` line 1325 = `AP_AIRSPEED_HOLD`
               - [ ] `<Default>` line 1327
-                - [ ] `<SET_STATE_EXTERNAL>` line 1328
+                - [x] `<SET_STATE_EXTERNAL>` line 1328
             - [ ] `<IS_SWITCH_ON>` line 1331
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1332
             - [ ] `<SIMVAR_TO_WATCH_1>` line 1333
@@ -43550,7 +43550,7 @@
       - [ ] `<Parameters Type="Default">` line 1361
         - [ ] `<DEFAULT_NAME>` line 1362 = `SpeedHold`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1364
-        - [ ] `<SET_STATE_EXTERNAL>` line 1365
+        - [x] `<SET_STATE_EXTERNAL>` line 1365
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 1366
         - [ ] `<GET_STATE_EXTERNAL>` line 1367
         - [ ] `<SIMVAR_TO_WATCH_0>` line 1368
@@ -43567,7 +43567,7 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 1382
             - [ ] `<IS_SWITCH_ON>` line 1383
           - [ ] `<Case Value="AIRBUS">` line 1385
-            - [ ] `<SET_STATE_EXTERNAL>` line 1386
+            - [x] `<SET_STATE_EXTERNAL>` line 1386
             - [ ] `<EMISSIVE_CODE_ACTIVE>` line 1387
             - [ ] `<IS_SWITCH_ON>` line 1388
             - [ ] `<SIMVAR_TO_WATCH_0>` line 1389
@@ -43605,7 +43605,7 @@
         - [ ] `<PART_ID>` line 1430 = `AUTOPILOT_Push_Standby`
         - [ ] `<DEFAULT_NAME>` line 1431 = `Standby`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1433
-        - [ ] `<SET_STATE_EXTERNAL>` line 1435
+        - [x] `<SET_STATE_EXTERNAL>` line 1435
         - [ ] `<EMISSIVE_SIMVAR_ACTIVE>` line 1436
         - [ ] `<TT_DESCRIPTION_ID>` line 1437 = `@TT_Package.AUTOPILOT_PUSH_STANDBY_ACTION_SET`
         - [ ] `<TOOLTIP_TITLE>` line 1438
@@ -43615,9 +43615,9 @@
         - [ ] `<DEFAULT_NAME>` line 1444 = `VerticalSpeed_#DIRECTION#`
         - [ ] `<Switch Param="DIRECTION">` line 1445
           - [ ] `<Case Value="UP">` line 1446
-            - [ ] `<SET_STATE_EXTERNAL>` line 1447
+            - [x] `<SET_STATE_EXTERNAL>` line 1447
           - [ ] `<Case Value="DN">` line 1449
-            - [ ] `<SET_STATE_EXTERNAL>` line 1450
+            - [x] `<SET_STATE_EXTERNAL>` line 1450
         - [ ] `<VS_ID>` line 1453 = `1`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_Template">` line 1455
         - [ ] `<TT_DESCRIPTION_ID>` line 1456 = `@TT_Package.AUTOPILOT_PUSH_VERTICALSPEED_ACTION`
@@ -43748,7 +43748,7 @@
             - [ ] `<INCREMENT_INDEX>` line 1624
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 1625
             - [ ] `<ANIM_NAME_KNOB>` line 1626
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 1627
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 1627
             - [ ] `<BTN_ID_EXTERNAL>` line 1628
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 1629
             - [ ] `<TT_VALUE_BTN>` line 1630
@@ -43854,7 +43854,7 @@
         - [ ] `<True>` line 1778
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1779
             - [ ] `<FREQUENCY>` line 1780
-            - [ ] `<UPDATE_CODE>` line 1781 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) ! if{ (L:XMLVAR_AirSpeedIsInMach) if{ (>K:AP_MACH_ON) } els...`
+            - [x] `<UPDATE_CODE>` line 1781 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) ! if{ (L:XMLVAR_AirSpeedIsInMach) if{ (>K:AP_MACH_ON) } els...`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Base_Template">` line 1793
         - [ ] `<IE_NAME>` line 1794 = `Speed_Mode`
         - [ ] `<INTERACTION_TYPE>` line 1795
@@ -43898,7 +43898,7 @@
               - [ ] `<ID_POS>` line 1846
             - [ ] `<Parameters Type="Override">` line 1848
               - [ ] `<ID_POS>` line 1849
-            - [ ] `<SET_STATE_#ID#>` line 1851
+            - [x] `<SET_STATE_#ID#>` line 1851
             - [ ] `<STATE#ID#_TEST>` line 1852
             - [ ] `<CODE_POS_#ID#>` line 1853
             - [ ] `<STR_STATE_#ID#>` line 1854
@@ -68419,13 +68419,13 @@
       - [ ] `<Parameters Type="Default">` line 336
         - [ ] `<Switch Param="DIRECTION">` line 337
           - [ ] `<Case Value="UP">` line 338
-            - [ ] `<VS_CODE>` line 339 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_INC) (>H:AP_DN) }`
-            - [ ] `<FLC_CODE>` line 340 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_DEC) }`
-            - [ ] `<FD_CODE>` line 341 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_UP) }`
+            - [x] `<VS_CODE>` line 339 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_INC) (>H:AP_DN) }`
+            - [x] `<FLC_CODE>` line 340 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_DEC) }`
+            - [x] `<FD_CODE>` line 341 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_UP) }`
           - [ ] `<Case Value="DN">` line 343
-            - [ ] `<VS_CODE>` line 344 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_DEC) (>H:AP_UP) }`
-            - [ ] `<FLC_CODE>` line 345 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_INC) }`
-            - [ ] `<FD_CODE>` line 346 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_DN) }`
+            - [x] `<VS_CODE>` line 344 = `(A:AUTOPILOT VERTICAL HOLD, Bool) if{ (>K:AP_VS_VAR_DEC) (>H:AP_UP) }`
+            - [x] `<FLC_CODE>` line 345 = `(A:AUTOPILOT FLIGHT LEVEL CHANGE, Bool) if{ (>K:AP_SPD_VAR_INC) }`
+            - [x] `<FD_CODE>` line 346 = `(A:AUTOPILOT PITCH HOLD, Bool) if{ (>K:AP_PITCH_REF_INC_DN) }`
         - [ ] `<EXTRA_OPTION>` line 349
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Push_VerticalSpeed_Direction_Template">` line 351
         - [ ] `<SET_STATE_EXTERNAL>` line 352
