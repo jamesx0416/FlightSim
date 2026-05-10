@@ -514,6 +514,7 @@ export interface RuntimeKeyEvent {
 export interface RuntimeBridgeEvent {
   readonly name: string
   readonly value: number
+  readonly args: readonly number[]
   readonly handledByBinding: boolean
   readonly sequence: number
 }
@@ -794,13 +795,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
-  private invokeInputEventBinding(name: string, value: number): boolean {
+  private invokeInputEventBinding(name: string, values: number | readonly number[]): boolean {
     this.bridgeCallCount += 1
     const normalizedName = normalizeRuntimeInputEventName(name)
+    const parameterValues = normalizeRuntimeBridgeArgs(values)
+    const value = parameterValues[0] ?? 0
     this.values.set(normalizeRuntimeVariableKey(`B:${normalizedName}`), value)
     const binding = this.inputEventBindings.get(normalizedName)
     if (binding == null || this.activeInputEventBindings.has(normalizedName)) {
-      this.recordBridgeEvent(normalizedName, value, false)
+      this.recordBridgeEvent(normalizedName, parameterValues, false)
       return false
     }
 
@@ -812,20 +815,25 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         writeVariable: (key, nextValue, unit) => this.writeVariable(key, nextValue, unit),
         invokeKeyEvent: (eventName, args) => this.invokeKeyEvent(eventName, args),
         invokeHtmlEvent: (eventName, args) => this.invokeHtmlEvent(eventName, args),
-        parameterValues: [value]
+        parameterValues
       })
       handledByBinding = true
       return true
     } finally {
       this.activeInputEventBindings.delete(normalizedName)
-      this.recordBridgeEvent(normalizedName, value, handledByBinding)
+      this.recordBridgeEvent(normalizedName, parameterValues, handledByBinding)
     }
   }
 
-  private recordBridgeEvent(name: string, value: number, handledByBinding: boolean): void {
+  private recordBridgeEvent(
+    name: string,
+    args: readonly number[],
+    handledByBinding: boolean
+  ): void {
     this.recentBridgeEvents.push({
       name,
-      value,
+      value: args[0] ?? 0,
+      args: [...args],
       handledByBinding,
       sequence: this.bridgeCallCount
     })
@@ -863,12 +871,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
-  invokeBridgeCall(name: string): void {
+  invokeBridgeCall(name: string, args: readonly number[] = [1]): void {
     this.readCache.clear()
-    const handledByBinding = this.invokeInputEventBinding(name, 1)
+    const values = normalizeRuntimeBridgeArgs(args.length > 0 ? args : [1])
+    const handledByBinding = this.invokeInputEventBinding(name, values)
+    const value = values[0] ?? 0
     if (!handledByBinding) {
-      this.applyGenericControlEventName(name, 1)
-      this.applyGenericInputEventStateName(name, 1)
+      this.applyGenericControlEventName(name, value)
+      this.applyGenericInputEventStateName(name, value)
     }
   }
 
@@ -3492,6 +3502,17 @@ function normalizeRuntimeVariableKey(key: string): string {
 
 function normalizeRuntimeInputEventName(name: string): string {
   return name.trim().replace(/^\s*B:/iu, '').toUpperCase()
+}
+
+function normalizeRuntimeBridgeArgs(values: number | readonly number[]): readonly number[] {
+  const args = Array.isArray(values) ? values : [values]
+  if (args.length === 0) {
+    return [0]
+  }
+  return args.map(value => {
+    const numericValue = Number(value)
+    return Number.isFinite(numericValue) ? numericValue : 0
+  })
 }
 
 function isRuntimeStoredVariableKey(key: string): boolean {

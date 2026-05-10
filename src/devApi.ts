@@ -105,7 +105,7 @@ type ViewerDevApi = {
   readonly readVar: (name: string, unit?: string | null) => DevApiResponse
   readonly writeVar: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly keyEvent: (name: string, args?: readonly number[]) => DevApiResponse
-  readonly bridgeCall: (name: string) => DevApiResponse
+  readonly bridgeCall: (name: string, args?: readonly number[]) => DevApiResponse
   readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'bridge' | 'interaction' }) => DevApiResponse
   readonly watch: (
     targets: string | readonly string[],
@@ -476,6 +476,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         '__DevApi.checkParam(["vspeed", "altitude", "pressure", "location"])',
         '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
+        '__DevApi.bridgeCall("InputEvent_Push_Long", [1, 1])',
         '__DevApi.report()'
       ],
       methods: Object.keys(window.__DevApi ?? {})
@@ -584,10 +585,11 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       context.getRuntimeHost().invokeKeyEvent(name, args)
       return ok(`Invoked key event ${name}.`, { name, args, recent: context.getRuntimeHost().getKeyEvents().at(-1) ?? null })
     },
-    bridgeCall: name => {
-      context.getRuntimeHost().invokeBridgeCall(name)
+    bridgeCall: (name, args = [1]) => {
+      context.getRuntimeHost().invokeBridgeCall(name, args)
       return ok(`Invoked bridge call ${name}.`, {
         name,
+        args,
         stats: context.getRuntimeHost().getStats(),
         value: context.getRuntimeHost().readVariable(`B:${name}`)
       })
