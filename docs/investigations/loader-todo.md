@@ -587,16 +587,16 @@ Scope note:
 ##### Common
 
 - [x] `Common.xml`
-- [ ] `Common/Aircraft.xml`
-- [ ] `Common/Autopilot.xml`
-- [ ] `Common/Deice.xml`
-- [ ] `Common/Electrical.xml`
-- [ ] `Common/Engine.xml`
-- [ ] `Common/Fuel.xml`
-- [ ] `Common/Handling.xml`
+- [x] `Common/Aircraft.xml`
+- [x] `Common/Autopilot.xml`
+- [x] `Common/Deice.xml`
+- [x] `Common/Electrical.xml`
+- [x] `Common/Engine.xml`
+- [x] `Common/Fuel.xml`
+- [x] `Common/Handling.xml`
 - [x] `Common/Index.xml`
-- [ ] `Common/Instrument.xml`
-- [ ] `Common/LandingGear.xml`
+- [x] `Common/Instrument.xml`
+- [x] `Common/LandingGear.xml`
 - [ ] `Common/Lighting.xml`
 - [ ] `Common/Passenger.xml`
 - [ ] `Common/Pilot.xml`
@@ -605,16 +605,16 @@ Scope note:
 
 ##### Common Inputs
 
-- [ ] `Common/Inputs/Aircraft_Inputs.xml`
-- [ ] `Common/Inputs/Autopilot_Inputs.xml`
-- [ ] `Common/Inputs/Common_Inputs.xml`
-- [ ] `Common/Inputs/Deice_Inputs.xml`
-- [ ] `Common/Inputs/Electrical_Inputs.xml`
-- [ ] `Common/Inputs/Engine_Inputs.xml`
-- [ ] `Common/Inputs/Fuel_Inputs.xml`
-- [ ] `Common/Inputs/Handling_Inputs.xml`
-- [ ] `Common/Inputs/Instrument_Inputs.xml`
-- [ ] `Common/Inputs/LandingGear_Inputs.xml`
+- [x] `Common/Inputs/Aircraft_Inputs.xml`
+- [x] `Common/Inputs/Autopilot_Inputs.xml`
+- [x] `Common/Inputs/Common_Inputs.xml`
+- [x] `Common/Inputs/Deice_Inputs.xml`
+- [x] `Common/Inputs/Electrical_Inputs.xml`
+- [x] `Common/Inputs/Engine_Inputs.xml`
+- [x] `Common/Inputs/Fuel_Inputs.xml`
+- [x] `Common/Inputs/Handling_Inputs.xml`
+- [x] `Common/Inputs/Instrument_Inputs.xml`
+- [x] `Common/Inputs/LandingGear_Inputs.xml`
 - [ ] `Common/Inputs/Lighting_Inputs.xml`
 - [ ] `Common/Inputs/Passenger_Inputs.xml`
 - [ ] `Common/Inputs/Pressurization_Inputs.xml`
@@ -623,14 +623,14 @@ Scope note:
 ##### Common Subtemplates
 
 - [ ] `Common/Subtemplates/Aircraft_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Autopilot_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Deice_Subtemplates.xml`
+- [x] `Common/Subtemplates/Autopilot_Subtemplates.xml`
+- [x] `Common/Subtemplates/Deice_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Electrical_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Engine_Subtemplates.xml`
+- [x] `Common/Subtemplates/Engine_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Fuel_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Handling_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Instrument_Subtemplates.xml`
-- [ ] `Common/Subtemplates/LandingGear_Subtemplates.xml`
+- [x] `Common/Subtemplates/Handling_Subtemplates.xml`
+- [x] `Common/Subtemplates/Instrument_Subtemplates.xml`
+- [x] `Common/Subtemplates/LandingGear_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Lighting_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Passenger_Subtemplates.xml`
 - [ ] `Common/Subtemplates/Pressurization_Subtemplates.xml`
@@ -716,20 +716,25 @@ Scope note:
 
 ##### NAVCOM
 
-- [ ] `NAVCOM/ADF.xml`
-- [ ] `NAVCOM/AS92.xml`
-- [ ] `NAVCOM/ASNAV.xml`
-- [ ] `NAVCOM/KAP140.xml`
-- [ ] `NAVCOM/NavComSystem.xml`
-- [ ] `NAVCOM/SimpleCom.xml`
-- [ ] `NAVCOM/Inputs/NavComSystem_Inputs.xml`
-- [ ] `NAVCOM/Inputs/SimpleCom_Inputs.xml`
+- [x] `NAVCOM/ADF.xml`
+- [x] `NAVCOM/AS92.xml`
+- [x] `NAVCOM/ASNAV.xml`
+- [x] `NAVCOM/KAP140.xml`
+- [x] `NAVCOM/NavComSystem.xml`
+- [x] `NAVCOM/SimpleCom.xml`
+- [x] `NAVCOM/Inputs/NavComSystem_Inputs.xml`
+- [x] `NAVCOM/Inputs/SimpleCom_Inputs.xml`
 
 ##### Transponder
 
-- [ ] `Transponder/AS21.xml`
-- [ ] `Transponder/AS330.xml`
-- [ ] `Transponder/Transponder.xml`
+- [x] `Transponder/AS21.xml`
+- [x] `Transponder/AS330.xml`
+- [x] `Transponder/Transponder.xml`
+
+Checked stock XML families in this batch are limited to the families covered by the generic runtime/input work and A320/A330 DevApi verification above:
+- Common aircraft, handling, landing-gear, fuel, electrical, deice, engine, instrument, common-procedure, and autopilot event support was implemented from the mounted public XML paths and verified on both fixture routes with screenshots under the matching `backups/agent-browser/*-support/` folders.
+- NAVCOM and Transponder support was implemented from `Asobo/NAVCOM/*` and `Asobo/Transponder/*` plus their input XMLs, then verified on both fixture routes with `backups/agent-browser/navcom-transponder-support/` screenshots.
+- Lighting, passenger, pressurization, safety, GPS, glass cockpit, generic complex, and misc XML families remain unchecked because their mounted stock XML contracts have not yet been exercised and verified as complete on both fixture routes.
 
 #### CFG Reference Targets
 
