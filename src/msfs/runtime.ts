@@ -1375,6 +1375,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.applyTrimAndBrakeKeyEvent(name, args)) {
       return
     }
+    if (this.applyHandlingAndGearKeyEvent(name, args)) {
+      return
+    }
     if (this.applyDeiceAndIgnitionKeyEvent(name, args)) {
       return
     }
@@ -1684,10 +1687,33 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyTrimAndBrakeKeyEvent(name: string, args: readonly number[]): boolean {
-    if (name === 'AXIS_ELEV_TRIM_SET') {
+    if (name === 'AXIS_ELEV_TRIM_SET' || name === 'ELEVATOR_TRIM_SET') {
       const trim = clamp(Number(args.at(-1) ?? 0) / 16_383, -1, 1)
       this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM POSITION'), trim)
       this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM INDICATOR'), trim * 100)
+      return true
+    }
+
+    if (name === 'ELEV_TRIM_UP' || name === 'ELEV_TRIM_DN') {
+      const key = normalizeRuntimeVariableKey('A:ELEVATOR TRIM POSITION')
+      const currentValue = this.values.get(key) ?? 0
+      const direction = name === 'ELEV_TRIM_UP' ? 1 : -1
+      const trim = clamp(currentValue + direction * 0.05, -1, 1)
+      this.values.set(key, trim)
+      this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM INDICATOR'), trim * 100)
+      return true
+    }
+
+    if (name === 'AILERON_TRIM_LEFT' || name === 'AILERON_TRIM_RIGHT') {
+      const key = normalizeRuntimeVariableKey('A:AILERON TRIM PCT')
+      const currentValue = this.values.get(key) ?? 0
+      const direction = name === 'AILERON_TRIM_RIGHT' ? 1 : -1
+      this.setAileronTrim(currentValue + direction * 0.05)
+      return true
+    }
+
+    if (name === 'AILERON_TRIM_SET_EX1') {
+      this.setAileronTrim(Number(args.at(-1) ?? 0) / 16_384)
       return true
     }
 
@@ -1711,6 +1737,66 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     if (name === 'ANTISKID_BRAKES_TOGGLE') {
       this.toggleNamedBoolVariables('A:ANTISKID BRAKES ACTIVE', 'A:ANTISKID BRAKES SWITCH')
+      return true
+    }
+
+    return false
+  }
+
+  private applyHandlingAndGearKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'AXIS_LEFT_BRAKE_SET' || name === 'AXIS_RIGHT_BRAKE_SET') {
+      const side = name === 'AXIS_LEFT_BRAKE_SET' ? 'LEFT' : 'RIGHT'
+      this.setBrakePosition(side, position16kToPercent(Number(args.at(-1) ?? 0), false))
+      return true
+    }
+
+    if (name === 'GEAR_EMERGENCY_HANDLE_TOGGLE') {
+      const key = normalizeRuntimeVariableKey('A:GEAR EMERGENCY HANDLE POSITION')
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    if (name === 'RETRACT_FLOAT_SWITCH_INC' || name === 'RETRACT_FLOAT_SWITCH_DEC') {
+      const key = normalizeRuntimeVariableKey('A:FLOAT SWITCH RETRACTED')
+      this.values.set(key, name === 'RETRACT_FLOAT_SWITCH_INC' ? 1 : 0)
+      return true
+    }
+
+    if (name === 'TOGGLE_WATER_RUDDER') {
+      const key = normalizeRuntimeVariableKey('A:WATER RUDDER HANDLE POSITION')
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 100)
+      return true
+    }
+
+    if (name === 'SPOILERS_ARM_TOGGLE') {
+      const key = normalizeRuntimeVariableKey('A:SPOILERS ARMED')
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    if (name === 'AUTOPILOT_DISENGAGE_SET') {
+      this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT DISENGAGED'), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      return true
+    }
+
+    if (name === 'NOSE_WHEEL_STEERING_LIMIT_SET') {
+      this.values.set(normalizeRuntimeVariableKey('A:NOSE WHEEL STEERING LIMIT'), Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    if (name === 'G_LIMITER_SET') {
+      this.values.set(normalizeRuntimeVariableKey('A:G LIMITER SETTING'), Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    if (name === 'SET_AUTOBRAKE_CONTROL') {
+      this.values.set(normalizeRuntimeVariableKey('A:AUTOBRAKES ACTIVE'), Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    const trimDisabledMatch = /^(RUDDER|AILERON|ELEVATOR)_TRIM_DISABLED_SET$/u.exec(name)
+    if (trimDisabledMatch != null) {
+      this.values.set(normalizeRuntimeVariableKey(`A:${trimDisabledMatch[1]} TRIM DISABLED`), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
       return true
     }
 
@@ -2094,6 +2180,17 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:RUDDER TRIM'), trim * 100)
   }
 
+  private setAileronTrim(value: number): void {
+    const trim = clamp(value, -1, 1)
+    this.values.set(normalizeRuntimeVariableKey('A:AILERON TRIM PCT'), trim)
+    this.values.set(normalizeRuntimeVariableKey('A:AILERON TRIM'), trim * 100)
+  }
+
+  private setBrakePosition(side: 'LEFT' | 'RIGHT', percent: number): void {
+    const clampedPercent = clamp(percent, 0, 100)
+    this.values.set(normalizeRuntimeVariableKey(`A:BRAKE ${side} POSITION`), clampedPercent)
+  }
+
   private updateSimVarSounds(): void {
     for (const sound of this.simVarSounds) {
       const active =
@@ -2340,6 +2437,9 @@ function resolveStoredRuntimeValue(key: string, value: number, unit: string | nu
   if (key.startsWith('A:HYDRAULIC RESERVOIR PERCENT:')) {
     return convertPercentUnit(value, unit)
   }
+  if (isHandlingPercentPositionKey(key)) {
+    return convertPercentToPosition16kUnit(value, unit)
+  }
   return value
 }
 
@@ -2388,6 +2488,14 @@ function convertPercentToPosition16kUnit(value: number, unit: string | null): nu
 function position16kToPercent(value: number, allowNegative: boolean): number {
   const clampedValue = clamp(value, allowNegative ? -16_384 : 0, 16_384)
   return (clampedValue / 16_384) * 100
+}
+
+function isHandlingPercentPositionKey(key: string): boolean {
+  return (
+    key === 'A:BRAKE LEFT POSITION' ||
+    key === 'A:BRAKE RIGHT POSITION' ||
+    key === 'A:WATER RUDDER HANDLE POSITION'
+  )
 }
 
 function convertPercentToPrimerUnit(value: number, unit: string | null): number {

@@ -9791,7 +9791,7 @@
                 - [ ] `<ON_STATE_CHANGED>` line 242
                 - [ ] `<ON_AFTER_INC>` line 243
                 - [ ] `<ON_AFTER_DEC>` line 244
-                - [ ] `<SET_EVENT>` line 245 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ELEVATOR_TRIM_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
+                - [x] `<SET_EVENT>` line 245 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ELEVATOR_TRIM_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
                 - [ ] `<INIT_VALUE>` line 246 = `(A:ELEVATOR TRIM PCT, position 16k) #LOWER_LIMIT# max #UPPER_LIMIT# min (>#INPUTEVENT_VAR_TYPE#:#IN...`
                 - [ ] `<Switch Param="INTERACTION_TYPE">` line 247
                   - [ ] `<Case Value="WHEEL">` line 248
@@ -9818,7 +9818,7 @@
                     - [ ] `<INC_EVENT>` line 281 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:HANDLING_ElevatorTrim_#IE_ELEVATOR_TRIM#_Set)`
                     - [ ] `<DEC_EVENT>` line 282 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:HANDLING_ElevatorTrim_#IE_ELEVATOR_TRIM#_Set)`
                     - [ ] `<INIT_VALUE>` line 283 = `#STATE0_TEST# if{ 0 (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) quit } #STATE1_TEST# if{ 1 (>#IN...`
-                    - [ ] `<SET_EVENT>` line 288 = `(O:IsDirectSet) if{ p0 -16384 max 16384 min s0 (>K:ELEVATOR_TRIM_SET) l0 (A:ELEVATOR TRIM PCT, posi...`
+                    - [x] `<SET_EVENT>` line 288 = `(O:IsDirectSet) if{ p0 -16384 max 16384 min s0 (>K:ELEVATOR_TRIM_SET) l0 (A:ELEVATOR TRIM PCT, posi...`
                 - [ ] `<Condition Check="TT_ICON">` line 313
                   - [ ] `<False>` line 314
                     - [ ] `<TT_ICON>` line 315
@@ -9993,7 +9993,7 @@
                     - [ ] `<INPUTEVENT_VAR_TYPE>` line 583
                     - [ ] `<INPUTEVENT_VAR_NAME>` line 584 = `HANDLING_AileronsTrim`
               - [ ] `<Parameters Type="Default">` line 588
-                - [ ] `<SET_EVENT>` line 589 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AILERON_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
+                - [x] `<SET_EVENT>` line 589 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AILERON_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
                 - [ ] `<INIT_VALUE>` line 590 = `(A:AILERON TRIM PCT, position 16k) #LOWER_LIMIT# max #UPPER_LIMIT# min (>#INPUTEVENT_VAR_TYPE#:#INP...`
                 - [ ] `<Switch Param="INTERACTION_TYPE">` line 591
                   - [ ] `<Case Value="WHEEL">` line 592
@@ -10422,7 +10422,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 135 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) @TT_OnOff_Cond`
                 - [ ] `<INC_EVENT>` line 136 = `0 (>B:LANDING_GEAR_Floater_Set)`
                 - [ ] `<DEC_EVENT>` line 137 = `1 (>B:LANDING_GEAR_Floater_Set)`
-                - [ ] `<SET_EVENT>` line 138 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 if{ (>K:RETRACT_FLOAT_SWITCH_INC) (>K:RETRACT_FLOAT_SWITC...`
+                - [x] `<SET_EVENT>` line 138 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 if{ (>K:RETRACT_FLOAT_SWITCH_INC) (>K:RETRACT_FLOAT_SWITC...`
                 - [ ] `<INIT_VALUE>` line 139 = `(A:RETRACT FLOAT SWITCH, Bool) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 140
               - [ ] `<Parameters Type="Override">` line 142
@@ -18937,7 +18937,7 @@
           - [ ] `<Case Value="AS04F">` line 374
             - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 375
               - [ ] `<FREQUENCY>` line 376
-              - [ ] `<UPDATE_CODE>` line 377 = `(B:HANDLING_#BTN_ID#) (A:YOKE Y POSITION, Percent over 100) abs 0.1 < and if{ 1 (>K:G_LIMITER_SET) ...`
+              - [x] `<UPDATE_CODE>` line 377 = `(B:HANDLING_#BTN_ID#) (A:YOKE Y POSITION, Percent over 100) abs 0.1 < and if{ 1 (>K:G_LIMITER_SET) ...`
         - [ ] `<UseTemplate Name="ASOBO_HANDLING_Base_Template">` line 387
           - [ ] `<IE_NAME>` line 388 = `#BTN_ID#`
           - [ ] `<CREATE_COMPONENT>` line 389
@@ -18949,7 +18949,7 @@
           - [ ] `<BINDING_SET_1>` line 395
           - [ ] `<BINDING_SET_1_PARAM_0>` line 396
           - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 397
-          - [ ] `<BINDING_SET_1_EVENT_ID>` line 398 = `G_LIMITER_SET`
+          - [x] `<BINDING_SET_1_EVENT_ID>` line 398 = `G_LIMITER_SET`
           - [ ] `<BINDING_SET_2>` line 399
           - [ ] `<BINDING_SET_2_PARAM_0>` line 400
           - [ ] `<BINDING_SET_2_EVENT_ID>` line 401 = `G_LIMITER_ON`
@@ -20098,13 +20098,13 @@
             - [ ] `<SIMVAR_TO_WATCH_0>` line 2105
             - [ ] `<SIMVAR_TO_WATCH_1>` line 2106
             - [ ] `<SIMVAR_TO_WATCH_2>` line 2107
-            - [ ] `<SET_STATE_EXTERNAL>` line 2108
-            - [ ] `<GET_STATE_EXTERNAL>` line 2125
+            - [x] `<SET_STATE_EXTERNAL>` line 2108
+            - [x] `<GET_STATE_EXTERNAL>` line 2125
             - [ ] `<Condition Check="ID">` line 2131
               - [ ] `<COMP_INIT_CODE>` line 2132 = `(A:AUTO BRAKE SWITCH CB, Enum) (>L:XMLVAR_Autobrake_Level_Armed) (A:GEAR HANDLE POSITION, Bool) (>O...`
               - [ ] `<COMP_UPDATE_CODE>` line 2133 = `(* Handle disarming after landing gear up *) (O:_Countdown_Disable_Autobrake) 0 > if{ (O:_Countdown...`
             - [ ] `<Condition Valid="IS_AIRLINER">` line 2150
-              - [ ] `<SEQ1_EMISSIVE_CODE>` line 2151 = `(B:HANDLING_Autobrake_Level_#ID#, Bool) (A:AUTOBRAKES ACTIVE, Bool) (A:REJECTED TAKEOFF BRAKES ACTI...`
+              - [x] `<SEQ1_EMISSIVE_CODE>` line 2151 = `(B:HANDLING_Autobrake_Level_#ID#, Bool) (A:AUTOBRAKES ACTIVE, Bool) (A:REJECTED TAKEOFF BRAKES ACTI...`
               - [ ] `<SEQ2_EMISSIVE_CODE>` line 2152 = `(B:HANDLING_Autobrake_Level_#ID#, Bool)`
           - [ ] `<Case Value="X_STATES">` line 2155
             - [ ] `<KNOB_TYPE>` line 2156
@@ -20131,15 +20131,15 @@
                 - [ ] `<TT_VALUE_#POS_4#>` line 2174
                 - [ ] `<TT_VALUE_#POS_4#_IS_DYNAMIC>` line 2174
                 - [ ] `<TT_VALUE_#POS_MAX_AUTO#>` line 2175
-                - [ ] `<SET_STATE_#POS_RTO#>` line 2176
-                - [ ] `<SET_STATE_#POS_OFF#>` line 2177
-                - [ ] `<SET_STATE_#POS_DISARM#>` line 2178
-                - [ ] `<SET_STATE_#POS_1#>` line 2179
-                - [ ] `<SET_STATE_#POS_2#>` line 2180
-                - [ ] `<SET_STATE_#POS_3#>` line 2181
-                - [ ] `<SET_STATE_#POS_4#>` line 2182
-                - [ ] `<SET_STATE_#POS_MAX_AUTO#>` line 2183
-                - [ ] `<GET_STATE_EXTERNAL>` line 2184
+                - [x] `<SET_STATE_#POS_RTO#>` line 2176
+                - [x] `<SET_STATE_#POS_OFF#>` line 2177
+                - [x] `<SET_STATE_#POS_DISARM#>` line 2178
+                - [x] `<SET_STATE_#POS_1#>` line 2179
+                - [x] `<SET_STATE_#POS_2#>` line 2180
+                - [x] `<SET_STATE_#POS_3#>` line 2181
+                - [x] `<SET_STATE_#POS_4#>` line 2182
+                - [x] `<SET_STATE_#POS_MAX_AUTO#>` line 2183
+                - [x] `<GET_STATE_EXTERNAL>` line 2184
                 - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 2185
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 2197 = `p0 #POS_DISARM# == (>O:XMLVAR_Autobrake_Disarm)`
       - [ ] `<UseTemplate Name="ASOBO_HANDLING_Base_Template">` line 2203
@@ -20394,7 +20394,7 @@
             - [ ] `<SEQ2_EMISSIVE_CODE>` line 2537 = `(B:ENGINE_#BTN_ID#, Bool) !`
             - [ ] `<LEFT_SINGLE_CODE>` line 2538 = `(>B:ENGINE_#BTN_ID#_Toggle)`
             - [ ] `<SIMVAR_TO_WATCH_0>` line 2539
-            - [ ] `<SET_STATE_EXTERNAL>` line 2540
+            - [x] `<SET_STATE_EXTERNAL>` line 2540
             - [ ] `<GET_STATE_EXTERNAL>` line 2541
             - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 2542
     - [ ] `<Template Name="ASOBO_HANDLING_Water_Rudder_Controller_SubTemplate">` line 2548
@@ -20418,14 +20418,14 @@
             - [ ] `<EMISSIVE_CODE>` line 2571 = `(B:HANDLING_Water_Rudder, Bool)`
       - [ ] `<UseTemplate Name="ASOBO_HANDLING_Base_Template">` line 2575
         - [ ] `<IE_NAME>` line 2576 = `Water_Rudder`
-        - [ ] `<SET_STATE_EXTERNAL>` line 2577
-        - [ ] `<GET_STATE_EXTERNAL>` line 2578
+        - [x] `<SET_STATE_EXTERNAL>` line 2577
+        - [x] `<GET_STATE_EXTERNAL>` line 2578
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 2579
         - [ ] `<STR_STATE_ON>` line 2580
         - [ ] `<STR_STATE_OFF>` line 2581
         - [ ] `<TT_VALUE_ON>` line 2582
         - [ ] `<TT_VALUE_OFF>` line 2583
-        - [ ] `<SIMVAR_TO_WATCH_0>` line 2584
+        - [x] `<SIMVAR_TO_WATCH_0>` line 2584
         - [ ] `<Switch Param="INTERACTION_TYPE">` line 2585
           - [ ] `<Case Value="Lever">` line 2586
             - [ ] `<LEVER_TYPE>` line 2587
@@ -22053,7 +22053,7 @@
               - [ ] `<BINDING_SET_0_PARAM_0>` line 238
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 239
               - [ ] `<BINDING_SET_1>` line 240
-              - [ ] `<BINDING_SET_1_EVENT_ID>` line 241 = `PARKING_BRAKE_SET`
+              - [x] `<BINDING_SET_1_EVENT_ID>` line 241 = `PARKING_BRAKE_SET`
               - [ ] `<BINDING_SET_1_PARAM_0>` line 242
               - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 243
             - [ ] `<UseTemplate Name="ASOBO_LANDING_GEAR_Base_Template">` line 245
@@ -22083,7 +22083,7 @@
               - [ ] `<BINDING_SET_0_PARAM_0>` line 270
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 271
               - [ ] `<BINDING_SET_1>` line 272
-              - [ ] `<BINDING_SET_1_EVENT_ID>` line 273 = `PARKING_BRAKE_SET`
+              - [x] `<BINDING_SET_1_EVENT_ID>` line 273 = `PARKING_BRAKE_SET`
               - [ ] `<BINDING_SET_1_PARAM_0>` line 274
               - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 275
               - [ ] `<TT_DESCRIPTION_ID>` line 277 = `@TT_Package.LANDING_GEAR_LEVER_PARKING_BRAKE_EMERGENCY_ACTION`
@@ -22119,7 +22119,7 @@
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 335
         - [ ] `<UseInputEvent ID="LANDING_GEAR">` line 336
           - [ ] `<LEVER_ID>` line 337 = `Brake`
-          - [ ] `<GET_STATE_EXTERNAL>` line 338
+          - [x] `<GET_STATE_EXTERNAL>` line 338
           - [ ] `<SET_PARAM_0>` line 339
           - [ ] `<SET_PARAM_0_IS_DYNAMIC>` line 340
           - [ ] `<INC_PARAM_0>` line 341
@@ -22131,11 +22131,11 @@
           - [ ] `<MAX_VALUE>` line 347 = `16384`
           - [ ] `<MIN_VALUE>` line 348 = `-16384`
           - [ ] `<STATE_TO_POS_EXTERNAL>` line 349
-          - [ ] `<SET_STATE_EXTERNAL>` line 350
-          - [ ] `<GET_TT_VALUE_STATE>` line 351
-          - [ ] `<SIMVAR_TO_WATCH_0>` line 352
-          - [ ] `<SIMVAR_TO_WATCH_1>` line 353
-          - [ ] `<SIMVAR_TO_WATCH_2>` line 354
+          - [x] `<SET_STATE_EXTERNAL>` line 350
+          - [x] `<GET_TT_VALUE_STATE>` line 351
+          - [x] `<SIMVAR_TO_WATCH_0>` line 352
+          - [x] `<SIMVAR_TO_WATCH_1>` line 353
+          - [x] `<SIMVAR_TO_WATCH_2>` line 354
           - [ ] `<INIT_CODE>` line 355 = `(A:BRAKE PARKING POSITION, Bool) ! if{ (A:BRAKE LEFT POSITION, Position 16k) (A:BRAKE RIGHT POSITIO...`
         - [ ] `<UseTemplate Name="ASOBO_GT_Lever_DraggingWheelLeftDrag_Axis">` line 364
           - [ ] `<ANIM_LAG>` line 365
@@ -22175,8 +22175,8 @@
           - [ ] `<Case Value="Lever">` line 412
             - [ ] `<IE_NAME>` line 413 = `GEARS_Deploy_Lever`
             - [ ] `<LEVER_TYPE>` line 414
-        - [ ] `<SET_STATE_EXTERNAL>` line 417
-        - [ ] `<GET_STATE_EXTERNAL>` line 418
+        - [x] `<SET_STATE_EXTERNAL>` line 417
+        - [x] `<GET_STATE_EXTERNAL>` line 418
     - [ ] `<Template Name="ASOBO_LANDING_GEAR_Light_Test_SubTemplate">` line 422
       - [ ] `<Parameters Type="Default">` line 423
         - [ ] `<NODE_ID>` line 424 = `LANDING_GEAR_#INTERACTION_TYPE#_Light_Test`
@@ -23751,7 +23751,7 @@
               - [ ] `<ANIM>` line 333 = `EXTERNAL`
               - [ ] `<SET_STATE_ON>` line 334
               - [ ] `<SET_STATE_OFF>` line 335
-          - [ ] `<GET_STATE_EXTERNAL>` line 338
+          - [x] `<GET_STATE_EXTERNAL>` line 338
           - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 339
           - [ ] `<TT_DESCRIPTION_ID>` line 340 = `@TT_Package.CABIN_ALTERNATE_AIR_ACTION`
         - [ ] `<Switch Param="INTERACTION_TYPE">` line 342
@@ -48461,7 +48461,7 @@
                 - [ ] `<ON_STATE_CHANGED>` line 242
                 - [ ] `<ON_AFTER_INC>` line 243
                 - [ ] `<ON_AFTER_DEC>` line 244
-                - [ ] `<SET_EVENT>` line 245 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ELEVATOR_TRIM_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
+                - [x] `<SET_EVENT>` line 245 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ELEVATOR_TRIM_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
                 - [ ] `<INIT_VALUE>` line 246 = `(A:ELEVATOR TRIM PCT, position 16k) #LOWER_LIMIT# max #UPPER_LIMIT# min (>#INPUTEVENT_VAR_TYPE#:#IN...`
                 - [ ] `<Switch Param="INTERACTION_TYPE">` line 247
                   - [ ] `<Case Value="WHEEL">` line 248
@@ -48488,7 +48488,7 @@
                     - [ ] `<INC_EVENT>` line 281 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:HANDLING_ElevatorTrim_#IE_ELEVATOR_TRIM#_Set)`
                     - [ ] `<DEC_EVENT>` line 282 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:HANDLING_ElevatorTrim_#IE_ELEVATOR_TRIM#_Set)`
                     - [ ] `<INIT_VALUE>` line 283 = `#STATE0_TEST# if{ 0 (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) quit } #STATE1_TEST# if{ 1 (>#IN...`
-                    - [ ] `<SET_EVENT>` line 288 = `(O:IsDirectSet) if{ p0 -16384 max 16384 min s0 (>K:ELEVATOR_TRIM_SET) l0 (A:ELEVATOR TRIM PCT, posi...`
+                    - [x] `<SET_EVENT>` line 288 = `(O:IsDirectSet) if{ p0 -16384 max 16384 min s0 (>K:ELEVATOR_TRIM_SET) l0 (A:ELEVATOR TRIM PCT, posi...`
                 - [ ] `<Condition Check="TT_ICON">` line 313
                   - [ ] `<False>` line 314
                     - [ ] `<TT_ICON>` line 315
@@ -48663,7 +48663,7 @@
                     - [ ] `<INPUTEVENT_VAR_TYPE>` line 583
                     - [ ] `<INPUTEVENT_VAR_NAME>` line 584 = `HANDLING_AileronsTrim`
               - [ ] `<Parameters Type="Default">` line 588
-                - [ ] `<SET_EVENT>` line 589 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AILERON_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
+                - [x] `<SET_EVENT>` line 589 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AILERON_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
                 - [ ] `<INIT_VALUE>` line 590 = `(A:AILERON TRIM PCT, position 16k) #LOWER_LIMIT# max #UPPER_LIMIT# min (>#INPUTEVENT_VAR_TYPE#:#INP...`
                 - [ ] `<Switch Param="INTERACTION_TYPE">` line 591
                   - [ ] `<Case Value="WHEEL">` line 592
@@ -49092,7 +49092,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 135 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) @TT_OnOff_Cond`
                 - [ ] `<INC_EVENT>` line 136 = `0 (>B:LANDING_GEAR_Floater_Set)`
                 - [ ] `<DEC_EVENT>` line 137 = `1 (>B:LANDING_GEAR_Floater_Set)`
-                - [ ] `<SET_EVENT>` line 138 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 if{ (>K:RETRACT_FLOAT_SWITCH_INC) (>K:RETRACT_FLOAT_SWITC...`
+                - [x] `<SET_EVENT>` line 138 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 if{ (>K:RETRACT_FLOAT_SWITCH_INC) (>K:RETRACT_FLOAT_SWITC...`
                 - [ ] `<INIT_VALUE>` line 139 = `(A:RETRACT FLOAT SWITCH, Bool) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 140
               - [ ] `<Parameters Type="Override">` line 142
@@ -57607,7 +57607,7 @@
           - [ ] `<Case Value="AS04F">` line 374
             - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 375
               - [ ] `<FREQUENCY>` line 376
-              - [ ] `<UPDATE_CODE>` line 377 = `(B:HANDLING_#BTN_ID#) (A:YOKE Y POSITION, Percent over 100) abs 0.1 < and if{ 1 (>K:G_LIMITER_SET) ...`
+              - [x] `<UPDATE_CODE>` line 377 = `(B:HANDLING_#BTN_ID#) (A:YOKE Y POSITION, Percent over 100) abs 0.1 < and if{ 1 (>K:G_LIMITER_SET) ...`
         - [ ] `<UseTemplate Name="ASOBO_HANDLING_Base_Template">` line 387
           - [ ] `<IE_NAME>` line 388 = `#BTN_ID#`
           - [ ] `<CREATE_COMPONENT>` line 389
@@ -57619,7 +57619,7 @@
           - [ ] `<BINDING_SET_1>` line 395
           - [ ] `<BINDING_SET_1_PARAM_0>` line 396
           - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 397
-          - [ ] `<BINDING_SET_1_EVENT_ID>` line 398 = `G_LIMITER_SET`
+          - [x] `<BINDING_SET_1_EVENT_ID>` line 398 = `G_LIMITER_SET`
           - [ ] `<BINDING_SET_2>` line 399
           - [ ] `<BINDING_SET_2_PARAM_0>` line 400
           - [ ] `<BINDING_SET_2_EVENT_ID>` line 401 = `G_LIMITER_ON`
@@ -58768,13 +58768,13 @@
             - [ ] `<SIMVAR_TO_WATCH_0>` line 2105
             - [ ] `<SIMVAR_TO_WATCH_1>` line 2106
             - [ ] `<SIMVAR_TO_WATCH_2>` line 2107
-            - [ ] `<SET_STATE_EXTERNAL>` line 2108
-            - [ ] `<GET_STATE_EXTERNAL>` line 2125
+            - [x] `<SET_STATE_EXTERNAL>` line 2108
+            - [x] `<GET_STATE_EXTERNAL>` line 2125
             - [ ] `<Condition Check="ID">` line 2131
               - [ ] `<COMP_INIT_CODE>` line 2132 = `(A:AUTO BRAKE SWITCH CB, Enum) (>L:XMLVAR_Autobrake_Level_Armed) (A:GEAR HANDLE POSITION, Bool) (>O...`
               - [ ] `<COMP_UPDATE_CODE>` line 2133 = `(* Handle disarming after landing gear up *) (O:_Countdown_Disable_Autobrake) 0 > if{ (O:_Countdown...`
             - [ ] `<Condition Valid="IS_AIRLINER">` line 2150
-              - [ ] `<SEQ1_EMISSIVE_CODE>` line 2151 = `(B:HANDLING_Autobrake_Level_#ID#, Bool) (A:AUTOBRAKES ACTIVE, Bool) (A:REJECTED TAKEOFF BRAKES ACTI...`
+              - [x] `<SEQ1_EMISSIVE_CODE>` line 2151 = `(B:HANDLING_Autobrake_Level_#ID#, Bool) (A:AUTOBRAKES ACTIVE, Bool) (A:REJECTED TAKEOFF BRAKES ACTI...`
               - [ ] `<SEQ2_EMISSIVE_CODE>` line 2152 = `(B:HANDLING_Autobrake_Level_#ID#, Bool)`
           - [ ] `<Case Value="X_STATES">` line 2155
             - [ ] `<KNOB_TYPE>` line 2156
@@ -58801,15 +58801,15 @@
                 - [ ] `<TT_VALUE_#POS_4#>` line 2174
                 - [ ] `<TT_VALUE_#POS_4#_IS_DYNAMIC>` line 2174
                 - [ ] `<TT_VALUE_#POS_MAX_AUTO#>` line 2175
-                - [ ] `<SET_STATE_#POS_RTO#>` line 2176
-                - [ ] `<SET_STATE_#POS_OFF#>` line 2177
-                - [ ] `<SET_STATE_#POS_DISARM#>` line 2178
-                - [ ] `<SET_STATE_#POS_1#>` line 2179
-                - [ ] `<SET_STATE_#POS_2#>` line 2180
-                - [ ] `<SET_STATE_#POS_3#>` line 2181
-                - [ ] `<SET_STATE_#POS_4#>` line 2182
-                - [ ] `<SET_STATE_#POS_MAX_AUTO#>` line 2183
-                - [ ] `<GET_STATE_EXTERNAL>` line 2184
+                - [x] `<SET_STATE_#POS_RTO#>` line 2176
+                - [x] `<SET_STATE_#POS_OFF#>` line 2177
+                - [x] `<SET_STATE_#POS_DISARM#>` line 2178
+                - [x] `<SET_STATE_#POS_1#>` line 2179
+                - [x] `<SET_STATE_#POS_2#>` line 2180
+                - [x] `<SET_STATE_#POS_3#>` line 2181
+                - [x] `<SET_STATE_#POS_4#>` line 2182
+                - [x] `<SET_STATE_#POS_MAX_AUTO#>` line 2183
+                - [x] `<GET_STATE_EXTERNAL>` line 2184
                 - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 2185
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 2197 = `p0 #POS_DISARM# == (>O:XMLVAR_Autobrake_Disarm)`
       - [ ] `<UseTemplate Name="ASOBO_HANDLING_Base_Template">` line 2203
@@ -59064,7 +59064,7 @@
             - [ ] `<SEQ2_EMISSIVE_CODE>` line 2537 = `(B:ENGINE_#BTN_ID#, Bool) !`
             - [ ] `<LEFT_SINGLE_CODE>` line 2538 = `(>B:ENGINE_#BTN_ID#_Toggle)`
             - [ ] `<SIMVAR_TO_WATCH_0>` line 2539
-            - [ ] `<SET_STATE_EXTERNAL>` line 2540
+            - [x] `<SET_STATE_EXTERNAL>` line 2540
             - [ ] `<GET_STATE_EXTERNAL>` line 2541
             - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 2542
     - [ ] `<Template Name="ASOBO_HANDLING_Water_Rudder_Controller_SubTemplate">` line 2548
@@ -59088,14 +59088,14 @@
             - [ ] `<EMISSIVE_CODE>` line 2571 = `(B:HANDLING_Water_Rudder, Bool)`
       - [ ] `<UseTemplate Name="ASOBO_HANDLING_Base_Template">` line 2575
         - [ ] `<IE_NAME>` line 2576 = `Water_Rudder`
-        - [ ] `<SET_STATE_EXTERNAL>` line 2577
-        - [ ] `<GET_STATE_EXTERNAL>` line 2578
+        - [x] `<SET_STATE_EXTERNAL>` line 2577
+        - [x] `<GET_STATE_EXTERNAL>` line 2578
         - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 2579
         - [ ] `<STR_STATE_ON>` line 2580
         - [ ] `<STR_STATE_OFF>` line 2581
         - [ ] `<TT_VALUE_ON>` line 2582
         - [ ] `<TT_VALUE_OFF>` line 2583
-        - [ ] `<SIMVAR_TO_WATCH_0>` line 2584
+        - [x] `<SIMVAR_TO_WATCH_0>` line 2584
         - [ ] `<Switch Param="INTERACTION_TYPE">` line 2585
           - [ ] `<Case Value="Lever">` line 2586
             - [ ] `<LEVER_TYPE>` line 2587
@@ -60723,7 +60723,7 @@
               - [ ] `<BINDING_SET_0_PARAM_0>` line 238
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 239
               - [ ] `<BINDING_SET_1>` line 240
-              - [ ] `<BINDING_SET_1_EVENT_ID>` line 241 = `PARKING_BRAKE_SET`
+              - [x] `<BINDING_SET_1_EVENT_ID>` line 241 = `PARKING_BRAKE_SET`
               - [ ] `<BINDING_SET_1_PARAM_0>` line 242
               - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 243
             - [ ] `<UseTemplate Name="ASOBO_LANDING_GEAR_Base_Template">` line 245
@@ -60753,7 +60753,7 @@
               - [ ] `<BINDING_SET_0_PARAM_0>` line 270
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 271
               - [ ] `<BINDING_SET_1>` line 272
-              - [ ] `<BINDING_SET_1_EVENT_ID>` line 273 = `PARKING_BRAKE_SET`
+              - [x] `<BINDING_SET_1_EVENT_ID>` line 273 = `PARKING_BRAKE_SET`
               - [ ] `<BINDING_SET_1_PARAM_0>` line 274
               - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 275
               - [ ] `<TT_DESCRIPTION_ID>` line 277 = `@TT_Package.LANDING_GEAR_LEVER_PARKING_BRAKE_EMERGENCY_ACTION`
@@ -60801,11 +60801,11 @@
           - [ ] `<MAX_VALUE>` line 347 = `16384`
           - [ ] `<MIN_VALUE>` line 348 = `-16384`
           - [ ] `<STATE_TO_POS_EXTERNAL>` line 349
-          - [ ] `<SET_STATE_EXTERNAL>` line 350
-          - [ ] `<GET_TT_VALUE_STATE>` line 351
-          - [ ] `<SIMVAR_TO_WATCH_0>` line 352
-          - [ ] `<SIMVAR_TO_WATCH_1>` line 353
-          - [ ] `<SIMVAR_TO_WATCH_2>` line 354
+          - [x] `<SET_STATE_EXTERNAL>` line 350
+          - [x] `<GET_TT_VALUE_STATE>` line 351
+          - [x] `<SIMVAR_TO_WATCH_0>` line 352
+          - [x] `<SIMVAR_TO_WATCH_1>` line 353
+          - [x] `<SIMVAR_TO_WATCH_2>` line 354
           - [ ] `<INIT_CODE>` line 355 = `(A:BRAKE PARKING POSITION, Bool) ! if{ (A:BRAKE LEFT POSITION, Position 16k) (A:BRAKE RIGHT POSITIO...`
         - [ ] `<UseTemplate Name="ASOBO_GT_Lever_DraggingWheelLeftDrag_Axis">` line 364
           - [ ] `<ANIM_LAG>` line 365
@@ -60845,8 +60845,8 @@
           - [ ] `<Case Value="Lever">` line 412
             - [ ] `<IE_NAME>` line 413 = `GEARS_Deploy_Lever`
             - [ ] `<LEVER_TYPE>` line 414
-        - [ ] `<SET_STATE_EXTERNAL>` line 417
-        - [ ] `<GET_STATE_EXTERNAL>` line 418
+        - [x] `<SET_STATE_EXTERNAL>` line 417
+        - [x] `<GET_STATE_EXTERNAL>` line 418
     - [ ] `<Template Name="ASOBO_LANDING_GEAR_Light_Test_SubTemplate">` line 422
       - [ ] `<Parameters Type="Default">` line 423
         - [ ] `<NODE_ID>` line 424 = `LANDING_GEAR_#INTERACTION_TYPE#_Light_Test`
