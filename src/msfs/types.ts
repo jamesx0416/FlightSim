@@ -185,6 +185,12 @@ export interface CompiledUpdateBinding {
   readonly once: boolean
 }
 
+export interface CompiledInputEventBinding {
+  readonly name: string
+  readonly expression: CompiledExpression
+  readonly sourcePath: string
+}
+
 export interface CompiledInteractionBinding {
   readonly target: string
   readonly feedbackTargets: readonly string[]
@@ -210,6 +216,7 @@ export interface CompiledBehaviorSet {
   readonly animationBindings: readonly CompiledAnimationBinding[]
   readonly visibilityBindings: readonly CompiledVisibilityBinding[]
   readonly updateBindings: readonly CompiledUpdateBinding[]
+  readonly inputEventBindings: readonly CompiledInputEventBinding[]
   readonly interactionBindings: readonly CompiledInteractionBinding[]
   readonly variableKeys: readonly string[]
   readonly builtinFallbackHits: readonly string[]
@@ -255,6 +262,7 @@ export interface RuntimeHostServices {
   tick(dtSeconds: number): void
   readVariable(key: string, unit?: string | null): number
   writeVariable(key: string, value: number, unit?: string | null): void
+  setInputEventBindings?(bindings: readonly CompiledInputEventBinding[]): void
   invokeKeyEvent?(name: string, args: readonly number[]): void
   invokeHtmlEvent?(name: string, args: readonly (number | string)[]): void
   invokeSoundEvent?(

@@ -2,6 +2,7 @@ import { compileRpnExpression, evaluateCompiledExpression } from './rpn'
 import type {
   CompiledAnimationBinding,
   CompiledBehaviorSet,
+  CompiledInputEventBinding,
   CompiledInteractionBinding,
   CompiledInteractionSoundEvent,
   CompiledUpdateBinding,
@@ -85,6 +86,7 @@ export async function compileMsfs2020Behaviors(
       animationBindings: [],
       visibilityBindings: [],
       updateBindings: [],
+      inputEventBindings: [],
       interactionBindings: [],
       variableKeys: [],
       builtinFallbackHits: [],
@@ -114,6 +116,7 @@ export async function compileMsfs2020Behaviors(
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
   const updateBindings: CompiledUpdateBinding[] = []
+  const inputEventBindings: CompiledInputEventBinding[] = []
   const interactionBindings: CompiledInteractionBinding[] = []
   const rootParams = new Map<string, string>()
   for (const loadedDocument of loadedDocuments.values()) {
@@ -144,6 +147,7 @@ export async function compileMsfs2020Behaviors(
       animationBindings,
       visibilityBindings,
       updateBindings,
+      inputEventBindings,
       interactionBindings
     )
   }
@@ -164,6 +168,11 @@ export async function compileMsfs2020Behaviors(
       variableKeys.add(key)
     }
   }
+  for (const binding of inputEventBindings) {
+    for (const key of binding.expression.variableKeys) {
+      variableKeys.add(key)
+    }
+  }
   for (const binding of interactionBindings) {
     for (const key of binding.expression.variableKeys) {
       variableKeys.add(key)
@@ -176,6 +185,7 @@ export async function compileMsfs2020Behaviors(
     animationBindings,
     visibilityBindings,
     updateBindings,
+    inputEventBindings,
     interactionBindings,
     variableKeys: [...variableKeys].sort(),
     builtinFallbackHits: [...context.builtinFallbackHits].sort(),
@@ -495,6 +505,7 @@ function traverseElement(
   animationBindings: CompiledAnimationBinding[],
   visibilityBindings: CompiledVisibilityBinding[],
   updateBindings: CompiledUpdateBinding[],
+  inputEventBindings: CompiledInputEventBinding[],
   interactionBindings: CompiledInteractionBinding[]
 ): void {
   const elementTagName = getElementTagName(element)
@@ -513,7 +524,7 @@ function traverseElement(
     const branch = selectConditionBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
       }
     }
     return
@@ -523,7 +534,7 @@ function traverseElement(
     const branch = selectSwitchBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
       }
     }
     return
@@ -545,7 +556,7 @@ function traverseElement(
       ) {
         continue
       }
-      traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
+      traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
     }
     return
   }
@@ -587,6 +598,23 @@ function traverseElement(
       context.diagnostics
     )) {
       inputEventParams.set(key, value)
+    }
+    if (!inputEventParams.get('INPUT_EVENT_ID_SOURCE')?.trim()) {
+      const useInputEventId = substituteParameters(
+        getAttributeValue(element, 'ID') ?? '',
+        inputEventParams
+      ).trim()
+      if (useInputEventId) {
+        inputEventParams.set('INPUT_EVENT_ID_SOURCE', useInputEventId)
+      }
+    }
+    for (const binding of collectInteractionInputEventBridgeBindings(
+      inputEventParams,
+      scopedState.currentNode,
+      state.path,
+      context.diagnostics
+    )) {
+      pushUniqueInputEventBinding(inputEventBindings, binding)
     }
     const inputEventSource = getInteractionUseInputEventCodeSource(inputEventParams)
     if (inputEventSource) {
@@ -662,6 +690,7 @@ function traverseElement(
             animationBindings,
             visibilityBindings,
             updateBindings,
+            inputEventBindings,
             interactionBindings
           )
         }
@@ -678,6 +707,7 @@ function traverseElement(
       animationBindings,
       visibilityBindings,
       updateBindings,
+      inputEventBindings,
       interactionBindings
     )
     return
@@ -690,7 +720,7 @@ function traverseElement(
     ) {
       continue
     }
-    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
+    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
   }
 }
 
@@ -701,6 +731,7 @@ function expandTemplateUse(
   animationBindings: CompiledAnimationBinding[],
   visibilityBindings: CompiledVisibilityBinding[],
   updateBindings: CompiledUpdateBinding[],
+  inputEventBindings: CompiledInputEventBinding[],
   interactionBindings: CompiledInteractionBinding[]
 ): void {
   const templateName = substituteParameters(
@@ -892,7 +923,7 @@ function expandTemplateUse(
     ) {
       continue
     }
-    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, interactionBindings)
+    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
   }
 }
 
@@ -994,7 +1025,10 @@ function buildInteractionCodeBinding(
     params.get('ANIM_NAME')?.trim() ||
     params.get('PART_ID')?.trim() ||
     ''
-  const source = substituteParameters(sourceCode, params).trim()
+  const source = substituteParameters(
+    expandInteractionInputEventBridgeWrites(sourceCode, params),
+    params
+  ).trim()
 
   if (!target || !source) {
     return null
@@ -1010,7 +1044,10 @@ function buildInteractionCodeBinding(
     return null
   }
 
-  const releaseSource = substituteParameters(releaseSourceCode ?? '', params).trim()
+  const releaseSource = substituteParameters(
+    expandInteractionInputEventBridgeWrites(releaseSourceCode ?? '', params),
+    params
+  ).trim()
   const releaseExpression = releaseSource
     ? compileRpnExpression(releaseSource, {
         sourcePath,
@@ -1214,6 +1251,208 @@ function getInteractionUseInputEventCodeSource(params: ReadonlyMap<string, strin
   return ''
 }
 
+function expandInteractionInputEventBridgeWrites(
+  source: string,
+  params: ReadonlyMap<string, string>
+): string {
+  if (!source.includes('>B:')) {
+    return source
+  }
+
+  return source.replace(
+    /\(>B:([A-Za-z0-9_.:-]+)(?:,\s*[^)]*)?\)/gu,
+    (match, bridgeName: string) =>
+      getInteractionInputEventBridgeCodeSource(bridgeName, params) || match
+  )
+}
+
+function getInteractionInputEventBridgeCodeSource(
+  bridgeName: string,
+  params: ReadonlyMap<string, string>
+): string {
+  const inputEventSource = params.get('INPUT_EVENT_ID_SOURCE')?.trim() ?? ''
+  const inputEventName =
+    params.get('IE_NAME')?.trim() ||
+    params.get('BTN_ID')?.trim() ||
+    params.get('KNOB_ID')?.trim() ||
+    params.get('LEVER_ID')?.trim() ||
+    getInteractionInputEventNameFromPresetId(params) ||
+    ''
+  const bridgePrefix =
+    inputEventSource && inputEventName ? `${inputEventSource}_${inputEventName}_` : ''
+  const binding = findInteractionInputEventBinding(
+    bridgePrefix && bridgeName.startsWith(bridgePrefix)
+      ? bridgeName.slice(bridgePrefix.length)
+      : bridgeName,
+    params
+  )
+  if (binding == null) {
+    return ''
+  }
+
+  const eventSource = getInteractionInputEventBindingEventSource(binding.kind, params)
+  if (!eventSource) {
+    return ''
+  }
+
+  return [...binding.parameterSources, eventSource].join(' ')
+}
+
+function collectInteractionInputEventBridgeBindings(
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): readonly CompiledInputEventBinding[] {
+  const inputEventSource = params.get('INPUT_EVENT_ID_SOURCE')?.trim() ?? ''
+  const inputEventName =
+    params.get('IE_NAME')?.trim() ||
+    params.get('BTN_ID')?.trim() ||
+    params.get('KNOB_ID')?.trim() ||
+    params.get('LEVER_ID')?.trim() ||
+    getInteractionInputEventNameFromPresetId(params) ||
+    ''
+  if (!inputEventSource || !inputEventName) {
+    return []
+  }
+
+  const bindings: CompiledInputEventBinding[] = []
+  const presetPrefix = `${inputEventSource}_${inputEventName}_`
+  for (const kind of ['INC', 'DEC', 'SET'] as const) {
+    for (const [key, value] of params) {
+      const match = new RegExp(`^BINDING_${kind}_(\\d*)$`, 'iu').exec(key.trim())
+      const bindingName = value.trim()
+      if (match == null || isNoopInteractionParameter(bindingName)) {
+        continue
+      }
+
+      const parameterSources = collectInteractionInputEventBindingParameterSources(
+        kind,
+        match[1],
+        params
+      )
+      const eventSource = getInteractionInputEventBindingEventSource(kind, params)
+      if (!eventSource) {
+        continue
+      }
+
+      const source = substituteParameters(
+        [...parameterSources, eventSource].join(' '),
+        params
+      ).trim()
+      const expression = compileRpnExpression(source, {
+        sourcePath,
+        sourceExpression: source,
+        diagnostics,
+        localVariableScope: resolveLocalVariableScope(params, currentNode, inputEventName)
+      })
+      if (expression == null) {
+        continue
+      }
+
+      bindings.push({
+        name: `${presetPrefix}${bindingName}`,
+        expression,
+        sourcePath
+      })
+    }
+  }
+
+  return bindings
+}
+
+function getInteractionInputEventNameFromPresetId(params: ReadonlyMap<string, string>): string {
+  const inputEventSource = params.get('INPUT_EVENT_ID_SOURCE')?.trim() ?? ''
+  const presetId = params.get('IE_PRESET_ID')?.trim() ?? ''
+  if (!inputEventSource || !presetId.startsWith(`${inputEventSource}_`)) {
+    return ''
+  }
+
+  return presetId.slice(inputEventSource.length + 1)
+}
+
+function findInteractionInputEventBinding(
+  bindingName: string,
+  params: ReadonlyMap<string, string>
+): {
+  readonly kind: 'INC' | 'DEC' | 'SET'
+  readonly parameterSources: readonly string[]
+} | null {
+  const normalizedBindingName = bindingName.trim().toLowerCase()
+  for (const kind of ['INC', 'DEC', 'SET'] as const) {
+    for (const [key, value] of params) {
+      const match = new RegExp(`^BINDING_${kind}_(\\d*)$`, 'iu').exec(key.trim())
+      const normalizedValue = value.trim().toLowerCase()
+      if (
+        match == null ||
+        (
+          normalizedValue !== normalizedBindingName &&
+          !normalizedBindingName.endsWith(`_${normalizedValue}`)
+        )
+      ) {
+        continue
+      }
+
+      return {
+        kind,
+        parameterSources: collectInteractionInputEventBindingParameterSources(
+          kind,
+          match[1],
+          params
+        )
+      }
+    }
+  }
+
+  return null
+}
+
+function collectInteractionInputEventBindingParameterSources(
+  kind: 'INC' | 'DEC' | 'SET',
+  bindingIndex: string,
+  params: ReadonlyMap<string, string>
+): readonly string[] {
+  const parameterSources: string[] = []
+  for (let parameterIndex = 0; parameterIndex < 16; parameterIndex += 1) {
+    const parameterName = `BINDING_${kind}_${bindingIndex}_PARAM_${parameterIndex}`
+    const parameterValue = params.get(parameterName)?.trim()
+    if (parameterValue == null || parameterValue === '') {
+      if (parameterIndex === 0) {
+        parameterSources.push('1')
+      }
+      break
+    }
+
+    parameterSources.push(parameterValue)
+  }
+  return parameterSources
+}
+
+function getInteractionInputEventBindingEventSource(
+  kind: 'INC' | 'DEC' | 'SET',
+  params: ReadonlyMap<string, string>
+): string {
+  switch (kind) {
+    case 'INC':
+      return getFirstUsableInteractionParameter(params, [
+        'IE_INC_CODE',
+        'INC_CODE',
+        'SET_STATE_EXTERNAL'
+      ])
+    case 'DEC':
+      return getFirstUsableInteractionParameter(params, [
+        'IE_DEC_CODE',
+        'DEC_CODE',
+        'SET_STATE_EXTERNAL'
+      ])
+    case 'SET':
+      return getFirstUsableInteractionParameter(params, [
+        'SET_CODE',
+        'SET_STATE_EXTERNAL'
+      ])
+  }
+}
+
 function buildInteractionGateCodeSource(params: ReadonlyMap<string, string>): string {
   const eventIdSet = params.get('EVENTID_SET')?.trim() ?? ''
   if (eventIdSet) {
@@ -1376,6 +1615,19 @@ function pushUniqueInteractionBinding(
     candidate.kind === binding.kind &&
     candidate.expression.source === binding.expression.source &&
     candidate.releaseExpression?.source === binding.releaseExpression?.source
+  )
+  if (!duplicate) {
+    bindings.push(binding)
+  }
+}
+
+function pushUniqueInputEventBinding(
+  bindings: CompiledInputEventBinding[],
+  binding: CompiledInputEventBinding
+): void {
+  const duplicate = bindings.some(candidate =>
+    candidate.name === binding.name &&
+    candidate.expression.source === binding.expression.source
   )
   if (!duplicate) {
     bindings.push(binding)
