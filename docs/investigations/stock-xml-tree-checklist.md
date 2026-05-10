@@ -6726,10 +6726,10 @@
                 - [ ] `<DEC_EVENT>` line 52 = `0 (>B:DEICE_Airframe_#AIRFRAME_ID#_Set)`
                 - [ ] `<Switch Param="NUM_DEICE">` line 53
                   - [ ] `<Case Value="2">` line 54
-                    - [ ] `<SET_EVENT>` line 55 = `p0 (>L:DEICE_Airframe_#AIRFRAME_ID#) (L:DEICE_Airframe_1) ! (L:DEICE_Airframe_2) ! and (A:STRUCTURA...`
+                    - [x] `<SET_EVENT>` line 55 = `p0 (>L:DEICE_Airframe_#AIRFRAME_ID#) (L:DEICE_Airframe_1) ! (L:DEICE_Airframe_2) ! and (A:STRUCTURA...`
                     - [ ] `<TOOLTIP_VALUE>` line 64 = `(L:DEICE_Airframe_#AIRFRAME_ID#) @TT_OnOff_Cond`
                   - [ ] `<Default>` line 66
-                    - [ ] `<SET_EVENT>` line 67 = `p0 s0 (A:STRUCTURAL DEICE SWITCH, Bool) != if{ (>K:TOGGLE_STRUCTURAL_DEICE) } l0 (>#INPUTEVENT_VAR_...`
+                    - [x] `<SET_EVENT>` line 67 = `p0 s0 (A:STRUCTURAL DEICE SWITCH, Bool) != if{ (>K:TOGGLE_STRUCTURAL_DEICE) } l0 (>#INPUTEVENT_VAR_...`
                     - [ ] `<TOOLTIP_VALUE>` line 68 = `(A:STRUCTURAL DEICE SWITCH, Bool) @TT_OnOff_Cond`
                 - [ ] `<INIT_VALUE>` line 71 = `(A:STRUCTURAL DEICE SWITCH, Bool) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 72
@@ -6809,7 +6809,7 @@
                   - [ ] `<Binding>` line 194
                     - [ ] `<Param>` line 195 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) !`
                   - [ ] `<Binding>` line 197
-                    - [ ] `<Param>` line 198 = `(A:STRUCTURAL DEICE SWITCH, Bool) !`
+                    - [x] `<Param>` line 198 = `(A:STRUCTURAL DEICE SWITCH, Bool) !`
           - [ ] `<Case NotEmpty="PROPELLER_ID">` line 204
             - [ ] `<Preset ID="DEICE_Propeller_#PROPELLER_ID#">` line 205
               - [ ] `<Parameters Type="Default">` line 206
@@ -6837,7 +6837,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 233 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) @TT_OnOff_Cond`
                 - [ ] `<INC_EVENT>` line 234 = `1 (>B:DEICE_Propeller_#PROPELLER_ID#_Set)`
                 - [ ] `<DEC_EVENT>` line 235 = `0 (>B:DEICE_Propeller_#PROPELLER_ID#_Set)`
-                - [ ] `<SET_EVENT>` line 236 = `p0 s0 (A:PROP DEICE SWITCH:#PROPELLER_ID#, Bool) != if{ (>K:TOGGLE_PROPELLER_DEICE) } l0 (>#INPUTEV...`
+                - [x] `<SET_EVENT>` line 236 = `p0 s0 (A:PROP DEICE SWITCH:#PROPELLER_ID#, Bool) != if{ (>K:TOGGLE_PROPELLER_DEICE) } l0 (>#INPUTEV...`
                 - [ ] `<INIT_VALUE>` line 237 = `(A:PROP DEICE SWITCH:#PROPELLER_ID#, Bool) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<TOOLTIP_VALUE>` line 238 = `(A:PROP DEICE SWITCH:#PROPELLER_ID#, Bool) @TT_OnOff_Cond`
                 - [ ] `<ON_STATE_CHANGED>` line 239
@@ -6895,13 +6895,13 @@
                   - [ ] `<Binding>` line 313
                     - [ ] `<Param>` line 314 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) !`
                   - [ ] `<Binding>` line 316
-                    - [ ] `<Param>` line 317 = `(A:PROP DEICE SWITCH:1, Bool) !`
+                    - [x] `<Param>` line 317 = `(A:PROP DEICE SWITCH:1, Bool) !`
                   - [ ] `<Binding>` line 319
-                    - [ ] `<Param>` line 320 = `(A:PROP DEICE SWITCH:1, Bool) !`
+                    - [x] `<Param>` line 320 = `(A:PROP DEICE SWITCH:1, Bool) !`
                   - [ ] `<Binding>` line 322
-                    - [ ] `<Param>` line 323 = `1`
+                    - [x] `<Param>` line 323 = `1`
                   - [ ] `<Binding>` line 325
-                    - [ ] `<Param>` line 326 = `0`
+                    - [x] `<Param>` line 326 = `0`
           - [ ] `<Case NotEmpty="PITOT_ID">` line 332
             - [ ] `<Preset ID="DEICE_Pitot_#PITOT_ID#">` line 333
               - [ ] `<Parameters Type="Default">` line 334
@@ -6929,7 +6929,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 361 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) @TT_OnOff_Cond`
                 - [ ] `<INC_EVENT>` line 362 = `1 (>B:DEICE_Pitot_#PITOT_ID#_Set)`
                 - [ ] `<DEC_EVENT>` line 363 = `0 (>B:DEICE_Pitot_#PITOT_ID#_Set)`
-                - [ ] `<SET_EVENT>` line 364 = `#PITOT_ID# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:2:PITOT_HEAT_SET) l0 (>#INPUTEVENT_VAR_TYP...`
+                - [x] `<SET_EVENT>` line 364 = `#PITOT_ID# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:2:PITOT_HEAT_SET) l0 (>#INPUTEVENT_VAR_TYP...`
                 - [ ] `<INIT_VALUE>` line 365 = `(A:PITOT HEAT SWITCH:#PITOT_ID#, Bool) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 366
               - [ ] `<Parameters Type="Override">` line 368

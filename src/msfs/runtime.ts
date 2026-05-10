@@ -1581,7 +1581,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyPitotHeatKeyEvent(name: string, args: readonly number[]): boolean {
-    const pitotMatch = /^PITOT_HEAT_(ON|OFF|TOGGLE)$/u.exec(name)
+    const pitotMatch = /^PITOT_HEAT_(ON|OFF|TOGGLE|SET)$/u.exec(name)
     if (pitotMatch == null) {
       return false
     }
@@ -1590,7 +1590,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue =
       pitotMatch[1] === 'TOGGLE'
         ? (this.values.get(key) ?? 0) > 0 ? 0 : 1
-        : pitotMatch[1] === 'ON' ? 1 : 0
+        : pitotMatch[1] === 'SET' ? Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+          : pitotMatch[1] === 'ON' ? 1 : 0
     this.values.set(key, nextValue)
     this.values.set(normalizeRuntimeVariableKey('A:PITOT HEAT'), nextValue)
     return true
@@ -1702,6 +1703,35 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyDeiceAndIgnitionKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'TOGGLE_STRUCTURAL_DEICE') {
+      const key = normalizeRuntimeVariableKey('A:STRUCTURAL DEICE SWITCH')
+      const nextValue = (this.values.get(key) ?? 0) > 0 ? 0 : 1
+      this.values.set(key, nextValue)
+      return true
+    }
+
+    if (name === 'STRUCTURAL_DEICE_SET') {
+      this.values.set(normalizeRuntimeVariableKey('A:STRUCTURAL DEICE SWITCH'), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      return true
+    }
+
+    const propellerDeiceMatch = /^(?:TOGGLE_PROPELLER_DEICE|ANTI_ICE_(ON|OFF|TOGGLE|SET)|PROP_DEICE_(ON|OFF|TOGGLE|SET))$/u.exec(name)
+    if (propellerDeiceMatch != null) {
+      const action = propellerDeiceMatch[1] ?? 'TOGGLE'
+      const maybeIndexedArg = Math.trunc(Number(args[0] ?? Number.NaN))
+      const hasExplicitSetValue = action === 'SET' && args.length > 1
+      const index = Number.isFinite(maybeIndexedArg) && hasExplicitSetValue ? maybeIndexedArg : 1
+      const key = normalizeRuntimeVariableKey(`A:PROP DEICE SWITCH:${index}`)
+      const nextValue =
+        action === 'TOGGLE'
+          ? (this.values.get(key) ?? 0) > 0 ? 0 : 1
+          : action === 'SET' ? Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+            : action === 'ON' ? 1 : 0
+      this.values.set(key, nextValue)
+      this.values.set(normalizeRuntimeVariableKey('A:PROP DEICE SWITCH'), nextValue)
+      return true
+    }
+
     const windshieldDeiceMatch = /^WINDSHIELD_DEICE_(ON|OFF|TOGGLE|SET)$/u.exec(name)
     if (windshieldDeiceMatch != null) {
       const key = normalizeRuntimeVariableKey('A:WINDSHIELD DEICE SWITCH')
