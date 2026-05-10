@@ -1694,7 +1694,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyInstrumentKeyEvent(name: string, args: readonly number[]): boolean {
-    const vorCourseMatch = /^KEY_VOR(\d+)_(INC|DEC|SET)$/u.exec(name)
+    const vorCourseMatch = /^(?:KEY_)?VOR(\d+)_(INC|DEC|SET)$/u.exec(name)
     if (vorCourseMatch != null) {
       const index = Number.parseInt(vorCourseMatch[1], 10)
       const key = normalizeRuntimeVariableKey(`A:NAV OBS:${index}`)
@@ -2258,6 +2258,33 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    if (name === 'HEADING_BUG_SET') {
+      const value = normalizeDegrees(Number(args.at(-1) ?? 0))
+      const maybeIndex = Math.trunc(Number(args.length > 1 ? args[0] : 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex >= 0 ? maybeIndex : 1
+      this.setAutopilotSimVar('AUTOPILOT HEADING LOCK DIR', value, index)
+      return true
+    }
+
+    if (name === 'AP_ALT_VAR_SET_ENGLISH') {
+      const value = Math.max(0, Number(args.at(-1) ?? 0))
+      const maybeIndex = Math.trunc(Number(args.length > 1 ? args[0] : 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex >= 0 ? maybeIndex : 1
+      this.setAutopilotSimVar('AUTOPILOT ALTITUDE LOCK VAR', value, index)
+      return true
+    }
+
+    if (name === 'AP_ALT_VAR_INC' || name === 'AP_ALT_VAR_DEC') {
+      const maybeIndex = Math.trunc(Number(args.length > 1 ? args[0] : 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex >= 0 ? maybeIndex : 1
+      const key = normalizeRuntimeVariableKey(`A:AUTOPILOT ALTITUDE LOCK VAR:${index}`)
+      const baseKey = normalizeRuntimeVariableKey('A:AUTOPILOT ALTITUDE LOCK VAR')
+      const currentValue = this.values.get(key) ?? this.values.get(baseKey) ?? 0
+      const nextValue = Math.max(0, currentValue + (name === 'AP_ALT_VAR_INC' ? 100 : -100))
+      this.setAutopilotSimVar('AUTOPILOT ALTITUDE LOCK VAR', nextValue, index)
+      return true
+    }
+
     if (name === 'AP_MAX_BANK_SET') {
       const value = Math.max(0, Math.trunc(Number(args.at(-1) ?? 0)))
       this.setAutopilotSimVar('AUTOPILOT MAX BANK ID', value)
@@ -2334,6 +2361,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    if (name === 'BAROMETRIC' || name === 'BAROMETRIC_STD_PRESSURE') {
+      const maybeIndex = Math.trunc(Number(args[0] ?? 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex > 0 ? maybeIndex : 1
+      this.setKohlsmanHg(index, 29.92)
+      this.values.set(normalizeRuntimeVariableKey(`L:XMLVAR_Baro${index}_Mode`), name === 'BAROMETRIC_STD_PRESSURE' ? 1 : 0)
+      return true
+    }
+
     const kohlsmanMatch = /^KOHLSMAN_(INC|DEC|SET)$/u.exec(name)
     if (kohlsmanMatch != null) {
       const maybeIndex = Math.trunc(Number(args[0] ?? Number.NaN))
@@ -2344,13 +2379,19 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       const nextValue = kohlsmanMatch[1] === 'SET'
         ? normalizeKohlsmanHg(rawSetValue)
         : currentValue + (kohlsmanMatch[1] === 'INC' ? 0.01 : -0.01)
-      this.values.set(key, nextValue)
-      this.values.set(normalizeRuntimeVariableKey('A:KOHLSMAN SETTING HG'), nextValue)
-      this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING MB:${index}`), nextValue * 33.863_886_666_7)
+      this.setKohlsmanHg(index, nextValue)
       return true
     }
 
     return false
+  }
+
+  private setKohlsmanHg(index: number, value: number): void {
+    const normalizedValue = normalizeKohlsmanHg(value)
+    const kohlsmanIndex = Math.max(1, Math.trunc(index))
+    this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING HG:${kohlsmanIndex}`), normalizedValue)
+    this.values.set(normalizeRuntimeVariableKey('A:KOHLSMAN SETTING HG'), normalizedValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING MB:${kohlsmanIndex}`), normalizedValue * 33.863_886_666_7)
   }
 
   private setAutopilotSimVar(simVarName: string, value: number, index?: number): void {
