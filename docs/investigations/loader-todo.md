@@ -218,6 +218,8 @@ These are the current aircraft-viewer issues that still need generic MSFS loader
   - First render a deterministic placeholder/debug pattern into each dynamic texture and bind it to the cockpit model, so surface discovery and material binding can be verified before any gauge runtime exists.
   - Add structured diagnostics for unresolved surface textures, duplicate texture names, unsupported panel entries, invalid dimensions, and missing gauge assets.
   - Keep `VCockpit` binding startup-safe by binding surfaces synchronously but loading gauge iframes asynchronously.
+  - Treat gauge-side SimVar writes and key events as local-state updates plus fire-and-forget parent runtime notifications, not iframe-blocking request/response calls.
+  - Count simulator host-service registration calls that only establish subscriptions or nearest-search sessions as supported no-op bridge services when the browser host has no native simulator backend.
   - Implement HTML gauge loading only after surface binding is verified:
     - resolve gauge package paths through the same package-root/dependency-root system as other aircraft assets
     - instantiate gauges in an isolated browser surface such as an iframe or equivalent sandbox

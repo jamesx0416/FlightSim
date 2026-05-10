@@ -4566,6 +4566,15 @@ function createVCockpitGaugeBridgeScript(
       reject(new Error('MSFS runtime bridge request timed out'));
     }, 2000);
   });
+  const postRuntimeNotification = payload => {
+    const id = nextRuntimeRequestId++;
+    bridgeStats.runtimeRequestCount += 1;
+    window.parent?.postMessage({
+      type: 'msfs-vcockpit-runtime-request',
+      id,
+      ...payload
+    }, '*');
+  };
   let gaugeChangeVersion = 1;
   let pendingDirtyMessage = false;
   let dirtyMessageCount = 0;
@@ -4942,26 +4951,24 @@ function createVCockpitGaugeBridgeScript(
     if (/^K:/iu.test(runtimeName)) {
       return triggerRuntimeKeyEvent(runtimeName.slice(2), [Number(value ?? 0)]);
     }
-    return postRuntimeRequest({
+    postRuntimeNotification({
       op: 'writeVariable',
       name: runtimeName,
       unit,
       value: Number.isFinite(numericValue) ? numericValue : 0
-    }).catch(error => {
-      recordUnsupportedBridgeCall('runtime.writeVariable', [runtimeName, String(error?.message ?? error)]);
     });
+    return Promise.resolve(Number.isFinite(numericValue) ? numericValue : 0);
   };
   const triggerRuntimeKeyEvent = (name, args = []) => {
     incrementBridgeCall('KeyEvent:' + String(name ?? ''));
     bridgeStats.keyEventCount += 1;
     markGaugeChanged('unknown');
-    return postRuntimeRequest({
+    postRuntimeNotification({
       op: 'keyEvent',
       name: String(name ?? '').replace(/^K:/iu, ''),
       args: Array.from(args).map(value => Number(value) || 0)
-    }).catch(error => {
-      recordUnsupportedBridgeCall('runtime.keyEvent', [name, String(error?.message ?? error)]);
     });
+    return Promise.resolve(0);
   };
   const readTrackedRegisteredSimVar = id => {
     const entry = registeredSimVarById[id];
@@ -5466,6 +5473,17 @@ function createVCockpitGaugeBridgeScript(
     triggerKeyEvent: (name, ...args) => triggerRuntimeKeyEvent(name, args),
     sendKeyEvent: (name, ...args) => triggerRuntimeKeyEvent(name, args)
   };
+  const isSupportedNoopCoherentCall = name => {
+    const normalized = String(name ?? '').toUpperCase();
+    return normalized === 'INTERCEPT_KEY_EVENT' ||
+      normalized === 'START_NEAREST_SEARCH_SESSION' ||
+      normalized === 'STOP_NEAREST_SEARCH_SESSION' ||
+      normalized === 'SET_NEAREST_AIRPORT_FILTER' ||
+      normalized === 'SET_NEAREST_EXTENDED_AIRPORT_FILTERS' ||
+      normalized === 'SET_NEAREST_INTERSECTION_FILTER' ||
+      normalized === 'SET_NEAREST_NDB_FILTER' ||
+      normalized === 'SET_NEAREST_VOR_FILTER';
+  };
   globalThis.Coherent ??= {
     call: (name, ...args) => {
       const normalizedCallName = String(name ?? '');
@@ -5479,6 +5497,10 @@ function createVCockpitGaugeBridgeScript(
       }
       if (/^K:/iu.test(normalizedCallName)) {
         return triggerRuntimeKeyEvent(name, args);
+      }
+      if (isSupportedNoopCoherentCall(normalizedCallName)) {
+        incrementBridgeCall('Coherent.call:' + normalizedCallName);
+        return Promise.resolve(args[0] ?? 0);
       }
       recordUnsupportedBridgeCall('Coherent.call:' + normalizedCallName, args);
       return Promise.resolve();
