@@ -158,6 +158,7 @@ type ViewerConfigProfile = {
   readonly vcockpitGaugeMode?: VCockpitGaugeMode
   readonly vcockpitGaugeCaptureFps?: number | null
   readonly vcockpitGaugeRasterScale?: number | null
+  readonly vcockpitGaugeUpdateOutside?: boolean
   readonly cockpitTextures?: CockpitTextureMode
   readonly cockpitTextureSize?: number | null
   readonly cockpitMergeStatic?: boolean
@@ -193,6 +194,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly vcockpitGaugeMode: VCockpitGaugeMode
   readonly vcockpitGaugeCaptureFps: number
   readonly vcockpitGaugeRasterScale: number
+  readonly vcockpitGaugeUpdateOutside: boolean
   readonly cockpitTextures: CockpitTextureMode
   readonly cockpitTextureSize: number | null
   readonly cockpitMergeStatic: boolean
@@ -829,7 +831,7 @@ async function init(): Promise<void> {
       loadedModel.scene.add(nextInterior.scene)
     }
     if (nextInterior != null) {
-      nextInterior.vcockpitBinding?.setActive(true)
+      nextInterior.vcockpitBinding?.setActive(shouldUpdateVCockpitGaugesForCurrentView())
     }
     recordSwapPhase('interior-swap:scene-graph', sceneSwapStartMs)
 
@@ -847,6 +849,9 @@ async function init(): Promise<void> {
       swapPhases
     })
   }
+
+  const shouldUpdateVCockpitGaugesForCurrentView = (): boolean =>
+    cockpitCameraController.isActive() || shouldUpdateVCockpitGaugesOutside(effectiveSearchParams)
 
   let exteriorViewInterior = loadedModel.interior
   let exteriorViewInteriorLoadPromise: Promise<LoadedModelComponent | null> | null = null
@@ -1373,6 +1378,7 @@ async function init(): Promise<void> {
   )
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
     cockpitCameraController
+  loadedModel.interior?.vcockpitBinding?.setActive(shouldUpdateVCockpitGaugesForCurrentView())
   if (exteriorInteriorMode === 'deferred') {
     requestAnimationFrame(() => {
       const idleCallback = (
@@ -1749,6 +1755,8 @@ async function init(): Promise<void> {
       previousSettings.vcockpitGaugeRasterScale !== nextSettings.vcockpitGaugeRasterScale
     const gaugeCaptureFpsChanged =
       previousSettings.vcockpitGaugeCaptureFps !== nextSettings.vcockpitGaugeCaptureFps
+    const gaugeUpdateOutsideChanged =
+      previousSettings.vcockpitGaugeUpdateOutside !== nextSettings.vcockpitGaugeUpdateOutside
     const cockpitTextureChanged =
       previousSettings.cockpitTextures !== nextSettings.cockpitTextures ||
       previousSettings.cockpitTextureSize !== nextSettings.cockpitTextureSize ||
@@ -1778,6 +1786,15 @@ async function init(): Promise<void> {
     if (gaugeCaptureFpsChanged && loadedModel.interior?.vcockpitBinding != null) {
       loadedModel.interior.vcockpitBinding.setCaptureFps(nextSettings.vcockpitGaugeCaptureFps)
       actions.push('updated gauge capture FPS')
+    }
+
+    if (gaugeUpdateOutsideChanged && loadedModel.interior?.vcockpitBinding != null) {
+      loadedModel.interior.vcockpitBinding.setActive(shouldUpdateVCockpitGaugesForCurrentView())
+      actions.push(
+        nextSettings.vcockpitGaugeUpdateOutside
+          ? 'enabled outside-view gauge updates'
+          : 'disabled outside-view gauge updates'
+      )
     }
 
     if (cockpitPerfChanged) {
@@ -2512,6 +2529,10 @@ function getVCockpitGaugeRasterScale(searchParams: URLSearchParams): number {
   return Math.min(1, Math.max(0.25, parsed))
 }
 
+function shouldUpdateVCockpitGaugesOutside(searchParams: URLSearchParams): boolean {
+  return isEnabledFlagSearchParam(searchParams, 'vcockpitGaugeUpdateOutside')
+}
+
 function getVCockpitGaugeUpdateThrottleMs(searchParams: URLSearchParams): number | null {
   const rawMilliseconds = searchParams.get('vcockpitGaugeUpdateMs')
   const explicitMilliseconds = parsePositiveQueryNumber(rawMilliseconds)
@@ -2651,6 +2672,7 @@ const PROFILE_QUERY_KEYS = [
   'vcockpitGaugeCaptureFps',
   'vcockpitGaugeCaptureHz',
   'vcockpitGaugeRasterScale',
+  'vcockpitGaugeUpdateOutside',
   'cockpitTextures',
   'cockpitTextureSize',
   'cockpitMergeStatic',
@@ -2728,6 +2750,7 @@ function normalizeViewerConfigProfile(value: unknown): ViewerConfigProfile {
     vcockpitGaugeMode: normalizeVCockpitGaugeMode(record.vcockpitGaugeMode),
     vcockpitGaugeCaptureFps: normalizeNullableNumber(record.vcockpitGaugeCaptureFps),
     vcockpitGaugeRasterScale: normalizeNullableNumber(record.vcockpitGaugeRasterScale),
+    vcockpitGaugeUpdateOutside: normalizeOptionalBoolean(record.vcockpitGaugeUpdateOutside),
     cockpitTextures:
       record.cockpitTextures === 'full'
         ? 'full'
@@ -2827,6 +2850,14 @@ function applyViewerConfigProfileToSearchParams(
     'vcockpitGaugeRasterScale',
     profile.vcockpitGaugeRasterScale,
     overwrite
+  )
+  setBooleanSearchParam(
+    searchParams,
+    'vcockpitGaugeUpdateOutside',
+    profile.vcockpitGaugeUpdateOutside,
+    overwrite,
+    'on',
+    'off'
   )
   setProfileSearchParam(searchParams, 'cockpitTextures', profile.cockpitTextures, overwrite)
   setNullableIntegerSearchParam(
@@ -9320,6 +9351,7 @@ function createSettingsProfileEditor(options: {
   const cockpitTextureSizeInput = createSettingsInput('Cockpit Texture Size', 'number')
   const vcockpitCaptureFpsInput = createSettingsInput('Gauge Capture FPS', 'number')
   const vcockpitRasterScaleInput = createSettingsInput('Gauge Raster Scale', 'number')
+  const vcockpitGaugeUpdateOutsideSelect = createSettingsSelect('Gauge Updates Outside')
   const cockpitMergeSelect = createSettingsSelect('Cockpit Merge Static')
   const cockpitInstanceSelect = createSettingsSelect('Cockpit Instance Static')
   const cockpitPerfSelect = createSettingsSelect('Cockpit Perf')
@@ -9364,7 +9396,8 @@ function createSettingsProfileEditor(options: {
     cockpitMergeSelect,
     cockpitInstanceSelect,
     cockpitPerfSelect,
-    cockpitInteractionHitboxesSelect
+    cockpitInteractionHitboxesSelect,
+    vcockpitGaugeUpdateOutsideSelect
   ]) {
     appendGlobalOption(select)
     select.append(createSettingsOption('off', 'Off'), createSettingsOption('on', 'On'))
@@ -9431,6 +9464,10 @@ function createSettingsProfileEditor(options: {
       profile.vcockpitGaugeCaptureFps == null ? '' : String(profile.vcockpitGaugeCaptureFps)
     vcockpitRasterScaleInput.value =
       profile.vcockpitGaugeRasterScale == null ? '' : String(profile.vcockpitGaugeRasterScale)
+    vcockpitGaugeUpdateOutsideSelect.value = formatSettingsBooleanValue(
+      profile.vcockpitGaugeUpdateOutside,
+      inheritsFromGlobal
+    )
     cockpitMergeSelect.value = formatSettingsBooleanValue(
       profile.cockpitMergeStatic,
       inheritsFromGlobal
@@ -9470,6 +9507,10 @@ function createSettingsProfileEditor(options: {
       ),
       vcockpitGaugeRasterScale: parseSettingsNullableNumber(
         vcockpitRasterScaleInput.value,
+        inheritsFromGlobal
+      ),
+      vcockpitGaugeUpdateOutside: parseSettingsBooleanValue(
+        vcockpitGaugeUpdateOutsideSelect.value,
         inheritsFromGlobal
       ),
       cockpitTextures: parseSettingsCockpitTextures(
@@ -9519,6 +9560,7 @@ function createSettingsProfileEditor(options: {
     createSettingsField('Gauge Mode', vcockpitGaugeModeSelect),
     createSettingsField('Gauge Capture FPS', vcockpitCaptureFpsInput),
     createSettingsField('Gauge Raster Scale', vcockpitRasterScaleInput),
+    createSettingsField('Gauge Updates Outside', vcockpitGaugeUpdateOutsideSelect),
     createSettingsField('Cockpit Textures', cockpitTexturesSelect),
     createSettingsField('Cockpit Texture Size', cockpitTextureSizeInput),
     createSettingsField('Cockpit Merge Static', cockpitMergeSelect),
@@ -9554,6 +9596,7 @@ function createViewerConfigProfileFromSearchParams(
     vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
+    vcockpitGaugeUpdateOutside: shouldUpdateVCockpitGaugesOutside(searchParams),
     cockpitTextures: getCockpitTextureMode(searchParams),
     cockpitTextureSize: searchParams.has('cockpitTextureSize')
       ? getCockpitRangeTextureSize(searchParams)
@@ -9581,6 +9624,7 @@ function createViewerRuntimeSettingsSnapshot(
     vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
+    vcockpitGaugeUpdateOutside: shouldUpdateVCockpitGaugesOutside(searchParams),
     cockpitTextures: getCockpitTextureMode(searchParams),
     cockpitTextureSize: searchParams.has('cockpitTextureSize')
       ? getCockpitRangeTextureSize(searchParams)
