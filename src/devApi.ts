@@ -106,7 +106,7 @@ type ViewerDevApi = {
   readonly writeVar: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly keyEvent: (name: string, args?: readonly number[]) => DevApiResponse
   readonly bridgeCall: (name: string) => DevApiResponse
-  readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'interaction' }) => DevApiResponse
+  readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'bridge' | 'interaction' }) => DevApiResponse
   readonly watch: (
     targets: string | readonly string[],
     options?: { readonly durationMs?: number; readonly intervalMs?: number; readonly unit?: string | null }
@@ -570,6 +570,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       key: options.kind == null || options.kind === 'key' ? context.getRuntimeHost().getKeyEvents() : [],
       html: options.kind == null || options.kind === 'html' ? context.getRuntimeHost().getHtmlEvents() : [],
       sound: options.kind == null || options.kind === 'sound' ? context.getRuntimeHost().getSoundEvents() : [],
+      bridge: options.kind == null || options.kind === 'bridge' ? context.getRuntimeHost().getBridgeEvents() : [],
       interaction: options.kind == null || options.kind === 'interaction' ? { ...context.cockpitInteractionStats } : null
     }),
     watch: async (targets, options = {}) => {
