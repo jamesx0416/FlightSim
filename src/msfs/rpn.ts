@@ -54,6 +54,14 @@ const STRING_COMPARE_OPERATORS = new Map<string, Instruction['op']>([
 ])
 
 type StackValue = number | string
+type ExecutionResult =
+  | { readonly kind: 'continue' }
+  | { readonly kind: 'quit' }
+  | { readonly kind: 'goto'; readonly index: number }
+
+const CONTINUE_EXECUTION: ExecutionResult = { kind: 'continue' }
+const QUIT_EXECUTION: ExecutionResult = { kind: 'quit' }
+const MAX_RPN_INSTRUCTION_STEPS = 10_000
 
 export function compileRpnExpression(
   source: string,
@@ -264,6 +272,18 @@ function compileInstructionBlock(
       continue
     }
 
+    const labelIndex = extractRegisterLabel(normalized)
+    if (labelIndex != null) {
+      instructions.push({ op: 'label', index: labelIndex })
+      continue
+    }
+
+    const gotoLabel = extractGotoLabel(normalized)
+    if (gotoLabel != null) {
+      instructions.push({ op: 'gotoLabel', index: gotoLabel })
+      continue
+    }
+
     switch (normalized) {
       case 'd':
         instructions.push({ op: 'duplicate' })
@@ -289,10 +309,6 @@ function compileInstructionBlock(
       case 'quit':
         instructions.push({ op: 'quit' })
         continue
-    }
-
-    if (isRegisterLabel(normalized)) {
-      continue
     }
 
     const binaryOperator = BINARY_OPERATORS.get(normalized)
@@ -357,8 +373,19 @@ function executeInstructions(
     parameterValues?: readonly number[]
   },
   context: EvaluationContext
-): boolean {
-  for (const instruction of instructions) {
+): ExecutionResult {
+  const labelIndices = getInstructionLabelIndices(instructions)
+  for (let instructionIndex = 0; instructionIndex < instructions.length; instructionIndex += 1) {
+    const instruction = instructions[instructionIndex]
+    if (instruction == null) {
+      continue
+    }
+
+    context.stepCount += 1
+    if (context.stepCount > MAX_RPN_INSTRUCTION_STEPS) {
+      return QUIT_EXECUTION
+    }
+
     switch (instruction.op) {
       case 'pushNumber':
         stack.push(instruction.value)
@@ -420,16 +447,33 @@ function executeInstructions(
       case 'loadRegister':
         stack.push(context.registers[instruction.index] ?? 0)
         break
+      case 'label':
+        break
+      case 'gotoLabel': {
+        const labelIndex = labelIndices.get(instruction.index)
+        if (labelIndex == null) {
+          return { kind: 'goto', index: instruction.index }
+        }
+        instructionIndex = labelIndex
+        break
+      }
       case 'if': {
         const condition = toNumber(stack.pop() ?? 0)
-        const shouldContinue = executeInstructions(
+        const result = executeInstructions(
           condition !== 0 ? instruction.thenInstructions : instruction.elseInstructions,
           stack,
           services,
           context
         )
-        if (!shouldContinue) {
-          return false
+        if (result.kind === 'quit') {
+          return result
+        }
+        if (result.kind === 'goto') {
+          const labelIndex = labelIndices.get(result.index)
+          if (labelIndex == null) {
+            return result
+          }
+          instructionIndex = labelIndex
         }
         break
       }
@@ -451,7 +495,7 @@ function executeInstructions(
         break
       }
       case 'quit':
-        return false
+        return QUIT_EXECUTION
       case 'pushPi':
         stack.push(Math.PI)
         break
@@ -608,7 +652,7 @@ function executeInstructions(
     }
   }
 
-  return true
+  return CONTINUE_EXECUTION
 }
 
 function tokenizeRpn(source: string): string[] {
@@ -776,11 +820,13 @@ function extractParameterIndex(token: string): number | null {
 
 interface EvaluationContext {
   readonly registers: StackValue[]
+  stepCount: number
 }
 
 function createEvaluationContext(): EvaluationContext {
   return {
-    registers: new Array<StackValue>(50).fill(0)
+    registers: new Array<StackValue>(50).fill(0),
+    stepCount: 0
   }
 }
 
@@ -810,11 +856,28 @@ function extractRegisterLoad(token: string): number | null {
   return index
 }
 
-function isRegisterLabel(token: string): boolean {
+function extractRegisterLabel(token: string): number | null {
   const match = /^:(\d{1,2})$/u.exec(token)
-  if (!match) return false
+  if (!match) return null
   const index = Number.parseInt(match[1], 10)
-  return Number.isInteger(index) && index >= 0 && index <= 49
+  return Number.isInteger(index) && index >= 0 && index <= 49 ? index : null
+}
+
+function extractGotoLabel(token: string): number | null {
+  const match = /^g(\d{1,2})$/iu.exec(token)
+  if (!match) return null
+  const index = Number.parseInt(match[1], 10)
+  return Number.isInteger(index) && index >= 0 && index <= 49 ? index : null
+}
+
+function getInstructionLabelIndices(instructions: readonly Instruction[]): ReadonlyMap<number, number> {
+  const indices = new Map<number, number>()
+  instructions.forEach((instruction, index) => {
+    if (instruction.op === 'label') {
+      indices.set(instruction.index, index)
+    }
+  })
+  return indices
 }
 
 function normalizeAngleDegrees(value: number): number {

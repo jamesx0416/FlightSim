@@ -242,6 +242,8 @@ export type Instruction =
   | { readonly op: 'duplicate' | 'popDiscard' | 'swap' | 'increment' | 'decrement' | 'quit' }
   | { readonly op: 'storeRegister'; readonly index: number; readonly pop: boolean }
   | { readonly op: 'loadRegister'; readonly index: number }
+  | { readonly op: 'label'; readonly index: number }
+  | { readonly op: 'gotoLabel'; readonly index: number }
   | {
       readonly op: 'if'
       readonly thenInstructions: readonly Instruction[]
