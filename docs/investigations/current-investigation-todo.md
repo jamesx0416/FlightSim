@@ -121,14 +121,10 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - live texture/video capture is now dirty-driven and rate-capped: the generic iframe bridge posts output-change versions for DOM mutations and Canvas2D writes, and the parent only recaptures dirty gauges/surfaces without letting per-frame iframe draws bypass `?vcockpitGaugeCaptureFps=`
   - HTML gauge capture now defaults to live refresh with adaptive generic instrument `Update()` scheduling based on SimVar/game-var dependencies; `?vcockpitGaugeUpdateMs=` or `?vcockpitGaugeUpdateHz=` can force periodic iframe updates, `?vcockpitGaugeUpdateMs=off` restores every-animation-frame updates, and `?vcockpitLiveGauges=off` switches to a bounded first-successful-frame pass that caches captured pixels and releases hidden iframes
   - live LOD00 verification on the A339X package now captures 15 non-WASM HTML gauges without blocking LOD00 binding; WASM hosts and the EFB remain explicitly deferred or diagnosed
-  - cockpit/interior-view LOD selection is being generalized beyond the hard-coded LOD00 cockpit path with `?interiorLod=` and profile/settings support; this is still pending typecheck and browser verification before it should be treated as complete
+  - cockpit/interior-view LOD selection is generalized beyond the hard-coded LOD00 cockpit path with `?interiorLod=` and profile/settings support
+    - verified on 2026-05-10 with `tsc --noEmit` and Agent Browser on the A320 route: default auto selected active cockpit LOD0 with bound VCockpit surfaces, and explicit `?interiorLod=2` selected active cockpit LOD2 without a VCockpit binding because that lower-detail LOD has no bound panel surfaces
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
-  - finish selectable cockpit/interior LOD support generically:
-    - keep `auto` mapped to the default cockpit/interior-view path
-    - clamp explicit `interiorLod=` values to available interior LODs after validating the query value
-    - apply the selected interior LOD consistently to cockpit activation, range-low texture loading, VCockpit surface binding, static cockpit batching experiments, benchmarks, and settings profiles
-    - verify default `auto`, `interiorLod=0`, and at least one nonzero `interiorLod` route before marking this slice done
   - continue `VCockpit` dynamic texture binding, using `panel.cfg` surface definitions generically
     - parse `[VCockpitXX]` sections into typed surface IR, including `texture`, `pixel_size`, `size_mm`, background color, and gauge entries
     - resolve each surface `texture=` target to cockpit material/texture slots by package data, not by aircraft-specific display names
