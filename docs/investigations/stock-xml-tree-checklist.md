@@ -7924,8 +7924,8 @@
                 - [ ] `<UPPER_LIMIT>` line 11
                 - [ ] `<LOWER_LIMIT>` line 12
               - [ ] `<Parameters Type="Default">` line 14
-                - [ ] `<THROTTLE_KEY_SET>` line 15
-                - [ ] `<GET_THROTTLE>` line 16
+                - [x] `<THROTTLE_KEY_SET>` line 15
+                - [x] `<GET_THROTTLE>` line 16
                 - [ ] `<ON_BEFORE_INC>` line 17
                 - [ ] `<ON_BEFORE_DEC>` line 18
                 - [ ] `<ON_BEFORE_SET>` line 19
@@ -8002,10 +8002,10 @@
                 - [ ] `<CLAMP_UPPER_LIMIT>` line 152
                 - [ ] `<CLAMP_LOWER_LIMIT>` line 153
                 - [ ] `<ON_AFTER_SET_BINDING>` line 154
-                - [ ] `<TOOLTIP_VALUE>` line 155 = `(A:GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#, percent) '%.1f%%' @sprintf`
+                - [x] `<TOOLTIP_VALUE>` line 155 = `(A:GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#, percent) '%.1f%%' @sprintf`
               - [ ] `<Parameters Type="Override">` line 157
                 - [ ] `<Condition NotEmpty="GROUND_GATE_ANIM_POS">` line 158
-                  - [ ] `<TOOLTIP_VALUE>` line 159 = `(A:PROP BETA FORCED ACTIVE:#THROTTLE_ID#, Bool) if{ #TT_VALUE_GROUND_FINE# } els{ #TOOLTIP_VALUE# }`
+                  - [x] `<TOOLTIP_VALUE>` line 159 = `(A:PROP BETA FORCED ACTIVE:#THROTTLE_ID#, Bool) if{ #TT_VALUE_GROUND_FINE# } els{ #TOOLTIP_VALUE# }`
               - [ ] `<Tooltip>` line 162
                 - [ ] `<Icon>` line 163
                 - [ ] `<Interaction>` line 164
@@ -8017,7 +8017,7 @@
                 - [ ] `<Code>` line 171 = `(O:ENGINE_Throttle_#THROTTLE_ID#_Position) #LOWER_LIMIT# - #UPPER_LIMIT# #LOWER_LIMIT# - / 100 *`
                 - [ ] `<Init>` line 172
                 - [ ] `<WatchVars>` line 173
-                  - [ ] `<Simvar ID="GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#">` line 174
+                  - [x] `<Simvar ID="GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#">` line 174
               - [ ] `<Inc>` line 177
                 - [ ] `<Code>` line 178 = `#ON_BEFORE_INC# #GET_THROTTLE# p0 + 16384 / #ON_BEFORE_INC_SET# (>B:ENGINE_Throttle_#THROTTLE_ID#_S...`
                 - [ ] `<Parameters>` line 179
@@ -8056,7 +8056,7 @@
                       - [ ] `<Binding>` line 228
                         - [ ] `<Param>` line 229 = `0.5`
               - [ ] `<Set>` line 235
-                - [ ] `<Code>` line 236 = `#ON_BEFORE_SET# p0 #CLAMP_LOWER_LIMIT# max #CLAMP_UPPER_LIMIT# min s0 #THROTTLE_KEY_SET# l0 (>O:ENG...`
+                - [x] `<Code>` line 236 = `#ON_BEFORE_SET# p0 #CLAMP_LOWER_LIMIT# max #CLAMP_UPPER_LIMIT# min s0 #THROTTLE_KEY_SET# l0 (>O:ENG...`
                 - [ ] `<Parameters>` line 237
                   - [ ] `<Param Type="Float">` line 238 = `p0 16384 *`
                 - [ ] `<Bindings>` line 240
@@ -8146,14 +8146,14 @@
                 - [ ] `<INCREMENT>` line 374
                 - [ ] `<UPPER_LIMIT>` line 375
                 - [ ] `<LOWER_LIMIT>` line 376
-                - [ ] `<GET_STATE>` line 377
+                - [x] `<GET_STATE>` line 377
                 - [ ] `<ON_BEFORE_INC>` line 378
                 - [ ] `<ON_BEFORE_DEC>` line 379
                 - [ ] `<ON_BEFORE_SET>` line 380
                 - [ ] `<ON_AFTER_INC>` line 381
                 - [ ] `<ON_AFTER_DEC>` line 382
                 - [ ] `<ON_AFTER_SET>` line 383
-                - [ ] `<TOOLTIP_VALUE>` line 384 = `(A:GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#, percent) '%.1f%%' @sprintf`
+                - [x] `<TOOLTIP_VALUE>` line 384 = `(A:GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#, percent) '%.1f%%' @sprintf`
                 - [ ] `<Condition NotEmpty="TT_DESCRIPTION_ID">` line 385
                   - [ ] `<True>` line 386
                     - [ ] `<Condition NotEmpty="TT_DESCRIPTION_INDEX">` line 387
@@ -8179,7 +8179,7 @@
                 - [ ] `<Code>` line 416 = `(O:ENGINE_Propeller_#PROPELLER_ID#_Position) #LOWER_LIMIT# - #UPPER_LIMIT# #LOWER_LIMIT# - / 100 *`
                 - [ ] `<Init>` line 417
                 - [ ] `<WatchVars>` line 418
-                  - [ ] `<Simvar ID="GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#">` line 419
+                  - [x] `<Simvar ID="GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#">` line 419
               - [ ] `<Inc>` line 422
                 - [ ] `<Code>` line 423 = `#ON_BEFORE_INC# #GET_STATE# p0 + 16384 / (>B:ENGINE_Propeller_#PROPELLER_ID#_Set) #ON_AFTER_INC#`
                 - [ ] `<Parameters>` line 424
@@ -8207,7 +8207,7 @@
                   - [ ] `<Binding>` line 457
                     - [ ] `<Param>` line 458 = `0.5`
               - [ ] `<Set>` line 462
-                - [ ] `<Code>` line 463 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:PROP_PITCH#PROPELLER_ID#_SET) l0 (>O:...`
+                - [x] `<Code>` line 463 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:PROP_PITCH#PROPELLER_ID#_SET) l0 (>O:...`
                 - [ ] `<Parameters>` line 464
                   - [ ] `<Param Type="Float">` line 465 = `p0 16384 *`
                 - [ ] `<Bindings>` line 467
@@ -17217,10 +17217,10 @@
         - [ ] `<LEVER_ID>` line 2075 = `#IE_COWLFLAPS_ID#`
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 2077
         - [ ] `<UseInputEvent ID="ENGINE">` line 2078
-          - [ ] `<SIMVAR_TO_WATCH_0>` line 2079
-          - [ ] `<SET_STATE_EXTERNAL>` line 2080
-          - [ ] `<GET_STATE_EXTERNAL>` line 2081
-          - [ ] `<GET_TT_VALUE_STATE>` line 2082
+          - [x] `<SIMVAR_TO_WATCH_0>` line 2079
+          - [x] `<SET_STATE_EXTERNAL>` line 2080
+          - [x] `<GET_STATE_EXTERNAL>` line 2081
+          - [x] `<GET_TT_VALUE_STATE>` line 2082
           - [ ] `<INC_PARAM_0>` line 2083
           - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 2084
           - [ ] `<DEC_PARAM_0>` line 2085
@@ -17231,7 +17231,7 @@
           - [ ] `<DEC_CODE_ADJUST_VALUE>` line 2090 = `16384 /`
           - [ ] `<MIN_VALUE>` line 2091 = `0`
           - [ ] `<MAX_VALUE>` line 2092 = `16384`
-          - [ ] `<VALUE_UNITS>` line 2093 = `position 16k`
+          - [x] `<VALUE_UNITS>` line 2093 = `position 16k`
         - [ ] `<UseTemplate Name="ASOBO_GT_Lever_DraggingWheelLeftDrag_Axis">` line 2095
           - [ ] `<TOOLTIP_ENTRY_0>` line 2096
           - [ ] `<CURSOR>` line 2097
@@ -17393,10 +17393,10 @@
               - [ ] `<TOOLTIP_ENTRY_0>` line 2370
               - [ ] `<TT_DESCRIPTION_ID>` line 2371 = `@TT_Package.ENGINE_#FLAPS_TYPE#_COOLING_FLAPS_ACTION`
             - [ ] `<UseInputEvent ID="ENGINE">` line 2373
-              - [ ] `<SIMVAR_TO_WATCH_0>` line 2374
-              - [ ] `<SET_STATE_EXTERNAL>` line 2375
-              - [ ] `<GET_STATE_EXTERNAL>` line 2376
-              - [ ] `<GET_TT_VALUE_STATE>` line 2377
+              - [x] `<SIMVAR_TO_WATCH_0>` line 2374
+              - [x] `<SET_STATE_EXTERNAL>` line 2375
+              - [x] `<GET_STATE_EXTERNAL>` line 2376
+              - [x] `<GET_TT_VALUE_STATE>` line 2377
               - [ ] `<INC_PARAM_0>` line 2378
               - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 2379
               - [ ] `<DEC_PARAM_0>` line 2380
@@ -17421,9 +17421,9 @@
             - [ ] `<Case Value="2">` line 2403
               - [ ] `<UseTemplate Name="ASOBO_ENGINE_Base_Template">` line 2404
                 - [ ] `<IE_NAME>` line 2405 = `#BTN_ID#`
-                - [ ] `<SET_STATE_EXTERNAL>` line 2406
-                - [ ] `<GET_STATE_EXTERNAL>` line 2407
-                - [ ] `<SIMVAR_TO_WATCH_0>` line 2408
+                - [x] `<SET_STATE_EXTERNAL>` line 2406
+                - [x] `<GET_STATE_EXTERNAL>` line 2407
+                - [x] `<SIMVAR_TO_WATCH_0>` line 2408
             - [ ] `<Default>` line 2411
               - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 2412
                 - [ ] `<Parameters Type="Override">` line 2413
@@ -18609,22 +18609,22 @@
         - [ ] `<BINDING_SET_3>` line 1528
         - [ ] `<BINDING_SET_3_PARAM_0>` line 1529
         - [ ] `<BINDING_SET_3_PARAM_0_IS_DYNAMIC>` line 1530
-        - [ ] `<BINDING_SET_3_EVENT_ID>` line 1531 = `AXIS_MIXTURE_SET`
+        - [x] `<BINDING_SET_3_EVENT_ID>` line 1531 = `AXIS_MIXTURE_SET`
         - [ ] `<BINDING_SET_3_EVENT_ID_ONLY>` line 1532
         - [ ] `<BINDING_SET_4>` line 1534
         - [ ] `<BINDING_SET_4_PARAM_0>` line 1535
         - [ ] `<BINDING_SET_4_PARAM_0_IS_DYNAMIC>` line 1536
-        - [ ] `<BINDING_SET_4_EVENT_ID>` line 1537 = `MIXTURE_SET`
+        - [x] `<BINDING_SET_4_EVENT_ID>` line 1537 = `MIXTURE_SET`
         - [ ] `<BINDING_SET_4_EVENT_ID_ONLY>` line 1538
         - [ ] `<BINDING_SET_5>` line 1540
         - [ ] `<BINDING_SET_5_PARAM_0>` line 1541
         - [ ] `<BINDING_SET_5_PARAM_0_IS_DYNAMIC>` line 1542
-        - [ ] `<BINDING_SET_5_EVENT_ID>` line 1543 = `AXIS_MIXTURE#ID#_SET`
+        - [x] `<BINDING_SET_5_EVENT_ID>` line 1543 = `AXIS_MIXTURE#ID#_SET`
         - [ ] `<BINDING_SET_5_EVENT_ID_ONLY>` line 1544
         - [ ] `<BINDING_SET_6>` line 1546
         - [ ] `<BINDING_SET_6_PARAM_0>` line 1547
         - [ ] `<BINDING_SET_6_PARAM_0_IS_DYNAMIC>` line 1548
-        - [ ] `<BINDING_SET_6_EVENT_ID>` line 1549 = `MIXTURE#ID#_SET`
+        - [x] `<BINDING_SET_6_EVENT_ID>` line 1549 = `MIXTURE#ID#_SET`
         - [ ] `<BINDING_SET_6_EVENT_ID_ONLY>` line 1550
         - [ ] `<BINDING_SET_7>` line 1552
         - [ ] `<BINDING_SET_7_PARAM_0>` line 1553
@@ -25070,7 +25070,7 @@
         - [ ] `<FLAPS_TYPE>` line 1953
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 1955
         - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 1956
-          - [ ] `<ANIM_CODE>` line 1957 = `(A:#FLAPS_TYPE# COOLING FLAPS POSITION, Percent)`
+          - [x] `<ANIM_CODE>` line 1957 = `(A:#FLAPS_TYPE# COOLING FLAPS POSITION, Percent)`
           - [ ] `<ANIM_LAG>` line 1958
     - [ ] `<Template Name="ASOBO_Nozzle_Template">` line 1963
       - [ ] `<Parameters Type="Default">` line 1964
@@ -46594,8 +46594,8 @@
                 - [ ] `<UPPER_LIMIT>` line 11
                 - [ ] `<LOWER_LIMIT>` line 12
               - [ ] `<Parameters Type="Default">` line 14
-                - [ ] `<THROTTLE_KEY_SET>` line 15
-                - [ ] `<GET_THROTTLE>` line 16
+                - [x] `<THROTTLE_KEY_SET>` line 15
+                - [x] `<GET_THROTTLE>` line 16
                 - [ ] `<ON_BEFORE_INC>` line 17
                 - [ ] `<ON_BEFORE_DEC>` line 18
                 - [ ] `<ON_BEFORE_SET>` line 19
@@ -46672,10 +46672,10 @@
                 - [ ] `<CLAMP_UPPER_LIMIT>` line 152
                 - [ ] `<CLAMP_LOWER_LIMIT>` line 153
                 - [ ] `<ON_AFTER_SET_BINDING>` line 154
-                - [ ] `<TOOLTIP_VALUE>` line 155 = `(A:GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#, percent) '%.1f%%' @sprintf`
+                - [x] `<TOOLTIP_VALUE>` line 155 = `(A:GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#, percent) '%.1f%%' @sprintf`
               - [ ] `<Parameters Type="Override">` line 157
                 - [ ] `<Condition NotEmpty="GROUND_GATE_ANIM_POS">` line 158
-                  - [ ] `<TOOLTIP_VALUE>` line 159 = `(A:PROP BETA FORCED ACTIVE:#THROTTLE_ID#, Bool) if{ #TT_VALUE_GROUND_FINE# } els{ #TOOLTIP_VALUE# }`
+                  - [x] `<TOOLTIP_VALUE>` line 159 = `(A:PROP BETA FORCED ACTIVE:#THROTTLE_ID#, Bool) if{ #TT_VALUE_GROUND_FINE# } els{ #TOOLTIP_VALUE# }`
               - [ ] `<Tooltip>` line 162
                 - [ ] `<Icon>` line 163
                 - [ ] `<Interaction>` line 164
@@ -46687,7 +46687,7 @@
                 - [ ] `<Code>` line 171 = `(O:ENGINE_Throttle_#THROTTLE_ID#_Position) #LOWER_LIMIT# - #UPPER_LIMIT# #LOWER_LIMIT# - / 100 *`
                 - [ ] `<Init>` line 172
                 - [ ] `<WatchVars>` line 173
-                  - [ ] `<Simvar ID="GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#">` line 174
+                  - [x] `<Simvar ID="GENERAL ENG THROTTLE LEVER POSITION:#THROTTLE_ID#">` line 174
               - [ ] `<Inc>` line 177
                 - [ ] `<Code>` line 178 = `#ON_BEFORE_INC# #GET_THROTTLE# p0 + 16384 / #ON_BEFORE_INC_SET# (>B:ENGINE_Throttle_#THROTTLE_ID#_S...`
                 - [ ] `<Parameters>` line 179
@@ -46726,7 +46726,7 @@
                       - [ ] `<Binding>` line 228
                         - [ ] `<Param>` line 229 = `0.5`
               - [ ] `<Set>` line 235
-                - [ ] `<Code>` line 236 = `#ON_BEFORE_SET# p0 #CLAMP_LOWER_LIMIT# max #CLAMP_UPPER_LIMIT# min s0 #THROTTLE_KEY_SET# l0 (>O:ENG...`
+                - [x] `<Code>` line 236 = `#ON_BEFORE_SET# p0 #CLAMP_LOWER_LIMIT# max #CLAMP_UPPER_LIMIT# min s0 #THROTTLE_KEY_SET# l0 (>O:ENG...`
                 - [ ] `<Parameters>` line 237
                   - [ ] `<Param Type="Float">` line 238 = `p0 16384 *`
                 - [ ] `<Bindings>` line 240
@@ -46816,14 +46816,14 @@
                 - [ ] `<INCREMENT>` line 374
                 - [ ] `<UPPER_LIMIT>` line 375
                 - [ ] `<LOWER_LIMIT>` line 376
-                - [ ] `<GET_STATE>` line 377
+                - [x] `<GET_STATE>` line 377
                 - [ ] `<ON_BEFORE_INC>` line 378
                 - [ ] `<ON_BEFORE_DEC>` line 379
                 - [ ] `<ON_BEFORE_SET>` line 380
                 - [ ] `<ON_AFTER_INC>` line 381
                 - [ ] `<ON_AFTER_DEC>` line 382
                 - [ ] `<ON_AFTER_SET>` line 383
-                - [ ] `<TOOLTIP_VALUE>` line 384 = `(A:GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#, percent) '%.1f%%' @sprintf`
+                - [x] `<TOOLTIP_VALUE>` line 384 = `(A:GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#, percent) '%.1f%%' @sprintf`
                 - [ ] `<Condition NotEmpty="TT_DESCRIPTION_ID">` line 385
                   - [ ] `<True>` line 386
                     - [ ] `<Condition NotEmpty="TT_DESCRIPTION_INDEX">` line 387
@@ -46849,7 +46849,7 @@
                 - [ ] `<Code>` line 416 = `(O:ENGINE_Propeller_#PROPELLER_ID#_Position) #LOWER_LIMIT# - #UPPER_LIMIT# #LOWER_LIMIT# - / 100 *`
                 - [ ] `<Init>` line 417
                 - [ ] `<WatchVars>` line 418
-                  - [ ] `<Simvar ID="GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#">` line 419
+                  - [x] `<Simvar ID="GENERAL ENG PROPELLER LEVER POSITION:#PROPELLER_ID#">` line 419
               - [ ] `<Inc>` line 422
                 - [ ] `<Code>` line 423 = `#ON_BEFORE_INC# #GET_STATE# p0 + 16384 / (>B:ENGINE_Propeller_#PROPELLER_ID#_Set) #ON_AFTER_INC#`
                 - [ ] `<Parameters>` line 424
@@ -46877,7 +46877,7 @@
                   - [ ] `<Binding>` line 457
                     - [ ] `<Param>` line 458 = `0.5`
               - [ ] `<Set>` line 462
-                - [ ] `<Code>` line 463 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:PROP_PITCH#PROPELLER_ID#_SET) l0 (>O:...`
+                - [x] `<Code>` line 463 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:PROP_PITCH#PROPELLER_ID#_SET) l0 (>O:...`
                 - [ ] `<Parameters>` line 464
                   - [ ] `<Param Type="Float">` line 465 = `p0 16384 *`
                 - [ ] `<Bindings>` line 467
@@ -55887,10 +55887,10 @@
         - [ ] `<LEVER_ID>` line 2075 = `#IE_COWLFLAPS_ID#`
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 2077
         - [ ] `<UseInputEvent ID="ENGINE">` line 2078
-          - [ ] `<SIMVAR_TO_WATCH_0>` line 2079
-          - [ ] `<SET_STATE_EXTERNAL>` line 2080
-          - [ ] `<GET_STATE_EXTERNAL>` line 2081
-          - [ ] `<GET_TT_VALUE_STATE>` line 2082
+          - [x] `<SIMVAR_TO_WATCH_0>` line 2079
+          - [x] `<SET_STATE_EXTERNAL>` line 2080
+          - [x] `<GET_STATE_EXTERNAL>` line 2081
+          - [x] `<GET_TT_VALUE_STATE>` line 2082
           - [ ] `<INC_PARAM_0>` line 2083
           - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 2084
           - [ ] `<DEC_PARAM_0>` line 2085
@@ -55901,7 +55901,7 @@
           - [ ] `<DEC_CODE_ADJUST_VALUE>` line 2090 = `16384 /`
           - [ ] `<MIN_VALUE>` line 2091 = `0`
           - [ ] `<MAX_VALUE>` line 2092 = `16384`
-          - [ ] `<VALUE_UNITS>` line 2093 = `position 16k`
+          - [x] `<VALUE_UNITS>` line 2093 = `position 16k`
         - [ ] `<UseTemplate Name="ASOBO_GT_Lever_DraggingWheelLeftDrag_Axis">` line 2095
           - [ ] `<TOOLTIP_ENTRY_0>` line 2096
           - [ ] `<CURSOR>` line 2097
@@ -56063,10 +56063,10 @@
               - [ ] `<TOOLTIP_ENTRY_0>` line 2370
               - [ ] `<TT_DESCRIPTION_ID>` line 2371 = `@TT_Package.ENGINE_#FLAPS_TYPE#_COOLING_FLAPS_ACTION`
             - [ ] `<UseInputEvent ID="ENGINE">` line 2373
-              - [ ] `<SIMVAR_TO_WATCH_0>` line 2374
-              - [ ] `<SET_STATE_EXTERNAL>` line 2375
-              - [ ] `<GET_STATE_EXTERNAL>` line 2376
-              - [ ] `<GET_TT_VALUE_STATE>` line 2377
+              - [x] `<SIMVAR_TO_WATCH_0>` line 2374
+              - [x] `<SET_STATE_EXTERNAL>` line 2375
+              - [x] `<GET_STATE_EXTERNAL>` line 2376
+              - [x] `<GET_TT_VALUE_STATE>` line 2377
               - [ ] `<INC_PARAM_0>` line 2378
               - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 2379
               - [ ] `<DEC_PARAM_0>` line 2380
@@ -56091,9 +56091,9 @@
             - [ ] `<Case Value="2">` line 2403
               - [ ] `<UseTemplate Name="ASOBO_ENGINE_Base_Template">` line 2404
                 - [ ] `<IE_NAME>` line 2405 = `#BTN_ID#`
-                - [ ] `<SET_STATE_EXTERNAL>` line 2406
-                - [ ] `<GET_STATE_EXTERNAL>` line 2407
-                - [ ] `<SIMVAR_TO_WATCH_0>` line 2408
+                - [x] `<SET_STATE_EXTERNAL>` line 2406
+                - [x] `<GET_STATE_EXTERNAL>` line 2407
+                - [x] `<SIMVAR_TO_WATCH_0>` line 2408
             - [ ] `<Default>` line 2411
               - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 2412
                 - [ ] `<Parameters Type="Override">` line 2413
@@ -57279,22 +57279,22 @@
         - [ ] `<BINDING_SET_3>` line 1528
         - [ ] `<BINDING_SET_3_PARAM_0>` line 1529
         - [ ] `<BINDING_SET_3_PARAM_0_IS_DYNAMIC>` line 1530
-        - [ ] `<BINDING_SET_3_EVENT_ID>` line 1531 = `AXIS_MIXTURE_SET`
+        - [x] `<BINDING_SET_3_EVENT_ID>` line 1531 = `AXIS_MIXTURE_SET`
         - [ ] `<BINDING_SET_3_EVENT_ID_ONLY>` line 1532
         - [ ] `<BINDING_SET_4>` line 1534
         - [ ] `<BINDING_SET_4_PARAM_0>` line 1535
         - [ ] `<BINDING_SET_4_PARAM_0_IS_DYNAMIC>` line 1536
-        - [ ] `<BINDING_SET_4_EVENT_ID>` line 1537 = `MIXTURE_SET`
+        - [x] `<BINDING_SET_4_EVENT_ID>` line 1537 = `MIXTURE_SET`
         - [ ] `<BINDING_SET_4_EVENT_ID_ONLY>` line 1538
         - [ ] `<BINDING_SET_5>` line 1540
         - [ ] `<BINDING_SET_5_PARAM_0>` line 1541
         - [ ] `<BINDING_SET_5_PARAM_0_IS_DYNAMIC>` line 1542
-        - [ ] `<BINDING_SET_5_EVENT_ID>` line 1543 = `AXIS_MIXTURE#ID#_SET`
+        - [x] `<BINDING_SET_5_EVENT_ID>` line 1543 = `AXIS_MIXTURE#ID#_SET`
         - [ ] `<BINDING_SET_5_EVENT_ID_ONLY>` line 1544
         - [ ] `<BINDING_SET_6>` line 1546
         - [ ] `<BINDING_SET_6_PARAM_0>` line 1547
         - [ ] `<BINDING_SET_6_PARAM_0_IS_DYNAMIC>` line 1548
-        - [ ] `<BINDING_SET_6_EVENT_ID>` line 1549 = `MIXTURE#ID#_SET`
+        - [x] `<BINDING_SET_6_EVENT_ID>` line 1549 = `MIXTURE#ID#_SET`
         - [ ] `<BINDING_SET_6_EVENT_ID_ONLY>` line 1550
         - [ ] `<BINDING_SET_7>` line 1552
         - [ ] `<BINDING_SET_7_PARAM_0>` line 1553
@@ -63740,7 +63740,7 @@
         - [ ] `<FLAPS_TYPE>` line 1953
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 1955
         - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 1956
-          - [ ] `<ANIM_CODE>` line 1957 = `(A:#FLAPS_TYPE# COOLING FLAPS POSITION, Percent)`
+          - [x] `<ANIM_CODE>` line 1957 = `(A:#FLAPS_TYPE# COOLING FLAPS POSITION, Percent)`
           - [ ] `<ANIM_LAG>` line 1958
     - [ ] `<Template Name="ASOBO_Nozzle_Template">` line 1963
       - [ ] `<Parameters Type="Default">` line 1964
