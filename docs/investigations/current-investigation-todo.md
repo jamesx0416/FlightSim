@@ -108,6 +108,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - sandboxed HTML gauges now get a minimal generic `BaseInstrument` / `registerInstrument` host so template-based gauges can mount visible DOM
   - the iframe bridge now provides a generic demo `simvar` backend with power/brightness/default flight values so standalone gauges are not all driven by null/zero host data
   - the iframe bridge now provides generic MSFS browser-host shims for `vcockpit-panel`, `RunwayDesignator`, `Avionics.Utils`, `EmptyCallback`, `GameState`, listener handles, fast registered simvars, global vars, and dynamic `coui://html_ui` image/style URLs
+  - cockpit `>H:` RPN writes now route through a generic runtime HTML interaction-event bridge; loaded VCockpit iframes receive `OnInteractionEvent`, and instrument elements receive `onInteractionEvent(args)`, verified on the A320 MCDU `PUSH_MCDUL_1` path
   - accessible non-WASM iframe DOM is now composited into the bound cockpit `CanvasTexture` with an origin-clean SVG/canvas/text renderer so browser `foreignObject` tainting does not upload black GPU textures
   - `?vcockpitGaugeMode=overlay` adds an experimental direct-HTML path that projects live gauge iframes over matched VCockpit material bounds instead of converting DOM into images/textures every refresh
   - `?vcockpitGaugeMode=video` adds an experimental mesh-texture path that streams the composited VCockpit canvas through `captureStream()` into a Three `VideoTexture`, with `?vcockpitGaugeVideoFps=` controlling the stream frame rate
