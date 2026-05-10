@@ -3864,7 +3864,7 @@
             - [ ] `<TT_DESCRIPTION_ID>` line 74 = `@TT_Package.AIRCRAFT_CANOPY_LOCK_ACTION`
             - [ ] `<TOOLTIP_TITLE>` line 75
             - [ ] `<SET_STATE_EXTERNAL>` line 76
-            - [ ] `<COMP_INIT_CODE>` line 83 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
+            - [x] `<COMP_INIT_CODE>` line 83 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
             - [ ] `<GET_STATE_EXTERNAL>` line 85
             - [ ] `<STR_STATE_ON>` line 86
             - [ ] `<STR_STATE_OFF>` line 87
@@ -3872,8 +3872,8 @@
             - [ ] `<TT_VALUE_OFF>` line 89
             - [ ] `<Switch Param="INTERACTION_TYPE">` line 90
               - [ ] `<Case Value="Lever">` line 91
-                - [ ] `<UP_CODE>` line 92 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
-                - [ ] `<DOWN_CODE>` line 93 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Unlocked)`
+                - [x] `<UP_CODE>` line 92 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
+                - [x] `<DOWN_CODE>` line 93 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Unlocked)`
                 - [ ] `<LEVER_TYPE>` line 94
             - [ ] `<SIMVAR_TO_WATCH_0>` line 97
             - [ ] `<SIMVAR_TO_WATCH_1>` line 98
@@ -3936,7 +3936,7 @@
               - [ ] `<IE_NAME>` line 179 = `#IE_NAME_LOCK_UNLOCK_SHORTCUTS#`
               - [ ] `<TT_DESCRIPTION_ID>` line 180 = `@TT_Package.AIRCRAFT_CANOPY_LOCK_ACTION`
               - [ ] `<SET_STATE_EXTERNAL>` line 181
-              - [ ] `<COMP_INIT_CODE>` line 188 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
+              - [x] `<COMP_INIT_CODE>` line 188 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
               - [ ] `<GET_STATE_EXTERNAL>` line 190
               - [ ] `<STR_STATE_ON>` line 191
               - [ ] `<STR_STATE_OFF>` line 192
@@ -42534,7 +42534,7 @@
             - [ ] `<TT_DESCRIPTION_ID>` line 74 = `@TT_Package.AIRCRAFT_CANOPY_LOCK_ACTION`
             - [ ] `<TOOLTIP_TITLE>` line 75
             - [ ] `<SET_STATE_EXTERNAL>` line 76
-            - [ ] `<COMP_INIT_CODE>` line 83 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
+            - [x] `<COMP_INIT_CODE>` line 83 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
             - [ ] `<GET_STATE_EXTERNAL>` line 85
             - [ ] `<STR_STATE_ON>` line 86
             - [ ] `<STR_STATE_OFF>` line 87
@@ -42542,8 +42542,8 @@
             - [ ] `<TT_VALUE_OFF>` line 89
             - [ ] `<Switch Param="INTERACTION_TYPE">` line 90
               - [ ] `<Case Value="Lever">` line 91
-                - [ ] `<UP_CODE>` line 92 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
-                - [ ] `<DOWN_CODE>` line 93 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Unlocked)`
+                - [x] `<UP_CODE>` line 92 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
+                - [x] `<DOWN_CODE>` line 93 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Unlocked)`
                 - [ ] `<LEVER_TYPE>` line 94
             - [ ] `<SIMVAR_TO_WATCH_0>` line 97
             - [ ] `<SIMVAR_TO_WATCH_1>` line 98
@@ -42606,7 +42606,7 @@
               - [ ] `<IE_NAME>` line 179 = `#IE_NAME_LOCK_UNLOCK_SHORTCUTS#`
               - [ ] `<TT_DESCRIPTION_ID>` line 180 = `@TT_Package.AIRCRAFT_CANOPY_LOCK_ACTION`
               - [ ] `<SET_STATE_EXTERNAL>` line 181
-              - [ ] `<COMP_INIT_CODE>` line 188 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
+              - [x] `<COMP_INIT_CODE>` line 188 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_DOOR_ID#_Lock_Set_Locked)`
               - [ ] `<GET_STATE_EXTERNAL>` line 190
               - [ ] `<STR_STATE_ON>` line 191
               - [ ] `<STR_STATE_OFF>` line 192

@@ -3249,6 +3249,18 @@ function getGenericInputEventStateUpdate(
   readonly baseValue: number
 } {
   const normalizedValue = Number.isFinite(value) ? value : 0
+  const namedStateMatch = /^(.*)_SET_(ON|OFF|OPEN|CLOSED|LOCKED|UNLOCKED|UP|DOWN|EXTENDED|RETRACTED)$/u.exec(name)
+  if (namedStateMatch != null) {
+    const stateValue = getGenericBooleanStateNameValue(namedStateMatch[2] ?? '')
+    if (stateValue != null) {
+      return {
+        eventValue: stateValue,
+        baseName: namedStateMatch[1] ?? null,
+        baseValue: stateValue
+      }
+    }
+  }
+
   const suffixMatch = /_(PUSH|RELEASE|ON|OFF|TOGGLE|SET|INC|DEC)$/u.exec(name)
   if (suffixMatch == null) {
     return {
@@ -3280,6 +3292,16 @@ function getGenericInputEventStateUpdate(
     baseName,
     baseValue
   }
+}
+
+function getGenericBooleanStateNameValue(stateName: string): number | null {
+  if (stateName === 'ON' || stateName === 'OPEN' || stateName === 'LOCKED' || stateName === 'DOWN' || stateName === 'EXTENDED') {
+    return 1
+  }
+  if (stateName === 'OFF' || stateName === 'CLOSED' || stateName === 'UNLOCKED' || stateName === 'UP' || stateName === 'RETRACTED') {
+    return 0
+  }
+  return null
 }
 
 function normalizeKohlsmanHg(value: number): number {
