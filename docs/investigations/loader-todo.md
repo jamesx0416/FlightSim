@@ -443,6 +443,9 @@ Rules:
     - A330 route `?cockpitInteractionHitboxes&cockpitPerf` compiled 734 animation bindings, 811 interaction bindings, 616 update bindings, and 456 visibility bindings with zero unsupported `(M:Event)` diagnostics; remaining RPN diagnostics are unrelated `:1` and bare `{` cases.
     - A320 route `?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0&cockpitInteractionHitboxes&cockpitPerf` compiled 665 animation bindings, 719 interaction bindings, 536 update bindings, and 383 visibility bindings with zero unsupported `(M:Event)` diagnostics; the only remaining RPN diagnostic is the unrelated bare `{` case.
     - Screenshots captured to `/tmp/screenshot-1778336257793.png` and `/tmp/screenshot-1778336301535.png`.
+- [x] Support generic paired directional-axis interaction fallback code.
+  - Interaction fallback compilation now preserves both positive and negative axis code paths when a stock template provides both, selecting the positive path for `M:Event == WheelDown` and the negative path otherwise instead of dropping one direction.
+  - Verified with `agent-browser` on 2026-05-10 using the A320 route: `LEVER_FLAPS` compiled to `(M:Event) 'WheelDown' scmp 0 == if{ (>K:FLAPS_DECR) } els{ (>K:FLAPS_INCR) }`; executing a normal click moved `A:FLAPS HANDLE PERCENT`, left/right flap simvars, and `l_flap_percent_key` / `r_flap_percent_key` animation values to 25, then executing with `mouseEvent: 'WheelDown'` returned them to 0.
 - [x] Support standalone RPN conditional blocks and register labels seen in mounted stock/built XML.
   - The RPN compiler now treats standalone `{ ... }` blocks as conditional blocks and accepts `:N` register labels as label markers, without adding `gN` jump support until a verified active route needs it.
   - Verified with `agent-browser` on 2026-05-09:

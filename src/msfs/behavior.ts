@@ -1092,6 +1092,10 @@ function buildInteractionEventBinding(
 }
 
 function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): string {
+  const directionalAxisSource = buildDirectionalAxisFallbackCodeSource(params)
+  if (directionalAxisSource) {
+    return directionalAxisSource
+  }
   return getFirstUsableInteractionParameter(params, [
     'CLOCKWISE_CODE_DEFAULT_IM',
     'CLOCKWISE_CODE',
@@ -1133,6 +1137,40 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
     'LEFT_DOWN_CODE',
     'LEFT_UP_CODE'
   ]) || buildInteractionGateCodeSource(params) || buildInteractionSwitchPositionCodeSource(params)
+}
+
+function buildDirectionalAxisFallbackCodeSource(params: ReadonlyMap<string, string>): string {
+  const positiveSource = getFirstUsableInteractionParameter(params, [
+    'POSITIVE_AXIS_CODE_DEFAULT_IM',
+    'POSITIVE_AXIS_CODE',
+    'POSITIVE_AXIS_CODE_DRAG_IM',
+    'WHEEL_UP_CODE',
+    'JOYSTICK_X_CODE_RIGHT',
+    'JOYSTICK_Y_CODE_UP',
+    'CODE_RIGHT',
+    'CODE_UP',
+    'UP_CODE',
+    'RIGHT_CODE_EXTERNAL',
+    'UP_CODE_EXTERNAL'
+  ])
+  const negativeSource = getFirstUsableInteractionParameter(params, [
+    'NEGATIVE_AXIS_CODE_DEFAULT_IM',
+    'NEGATIVE_AXIS_CODE',
+    'NEGATIVE_AXIS_CODE_DRAG_IM',
+    'WHEEL_DOWN_CODE',
+    'JOYSTICK_X_CODE_LEFT',
+    'JOYSTICK_Y_CODE_DOWN',
+    'CODE_LEFT',
+    'CODE_DN',
+    'DOWN_CODE',
+    'LEFT_CODE_EXTERNAL',
+    'DOWN_CODE_EXTERNAL'
+  ])
+  if (!positiveSource || !negativeSource) {
+    return ''
+  }
+
+  return `(M:Event) 'WheelDown' scmp 0 == if{ ${positiveSource} } els{ ${negativeSource} }`
 }
 
 function getInteractionFallbackEventId(params: ReadonlyMap<string, string>): string {
