@@ -455,7 +455,7 @@ export class AircraftRuntime {
   }
 }
 
-export type RuntimeVariableNamespace = 'A' | 'L' | 'O' | 'K' | 'H' | 'B' | 'E'
+export type RuntimeVariableNamespace = 'A' | 'L' | 'O' | 'K' | 'H' | 'B' | 'E' | 'I'
 
 export interface SharedRuntimeHostStats {
   readonly variableReadCount: number
@@ -3510,7 +3510,7 @@ function normalizeUnit(unit: string | null): string {
 
 function normalizeRuntimeVariableKey(key: string): string {
   const trimmed = key.trim()
-  if (/^[ALOKHBE]:/iu.test(trimmed)) {
+  if (/^[ALOKHBEI]:/iu.test(trimmed)) {
     return trimmed.toUpperCase()
   }
   return `A:${trimmed}`.toUpperCase()
@@ -3532,7 +3532,7 @@ function normalizeRuntimeBridgeArgs(values: number | readonly number[]): readonl
 }
 
 function isRuntimeStoredVariableKey(key: string): boolean {
-  return /^[LOKHB]:/u.test(key)
+  return /^[LOKHBI]:/u.test(key)
 }
 
 function normalizeKeyEventName(name: string): string {

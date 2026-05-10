@@ -4981,7 +4981,7 @@ function createVCockpitGaugeBridgeScript(
   const runtimeReadRequestTimes = new Map();
   const normalizeRuntimeBridgeVariableName = (name, source = '') => {
     const text = String(name ?? '').trim();
-    if (/^[ALOKHBE]:/iu.test(text)) return text.toUpperCase();
+    if (/^[ALOKHBEI]:/iu.test(text)) return text.toUpperCase();
     if (String(source).toLowerCase() === 'gamevar') return 'A:' + text.toUpperCase();
     if (String(source).toLowerCase() === 'globalvar') return 'A:' + text.toUpperCase();
     return 'A:' + text.toUpperCase();
