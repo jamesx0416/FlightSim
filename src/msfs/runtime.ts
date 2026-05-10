@@ -1267,9 +1267,27 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.applyPitotHeatKeyEvent(name, args)) {
       return
     }
+    if (this.applyRadioAudioKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyTrimAndBrakeKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyDeiceAndIgnitionKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyAutopilotAndTransponderKeyEvent(name, args)) {
+      return
+    }
     const alternatorToggleMatch = /^TOGGLE_ALTERNATOR(\d+)$/u.exec(name)
     if (alternatorToggleMatch != null) {
       const alternatorKey = normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR:${alternatorToggleMatch[1]}`)
+      const currentValue = this.values.get(alternatorKey) ?? 0
+      this.values.set(alternatorKey, currentValue > 0 ? 0 : 1)
+      return
+    }
+    if (name === 'TOGGLE_ALTERNATOR') {
+      const alternatorKey = normalizeRuntimeVariableKey('A:GENERAL ENG MASTER ALTERNATOR:1')
       const currentValue = this.values.get(alternatorKey) ?? 0
       this.values.set(alternatorKey, currentValue > 0 ? 0 : 1)
       return
@@ -1477,6 +1495,178 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(key, nextValue)
     this.values.set(normalizeRuntimeVariableKey('A:PITOT HEAT'), nextValue)
     return true
+  }
+
+  private applyRadioAudioKeyEvent(name: string, args: readonly number[]): boolean {
+    const volumeMatch = /^(ADF2?|NAV(\d+)|COM(\d+))_VOLUME_(SET|INC|DEC)$/u.exec(name)
+    if (volumeMatch != null) {
+      const family = volumeMatch[1].startsWith('ADF') ? 'ADF'
+        : volumeMatch[1].startsWith('NAV') ? 'NAV'
+          : 'COM'
+      const index = family === 'ADF'
+        ? volumeMatch[1] === 'ADF2' ? 2 : 1
+        : Number.parseInt(volumeMatch[2] ?? volumeMatch[3] ?? '1', 10)
+      const key = normalizeRuntimeVariableKey(`A:${family} VOLUME:${index}`)
+      const action = volumeMatch[4]
+      const currentValue = this.values.get(key) ?? 0
+      const nextValue =
+        action === 'SET'
+          ? clamp(Number(args.at(-1) ?? 0), 0, 100)
+          : clamp(currentValue + (action === 'INC' ? 5 : -5), 0, 100)
+      this.values.set(key, nextValue)
+      if (family === 'NAV') {
+        this.values.set(normalizeRuntimeVariableKey(`A:NAV SOUND:${index}`), nextValue > 0 ? 1 : 0)
+      } else if (family === 'COM') {
+        this.values.set(normalizeRuntimeVariableKey(`A:COM RADIO VOLUME:${index}`), nextValue)
+      }
+      return true
+    }
+
+    if (name === 'COM3_RADIO_SET_HZ') {
+      const value = Number(args.at(-1) ?? 0)
+      this.values.set(normalizeRuntimeVariableKey('A:COM ACTIVE FREQUENCY:3'), value)
+      this.values.set(normalizeRuntimeVariableKey('A:COM ACTIVE FREQUENCY:3 HZ'), value)
+      return true
+    }
+
+    const identMatch = /^RADIO_(ADF2?|DME(\d+)|VOR(\d+))_IDENT_(ENABLE|DISABLE|TOGGLE)$/u.exec(name)
+    if (identMatch != null) {
+      const family = identMatch[1].startsWith('ADF') ? 'ADF'
+        : identMatch[1].startsWith('DME') ? 'DME'
+          : 'NAV'
+      const index = family === 'ADF'
+        ? identMatch[1] === 'ADF2' ? 2 : 1
+        : Number.parseInt(identMatch[2] ?? identMatch[3] ?? '1', 10)
+      const keys = [
+        normalizeRuntimeVariableKey(`A:${family} IDENT:${index}`),
+        normalizeRuntimeVariableKey(`${family === 'NAV' ? 'A:NAV SOUND' : `A:${family} SOUND`}:${index}`)
+      ]
+      const action = identMatch[4]
+      const currentValue = this.values.get(keys[0] ?? '') ?? 0
+      const nextValue = action === 'TOGGLE' ? currentValue > 0 ? 0 : 1 : action === 'ENABLE' ? 1 : 0
+      for (const key of keys) {
+        this.values.set(key, nextValue)
+      }
+      return true
+    }
+
+    if (name === 'MARKER_SOUND_TOGGLE') {
+      this.toggleNamedBoolVariables('A:MARKER SOUND')
+      return true
+    }
+
+    const transmitterMatch = /^(PILOT|COPILOT)_TRANSMITTER_SET$/u.exec(name)
+    if (transmitterMatch != null) {
+      this.values.set(normalizeRuntimeVariableKey(`A:${transmitterMatch[1]} TRANSMITTER TYPE`), Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    return false
+  }
+
+  private applyTrimAndBrakeKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'AXIS_ELEV_TRIM_SET') {
+      const trim = clamp(Number(args.at(-1) ?? 0) / 16_383, -1, 1)
+      this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM POSITION'), trim)
+      this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM INDICATOR'), trim * 100)
+      return true
+    }
+
+    if (name === 'RUDDER_TRIM_RESET') {
+      this.setRudderTrim(0)
+      return true
+    }
+
+    if (name === 'RUDDER_TRIM_LEFT' || name === 'RUDDER_TRIM_RIGHT') {
+      const key = normalizeRuntimeVariableKey('A:RUDDER TRIM PCT')
+      const currentValue = this.values.get(key) ?? 0
+      const direction = name === 'RUDDER_TRIM_RIGHT' ? 1 : -1
+      this.setRudderTrim(currentValue + direction * 0.05)
+      return true
+    }
+
+    if (name === 'RUDDER_TRIM_SET' || name === 'RUDDER_TRIM_SET_EX1') {
+      this.setRudderTrim(Number(args.at(-1) ?? 0) / 16_384)
+      return true
+    }
+
+    if (name === 'ANTISKID_BRAKES_TOGGLE') {
+      this.toggleNamedBoolVariables('A:ANTISKID BRAKES ACTIVE', 'A:ANTISKID BRAKES SWITCH')
+      return true
+    }
+
+    return false
+  }
+
+  private applyDeiceAndIgnitionKeyEvent(name: string, args: readonly number[]): boolean {
+    const windshieldDeiceMatch = /^WINDSHIELD_DEICE_(ON|OFF|TOGGLE|SET)$/u.exec(name)
+    if (windshieldDeiceMatch != null) {
+      const key = normalizeRuntimeVariableKey('A:WINDSHIELD DEICE SWITCH')
+      const nextValue =
+        windshieldDeiceMatch[1] === 'TOGGLE'
+          ? (this.values.get(key) ?? 0) > 0 ? 0 : 1
+          : windshieldDeiceMatch[1] === 'SET' ? Number(args.at(-1) ?? 0) : windshieldDeiceMatch[1] === 'ON' ? 1 : 0
+      this.values.set(key, nextValue)
+      return true
+    }
+
+    const ignitionMatch = /^TURBINE_IGNITION_SWITCH_(SET|TOGGLE)(\d*)$/u.exec(name)
+    if (ignitionMatch != null) {
+      const explicitIndex = ignitionMatch[2] === '' ? Number.NaN : Number.parseInt(ignitionMatch[2], 10)
+      const index = Number.isFinite(explicitIndex) ? explicitIndex : Math.trunc(Number(args[1] ?? 1))
+      if (Number.isFinite(index)) {
+        const key = normalizeRuntimeVariableKey(`A:TURB ENG IGNITION SWITCH EX1:${index}`)
+        const nextValue = ignitionMatch[1] === 'TOGGLE' ? (this.values.get(key) ?? 0) > 0 ? 0 : 1 : Number(args[0] ?? 0)
+        this.values.set(key, nextValue)
+        this.values.set(normalizeRuntimeVariableKey(`A:TURBINE IGNITION SWITCH:${index}`), nextValue)
+      }
+      return true
+    }
+
+    const mixtureRichMatch = /^MIXTURE(\d+)_RICH$/u.exec(name)
+    if (mixtureRichMatch != null) {
+      const index = Number.parseInt(mixtureRichMatch[1], 10)
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG MIXTURE LEVER POSITION:${index}`), 100)
+      return true
+    }
+
+    return false
+  }
+
+  private applyAutopilotAndTransponderKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'AUTOPILOT_OFF') {
+      this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT MASTER'), 0)
+      return true
+    }
+
+    if (name === 'XPNDR_IDENT_ON') {
+      this.values.set(normalizeRuntimeVariableKey('A:TRANSPONDER IDENT'), 1)
+      return true
+    }
+
+    const kohlsmanMatch = /^KOHLSMAN_(INC|DEC|SET)$/u.exec(name)
+    if (kohlsmanMatch != null) {
+      const maybeIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      const index = Number.isFinite(maybeIndex) && args.length > 1 ? maybeIndex : 1
+      const key = normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING HG:${index}`)
+      const currentValue = this.values.get(key) ?? this.values.get(normalizeRuntimeVariableKey('A:KOHLSMAN SETTING HG')) ?? 29.92
+      const rawSetValue = Number(args.at(-1) ?? Number.NaN)
+      const nextValue = kohlsmanMatch[1] === 'SET'
+        ? normalizeKohlsmanHg(rawSetValue)
+        : currentValue + (kohlsmanMatch[1] === 'INC' ? 0.01 : -0.01)
+      this.values.set(key, nextValue)
+      this.values.set(normalizeRuntimeVariableKey('A:KOHLSMAN SETTING HG'), nextValue)
+      this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING MB:${index}`), nextValue * 33.863_886_666_7)
+      return true
+    }
+
+    return false
+  }
+
+  private setRudderTrim(value: number): void {
+    const trim = clamp(value, -1, 1)
+    this.values.set(normalizeRuntimeVariableKey('A:RUDDER TRIM PCT'), trim)
+    this.values.set(normalizeRuntimeVariableKey('A:RUDDER TRIM'), trim * 100)
   }
 
   private toggleNamedBoolVariables(...keys: readonly string[]): void {
@@ -1816,6 +2006,19 @@ function toPercentOver100(value: number, unit: string | null): number {
   }
   if (Math.abs(value) > 1 && Math.abs(value) <= 100) {
     return value / 100
+  }
+  return value
+}
+
+function normalizeKohlsmanHg(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 29.92
+  }
+  if (value > 8_000) {
+    return value / 16 / 33.863_886_666_7
+  }
+  if (value > 100) {
+    return value / 33.863_886_666_7
   }
   return value
 }
