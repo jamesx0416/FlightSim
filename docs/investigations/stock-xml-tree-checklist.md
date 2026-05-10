@@ -14098,10 +14098,10 @@
             - [ ] `<TT_VALUE_#POS_ON#>` line 77
             - [ ] `<TT_VALUE_#POS_OFF#>` line 78
             - [ ] `<TT_VALUE_#POS_TEST#>` line 79
-            - [ ] `<SET_STATE_#POS_ON#>` line 80
-            - [ ] `<SET_STATE_#POS_OFF#>` line 81
-            - [ ] `<SET_STATE_#POS_TEST#>` line 82
-            - [ ] `<GET_STATE_EXTERNAL>` line 83
+            - [x] `<SET_STATE_#POS_ON#>` line 80
+            - [x] `<SET_STATE_#POS_OFF#>` line 81
+            - [x] `<SET_STATE_#POS_TEST#>` line 82
+            - [x] `<GET_STATE_EXTERNAL>` line 83
             - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 84
             - [ ] `<SIMVAR_TO_WATCH_0>` line 85
           - [ ] `<Case Value="ON_AUTO_OFF">` line 87
@@ -14112,16 +14112,16 @@
             - [ ] `<TT_VALUE_#POS_ON#>` line 92
             - [ ] `<TT_VALUE_#POS_AUTO#>` line 93
             - [ ] `<TT_VALUE_#POS_OFF#>` line 94
-            - [ ] `<SET_STATE_#POS_ON#>` line 95
-            - [ ] `<SET_STATE_#POS_AUTO#>` line 96
-            - [ ] `<SET_STATE_#POS_OFF#>` line 97
-            - [ ] `<GET_STATE_EXTERNAL>` line 98
+            - [x] `<SET_STATE_#POS_ON#>` line 95
+            - [x] `<SET_STATE_#POS_AUTO#>` line 96
+            - [x] `<SET_STATE_#POS_OFF#>` line 97
+            - [x] `<GET_STATE_EXTERNAL>` line 98
             - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 99
             - [ ] `<SIMVAR_TO_WATCH_0>` line 100
           - [ ] `<Case Value="GRADUAL_SET">` line 102
-            - [ ] `<SET_STATE_EXTERNAL>` line 103
-            - [ ] `<GET_STATE_EXTERNAL>` line 104
-            - [ ] `<GET_TT_VALUE_STATE>` line 105
+            - [x] `<SET_STATE_EXTERNAL>` line 103
+            - [x] `<GET_STATE_EXTERNAL>` line 104
+            - [x] `<GET_TT_VALUE_STATE>` line 105
             - [ ] `<INC_PARAM_0>` line 106
             - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 107
             - [ ] `<DEC_PARAM_0>` line 108
@@ -14132,21 +14132,21 @@
             - [ ] `<DEC_CODE_ADJUST_VALUE>` line 113 = `16384 /`
             - [ ] `<MIN_VALUE>` line 114 = `0`
             - [ ] `<MAX_VALUE>` line 115 = `16384`
-            - [ ] `<VALUE_UNITS>` line 116 = `position 16k`
-            - [ ] `<SIMVAR_TO_WATCH_0>` line 117
+            - [x] `<VALUE_UNITS>` line 116 = `position 16k`
+            - [x] `<SIMVAR_TO_WATCH_0>` line 117
           - [ ] `<Default>` line 119
             - [ ] `<Switch Param="TYPE">` line 120
               - [ ] `<Case Value="INERT_SEP">` line 121
                 - [ ] `<SET_STATE_EXTERNAL>` line 122
                 - [ ] `<GET_STATE_EXTERNAL>` line 123
               - [ ] `<Default>` line 125
-                - [ ] `<SET_STATE_EXTERNAL>` line 126
+                - [x] `<SET_STATE_EXTERNAL>` line 126
                 - [ ] `<Condition Valid="EXCLUDE_STRUCTURAL_DEICE">` line 127
                   - [ ] `<True>` line 128
                     - [ ] `<GET_STATE_EXTERNAL>` line 129
                   - [ ] `<False>` line 131
-                    - [ ] `<GET_STATE_EXTERNAL>` line 132
-                - [ ] `<SIMVAR_TO_WATCH_0>` line 135
+                    - [x] `<GET_STATE_EXTERNAL>` line 132
+                - [x] `<SIMVAR_TO_WATCH_0>` line 135
       - [ ] `<UseTemplate Name="ASOBO_DEICE_Base_Template">` line 141
         - [ ] `<IE_NAME>` line 142 = `Engine_#ID#`
         - [ ] `<Condition NotEmpty="INIT">` line 143
@@ -17000,18 +17000,18 @@
         - [ ] `<Switch Param="INTERACTION_TYPE">` line 1785
           - [ ] `<Case Value="Switch">` line 1786
             - [ ] `<UseInputEvent ID="ENGINE">` line 1787
-              - [ ] `<SET_STATE_ON>` line 1788
-              - [ ] `<SET_STATE_OFF>` line 1789
-              - [ ] `<GET_STATE_EXTERNAL>` line 1790
-              - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 1791
+              - [x] `<SET_STATE_ON>` line 1788
+              - [x] `<SET_STATE_OFF>` line 1789
+              - [x] `<GET_STATE_EXTERNAL>` line 1790
+              - [x] `<SIM_STATE_IS_ON_EXTERNAL>` line 1791
             - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 1793
               - [ ] `<ANIM_CODE>` line 1794 = `(B:ENGINE_#BTN_ID#, Bool) 100 *`
               - [ ] `<LEFT_SINGLE_CODE>` line 1795 = `(>B:ENGINE_#BTN_ID#_Toggle)`
           - [ ] `<Case Value="Lever">` line 1798
             - [ ] `<UseInputEvent ID="ENGINE">` line 1799
-              - [ ] `<SET_STATE_EXTERNAL>` line 1800
-              - [ ] `<GET_STATE_EXTERNAL>` line 1801
-              - [ ] `<GET_TT_VALUE_STATE>` line 1802
+              - [x] `<SET_STATE_EXTERNAL>` line 1800
+              - [x] `<GET_STATE_EXTERNAL>` line 1801
+              - [x] `<GET_TT_VALUE_STATE>` line 1802
               - [ ] `<INC_PARAM_0>` line 1803
               - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 1804
               - [ ] `<DEC_PARAM_0>` line 1805
@@ -52768,10 +52768,10 @@
             - [ ] `<TT_VALUE_#POS_ON#>` line 77
             - [ ] `<TT_VALUE_#POS_OFF#>` line 78
             - [ ] `<TT_VALUE_#POS_TEST#>` line 79
-            - [ ] `<SET_STATE_#POS_ON#>` line 80
-            - [ ] `<SET_STATE_#POS_OFF#>` line 81
-            - [ ] `<SET_STATE_#POS_TEST#>` line 82
-            - [ ] `<GET_STATE_EXTERNAL>` line 83
+            - [x] `<SET_STATE_#POS_ON#>` line 80
+            - [x] `<SET_STATE_#POS_OFF#>` line 81
+            - [x] `<SET_STATE_#POS_TEST#>` line 82
+            - [x] `<GET_STATE_EXTERNAL>` line 83
             - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 84
             - [ ] `<SIMVAR_TO_WATCH_0>` line 85
           - [ ] `<Case Value="ON_AUTO_OFF">` line 87
@@ -52782,16 +52782,16 @@
             - [ ] `<TT_VALUE_#POS_ON#>` line 92
             - [ ] `<TT_VALUE_#POS_AUTO#>` line 93
             - [ ] `<TT_VALUE_#POS_OFF#>` line 94
-            - [ ] `<SET_STATE_#POS_ON#>` line 95
-            - [ ] `<SET_STATE_#POS_AUTO#>` line 96
-            - [ ] `<SET_STATE_#POS_OFF#>` line 97
-            - [ ] `<GET_STATE_EXTERNAL>` line 98
+            - [x] `<SET_STATE_#POS_ON#>` line 95
+            - [x] `<SET_STATE_#POS_AUTO#>` line 96
+            - [x] `<SET_STATE_#POS_OFF#>` line 97
+            - [x] `<GET_STATE_EXTERNAL>` line 98
             - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 99
             - [ ] `<SIMVAR_TO_WATCH_0>` line 100
           - [ ] `<Case Value="GRADUAL_SET">` line 102
-            - [ ] `<SET_STATE_EXTERNAL>` line 103
-            - [ ] `<GET_STATE_EXTERNAL>` line 104
-            - [ ] `<GET_TT_VALUE_STATE>` line 105
+            - [x] `<SET_STATE_EXTERNAL>` line 103
+            - [x] `<GET_STATE_EXTERNAL>` line 104
+            - [x] `<GET_TT_VALUE_STATE>` line 105
             - [ ] `<INC_PARAM_0>` line 106
             - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 107
             - [ ] `<DEC_PARAM_0>` line 108
@@ -52802,21 +52802,21 @@
             - [ ] `<DEC_CODE_ADJUST_VALUE>` line 113 = `16384 /`
             - [ ] `<MIN_VALUE>` line 114 = `0`
             - [ ] `<MAX_VALUE>` line 115 = `16384`
-            - [ ] `<VALUE_UNITS>` line 116 = `position 16k`
-            - [ ] `<SIMVAR_TO_WATCH_0>` line 117
+            - [x] `<VALUE_UNITS>` line 116 = `position 16k`
+            - [x] `<SIMVAR_TO_WATCH_0>` line 117
           - [ ] `<Default>` line 119
             - [ ] `<Switch Param="TYPE">` line 120
               - [ ] `<Case Value="INERT_SEP">` line 121
                 - [ ] `<SET_STATE_EXTERNAL>` line 122
                 - [ ] `<GET_STATE_EXTERNAL>` line 123
               - [ ] `<Default>` line 125
-                - [ ] `<SET_STATE_EXTERNAL>` line 126
+                - [x] `<SET_STATE_EXTERNAL>` line 126
                 - [ ] `<Condition Valid="EXCLUDE_STRUCTURAL_DEICE">` line 127
                   - [ ] `<True>` line 128
                     - [ ] `<GET_STATE_EXTERNAL>` line 129
                   - [ ] `<False>` line 131
-                    - [ ] `<GET_STATE_EXTERNAL>` line 132
-                - [ ] `<SIMVAR_TO_WATCH_0>` line 135
+                    - [x] `<GET_STATE_EXTERNAL>` line 132
+                - [x] `<SIMVAR_TO_WATCH_0>` line 135
       - [ ] `<UseTemplate Name="ASOBO_DEICE_Base_Template">` line 141
         - [ ] `<IE_NAME>` line 142 = `Engine_#ID#`
         - [ ] `<Condition NotEmpty="INIT">` line 143
@@ -55670,18 +55670,18 @@
         - [ ] `<Switch Param="INTERACTION_TYPE">` line 1785
           - [ ] `<Case Value="Switch">` line 1786
             - [ ] `<UseInputEvent ID="ENGINE">` line 1787
-              - [ ] `<SET_STATE_ON>` line 1788
-              - [ ] `<SET_STATE_OFF>` line 1789
-              - [ ] `<GET_STATE_EXTERNAL>` line 1790
-              - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 1791
+              - [x] `<SET_STATE_ON>` line 1788
+              - [x] `<SET_STATE_OFF>` line 1789
+              - [x] `<GET_STATE_EXTERNAL>` line 1790
+              - [x] `<SIM_STATE_IS_ON_EXTERNAL>` line 1791
             - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 1793
               - [ ] `<ANIM_CODE>` line 1794 = `(B:ENGINE_#BTN_ID#, Bool) 100 *`
               - [ ] `<LEFT_SINGLE_CODE>` line 1795 = `(>B:ENGINE_#BTN_ID#_Toggle)`
           - [ ] `<Case Value="Lever">` line 1798
             - [ ] `<UseInputEvent ID="ENGINE">` line 1799
-              - [ ] `<SET_STATE_EXTERNAL>` line 1800
-              - [ ] `<GET_STATE_EXTERNAL>` line 1801
-              - [ ] `<GET_TT_VALUE_STATE>` line 1802
+              - [x] `<SET_STATE_EXTERNAL>` line 1800
+              - [x] `<GET_STATE_EXTERNAL>` line 1801
+              - [x] `<GET_TT_VALUE_STATE>` line 1802
               - [ ] `<INC_PARAM_0>` line 1803
               - [ ] `<INC_PARAM_0_IS_DYNAMIC>` line 1804
               - [ ] `<DEC_PARAM_0>` line 1805

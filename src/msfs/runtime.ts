@@ -673,7 +673,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
       value = resolved.value
     } else {
-      value = this.values.get(normalizedKey) ?? 0
+      value = resolveStoredRuntimeValue(
+        normalizedKey,
+        this.values.get(normalizedKey) ?? 0,
+        unit ?? null
+      )
     }
     this.readCache.set(cacheKey, value)
     return value
@@ -1199,6 +1203,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (isElectricalPowerKey(upperKey)) return handled(this.hasElectricalPower() ? 1 : 0)
     if (upperKey.startsWith('A:INTERACTIVE POINT OPEN:')) return handled(convertPercentUnit(0, unit))
     if (upperKey.startsWith('A:ENG ANTI ICE:')) return handled(0)
+    if (isEngineAntiIcePositionKey(upperKey)) return handled(convertPercentToEngineAntiIcePositionUnit(0, unit))
     if (upperKey.startsWith('A:PROP DEICE SWITCH:')) return handled(0)
     if (upperKey === 'A:WING FLEX PCT') {
       return handled(convertPercentOver100Unit(this.wingFlexProfile.baseFlexPct, unit))
@@ -1703,6 +1708,30 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyDeiceAndIgnitionKeyEvent(name: string, args: readonly number[]): boolean {
+    const engineAntiIceSetMatch = /^ANTI_ICE_SET_ENG(\d+)$/u.exec(name)
+    if (engineAntiIceSetMatch != null) {
+      this.setEngineAntiIcePosition(Number.parseInt(engineAntiIceSetMatch[1], 10), Number(args.at(-1) ?? 0) > 0 ? 100 : 0)
+      return true
+    }
+
+    const engineAntiIceToggleMatch = /^ANTI_ICE_TOGGLE_ENG(\d+)$/u.exec(name)
+    if (engineAntiIceToggleMatch != null) {
+      const index = Number.parseInt(engineAntiIceToggleMatch[1], 10)
+      const key = normalizeRuntimeVariableKey(`A:ENG ANTI ICE:${index}`)
+      this.setEngineAntiIcePosition(index, (this.values.get(key) ?? 0) > 0 ? 0 : 100)
+      return true
+    }
+
+    const engineAntiIceGradualSetMatch = /^ANTI_ICE_GRADUAL_SET_ENG(\d+)$/u.exec(name)
+    if (engineAntiIceGradualSetMatch != null) {
+      const position16k = clamp(Number(args.at(-1) ?? 0), 0, 16_384)
+      this.setEngineAntiIcePosition(
+        Number.parseInt(engineAntiIceGradualSetMatch[1], 10),
+        (position16k / 16_384) * 100
+      )
+      return true
+    }
+
     if (name === 'TOGGLE_STRUCTURAL_DEICE') {
       const key = normalizeRuntimeVariableKey('A:STRUCTURAL DEICE SWITCH')
       const nextValue = (this.values.get(key) ?? 0) > 0 ? 0 : 1
@@ -1794,6 +1823,18 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     return false
+  }
+
+  private setEngineAntiIcePosition(index: number, percent: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const engineIndex = Math.trunc(index)
+    const clampedPercent = clamp(percent, 0, 100)
+    const enabled = clampedPercent > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:ENG ANTI ICE:${engineIndex}`), enabled)
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG ANTI ICE POSITION:${engineIndex}`), clampedPercent)
+    this.values.set(normalizeRuntimeVariableKey(`A:RECIP ENG ALTERNATE AIR POSITION:${engineIndex}`), clampedPercent)
   }
 
   private setRudderTrim(value: number): void {
@@ -2033,6 +2074,32 @@ function resolveGenericStoredVariableFallback(
     return electricalPower ? 1 : 0
   }
   return null
+}
+
+function resolveStoredRuntimeValue(key: string, value: number, unit: string | null): number {
+  if (isEngineAntiIcePositionKey(key)) {
+    return convertPercentToEngineAntiIcePositionUnit(value, unit)
+  }
+  return value
+}
+
+function isEngineAntiIcePositionKey(key: string): boolean {
+  return (
+    key.startsWith('A:GENERAL ENG ANTI ICE POSITION:') ||
+    key.startsWith('A:RECIP ENG ALTERNATE AIR POSITION:')
+  )
+}
+
+function convertPercentToEngineAntiIcePositionUnit(value: number, unit: string | null): number {
+  const clampedPercent = clamp(value, 0, 100)
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'position 16k') {
+    return (clampedPercent / 100) * 16_384
+  }
+  if (normalizedUnit === 'percent over 100') {
+    return clampedPercent / 100
+  }
+  return clampedPercent
 }
 
 function isCircuitPowerStateKey(key: string): boolean {
