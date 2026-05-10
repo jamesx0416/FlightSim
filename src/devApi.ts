@@ -221,8 +221,34 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     lastCaptureError: runtime.lastCaptureError,
     captureAttemptCount: runtime.captureAttemptCount,
     hasIframe: runtime.iframe != null,
-    hasCaptureImage: runtime.captureImage != null || runtime.staticCaptureImage != null
+    hasCaptureImage: runtime.captureImage != null || runtime.staticCaptureImage != null,
+    ...summarizeGaugeFrame(runtime)
   })
+  const summarizeGaugeFrame = (runtime: VCockpitHtmlGaugeRuntime): Record<string, unknown> => {
+    const frameDocument = runtime.iframe?.contentDocument
+    const frameWindow = runtime.iframe?.contentWindow as
+      | (Window & {
+          readonly __msfsGaugeDirtyStats?: unknown
+          readonly __msfsInstrumentRuntimeStats?: unknown
+          readonly __msfsGaugeBridgeStats?: unknown
+          readonly __msfsGaugeErrors?: unknown
+          readonly __msfsGaugeAssetErrors?: unknown
+          readonly __msfsGaugeResourceErrors?: unknown
+        })
+      | null
+      | undefined
+    return {
+      domNodeCount: frameDocument?.getElementsByTagName('*').length ?? null,
+      canvasCount: frameDocument?.querySelectorAll('canvas').length ?? null,
+      svgCount: frameDocument?.querySelectorAll('svg').length ?? null,
+      dirtyStats: frameWindow?.__msfsGaugeDirtyStats ?? null,
+      instrumentStats: frameWindow?.__msfsInstrumentRuntimeStats ?? null,
+      bridgeStats: frameWindow?.__msfsGaugeBridgeStats ?? null,
+      scriptErrors: frameWindow?.__msfsGaugeErrors ?? null,
+      assetErrors: frameWindow?.__msfsGaugeAssetErrors ?? null,
+      resourceErrors: frameWindow?.__msfsGaugeResourceErrors ?? null
+    }
+  }
   const canvasDataUrl = (canvas: HTMLCanvasElement): string | null => {
     try {
       return canvas.toDataURL('image/png')
