@@ -1402,6 +1402,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.applyCabinKeyEvent(name)) {
       return
     }
+    if (this.applyPressurizationKeyEvent(name, args)) {
+      return
+    }
+    if (this.applySafetyKeyEvent(name)) {
+      return
+    }
     if (this.applyRadioKeyEvent(name, args)) {
       return
     }
@@ -1623,6 +1629,51 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.toggleNamedBoolVariables('A:CABIN NO SMOKING ALERT SWITCH', 'A:CABIN NO SMOKING ALERT SWITCH:1')
       return true
     }
+    return false
+  }
+
+  private applyPressurizationKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'PRESSURIZATION_PRESSURE_DUMP_SWITCH') {
+      const key = normalizeRuntimeVariableKey('A:PRESSURIZATION DUMP SWITCH')
+      const explicitValue = Number(args.at(-1) ?? Number.NaN)
+      const nextValue = Number.isFinite(explicitValue)
+        ? explicitValue > 0 ? 1 : 0
+        : (this.values.get(key) ?? 0) > 0 ? 0 : 1
+      this.values.set(key, nextValue)
+      return true
+    }
+
+    if (name === 'PRESSURIZATION_PRESSURE_ALT_INC' || name === 'PRESSURIZATION_PRESSURE_ALT_DEC') {
+      const key = normalizeRuntimeVariableKey('A:PRESSURIZATION CABIN ALTITUDE GOAL')
+      const currentValue = this.values.get(key) ?? 0
+      const rawStep = Math.abs(Number(args.at(-1) ?? Number.NaN))
+      const step = Number.isFinite(rawStep) && rawStep > 0 ? rawStep : 500
+      const direction = name.endsWith('_INC') ? 1 : -1
+      this.values.set(key, clamp(currentValue + direction * step, 0, 50_000))
+      return true
+    }
+
+    return false
+  }
+
+  private applySafetyKeyEvent(name: string): boolean {
+    if (name === 'ANNUNCIATOR_SWITCH_ON' || name === 'ANNUNCIATOR_SWITCH_OFF') {
+      this.values.set(normalizeRuntimeVariableKey('A:ANNUNCIATOR SWITCH'), name.endsWith('_ON') ? 1 : 0)
+      return true
+    }
+
+    if (name === 'TOGGLE_ALTERNATE_STATIC') {
+      const key = normalizeRuntimeVariableKey('A:ALTERNATE STATIC SOURCE OPEN')
+      const currentValue = this.values.get(key) ?? 0
+      this.values.set(key, currentValue > 0 ? 0 : 1)
+      return true
+    }
+
+    if (name === 'ELT_ON' || name === 'ELT_OFF') {
+      this.values.set(normalizeRuntimeVariableKey('A:ELT ACTIVATED'), name.endsWith('_ON') ? 1 : 0)
+      return true
+    }
+
     return false
   }
 
