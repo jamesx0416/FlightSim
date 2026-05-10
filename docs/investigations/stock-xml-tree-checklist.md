@@ -9655,13 +9655,13 @@
                 - [ ] `<ON_STATE_CHANGED>` line 36
                 - [ ] `<ON_AFTER_INC>` line 37
                 - [ ] `<ON_AFTER_DEC>` line 38
-                - [ ] `<DEC_EVENT>` line 39 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 - (>B:HANDLING_Flaps_Set)`
-                - [ ] `<INC_EVENT>` line 40 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 + (>B:HANDLING_Flaps_Set)`
+                - [x] `<DEC_EVENT>` line 39 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 - (>B:HANDLING_Flaps_Set)`
+                - [x] `<INC_EVENT>` line 40 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 + (>B:HANDLING_Flaps_Set)`
                 - [ ] `<Condition Valid="IS_CONTINUOUS">` line 41
                   - [ ] `<True>` line 42
-                    - [ ] `<SET_EVENT>` line 43 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:FLAPS_CONTINUOUS_SET) l0 (>O:HANDLING_Flaps_Position)`
+                    - [x] `<SET_EVENT>` line 43 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:FLAPS_CONTINUOUS_SET) l0 (>O:HANDLING_Flaps_Position)`
                   - [ ] `<False>` line 45
-                    - [ ] `<SET_EVENT>` line 46 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min (>K:FLAPS_SET) (A:FLAPS HANDLE PERCENT, position 16k) (>O:HA...`
+                    - [x] `<SET_EVENT>` line 46 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min (>K:FLAPS_SET) (A:FLAPS HANDLE PERCENT, position 16k) (>O:HA...`
               - [ ] `<Tooltip>` line 50
                 - [ ] `<Icon>` line 51
                 - [ ] `<Interaction>` line 52
@@ -10347,9 +10347,9 @@
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 33
               - [ ] `<Parameters Type="Override">` line 35
                 - [ ] `<TOOLTIP_VALUE>` line 36 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) @TT_OnOff_Cond`
-                - [ ] `<INC_EVENT>` line 37 = `0 (>B:LANDING_GEAR_Gear_Set)`
-                - [ ] `<DEC_EVENT>` line 38 = `1 (>B:LANDING_GEAR_Gear_Set)`
-                - [ ] `<SET_EVENT>` line 39 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:GEAR_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_...`
+                - [x] `<INC_EVENT>` line 37 = `0 (>B:LANDING_GEAR_Gear_Set)`
+                - [x] `<DEC_EVENT>` line 38 = `1 (>B:LANDING_GEAR_Gear_Set)`
+                - [x] `<SET_EVENT>` line 39 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:GEAR_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_...`
                 - [ ] `<INIT_VALUE>` line 40 = `(A:GEAR HANDLE POSITION, Bool) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 41
               - [ ] `<Parameters Type="Override">` line 43
@@ -10361,7 +10361,7 @@
                 - [ ] `<Interaction>` line 50
                 - [ ] `<InteractionLockable>` line 51
                 - [ ] `<TTDescription>` line 52
-                - [ ] `<TTValue>` line 53 = `(B:LANDING_GEAR_Gear_Set, bool) if{ (R:1:@TT_Package.GT_STATE_DOWN) } els{ (R:1:@TT_Package.GT_STAT...`
+                - [x] `<TTValue>` line 53 = `(B:LANDING_GEAR_Gear_Set, bool) if{ (R:1:@TT_Package.GT_STATE_DOWN) } els{ (R:1:@TT_Package.GT_STAT...`
               - [ ] `<Value>` line 55
                 - [ ] `<Units>` line 56 = `bool`
                 - [ ] `<Code>` line 57 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
@@ -19995,7 +19995,7 @@
               - [ ] `<HELPID>` line 1951 = `HELPID_GAUGE_FLAPS_SWITCH`
               - [ ] `<TOOLTIPID>` line 1952 = `TOOLTIPTEXT_FLAPS_SWITCH`
               - [ ] `<DRAG_SIMVAR>` line 1953 = `FLAPS HANDLE PERCENT`
-              - [ ] `<DRAG_CODE>` line 1954 = `#DRAG_POSITION# (>B:HANDLING_Flaps_Set)`
+              - [x] `<DRAG_CODE>` line 1954 = `#DRAG_POSITION# (>B:HANDLING_Flaps_Set)`
               - [ ] `<POSITIVE_AXIS_CODE>` line 1955 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Inc)`
               - [ ] `<NEGATIVE_AXIS_CODE>` line 1956 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Dec)`
           - [ ] `<False>` line 1959
@@ -48325,13 +48325,13 @@
                 - [ ] `<ON_STATE_CHANGED>` line 36
                 - [ ] `<ON_AFTER_INC>` line 37
                 - [ ] `<ON_AFTER_DEC>` line 38
-                - [ ] `<DEC_EVENT>` line 39 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 - (>B:HANDLING_Flaps_Set)`
-                - [ ] `<INC_EVENT>` line 40 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 + (>B:HANDLING_Flaps_Set)`
+                - [x] `<DEC_EVENT>` line 39 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 - (>B:HANDLING_Flaps_Set)`
+                - [x] `<INC_EVENT>` line 40 = `(A:FLAPS HANDLE PERCENT, position 16k) p0 + (>B:HANDLING_Flaps_Set)`
                 - [ ] `<Condition Valid="IS_CONTINUOUS">` line 41
                   - [ ] `<True>` line 42
-                    - [ ] `<SET_EVENT>` line 43 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:FLAPS_CONTINUOUS_SET) l0 (>O:HANDLING_Flaps_Position)`
+                    - [x] `<SET_EVENT>` line 43 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:FLAPS_CONTINUOUS_SET) l0 (>O:HANDLING_Flaps_Position)`
                   - [ ] `<False>` line 45
-                    - [ ] `<SET_EVENT>` line 46 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min (>K:FLAPS_SET) (A:FLAPS HANDLE PERCENT, position 16k) (>O:HA...`
+                    - [x] `<SET_EVENT>` line 46 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min (>K:FLAPS_SET) (A:FLAPS HANDLE PERCENT, position 16k) (>O:HA...`
               - [ ] `<Tooltip>` line 50
                 - [ ] `<Icon>` line 51
                 - [ ] `<Interaction>` line 52
@@ -49017,9 +49017,9 @@
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 33
               - [ ] `<Parameters Type="Override">` line 35
                 - [ ] `<TOOLTIP_VALUE>` line 36 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) @TT_OnOff_Cond`
-                - [ ] `<INC_EVENT>` line 37 = `0 (>B:LANDING_GEAR_Gear_Set)`
-                - [ ] `<DEC_EVENT>` line 38 = `1 (>B:LANDING_GEAR_Gear_Set)`
-                - [ ] `<SET_EVENT>` line 39 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:GEAR_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_...`
+                - [x] `<INC_EVENT>` line 37 = `0 (>B:LANDING_GEAR_Gear_Set)`
+                - [x] `<DEC_EVENT>` line 38 = `1 (>B:LANDING_GEAR_Gear_Set)`
+                - [x] `<SET_EVENT>` line 39 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:GEAR_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_...`
                 - [ ] `<INIT_VALUE>` line 40 = `(A:GEAR HANDLE POSITION, Bool) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 41
               - [ ] `<Parameters Type="Override">` line 43
@@ -49031,7 +49031,7 @@
                 - [ ] `<Interaction>` line 50
                 - [ ] `<InteractionLockable>` line 51
                 - [ ] `<TTDescription>` line 52
-                - [ ] `<TTValue>` line 53 = `(B:LANDING_GEAR_Gear_Set, bool) if{ (R:1:@TT_Package.GT_STATE_DOWN) } els{ (R:1:@TT_Package.GT_STAT...`
+                - [x] `<TTValue>` line 53 = `(B:LANDING_GEAR_Gear_Set, bool) if{ (R:1:@TT_Package.GT_STATE_DOWN) } els{ (R:1:@TT_Package.GT_STAT...`
               - [ ] `<Value>` line 55
                 - [ ] `<Units>` line 56 = `bool`
                 - [ ] `<Code>` line 57 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
@@ -58665,7 +58665,7 @@
               - [ ] `<HELPID>` line 1951 = `HELPID_GAUGE_FLAPS_SWITCH`
               - [ ] `<TOOLTIPID>` line 1952 = `TOOLTIPTEXT_FLAPS_SWITCH`
               - [ ] `<DRAG_SIMVAR>` line 1953 = `FLAPS HANDLE PERCENT`
-              - [ ] `<DRAG_CODE>` line 1954 = `#DRAG_POSITION# (>B:HANDLING_Flaps_Set)`
+              - [x] `<DRAG_CODE>` line 1954 = `#DRAG_POSITION# (>B:HANDLING_Flaps_Set)`
               - [ ] `<POSITIVE_AXIS_CODE>` line 1955 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Inc)`
               - [ ] `<NEGATIVE_AXIS_CODE>` line 1956 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Dec)`
           - [ ] `<False>` line 1959

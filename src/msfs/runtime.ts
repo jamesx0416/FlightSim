@@ -689,10 +689,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
     if (normalizedKey.startsWith('B:')) {
-      this.invokeInputEventBinding(
+      const handledByBinding = this.invokeInputEventBinding(
         normalizedKey.slice(2),
         Number.isFinite(numericValue) ? numericValue : 0
       )
+      if (!handledByBinding) {
+        this.applyGenericControlEventName(normalizedKey.slice(2), Number.isFinite(numericValue) ? numericValue : 0)
+      }
       return
     }
     this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
@@ -780,13 +783,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
-  private invokeInputEventBinding(name: string, value: number): void {
+  private invokeInputEventBinding(name: string, value: number): boolean {
     this.bridgeCallCount += 1
     const normalizedName = normalizeRuntimeInputEventName(name)
     this.values.set(normalizeRuntimeVariableKey(`B:${normalizedName}`), value)
     const binding = this.inputEventBindings.get(normalizedName)
     if (binding == null || this.activeInputEventBindings.has(normalizedName)) {
-      return
+      return false
     }
 
     this.activeInputEventBindings.add(normalizedName)
@@ -798,6 +801,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         invokeHtmlEvent: (eventName, args) => this.invokeHtmlEvent(eventName, args),
         parameterValues: [value]
       })
+      return true
     } finally {
       this.activeInputEventBindings.delete(normalizedName)
     }
@@ -2860,14 +2864,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         return true
       }
       if (normalizedName.includes('SET') || normalizedName.includes('AXIS') || normalizedName.includes('HANDLE')) {
-        this.controlState.flapsTarget = clamp01(toPercentOver100(value, null))
+        this.controlState.flapsTarget = controlEventPositionToRatio(value)
         return true
       }
     }
 
     if (normalizedName.includes('SPOILER')) {
       if (normalizedName.includes('SET') || normalizedName.includes('AXIS') || normalizedName.includes('HANDLE')) {
-        this.controlState.spoilersTarget = clamp01(toPercentOver100(value, null))
+        this.controlState.spoilersTarget = controlEventPositionToRatio(value)
         return true
       }
       if (normalizedName.includes('ARM') && value <= 0) {
@@ -3206,6 +3210,16 @@ function toPercentOver100(value: number, unit: string | null): number {
     return value / 100
   }
   return value
+}
+
+function controlEventPositionToRatio(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0
+  }
+  if (Math.abs(value) > 100) {
+    return clamp01(Math.abs(value) / 16_384)
+  }
+  return clamp01(toPercentOver100(value, null))
 }
 
 function normalizeKohlsmanHg(value: number): number {
