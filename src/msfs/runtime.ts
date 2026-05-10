@@ -1314,6 +1314,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.applyFuelSystemKeyEvent(name, args)) {
       return
     }
+    if (this.applyElectricalInputKeyEvent(name, args)) {
+      return
+    }
     if (name.endsWith('ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE')) {
       const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
       if (Number.isFinite(circuitIndex)) {
@@ -1348,13 +1351,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         const currentValue = this.values.get(busKey) ?? 1
         this.values.set(busKey, currentValue > 0 ? 0 : 1)
       }
-      return
-    }
-    if (name === 'APU_GENERATOR_SWITCH_TOGGLE') {
-      const generatorIndex = Math.trunc(Number(args[0] ?? 1))
-      const generatorKey = normalizeRuntimeVariableKey(`A:APU GENERATOR SWITCH:${generatorIndex}`)
-      const currentValue = this.values.get(generatorKey) ?? 0
-      this.values.set(generatorKey, currentValue > 0 ? 0 : 1)
       return
     }
     if (this.applyApuKeyEvent(name, args)) {
@@ -2319,6 +2315,114 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     return false
+  }
+
+  private applyElectricalInputKeyEvent(name: string, args: readonly number[]): boolean {
+    const batterySetMatch = /^BATTERY(\d+)_SET$/u.exec(name)
+    if (batterySetMatch != null) {
+      this.setIndexedBatterySwitch(Number.parseInt(batterySetMatch[1], 10), Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    if (name === 'MASTER_BATTERY_SET') {
+      const { index, value } = getFlexibleIndexedSetEventArgs(args, 0)
+      if (index === 0) {
+        this.setBatterySwitch(value)
+      } else {
+        this.setIndexedBatterySwitch(index, value)
+      }
+      return true
+    }
+
+    if (name === 'SET_EXTERNAL_POWER') {
+      const { index, value } = getFlexibleIndexedSetEventArgs(args, 0)
+      this.setIndexedExternalPowerSwitch(index, value)
+      return true
+    }
+
+    if (name === 'TOGGLE_EXTERNAL_POWER') {
+      const index = Math.trunc(Number(args[0] ?? 0))
+      this.toggleIndexedExternalPowerSwitch(index)
+      return true
+    }
+
+    if (name === 'APU_GENERATOR_SWITCH_SET') {
+      const index = Math.trunc(Number(args[0] ?? 1))
+      const value = Number(args[1] ?? args[0] ?? 0)
+      this.setApuGeneratorSwitch(index, value)
+      return true
+    }
+
+    if (name === 'KEY_APU_GENERATOR_SWITCH_TOGGLE' || name === 'APU_GENERATOR_SWITCH_TOGGLE') {
+      const index = Math.trunc(Number(args[0] ?? 1))
+      if (Number.isFinite(index)) {
+        const key = normalizeRuntimeVariableKey(`A:APU GENERATOR SWITCH:${index}`)
+        this.setApuGeneratorSwitch(index, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      }
+      return true
+    }
+
+    if (name === 'STARTER_SET' || name === 'SET_STARTER_ALL_HELD') {
+      const value = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      for (let index = 1; index <= 4; index += 1) {
+        this.setEngineStarter(index, value)
+      }
+      return true
+    }
+
+    if (name === 'TOGGLE_ALL_STARTERS') {
+      const anyActive = [1, 2, 3, 4].some(index =>
+        (this.values.get(normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${index}`)) ?? 0) > 0
+      )
+      for (let index = 1; index <= 4; index += 1) {
+        this.setEngineStarter(index, anyActive ? 0 : 1)
+      }
+      return true
+    }
+
+    return false
+  }
+
+  private setIndexedBatterySwitch(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const batteryIndex = Math.trunc(index)
+    const switchValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:ELECTRICAL MASTER BATTERY:${batteryIndex}`), switchValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:MASTER BATTERY SWITCH:${batteryIndex}`), switchValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:BATTERY SWITCH:${batteryIndex}`), switchValue)
+    if (batteryIndex === 0 || batteryIndex === 1) {
+      this.setBatterySwitch(switchValue)
+    }
+  }
+
+  private setIndexedExternalPowerSwitch(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const externalPowerIndex = Math.trunc(index)
+    const switchValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:EXTERNAL POWER ON:${externalPowerIndex}`), switchValue)
+    if (externalPowerIndex === 0 || externalPowerIndex === 1) {
+      this.setExternalPowerSwitch(switchValue)
+    }
+  }
+
+  private toggleIndexedExternalPowerSwitch(index: number): void {
+    const externalPowerIndex = Number.isFinite(index) ? Math.trunc(index) : 0
+    const key = normalizeRuntimeVariableKey(`A:EXTERNAL POWER ON:${externalPowerIndex}`)
+    const currentValue = this.values.get(key) ?? this.electricalState.externalPowerSwitch
+    this.setIndexedExternalPowerSwitch(externalPowerIndex, currentValue > 0 ? 0 : 1)
+  }
+
+  private setApuGeneratorSwitch(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const generatorIndex = Math.trunc(index)
+    const switchValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:APU GENERATOR SWITCH:${generatorIndex}`), switchValue)
   }
 
   private setFuelPumpState(index: number, value: number): void {
