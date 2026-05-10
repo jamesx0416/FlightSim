@@ -1368,6 +1368,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.applyRadioAudioKeyEvent(name, args)) {
       return
     }
+    if (this.applyInstrumentKeyEvent(name, args)) {
+      return
+    }
     if (this.applyTrimAndBrakeKeyEvent(name, args)) {
       return
     }
@@ -1676,6 +1679,35 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const transmitterMatch = /^(PILOT|COPILOT)_TRANSMITTER_SET$/u.exec(name)
     if (transmitterMatch != null) {
       this.values.set(normalizeRuntimeVariableKey(`A:${transmitterMatch[1]} TRANSMITTER TYPE`), Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    return false
+  }
+
+  private applyInstrumentKeyEvent(name: string, args: readonly number[]): boolean {
+    const vorCourseMatch = /^KEY_VOR(\d+)_(INC|DEC|SET)$/u.exec(name)
+    if (vorCourseMatch != null) {
+      const index = Number.parseInt(vorCourseMatch[1], 10)
+      const key = normalizeRuntimeVariableKey(`A:NAV OBS:${index}`)
+      const currentValue = this.values.get(key) ?? 0
+      const step = Math.abs(Number(args.at(-1) ?? 1)) || 1
+      const nextValue = vorCourseMatch[2] === 'SET'
+        ? Number(args.at(-1) ?? currentValue)
+        : currentValue + (vorCourseMatch[2] === 'INC' ? step : -step)
+      this.setCourseDegrees(`A:NAV OBS:${index}`, nextValue)
+      return true
+    }
+
+    if (name === 'ADF_CARD_INC' || name === 'ADF_CARD_DEC' || name === 'ADF_CARD_SET') {
+      const key = normalizeRuntimeVariableKey('A:ADF RADIAL')
+      const currentValue = this.values.get(key) ?? 0
+      const step = Math.abs(Number(args.at(-1) ?? 1)) || 1
+      const nextValue = name === 'ADF_CARD_SET'
+        ? Number(args.at(-1) ?? currentValue)
+        : currentValue + (name === 'ADF_CARD_INC' ? step : -step)
+      this.setCourseDegrees('A:ADF RADIAL', nextValue)
+      this.setCourseDegrees('A:ADF CARD', nextValue)
       return true
     }
 
@@ -2185,6 +2217,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private setBrakePosition(side: 'LEFT' | 'RIGHT', percent: number): void {
     const clampedPercent = clamp(percent, 0, 100)
     this.values.set(normalizeRuntimeVariableKey(`A:BRAKE ${side} POSITION`), clampedPercent)
+  }
+
+  private setCourseDegrees(key: string, value: number): void {
+    const normalizedValue = normalizeDegrees(Number.isFinite(value) ? value : 0)
+    this.values.set(normalizeRuntimeVariableKey(key), normalizedValue)
   }
 
   private updateSimVarSounds(): void {
@@ -2852,6 +2889,10 @@ function normalizeKohlsmanHg(value: number): number {
     return value / 33.863_886_666_7
   }
   return value
+}
+
+function normalizeDegrees(value: number): number {
+  return positiveModulo(value, 360)
 }
 
 function isSoundVariableInRanges(

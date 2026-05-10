@@ -399,7 +399,7 @@
           - [ ] `<LOCAL_VAR_TO_WATCH_3>` line 74
         - [ ] `<Loop>` line 76
           - [ ] `<Setup>` line 77
-            - [ ] `<Param>` line 78 = `ID_MODE`
+            - [x] `<Param>` line 78 = `ID_MODE`
             - [ ] `<From>` line 79
             - [ ] `<Inc>` line 80
             - [ ] `<To>` line 81
@@ -9088,7 +9088,7 @@
                   - [ ] `<Binding>` line 85
                     - [ ] `<Param>` line 86 = `1`
                   - [ ] `<Binding>` line 88
-                    - [ ] `<Param>` line 89 = `0.5`
+                    - [x] `<Param>` line 89 = `0.5`
               - [ ] `<Set>` line 93
                 - [ ] `<Code>` line 94 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:MIXTURE#MIXTURE_ID#_SET) l0 (>O:FUEL_...`
                 - [ ] `<Parameters>` line 95
@@ -9691,7 +9691,7 @@
                   - [ ] `<Binding>` line 85
                     - [ ] `<Param>` line 86 = `#STEP_INCREMENT#`
                   - [ ] `<Binding>` line 88
-                    - [ ] `<Param>` line 89 = `#INCREMENT#`
+                    - [x] `<Param>` line 89 = `#INCREMENT#`
               - [ ] `<Set>` line 93
                 - [ ] `<Code>` line 94 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 95
@@ -10115,7 +10115,7 @@
                 - [ ] `<TT_VALUE>` line 28 = `(A:KOHLSMAN SETTING HG:#BARO_ID#, inHg) '%.2fIN' @sprintf`
                 - [ ] `<INC_EVENT>` line 29 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:INSTRUMENT_Altimeter_#BARO_ID#_Set)`
                 - [ ] `<DEC_EVENT>` line 30 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:INSTRUMENT_Altimeter_#BARO_ID#_Set)`
-                - [ ] `<SET_EVENT>` line 31 = `#BARO_ID# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 16 * (>K:2:KOHLSMAN_SET) l0 (>#INPUTEVENT_VAR_T...`
+                - [x] `<SET_EVENT>` line 31 = `#BARO_ID# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 16 * (>K:2:KOHLSMAN_SET) l0 (>#INPUTEVENT_VAR_T...`
                 - [ ] `<INIT_VALUE>` line 32 = `(A:KOHLSMAN SETTING HG:#BARO_ID#, Millibar) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 33
               - [ ] `<Parameters Type="Override">` line 35
@@ -10144,21 +10144,21 @@
                   - [ ] `<Param Type="Float">` line 63 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 65
                   - [ ] `<Binding>` line 66
-                    - [ ] `<Param>` line 67 = `p0 #INCREMENT# *`
+                    - [x] `<Param>` line 67 = `p0 #INCREMENT# *`
               - [ ] `<Dec>` line 71
                 - [ ] `<Code>` line 72 = `#ON_BEFORE_DEC# #DEC_EVENT# #ON_AFTER_DEC#`
                 - [ ] `<Parameters>` line 73
                   - [ ] `<Param Type="Float">` line 74 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 76
                   - [ ] `<Binding>` line 77
-                    - [ ] `<Param>` line 78 = `p0 #INCREMENT# *`
+                    - [x] `<Param>` line 78 = `p0 #INCREMENT# *`
               - [ ] `<Set>` line 82
                 - [ ] `<Code>` line 83 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 84
                   - [ ] `<Param Type="Float">` line 85 = `p0`
                 - [ ] `<Bindings>` line 87
                   - [ ] `<Binding>` line 88
-                    - [ ] `<Param>` line 89 = `p0`
+                    - [x] `<Param>` line 89 = `p0`
           - [ ] `<Case NotEmpty="CRS_ID">` line 95
             - [ ] `<Preset ID="INSTRUMENT_Course_#CRS_ID#">` line 96
               - [ ] `<Parameters Type="Default">` line 97
@@ -10181,7 +10181,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 116 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) '%.0f°' @sprintf`
                 - [ ] `<INC_EVENT>` line 117 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:INSTRUMENT_Course_#CRS_ID#_Set)`
                 - [ ] `<DEC_EVENT>` line 118 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:INSTRUMENT_Course_#CRS_ID#_Set)`
-                - [ ] `<SET_EVENT>` line 119 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:VOR#CRS_ID#_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
+                - [x] `<SET_EVENT>` line 119 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:VOR#CRS_ID#_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
                 - [ ] `<INIT_VALUE>` line 120 = `(A:NAV OBS:#CRS_ID#, Degrees) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 121
               - [ ] `<Parameters Type="Override">` line 123
@@ -10208,21 +10208,21 @@
                   - [ ] `<Param Type="Float">` line 148 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 150
                   - [ ] `<Binding>` line 151
-                    - [ ] `<Param>` line 152 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 152 = `p1 #INCREMENT# *`
               - [ ] `<Dec>` line 156
                 - [ ] `<Code>` line 157 = `#ON_BEFORE_DEC# #DEC_EVENT# #ON_AFTER_DEC#`
                 - [ ] `<Parameters>` line 158
                   - [ ] `<Param Type="Float">` line 159 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 161
                   - [ ] `<Binding>` line 162
-                    - [ ] `<Param>` line 163 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 163 = `p1 #INCREMENT# *`
               - [ ] `<Set>` line 167
                 - [ ] `<Code>` line 168 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 169
                   - [ ] `<Param Type="Float">` line 170 = `p0`
                 - [ ] `<Bindings>` line 172
                   - [ ] `<Binding>` line 173
-                    - [ ] `<Param>` line 174 = `p1`
+                    - [x] `<Param>` line 174 = `p1`
           - [ ] `<Case NotEmpty="ADF_ID">` line 180
             - [ ] `<Preset ID="INSTRUMENT_ADF">` line 181
               - [ ] `<Parameters Type="Default">` line 182
@@ -10245,7 +10245,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 201 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) '%.0f°' @sprintf`
                 - [ ] `<INC_EVENT>` line 202 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:INSTRUMENT_ADF_Set)`
                 - [ ] `<DEC_EVENT>` line 203 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:INSTRUMENT_ADF_Set)`
-                - [ ] `<SET_EVENT>` line 204 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ADF_CARD_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
+                - [x] `<SET_EVENT>` line 204 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ADF_CARD_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
                 - [ ] `<INIT_VALUE>` line 205 = `(A:ADF RADIAL, degrees) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 206
               - [ ] `<Parameters Type="Override">` line 208
@@ -10272,21 +10272,21 @@
                   - [ ] `<Param Type="Float">` line 233 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 235
                   - [ ] `<Binding>` line 236
-                    - [ ] `<Param>` line 237 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 237 = `p1 #INCREMENT# *`
               - [ ] `<Dec>` line 241
                 - [ ] `<Code>` line 242 = `#ON_BEFORE_DEC# #DEC_EVENT# #ON_AFTER_DEC#`
                 - [ ] `<Parameters>` line 243
                   - [ ] `<Param Type="Float">` line 244 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 246
                   - [ ] `<Binding>` line 247
-                    - [ ] `<Param>` line 248 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 248 = `p1 #INCREMENT# *`
               - [ ] `<Set>` line 252
                 - [ ] `<Code>` line 253 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 254
                   - [ ] `<Param Type="Float">` line 255 = `p0`
                 - [ ] `<Bindings>` line 257
                   - [ ] `<Binding>` line 258
-                    - [ ] `<Param>` line 259 = `p1`
+                    - [x] `<Param>` line 259 = `p1`
           - [ ] `<Case NotEmpty="COMPASS_ID">` line 265
             - [ ] `<Preset ID="INSTRUMENT_COMPASS_Calibration_#COMPASS_ID#">` line 266
               - [ ] `<Parameters Type="Default">` line 267
@@ -39069,7 +39069,7 @@
           - [ ] `<LOCAL_VAR_TO_WATCH_3>` line 74
         - [ ] `<Loop>` line 76
           - [ ] `<Setup>` line 77
-            - [ ] `<Param>` line 78 = `ID_MODE`
+            - [x] `<Param>` line 78 = `ID_MODE`
             - [ ] `<From>` line 79
             - [ ] `<Inc>` line 80
             - [ ] `<To>` line 81
@@ -47758,7 +47758,7 @@
                   - [ ] `<Binding>` line 85
                     - [ ] `<Param>` line 86 = `1`
                   - [ ] `<Binding>` line 88
-                    - [ ] `<Param>` line 89 = `0.5`
+                    - [x] `<Param>` line 89 = `0.5`
               - [ ] `<Set>` line 93
                 - [ ] `<Code>` line 94 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:MIXTURE#MIXTURE_ID#_SET) l0 (>O:FUEL_...`
                 - [ ] `<Parameters>` line 95
@@ -48361,7 +48361,7 @@
                   - [ ] `<Binding>` line 85
                     - [ ] `<Param>` line 86 = `#STEP_INCREMENT#`
                   - [ ] `<Binding>` line 88
-                    - [ ] `<Param>` line 89 = `#INCREMENT#`
+                    - [x] `<Param>` line 89 = `#INCREMENT#`
               - [ ] `<Set>` line 93
                 - [ ] `<Code>` line 94 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 95
@@ -48785,7 +48785,7 @@
                 - [ ] `<TT_VALUE>` line 28 = `(A:KOHLSMAN SETTING HG:#BARO_ID#, inHg) '%.2fIN' @sprintf`
                 - [ ] `<INC_EVENT>` line 29 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:INSTRUMENT_Altimeter_#BARO_ID#_Set)`
                 - [ ] `<DEC_EVENT>` line 30 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:INSTRUMENT_Altimeter_#BARO_ID#_Set)`
-                - [ ] `<SET_EVENT>` line 31 = `#BARO_ID# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 16 * (>K:2:KOHLSMAN_SET) l0 (>#INPUTEVENT_VAR_T...`
+                - [x] `<SET_EVENT>` line 31 = `#BARO_ID# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 16 * (>K:2:KOHLSMAN_SET) l0 (>#INPUTEVENT_VAR_T...`
                 - [ ] `<INIT_VALUE>` line 32 = `(A:KOHLSMAN SETTING HG:#BARO_ID#, Millibar) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 33
               - [ ] `<Parameters Type="Override">` line 35
@@ -48814,21 +48814,21 @@
                   - [ ] `<Param Type="Float">` line 63 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 65
                   - [ ] `<Binding>` line 66
-                    - [ ] `<Param>` line 67 = `p0 #INCREMENT# *`
+                    - [x] `<Param>` line 67 = `p0 #INCREMENT# *`
               - [ ] `<Dec>` line 71
                 - [ ] `<Code>` line 72 = `#ON_BEFORE_DEC# #DEC_EVENT# #ON_AFTER_DEC#`
                 - [ ] `<Parameters>` line 73
                   - [ ] `<Param Type="Float">` line 74 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 76
                   - [ ] `<Binding>` line 77
-                    - [ ] `<Param>` line 78 = `p0 #INCREMENT# *`
+                    - [x] `<Param>` line 78 = `p0 #INCREMENT# *`
               - [ ] `<Set>` line 82
                 - [ ] `<Code>` line 83 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 84
                   - [ ] `<Param Type="Float">` line 85 = `p0`
                 - [ ] `<Bindings>` line 87
                   - [ ] `<Binding>` line 88
-                    - [ ] `<Param>` line 89 = `p0`
+                    - [x] `<Param>` line 89 = `p0`
           - [ ] `<Case NotEmpty="CRS_ID">` line 95
             - [ ] `<Preset ID="INSTRUMENT_Course_#CRS_ID#">` line 96
               - [ ] `<Parameters Type="Default">` line 97
@@ -48851,7 +48851,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 116 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) '%.0f°' @sprintf`
                 - [ ] `<INC_EVENT>` line 117 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:INSTRUMENT_Course_#CRS_ID#_Set)`
                 - [ ] `<DEC_EVENT>` line 118 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:INSTRUMENT_Course_#CRS_ID#_Set)`
-                - [ ] `<SET_EVENT>` line 119 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:VOR#CRS_ID#_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
+                - [x] `<SET_EVENT>` line 119 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:VOR#CRS_ID#_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INP...`
                 - [ ] `<INIT_VALUE>` line 120 = `(A:NAV OBS:#CRS_ID#, Degrees) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 121
               - [ ] `<Parameters Type="Override">` line 123
@@ -48878,21 +48878,21 @@
                   - [ ] `<Param Type="Float">` line 148 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 150
                   - [ ] `<Binding>` line 151
-                    - [ ] `<Param>` line 152 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 152 = `p1 #INCREMENT# *`
               - [ ] `<Dec>` line 156
                 - [ ] `<Code>` line 157 = `#ON_BEFORE_DEC# #DEC_EVENT# #ON_AFTER_DEC#`
                 - [ ] `<Parameters>` line 158
                   - [ ] `<Param Type="Float">` line 159 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 161
                   - [ ] `<Binding>` line 162
-                    - [ ] `<Param>` line 163 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 163 = `p1 #INCREMENT# *`
               - [ ] `<Set>` line 167
                 - [ ] `<Code>` line 168 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 169
                   - [ ] `<Param Type="Float">` line 170 = `p0`
                 - [ ] `<Bindings>` line 172
                   - [ ] `<Binding>` line 173
-                    - [ ] `<Param>` line 174 = `p1`
+                    - [x] `<Param>` line 174 = `p1`
           - [ ] `<Case NotEmpty="ADF_ID">` line 180
             - [ ] `<Preset ID="INSTRUMENT_ADF">` line 181
               - [ ] `<Parameters Type="Default">` line 182
@@ -48915,7 +48915,7 @@
                 - [ ] `<TOOLTIP_VALUE>` line 201 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) '%.0f°' @sprintf`
                 - [ ] `<INC_EVENT>` line 202 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 + (>B:INSTRUMENT_ADF_Set)`
                 - [ ] `<DEC_EVENT>` line 203 = `(#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#) p0 - (>B:INSTRUMENT_ADF_Set)`
-                - [ ] `<SET_EVENT>` line 204 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ADF_CARD_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
+                - [x] `<SET_EVENT>` line 204 = `p0 dnor #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:ADF_CARD_SET) l0 (>#INPUTEVENT_VAR_TYPE#:#INPUTE...`
                 - [ ] `<INIT_VALUE>` line 205 = `(A:ADF RADIAL, degrees) (>#INPUTEVENT_VAR_TYPE#:#INPUTEVENT_VAR_NAME#)`
                 - [ ] `<ON_STATE_CHANGED>` line 206
               - [ ] `<Parameters Type="Override">` line 208
@@ -48942,21 +48942,21 @@
                   - [ ] `<Param Type="Float">` line 233 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 235
                   - [ ] `<Binding>` line 236
-                    - [ ] `<Param>` line 237 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 237 = `p1 #INCREMENT# *`
               - [ ] `<Dec>` line 241
                 - [ ] `<Code>` line 242 = `#ON_BEFORE_DEC# #DEC_EVENT# #ON_AFTER_DEC#`
                 - [ ] `<Parameters>` line 243
                   - [ ] `<Param Type="Float">` line 244 = `p0 #INCREMENT# *`
                 - [ ] `<Bindings>` line 246
                   - [ ] `<Binding>` line 247
-                    - [ ] `<Param>` line 248 = `p1 #INCREMENT# *`
+                    - [x] `<Param>` line 248 = `p1 #INCREMENT# *`
               - [ ] `<Set>` line 252
                 - [ ] `<Code>` line 253 = `#ON_BEFORE_SET# #SET_EVENT# #ON_AFTER_SET# #ON_STATE_CHANGED#`
                 - [ ] `<Parameters>` line 254
                   - [ ] `<Param Type="Float">` line 255 = `p0`
                 - [ ] `<Bindings>` line 257
                   - [ ] `<Binding>` line 258
-                    - [ ] `<Param>` line 259 = `p1`
+                    - [x] `<Param>` line 259 = `p1`
           - [ ] `<Case NotEmpty="COMPASS_ID">` line 265
             - [ ] `<Preset ID="INSTRUMENT_COMPASS_Calibration_#COMPASS_ID#">` line 266
               - [ ] `<Parameters Type="Default">` line 267
