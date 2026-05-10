@@ -1409,9 +1409,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       const sourceBusIndex = Math.trunc(Number(args[0] ?? Number.NaN))
       const targetBusIndex = Math.trunc(Number(args[1] ?? Number.NaN))
       if (Number.isFinite(sourceBusIndex) && Number.isFinite(targetBusIndex)) {
-        const busKey = normalizeRuntimeVariableKey(`A:${sourceBusIndex}:BUS CONNECTION ON:${targetBusIndex}`)
-        const currentValue = this.values.get(busKey) ?? 1
-        this.values.set(busKey, currentValue > 0 ? 0 : 1)
+        this.toggleBusConnection(sourceBusIndex, targetBusIndex)
       }
       return
     }
@@ -3176,6 +3174,17 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT ON:${circuitIndex}`), nextValue)
   }
 
+  private toggleBusConnection(sourceBusIndex: number, targetBusIndex: number): void {
+    const connectionKeys = getBusConnectionStateKeys(sourceBusIndex, targetBusIndex)
+    const currentValue = connectionKeys
+      .map(key => this.values.get(key))
+      .find(value => value != null) ?? 1
+    const nextValue = currentValue > 0 ? 0 : 1
+    for (const key of connectionKeys) {
+      this.values.set(key, nextValue)
+    }
+  }
+
   private applyGenericControlEventName(name: string, value: number): boolean {
     const normalizedName = normalizeKeyEventName(name)
     if (normalizedName.includes('GEAR')) {
@@ -3437,6 +3446,15 @@ function isCircuitConnectionStateKey(key: string): boolean {
 
 function isPoweredBusConnectionKey(key: string): boolean {
   return /^A:(?:\d+:)?BUS CONNECTION ON(?::|$)/u.test(key)
+}
+
+function getBusConnectionStateKeys(sourceBusIndex: number, targetBusIndex: number): string[] {
+  return Array.from(new Set([
+    `A:${sourceBusIndex}:BUS CONNECTION ON:${targetBusIndex}`,
+    `A:${targetBusIndex}:BUS CONNECTION ON:${sourceBusIndex}`,
+    `A:BUS CONNECTION ON:${sourceBusIndex}`,
+    `A:BUS CONNECTION ON:${targetBusIndex}`
+  ].map(key => normalizeRuntimeVariableKey(key))))
 }
 
 function isElectricalVoltageKey(key: string): boolean {
