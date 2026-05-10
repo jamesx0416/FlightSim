@@ -47,6 +47,7 @@ type DevApiListKind =
   | 'interactions'
   | 'gauges'
   | 'animations'
+  | 'inputEvents'
   | 'variables'
   | 'diagnostics'
   | 'events'
@@ -449,6 +450,16 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     if (kind === 'components' || kind === 'interactions') return ok('Listed cockpit components/interactions.', collectComponents(filter, limit))
     if (kind === 'gauges') return ok('Listed VCockpit gauges.', gauges().map(summarizeGauge).slice(0, limit))
     if (kind === 'animations') return ok('Listed animation bindings.', collectAnimations(filter, limit))
+    if (kind === 'inputEvents') {
+      const normalizedFilter = filter.trim().toLowerCase()
+      return ok(
+        'Listed input-event bridge bindings.',
+        context.getRuntimeHost()
+          .getInputEventBindingNames()
+          .filter(name => !normalizedFilter || name.toLowerCase().includes(normalizedFilter))
+          .slice(0, limit)
+      )
+    }
     if (kind === 'variables') return ok('Listed runtime variables.', collectVariables(filter, limit))
     if (kind === 'diagnostics') return ok('Listed diagnostics.', getDiagnostics().slice(0, limit))
     if (kind === 'events') return api.events()
@@ -483,7 +494,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }),
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
-      listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
+      listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
