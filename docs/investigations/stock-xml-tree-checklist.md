@@ -13594,13 +13594,13 @@
         - [ ] `<KNOB_ID>` line 504 = `Heading`
         - [ ] `<Switch Param="TYPE">` line 505
           - [ ] `<Case Value="PUSH">` line 506
-            - [ ] `<SET_STATE_EXTERNAL>` line 507
+            - [x] `<SET_STATE_EXTERNAL>` line 507
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 508
             - [ ] `<BTN_ID_EXTERNAL>` line 509
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 510
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 510
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 511
           - [ ] `<Case Value="AIRBUS">` line 513
-            - [ ] `<SET_STATE_EXTERNAL>` line 514
+            - [x] `<SET_STATE_EXTERNAL>` line 514
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 519
             - [ ] `<BTN_ID_PULL>` line 520
             - [ ] `<BTN_ID_PUSH>` line 521
@@ -13610,20 +13610,20 @@
             - [ ] `<TT_DESCRIPTION_ID_PULL>` line 525
             - [ ] `<TT_DESCRIPTION_ID_PUSH>` line 526
           - [ ] `<Case Value="B747">` line 528
-            - [ ] `<SET_STATE_EXTERNAL>` line 529
+            - [x] `<SET_STATE_EXTERNAL>` line 529
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 530
             - [ ] `<BTN_ID_EXTERNAL>` line 531
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 532
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 533
           - [ ] `<Case Value="AS01B">` line 535
-            - [ ] `<SET_STATE_EXTERNAL>` line 536
+            - [x] `<SET_STATE_EXTERNAL>` line 536
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 537
             - [ ] `<BTN_ID_EXTERNAL>` line 538
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 539
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 540
           - [ ] `<Default>` line 542
             - [ ] `<ANIM_NAME>` line 543 = `#ANIM_NAME_KNOB#`
-            - [ ] `<SET_STATE_EXTERNAL>` line 544
+            - [x] `<SET_STATE_EXTERNAL>` line 544
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 548
         - [ ] `<Switch Param="ADDITIONAL_EVENT_TYPE">` line 549
           - [ ] `<Case Value="PUSH_PULL">` line 550
@@ -13729,12 +13729,12 @@
             - [ ] `<KNOB_ID>` line 687 = `Altitude`
         - [ ] `<Switch Param="TYPE">` line 690
           - [ ] `<Case Value="PUSH">` line 691
-            - [ ] `<SET_STATE_EXTERNAL>` line 692
+            - [x] `<SET_STATE_EXTERNAL>` line 692
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 697
             - [ ] `<Switch Param="ALT_PUSH_TYPE">` line 698
               - [ ] `<Case Value="ALT_SYNC">` line 699
                 - [ ] `<BTN_ID_EXTERNAL>` line 700
-                - [ ] `<BTN_SET_STATE_EXTERNAL>` line 701
+                - [x] `<BTN_SET_STATE_EXTERNAL>` line 701
                 - [ ] `<TT_DESCRIPTION_ID_BTN>` line 702
               - [ ] `<Case Value="ALT_FINE_TUNE">` line 704
                 - [ ] `<BTN_ID_EXTERNAL>` line 705
@@ -13747,7 +13747,7 @@
                 - [ ] `<BTN_TT_VALUE_ON>` line 712
                 - [ ] `<BTN_TT_VALUE_OFF>` line 713
           - [ ] `<Case Value="AIRBUS">` line 717
-            - [ ] `<SET_STATE_EXTERNAL>` line 718
+            - [x] `<SET_STATE_EXTERNAL>` line 718
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 723
             - [ ] `<BTN_ID_PULL>` line 724
             - [ ] `<BTN_ID_PUSH>` line 725
@@ -13757,19 +13757,19 @@
             - [ ] `<TT_DESCRIPTION_ID_PULL>` line 729
             - [ ] `<TT_DESCRIPTION_ID_PUSH>` line 730
           - [ ] `<Case Value="B747">` line 732
-            - [ ] `<SET_STATE_EXTERNAL>` line 733
+            - [x] `<SET_STATE_EXTERNAL>` line 733
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 734
             - [ ] `<BTN_ID_EXTERNAL>` line 735
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 736
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 737
           - [ ] `<Case Value="AS01B">` line 739
-            - [ ] `<SET_STATE_EXTERNAL>` line 740
+            - [x] `<SET_STATE_EXTERNAL>` line 740
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 745
             - [ ] `<BTN_ID_EXTERNAL>` line 746
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 747
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 748
           - [ ] `<Default>` line 750
-            - [ ] `<SET_STATE_EXTERNAL>` line 751
+            - [x] `<SET_STATE_EXTERNAL>` line 751
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 759
         - [ ] `<Condition Valid="IS_DYN_INCREMENT">` line 760
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 761
@@ -13811,11 +13811,11 @@
         - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Knob_Template">` line 811
           - [ ] `<BINDING_INC_0>` line 812
           - [ ] `<BINDING_INC_0_PARAM_0>` line 813
-          - [ ] `<BINDING_INC_0_EVENT_ID>` line 814 = `AP_ALT_VAR_INC`
+          - [x] `<BINDING_INC_0_EVENT_ID>` line 814 = `AP_ALT_VAR_INC`
           - [ ] `<BINDING_INC_0_EVENT_ID_ONLY>` line 815
           - [ ] `<BINDING_DEC_0>` line 816
           - [ ] `<BINDING_DEC_0_PARAM_0>` line 817
-          - [ ] `<BINDING_DEC_0_EVENT_ID>` line 818 = `AP_ALT_VAR_DEC`
+          - [x] `<BINDING_DEC_0_EVENT_ID>` line 818 = `AP_ALT_VAR_DEC`
           - [ ] `<BINDING_DEC_0_EVENT_ID_ONLY>` line 819
           - [ ] `<TT_DESCRIPTION_ID>` line 820 = `@TT_Package.AUTOPILOT_KNOB_ALTITUDESELECTED_ACTION_ADJUST`
           - [ ] `<TOOLTIP_TITLE>` line 821
@@ -13868,16 +13868,16 @@
             - [ ] `<Condition Valid="DYNAMIC_VOR_ID">` line 882
               - [ ] `<True>` line 883
                 - [ ] `<BTN_ID_EXTERNAL>` line 884
-                - [ ] `<BTN_SET_STATE_EXTERNAL>` line 885
+                - [x] `<BTN_SET_STATE_EXTERNAL>` line 885
               - [ ] `<False>` line 887
                 - [ ] `<BTN_ID_EXTERNAL>` line 888
-                - [ ] `<BTN_SET_STATE_EXTERNAL>` line 889
+                - [x] `<BTN_SET_STATE_EXTERNAL>` line 889
         - [ ] `<Condition Valid="DYNAMIC_VOR_ID">` line 894
           - [ ] `<True>` line 895
-            - [ ] `<SET_STATE_EXTERNAL>` line 896
+            - [x] `<SET_STATE_EXTERNAL>` line 896
             - [ ] `<GET_COURSE>` line 897
           - [ ] `<False>` line 899
-            - [ ] `<SET_STATE_EXTERNAL>` line 900
+            - [x] `<SET_STATE_EXTERNAL>` line 900
             - [ ] `<GET_COURSE>` line 901
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 905
         - [ ] `<Switch Param="ADDITIONAL_EVENT_TYPE">` line 906
@@ -13904,7 +13904,7 @@
         - [ ] `<ANIM_NAME>` line 938 = `AUTOPILOT_Push_STD#SUFFIX_ID#`
         - [ ] `<IE_NAME>` line 939 = `AUTOPILOT_Push_STD#SUFFIX_ID#`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Base_Template">` line 942
-        - [ ] `<SET_STATE_EXTERNAL>` line 943
+        - [x] `<SET_STATE_EXTERNAL>` line 943
         - [ ] `<GET_STATE_EXTERNAL>` line 952
         - [ ] `<TOOLTIP_TITLE>` line 953
         - [ ] `<TT_DESCRIPTION_ID>` line 954 = `@TT_Package.AUTOPILOT_KNOB_BARO_ACTION_SET_STD`
@@ -13969,7 +13969,7 @@
           - [ ] `<Case Value="PUSH">` line 1038
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 1039
             - [ ] `<BTN_ID_EXTERNAL>` line 1040
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 1041
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 1041
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 1042
           - [ ] `<Case Value="A320">` line 1044
             - [ ] `<DEFAULT_BINDING_STR>` line 1045
@@ -13985,20 +13985,20 @@
           - [ ] `<Case Value="AIRLINER">` line 1056
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 1057
             - [ ] `<BTN_ID_EXTERNAL>` line 1058
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 1059
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 1059
             - [ ] `<BARO_SET_CONDITION>` line 1068 = `(L:XMLVAR_Baro#BARO_ID#_ForcedToSTD) !`
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 1069
         - [ ] `<KNOB_ID>` line 1072 = `Baro_#ID#`
-        - [ ] `<SET_STATE_EXTERNAL>` line 1073
+        - [x] `<SET_STATE_EXTERNAL>` line 1073
       - [ ] `<Parameters Type="Override">` line 1075
         - [ ] `<Condition Valid="ALLOW_HTML_EVENTS_IN_STD">` line 1076
           - [ ] `<True>` line 1077
-            - [ ] `<SET_STATE_EXTERNAL>` line 1078
+            - [x] `<SET_STATE_EXTERNAL>` line 1078
             - [ ] `<BARO_SET_CONDITION>` line 1079
           - [ ] `<False>` line 1081
             - [ ] `<Condition NotEmpty="BARO_SET_CONDITION">` line 1082
               - [ ] `<True>` line 1083
-                - [ ] `<SET_STATE_EXTERNAL>` line 1084
+                - [x] `<SET_STATE_EXTERNAL>` line 1084
         - [ ] `<GET_BARO>` line 1089
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 1091
         - [ ] `<Switch Param="ADDITIONAL_EVENT_TYPE">` line 1092
@@ -52264,13 +52264,13 @@
         - [ ] `<KNOB_ID>` line 504 = `Heading`
         - [ ] `<Switch Param="TYPE">` line 505
           - [ ] `<Case Value="PUSH">` line 506
-            - [ ] `<SET_STATE_EXTERNAL>` line 507
+            - [x] `<SET_STATE_EXTERNAL>` line 507
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 508
             - [ ] `<BTN_ID_EXTERNAL>` line 509
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 510
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 510
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 511
           - [ ] `<Case Value="AIRBUS">` line 513
-            - [ ] `<SET_STATE_EXTERNAL>` line 514
+            - [x] `<SET_STATE_EXTERNAL>` line 514
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 519
             - [ ] `<BTN_ID_PULL>` line 520
             - [ ] `<BTN_ID_PUSH>` line 521
@@ -52280,20 +52280,20 @@
             - [ ] `<TT_DESCRIPTION_ID_PULL>` line 525
             - [ ] `<TT_DESCRIPTION_ID_PUSH>` line 526
           - [ ] `<Case Value="B747">` line 528
-            - [ ] `<SET_STATE_EXTERNAL>` line 529
+            - [x] `<SET_STATE_EXTERNAL>` line 529
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 530
             - [ ] `<BTN_ID_EXTERNAL>` line 531
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 532
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 533
           - [ ] `<Case Value="AS01B">` line 535
-            - [ ] `<SET_STATE_EXTERNAL>` line 536
+            - [x] `<SET_STATE_EXTERNAL>` line 536
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 537
             - [ ] `<BTN_ID_EXTERNAL>` line 538
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 539
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 540
           - [ ] `<Default>` line 542
             - [ ] `<ANIM_NAME>` line 543 = `#ANIM_NAME_KNOB#`
-            - [ ] `<SET_STATE_EXTERNAL>` line 544
+            - [x] `<SET_STATE_EXTERNAL>` line 544
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 548
         - [ ] `<Switch Param="ADDITIONAL_EVENT_TYPE">` line 549
           - [ ] `<Case Value="PUSH_PULL">` line 550
@@ -52399,12 +52399,12 @@
             - [ ] `<KNOB_ID>` line 687 = `Altitude`
         - [ ] `<Switch Param="TYPE">` line 690
           - [ ] `<Case Value="PUSH">` line 691
-            - [ ] `<SET_STATE_EXTERNAL>` line 692
+            - [x] `<SET_STATE_EXTERNAL>` line 692
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 697
             - [ ] `<Switch Param="ALT_PUSH_TYPE">` line 698
               - [ ] `<Case Value="ALT_SYNC">` line 699
                 - [ ] `<BTN_ID_EXTERNAL>` line 700
-                - [ ] `<BTN_SET_STATE_EXTERNAL>` line 701
+                - [x] `<BTN_SET_STATE_EXTERNAL>` line 701
                 - [ ] `<TT_DESCRIPTION_ID_BTN>` line 702
               - [ ] `<Case Value="ALT_FINE_TUNE">` line 704
                 - [ ] `<BTN_ID_EXTERNAL>` line 705
@@ -52417,7 +52417,7 @@
                 - [ ] `<BTN_TT_VALUE_ON>` line 712
                 - [ ] `<BTN_TT_VALUE_OFF>` line 713
           - [ ] `<Case Value="AIRBUS">` line 717
-            - [ ] `<SET_STATE_EXTERNAL>` line 718
+            - [x] `<SET_STATE_EXTERNAL>` line 718
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 723
             - [ ] `<BTN_ID_PULL>` line 724
             - [ ] `<BTN_ID_PUSH>` line 725
@@ -52427,19 +52427,19 @@
             - [ ] `<TT_DESCRIPTION_ID_PULL>` line 729
             - [ ] `<TT_DESCRIPTION_ID_PUSH>` line 730
           - [ ] `<Case Value="B747">` line 732
-            - [ ] `<SET_STATE_EXTERNAL>` line 733
+            - [x] `<SET_STATE_EXTERNAL>` line 733
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 734
             - [ ] `<BTN_ID_EXTERNAL>` line 735
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 736
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 737
           - [ ] `<Case Value="AS01B">` line 739
-            - [ ] `<SET_STATE_EXTERNAL>` line 740
+            - [x] `<SET_STATE_EXTERNAL>` line 740
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 745
             - [ ] `<BTN_ID_EXTERNAL>` line 746
             - [ ] `<BTN_SET_STATE_EXTERNAL>` line 747
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 748
           - [ ] `<Default>` line 750
-            - [ ] `<SET_STATE_EXTERNAL>` line 751
+            - [x] `<SET_STATE_EXTERNAL>` line 751
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 759
         - [ ] `<Condition Valid="IS_DYN_INCREMENT">` line 760
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 761
@@ -52481,11 +52481,11 @@
         - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Knob_Template">` line 811
           - [ ] `<BINDING_INC_0>` line 812
           - [ ] `<BINDING_INC_0_PARAM_0>` line 813
-          - [ ] `<BINDING_INC_0_EVENT_ID>` line 814 = `AP_ALT_VAR_INC`
+          - [x] `<BINDING_INC_0_EVENT_ID>` line 814 = `AP_ALT_VAR_INC`
           - [ ] `<BINDING_INC_0_EVENT_ID_ONLY>` line 815
           - [ ] `<BINDING_DEC_0>` line 816
           - [ ] `<BINDING_DEC_0_PARAM_0>` line 817
-          - [ ] `<BINDING_DEC_0_EVENT_ID>` line 818 = `AP_ALT_VAR_DEC`
+          - [x] `<BINDING_DEC_0_EVENT_ID>` line 818 = `AP_ALT_VAR_DEC`
           - [ ] `<BINDING_DEC_0_EVENT_ID_ONLY>` line 819
           - [ ] `<TT_DESCRIPTION_ID>` line 820 = `@TT_Package.AUTOPILOT_KNOB_ALTITUDESELECTED_ACTION_ADJUST`
           - [ ] `<TOOLTIP_TITLE>` line 821
@@ -52538,16 +52538,16 @@
             - [ ] `<Condition Valid="DYNAMIC_VOR_ID">` line 882
               - [ ] `<True>` line 883
                 - [ ] `<BTN_ID_EXTERNAL>` line 884
-                - [ ] `<BTN_SET_STATE_EXTERNAL>` line 885
+                - [x] `<BTN_SET_STATE_EXTERNAL>` line 885
               - [ ] `<False>` line 887
                 - [ ] `<BTN_ID_EXTERNAL>` line 888
-                - [ ] `<BTN_SET_STATE_EXTERNAL>` line 889
+                - [x] `<BTN_SET_STATE_EXTERNAL>` line 889
         - [ ] `<Condition Valid="DYNAMIC_VOR_ID">` line 894
           - [ ] `<True>` line 895
-            - [ ] `<SET_STATE_EXTERNAL>` line 896
+            - [x] `<SET_STATE_EXTERNAL>` line 896
             - [ ] `<GET_COURSE>` line 897
           - [ ] `<False>` line 899
-            - [ ] `<SET_STATE_EXTERNAL>` line 900
+            - [x] `<SET_STATE_EXTERNAL>` line 900
             - [ ] `<GET_COURSE>` line 901
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 905
         - [ ] `<Switch Param="ADDITIONAL_EVENT_TYPE">` line 906
@@ -52574,7 +52574,7 @@
         - [ ] `<ANIM_NAME>` line 938 = `AUTOPILOT_Push_STD#SUFFIX_ID#`
         - [ ] `<IE_NAME>` line 939 = `AUTOPILOT_Push_STD#SUFFIX_ID#`
       - [ ] `<UseTemplate Name="ASOBO_AUTOPILOT_Base_Template">` line 942
-        - [ ] `<SET_STATE_EXTERNAL>` line 943
+        - [x] `<SET_STATE_EXTERNAL>` line 943
         - [ ] `<GET_STATE_EXTERNAL>` line 952
         - [ ] `<TOOLTIP_TITLE>` line 953
         - [ ] `<TT_DESCRIPTION_ID>` line 954 = `@TT_Package.AUTOPILOT_KNOB_BARO_ACTION_SET_STD`
@@ -52639,7 +52639,7 @@
           - [ ] `<Case Value="PUSH">` line 1038
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 1039
             - [ ] `<BTN_ID_EXTERNAL>` line 1040
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 1041
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 1041
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 1042
           - [ ] `<Case Value="A320">` line 1044
             - [ ] `<DEFAULT_BINDING_STR>` line 1045
@@ -52655,20 +52655,20 @@
           - [ ] `<Case Value="AIRLINER">` line 1056
             - [ ] `<ADDITIONAL_EVENT_TYPE>` line 1057
             - [ ] `<BTN_ID_EXTERNAL>` line 1058
-            - [ ] `<BTN_SET_STATE_EXTERNAL>` line 1059
+            - [x] `<BTN_SET_STATE_EXTERNAL>` line 1059
             - [ ] `<BARO_SET_CONDITION>` line 1068 = `(L:XMLVAR_Baro#BARO_ID#_ForcedToSTD) !`
             - [ ] `<TT_DESCRIPTION_ID_BTN>` line 1069
         - [ ] `<KNOB_ID>` line 1072 = `Baro_#ID#`
-        - [ ] `<SET_STATE_EXTERNAL>` line 1073
+        - [x] `<SET_STATE_EXTERNAL>` line 1073
       - [ ] `<Parameters Type="Override">` line 1075
         - [ ] `<Condition Valid="ALLOW_HTML_EVENTS_IN_STD">` line 1076
           - [ ] `<True>` line 1077
-            - [ ] `<SET_STATE_EXTERNAL>` line 1078
+            - [x] `<SET_STATE_EXTERNAL>` line 1078
             - [ ] `<BARO_SET_CONDITION>` line 1079
           - [ ] `<False>` line 1081
             - [ ] `<Condition NotEmpty="BARO_SET_CONDITION">` line 1082
               - [ ] `<True>` line 1083
-                - [ ] `<SET_STATE_EXTERNAL>` line 1084
+                - [x] `<SET_STATE_EXTERNAL>` line 1084
         - [ ] `<GET_BARO>` line 1089
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 1091
         - [ ] `<Switch Param="ADDITIONAL_EVENT_TYPE">` line 1092
