@@ -545,6 +545,7 @@ Rules:
   - Verified with `tsc --noEmit` and a local Bun runtime harness on 2026-05-11: a compiled `p0`/`p1` binding invoked through `SharedMsfsRuntimeHost.invokeBridgeCall("TEST_PUSH_LONG", [1, 2.5])` wrote both parameters to runtime variables and recorded bridge diagnostics with `args: [1, 2.5]` and `handledByBinding: true`.
   - Follow-up compiler support appends `ON_STATE_CHANGED_EXTERNAL_CODE` after synthesized generated-input-event `Toggle`, named state, and direct `Set` bridge bindings. This preserves official stock side effects that are separate from the main `SET_STATE_*` body, including pressurization bleed sync code in `Common/Subtemplates/Pressurization_Subtemplates.xml`.
   - Verified with `tsc --noEmit` and `agent-browser` on 2026-05-11: an in-browser compiler/runtime harness generated `PRESSURIZATION_Bleed_Test_Off` with source `0 (>B:PRESSURIZATION_Bleed_Test) 0 (>L:BLEED_MAIN) 1 (>L:BLEED_SYNC)`, invoking it through `SharedMsfsRuntimeHost` wrote the sync variable, recorded `handledByBinding: true`, and produced zero diagnostics.
+  - Follow-up runtime support handles stock safety dimmer key events from `Common/Safety.xml`: `LIGHT_POTENTIOMETER_INC` and `LIGHT_POTENTIOMETER_DEC` now adjust the indexed `A:LIGHT POTENTIOMETER:#` SimVar with a documented 5 percent placeholder step when the stock event supplies only the potentiometer index. Verified with `tsc --noEmit`, a local Bun runtime harness, and an exterior-only DevApi smoke on 2026-05-11: `LIGHT_POTENTIOMETER_SET` followed by inc/dec/dec moved potentiometer 7 from `50 -> 55 -> 50 -> 45`; the DevApi route had zero error diagnostics and reported about 60 FPS.
 - [x] Support standalone RPN conditional blocks and register labels seen in mounted stock/built XML.
   - The RPN compiler now treats standalone `{ ... }` blocks as conditional blocks and accepts `:N` register labels as label markers.
   - Verified with `agent-browser` on 2026-05-09:
@@ -639,9 +640,10 @@ Scope note:
 - [x] `Common/Inputs/Instrument_Inputs.xml`
 - [x] `Common/Inputs/LandingGear_Inputs.xml`
 - [ ] `Common/Inputs/Lighting_Inputs.xml`
-- [ ] `Common/Inputs/Passenger_Inputs.xml`
-- [ ] `Common/Inputs/Pressurization_Inputs.xml`
-- [ ] `Common/Inputs/Safety_Inputs.xml`
+- [x] `Common/Inputs/Passenger_Inputs.xml`
+- [x] `Common/Inputs/Pressurization_Inputs.xml`
+- [x] `Common/Inputs/Safety_Inputs.xml`
+  - These three files are wrapper presets that only extend `ASOBO_GIE_Anim_Handling` with their input-event source names; the detailed XML tree checklist already marks their nodes complete.
 
 ##### Common Subtemplates
 

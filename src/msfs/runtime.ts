@@ -1564,6 +1564,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    if (name === 'LIGHT_POTENTIOMETER_INC' || name === 'LIGHT_POTENTIOMETER_DEC') {
+      const index = Number(args.at(-1) ?? Number.NaN)
+      const direction = name.endsWith('_INC') ? 1 : -1
+      this.stepLightPotentiometer(index, direction * 5)
+      return true
+    }
+
     const lightPowerSettingMatch = /^(.+)_LIGHTS_POWER_SETTING_SET$/u.exec(name)
     if (lightPowerSettingMatch != null) {
       this.setLightPowerSetting(
@@ -2865,6 +2872,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
     const clampedValue = clamp(value, 0, 100)
     this.values.set(normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${Math.trunc(index)}`), clampedValue)
+  }
+
+  private stepLightPotentiometer(index: number, delta: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const key = normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${Math.trunc(index)}`)
+    const currentValue = this.values.get(key) ?? 0
+    this.setLightPotentiometer(index, currentValue + delta)
   }
 
   private setLightPowerSetting(type: string, index: number, value: number): void {
