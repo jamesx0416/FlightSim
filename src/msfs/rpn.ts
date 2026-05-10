@@ -178,6 +178,16 @@ function compileInstructionBlock(
       continue
     }
 
+    if (normalized === '(:)') {
+      instructions.push({ op: 'pushNumber', value: 0 })
+      continue
+    }
+
+    if (normalized === '(>:)') {
+      instructions.push({ op: 'popDiscard' })
+      continue
+    }
+
     const variableReference = extractVariableReference(normalized, options.localVariableScope ?? null)
     if (variableReference != null) {
       variableKeys.add(formatVariableSymbol(variableReference.key, variableReference.unit))
