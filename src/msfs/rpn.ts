@@ -749,7 +749,7 @@ function extractKeyEventWrite(
   }
 
   return {
-    argCount: 0,
+    argCount: 1,
     name: simpleMatch[1].trim()
   }
 }

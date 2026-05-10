@@ -448,6 +448,11 @@ Rules:
 - [x] Support generic paired directional-axis interaction fallback code.
   - Interaction fallback compilation now preserves both positive and negative axis code paths when a stock template provides both, selecting the positive path for `M:Event == WheelDown` and the negative path otherwise instead of dropping one direction.
   - Verified with `agent-browser` on 2026-05-10 using the A320 route: `LEVER_FLAPS` compiled to `(M:Event) 'WheelDown' scmp 0 == if{ (>K:FLAPS_DECR) } els{ (>K:FLAPS_INCR) }`; executing a normal click moved `A:FLAPS HANDLE PERCENT`, left/right flap simvars, and `l_flap_percent_key` / `r_flap_percent_key` animation values to 25, then executing with `mouseEvent: 'WheelDown'` returned them to 0.
+- [x] Support value-carrying simple key-event writes for cockpit systems.
+  - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
+  - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.
+  - Verified locally on 2026-05-10 with direct RPN/runtime execution: `100 (>K:LIGHT_POTENTIOMETER_10_SET)`, `75 8 (>K:2:LIGHT_POTENTIOMETER_SET)`, `1 (>K:CABIN_LIGHTS_SET)`, `2 (>K:FUELSYSTEM_PUMP_ON)`, `9 (>K:FUELSYSTEM_VALVE_OPEN)`, and `20 (>K:ELECTRICAL_CIRCUIT_TOGGLE)` updated the expected `A:LIGHT POTENTIOMETER`, `A:LIGHT CABIN`, `A:FUELSYSTEM ...`, and `A:CIRCUIT SWITCH ON` runtime values.
+  - Verified with Agent Browser on 2026-05-10 on the A320 route with `exteriorInterior=off`: invoking those generic runtime key events in the page set `A:LIGHT POTENTIOMETER:10 = 100`, `A:LIGHT POTENTIOMETER:8 = 75`, `A:LIGHT CABIN = 1`, `A:FUELSYSTEM PUMP SWITCH:2 = 1`, `A:FUELSYSTEM VALVE OPEN:9 = 1`, and `A:CIRCUIT SWITCH ON:20 = 1`.
 - [x] Support standalone RPN conditional blocks and register labels seen in mounted stock/built XML.
   - The RPN compiler now treats standalone `{ ... }` blocks as conditional blocks and accepts `:N` register labels as label markers, without adding `gN` jump support until a verified active route needs it.
   - Verified with `agent-browser` on 2026-05-09:

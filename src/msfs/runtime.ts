@@ -1206,12 +1206,35 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applyKeyEvent(name: string, args: readonly number[]): void {
     const value = Number(args.at(-1) ?? 0)
+    if (this.applyLightKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyFuelSystemKeyEvent(name, args)) {
+      return
+    }
     if (name.endsWith('ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE')) {
       const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
       if (Number.isFinite(circuitIndex)) {
         const circuitKey = normalizeRuntimeVariableKey(`A:CIRCUIT CONNECTION ON:${circuitIndex}`)
         const currentValue = this.values.get(circuitKey) ?? 1
         this.values.set(circuitKey, currentValue > 0 ? 0 : 1)
+      }
+      return
+    }
+    if (name === 'ELECTRICAL_CIRCUIT_TOGGLE') {
+      const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      if (Number.isFinite(circuitIndex)) {
+        this.toggleCircuitSwitch(circuitIndex)
+      }
+      return
+    }
+    if (name === 'ELECTRICAL_CIRCUIT_POWER_SETTING_SET') {
+      const powerSetting = Number(args[0] ?? Number.NaN)
+      const circuitIndex = Math.trunc(Number(args[1] ?? Number.NaN))
+      if (Number.isFinite(powerSetting) && Number.isFinite(circuitIndex)) {
+        this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT POWER SETTING:${circuitIndex}`), powerSetting)
+        this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT SWITCH ON:${circuitIndex}`), powerSetting > 0 ? 1 : 0)
+        this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT ON:${circuitIndex}`), powerSetting > 0 ? 1 : 0)
       }
       return
     }
@@ -1320,6 +1343,103 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     this.applyGenericControlEventName(name, value)
+  }
+
+  private applyLightKeyEvent(name: string, args: readonly number[]): boolean {
+    const indexedPotentiometerSet = /^LIGHT_POTENTIOMETER_(\d+)_SET$/u.exec(name)
+    if (indexedPotentiometerSet != null) {
+      this.setLightPotentiometer(Number(indexedPotentiometerSet[1]), Number(args[0] ?? 0))
+      return true
+    }
+
+    if (name === 'LIGHT_POTENTIOMETER_SET') {
+      this.setLightPotentiometer(Number(args[1] ?? Number.NaN), Number(args[0] ?? 0))
+      return true
+    }
+
+    const lightSetMatch = /^(.+)_LIGHTS_SET$/u.exec(name)
+    if (lightSetMatch != null) {
+      this.setLightSwitch(lightSetMatch[1], Number(args[0] ?? 0) > 0 ? 1 : 0)
+      return true
+    }
+
+    const lightOnOffMatch = /^(.+)_LIGHTS_(ON|OFF)$/u.exec(name)
+    if (lightOnOffMatch != null) {
+      this.setLightSwitch(lightOnOffMatch[1], lightOnOffMatch[2] === 'ON' ? 1 : 0)
+      return true
+    }
+
+    const lightToggleMatch = /^(.+)_LIGHTS_TOGGLE$/u.exec(name)
+    if (lightToggleMatch != null) {
+      const variableKey = getLightSwitchVariableKey(lightToggleMatch[1])
+      const currentValue = this.values.get(variableKey) ?? 0
+      this.values.set(variableKey, currentValue > 0 ? 0 : 1)
+      return true
+    }
+
+    return false
+  }
+
+  private setLightPotentiometer(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const clampedValue = clamp(value, 0, 100)
+    this.values.set(normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${Math.trunc(index)}`), clampedValue)
+  }
+
+  private setLightSwitch(type: string, value: number): void {
+    this.values.set(getLightSwitchVariableKey(type), value > 0 ? 1 : 0)
+  }
+
+  private applyFuelSystemKeyEvent(name: string, args: readonly number[]): boolean {
+    const pumpMatch = /^FUELSYSTEM_PUMP_(TOGGLE|ON|OFF)$/u.exec(name)
+    if (pumpMatch != null) {
+      const pumpIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      if (Number.isFinite(pumpIndex)) {
+        const pumpKey = normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP SWITCH:${pumpIndex}`)
+        const nextValue =
+          pumpMatch[1] === 'TOGGLE'
+            ? (this.values.get(pumpKey) ?? 0) > 0 ? 0 : 1
+            : pumpMatch[1] === 'ON' ? 1 : 0
+        this.values.set(pumpKey, nextValue)
+        this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP ACTIVE:${pumpIndex}`), nextValue)
+      }
+      return true
+    }
+
+    const valveMatch = /^FUELSYSTEM_VALVE_(TOGGLE|OPEN|CLOSE)$/u.exec(name)
+    if (valveMatch != null) {
+      const valveIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      if (Number.isFinite(valveIndex)) {
+        const valveKey = normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE OPEN:${valveIndex}`)
+        const nextValue =
+          valveMatch[1] === 'TOGGLE'
+            ? (this.values.get(valveKey) ?? 0) > 0 ? 0 : 1
+            : valveMatch[1] === 'OPEN' ? 1 : 0
+        this.values.set(valveKey, nextValue)
+        this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE SWITCH:${valveIndex}`), nextValue)
+      }
+      return true
+    }
+
+    if (name === 'FUELSYSTEM_JUNCTION_SET') {
+      const setting = Number(args[0] ?? Number.NaN)
+      const junctionIndex = Math.trunc(Number(args[1] ?? Number.NaN))
+      if (Number.isFinite(setting) && Number.isFinite(junctionIndex)) {
+        this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM JUNCTION SETTING:${junctionIndex}`), setting)
+      }
+      return true
+    }
+
+    return false
+  }
+
+  private toggleCircuitSwitch(circuitIndex: number): void {
+    const switchKey = normalizeRuntimeVariableKey(`A:CIRCUIT SWITCH ON:${circuitIndex}`)
+    const nextValue = (this.values.get(switchKey) ?? 0) > 0 ? 0 : 1
+    this.values.set(switchKey, nextValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT ON:${circuitIndex}`), nextValue)
   }
 
   private applyGenericControlEventName(name: string, value: number): boolean {
@@ -1559,6 +1679,10 @@ function isRuntimeStoredVariableKey(key: string): boolean {
 
 function normalizeKeyEventName(name: string): string {
   return name.trim().replace(/^\s*K:/iu, '').replace(/\s+/gu, '_').toUpperCase()
+}
+
+function getLightSwitchVariableKey(type: string): string {
+  return normalizeRuntimeVariableKey(`A:LIGHT ${type.replace(/_/gu, ' ')}`)
 }
 
 function clamp01(value: number): number {
