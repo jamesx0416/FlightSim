@@ -6,6 +6,8 @@ Continue implementation until everything in `stock-support-todo.md` that is in s
 
 Always use `bun` as the package manager for this project unless told otherwise.
 
+All possible things in the viewer should be able to be done by the API. The browser API is `window.__DevApi`; agents should prefer it over synthetic UI gestures when equivalent API functionality exists. When adding a new user-facing viewer capability, add or update the matching `__DevApi` method in the same change so agents can do anything a user can do.
+
 # Dev server URL
 https://msfs-combined-375b8e3b-fresh-local.vanilla-3dtiles.localhost:3000
 

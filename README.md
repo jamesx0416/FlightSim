@@ -97,6 +97,23 @@ The main package root can also be selected from the URL:
 
 See `docs/query-parameters.md` for the full list of supported query parameters, including cockpit diagnostics and opt-in runtime experiments. Any new URL query parameter added to the viewer must be documented there in the same change.
 
+## Viewer Dev API
+
+The viewer exposes an agent-friendly browser API at `window.__DevApi`. All possible things in the viewer should be able to be done by the API. When adding a new user-facing viewer capability, add or update the matching `__DevApi` method in the same change so agents can do anything a user can do.
+
+Examples:
+
+```js
+await __DevApi.ready()
+__DevApi.find('baro')
+await __DevApi.click('PUSH_AP_MASTER', { count: 2 })
+await __DevApi.click('PUSH_STARTER', { holdMs: 1500 })
+await __DevApi.turn('KNOB_HEADING', { direction: 'up', steps: 3 })
+__DevApi.checkGauge(undefined, { screenshot: true })
+__DevApi.checkParam(['vspeed', 'altitude', 'pressure', 'location'])
+__DevApi.report()
+```
+
 ## Project Layout
 
 - [`docs/investigations/plan.md`](docs/investigations/plan.md): implementation plan and phase boundaries
