@@ -504,6 +504,7 @@ export type RuntimeHtmlEventListener = (event: RuntimeHtmlEvent) => void
 export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
+  private readonly readCache = new Map<string, number>()
   private readonly defaultedKeys = new Set<string>()
   private readonly wingFlexProfile: DemoWingFlexProfile
   private engineCycleTarget = 0
@@ -571,6 +572,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   tick(dtSeconds: number): void {
+    this.readCache.clear()
     this.elapsedSeconds += dtSeconds
     this.controlState.gearPosition = moveTowards(
       this.controlState.gearPosition,
@@ -621,7 +623,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   readVariable(key: string, unit?: string | null): number {
     this.variableReadCount += 1
+    const cacheKey = `${key}\u0000${unit ?? ''}`
+    const cachedValue = this.readCache.get(cacheKey)
+    if (cachedValue != null) {
+      return cachedValue
+    }
+
     const normalizedKey = normalizeRuntimeVariableKey(key)
+    let value: number
     if (!this.values.has(normalizedKey)) {
       const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
 
@@ -641,14 +650,17 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         })
       }
 
-      return resolved.value
+      value = resolved.value
+    } else {
+      value = this.values.get(normalizedKey) ?? 0
     }
-
-    return this.values.get(normalizedKey) ?? 0
+    this.readCache.set(cacheKey, value)
+    return value
   }
 
   writeVariable(key: string, value: number, unit?: string | null): void {
     this.variableWriteCount += 1
+    this.readCache.clear()
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
     this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
@@ -661,6 +673,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   invokeKeyEvent(name: string, args: readonly number[]): void {
     this.keyEventCount += 1
+    this.readCache.clear()
     const value = args.at(-1) ?? 1
     const normalizedEventName = normalizeKeyEventName(name)
     this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
@@ -673,6 +686,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     this.htmlEventCount += 1
+    this.readCache.clear()
     const event: RuntimeHtmlEvent = {
       name: eventName,
       args: args.length > 0 ? [...args] : [eventName],
@@ -1048,7 +1062,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       readonly dtSeconds: number
     }
   ): { readonly handled: boolean; readonly value: number } {
-    const upperKey = normalizeRuntimeVariableKey(key)
+    const upperKey = key
 
     if (upperKey === 'A:ANIMATION DELTA TIME') return handled(convertTimeUnit(cycles.dtSeconds, unit))
     if (upperKey === 'E:SIMULATION TIME' || upperKey === 'A:E:SIMULATION TIME') {
