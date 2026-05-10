@@ -3551,6 +3551,13 @@ type VCockpitGaugeInteractionEventMessage = {
   readonly sequence: number
 }
 
+type VCockpitGaugeKeyEventMessage = {
+  readonly type: 'msfs-vcockpit-key-event'
+  readonly name: string
+  readonly args: readonly number[]
+  readonly sequence: number
+}
+
 function isVCockpitGaugeRuntimeRequest(value: unknown): value is VCockpitGaugeRuntimeRequest {
   if (typeof value !== 'object' || value == null) {
     return false
@@ -3659,6 +3666,20 @@ async function bindVCockpitPlaceholderSurfaces(
     }
     const message: VCockpitGaugeInteractionEventMessage = {
       type: 'msfs-vcockpit-interaction-event',
+      name: event.name,
+      args: event.args,
+      sequence: event.sequence
+    }
+    for (const gaugeRuntime of htmlGaugeRuntimes) {
+      gaugeRuntime.iframe?.contentWindow?.postMessage(message, '*')
+    }
+  })
+  const removeKeyEventListener = runtimeHost.addKeyEventListener(event => {
+    if (disposed) {
+      return
+    }
+    const message: VCockpitGaugeKeyEventMessage = {
+      type: 'msfs-vcockpit-key-event',
       name: event.name,
       args: event.args,
       sequence: event.sequence
@@ -3941,6 +3962,7 @@ async function bindVCockpitPlaceholderSurfaces(
       disposed = true
       active = false
       removeHtmlEventListener()
+      removeKeyEventListener()
       window.removeEventListener('message', onGaugeDirtyMessage)
       window.removeEventListener('message', onGaugeBridgeRequest)
       for (const surfaceRuntime of surfaceTextureRuntimes) {
@@ -5296,6 +5318,7 @@ function createVCockpitGaugeBridgeScript(
     return Promise.all(writes).then(() => undefined);
   };
   const globalListeners = new Map();
+  const interceptedKeyEvents = new Set();
   const subscribeGlobalListener = (eventName, listener) => {
     if (typeof listener !== 'function') {
       return noop;
@@ -5435,12 +5458,27 @@ function createVCockpitGaugeBridgeScript(
       invokeInstrument(entry?.element);
     }
   };
-  window.addEventListener('message', event => {
-    const data = event.data;
-    if (data?.type !== 'msfs-vcockpit-interaction-event') {
+  const dispatchKeyEvent = (name, args) => {
+    const eventName = String(name ?? '').replace(/^K:/i, '');
+    if (!interceptedKeyEvents.has(eventName.toUpperCase())) {
       return;
     }
-    dispatchInteractionEvent(data.name, data.args);
+    const eventArgs = Array.isArray(args) ? args.map(value => Number(value) || 0) : [];
+    bridgeStats.keyEventCount += 1;
+    markGaugeChanged('unknown');
+    dispatchGlobalListener('keyIntercepted', eventName, eventArgs[1] ?? 0, eventArgs[0] ?? 0, eventArgs[2] ?? 0);
+    dispatchGlobalListener('OnKeyIntercepted', eventName, eventArgs[1] ?? 0, eventArgs[0] ?? 0, eventArgs[2] ?? 0);
+    dispatchGlobalListener(eventName, ...eventArgs);
+  };
+  window.addEventListener('message', event => {
+    const data = event.data;
+    if (data?.type === 'msfs-vcockpit-interaction-event') {
+      dispatchInteractionEvent(data.name, data.args);
+      return;
+    }
+    if (data?.type === 'msfs-vcockpit-key-event') {
+      dispatchKeyEvent(data.name, data.args);
+    }
   });
   globalThis.RegisterViewListener ??= (name, callback) => {
     const handle = createListenerHandle('RegisterViewListener:' + String(name ?? ''));
@@ -5497,6 +5535,17 @@ function createVCockpitGaugeBridgeScript(
       }
       if (/^K:/iu.test(normalizedCallName)) {
         return triggerRuntimeKeyEvent(name, args);
+      }
+      if (normalizedCallName.toUpperCase() === 'INTERCEPT_KEY_EVENT') {
+        const keyName = String(args[0] ?? '').replace(/^K:/i, '').toUpperCase();
+        if (keyName) {
+          interceptedKeyEvents.add(keyName);
+        }
+        incrementBridgeCall('Coherent.call:' + normalizedCallName);
+        return Promise.resolve(args[0] ?? 0);
+      }
+      if (normalizedCallName.toUpperCase() === 'TRIGGER_KEY_EVENT') {
+        return triggerRuntimeKeyEvent(args[0], [args[2], args[3], args[4]]);
       }
       if (isSupportedNoopCoherentCall(normalizedCallName)) {
         incrementBridgeCall('Coherent.call:' + normalizedCallName);

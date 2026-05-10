@@ -502,7 +502,14 @@ export interface RuntimeHtmlEvent {
   readonly sequence: number
 }
 
+export interface RuntimeKeyEvent {
+  readonly name: string
+  readonly args: readonly number[]
+  readonly sequence: number
+}
+
 export type RuntimeHtmlEventListener = (event: RuntimeHtmlEvent) => void
+export type RuntimeKeyEventListener = (event: RuntimeKeyEvent) => void
 
 export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
@@ -521,6 +528,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private defaultedVariableCount = 0
   private readonly recentHtmlEvents: RuntimeHtmlEvent[] = []
   private readonly htmlEventListeners = new Set<RuntimeHtmlEventListener>()
+  private readonly recentKeyEvents: RuntimeKeyEvent[] = []
+  private readonly keyEventListeners = new Set<RuntimeKeyEventListener>()
   private readonly recentSoundEvents: RuntimeSoundEvent[] = []
   private readonly soundStates = new Map<string, boolean>()
   private readonly simVarSounds: readonly ImportedSimVarSound[]
@@ -685,6 +694,18 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedEventName = normalizeKeyEventName(name)
     this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
     this.applyKeyEvent(normalizedEventName, args)
+    const event: RuntimeKeyEvent = {
+      name: normalizedEventName,
+      args: [...args],
+      sequence: this.keyEventCount
+    }
+    this.recentKeyEvents.push(event)
+    if (this.recentKeyEvents.length > 100) {
+      this.recentKeyEvents.splice(0, this.recentKeyEvents.length - 100)
+    }
+    for (const listener of this.keyEventListeners) {
+      listener(event)
+    }
   }
 
   invokeHtmlEvent(name: string, args: readonly (number | string)[]): void {
@@ -713,6 +734,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.htmlEventListeners.add(listener)
     return () => {
       this.htmlEventListeners.delete(listener)
+    }
+  }
+
+  addKeyEventListener(listener: RuntimeKeyEventListener): () => void {
+    this.keyEventListeners.add(listener)
+    return () => {
+      this.keyEventListeners.delete(listener)
     }
   }
 
@@ -784,6 +812,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   getSoundEvents(): readonly RuntimeSoundEvent[] {
     return this.recentSoundEvents.map(event => ({ ...event }))
+  }
+
+  getKeyEvents(): readonly RuntimeKeyEvent[] {
+    return this.recentKeyEvents.map(event => ({ ...event, args: [...event.args] }))
   }
 
   getHtmlEvents(): readonly RuntimeHtmlEvent[] {
