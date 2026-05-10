@@ -3955,25 +3955,25 @@
       - [ ] `<Parameters Type="Default">` line 214
         - [ ] `<NODE_ID>` line 215 = `AIRCRAFT_Lever_Exit_0`
         - [ ] `<ANIM_CODE>` line 216 = `(A:INTERACTIVE POINT OPEN:0, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 217 = `0 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 217 = `0 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 219
     - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_1_Template">` line 222
       - [ ] `<Parameters Type="Default">` line 223
         - [ ] `<NODE_ID>` line 224 = `AIRCRAFT_Lever_Exit_1`
         - [ ] `<ANIM_CODE>` line 225 = `(A:INTERACTIVE POINT OPEN:0, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 226 = `1 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 226 = `1 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 228
     - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_2_Template">` line 231
       - [ ] `<Parameters Type="Default">` line 232
         - [ ] `<NODE_ID>` line 233 = `AIRCRAFT_Lever_Exit_2`
         - [ ] `<ANIM_CODE>` line 234 = `(A:INTERACTIVE POINT OPEN:1, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 235 = `2 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 235 = `2 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 237
     - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_3_Template">` line 240
       - [ ] `<Parameters Type="Default">` line 241
         - [ ] `<NODE_ID>` line 242 = `AIRCRAFT_Lever_Exit_3`
         - [ ] `<ANIM_CODE>` line 243 = `(A:INTERACTIVE POINT OPEN:2, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 244 = `3 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 244 = `3 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 246
     - [ ] `<Template Name="ASOBO_AIRFRAME_Warning_Door_Unlock_Template">` line 249
       - [ ] `<Parameters Type="Default">` line 250
@@ -6301,18 +6301,18 @@
         - [ ] `<TT_VALUE_ON>` line 439
         - [ ] `<TT_VALUE_OFF>` line 440
         - [ ] `<TT_VALUE_ONOFF_IS_DYNAMIC>` line 441
-        - [ ] `<SET_STATE_EXTERNAL>` line 442
+        - [x] `<SET_STATE_EXTERNAL>` line 442
         - [ ] `<GET_STATE_EXTERNAL>` line 443
         - [ ] `<WWISE_EVENT_1>` line 444
         - [ ] `<WWISE_EVENT_2>` line 445
         - [ ] `<BINDING_SET_0>` line 446
         - [ ] `<BINDING_SET_0_PARAM_0>` line 447
         - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 448
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 449 = `TOGGLE_WING_FOLD`
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 449 = `TOGGLE_WING_FOLD`
         - [ ] `<BINDING_SET_1>` line 450
         - [ ] `<BINDING_SET_1_PARAM_0>` line 451
         - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 452
-        - [ ] `<BINDING_SET_1_EVENT_ID>` line 453 = `SET_WING_FOLD`
+        - [x] `<BINDING_SET_1_EVENT_ID>` line 453 = `SET_WING_FOLD`
         - [ ] `<SIMVAR_TO_WATCH_0>` line 454
     - [ ] `<Template Name="ASOBO_HANDLING_Wipers_Controller_Template">` line 457
       - [ ] `<Parameters Type="Default">` line 458
@@ -6336,18 +6336,18 @@
         - [ ] `<TT_VALUE_ON>` line 483
         - [ ] `<TT_VALUE_OFF>` line 484
         - [ ] `<TT_VALUE_ONOFF_IS_DYNAMIC>` line 485
-        - [ ] `<SET_STATE_EXTERNAL>` line 486
+        - [x] `<SET_STATE_EXTERNAL>` line 486
         - [ ] `<GET_STATE_EXTERNAL>` line 487
         - [ ] `<WWISE_EVENT_1>` line 488
         - [ ] `<WWISE_EVENT_2>` line 489
         - [ ] `<BINDING_SET_0>` line 490
         - [ ] `<BINDING_SET_0_PARAM_0>` line 491
         - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 492
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 493 = `TOGGLE_LAUNCH_BAR_SWITCH`
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 493 = `TOGGLE_LAUNCH_BAR_SWITCH`
         - [ ] `<BINDING_SET_1>` line 494
         - [ ] `<BINDING_SET_1_PARAM_0>` line 495
         - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 496
-        - [ ] `<BINDING_SET_1_EVENT_ID>` line 497 = `SET_LAUNCH_BAR_SWITCH`
+        - [x] `<BINDING_SET_1_EVENT_ID>` line 497 = `SET_LAUNCH_BAR_SWITCH`
         - [ ] `<SIMVAR_TO_WATCH_0>` line 498
     - [ ] `<Template Name="ASOBO_HANDLING_TailHook_Lever_Template">` line 501
       - [ ] `<Parameters Type="Default">` line 502
@@ -6361,18 +6361,18 @@
         - [ ] `<TT_VALUE_ON>` line 512
         - [ ] `<TT_VALUE_OFF>` line 513
         - [ ] `<TT_VALUE_ONOFF_IS_DYNAMIC>` line 514
-        - [ ] `<SET_STATE_EXTERNAL>` line 515
+        - [x] `<SET_STATE_EXTERNAL>` line 515
         - [ ] `<GET_STATE_EXTERNAL>` line 516
         - [ ] `<WWISE_EVENT_1>` line 517
         - [ ] `<WWISE_EVENT_2>` line 518
         - [ ] `<BINDING_SET_0>` line 519
         - [ ] `<BINDING_SET_0_PARAM_0>` line 520
         - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 521
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 522 = `TOGGLE_TAIL_HOOK_HANDLE`
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 522 = `TOGGLE_TAIL_HOOK_HANDLE`
         - [ ] `<BINDING_SET_1>` line 523
         - [ ] `<BINDING_SET_1_PARAM_0>` line 524
         - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 525
-        - [ ] `<BINDING_SET_1_EVENT_ID>` line 526 = `SET_TAIL_HOOK_HANDLE`
+        - [x] `<BINDING_SET_1_EVENT_ID>` line 526 = `SET_TAIL_HOOK_HANDLE`
         - [ ] `<SIMVAR_TO_WATCH_0>` line 527
     - [ ] `<Template Name="ASOBO_HANDLING_Trim_Reset_Push_Template">` line 531
       - [ ] `<Parameters Type="Default">` line 532
@@ -6389,13 +6389,13 @@
       - [ ] `<Parameters Type="Override">` line 544
         - [ ] `<Condition Valid="NO_RUDDER_RESET">` line 545
           - [ ] `<False>` line 546
-            - [ ] `<RUDDER_RESET>` line 547
+            - [x] `<RUDDER_RESET>` line 547
         - [ ] `<Condition Valid="NO_RUDDER_ELEVATOR">` line 550
           - [ ] `<False>` line 551
             - [ ] `<ELEVATOR_RESET>` line 552
         - [ ] `<Condition Valid="NO_AILERON_RESET">` line 555
           - [ ] `<False>` line 556
-            - [ ] `<AILERON_RESET>` line 557
+            - [x] `<AILERON_RESET>` line 557
       - [ ] `<UseTemplate Name="ASOBO_Handling_Base_Template">` line 562
         - [ ] `<IE_NAME>` line 563 = `HANDLING_Trim_Reset`
         - [ ] `<INTERACTION_TYPE>` line 564
@@ -6424,7 +6424,7 @@
         - [ ] `<ID>` line 605 = `0`
         - [ ] `<TAILWHEEL_LOCK_MAX_ANGLE>` line 606
       - [ ] `<Parameters Type="Override">` line 608
-        - [ ] `<LOCK_CODE>` line 609 = `(>K:TOGGLE_TAILWHEEL_LOCK)`
+        - [x] `<LOCK_CODE>` line 609 = `(>K:TOGGLE_TAILWHEEL_LOCK)`
       - [ ] `<Parameters Type="Override">` line 611
         - [ ] `<Condition>` line 612
           - [ ] `<Test>` line 613
@@ -6464,14 +6464,14 @@
                 - [ ] `<Parameters Type="Override">` line 670
                   - [ ] `<CUR_BALLAST_ID>` line 671 = `BALLAST_VALVE_ID_#CUR_ID#`
                 - [ ] `<Parameters Type="Override">` line 673
-                  - [ ] `<SET_STATE_EXTERNAL_T>` line 674
+                  - [x] `<SET_STATE_EXTERNAL_T>` line 674
                   - [ ] `<GET_STATE_EXTERNAL_T>` line 675
               - [ ] `<Then>` line 678
                 - [ ] `<SET_STATE_EXTERNAL>` line 679
                 - [ ] `<GET_STATE_EXTERNAL>` line 680
           - [ ] `<False>` line 684
             - [ ] `<GET_STATE_EXTERNAL>` line 685
-            - [ ] `<SET_STATE_EXTERNAL>` line 686
+            - [x] `<SET_STATE_EXTERNAL>` line 686
       - [ ] `<UseTemplate Name="ASOBO_Handling_Base_Template">` line 691
         - [ ] `<TOOLTIP_TITLE>` line 692
         - [ ] `<TT_DESCRIPTION_ID>` line 693 = `@TT_Package.WATER_BALLAST_VALVE_ACTION`
@@ -6496,7 +6496,7 @@
       - [ ] `<UseTemplate Name="ASOBO_Handling_Base_Template">` line 718
         - [ ] `<INTERACTION_TYPE>` line 719
         - [ ] `<CREATE_COMPONENT>` line 720
-        - [ ] `<SET_STATE_EXTERNAL>` line 721
+        - [x] `<SET_STATE_EXTERNAL>` line 721
         - [ ] `<GET_STATE_EXTERNAL>` line 722
         - [ ] `<SIMVAR_TO_WATCH_0>` line 723
 - [ ] `Asobo/Common/Index.xml`
@@ -9892,7 +9892,7 @@
               - [ ] `<Parameters Type="Default">` line 412
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 413
                 - [ ] `<ON_STATE_CHANGED>` line 414
-                - [ ] `<SET_EVENT>` line 415 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:RUDDER_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INPU...`
+                - [x] `<SET_EVENT>` line 415 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:RUDDER_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INPU...`
                 - [ ] `<INIT_VALUE>` line 416 = `(A:RUDDER TRIM PCT, position 16k) #LOWER_LIMIT# max #UPPER_LIMIT# min (>#INPUTEVENT_VAR_TYPE#:#INPU...`
                 - [ ] `<Switch Param="INTERACTION_TYPE">` line 417
                   - [ ] `<Case Value="WHEEL">` line 418
@@ -19281,7 +19281,7 @@
                 - [ ] `<INTERACTION_TYPE>` line 908
                 - [ ] `<TT_ICON>` line 909
                 - [ ] `<IE_NAME>` line 910 = `RudderTrim_Reset`
-                - [ ] `<SET_CODE>` line 911 = `0 (>K:RUDDER_TRIM_SET) 1 (>O:_ButtonAnimVar)`
+                - [x] `<SET_CODE>` line 911 = `0 (>K:RUDDER_TRIM_SET) 1 (>O:_ButtonAnimVar)`
                 - [ ] `<WWISE_EVENT_1>` line 912
                 - [ ] `<WWISE_EVENT_2>` line 913
                 - [ ] `<TT_DESCRIPTION_ID>` line 914 = `@TT_Package.HANDLING_PUSH_RUDDERRESET_ACTION`
@@ -42625,25 +42625,25 @@
       - [ ] `<Parameters Type="Default">` line 214
         - [ ] `<NODE_ID>` line 215 = `AIRCRAFT_Lever_Exit_0`
         - [ ] `<ANIM_CODE>` line 216 = `(A:INTERACTIVE POINT OPEN:0, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 217 = `0 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 217 = `0 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 219
     - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_1_Template">` line 222
       - [ ] `<Parameters Type="Default">` line 223
         - [ ] `<NODE_ID>` line 224 = `AIRCRAFT_Lever_Exit_1`
         - [ ] `<ANIM_CODE>` line 225 = `(A:INTERACTIVE POINT OPEN:0, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 226 = `1 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 226 = `1 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 228
     - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_2_Template">` line 231
       - [ ] `<Parameters Type="Default">` line 232
         - [ ] `<NODE_ID>` line 233 = `AIRCRAFT_Lever_Exit_2`
         - [ ] `<ANIM_CODE>` line 234 = `(A:INTERACTIVE POINT OPEN:1, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 235 = `2 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 235 = `2 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 237
     - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_3_Template">` line 240
       - [ ] `<Parameters Type="Default">` line 241
         - [ ] `<NODE_ID>` line 242 = `AIRCRAFT_Lever_Exit_3`
         - [ ] `<ANIM_CODE>` line 243 = `(A:INTERACTIVE POINT OPEN:2, Percent)`
-        - [ ] `<LEFT_SINGLE_CODE>` line 244 = `3 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
+        - [x] `<LEFT_SINGLE_CODE>` line 244 = `3 (>K:TOGGLE_AIRCRAFT_EXIT_FAST)`
       - [ ] `<UseTemplate Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 246
     - [ ] `<Template Name="ASOBO_AIRFRAME_Warning_Door_Unlock_Template">` line 249
       - [ ] `<Parameters Type="Default">` line 250
@@ -44971,18 +44971,18 @@
         - [ ] `<TT_VALUE_ON>` line 439
         - [ ] `<TT_VALUE_OFF>` line 440
         - [ ] `<TT_VALUE_ONOFF_IS_DYNAMIC>` line 441
-        - [ ] `<SET_STATE_EXTERNAL>` line 442
+        - [x] `<SET_STATE_EXTERNAL>` line 442
         - [ ] `<GET_STATE_EXTERNAL>` line 443
         - [ ] `<WWISE_EVENT_1>` line 444
         - [ ] `<WWISE_EVENT_2>` line 445
         - [ ] `<BINDING_SET_0>` line 446
         - [ ] `<BINDING_SET_0_PARAM_0>` line 447
         - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 448
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 449 = `TOGGLE_WING_FOLD`
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 449 = `TOGGLE_WING_FOLD`
         - [ ] `<BINDING_SET_1>` line 450
         - [ ] `<BINDING_SET_1_PARAM_0>` line 451
         - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 452
-        - [ ] `<BINDING_SET_1_EVENT_ID>` line 453 = `SET_WING_FOLD`
+        - [x] `<BINDING_SET_1_EVENT_ID>` line 453 = `SET_WING_FOLD`
         - [ ] `<SIMVAR_TO_WATCH_0>` line 454
     - [ ] `<Template Name="ASOBO_HANDLING_Wipers_Controller_Template">` line 457
       - [ ] `<Parameters Type="Default">` line 458
@@ -45006,18 +45006,18 @@
         - [ ] `<TT_VALUE_ON>` line 483
         - [ ] `<TT_VALUE_OFF>` line 484
         - [ ] `<TT_VALUE_ONOFF_IS_DYNAMIC>` line 485
-        - [ ] `<SET_STATE_EXTERNAL>` line 486
+        - [x] `<SET_STATE_EXTERNAL>` line 486
         - [ ] `<GET_STATE_EXTERNAL>` line 487
         - [ ] `<WWISE_EVENT_1>` line 488
         - [ ] `<WWISE_EVENT_2>` line 489
         - [ ] `<BINDING_SET_0>` line 490
         - [ ] `<BINDING_SET_0_PARAM_0>` line 491
         - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 492
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 493 = `TOGGLE_LAUNCH_BAR_SWITCH`
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 493 = `TOGGLE_LAUNCH_BAR_SWITCH`
         - [ ] `<BINDING_SET_1>` line 494
         - [ ] `<BINDING_SET_1_PARAM_0>` line 495
         - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 496
-        - [ ] `<BINDING_SET_1_EVENT_ID>` line 497 = `SET_LAUNCH_BAR_SWITCH`
+        - [x] `<BINDING_SET_1_EVENT_ID>` line 497 = `SET_LAUNCH_BAR_SWITCH`
         - [ ] `<SIMVAR_TO_WATCH_0>` line 498
     - [ ] `<Template Name="ASOBO_HANDLING_TailHook_Lever_Template">` line 501
       - [ ] `<Parameters Type="Default">` line 502
@@ -45031,18 +45031,18 @@
         - [ ] `<TT_VALUE_ON>` line 512
         - [ ] `<TT_VALUE_OFF>` line 513
         - [ ] `<TT_VALUE_ONOFF_IS_DYNAMIC>` line 514
-        - [ ] `<SET_STATE_EXTERNAL>` line 515
+        - [x] `<SET_STATE_EXTERNAL>` line 515
         - [ ] `<GET_STATE_EXTERNAL>` line 516
         - [ ] `<WWISE_EVENT_1>` line 517
         - [ ] `<WWISE_EVENT_2>` line 518
         - [ ] `<BINDING_SET_0>` line 519
         - [ ] `<BINDING_SET_0_PARAM_0>` line 520
         - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 521
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 522 = `TOGGLE_TAIL_HOOK_HANDLE`
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 522 = `TOGGLE_TAIL_HOOK_HANDLE`
         - [ ] `<BINDING_SET_1>` line 523
         - [ ] `<BINDING_SET_1_PARAM_0>` line 524
         - [ ] `<BINDING_SET_1_PARAM_0_IS_DYNAMIC>` line 525
-        - [ ] `<BINDING_SET_1_EVENT_ID>` line 526 = `SET_TAIL_HOOK_HANDLE`
+        - [x] `<BINDING_SET_1_EVENT_ID>` line 526 = `SET_TAIL_HOOK_HANDLE`
         - [ ] `<SIMVAR_TO_WATCH_0>` line 527
     - [ ] `<Template Name="ASOBO_HANDLING_Trim_Reset_Push_Template">` line 531
       - [ ] `<Parameters Type="Default">` line 532
@@ -45059,13 +45059,13 @@
       - [ ] `<Parameters Type="Override">` line 544
         - [ ] `<Condition Valid="NO_RUDDER_RESET">` line 545
           - [ ] `<False>` line 546
-            - [ ] `<RUDDER_RESET>` line 547
+            - [x] `<RUDDER_RESET>` line 547
         - [ ] `<Condition Valid="NO_RUDDER_ELEVATOR">` line 550
           - [ ] `<False>` line 551
             - [ ] `<ELEVATOR_RESET>` line 552
         - [ ] `<Condition Valid="NO_AILERON_RESET">` line 555
           - [ ] `<False>` line 556
-            - [ ] `<AILERON_RESET>` line 557
+            - [x] `<AILERON_RESET>` line 557
       - [ ] `<UseTemplate Name="ASOBO_Handling_Base_Template">` line 562
         - [ ] `<IE_NAME>` line 563 = `HANDLING_Trim_Reset`
         - [ ] `<INTERACTION_TYPE>` line 564
@@ -45094,7 +45094,7 @@
         - [ ] `<ID>` line 605 = `0`
         - [ ] `<TAILWHEEL_LOCK_MAX_ANGLE>` line 606
       - [ ] `<Parameters Type="Override">` line 608
-        - [ ] `<LOCK_CODE>` line 609 = `(>K:TOGGLE_TAILWHEEL_LOCK)`
+        - [x] `<LOCK_CODE>` line 609 = `(>K:TOGGLE_TAILWHEEL_LOCK)`
       - [ ] `<Parameters Type="Override">` line 611
         - [ ] `<Condition>` line 612
           - [ ] `<Test>` line 613
@@ -45134,14 +45134,14 @@
                 - [ ] `<Parameters Type="Override">` line 670
                   - [ ] `<CUR_BALLAST_ID>` line 671 = `BALLAST_VALVE_ID_#CUR_ID#`
                 - [ ] `<Parameters Type="Override">` line 673
-                  - [ ] `<SET_STATE_EXTERNAL_T>` line 674
+                  - [x] `<SET_STATE_EXTERNAL_T>` line 674
                   - [ ] `<GET_STATE_EXTERNAL_T>` line 675
               - [ ] `<Then>` line 678
                 - [ ] `<SET_STATE_EXTERNAL>` line 679
                 - [ ] `<GET_STATE_EXTERNAL>` line 680
           - [ ] `<False>` line 684
             - [ ] `<GET_STATE_EXTERNAL>` line 685
-            - [ ] `<SET_STATE_EXTERNAL>` line 686
+            - [x] `<SET_STATE_EXTERNAL>` line 686
       - [ ] `<UseTemplate Name="ASOBO_Handling_Base_Template">` line 691
         - [ ] `<TOOLTIP_TITLE>` line 692
         - [ ] `<TT_DESCRIPTION_ID>` line 693 = `@TT_Package.WATER_BALLAST_VALVE_ACTION`
@@ -45166,7 +45166,7 @@
       - [ ] `<UseTemplate Name="ASOBO_Handling_Base_Template">` line 718
         - [ ] `<INTERACTION_TYPE>` line 719
         - [ ] `<CREATE_COMPONENT>` line 720
-        - [ ] `<SET_STATE_EXTERNAL>` line 721
+        - [x] `<SET_STATE_EXTERNAL>` line 721
         - [ ] `<GET_STATE_EXTERNAL>` line 722
         - [ ] `<SIMVAR_TO_WATCH_0>` line 723
 - [ ] `Asobo/Common/Index.xml`
@@ -48562,7 +48562,7 @@
               - [ ] `<Parameters Type="Default">` line 412
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 413
                 - [ ] `<ON_STATE_CHANGED>` line 414
-                - [ ] `<SET_EVENT>` line 415 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:RUDDER_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INPU...`
+                - [x] `<SET_EVENT>` line 415 = `p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:RUDDER_TRIM_SET_EX1) l0 (>#INPUTEVENT_VAR_TYPE#:#INPU...`
                 - [ ] `<INIT_VALUE>` line 416 = `(A:RUDDER TRIM PCT, position 16k) #LOWER_LIMIT# max #UPPER_LIMIT# min (>#INPUTEVENT_VAR_TYPE#:#INPU...`
                 - [ ] `<Switch Param="INTERACTION_TYPE">` line 417
                   - [ ] `<Case Value="WHEEL">` line 418
@@ -57951,7 +57951,7 @@
                 - [ ] `<INTERACTION_TYPE>` line 908
                 - [ ] `<TT_ICON>` line 909
                 - [ ] `<IE_NAME>` line 910 = `RudderTrim_Reset`
-                - [ ] `<SET_CODE>` line 911 = `0 (>K:RUDDER_TRIM_SET) 1 (>O:_ButtonAnimVar)`
+                - [x] `<SET_CODE>` line 911 = `0 (>K:RUDDER_TRIM_SET) 1 (>O:_ButtonAnimVar)`
                 - [ ] `<WWISE_EVENT_1>` line 912
                 - [ ] `<WWISE_EVENT_2>` line 913
                 - [ ] `<TT_DESCRIPTION_ID>` line 914 = `@TT_Package.HANDLING_PUSH_RUDDERRESET_ACTION`

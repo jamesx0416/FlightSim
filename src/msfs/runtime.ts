@@ -1748,7 +1748,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
-    if (name === 'AILERON_TRIM_SET_EX1') {
+    if (name === 'AILERON_TRIM_SET' || name === 'AILERON_TRIM_SET_EX1') {
       this.setAileronTrim(Number(args.at(-1) ?? 0) / 16_384)
       return true
     }
@@ -1780,6 +1780,17 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyHandlingAndGearKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'TOGGLE_AIRCRAFT_EXIT_FAST') {
+      const rawIndex = Math.trunc(Number(args.at(-1) ?? 0))
+      const index = Number.isFinite(rawIndex) && rawIndex >= 0 ? rawIndex : 0
+      const key = normalizeRuntimeVariableKey(`A:INTERACTIVE POINT GOAL:${index}`)
+      const currentValue = this.values.get(key) ?? 0
+      const nextValue = currentValue > 0 ? 0 : 100
+      this.values.set(key, nextValue)
+      this.values.set(normalizeRuntimeVariableKey(`A:INTERACTIVE POINT OPEN:${index}`), nextValue)
+      return true
+    }
+
     if (name === 'AXIS_LEFT_BRAKE_SET' || name === 'AXIS_RIGHT_BRAKE_SET') {
       const side = name === 'AXIS_LEFT_BRAKE_SET' ? 'LEFT' : 'RIGHT'
       this.setBrakePosition(side, position16kToPercent(Number(args.at(-1) ?? 0), false))
@@ -1807,6 +1818,57 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (name === 'SPOILERS_ARM_TOGGLE') {
       const key = normalizeRuntimeVariableKey('A:SPOILERS ARMED')
       this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    if (name === 'SET_WING_FOLD' || name === 'TOGGLE_WING_FOLD') {
+      const key = normalizeRuntimeVariableKey('A:FOLDING WING HANDLE POSITION')
+      const value = name === 'TOGGLE_WING_FOLD'
+        ? (this.values.get(key) ?? 0) > 0 ? 0 : 1
+        : Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      this.values.set(key, value)
+      this.values.set(normalizeRuntimeVariableKey('A:FOLDING WING LEFT PERCENT'), value * 100)
+      this.values.set(normalizeRuntimeVariableKey('A:FOLDING WING RIGHT PERCENT'), value * 100)
+      return true
+    }
+
+    if (name === 'SET_LAUNCH_BAR_SWITCH' || name === 'TOGGLE_LAUNCH_BAR_SWITCH') {
+      const key = normalizeRuntimeVariableKey('A:LAUNCHBAR SWITCH')
+      const value = name === 'TOGGLE_LAUNCH_BAR_SWITCH'
+        ? (this.values.get(key) ?? 0) > 0 ? 0 : 1
+        : Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      this.values.set(key, value)
+      this.values.set(normalizeRuntimeVariableKey('A:LAUNCHBAR POSITION'), value * 100)
+      return true
+    }
+
+    if (name === 'SET_TAIL_HOOK_HANDLE' || name === 'TOGGLE_TAIL_HOOK_HANDLE') {
+      const key = normalizeRuntimeVariableKey('A:TAILHOOK HANDLE')
+      const value = name === 'TOGGLE_TAIL_HOOK_HANDLE'
+        ? (this.values.get(key) ?? 0) > 0 ? 0 : 1
+        : Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      this.values.set(key, value)
+      this.values.set(normalizeRuntimeVariableKey('A:TAILHOOK POSITION'), value * 100)
+      return true
+    }
+
+    if (name === 'TOGGLE_TAILWHEEL_LOCK') {
+      const key = normalizeRuntimeVariableKey('A:TAILWHEEL LOCK ON')
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    if (name === 'TOGGLE_WATER_BALLAST_VALVE') {
+      const maybeIndex = Math.trunc(Number(args.at(-1) ?? 1))
+      const index = Number.isFinite(maybeIndex) && maybeIndex > 0 ? maybeIndex : 1
+      const key = normalizeRuntimeVariableKey(`A:WATER BALLAST VALVE:${index}`)
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    if (name === 'TOW_PLANE_RELEASE') {
+      this.values.set(normalizeRuntimeVariableKey('A:TOW RELEASE HANDLE'), 100)
+      this.values.set(normalizeRuntimeVariableKey('A:TOW CONNECTION'), 0)
       return true
     }
 
