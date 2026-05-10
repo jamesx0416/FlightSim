@@ -3327,7 +3327,7 @@ type VCockpitHtmlGaugeRuntime = {
   lastCaptureError: string | null
   lastVisualSignature: string | null
   lastChangeVersion: number | null
-  lastRenderStatus: 'pending' | 'captured' | 'skipped-clean' | 'error'
+  lastRenderStatus: 'pending' | 'captured' | 'skipped-clean' | 'blank' | 'error'
   lastRenderKind: VCockpitGaugeDirtyKind | 'static' | null
   pendingChangeVersion: number | null
   pendingDirtyKind: VCockpitGaugeDirtyKind | null
@@ -6402,6 +6402,7 @@ async function captureVCockpitSurfaceTexture(
       continue
     }
 
+    let attemptedChangeVersion: number | null = null
     try {
       if (surfaceRuntime.liveCapture || !gaugeRuntime.captured) {
         gaugeRuntime.captureAttemptCount += 1
@@ -6409,6 +6410,7 @@ async function captureVCockpitSurfaceTexture(
       if (surfaceRuntime.liveCapture) {
         const changeVersion =
           gaugeRuntime.pendingChangeVersion ?? getHtmlGaugeChangeVersion(gaugeRuntime)
+        attemptedChangeVersion = changeVersion
         const forceCompositeRedraw =
           !surfaceWasCleared && gaugeRuntime.captured && !gaugeRuntime.needsCapture
         let visualSignature = forceCompositeRedraw ? gaugeRuntime.lastVisualSignature : null
@@ -6488,6 +6490,28 @@ async function captureVCockpitSurfaceTexture(
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
+      if (
+        surfaceRuntime.liveCapture &&
+        isBlankVCockpitHtmlGaugeCaptureError(message)
+      ) {
+        if (!surfaceWasCleared) {
+          surfaceRuntime.context.fillStyle = getVCockpitSurfaceBackgroundFillStyle(
+            surfaceRuntime.surface
+          )
+          surfaceRuntime.context.fillRect(x, y, width, height)
+          surfaceDirty = true
+        }
+        gaugeRuntime.lastCaptureError = message
+        gaugeRuntime.lastVisualSignature = null
+        gaugeRuntime.lastChangeVersion = attemptedChangeVersion
+        gaugeRuntime.pendingChangeVersion = null
+        gaugeRuntime.pendingDirtyKind = null
+        gaugeRuntime.needsCapture = false
+        gaugeRuntime.captured = true
+        gaugeRuntime.lastRenderStatus = 'blank'
+        gaugeRuntime.lastRenderKind = null
+        continue
+      }
       if (gaugeRuntime.lastCaptureError !== message) {
         diagnostics.push({
           code: 'vcockpit-html-gauge-capture-error',
@@ -6641,6 +6665,10 @@ function assertHtmlGaugeHasRenderableContent(
   if (!hasMountedInstrument && !hasNonPlaceholderText) {
     throw new Error('gauge iframe loaded but did not mount visible instrument DOM')
   }
+}
+
+function isBlankVCockpitHtmlGaugeCaptureError(message: string): boolean {
+  return message === 'gauge iframe loaded but did not mount visible instrument DOM'
 }
 
 async function captureHtmlGaugeFrameImage(
