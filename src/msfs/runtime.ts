@@ -1205,6 +1205,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey.startsWith('A:ENG ANTI ICE:')) return handled(0)
     if (isEngineAntiIcePositionKey(upperKey)) return handled(convertPercentToEngineAntiIcePositionUnit(0, unit))
     if (upperKey.startsWith('A:PROP DEICE SWITCH:')) return handled(0)
+    if (upperKey.startsWith('A:RECIP ENG PRIMER:')) return handled(convertPercentToPrimerUnit(0, unit))
     if (upperKey === 'A:WING FLEX PCT') {
       return handled(convertPercentOver100Unit(this.wingFlexProfile.baseFlexPct, unit))
     }
@@ -1378,6 +1379,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     if (this.applyEngineControlKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyEngineSwitchKeyEvent(name, args)) {
       return
     }
     if (this.applyAutopilotAndTransponderKeyEvent(name, args)) {
@@ -1901,6 +1905,114 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
+  private applyEngineSwitchKeyEvent(name: string, args: readonly number[]): boolean {
+    const starterHeldMatch = /^SET_STARTER(\d+)_HELD$/u.exec(name)
+    if (starterHeldMatch != null) {
+      this.setEngineStarter(Number.parseInt(starterHeldMatch[1], 10), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      return true
+    }
+
+    const starterSetMatch = /^STARTER(\d+)_SET$/u.exec(name)
+    if (starterSetMatch != null) {
+      this.setEngineStarter(Number.parseInt(starterSetMatch[1], 10), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      return true
+    }
+
+    const starterToggleMatch = /^TOGGLE_STARTER(\d+)$/u.exec(name)
+    if (starterToggleMatch != null) {
+      const index = Number.parseInt(starterToggleMatch[1], 10)
+      const key = normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${index}`)
+      this.setEngineStarter(index, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    const engineMasterToggleMatch = /^ENGINE_MASTER_(\d+)_TOGGLE$/u.exec(name)
+    if (engineMasterToggleMatch != null) {
+      const index = Number.parseInt(engineMasterToggleMatch[1], 10)
+      const key = normalizeRuntimeVariableKey(`A:RECIP ENG ENGINE MASTER SWITCH:${index}`)
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    const magnetoSetMatch = /^MAGNETO(\d+)_SET$/u.exec(name)
+    if (magnetoSetMatch != null) {
+      this.setMagnetoState(Number.parseInt(magnetoSetMatch[1], 10), Math.trunc(Number(args.at(-1) ?? 0)))
+      return true
+    }
+
+    const magnetoSideMatch = /^MAGNETO(\d+)_(LEFT|RIGHT|BOTH|OFF|START)$/u.exec(name)
+    if (magnetoSideMatch != null) {
+      const index = Number.parseInt(magnetoSideMatch[1], 10)
+      const side = magnetoSideMatch[2]
+      const state = side === 'OFF' ? 0 : side === 'LEFT' ? 1 : side === 'RIGHT' ? 2 : side === 'BOTH' ? 3 : 4
+      this.setMagnetoState(index, state)
+      if (side === 'START') {
+        this.setEngineStarter(index, 1)
+      }
+      return true
+    }
+
+    const primerToggleMatch = /^TOGGLE_PRIMER(\d+)$/u.exec(name)
+    if (primerToggleMatch != null) {
+      const index = Number.parseInt(primerToggleMatch[1], 10)
+      const key = normalizeRuntimeVariableKey(`A:RECIP ENG PRIMER:${index}`)
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 100)
+      return true
+    }
+
+    if (name === 'HYDRAULIC_SWITCH_TOGGLE') {
+      const index = Math.trunc(Number(args.at(-1) ?? 1))
+      if (Number.isFinite(index)) {
+        const switchKey = normalizeRuntimeVariableKey(`A:HYDRAULIC SWITCH:${index}`)
+        const nextValue = (this.values.get(switchKey) ?? 0) > 0 ? 0 : 1
+        this.values.set(switchKey, nextValue)
+        this.values.set(normalizeRuntimeVariableKey(`A:HYDRAULIC RESERVOIR PERCENT:${index}`), nextValue > 0 ? 100 : 0)
+        // Placeholder pressure keeps stock hydraulic warning expressions deterministic until a hydraulic model exists.
+        this.values.set(normalizeRuntimeVariableKey(`A:HYDRAULIC PRESSURE:${index}`), nextValue > 0 ? 3000 : 0)
+      }
+      return true
+    }
+
+    if (name === 'ANTIDETONATION_TANK_VALVE_TOGGLE') {
+      const index = Math.trunc(Number(args.at(-1) ?? 1))
+      if (Number.isFinite(index)) {
+        const key = normalizeRuntimeVariableKey(`A:RECIP ENG ANTIDETONATION TANK VALVE:${index}`)
+        this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      }
+      return true
+    }
+
+    if (name === 'WAR_EMERGENCY_POWER') {
+      const key = normalizeRuntimeVariableKey('A:RECIP ENG EMERGENCY BOOST ACTIVE:1')
+      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
+    return false
+  }
+
+  private setEngineStarter(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const engineIndex = Math.trunc(index)
+    const starterValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${engineIndex}`), starterValue)
+  }
+
+  private setMagnetoState(index: number, state: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const engineIndex = Math.trunc(index)
+    const magnetoState = clamp(Math.trunc(Number.isFinite(state) ? state : 0), 0, 4)
+    const leftOn = magnetoState === 1 || magnetoState === 3 || magnetoState === 4 ? 1 : 0
+    const rightOn = magnetoState === 2 || magnetoState === 3 || magnetoState === 4 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:RECIP ENG LEFT MAGNETO:${engineIndex}`), leftOn)
+    this.values.set(normalizeRuntimeVariableKey(`A:RECIP ENG RIGHT MAGNETO:${engineIndex}`), rightOn)
+    this.values.set(normalizeRuntimeVariableKey(`A:RECIP ENG MAGNETO:${engineIndex}`), magnetoState)
+  }
+
   private applyAutopilotAndTransponderKeyEvent(name: string, args: readonly number[]): boolean {
     if (name === 'AUTOPILOT_OFF') {
       this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT MASTER'), 0)
@@ -2189,6 +2301,12 @@ function resolveStoredRuntimeValue(key: string, value: number, unit: string | nu
   if (isEngineControlPercentPositionKey(key)) {
     return convertPercentToPosition16kUnit(value, unit)
   }
+  if (key.startsWith('A:RECIP ENG PRIMER:')) {
+    return convertPercentToPrimerUnit(value, unit)
+  }
+  if (key.startsWith('A:HYDRAULIC RESERVOIR PERCENT:')) {
+    return convertPercentUnit(value, unit)
+  }
   return value
 }
 
@@ -2236,6 +2354,15 @@ function convertPercentToPosition16kUnit(value: number, unit: string | null): nu
 function position16kToPercent(value: number, allowNegative: boolean): number {
   const clampedValue = clamp(value, allowNegative ? -16_384 : 0, 16_384)
   return (clampedValue / 16_384) * 100
+}
+
+function convertPercentToPrimerUnit(value: number, unit: string | null): number {
+  const clampedPercent = clamp(value, 0, 100)
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'position' || normalizedUnit === 'percent over 100') {
+    return clampedPercent / 100
+  }
+  return clampedPercent
 }
 
 function isCircuitPowerStateKey(key: string): boolean {
