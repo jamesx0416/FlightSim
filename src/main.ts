@@ -4760,6 +4760,16 @@ function createVCockpitGaugeBridgeScript(
     if (normalizedUnit.includes('percent')) return hasPower ? 100 : 0;
     return 0;
   };
+  const readDemoStringValue = name => {
+    const normalizedName = String(name ?? '').toLowerCase();
+    if (normalizedName.includes('navdata') && normalizedName.includes('date range')) {
+      return 'MAY07JUN03/26';
+    }
+    if (normalizedName.includes('aircraft') && normalizedName.includes('title')) {
+      return document.title || 'MSFS Aircraft';
+    }
+    return '';
+  };
   const readBoolSimVar = name => readDemoSimVar(name, 'Bool') === 1;
   const readNumberSimVar = (name, unit = 'Number') => Number(readDemoSimVar(name, unit)) || 0;
   const createSimplaneFallback = () => new Proxy({
@@ -4845,6 +4855,9 @@ function createVCockpitGaugeBridgeScript(
     return value;
   };
   const readTrackedDemoSimVar = (name, unit, source = '') => {
+    if (String(unit ?? '').toLowerCase().includes('string')) {
+      return recordDependencyValue(source, name, unit, readDemoStringValue(name));
+    }
     const runtimeName = normalizeRuntimeBridgeVariableName(name, source);
     const storedKey = normalizeSimVarKey(name, unit, source);
     const fallbackKey = normalizeSimVarKey(runtimeName, unit, '');
@@ -4877,6 +4890,9 @@ function createVCockpitGaugeBridgeScript(
     return recordDependencyValue(source, name, unit, value);
   };
   const readCurrentSimVar = (name, unit, source = '') => {
+    if (String(unit ?? '').toLowerCase().includes('string')) {
+      return readDemoStringValue(name);
+    }
     const runtimeName = normalizeRuntimeBridgeVariableName(name, source);
     const storedKey = normalizeSimVarKey(name, unit, source);
     const fallbackKey = normalizeSimVarKey(runtimeName, unit, '');
@@ -5087,6 +5103,9 @@ function createVCockpitGaugeBridgeScript(
     loading: 1,
     ingame: 2,
     mainmenu: 3
+  };
+  globalThis.InputBar ??= {
+    MENU_BUTTON_A: 'KEY_MENU_VALID'
   };
   const instrumentRegistry = globalThis.__msfsInstrumentRegistry ?? new Map();
   globalThis.__msfsInstrumentRegistry = instrumentRegistry;
@@ -5463,20 +5482,145 @@ function createVCockpitGaugeBridgeScript(
     delete: key => globalThis.DeleteStoredData(key),
     searchData: prefix => Object.keys(localStorage).filter(key => key.startsWith(String(prefix ?? '')))
   };
+  const toLatLong = (value, fallbackLong = 0) => {
+    if (value != null && typeof value === 'object') {
+      return {
+        lat: Number(value.lat ?? value.latitude ?? 0) || 0,
+        long: Number(value.long ?? value.lon ?? value.longitude ?? 0) || 0
+      };
+    }
+    return {
+      lat: Number(value) || 0,
+      long: Number(fallbackLong) || 0
+    };
+  };
   const genericUtils = {
     Clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
     clamp: (value, min, max) => Math.min(max, Math.max(min, value)),
     DEG2RAD: Math.PI / 180,
     RAD2DEG: 180 / Math.PI,
     TWO_PI: Math.PI * 2,
+    generateGUID: () =>
+      globalThis.crypto?.randomUUID?.() ??
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/gu, marker => {
+        const value = Math.floor(Math.random() * 16);
+        return (marker === 'x' ? value : (value & 0x3) | 0x8).toString(16);
+      }),
+    clampAngle: angle => {
+      const value = Number(angle) || 0;
+      return ((value % 360) + 360) % 360;
+    },
+    diffAngle: (from, to) => ((((Number(to) - Number(from)) % 360) + 540) % 360) - 180,
     lerpAngle: (from, to, amount) => {
       const delta = ((((to - from) % 360) + 540) % 360) - 180;
       return from + delta * amount;
-    }
+    },
+    computeGreatCircleDistance: (from, to) => {
+      const first = toLatLong(from);
+      const second = toLatLong(to);
+      const dLat = (second.lat - first.lat) * Math.PI / 180;
+      const dLon = (second.long - first.long) * Math.PI / 180;
+      const lat1 = first.lat * Math.PI / 180;
+      const lat2 = second.lat * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+      return 3440.065 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+    },
+    computeGreatCircleHeading: (from, to) => {
+      const first = toLatLong(from);
+      const second = toLatLong(to);
+      const lat1 = first.lat * Math.PI / 180;
+      const lat2 = second.lat * Math.PI / 180;
+      const dLon = (second.long - first.long) * Math.PI / 180;
+      const y = Math.sin(dLon) * Math.cos(lat2);
+      const x = Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+      return genericUtils.clampAngle(Math.atan2(y, x) * 180 / Math.PI);
+    },
+    bearingDistanceToCoordinates: (bearing, distanceNm, lat, long) => {
+      const angularDistance = (Number(distanceNm) || 0) / 3440.065;
+      const bearingRad = (Number(bearing) || 0) * Math.PI / 180;
+      const lat1 = (Number(lat) || 0) * Math.PI / 180;
+      const lon1 = (Number(long) || 0) * Math.PI / 180;
+      const lat2 = Math.asin(
+        Math.sin(lat1) * Math.cos(angularDistance) +
+          Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearingRad)
+      );
+      const lon2 = lon1 + Math.atan2(
+        Math.sin(bearingRad) * Math.sin(angularDistance) * Math.cos(lat1),
+        Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2)
+      );
+      return new globalThis.LatLongAlt(
+        lat2 * 180 / Math.PI,
+        ((((lon2 * 180 / Math.PI) + 180) % 360) + 360) % 360 - 180,
+        0
+      );
+    },
+    make_adf_bcd32: frequency => {
+      const digits = String(Math.trunc(Math.abs(Number(frequency) || 0))).replace(/\D/gu, '').slice(-8);
+      return Array.from(digits).reduce((value, digit) => (value << 4) | Number(digit), 0);
+    },
+    formatRunway: ident => String(ident ?? '').trim()
   };
   globalThis.Avionics ??= {};
   globalThis.Utils = { ...genericUtils, ...(globalThis.Utils ?? {}) };
   globalThis.Avionics.Utils = { ...genericUtils, ...(globalThis.Avionics.Utils ?? {}) };
+  const parseCurveColor = value => {
+    const text = String(value ?? '').trim().replace(/^#/u, '');
+    const normalized = text.length >= 6 ? text.slice(0, 6) : text.padEnd(6, '0');
+    return [
+      Number.parseInt(normalized.slice(0, 2), 16) || 0,
+      Number.parseInt(normalized.slice(2, 4), 16) || 0,
+      Number.parseInt(normalized.slice(4, 6), 16) || 0
+    ];
+  };
+  const formatCurveColor = ([r, g, b]) => '#' + [r, g, b]
+    .map(channel => Math.round(genericUtils.Clamp(channel, 0, 255)).toString(16).padStart(2, '0'))
+    .join('');
+  const numberInterpolation = (start, end, amount) =>
+    Number(start) + (Number(end) - Number(start)) * amount;
+  const stringColorInterpolation = (start, end, amount) => {
+    const left = parseCurveColor(start);
+    const right = parseCurveColor(end);
+    return formatCurveColor(left.map((channel, index) => channel + (right[index] - channel) * amount));
+  };
+  globalThis.Avionics.CurveTool ??= {
+    NumberInterpolation: numberInterpolation,
+    StringColorRGBInterpolation: stringColorInterpolation
+  };
+  globalThis.Avionics.Curve ??= class Curve {
+    constructor() {
+      this.points = [];
+      this.interpolationFunction = numberInterpolation;
+    }
+    add(x, y) {
+      this.points.push({ x: Number(x) || 0, y });
+      this.points.sort((left, right) => left.x - right.x);
+    }
+    evaluate(x) {
+      const value = Number(x) || 0;
+      if (this.points.length === 0) {
+        return 0;
+      }
+      if (value <= this.points[0].x) {
+        return this.points[0].y;
+      }
+      const last = this.points[this.points.length - 1];
+      if (value >= last.x) {
+        return last.y;
+      }
+      for (let index = 1; index < this.points.length; index += 1) {
+        const right = this.points[index];
+        if (value > right.x) {
+          continue;
+        }
+        const left = this.points[index - 1];
+        const amount = (value - left.x) / Math.max(1e-9, right.x - left.x);
+        return this.interpolationFunction(left.y, right.y, amount);
+      }
+      return last.y;
+    }
+  };
   globalThis.__msfsGaugeBridgeReady = true;
 })();
 `
