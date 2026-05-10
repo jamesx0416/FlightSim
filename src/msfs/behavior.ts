@@ -1327,6 +1327,10 @@ function getInteractionInputEventBridgeCodeSource(
         params
       )
     }
+    const directBinding = getGeneratedDirectInputEventBridgeCodeSource(bridgeName, params)
+    if (directBinding) {
+      return directBinding
+    }
     return ''
   }
 
@@ -1410,8 +1414,82 @@ function collectInteractionInputEventBridgeBindings(
   )) {
     bindings.push(binding)
   }
+  for (const binding of collectGeneratedDirectInputEventBindings(
+    inputEventSource,
+    inputEventName,
+    params,
+    currentNode,
+    sourcePath,
+    diagnostics
+  )) {
+    pushUniqueInputEventBinding(bindings, binding)
+  }
 
   return bindings
+}
+
+function collectGeneratedDirectInputEventBindings(
+  inputEventSource: string,
+  inputEventName: string,
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): readonly CompiledInputEventBinding[] {
+  const presetNames = getInteractionInputEventPresetNames(inputEventSource, inputEventName)
+  const bindings: CompiledInputEventBinding[] = []
+  for (const kind of ['INC', 'DEC', 'SET'] as const) {
+    const source = getGeneratedDirectInputEventCodeSource(kind, params)
+    if (!source) {
+      continue
+    }
+
+    const expression = compileRpnExpression(source, {
+      sourcePath,
+      sourceExpression: source,
+      diagnostics,
+      localVariableScope: resolveLocalVariableScope(params, currentNode, inputEventName)
+    })
+    if (expression == null) {
+      continue
+    }
+
+    const suffix = kind === 'INC' ? 'Inc' : kind === 'DEC' ? 'Dec' : 'Set'
+    for (const presetName of presetNames) {
+      bindings.push({
+        name: `${presetName}_${suffix}`,
+        expression,
+        sourcePath
+      })
+    }
+  }
+  return bindings
+}
+
+function getGeneratedDirectInputEventBridgeCodeSource(
+  bridgeName: string,
+  params: ReadonlyMap<string, string>
+): string {
+  const suffixMatch = /_(Inc|Dec|Set)$/u.exec(bridgeName)
+  if (suffixMatch == null) {
+    return ''
+  }
+
+  const kind = suffixMatch[1] === 'Inc' ? 'INC' : suffixMatch[1] === 'Dec' ? 'DEC' : 'SET'
+  return getGeneratedDirectInputEventCodeSource(kind, params)
+}
+
+function getGeneratedDirectInputEventCodeSource(
+  kind: 'INC' | 'DEC' | 'SET',
+  params: ReadonlyMap<string, string>
+): string {
+  const parameterNames =
+    kind === 'INC'
+      ? ['IE_INC_CODE', 'INC_CODE', 'INC_EVENT']
+      : kind === 'DEC'
+        ? ['IE_DEC_CODE', 'DEC_CODE', 'DEC_EVENT']
+        : ['SET_CODE', 'SET_EVENT', 'SET_STATE_EXTERNAL']
+  return getFirstUsableInteractionParameter(params, parameterNames)
 }
 
 function collectGeneratedInputEventStateBindings(
