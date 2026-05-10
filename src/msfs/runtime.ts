@@ -796,6 +796,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
+  getInputEventBindingNames(): readonly string[] {
+    return [...this.inputEventBindings.keys()].sort()
+  }
+
   private invokeInputEventBinding(name: string, values: number | readonly number[]): boolean {
     this.bridgeCallCount += 1
     const normalizedName = normalizeRuntimeInputEventName(name)
