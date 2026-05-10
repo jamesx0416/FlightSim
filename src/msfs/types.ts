@@ -189,6 +189,7 @@ export type Instruction =
   | { readonly op: 'pushParameter'; readonly index: number }
   | { readonly op: 'writeVariable'; readonly key: string; readonly unit: string | null }
   | { readonly op: 'invokeKeyEvent'; readonly name: string; readonly argCount: number }
+  | { readonly op: 'invokeHtmlEvent'; readonly name: string }
   | { readonly op: 'duplicate' | 'popDiscard' | 'swap' | 'increment' | 'decrement' | 'quit' }
   | { readonly op: 'storeRegister'; readonly index: number; readonly pop: boolean }
   | { readonly op: 'loadRegister'; readonly index: number }
@@ -213,6 +214,7 @@ export interface RuntimeHostServices {
   readVariable(key: string, unit?: string | null): number
   writeVariable(key: string, value: number, unit?: string | null): void
   invokeKeyEvent?(name: string, args: readonly number[]): void
+  invokeHtmlEvent?(name: string, args: readonly (number | string)[]): void
   invokeSoundEvent?(
     name: string,
     event: {

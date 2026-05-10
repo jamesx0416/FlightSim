@@ -214,7 +214,8 @@ export class AircraftRuntime {
       evaluateCompiledExpression(binding.expression, {
         readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
         writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit),
-        invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
+        invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
+        invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
       })
 
       state.ranOnce = true
@@ -276,7 +277,8 @@ export class AircraftRuntime {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
       readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
-      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
+      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
+      invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     })
     this.interactionExecutionCount += 1
   }
@@ -365,7 +367,8 @@ export class AircraftRuntime {
     evaluateCompiledExpression(binding.releaseExpression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
-      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args)
+      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
+      invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     })
   }
 
@@ -442,6 +445,7 @@ export interface SharedRuntimeHostStats {
   readonly variableReadCount: number
   readonly variableWriteCount: number
   readonly keyEventCount: number
+  readonly htmlEventCount: number
   readonly soundEventCount: number
   readonly bridgeCallCount: number
   readonly storedVariableCount: number
@@ -479,6 +483,14 @@ export interface RuntimeSoundEvent {
   readonly sequence: number
 }
 
+export interface RuntimeHtmlEvent {
+  readonly name: string
+  readonly args: readonly (number | string)[]
+  readonly sequence: number
+}
+
+export type RuntimeHtmlEventListener = (event: RuntimeHtmlEvent) => void
+
 export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
@@ -489,9 +501,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private variableReadCount = 0
   private variableWriteCount = 0
   private keyEventCount = 0
+  private htmlEventCount = 0
   private soundEventCount = 0
   private bridgeCallCount = 0
   private defaultedVariableCount = 0
+  private readonly recentHtmlEvents: RuntimeHtmlEvent[] = []
+  private readonly htmlEventListeners = new Set<RuntimeHtmlEventListener>()
   private readonly recentSoundEvents: RuntimeSoundEvent[] = []
   private controlState = {
     gearTarget: 0,
@@ -627,6 +642,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
     this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
+    if (normalizedKey.startsWith('H:')) {
+      this.invokeHtmlEvent(normalizedKey.slice(2), [normalizedKey.slice(2), Number.isFinite(numericValue) ? numericValue : 0])
+    }
     this.applyElectricalVariableSideEffects(normalizedKey, numericValue, unit ?? null)
     this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
   }
@@ -637,6 +655,34 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedEventName = normalizeKeyEventName(name)
     this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
     this.applyKeyEvent(normalizedEventName, args)
+  }
+
+  invokeHtmlEvent(name: string, args: readonly (number | string)[]): void {
+    const eventName = name.trim()
+    if (!eventName) {
+      return
+    }
+    this.htmlEventCount += 1
+    const event: RuntimeHtmlEvent = {
+      name: eventName,
+      args: args.length > 0 ? [...args] : [eventName],
+      sequence: this.htmlEventCount
+    }
+    this.values.set(normalizeRuntimeVariableKey(`H:${eventName}`), event.sequence)
+    this.recentHtmlEvents.push(event)
+    if (this.recentHtmlEvents.length > 100) {
+      this.recentHtmlEvents.splice(0, this.recentHtmlEvents.length - 100)
+    }
+    for (const listener of this.htmlEventListeners) {
+      listener(event)
+    }
+  }
+
+  addHtmlEventListener(listener: RuntimeHtmlEventListener): () => void {
+    this.htmlEventListeners.add(listener)
+    return () => {
+      this.htmlEventListeners.delete(listener)
+    }
   }
 
   invokeSoundEvent(
@@ -678,6 +724,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       variableReadCount: this.variableReadCount,
       variableWriteCount: this.variableWriteCount,
       keyEventCount: this.keyEventCount,
+      htmlEventCount: this.htmlEventCount,
       soundEventCount: this.soundEventCount,
       bridgeCallCount: this.bridgeCallCount,
       storedVariableCount: this.values.size,
@@ -693,6 +740,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   getSoundEvents(): readonly RuntimeSoundEvent[] {
     return this.recentSoundEvents.map(event => ({ ...event }))
+  }
+
+  getHtmlEvents(): readonly RuntimeHtmlEvent[] {
+    return this.recentHtmlEvents.map(event => ({ ...event, args: [...event.args] }))
   }
 
   private publishControlVariables(): void {

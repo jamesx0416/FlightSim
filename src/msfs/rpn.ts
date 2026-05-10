@@ -208,6 +208,15 @@ function compileInstructionBlock(
       continue
     }
 
+    const htmlEventWrite = extractHtmlEventWrite(normalized)
+    if (htmlEventWrite != null) {
+      instructions.push({
+        op: 'invokeHtmlEvent',
+        name: htmlEventWrite.name
+      })
+      continue
+    }
+
     const variableWriteReference = extractVariableWriteReference(normalized, options.localVariableScope ?? null)
     if (variableWriteReference != null) {
       variableKeys.add(formatVariableSymbol(variableWriteReference.key, variableWriteReference.unit))
@@ -317,6 +326,7 @@ export function evaluateCompiledExpression(
     readStringVariable?: (key: string, unit?: string | null) => string
     writeVariable?: (key: string, value: number, unit?: string | null) => void
     invokeKeyEvent?: (name: string, args: readonly number[]) => void
+    invokeHtmlEvent?: (name: string, args: readonly (number | string)[]) => void
     parameterValues?: readonly number[]
   }
 ): number {
@@ -333,6 +343,7 @@ function executeInstructions(
     readStringVariable?: (key: string, unit?: string | null) => string
     writeVariable?: (key: string, value: number, unit?: string | null) => void
     invokeKeyEvent?: (name: string, args: readonly number[]) => void
+    invokeHtmlEvent?: (name: string, args: readonly (number | string)[]) => void
     parameterValues?: readonly number[]
   },
   context: EvaluationContext
@@ -365,6 +376,11 @@ function executeInstructions(
           args[index] = toNumber(stack.pop() ?? 0)
         }
         services.invokeKeyEvent?.(instruction.name, args)
+        break
+      }
+      case 'invokeHtmlEvent': {
+        const value = stack.pop() ?? 0
+        services.invokeHtmlEvent?.(instruction.name, [instruction.name, value])
         break
       }
       case 'duplicate': {
@@ -688,6 +704,14 @@ function extractVariableWriteReference(
     key: namespace === 'O' ? scopeObjectVariableKey(variableName, localVariableScope) : `${namespace}:${variableName}`,
     unit: variableMatch[3]?.trim() || null
   }
+}
+
+function extractHtmlEventWrite(token: string): { readonly name: string } | null {
+  if (!token.startsWith('(') || !token.endsWith(')')) return null
+  const content = token.slice(1, -1).trim()
+  const match = /^>H:([^,]+?)(?:,\s*.+)?$/iu.exec(content)
+  const name = match?.[1]?.trim() ?? ''
+  return name ? { name } : null
 }
 
 function isUnqualifiedVariableName(value: string): boolean {

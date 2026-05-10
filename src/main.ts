@@ -3513,6 +3513,13 @@ type VCockpitGaugeRuntimeResponse = {
   readonly error?: string
 }
 
+type VCockpitGaugeInteractionEventMessage = {
+  readonly type: 'msfs-vcockpit-interaction-event'
+  readonly name: string
+  readonly args: readonly (number | string)[]
+  readonly sequence: number
+}
+
 function isVCockpitGaugeRuntimeRequest(value: unknown): value is VCockpitGaugeRuntimeRequest {
   if (typeof value !== 'object' || value == null) {
     return false
@@ -3615,6 +3622,20 @@ async function bindVCockpitPlaceholderSurfaces(
     const response = handleVCockpitGaugeRuntimeRequest(event.data, runtimeHost)
     sourceWindow.postMessage(response, '*')
   }
+  const removeHtmlEventListener = runtimeHost.addHtmlEventListener(event => {
+    if (disposed) {
+      return
+    }
+    const message: VCockpitGaugeInteractionEventMessage = {
+      type: 'msfs-vcockpit-interaction-event',
+      name: event.name,
+      args: event.args,
+      sequence: event.sequence
+    }
+    for (const gaugeRuntime of htmlGaugeRuntimes) {
+      gaugeRuntime.iframe?.contentWindow?.postMessage(message, '*')
+    }
+  })
   const markGaugeRuntimeDirty = (
     runtime: VCockpitHtmlGaugeRuntime,
     version: number | null,
@@ -3888,6 +3909,7 @@ async function bindVCockpitPlaceholderSurfaces(
     dispose: () => {
       disposed = true
       active = false
+      removeHtmlEventListener()
       window.removeEventListener('message', onGaugeDirtyMessage)
       window.removeEventListener('message', onGaugeBridgeRequest)
       for (const surfaceRuntime of surfaceTextureRuntimes) {
@@ -4446,6 +4468,7 @@ function createVCockpitGaugeBridgeScript(
     runtimeResponseCount: 0,
     runtimeErrorCount: 0,
     keyEventCount: 0,
+    htmlEventCount: 0,
     wasmBridge,
     gaugeKind,
     listenerCount: 0,
@@ -5215,10 +5238,69 @@ function createVCockpitGaugeBridgeScript(
     }
     return Promise.all(writes).then(() => undefined);
   };
+  const globalListeners = new Map();
+  const subscribeGlobalListener = (eventName, listener) => {
+    if (typeof listener !== 'function') {
+      return noop;
+    }
+    const key = String(eventName ?? '');
+    const existing = globalListeners.get(key) ?? new Set();
+    existing.add(listener);
+    globalListeners.set(key, existing);
+    return () => {
+      existing.delete(listener);
+      if (existing.size === 0) {
+        globalListeners.delete(key);
+      }
+    };
+  };
+  const unsubscribeGlobalListener = (eventName, listener) => {
+    const existing = globalListeners.get(String(eventName ?? ''));
+    if (listener == null) {
+      existing?.clear();
+    } else {
+      existing?.delete(listener);
+    }
+  };
+  const dispatchGlobalListener = (eventName, ...args) => {
+    const key = String(eventName ?? '');
+    const callbacks = [
+      ...Array.from(globalListeners.get(key) ?? []),
+      ...(key === '*' ? [] : Array.from(globalListeners.get('*') ?? []))
+    ];
+    for (const callback of callbacks) {
+      try {
+        callback(...args);
+      } catch (error) {
+        console.warn('MSFS gauge listener failed', eventName, error);
+      }
+    }
+    return callbacks.length;
+  };
+  globalThis.__msfsDispatchCoherentEvent = dispatchGlobalListener;
   const createListenerHandle = name => {
     incrementBridgeCall(name);
     bridgeStats.listenerCount += 1;
     const listeners = new Map();
+    const globalUnsubscribers = new Map();
+    const rememberGlobalUnsubscribe = (eventName, listener, unsubscribe) => {
+      const key = String(eventName ?? '');
+      const existing = globalUnsubscribers.get(key) ?? new Map();
+      existing.set(listener, unsubscribe);
+      globalUnsubscribers.set(key, existing);
+    };
+    const forgetGlobalUnsubscribe = (eventName, listener) => {
+      const key = String(eventName ?? '');
+      const existing = globalUnsubscribers.get(key);
+      if (existing == null) {
+        return;
+      }
+      existing.get(listener)?.();
+      existing.delete(listener);
+      if (existing.size === 0) {
+        globalUnsubscribers.delete(key);
+      }
+    };
     const subscribe = (eventName, listener) => {
       if (typeof listener !== 'function') {
         return;
@@ -5227,17 +5309,30 @@ function createVCockpitGaugeBridgeScript(
       const existing = listeners.get(key) ?? new Set();
       existing.add(listener);
       listeners.set(key, existing);
+      rememberGlobalUnsubscribe(key, listener, subscribeGlobalListener(key, listener));
     };
     const unsubscribe = (eventName, listener) => {
       if (eventName == null) {
         listeners.clear();
+        for (const removers of globalUnsubscribers.values()) {
+          for (const remove of removers.values()) {
+            remove();
+          }
+        }
+        globalUnsubscribers.clear();
         return;
       }
       const existing = listeners.get(String(eventName));
       if (listener == null) {
         existing?.clear();
+        const removers = globalUnsubscribers.get(String(eventName));
+        for (const remove of removers?.values() ?? []) {
+          remove();
+        }
+        globalUnsubscribers.delete(String(eventName));
       } else {
         existing?.delete(listener);
+        forgetGlobalUnsubscribe(eventName, listener);
       }
     };
     const trigger = (eventName, ...args) => {
@@ -5249,16 +5344,47 @@ function createVCockpitGaugeBridgeScript(
       name,
       on: subscribe,
       off: unsubscribe,
-      clear: () => listeners.clear(),
+      clear: () => unsubscribe(),
       triggerToAllSubscribers: trigger,
       trigger,
       call: (...args) => {
         recordUnsupportedBridgeCall(name + '.call', args);
         return Promise.resolve();
       },
-      unregister: () => listeners.clear()
+      unregister: () => unsubscribe()
     };
   };
+  const dispatchInteractionEvent = (name, args) => {
+    const eventName = String(name ?? '');
+    const eventArgs = Array.isArray(args) && args.length > 0 ? args : [eventName];
+    bridgeStats.htmlEventCount += 1;
+    markGaugeChanged('unknown');
+    dispatchGlobalListener('OnInteractionEvent', eventName, eventArgs);
+    dispatchGlobalListener(eventName, ...eventArgs);
+    const seen = new Set();
+    const invokeInstrument = element => {
+      if (element == null || seen.has(element) || typeof element.onInteractionEvent !== 'function') {
+        return;
+      }
+      seen.add(element);
+      try {
+        element.onInteractionEvent(eventArgs);
+      } catch (error) {
+        console.warn('MSFS instrument interaction event failed', eventName, error);
+      }
+    };
+    invokeInstrument(globalThis.__msfsInstrumentElement);
+    for (const entry of instrumentRegistry.values()) {
+      invokeInstrument(entry?.element);
+    }
+  };
+  window.addEventListener('message', event => {
+    const data = event.data;
+    if (data?.type !== 'msfs-vcockpit-interaction-event') {
+      return;
+    }
+    dispatchInteractionEvent(data.name, data.args);
+  });
   globalThis.RegisterViewListener ??= (name, callback) => {
     const handle = createListenerHandle('RegisterViewListener:' + String(name ?? ''));
     window.setTimeout(() => callback?.(), 0);
@@ -5307,10 +5433,16 @@ function createVCockpitGaugeBridgeScript(
       recordUnsupportedBridgeCall('Coherent.call:' + normalizedCallName, args);
       return Promise.resolve();
     },
-    on: name => createListenerHandle('Coherent.on:' + String(name ?? '')),
-    off: noop,
-    trigger: noop,
-    triggerToAllSubscribers: noop
+    on: (name, callback) => {
+      const handle = createListenerHandle('Coherent.on:' + String(name ?? ''));
+      if (typeof callback === 'function') {
+        handle.on(name, callback);
+      }
+      return handle;
+    },
+    off: (name, callback) => unsubscribeGlobalListener(name, callback),
+    trigger: (name, ...args) => dispatchGlobalListener(name, ...args),
+    triggerToAllSubscribers: (name, ...args) => dispatchGlobalListener(name, ...args)
   };
   globalThis.GetStoredData ??= key => {
     incrementBridgeCall('GetStoredData');
