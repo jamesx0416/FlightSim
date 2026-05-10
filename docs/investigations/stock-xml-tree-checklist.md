@@ -33582,16 +33582,16 @@
                             - [ ] `<TEMPLATE_TO_USE>` line 316
                           - [ ] `<False>` line 318
                             - [ ] `<TEMPLATE_TO_USE>` line 319
-                        - [ ] `<LEFT_SINGLE_CODE>` line 322 = `(>B:#IE_PRESET_ID#_Toggle)`
+                        - [x] `<LEFT_SINGLE_CODE>` line 322 = `(>B:#IE_PRESET_ID#_Toggle)`
                       - [ ] `<Case Value="Lever">` line 324
                         - [ ] `<TEMPLATE_TO_USE>` line 325
-                        - [ ] `<ANIM_CODE>` line 326 = `(B:#IE_PRESET_ID#, Bool) 100 *`
+                        - [x] `<ANIM_CODE>` line 326 = `(B:#IE_PRESET_ID#, Bool) 100 *`
                         - [ ] `<UP_CODE>` line 327 = `(>B:#IE_PRESET_ID#_#STR_STATE_OFF#)`
                         - [ ] `<DOWN_CODE>` line 328 = `(>B:#IE_PRESET_ID#_#STR_STATE_ON#)`
                       - [ ] `<Default>` line 330
                         - [ ] `<TEMPLATE_TO_USE>` line 331
-                        - [ ] `<ANIM_CODE>` line 332 = `(B:#IE_PRESET_ID#, Bool) 100 *`
-                        - [ ] `<LEFT_SINGLE_CODE>` line 333 = `(>B:#IE_PRESET_ID#_Toggle)`
+                        - [x] `<ANIM_CODE>` line 332 = `(B:#IE_PRESET_ID#, Bool) 100 *`
+                        - [x] `<LEFT_SINGLE_CODE>` line 333 = `(>B:#IE_PRESET_ID#_Toggle)`
                   - [ ] `<Default>` line 337
                     - [ ] `<Switch Param="INTERACTION_TYPE">` line 338
                       - [ ] `<Case Value="Joystick">` line 339
@@ -33660,14 +33660,14 @@
                         - [ ] `<TEMPLATE_TO_USE>` line 482
                       - [ ] `<False>` line 484
                         - [ ] `<TEMPLATE_TO_USE>` line 485
-                - [ ] `<LEFT_SINGLE_CODE>` line 490 = `(>B:#IE_PRESET_ID#_Push)`
+                - [x] `<LEFT_SINGLE_CODE>` line 490 = `(>B:#IE_PRESET_ID#_Push)`
                 - [ ] `<BINDING_INC_#FIRST_AVAILABLE_INC_BINDING#>` line 491
                 - [ ] `<BINDING_INC_#FIRST_AVAILABLE_INC_BINDING#_PARAM_0>` line 492
                 - [ ] `<Condition NotEmpty="EVENT_ID">` line 493
                   - [ ] `<BINDING_INC_#FIRST_AVAILABLE_INC_BINDING#_EVENT_ID>` line 494 = `#EVENT_ID#`
                 - [ ] `<Switch Param="EXTRA_OPTION">` line 496
                   - [ ] `<Case Value="_Timed">` line 497
-                    - [ ] `<LEFT_LEAVE_CODE>` line 498 = `(>B:#IE_PRESET_ID#_Release)`
+                    - [x] `<LEFT_LEAVE_CODE>` line 498 = `(>B:#IE_PRESET_ID#_Release)`
                     - [ ] `<IS_TIMED>` line 499
                     - [ ] `<Switch Param="TIMED_TYPE">` line 500
                       - [ ] `<Case Value="X_EVENTS">` line 501
@@ -33680,7 +33680,7 @@
                     - [ ] `<BINDING_DEC_#FIRST_AVAILABLE_DEC_BINDING#>` line 513
                     - [ ] `<BINDING_DEC_#FIRST_AVAILABLE_DEC_BINDING#_PARAM_0>` line 514
                     - [ ] `<ANIM_HANDLED_SEPARATELY>` line 515
-                    - [ ] `<LEFT_LEAVE_CODE>` line 516 = `(>B:#IE_PRESET_ID#_Release)`
+                    - [x] `<LEFT_LEAVE_CODE>` line 516 = `(>B:#IE_PRESET_ID#_Release)`
                     - [ ] `<IS_TIMED>` line 517
           - [ ] `<Case NotEmpty="KNOB_ID">` line 523
             - [ ] `<Condition NotEmpty="TEMPLATE_VARIANT">` line 524
@@ -33688,8 +33688,8 @@
                 - [ ] `<TEMPLATE_TO_USE>` line 526
               - [ ] `<False>` line 528
                 - [ ] `<TEMPLATE_TO_USE>` line 529
-            - [ ] `<CLOCKWISE_CODE>` line 532 = `1 (>B:#IE_PRESET_ID#_Inc)`
-            - [ ] `<ANTICLOCKWISE_CODE>` line 533 = `1 (>B:#IE_PRESET_ID#_Dec)`
+            - [x] `<CLOCKWISE_CODE>` line 532 = `1 (>B:#IE_PRESET_ID#_Inc)`
+            - [x] `<ANTICLOCKWISE_CODE>` line 533 = `1 (>B:#IE_PRESET_ID#_Dec)`
             - [ ] `<Switch Param="TEMPLATE_VARIANT">` line 534
               - [ ] `<Case Value="Switch">` line 535
                 - [ ] `<LEFT_SINGLE_CODE>` line 536 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_ID_EXTERNAL_0#_#IE_ID_EXTERNAL_0_BINDING_NAME#)`
@@ -33706,16 +33706,16 @@
                 - [ ] `<NO_LOCK_EVENT_SECONDARY>` line 550
                 - [ ] `<MOUSEFLAGS_DRAG_IM>` line 551
                 - [ ] `<LONG_CLICK_TIME>` line 552
-            - [ ] `<ANIM_CODE>` line 555 = `(B:#IE_PRESET_ID#, percent)`
+            - [x] `<ANIM_CODE>` line 555 = `(B:#IE_PRESET_ID#, percent)`
           - [ ] `<Case NotEmpty="LEVER_ID">` line 557
             - [ ] `<TEMPLATE_TO_USE>` line 558
             - [ ] `<CURSOR>` line 559
             - [ ] `<NO_ARROWS>` line 560
             - [ ] `<USE_TRAJECTORY_DRAG_MODE>` line 561
-            - [ ] `<DRAG_CODE>` line 562 = `(M:DragPercent) #DRAG_VALUE_TO_EVENT_SET# (>B:#IE_PRESET_ID#_Set)`
-            - [ ] `<POSITIVE_AXIS_CODE>` line 563 = `1 (>B:#IE_PRESET_ID#_Inc)`
-            - [ ] `<NEGATIVE_AXIS_CODE>` line 564 = `1 (>B:#IE_PRESET_ID#_Dec)`
-            - [ ] `<ANIM_CODE>` line 565 = `(B:#IE_PRESET_ID#, percent)`
+            - [x] `<DRAG_CODE>` line 562 = `(M:DragPercent) #DRAG_VALUE_TO_EVENT_SET# (>B:#IE_PRESET_ID#_Set)`
+            - [x] `<POSITIVE_AXIS_CODE>` line 563 = `1 (>B:#IE_PRESET_ID#_Inc)`
+            - [x] `<NEGATIVE_AXIS_CODE>` line 564 = `1 (>B:#IE_PRESET_ID#_Dec)`
+            - [x] `<ANIM_CODE>` line 565 = `(B:#IE_PRESET_ID#, percent)`
         - [ ] `<Switch Param="USE_INPUT_EVENT_TEMPLATE">` line 568
           - [ ] `<Case Value="Push">` line 569
             - [ ] `<IS_DIRECT_EVENT>` line 570 = `True`
@@ -72252,16 +72252,16 @@
                             - [ ] `<TEMPLATE_TO_USE>` line 316
                           - [ ] `<False>` line 318
                             - [ ] `<TEMPLATE_TO_USE>` line 319
-                        - [ ] `<LEFT_SINGLE_CODE>` line 322 = `(>B:#IE_PRESET_ID#_Toggle)`
+                        - [x] `<LEFT_SINGLE_CODE>` line 322 = `(>B:#IE_PRESET_ID#_Toggle)`
                       - [ ] `<Case Value="Lever">` line 324
                         - [ ] `<TEMPLATE_TO_USE>` line 325
-                        - [ ] `<ANIM_CODE>` line 326 = `(B:#IE_PRESET_ID#, Bool) 100 *`
+                        - [x] `<ANIM_CODE>` line 326 = `(B:#IE_PRESET_ID#, Bool) 100 *`
                         - [ ] `<UP_CODE>` line 327 = `(>B:#IE_PRESET_ID#_#STR_STATE_OFF#)`
                         - [ ] `<DOWN_CODE>` line 328 = `(>B:#IE_PRESET_ID#_#STR_STATE_ON#)`
                       - [ ] `<Default>` line 330
                         - [ ] `<TEMPLATE_TO_USE>` line 331
-                        - [ ] `<ANIM_CODE>` line 332 = `(B:#IE_PRESET_ID#, Bool) 100 *`
-                        - [ ] `<LEFT_SINGLE_CODE>` line 333 = `(>B:#IE_PRESET_ID#_Toggle)`
+                        - [x] `<ANIM_CODE>` line 332 = `(B:#IE_PRESET_ID#, Bool) 100 *`
+                        - [x] `<LEFT_SINGLE_CODE>` line 333 = `(>B:#IE_PRESET_ID#_Toggle)`
                   - [ ] `<Default>` line 337
                     - [ ] `<Switch Param="INTERACTION_TYPE">` line 338
                       - [ ] `<Case Value="Joystick">` line 339
@@ -72330,14 +72330,14 @@
                         - [ ] `<TEMPLATE_TO_USE>` line 482
                       - [ ] `<False>` line 484
                         - [ ] `<TEMPLATE_TO_USE>` line 485
-                - [ ] `<LEFT_SINGLE_CODE>` line 490 = `(>B:#IE_PRESET_ID#_Push)`
+                - [x] `<LEFT_SINGLE_CODE>` line 490 = `(>B:#IE_PRESET_ID#_Push)`
                 - [ ] `<BINDING_INC_#FIRST_AVAILABLE_INC_BINDING#>` line 491
                 - [ ] `<BINDING_INC_#FIRST_AVAILABLE_INC_BINDING#_PARAM_0>` line 492
                 - [ ] `<Condition NotEmpty="EVENT_ID">` line 493
                   - [ ] `<BINDING_INC_#FIRST_AVAILABLE_INC_BINDING#_EVENT_ID>` line 494 = `#EVENT_ID#`
                 - [ ] `<Switch Param="EXTRA_OPTION">` line 496
                   - [ ] `<Case Value="_Timed">` line 497
-                    - [ ] `<LEFT_LEAVE_CODE>` line 498 = `(>B:#IE_PRESET_ID#_Release)`
+                    - [x] `<LEFT_LEAVE_CODE>` line 498 = `(>B:#IE_PRESET_ID#_Release)`
                     - [ ] `<IS_TIMED>` line 499
                     - [ ] `<Switch Param="TIMED_TYPE">` line 500
                       - [ ] `<Case Value="X_EVENTS">` line 501
@@ -72350,7 +72350,7 @@
                     - [ ] `<BINDING_DEC_#FIRST_AVAILABLE_DEC_BINDING#>` line 513
                     - [ ] `<BINDING_DEC_#FIRST_AVAILABLE_DEC_BINDING#_PARAM_0>` line 514
                     - [ ] `<ANIM_HANDLED_SEPARATELY>` line 515
-                    - [ ] `<LEFT_LEAVE_CODE>` line 516 = `(>B:#IE_PRESET_ID#_Release)`
+                    - [x] `<LEFT_LEAVE_CODE>` line 516 = `(>B:#IE_PRESET_ID#_Release)`
                     - [ ] `<IS_TIMED>` line 517
           - [ ] `<Case NotEmpty="KNOB_ID">` line 523
             - [ ] `<Condition NotEmpty="TEMPLATE_VARIANT">` line 524
@@ -72358,8 +72358,8 @@
                 - [ ] `<TEMPLATE_TO_USE>` line 526
               - [ ] `<False>` line 528
                 - [ ] `<TEMPLATE_TO_USE>` line 529
-            - [ ] `<CLOCKWISE_CODE>` line 532 = `1 (>B:#IE_PRESET_ID#_Inc)`
-            - [ ] `<ANTICLOCKWISE_CODE>` line 533 = `1 (>B:#IE_PRESET_ID#_Dec)`
+            - [x] `<CLOCKWISE_CODE>` line 532 = `1 (>B:#IE_PRESET_ID#_Inc)`
+            - [x] `<ANTICLOCKWISE_CODE>` line 533 = `1 (>B:#IE_PRESET_ID#_Dec)`
             - [ ] `<Switch Param="TEMPLATE_VARIANT">` line 534
               - [ ] `<Case Value="Switch">` line 535
                 - [ ] `<LEFT_SINGLE_CODE>` line 536 = `(>B:#INPUT_EVENT_ID_SOURCE#_#IE_ID_EXTERNAL_0#_#IE_ID_EXTERNAL_0_BINDING_NAME#)`
@@ -72376,16 +72376,16 @@
                 - [ ] `<NO_LOCK_EVENT_SECONDARY>` line 550
                 - [ ] `<MOUSEFLAGS_DRAG_IM>` line 551
                 - [ ] `<LONG_CLICK_TIME>` line 552
-            - [ ] `<ANIM_CODE>` line 555 = `(B:#IE_PRESET_ID#, percent)`
+            - [x] `<ANIM_CODE>` line 555 = `(B:#IE_PRESET_ID#, percent)`
           - [ ] `<Case NotEmpty="LEVER_ID">` line 557
             - [ ] `<TEMPLATE_TO_USE>` line 558
             - [ ] `<CURSOR>` line 559
             - [ ] `<NO_ARROWS>` line 560
             - [ ] `<USE_TRAJECTORY_DRAG_MODE>` line 561
-            - [ ] `<DRAG_CODE>` line 562 = `(M:DragPercent) #DRAG_VALUE_TO_EVENT_SET# (>B:#IE_PRESET_ID#_Set)`
-            - [ ] `<POSITIVE_AXIS_CODE>` line 563 = `1 (>B:#IE_PRESET_ID#_Inc)`
-            - [ ] `<NEGATIVE_AXIS_CODE>` line 564 = `1 (>B:#IE_PRESET_ID#_Dec)`
-            - [ ] `<ANIM_CODE>` line 565 = `(B:#IE_PRESET_ID#, percent)`
+            - [x] `<DRAG_CODE>` line 562 = `(M:DragPercent) #DRAG_VALUE_TO_EVENT_SET# (>B:#IE_PRESET_ID#_Set)`
+            - [x] `<POSITIVE_AXIS_CODE>` line 563 = `1 (>B:#IE_PRESET_ID#_Inc)`
+            - [x] `<NEGATIVE_AXIS_CODE>` line 564 = `1 (>B:#IE_PRESET_ID#_Dec)`
+            - [x] `<ANIM_CODE>` line 565 = `(B:#IE_PRESET_ID#, percent)`
         - [ ] `<Switch Param="USE_INPUT_EVENT_TEMPLATE">` line 568
           - [ ] `<Case Value="Push">` line 569
             - [ ] `<IS_DIRECT_EVENT>` line 570 = `True`
