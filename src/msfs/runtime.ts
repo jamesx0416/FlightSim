@@ -840,7 +840,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   invokeBridgeCall(name: string): void {
-    this.invokeInputEventBinding(name, 1)
+    this.readCache.clear()
+    const handledByBinding = this.invokeInputEventBinding(name, 1)
+    if (!handledByBinding) {
+      this.applyGenericControlEventName(name, 1)
+      this.applyGenericInputEventStateName(name, 1)
+    }
   }
 
   getStats(): SharedRuntimeHostStats {
