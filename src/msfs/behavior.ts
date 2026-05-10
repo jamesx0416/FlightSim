@@ -1508,7 +1508,8 @@ function getGeneratedSetStateInputEventSetCodeSource(params: ReadonlyMap<string,
   if (isNoopInteractionParameter(setStateSource)) {
     return ''
   }
-  return rpnSourceReadsParameter(setStateSource, 0) ? setStateSource : `p0 ${setStateSource}`
+  const source = rpnSourceReadsParameter(setStateSource, 0) ? setStateSource : `p0 ${setStateSource}`
+  return [source, getGeneratedInputEventStateChangedSource(params)].join(' ')
 }
 
 function getGeneratedSetStateInputEventStepCodeSource(
@@ -1638,7 +1639,8 @@ function collectGeneratedMultiStateInputEventBindings(
     for (const presetName of presetNames) {
       const source = [
         `${stateIndex} (>B:${presetName})`,
-        setStateSource
+        setStateSource,
+        getGeneratedInputEventStateChangedSource(params)
       ].join(' ')
       const expression = compileRpnExpression(source, {
         sourcePath,
@@ -1681,8 +1683,14 @@ function buildGeneratedTwoStateInputEventToggleCodeSource(
   return [
     `0 1 ${getStateExternal} ${simStateIsOn} ? s0`,
     `l0 (>B:${presetName})`,
-    `l0 if{ ${setStateOn} } els{ ${setStateOff} }`
+    `l0 if{ ${setStateOn} } els{ ${setStateOff} }`,
+    getGeneratedInputEventStateChangedSource(params)
   ].join(' ')
+}
+
+function getGeneratedInputEventStateChangedSource(params: ReadonlyMap<string, string>): string {
+  const source = params.get('ON_STATE_CHANGED_EXTERNAL_CODE')?.trim() ?? ''
+  return isNoopInteractionParameter(source) ? '' : source
 }
 
 function getInteractionInputEventPresetNames(
