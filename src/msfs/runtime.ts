@@ -1408,6 +1408,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.applyPitotHeatKeyEvent(name, args)) {
       return
     }
+    if (this.applyNavComKeyEvent(name, args)) {
+      return
+    }
     if (this.applyRadioAudioKeyEvent(name, args)) {
       return
     }
@@ -1626,7 +1629,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private applyRadioKeyEvent(name: string, args: readonly number[]): boolean {
     if (name === 'COM_RECEIVE_ALL_SET') {
       const value = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
-      for (let index = 1; index <= 3; index += 1) {
+      for (let index = 1; index <= 4; index += 1) {
         this.values.set(normalizeRuntimeVariableKey(`A:COM RECEIVE:${index}`), value)
       }
       return true
@@ -1727,6 +1730,101 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const transmitterMatch = /^(PILOT|COPILOT)_TRANSMITTER_SET$/u.exec(name)
     if (transmitterMatch != null) {
       this.values.set(normalizeRuntimeVariableKey(`A:${transmitterMatch[1]} TRANSMITTER TYPE`), Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    return false
+  }
+
+  private applyNavComKeyEvent(name: string, args: readonly number[]): boolean {
+    const radioFrequencyMatch = /^(COM|NAV)(\d+)_RADIO_(WHOLE|FRACT)_(INC|DEC)$/u.exec(name)
+    if (radioFrequencyMatch != null) {
+      const family = radioFrequencyMatch[1]
+      const index = Number.parseInt(radioFrequencyMatch[2], 10)
+      const step = radioFrequencyMatch[3] === 'WHOLE'
+        ? 1
+        : family === 'COM' ? 0.025 : 0.05
+      this.adjustRadioStandbyFrequency(family, index, radioFrequencyMatch[4] === 'INC' ? step : -step)
+      return true
+    }
+
+    const radioSwapMatch = /^(COM|NAV)(\d+)_RADIO_SWAP$/u.exec(name)
+    if (radioSwapMatch != null) {
+      this.swapRadioFrequencies(radioSwapMatch[1], Number.parseInt(radioSwapMatch[2], 10))
+      return true
+    }
+
+    const receiveSelectMatch = /^(COM|NAV)(\d+)_RECEIVE_SELECT$/u.exec(name)
+    if (receiveSelectMatch != null) {
+      const family = receiveSelectMatch[1]
+      const index = Number.parseInt(receiveSelectMatch[2], 10)
+      const key = normalizeRuntimeVariableKey(`A:${family} RECEIVE:${index}`)
+      const nextValue = (this.values.get(key) ?? 0) > 0 ? 0 : 1
+      this.values.set(key, nextValue)
+      if (family === 'NAV') {
+        this.values.set(normalizeRuntimeVariableKey(`A:NAV SOUND:${index}`), nextValue)
+      }
+      return true
+    }
+
+    if (name === 'COM_RECEIVE_ALL_SET') {
+      const value = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      for (let index = 1; index <= 4; index += 1) {
+        this.values.set(normalizeRuntimeVariableKey(`A:COM RECEIVE:${index}`), value)
+      }
+      return true
+    }
+
+    const adfFrequencyMatch = /^ADF_(100|10|1)_(INC|DEC)$/u.exec(name)
+    if (adfFrequencyMatch != null) {
+      const step = Number.parseInt(adfFrequencyMatch[1], 10)
+      this.adjustAdfStandbyFrequency(adfFrequencyMatch[2] === 'INC' ? step : -step)
+      return true
+    }
+
+    if (name === 'ADF_VOLUME_INC' || name === 'ADF_VOLUME_DEC') {
+      const key = normalizeRuntimeVariableKey('A:ADF VOLUME:1')
+      const currentValue = this.values.get(key) ?? 0
+      this.values.set(key, clamp(currentValue + (name === 'ADF_VOLUME_INC' ? 5 : -5), 0, 100))
+      return true
+    }
+
+    const booleanToggles: Partial<Record<string, string>> = {
+      TOGGLE_GPS_DRIVES_NAV1: 'A:GPS DRIVES NAV1',
+      TOGGLE_ICS: 'A:INTERCOM SYSTEM ACTIVE',
+      TOGGLE_SPEAKER: 'A:SPEAKER ACTIVE',
+      MARKER_BEACON_TEST_MUTE: 'A:MARKER BEACON TEST MUTE',
+      MARKER_BEACON_SENSITIVITY_HIGH: 'A:MARKER BEACON SENSITIVITY HIGH'
+    }
+    const booleanToggle = booleanToggles[name]
+    if (booleanToggle != null) {
+      this.toggleNamedBoolVariables(booleanToggle)
+      return true
+    }
+
+    if (name === 'INTERCOM_MODE_SET') {
+      this.values.set(normalizeRuntimeVariableKey('A:INTERCOM MODE'), Math.max(0, Math.trunc(Number(args.at(-1) ?? 0))))
+      return true
+    }
+
+    if (name === 'AUDIO_PANEL_VOLUME_INC' || name === 'AUDIO_PANEL_VOLUME_DEC') {
+      const key = normalizeRuntimeVariableKey('A:AUDIO PANEL VOLUME')
+      const currentValue = this.values.get(key) ?? 0
+      this.values.set(key, clamp(currentValue + (name === 'AUDIO_PANEL_VOLUME_INC' ? 5 : -5), 0, 100))
+      return true
+    }
+
+    if (name === 'INCREASE_DECISION_HEIGHT' || name === 'DECREASE_DECISION_HEIGHT') {
+      const key = normalizeRuntimeVariableKey('A:DECISION HEIGHT')
+      const currentValue = this.values.get(key) ?? 0
+      this.values.set(key, Math.max(0, currentValue + (name === 'INCREASE_DECISION_HEIGHT' ? 10 : -10)))
+      return true
+    }
+
+    if (name === 'XPNDR_SET') {
+      const index = Math.trunc(Number(args.length >= 2 ? args[0] : 1))
+      const value = Number(args.at(-1) ?? 0)
+      this.setTransponderState(index, value)
       return true
     }
 
@@ -2460,6 +2558,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     if (name === 'XPNDR_IDENT_ON') {
       this.values.set(normalizeRuntimeVariableKey('A:TRANSPONDER IDENT'), 1)
+      this.values.set(normalizeRuntimeVariableKey('A:TRANSPONDER IDENT:1'), 1)
       return true
     }
 
@@ -2494,6 +2593,53 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING HG:${kohlsmanIndex}`), normalizedValue)
     this.values.set(normalizeRuntimeVariableKey('A:KOHLSMAN SETTING HG'), normalizedValue)
     this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING MB:${kohlsmanIndex}`), normalizedValue * 33.863_886_666_7)
+  }
+
+  private adjustRadioStandbyFrequency(family: string, index: number, deltaMhz: number): void {
+    const radioIndex = Math.max(1, Math.trunc(index))
+    const normalizedFamily = family === 'NAV' ? 'NAV' : 'COM'
+    const key = normalizeRuntimeVariableKey(`A:${normalizedFamily} STANDBY FREQUENCY:${radioIndex}`)
+    const defaultValue = normalizedFamily === 'NAV' ? 108 : 118
+    const currentValue = this.values.get(key) ?? defaultValue
+    const minValue = normalizedFamily === 'NAV' ? 108 : 118
+    const maxValue = normalizedFamily === 'NAV' ? 117.95 : 136.975
+    this.setRadioFrequency(normalizedFamily, radioIndex, 'STANDBY', clamp(currentValue + deltaMhz, minValue, maxValue))
+  }
+
+  private swapRadioFrequencies(family: string, index: number): void {
+    const radioIndex = Math.max(1, Math.trunc(index))
+    const normalizedFamily = family === 'NAV' ? 'NAV' : 'COM'
+    const activeKey = normalizeRuntimeVariableKey(`A:${normalizedFamily} ACTIVE FREQUENCY:${radioIndex}`)
+    const standbyKey = normalizeRuntimeVariableKey(`A:${normalizedFamily} STANDBY FREQUENCY:${radioIndex}`)
+    const defaultActive = normalizedFamily === 'NAV' ? 108 : 118
+    const defaultStandby = normalizedFamily === 'NAV' ? 110 : 120
+    const activeValue = this.values.get(activeKey) ?? defaultActive
+    const standbyValue = this.values.get(standbyKey) ?? defaultStandby
+    this.setRadioFrequency(normalizedFamily, radioIndex, 'ACTIVE', standbyValue)
+    this.setRadioFrequency(normalizedFamily, radioIndex, 'STANDBY', activeValue)
+  }
+
+  private setRadioFrequency(family: string, index: number, slot: 'ACTIVE' | 'STANDBY', valueMhz: number): void {
+    const radioIndex = Math.max(1, Math.trunc(index))
+    const normalizedFamily = family === 'NAV' ? 'NAV' : 'COM'
+    const normalizedValue = Math.round(valueMhz * 1000) / 1000
+    this.values.set(normalizeRuntimeVariableKey(`A:${normalizedFamily} ${slot} FREQUENCY:${radioIndex}`), normalizedValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:${normalizedFamily} ${slot} FREQUENCY:${radioIndex} HZ`), normalizedValue * 1_000_000)
+  }
+
+  private adjustAdfStandbyFrequency(deltaKhz: number): void {
+    const key = normalizeRuntimeVariableKey('A:ADF STANDBY FREQUENCY:1')
+    const currentValue = this.values.get(key) ?? 300
+    const nextValue = clamp(currentValue + deltaKhz, 100, 1_799)
+    this.values.set(key, nextValue)
+    this.values.set(normalizeRuntimeVariableKey('A:ADF STANDBY FREQUENCY'), nextValue)
+  }
+
+  private setTransponderState(index: number, value: number): void {
+    const transponderIndex = Math.max(1, Math.trunc(index))
+    const normalizedValue = Math.max(0, Math.trunc(Number.isFinite(value) ? value : 0))
+    this.values.set(normalizeRuntimeVariableKey(`A:TRANSPONDER STATE:${transponderIndex}`), normalizedValue)
+    this.values.set(normalizeRuntimeVariableKey('A:TRANSPONDER STATE'), normalizedValue)
   }
 
   private setAutopilotSimVar(simVarName: string, value: number, index?: number): void {
