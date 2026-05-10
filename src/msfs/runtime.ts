@@ -3061,6 +3061,56 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    if (name === 'ALTERNATOR_SET') {
+      const { index, value } = getFlexibleIndexedSetEventArgs(args, 1)
+      this.setAlternatorSwitch(index, value)
+      return true
+    }
+
+    const alternatorOnOffMatch = /^(?:MASTER_)?ALTERNATOR_(ON|OFF)$/u.exec(name)
+    if (alternatorOnOffMatch != null) {
+      const index = Math.trunc(Number(args[0] ?? 1))
+      this.setAlternatorSwitch(index, alternatorOnOffMatch[1] === 'ON' ? 1 : 0)
+      return true
+    }
+
+    if (name === 'TOGGLE_MASTER_ALTERNATOR' || name === 'TOGGLE_ALTERNATOR') {
+      const index = Math.trunc(Number(args[0] ?? 1))
+      this.toggleAlternatorSwitch(index)
+      return true
+    }
+
+    const indexedAlternatorToggleMatch = /^TOGGLE_ALTERNATOR(\d+)$/u.exec(name)
+    if (indexedAlternatorToggleMatch != null) {
+      this.toggleAlternatorSwitch(Number.parseInt(indexedAlternatorToggleMatch[1], 10))
+      return true
+    }
+
+    if (name === 'ELECTRICAL_CIRCUIT_BREAKER_TOGGLE') {
+      const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
+      const busIndex = Math.trunc(Number(args[1] ?? Number.NaN))
+      this.toggleCircuitBreaker(circuitIndex, busIndex)
+      return true
+    }
+
+    const namedBreakerToggleMatch = /^BREAKER_(.+)_TOGGLE$/u.exec(name)
+    if (namedBreakerToggleMatch != null) {
+      this.toggleNamedBreaker(namedBreakerToggleMatch[1])
+      return true
+    }
+
+    if (name === 'ELECTRICAL_EXECUTE_PROCEDURE') {
+      const procedureState = Number(args[0] ?? 0)
+      const procedureIndex = Math.trunc(Number(args[1] ?? Number.NaN))
+      if (Number.isFinite(procedureIndex)) {
+        this.values.set(
+          normalizeRuntimeVariableKey(`A:ELECTRICAL PROCEDURE ACTIVE:${procedureIndex}`),
+          procedureState > 0 ? 1 : 0
+        )
+      }
+      return true
+    }
+
     return false
   }
 
@@ -3137,6 +3187,24 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`A:APU GENERATOR SWITCH:${generatorIndex}`), switchValue)
   }
 
+  private setAlternatorSwitch(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const alternatorIndex = Math.trunc(index)
+    const switchValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR:${alternatorIndex}`), switchValue)
+    if (alternatorIndex === 1) {
+      this.values.set(normalizeRuntimeVariableKey('A:GENERAL ENG MASTER ALTERNATOR'), switchValue)
+    }
+  }
+
+  private toggleAlternatorSwitch(index: number): void {
+    const alternatorIndex = Number.isFinite(index) ? Math.trunc(index) : 1
+    const alternatorKey = normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR:${alternatorIndex}`)
+    this.setAlternatorSwitch(alternatorIndex, (this.values.get(alternatorKey) ?? 0) > 0 ? 0 : 1)
+  }
+
   private setFuelPumpState(index: number, value: number): void {
     if (!Number.isFinite(index)) {
       return
@@ -3172,6 +3240,32 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = (this.values.get(switchKey) ?? 0) > 0 ? 0 : 1
     this.values.set(switchKey, nextValue)
     this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT ON:${circuitIndex}`), nextValue)
+  }
+
+  private toggleCircuitBreaker(circuitIndex: number, busIndex: number): void {
+    if (!Number.isFinite(circuitIndex)) {
+      return
+    }
+    const circuit = Math.trunc(circuitIndex)
+    if (Number.isFinite(busIndex)) {
+      this.values.set(normalizeRuntimeVariableKey('A:BUS LOOKUP INDEX'), Math.trunc(busIndex))
+    }
+    const circuitOnKey = normalizeRuntimeVariableKey(`A:CIRCUIT ON:${circuit}`)
+    const switchOnKey = normalizeRuntimeVariableKey(`A:CIRCUIT SWITCH ON:${circuit}`)
+    const currentOn = this.values.get(circuitOnKey) ?? this.values.get(switchOnKey) ?? 1
+    const nextOn = currentOn > 0 ? 0 : 1
+    this.values.set(circuitOnKey, nextOn)
+    this.values.set(switchOnKey, nextOn)
+    this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT BREAKER PULLED:${circuit}`), nextOn > 0 ? 0 : 1)
+  }
+
+  private toggleNamedBreaker(name: string): void {
+    const breakerName = name.trim().replace(/_/gu, ' ')
+    if (!breakerName) {
+      return
+    }
+    const key = normalizeRuntimeVariableKey(`A:BREAKER ${breakerName}`)
+    this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
   }
 
   private toggleBusConnection(sourceBusIndex: number, targetBusIndex: number): void {
