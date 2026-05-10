@@ -1400,7 +1400,7 @@ function collectInteractionInputEventBridgeBindings(
     }
   }
 
-  for (const binding of collectGeneratedTwoStateInputEventBindings(
+  for (const binding of collectGeneratedInputEventStateBindings(
     inputEventSource,
     inputEventName,
     params,
@@ -1414,7 +1414,7 @@ function collectInteractionInputEventBridgeBindings(
   return bindings
 }
 
-function collectGeneratedTwoStateInputEventBindings(
+function collectGeneratedInputEventStateBindings(
   inputEventSource: string,
   inputEventName: string,
   params: ReadonlyMap<string, string>,
@@ -1422,16 +1422,26 @@ function collectGeneratedTwoStateInputEventBindings(
   sourcePath: string,
   diagnostics: ImportDiagnostic[]
 ): readonly CompiledInputEventBinding[] {
+  const bindings: CompiledInputEventBinding[] = []
+  bindings.push(
+    ...collectGeneratedMultiStateInputEventBindings(
+      inputEventSource,
+      inputEventName,
+      params,
+      currentNode,
+      sourcePath,
+      diagnostics
+    )
+  )
+
   const getStateExternal = params.get('GET_STATE_EXTERNAL')?.trim() ?? ''
   const setStateOff = params.get('SET_STATE_OFF')?.trim() || params.get('SET_STATE_0')?.trim() || ''
   const setStateOn = params.get('SET_STATE_ON')?.trim() || params.get('SET_STATE_1')?.trim() || ''
   if (!getStateExternal || !setStateOff || !setStateOn) {
-    return []
+    return bindings
   }
 
-  const simStateIsOn = params.get('SIM_STATE_IS_ON_EXTERNAL')?.trim() || 'l0'
   const presetNames = getInteractionInputEventPresetNames(inputEventSource, inputEventName)
-  const bindings: CompiledInputEventBinding[] = []
   for (const presetName of presetNames) {
     const source = buildGeneratedTwoStateInputEventToggleCodeSource(presetName, params)
     const expression = compileRpnExpression(source, {
@@ -1451,6 +1461,60 @@ function collectGeneratedTwoStateInputEventBindings(
   }
 
   return bindings
+}
+
+function collectGeneratedMultiStateInputEventBindings(
+  inputEventSource: string,
+  inputEventName: string,
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): readonly CompiledInputEventBinding[] {
+  const presetNames = getInteractionInputEventPresetNames(inputEventSource, inputEventName)
+  const bindings: CompiledInputEventBinding[] = []
+  for (const [key, labelValue] of params) {
+    const match = /^STR_STATE_(\d+)$/iu.exec(key.trim())
+    const stateLabel = normalizeGeneratedInputEventStateLabel(labelValue)
+    if (match == null || stateLabel === '') {
+      continue
+    }
+
+    const stateIndex = match[1]
+    const setStateSource = params.get(`SET_STATE_${stateIndex}`)?.trim() ?? ''
+    if (isNoopInteractionParameter(setStateSource)) {
+      continue
+    }
+
+    for (const presetName of presetNames) {
+      const source = [
+        `${stateIndex} (>B:${presetName})`,
+        setStateSource
+      ].join(' ')
+      const expression = compileRpnExpression(source, {
+        sourcePath,
+        sourceExpression: source,
+        diagnostics,
+        localVariableScope: resolveLocalVariableScope(params, currentNode, inputEventName)
+      })
+      if (expression == null) {
+        continue
+      }
+      bindings.push({
+        name: `${presetName}_${stateLabel}`,
+        expression,
+        sourcePath
+      })
+    }
+  }
+  return bindings
+}
+
+function normalizeGeneratedInputEventStateLabel(value: string): string {
+  return value.trim()
+    .replace(/\s+/gu, '_')
+    .replace(/[^A-Za-z0-9_]+/gu, '_')
+    .replace(/^_+|_+$/gu, '')
 }
 
 function buildGeneratedTwoStateInputEventToggleCodeSource(
