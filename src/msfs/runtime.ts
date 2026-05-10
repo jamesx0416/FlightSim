@@ -3,9 +3,11 @@ import { AnimationMixer, type Object3D, Vector3 } from 'three'
 import { evaluateCompiledExpression } from './rpn'
 import type {
   CompiledBehaviorSet,
+  CompiledAnimationBinding,
   CompiledInteractionBinding,
   CompiledInteractionSoundEvent,
   CompiledUpdateBinding,
+  CompiledVisibilityBinding,
   ImportedAircraft,
   ImportedCfgFile,
   ImportedCfgSection,
@@ -28,6 +30,8 @@ export class AircraftRuntime {
   private readonly canonicalNodes = new Map<string, Object3D>()
   private readonly animationValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
+  private activeAnimationBindings: readonly CompiledAnimationBinding[] = []
+  private readonly activeVisibilityBindings: readonly CompiledVisibilityBinding[]
   private readonly runtimeState: RuntimeState
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
   private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
@@ -66,6 +70,9 @@ export class AircraftRuntime {
     })
 
     sceneRoot.updateWorldMatrix(true, true)
+    this.activeVisibilityBindings = this.compiled.visibilityBindings.filter(binding =>
+      this.nodes.has(binding.target) || this.nodes.has(binding.target.toLowerCase())
+    )
     this.wingFlexBindings = buildWingFlexBindings(
       aircraft?.model?.nodeAnimations ?? [],
       aircraft,
@@ -76,6 +83,7 @@ export class AircraftRuntime {
   }
 
   bindAnimations(clips: readonly { readonly name: string }[]): void {
+    const activeAnimationBindings: CompiledAnimationBinding[] = []
     for (const binding of this.compiled.animationBindings) {
       const clip = clips.find(candidate => candidate.name === binding.target)
       if (clip == null) continue
@@ -84,7 +92,9 @@ export class AircraftRuntime {
       action.play()
       action.paused = true
       this.actions.set(binding.target, action)
+      activeAnimationBindings.push(binding)
     }
+    this.activeAnimationBindings = activeAnimationBindings
   }
 
   update(dtSeconds: number): RuntimeState {
@@ -94,7 +104,7 @@ export class AircraftRuntime {
     this.publishDelayedInteractionReleases()
     this.publishInteractionFeedback(dtSeconds)
 
-    for (const binding of this.compiled.animationBindings) {
+    for (const binding of this.activeAnimationBindings) {
       const evaluatedValue = evaluateCompiledExpression(binding.expression, {
         readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
       })
@@ -119,7 +129,7 @@ export class AircraftRuntime {
     this.mixer.update(0)
     this.applyWingFlexBindings()
 
-    for (const binding of this.compiled.visibilityBindings) {
+    for (const binding of this.activeVisibilityBindings) {
       const isVisible =
         evaluateCompiledExpression(binding.expression, {
           readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
