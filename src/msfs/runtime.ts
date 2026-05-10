@@ -511,6 +511,13 @@ export interface RuntimeKeyEvent {
   readonly sequence: number
 }
 
+export interface RuntimeBridgeEvent {
+  readonly name: string
+  readonly value: number
+  readonly handledByBinding: boolean
+  readonly sequence: number
+}
+
 export type RuntimeHtmlEventListener = (event: RuntimeHtmlEvent) => void
 export type RuntimeKeyEventListener = (event: RuntimeKeyEvent) => void
 
@@ -536,6 +543,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private readonly recentKeyEvents: RuntimeKeyEvent[] = []
   private readonly keyEventListeners = new Set<RuntimeKeyEventListener>()
   private readonly recentSoundEvents: RuntimeSoundEvent[] = []
+  private readonly recentBridgeEvents: RuntimeBridgeEvent[] = []
   private readonly soundStates = new Map<string, boolean>()
   private readonly simVarSounds: readonly ImportedSimVarSound[]
   private controlState = {
@@ -792,10 +800,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`B:${normalizedName}`), value)
     const binding = this.inputEventBindings.get(normalizedName)
     if (binding == null || this.activeInputEventBindings.has(normalizedName)) {
+      this.recordBridgeEvent(normalizedName, value, false)
       return false
     }
 
     this.activeInputEventBindings.add(normalizedName)
+    let handledByBinding = false
     try {
       evaluateCompiledExpression(binding, {
         readVariable: (key, unit) => this.readVariable(key, unit),
@@ -804,9 +814,23 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         invokeHtmlEvent: (eventName, args) => this.invokeHtmlEvent(eventName, args),
         parameterValues: [value]
       })
+      handledByBinding = true
       return true
     } finally {
       this.activeInputEventBindings.delete(normalizedName)
+      this.recordBridgeEvent(normalizedName, value, handledByBinding)
+    }
+  }
+
+  private recordBridgeEvent(name: string, value: number, handledByBinding: boolean): void {
+    this.recentBridgeEvents.push({
+      name,
+      value,
+      handledByBinding,
+      sequence: this.bridgeCallCount
+    })
+    if (this.recentBridgeEvents.length > 100) {
+      this.recentBridgeEvents.splice(0, this.recentBridgeEvents.length - 100)
     }
   }
 
@@ -877,6 +901,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   getHtmlEvents(): readonly RuntimeHtmlEvent[] {
     return this.recentHtmlEvents.map(event => ({ ...event, args: [...event.args] }))
+  }
+
+  getBridgeEvents(): readonly RuntimeBridgeEvent[] {
+    return this.recentBridgeEvents.map(event => ({ ...event }))
   }
 
   private publishControlVariables(): void {
