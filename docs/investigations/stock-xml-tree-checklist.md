@@ -6556,12 +6556,12 @@
                 - [ ] `<Condition NotEmpty="ON_AUTOSTART">` line 28
                   - [ ] `<BINDING_SET_0>` line 29
                   - [ ] `<BINDING_SET_0_PARAM_0>` line 30
-                  - [ ] `<BINDING_SET_0_EVENT_ID>` line 31 = `ENGINE_AUTO_START`
+                  - [x] `<BINDING_SET_0_EVENT_ID>` line 31 = `ENGINE_AUTO_START`
                   - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 32
                 - [ ] `<Condition NotEmpty="ON_AUTOSTOP">` line 34
                   - [ ] `<BINDING_SET_1>` line 35
                   - [ ] `<BINDING_SET_1_PARAM_0>` line 36
-                  - [ ] `<BINDING_SET_1_EVENT_ID>` line 37 = `ENGINE_AUTO_SHUTDOWN`
+                  - [x] `<BINDING_SET_1_EVENT_ID>` line 37 = `ENGINE_AUTO_SHUTDOWN`
                   - [ ] `<BINDING_SET_1_EVENT_ID_ONLY>` line 38
                 - [ ] `<INC_CODE>` line 40 = `1 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
                 - [ ] `<DEC_CODE>` line 41 = `0 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
@@ -6640,7 +6640,7 @@
                 - [ ] `<TOGGLE_LIGHTS_CODE_EXTERNAL>` line 156
                 - [ ] `<IE_NAME>` line 157 = `ToggleAllLights`
               - [ ] `<Parameters Type="Default">` line 159
-                - [ ] `<TOGGLE_LIGHTS_CODE>` line 160 = `#TOGGLE_LIGHTS_CODE_EXTERNAL# (>K:ALL_LIGHTS_TOGGLE)`
+                - [x] `<TOGGLE_LIGHTS_CODE>` line 160 = `#TOGGLE_LIGHTS_CODE_EXTERNAL# (>K:ALL_LIGHTS_TOGGLE)`
               - [ ] `<Parameters Type="Default">` line 162
                 - [ ] `<INC_CODE>` line 163 = `1 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
                 - [ ] `<DEC_CODE>` line 164 = `1 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
@@ -6658,7 +6658,7 @@
                 - [ ] `<SET_ARG_COUNT>` line 176
                 - [ ] `<BINDING_SET_0>` line 177
                 - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 178
-                - [ ] `<BINDING_SET_0_EVENT_ID>` line 179 = `ALL_LIGHTS_TOGGLE`
+                - [x] `<BINDING_SET_0_EVENT_ID>` line 179 = `ALL_LIGHTS_TOGGLE`
                 - [ ] `<BINDING_SET_0_PARAM_0>` line 180
           - [ ] `<Default>` line 184
             - [ ] `<Extend>` line 185
@@ -45226,12 +45226,12 @@
                 - [ ] `<Condition NotEmpty="ON_AUTOSTART">` line 28
                   - [ ] `<BINDING_SET_0>` line 29
                   - [ ] `<BINDING_SET_0_PARAM_0>` line 30
-                  - [ ] `<BINDING_SET_0_EVENT_ID>` line 31 = `ENGINE_AUTO_START`
+                  - [x] `<BINDING_SET_0_EVENT_ID>` line 31 = `ENGINE_AUTO_START`
                   - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 32
                 - [ ] `<Condition NotEmpty="ON_AUTOSTOP">` line 34
                   - [ ] `<BINDING_SET_1>` line 35
                   - [ ] `<BINDING_SET_1_PARAM_0>` line 36
-                  - [ ] `<BINDING_SET_1_EVENT_ID>` line 37 = `ENGINE_AUTO_SHUTDOWN`
+                  - [x] `<BINDING_SET_1_EVENT_ID>` line 37 = `ENGINE_AUTO_SHUTDOWN`
                   - [ ] `<BINDING_SET_1_EVENT_ID_ONLY>` line 38
                 - [ ] `<INC_CODE>` line 40 = `1 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
                 - [ ] `<DEC_CODE>` line 41 = `0 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
@@ -45310,7 +45310,7 @@
                 - [ ] `<TOGGLE_LIGHTS_CODE_EXTERNAL>` line 156
                 - [ ] `<IE_NAME>` line 157 = `ToggleAllLights`
               - [ ] `<Parameters Type="Default">` line 159
-                - [ ] `<TOGGLE_LIGHTS_CODE>` line 160 = `#TOGGLE_LIGHTS_CODE_EXTERNAL# (>K:ALL_LIGHTS_TOGGLE)`
+                - [x] `<TOGGLE_LIGHTS_CODE>` line 160 = `#TOGGLE_LIGHTS_CODE_EXTERNAL# (>K:ALL_LIGHTS_TOGGLE)`
               - [ ] `<Parameters Type="Default">` line 162
                 - [ ] `<INC_CODE>` line 163 = `1 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
                 - [ ] `<DEC_CODE>` line 164 = `1 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
@@ -45328,7 +45328,7 @@
                 - [ ] `<SET_ARG_COUNT>` line 176
                 - [ ] `<BINDING_SET_0>` line 177
                 - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 178
-                - [ ] `<BINDING_SET_0_EVENT_ID>` line 179 = `ALL_LIGHTS_TOGGLE`
+                - [x] `<BINDING_SET_0_EVENT_ID>` line 179 = `ALL_LIGHTS_TOGGLE`
                 - [ ] `<BINDING_SET_0_PARAM_0>` line 180
           - [ ] `<Default>` line 184
             - [ ] `<Extend>` line 185

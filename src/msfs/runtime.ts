@@ -1317,6 +1317,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.applyElectricalInputKeyEvent(name, args)) {
       return
     }
+    if (this.applyProcedureKeyEvent(name)) {
+      return
+    }
     if (name.endsWith('ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE')) {
       const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
       if (Number.isFinite(circuitIndex)) {
@@ -1486,6 +1489,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyLightKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'ALL_LIGHTS_TOGGLE') {
+      this.toggleAllLights()
+      return true
+    }
+
     const indexedPotentiometerSet = /^LIGHT_POTENTIOMETER_(\d+)_SET$/u.exec(name)
     if (indexedPotentiometerSet != null) {
       this.setLightPotentiometer(Number(indexedPotentiometerSet[1]), Number(args[0] ?? 0))
@@ -2265,6 +2273,22 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
+  private toggleAllLights(): void {
+    this.toggleNamedBoolVariables(
+      'A:LIGHT BEACON',
+      'A:LIGHT CABIN',
+      'A:LIGHT GLARESHIELD',
+      'A:LIGHT LANDING',
+      'A:LIGHT LOGO',
+      'A:LIGHT NAV',
+      'A:LIGHT PANEL',
+      'A:LIGHT RECOGNITION',
+      'A:LIGHT STROBE',
+      'A:LIGHT TAXI',
+      'A:LIGHT WING'
+    )
+  }
+
   private setLightPotentiometer(index: number, value: number): void {
     if (!Number.isFinite(index)) {
       return
@@ -2418,6 +2442,37 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     return false
+  }
+
+  private applyProcedureKeyEvent(name: string): boolean {
+    if (name === 'ENGINE_AUTO_START' || name === 'ENGINE_AUTO_SHUTDOWN') {
+      const running = name === 'ENGINE_AUTO_START'
+      for (let index = 1; index <= 4; index += 1) {
+        this.setEngineRunning(index, running)
+      }
+      return true
+    }
+
+    if (name === 'ALL_LIGHTS_TOGGLE') {
+      this.toggleAllLights()
+      return true
+    }
+
+    return false
+  }
+
+  private setEngineRunning(index: number, running: boolean): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const engineIndex = Math.trunc(index)
+    const combustionValue = running ? 1 : 0
+    const rpmValue = running ? 20 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION:${engineIndex}`), combustionValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG RPM:${engineIndex}`), rpmValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N1:${engineIndex}`), rpmValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG CORRECTED N1:${engineIndex}`), rpmValue)
+    this.setEngineStarter(engineIndex, 0)
   }
 
   private setIndexedBatterySwitch(index: number, value: number): void {
