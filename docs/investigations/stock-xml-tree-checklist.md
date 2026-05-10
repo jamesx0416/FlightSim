@@ -8837,7 +8837,7 @@
           - [ ] `<Case Valid="PLASMA_ID">` line 1643
             - [ ] `<Preset ID="ENGINE_Plasma_#IE_PLASMA_ID#">` line 1644
               - [ ] `<Parameters Type="Default">` line 1645
-                - [ ] `<SET_PLASMA>` line 1646
+                - [x] `<SET_PLASMA>` line 1646
                 - [ ] `<GET_PLASMA>` line 1647
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 1650
                 - [ ] `<STATE_OFF>` line 1651
@@ -8868,7 +8868,7 @@
                 - [ ] `<Code>` line 1689 = `(O:ENGINE_Plasma_#IE_PLASMA_ID#_Position)`
                 - [ ] `<Init>` line 1690
                 - [ ] `<WatchVars>` line 1691
-                  - [ ] `<Simvar ID="PLASMA ON:#PLASMA_ID#">` line 1692
+                  - [x] `<Simvar ID="PLASMA ON:#PLASMA_ID#">` line 1692
               - [ ] `<Inc>` line 1695
                 - [ ] `<Code>` line 1696 = `(O:ENGINE_Plasma_#IE_PLASMA_ID#_Position) p0 + (>B:ENGINE_Plasma_#IE_PLASMA_ID#_Set)`
                 - [ ] `<Parameters>` line 1697
@@ -8897,7 +8897,7 @@
           - [ ] `<Case Valid="CLUTCH_ID">` line 1735
             - [ ] `<Preset ID="ENGINE_Clutch_#CLUTCH_ID#">` line 1736
               - [ ] `<Parameters Type="Default">` line 1737
-                - [ ] `<SET_CLUTCH>` line 1738
+                - [x] `<SET_CLUTCH>` line 1738
                 - [ ] `<GET_CLUTCH>` line 1739
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 1742
                 - [ ] `<STATE_OFF>` line 1743
@@ -8933,7 +8933,7 @@
                 - [ ] `<Code>` line 1789 = `(O:ENGINE_CLUTCH_#CLUTCH_ID#_Position)`
                 - [ ] `<Init>` line 1790
                 - [ ] `<WatchVars>` line 1791
-                  - [ ] `<Simvar ID="ROTOR CLUTCH SWITCH POS">` line 1792
+                  - [x] `<Simvar ID="ROTOR CLUTCH SWITCH POS">` line 1792
               - [ ] `<Inc>` line 1795
                 - [ ] `<Code>` line 1796 = `(O:ENGINE_CLUTCH_#CLUTCH_ID#_Position) p0 + (>B:ENGINE_CLUTCH_#CLUTCH_ID#_Set)`
                 - [ ] `<Parameters>` line 1797
@@ -8984,7 +8984,7 @@
                 - [ ] `<Code>` line 1859 = `(O:ENGINE_ROTOR_Brake_#BRAKE_ID#_Position) #LOWER_LIMIT# - #UPPER_LIMIT# #LOWER_LIMIT# - / 100 *`
                 - [ ] `<Init>` line 1860
                 - [ ] `<WatchVars>` line 1861
-                  - [ ] `<Simvar ID="ROTOR BRAKE HANDLE POS">` line 1862
+                  - [x] `<Simvar ID="ROTOR BRAKE HANDLE POS">` line 1862
               - [ ] `<Inc>` line 1865
                 - [ ] `<Code>` line 1866 = `#ON_BEFORE_INC# (A:ROTOR BRAKE HANDLE POS, position 16k) p0 + #UPPER_LIMIT# / (>B:ENGINE_ROTOR_Brak...`
                 - [ ] `<Parameters>` line 1867
@@ -9004,7 +9004,7 @@
                   - [ ] `<Binding>` line 1890
                     - [ ] `<Param>` line 1891 = `1`
               - [ ] `<Set>` line 1895
-                - [ ] `<Code>` line 1896 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AXIS_ROTOR_BRAKE_SET) l0 (>O:ENGINE_R...`
+                - [x] `<Code>` line 1896 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AXIS_ROTOR_BRAKE_SET) l0 (>O:ENGINE_R...`
                 - [ ] `<Parameters>` line 1897
                   - [ ] `<Param Type="Float">` line 1898 = `p0 #UPPER_LIMIT# *`
                 - [ ] `<Bindings>` line 1900
@@ -17127,9 +17127,9 @@
               - [ ] `<ENUM_VAL_TO_POS_EXTERNAL_T_NORM>` line 1942
               - [ ] `<ENUM_VAL_TO_POS_EXTERNAL_T_IGN_START>` line 1943
           - [ ] `<Then>` line 1946
-            - [ ] `<BINDING_SET_#POS_CRANK#_EVENT_ID>` line 1947 = `ENGINE_MODE_CRANK_SET`
-            - [ ] `<BINDING_SET_#POS_NORM#_EVENT_ID>` line 1948 = `ENGINE_MODE_NORM_SET`
-            - [ ] `<BINDING_SET_#POS_IGN_START#_EVENT_ID>` line 1949 = `ENGINE_MODE_IGN_SET`
+            - [x] `<BINDING_SET_#POS_CRANK#_EVENT_ID>` line 1947 = `ENGINE_MODE_CRANK_SET`
+            - [x] `<BINDING_SET_#POS_NORM#_EVENT_ID>` line 1948 = `ENGINE_MODE_NORM_SET`
+            - [x] `<BINDING_SET_#POS_IGN_START#_EVENT_ID>` line 1949 = `ENGINE_MODE_IGN_SET`
             - [ ] `<SET_STATE_#POS_CRANK#>` line 1950
             - [ ] `<SET_STATE_#POS_NORM#>` line 1951
             - [ ] `<SET_STATE_#POS_IGN_START#>` line 1952
@@ -47507,7 +47507,7 @@
           - [ ] `<Case Valid="PLASMA_ID">` line 1643
             - [ ] `<Preset ID="ENGINE_Plasma_#IE_PLASMA_ID#">` line 1644
               - [ ] `<Parameters Type="Default">` line 1645
-                - [ ] `<SET_PLASMA>` line 1646
+                - [x] `<SET_PLASMA>` line 1646
                 - [ ] `<GET_PLASMA>` line 1647
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 1650
                 - [ ] `<STATE_OFF>` line 1651
@@ -47538,7 +47538,7 @@
                 - [ ] `<Code>` line 1689 = `(O:ENGINE_Plasma_#IE_PLASMA_ID#_Position)`
                 - [ ] `<Init>` line 1690
                 - [ ] `<WatchVars>` line 1691
-                  - [ ] `<Simvar ID="PLASMA ON:#PLASMA_ID#">` line 1692
+                  - [x] `<Simvar ID="PLASMA ON:#PLASMA_ID#">` line 1692
               - [ ] `<Inc>` line 1695
                 - [ ] `<Code>` line 1696 = `(O:ENGINE_Plasma_#IE_PLASMA_ID#_Position) p0 + (>B:ENGINE_Plasma_#IE_PLASMA_ID#_Set)`
                 - [ ] `<Parameters>` line 1697
@@ -47567,7 +47567,7 @@
           - [ ] `<Case Valid="CLUTCH_ID">` line 1735
             - [ ] `<Preset ID="ENGINE_Clutch_#CLUTCH_ID#">` line 1736
               - [ ] `<Parameters Type="Default">` line 1737
-                - [ ] `<SET_CLUTCH>` line 1738
+                - [x] `<SET_CLUTCH>` line 1738
                 - [ ] `<GET_CLUTCH>` line 1739
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 1742
                 - [ ] `<STATE_OFF>` line 1743
@@ -47603,7 +47603,7 @@
                 - [ ] `<Code>` line 1789 = `(O:ENGINE_CLUTCH_#CLUTCH_ID#_Position)`
                 - [ ] `<Init>` line 1790
                 - [ ] `<WatchVars>` line 1791
-                  - [ ] `<Simvar ID="ROTOR CLUTCH SWITCH POS">` line 1792
+                  - [x] `<Simvar ID="ROTOR CLUTCH SWITCH POS">` line 1792
               - [ ] `<Inc>` line 1795
                 - [ ] `<Code>` line 1796 = `(O:ENGINE_CLUTCH_#CLUTCH_ID#_Position) p0 + (>B:ENGINE_CLUTCH_#CLUTCH_ID#_Set)`
                 - [ ] `<Parameters>` line 1797
@@ -47654,7 +47654,7 @@
                 - [ ] `<Code>` line 1859 = `(O:ENGINE_ROTOR_Brake_#BRAKE_ID#_Position) #LOWER_LIMIT# - #UPPER_LIMIT# #LOWER_LIMIT# - / 100 *`
                 - [ ] `<Init>` line 1860
                 - [ ] `<WatchVars>` line 1861
-                  - [ ] `<Simvar ID="ROTOR BRAKE HANDLE POS">` line 1862
+                  - [x] `<Simvar ID="ROTOR BRAKE HANDLE POS">` line 1862
               - [ ] `<Inc>` line 1865
                 - [ ] `<Code>` line 1866 = `#ON_BEFORE_INC# (A:ROTOR BRAKE HANDLE POS, position 16k) p0 + #UPPER_LIMIT# / (>B:ENGINE_ROTOR_Brak...`
                 - [ ] `<Parameters>` line 1867
@@ -47674,7 +47674,7 @@
                   - [ ] `<Binding>` line 1890
                     - [ ] `<Param>` line 1891 = `1`
               - [ ] `<Set>` line 1895
-                - [ ] `<Code>` line 1896 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AXIS_ROTOR_BRAKE_SET) l0 (>O:ENGINE_R...`
+                - [x] `<Code>` line 1896 = `#ON_BEFORE_SET# p0 #LOWER_LIMIT# max #UPPER_LIMIT# min s0 (>K:AXIS_ROTOR_BRAKE_SET) l0 (>O:ENGINE_R...`
                 - [ ] `<Parameters>` line 1897
                   - [ ] `<Param Type="Float">` line 1898 = `p0 #UPPER_LIMIT# *`
                 - [ ] `<Bindings>` line 1900
@@ -55797,9 +55797,9 @@
               - [ ] `<ENUM_VAL_TO_POS_EXTERNAL_T_NORM>` line 1942
               - [ ] `<ENUM_VAL_TO_POS_EXTERNAL_T_IGN_START>` line 1943
           - [ ] `<Then>` line 1946
-            - [ ] `<BINDING_SET_#POS_CRANK#_EVENT_ID>` line 1947 = `ENGINE_MODE_CRANK_SET`
-            - [ ] `<BINDING_SET_#POS_NORM#_EVENT_ID>` line 1948 = `ENGINE_MODE_NORM_SET`
-            - [ ] `<BINDING_SET_#POS_IGN_START#_EVENT_ID>` line 1949 = `ENGINE_MODE_IGN_SET`
+            - [x] `<BINDING_SET_#POS_CRANK#_EVENT_ID>` line 1947 = `ENGINE_MODE_CRANK_SET`
+            - [x] `<BINDING_SET_#POS_NORM#_EVENT_ID>` line 1948 = `ENGINE_MODE_NORM_SET`
+            - [x] `<BINDING_SET_#POS_IGN_START#_EVENT_ID>` line 1949 = `ENGINE_MODE_IGN_SET`
             - [ ] `<SET_STATE_#POS_CRANK#>` line 1950
             - [ ] `<SET_STATE_#POS_NORM#>` line 1951
             - [ ] `<SET_STATE_#POS_IGN_START#>` line 1952

@@ -1988,6 +1988,39 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    const engineModeMatch = /^ENGINE_MODE_(CRANK|NORM|IGN)_SET$/u.exec(name)
+    if (engineModeMatch != null) {
+      const modeValue = engineModeMatch[1] === 'CRANK' ? 0 : engineModeMatch[1] === 'NORM' ? 1 : 2
+      this.values.set(normalizeRuntimeVariableKey('A:TURBINE IGNITION SWITCH'), modeValue)
+      for (let index = 1; index <= 4; index += 1) {
+        this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG IGNITION SWITCH EX1:${index}`), modeValue)
+        this.values.set(normalizeRuntimeVariableKey(`A:TURBINE IGNITION SWITCH:${index}`), modeValue)
+      }
+      return true
+    }
+
+    const plasmaSetMatch = /^PLASMA_(ON|OFF|SET)$/u.exec(name)
+    if (plasmaSetMatch != null) {
+      const value = plasmaSetMatch[1] === 'SET' ? Number(args.at(-1) ?? 0) > 0 ? 1 : 0 : plasmaSetMatch[1] === 'ON' ? 1 : 0
+      this.values.set(normalizeRuntimeVariableKey('A:PLASMA ON:1'), value)
+      this.values.set(normalizeRuntimeVariableKey('A:PLASMA ON'), value)
+      return true
+    }
+
+    if (name === 'ROTOR_CLUTCH_SWITCH_SET') {
+      const value = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      this.values.set(normalizeRuntimeVariableKey('A:ROTOR CLUTCH SWITCH POS'), value)
+      return true
+    }
+
+    if (name === 'AXIS_ROTOR_BRAKE_SET') {
+      this.values.set(
+        normalizeRuntimeVariableKey('A:ROTOR BRAKE HANDLE POS'),
+        position16kToPercent(Number(args.at(-1) ?? 0), false)
+      )
+      return true
+    }
+
     return false
   }
 
@@ -2336,7 +2369,8 @@ function isEngineControlPercentPositionKey(key: string): boolean {
     key.startsWith('A:GENERAL ENG MIXTURE LEVER POSITION:') ||
     key.startsWith('A:RECIP ENG COWL FLAP POSITION:') ||
     key.endsWith(' COOLING FLAPS POSITION') ||
-    key.startsWith('A:PROP BETA FORCED POSITION:')
+    key.startsWith('A:PROP BETA FORCED POSITION:') ||
+    key === 'A:ROTOR BRAKE HANDLE POS'
   )
 }
 
