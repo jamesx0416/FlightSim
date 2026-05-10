@@ -1492,8 +1492,75 @@ function getGeneratedDirectInputEventCodeSource(
       ? ['IE_INC_CODE', 'INC_CODE', 'INC_EVENT']
       : kind === 'DEC'
         ? ['IE_DEC_CODE', 'DEC_CODE', 'DEC_EVENT']
-        : ['SET_CODE', 'SET_EVENT', 'SET_STATE_EXTERNAL']
-  return getFirstUsableInteractionParameter(params, parameterNames)
+        : ['SET_CODE', 'SET_EVENT']
+  const directSource = getFirstUsableInteractionParameter(params, parameterNames)
+  if (directSource) {
+    return directSource
+  }
+  if (kind === 'SET') {
+    return getGeneratedSetStateInputEventSetCodeSource(params)
+  }
+  return getGeneratedSetStateInputEventStepCodeSource(kind, params)
+}
+
+function getGeneratedSetStateInputEventSetCodeSource(params: ReadonlyMap<string, string>): string {
+  const setStateSource = params.get('SET_STATE_EXTERNAL')?.trim() ?? ''
+  if (isNoopInteractionParameter(setStateSource)) {
+    return ''
+  }
+  return rpnSourceReadsParameter(setStateSource, 0) ? setStateSource : `p0 ${setStateSource}`
+}
+
+function getGeneratedSetStateInputEventStepCodeSource(
+  kind: 'INC' | 'DEC' | 'SET',
+  params: ReadonlyMap<string, string>
+): string {
+  if (kind === 'SET') {
+    return ''
+  }
+
+  const setStateSource = params.get('SET_STATE_EXTERNAL')?.trim() ?? ''
+  if (isNoopInteractionParameter(setStateSource)) {
+    return ''
+  }
+
+  const inputEventSource = getInteractionInputEventSource(params)
+  const inputEventName =
+    params.get('IE_NAME')?.trim() ||
+    params.get('BTN_ID')?.trim() ||
+    params.get('KNOB_ID')?.trim() ||
+    params.get('LEVER_ID')?.trim() ||
+    getInteractionInputEventNameFromPresetId(params) ||
+    ''
+  const presetName = inputEventSource ? `${inputEventSource}_${inputEventName}` : inputEventName
+  if (!presetName) {
+    return ''
+  }
+
+  const parameterSource = params.get(kind === 'INC' ? 'INC_PARAM_0' : 'DEC_PARAM_0')?.trim() || 'p0'
+  const getStateSource = params.get('GET_STATE_EXTERNAL')?.trim() ?? ''
+  const stateValueSource = getStateSource
+    ? `${getStateSource} ${rpnSourcePopsToRegister(getStateSource, 0) ? 'l0' : ''}`.trim()
+    : ''
+  const setBridgeSource = `(>B:${presetName}_Set)`
+
+  if (!stateValueSource) {
+    return kind === 'INC'
+      ? `${parameterSource} ${setBridgeSource}`
+      : `${parameterSource} -1 * ${setBridgeSource}`
+  }
+
+  return kind === 'INC'
+    ? `${stateValueSource} ${parameterSource} + ${setBridgeSource}`
+    : `${stateValueSource} ${parameterSource} - ${setBridgeSource}`
+}
+
+function rpnSourcePopsToRegister(source: string, registerIndex: number): boolean {
+  return new RegExp(`(^|\\s)sp${registerIndex}(\\s|$)`, 'iu').test(source)
+}
+
+function rpnSourceReadsParameter(source: string, parameterIndex: number): boolean {
+  return new RegExp(`(^|\\s)p${parameterIndex}(\\s|$)`, 'iu').test(source)
 }
 
 function collectGeneratedInputEventStateBindings(

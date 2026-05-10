@@ -10854,29 +10854,29 @@
             - [ ] `<Extend>` line 555
               - [ ] `<Parameters Type="Default">` line 556
                 - [ ] `<INPUT_EVENT_ID_SOURCE>` line 557
-- [ ] `Asobo/Common/Inputs/Passenger_Inputs.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<InputEvent ID="PASSENGER">` line 3
-      - [ ] `<Presets>` line 4
-        - [ ] `<Extend>` line 5
-          - [ ] `<Parameters Type="Default">` line 6
-            - [ ] `<INPUT_EVENT_ID_SOURCE>` line 7
-- [ ] `Asobo/Common/Inputs/Pressurization_Inputs.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<InputEvent ID="PRESSURIZATION">` line 2
-      - [ ] `<Presets>` line 3
-        - [ ] `<Extend>` line 4
-          - [ ] `<Parameters Type="Default">` line 5
-            - [ ] `<INPUT_EVENT_ID_SOURCE>` line 6
-- [ ] `Asobo/Common/Inputs/Safety_Inputs.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<InputEvent ID="SAFETY">` line 3
-      - [ ] `<Presets>` line 4
-        - [ ] `<Extend>` line 5
-          - [ ] `<Parameters Type="Default">` line 6
-            - [ ] `<INPUT_EVENT_ID_SOURCE>` line 7
+- [x] `Asobo/Common/Inputs/Passenger_Inputs.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<InputEvent ID="PASSENGER">` line 3
+      - [x] `<Presets>` line 4
+        - [x] `<Extend>` line 5
+          - [x] `<Parameters Type="Default">` line 6
+            - [x] `<INPUT_EVENT_ID_SOURCE>` line 7
+- [x] `Asobo/Common/Inputs/Pressurization_Inputs.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<InputEvent ID="PRESSURIZATION">` line 2
+      - [x] `<Presets>` line 3
+        - [x] `<Extend>` line 4
+          - [x] `<Parameters Type="Default">` line 5
+            - [x] `<INPUT_EVENT_ID_SOURCE>` line 6
+- [x] `Asobo/Common/Inputs/Safety_Inputs.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<InputEvent ID="SAFETY">` line 3
+      - [x] `<Presets>` line 4
+        - [x] `<Extend>` line 5
+          - [x] `<Parameters Type="Default">` line 6
+            - [x] `<INPUT_EVENT_ID_SOURCE>` line 7
 - [ ] `Asobo/Common/Instrument.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
@@ -49524,29 +49524,29 @@
             - [ ] `<Extend>` line 555
               - [ ] `<Parameters Type="Default">` line 556
                 - [ ] `<INPUT_EVENT_ID_SOURCE>` line 557
-- [ ] `Asobo/Common/Inputs/Passenger_Inputs.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<InputEvent ID="PASSENGER">` line 3
-      - [ ] `<Presets>` line 4
-        - [ ] `<Extend>` line 5
-          - [ ] `<Parameters Type="Default">` line 6
-            - [ ] `<INPUT_EVENT_ID_SOURCE>` line 7
-- [ ] `Asobo/Common/Inputs/Pressurization_Inputs.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<InputEvent ID="PRESSURIZATION">` line 2
-      - [ ] `<Presets>` line 3
-        - [ ] `<Extend>` line 4
-          - [ ] `<Parameters Type="Default">` line 5
-            - [ ] `<INPUT_EVENT_ID_SOURCE>` line 6
-- [ ] `Asobo/Common/Inputs/Safety_Inputs.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<InputEvent ID="SAFETY">` line 3
-      - [ ] `<Presets>` line 4
-        - [ ] `<Extend>` line 5
-          - [ ] `<Parameters Type="Default">` line 6
-            - [ ] `<INPUT_EVENT_ID_SOURCE>` line 7
+- [x] `Asobo/Common/Inputs/Passenger_Inputs.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<InputEvent ID="PASSENGER">` line 3
+      - [x] `<Presets>` line 4
+        - [x] `<Extend>` line 5
+          - [x] `<Parameters Type="Default">` line 6
+            - [x] `<INPUT_EVENT_ID_SOURCE>` line 7
+- [x] `Asobo/Common/Inputs/Pressurization_Inputs.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<InputEvent ID="PRESSURIZATION">` line 2
+      - [x] `<Presets>` line 3
+        - [x] `<Extend>` line 4
+          - [x] `<Parameters Type="Default">` line 5
+            - [x] `<INPUT_EVENT_ID_SOURCE>` line 6
+- [x] `Asobo/Common/Inputs/Safety_Inputs.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<InputEvent ID="SAFETY">` line 3
+      - [x] `<Presets>` line 4
+        - [x] `<Extend>` line 5
+          - [x] `<Parameters Type="Default">` line 6
+            - [x] `<INPUT_EVENT_ID_SOURCE>` line 7
 - [ ] `Asobo/Common/Instrument.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
