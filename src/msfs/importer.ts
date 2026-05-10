@@ -6,6 +6,11 @@ import type {
   ImportedFlightState,
   ImportedModelDefinition,
   ImportedPackage,
+  ImportedSimVarSound,
+  ImportedSoundDefinition,
+  ImportedSoundRange,
+  ImportedSoundVariable,
+  ImportedWwisePackage,
   ModelBehaviorReference,
   PackageLayoutEntry,
   PackageManifest
@@ -561,7 +566,8 @@ async function importAircraftRecord(
         model: null,
         interiorModel: null,
         cfgFiles: [],
-        previewFlightState: null
+        previewFlightState: null,
+        soundDefinition: null
       })
       continue
     }
@@ -588,6 +594,7 @@ async function importAircraftRecord(
     const textureDirectories = await resolveTextureDirectories(chain, fltsim, context)
     const cfgFiles = await resolveAdditionalCfgFiles(chain, fltsim, context)
     const previewFlightState = await resolvePreviewFlightState(chain, fltsim, context)
+    const soundDefinition = await resolveSoundDefinition(chain, fltsim, context)
 
     importedAircraft.push({
       id: aircraftId,
@@ -605,7 +612,8 @@ async function importAircraftRecord(
       model,
       interiorModel,
       cfgFiles,
-      previewFlightState
+      previewFlightState,
+      soundDefinition
     })
   }
 
@@ -1030,6 +1038,182 @@ async function resolvePreviewFlightState(
   return null
 }
 
+async function resolveSoundDefinition(
+  chain: readonly AircraftCfgRecord[],
+  primaryFltsim: FltsimSectionRef,
+  context: ImportContext
+): Promise<ImportedSoundDefinition | null> {
+  const orderedRecords = [
+    primaryFltsim.record,
+    ...chain.filter(record => record.path !== primaryFltsim.record.path)
+  ]
+  const visitedPaths = new Set<string>()
+
+  for (const record of orderedRecords) {
+    for (const soundDirectory of getSoundDirectoryCandidates(record, primaryFltsim.section.values.get('sound') ?? '')) {
+      const candidatePath = resolveLayoutPath(joinPath(soundDirectory, 'sound.xml'), context)
+      if (candidatePath == null) {
+        continue
+      }
+
+      const normalizedPath = candidatePath.toLowerCase()
+      if (visitedPaths.has(normalizedPath)) {
+        continue
+      }
+
+      const soundXmlText = await fetchText(candidatePath, context)
+      if (soundXmlText == null) {
+        continue
+      }
+
+      visitedPaths.add(normalizedPath)
+      return parseSoundDefinition(candidatePath, soundXmlText, context)
+    }
+  }
+
+  return null
+}
+
+function parseSoundDefinition(
+  soundPath: string,
+  source: string,
+  context: ImportContext
+): ImportedSoundDefinition | null {
+  const document = new DOMParser().parseFromString(source, 'text/xml')
+  if (document.querySelector('parsererror')) {
+    context.diagnostics.push({
+      code: 'sound_xml_invalid',
+      message: `Sound XML could not be parsed: ${soundPath}.`,
+      severity: 'warning',
+      sourcePath: soundPath
+    })
+    return null
+  }
+
+  const soundDirectory = dirname(soundPath)
+  const wwisePackages: ImportedWwisePackage[] = [
+    ...Array.from(document.querySelectorAll('WwisePackages > MainPackage')).map(node =>
+      parseWwisePackage(node, 'main', soundDirectory, context)
+    ),
+    ...Array.from(document.querySelectorAll('WwisePackages > AdditionalPackage')).map(node =>
+      parseWwisePackage(node, 'additional', soundDirectory, context)
+    )
+  ].filter((entry): entry is ImportedWwisePackage => entry != null)
+
+  const simVarSounds = Array.from(document.querySelectorAll('SimVarSounds > Sound'))
+    .map((node, index) => parseSimVarSound(node, soundPath, index))
+    .filter((entry): entry is ImportedSimVarSound => entry != null)
+
+  return {
+    path: soundPath,
+    url: resolvePackageUrl(context.rootUrl, soundPath),
+    wwisePackages,
+    simVarSounds
+  }
+}
+
+function parseWwisePackage(
+  node: Element,
+  kind: 'main' | 'additional',
+  soundDirectory: string,
+  context: ImportContext
+): ImportedWwisePackage | null {
+  const name = node.getAttribute('Name')?.trim()
+  if (!name) {
+    return null
+  }
+
+  const packagePath =
+    resolveLayoutPath(joinPath(soundDirectory, `${name}.PC.PCK`), context) ??
+    resolveLayoutPath(joinPath(soundDirectory, `${name}.PC.pck`), context) ??
+    undefined
+
+  return {
+    name,
+    kind,
+    packagePath,
+    packageUrl: packagePath == null ? undefined : resolvePackageUrl(context.rootUrl, packagePath)
+  }
+}
+
+function parseSimVarSound(
+  node: Element,
+  soundPath: string,
+  index: number
+): ImportedSimVarSound | null {
+  const eventName = node.getAttribute('WwiseEvent')?.trim()
+  if (!eventName) {
+    return null
+  }
+
+  const variable = parseSoundVariable(node)
+  if (variable == null) {
+    return null
+  }
+
+  const ranges = parseSoundRanges(node)
+  const requires = Array.from(node.querySelectorAll(':scope > Requires'))
+    .map(requireNode => {
+      const requireVariable = parseSoundVariable(requireNode)
+      if (requireVariable == null) {
+        return null
+      }
+      return {
+        variable: requireVariable,
+        ranges: parseSoundRanges(requireNode)
+      }
+    })
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null)
+
+  return {
+    id: `${soundPath}#${index}:${eventName}`,
+    eventName,
+    nodeName: node.getAttribute('NodeName')?.trim() || null,
+    viewpoint: node.getAttribute('ViewPoint')?.trim() || null,
+    continuous: /^true$/iu.test(node.getAttribute('Continuous')?.trim() ?? ''),
+    variable,
+    ranges,
+    requires,
+    sourcePath: soundPath
+  }
+}
+
+function parseSoundVariable(node: Element): ImportedSoundVariable | null {
+  const simVarName = node.getAttribute('SimVar')?.trim()
+  const localVarName = node.getAttribute('LocalVar')?.trim()
+  const name = simVarName || localVarName
+  if (!name) {
+    return null
+  }
+
+  const rawIndex = Number.parseFloat(node.getAttribute('Index') ?? '')
+  return {
+    kind: simVarName ? 'simvar' : 'localvar',
+    name,
+    unit: node.getAttribute('Units')?.trim() || null,
+    index: Number.isFinite(rawIndex) ? rawIndex : null
+  }
+}
+
+function parseSoundRanges(node: Element): readonly ImportedSoundRange[] {
+  const ranges = Array.from(node.querySelectorAll(':scope > Range'))
+    .map(rangeNode => ({
+      lowerBound: parseOptionalNumber(rangeNode.getAttribute('LowerBound')),
+      upperBound: parseOptionalNumber(rangeNode.getAttribute('UpperBound'))
+    }))
+    .filter(range => range.lowerBound != null || range.upperBound != null)
+
+  return ranges.length > 0 ? ranges : [{ lowerBound: null, upperBound: null }]
+}
+
+function parseOptionalNumber(value: string | null): number | null {
+  if (value == null || value.trim() === '') {
+    return null
+  }
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 async function addTextureFallbackDirectories(
   directoryPath: string,
   context: ImportContext,
@@ -1137,6 +1321,18 @@ function getPanelDirectoryCandidates(
     panelSuffix
       ? joinPath(aircraftDirectory, `panel.${panelSuffix}`)
       : joinPath(aircraftDirectory, 'panel')
+  ]
+}
+
+function getSoundDirectoryCandidates(
+  record: AircraftCfgRecord,
+  soundSuffix: string
+): string[] {
+  const aircraftDirectory = dirname(record.path)
+  return [
+    soundSuffix
+      ? joinPath(aircraftDirectory, `sound.${soundSuffix}`)
+      : joinPath(aircraftDirectory, 'sound')
   ]
 }
 

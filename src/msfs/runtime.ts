@@ -12,6 +12,9 @@ import type {
   ImportedCfgFile,
   ImportedCfgSection,
   ImportedFlightState,
+  ImportedSimVarSound,
+  ImportedSoundRange,
+  ImportedSoundVariable,
   ImportDiagnostic,
   ModelNodeAnimation,
   RuntimeHostServices,
@@ -485,7 +488,7 @@ export interface SharedRuntimeHostStats {
 
 export interface RuntimeSoundEvent {
   readonly name: string
-  readonly phase: 'press' | 'release'
+  readonly phase: 'press' | 'release' | 'start' | 'stop'
   readonly target: string
   readonly normalizedTime: number | null
   readonly sourcePath: string
@@ -519,6 +522,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private readonly recentHtmlEvents: RuntimeHtmlEvent[] = []
   private readonly htmlEventListeners = new Set<RuntimeHtmlEventListener>()
   private readonly recentSoundEvents: RuntimeSoundEvent[] = []
+  private readonly soundStates = new Map<string, boolean>()
+  private readonly simVarSounds: readonly ImportedSimVarSound[]
   private controlState = {
     gearTarget: 0,
     gearPosition: 0,
@@ -567,6 +572,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     aircraft?: ImportedAircraft
   ) {
     this.wingFlexProfile = createDemoWingFlexProfile(aircraft)
+    this.simVarSounds = aircraft?.soundDefinition?.simVarSounds ?? []
     this.seedColdAndDarkState()
     this.seedPreviewFlightState(aircraft?.previewFlightState ?? null)
   }
@@ -619,6 +625,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:ANIMATION DELTA TIME'), dtSeconds)
     this.publishControlVariables()
     this.publishElectricalVariables()
+    this.updateSimVarSounds()
   }
 
   readVariable(key: string, unit?: string | null): number {
@@ -713,6 +720,19 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     name: string,
     event: {
       readonly phase: 'press' | 'release'
+      readonly target: string
+      readonly normalizedTime: number | null
+      readonly sourcePath: string
+      readonly sourceParameter: string
+    }
+  ): void {
+    this.recordSoundEvent(name, event)
+  }
+
+  private recordSoundEvent(
+    name: string,
+    event: {
+      readonly phase: RuntimeSoundEvent['phase']
       readonly target: string
       readonly normalizedTime: number | null
       readonly sourcePath: string
@@ -1669,6 +1689,39 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:RUDDER TRIM'), trim * 100)
   }
 
+  private updateSimVarSounds(): void {
+    for (const sound of this.simVarSounds) {
+      const active =
+        isSoundVariableInRanges(sound.variable, sound.ranges, this.values) &&
+        sound.requires.every(requirement =>
+          isSoundVariableInRanges(requirement.variable, requirement.ranges, this.values)
+        )
+      const wasActive = this.soundStates.get(sound.id) ?? false
+      if (active === wasActive) {
+        continue
+      }
+
+      this.soundStates.set(sound.id, active)
+      if (active) {
+        this.recordSoundEvent(sound.eventName, {
+          phase: 'start',
+          target: sound.nodeName ?? sound.variable.name,
+          normalizedTime: null,
+          sourcePath: sound.sourcePath,
+          sourceParameter: formatSoundVariableKey(sound.variable)
+        })
+      } else if (sound.continuous) {
+        this.recordSoundEvent(sound.eventName, {
+          phase: 'stop',
+          target: sound.nodeName ?? sound.variable.name,
+          normalizedTime: null,
+          sourcePath: sound.sourcePath,
+          sourceParameter: formatSoundVariableKey(sound.variable)
+        })
+      }
+    }
+  }
+
   private toggleNamedBoolVariables(...keys: readonly string[]): void {
     const normalizedKeys = keys.map(key => normalizeRuntimeVariableKey(key))
     const nextValue = (this.values.get(normalizedKeys[0] ?? '') ?? 0) > 0 ? 0 : 1
@@ -2021,6 +2074,54 @@ function normalizeKohlsmanHg(value: number): number {
     return value / 33.863_886_666_7
   }
   return value
+}
+
+function isSoundVariableInRanges(
+  variable: ImportedSoundVariable,
+  ranges: readonly ImportedSoundRange[],
+  values: ReadonlyMap<string, number>
+): boolean {
+  const value = readStoredSoundVariable(variable, values)
+  return ranges.some(range => {
+    if (range.lowerBound != null && value < range.lowerBound) {
+      return false
+    }
+    if (range.upperBound != null && value > range.upperBound) {
+      return false
+    }
+    return true
+  })
+}
+
+function readStoredSoundVariable(
+  variable: ImportedSoundVariable,
+  values: ReadonlyMap<string, number>
+): number {
+  for (const key of getSoundVariableKeyCandidates(variable)) {
+    const value = values.get(key)
+    if (value != null) {
+      return value
+    }
+  }
+  return 0
+}
+
+function getSoundVariableKeyCandidates(variable: ImportedSoundVariable): readonly string[] {
+  const prefix = variable.kind === 'localvar' ? 'L' : 'A'
+  const baseKey = normalizeRuntimeVariableKey(`${prefix}:${variable.name}`)
+  if (variable.index == null || variable.index === 0) {
+    return [baseKey]
+  }
+  return [
+    normalizeRuntimeVariableKey(`${prefix}:${variable.name}:${Math.trunc(variable.index)}`),
+    baseKey
+  ]
+}
+
+function formatSoundVariableKey(variable: ImportedSoundVariable): string {
+  const prefix = variable.kind === 'localvar' ? 'L' : 'A'
+  const suffix = variable.index == null ? '' : `:${Math.trunc(variable.index)}`
+  return normalizeRuntimeVariableKey(`${prefix}:${variable.name}${suffix}`)
 }
 
 function parseFlightStateScalar(rawValue: string): number | null {

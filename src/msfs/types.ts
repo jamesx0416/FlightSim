@@ -85,6 +85,47 @@ export interface ImportedFlightState {
   readonly sections: readonly ImportedCfgSection[]
 }
 
+export interface ImportedSoundDefinition {
+  readonly path: string
+  readonly url: string
+  readonly wwisePackages: readonly ImportedWwisePackage[]
+  readonly simVarSounds: readonly ImportedSimVarSound[]
+}
+
+export interface ImportedWwisePackage {
+  readonly name: string
+  readonly kind: 'main' | 'additional'
+  readonly packagePath?: string
+  readonly packageUrl?: string
+}
+
+export interface ImportedSoundRange {
+  readonly lowerBound: number | null
+  readonly upperBound: number | null
+}
+
+export interface ImportedSoundVariable {
+  readonly kind: 'simvar' | 'localvar'
+  readonly name: string
+  readonly unit: string | null
+  readonly index: number | null
+}
+
+export interface ImportedSimVarSound {
+  readonly id: string
+  readonly eventName: string
+  readonly nodeName: string | null
+  readonly viewpoint: string | null
+  readonly continuous: boolean
+  readonly variable: ImportedSoundVariable
+  readonly ranges: readonly ImportedSoundRange[]
+  readonly requires: readonly {
+    readonly variable: ImportedSoundVariable
+    readonly ranges: readonly ImportedSoundRange[]
+  }[]
+  readonly sourcePath: string
+}
+
 export interface ImportedAircraft {
   readonly id: string
   readonly title: string
@@ -102,6 +143,7 @@ export interface ImportedAircraft {
   readonly interiorModel: ImportedModelDefinition | null
   readonly cfgFiles: readonly ImportedCfgFile[]
   readonly previewFlightState: ImportedFlightState | null
+  readonly soundDefinition: ImportedSoundDefinition | null
 }
 
 export interface ImportedPackage {
