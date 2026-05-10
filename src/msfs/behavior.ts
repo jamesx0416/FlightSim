@@ -841,6 +841,15 @@ function expandTemplateUse(
   applyParameterBlocks(templateNode, 'default', templateParams, state.path, context.diagnostics)
   applyParameterBlocks(templateNode, 'override', templateParams, state.path, context.diagnostics)
 
+  for (const binding of collectInteractionInputEventBridgeBindings(
+    templateParams,
+    state.currentNode,
+    state.path,
+    context.diagnostics
+  )) {
+    pushUniqueInputEventBinding(inputEventBindings, binding)
+  }
+
   const leftSingleSource =
     templateParams.get('LEFT_SINGLE_CODE')?.trim() ||
     templateParams.get('LEFT_SINGLE_CODE_DEFAULT_IM')?.trim() ||
@@ -1295,7 +1304,7 @@ function getInteractionInputEventBridgeCodeSource(
   bridgeName: string,
   params: ReadonlyMap<string, string>
 ): string {
-  const inputEventSource = params.get('INPUT_EVENT_ID_SOURCE')?.trim() ?? ''
+  const inputEventSource = getInteractionInputEventSource(params)
   const inputEventName =
     params.get('IE_NAME')?.trim() ||
     params.get('BTN_ID')?.trim() ||
@@ -1335,7 +1344,7 @@ function collectInteractionInputEventBridgeBindings(
   sourcePath: string,
   diagnostics: ImportDiagnostic[]
 ): readonly CompiledInputEventBinding[] {
-  const inputEventSource = params.get('INPUT_EVENT_ID_SOURCE')?.trim() ?? ''
+  const inputEventSource = getInteractionInputEventSource(params)
   const inputEventName =
     params.get('IE_NAME')?.trim() ||
     params.get('BTN_ID')?.trim() ||
@@ -1477,13 +1486,21 @@ function getInteractionInputEventPresetNames(
 }
 
 function getInteractionInputEventNameFromPresetId(params: ReadonlyMap<string, string>): string {
-  const inputEventSource = params.get('INPUT_EVENT_ID_SOURCE')?.trim() ?? ''
+  const inputEventSource = getInteractionInputEventSource(params)
   const presetId = params.get('IE_PRESET_ID')?.trim() ?? ''
   if (!inputEventSource || !presetId.startsWith(`${inputEventSource}_`)) {
     return ''
   }
 
   return presetId.slice(inputEventSource.length + 1)
+}
+
+function getInteractionInputEventSource(params: ReadonlyMap<string, string>): string {
+  return (
+    params.get('INPUT_EVENT_ID_SOURCE')?.trim() ||
+    params.get('INPUT_EVENT_ID')?.trim() ||
+    ''
+  )
 }
 
 function findInteractionInputEventBinding(
