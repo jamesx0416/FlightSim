@@ -1255,6 +1255,18 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.values.set(generatorKey, currentValue > 0 ? 0 : 1)
       return
     }
+    if (this.applyApuKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyCabinKeyEvent(name)) {
+      return
+    }
+    if (this.applyRadioKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyPitotHeatKeyEvent(name, args)) {
+      return
+    }
     const alternatorToggleMatch = /^TOGGLE_ALTERNATOR(\d+)$/u.exec(name)
     if (alternatorToggleMatch != null) {
       const alternatorKey = normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR:${alternatorToggleMatch[1]}`)
@@ -1359,13 +1371,19 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     const lightSetMatch = /^(.+)_LIGHTS_SET$/u.exec(name)
     if (lightSetMatch != null) {
-      this.setLightSwitch(lightSetMatch[1], Number(args[0] ?? 0) > 0 ? 1 : 0)
+      this.setLightSwitch(lightSetMatch[1], Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
       return true
     }
 
     const lightOnOffMatch = /^(.+)_LIGHTS_(ON|OFF)$/u.exec(name)
     if (lightOnOffMatch != null) {
       this.setLightSwitch(lightOnOffMatch[1], lightOnOffMatch[2] === 'ON' ? 1 : 0)
+      return true
+    }
+
+    const directLightOnOffMatch = /^(STROBES|BEACON|NAV|LOGO|LANDING|TAXI|WING|CABIN|PANEL)_(ON|OFF)$/u.exec(name)
+    if (directLightOnOffMatch != null) {
+      this.setLightSwitch(directLightOnOffMatch[1], directLightOnOffMatch[2] === 'ON' ? 1 : 0)
       return true
     }
 
@@ -1378,6 +1396,95 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     return false
+  }
+
+  private applyApuKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'APU_BLEED_AIR_SOURCE_SET') {
+      const value = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      this.values.set(normalizeRuntimeVariableKey('A:BLEED AIR APU'), value)
+      this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_PNEU_APU_BLEED_PB_IS_ON'), value)
+      return true
+    }
+    if (name === 'APU_BLEED_AIR_SOURCE_TOGGLE') {
+      const key = normalizeRuntimeVariableKey('A:BLEED AIR APU')
+      const value = (this.values.get(key) ?? 0) > 0 ? 0 : 1
+      this.values.set(key, value)
+      this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_PNEU_APU_BLEED_PB_IS_ON'), value)
+      return true
+    }
+    if (name === 'APU_STARTER') {
+      this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), 1)
+      this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 100)
+      this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_ON'), 1)
+      this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_AVAILABLE'), 1)
+      return true
+    }
+    if (name === 'APU_OFF_SWITCH') {
+      this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), 0)
+      this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 0)
+      this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_ON'), 0)
+      this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_AVAILABLE'), 0)
+      return true
+    }
+    return false
+  }
+
+  private applyCabinKeyEvent(name: string): boolean {
+    if (name === 'CABIN_SEATBELTS_ALERT_SWITCH_TOGGLE') {
+      this.toggleNamedBoolVariables('A:CABIN SEATBELTS ALERT SWITCH', 'A:CABIN SEATBELTS ALERT SWITCH:1')
+      return true
+    }
+    if (name === 'CABIN_NO_SMOKING_ALERT_SWITCH_TOGGLE') {
+      this.toggleNamedBoolVariables('A:CABIN NO SMOKING ALERT SWITCH', 'A:CABIN NO SMOKING ALERT SWITCH:1')
+      return true
+    }
+    return false
+  }
+
+  private applyRadioKeyEvent(name: string, args: readonly number[]): boolean {
+    if (name === 'COM_RECEIVE_ALL_SET') {
+      const value = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      for (let index = 1; index <= 3; index += 1) {
+        this.values.set(normalizeRuntimeVariableKey(`A:COM RECEIVE:${index}`), value)
+      }
+      return true
+    }
+
+    const comReceiveMatch = /^COM(\d*)_RECEIVE_SELECT$/u.exec(name)
+    if (comReceiveMatch != null) {
+      const index = comReceiveMatch[1] === '' ? 1 : Number.parseInt(comReceiveMatch[1], 10)
+      const key = normalizeRuntimeVariableKey(`A:COM RECEIVE:${index}`)
+      const rawValue = Number(args.at(-1) ?? Number.NaN)
+      const nextValue = Number.isFinite(rawValue) ? (rawValue > 0 ? 1 : 0) : (this.values.get(key) ?? 0) > 0 ? 0 : 1
+      this.values.set(key, nextValue)
+      return true
+    }
+
+    return false
+  }
+
+  private applyPitotHeatKeyEvent(name: string, args: readonly number[]): boolean {
+    const pitotMatch = /^PITOT_HEAT_(ON|OFF|TOGGLE)$/u.exec(name)
+    if (pitotMatch == null) {
+      return false
+    }
+    const index = Math.trunc(Number(args[0] ?? 1))
+    const key = normalizeRuntimeVariableKey(Number.isFinite(index) ? `A:PITOT HEAT SWITCH:${index}` : 'A:PITOT HEAT')
+    const nextValue =
+      pitotMatch[1] === 'TOGGLE'
+        ? (this.values.get(key) ?? 0) > 0 ? 0 : 1
+        : pitotMatch[1] === 'ON' ? 1 : 0
+    this.values.set(key, nextValue)
+    this.values.set(normalizeRuntimeVariableKey('A:PITOT HEAT'), nextValue)
+    return true
+  }
+
+  private toggleNamedBoolVariables(...keys: readonly string[]): void {
+    const normalizedKeys = keys.map(key => normalizeRuntimeVariableKey(key))
+    const nextValue = (this.values.get(normalizedKeys[0] ?? '') ?? 0) > 0 ? 0 : 1
+    for (const key of normalizedKeys) {
+      this.values.set(key, nextValue)
+    }
   }
 
   private setLightPotentiometer(index: number, value: number): void {
@@ -1682,7 +1789,20 @@ function normalizeKeyEventName(name: string): string {
 }
 
 function getLightSwitchVariableKey(type: string): string {
-  return normalizeRuntimeVariableKey(`A:LIGHT ${type.replace(/_/gu, ' ')}`)
+  const normalizedType = type.replace(/_/gu, ' ').trim().toUpperCase()
+  const simvarType =
+    normalizedType === 'STROBES' ? 'STROBE'
+      : normalizedType === 'NAV' ? 'NAV'
+        : normalizedType === 'LOGO' ? 'LOGO'
+          : normalizedType === 'LANDING' ? 'LANDING'
+            : normalizedType === 'TAXI' ? 'TAXI'
+              : normalizedType === 'CABIN' ? 'CABIN'
+                : normalizedType === 'PANEL' ? 'PANEL'
+                  : normalizedType === 'BEACON' ? 'BEACON'
+                    : normalizedType === 'WING' ? 'WING'
+                      : normalizedType === 'RECOGNITION' ? 'RECOGNITION'
+                        : normalizedType.endsWith('S') ? normalizedType.slice(0, -1) : normalizedType
+  return normalizeRuntimeVariableKey(`A:LIGHT ${simvarType}`)
 }
 
 function clamp01(value: number): number {
