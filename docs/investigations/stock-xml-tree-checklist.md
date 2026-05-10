@@ -8226,12 +8226,12 @@
           - [ ] `<Case Valid="MAGNETO_ID">` line 491
             - [ ] `<Preset ID="ENGINE_Magneto_#IE_MAGNETO_ID#">` line 492
               - [ ] `<Parameters Type="Default">` line 493
-                - [ ] `<SET_MAGNETO>` line 494
-                - [ ] `<GET_MAGNETO>` line 495
+                - [x] `<SET_MAGNETO>` line 494
+                - [x] `<GET_MAGNETO>` line 495
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 499
               - [ ] `<Parameters Type="Default">` line 501
-                - [ ] `<IS_STARTER_ON>` line 502
-                - [ ] `<SET_STARTER>` line 503
+                - [x] `<IS_STARTER_ON>` line 502
+                - [x] `<SET_STARTER>` line 503
                 - [ ] `<Switch Param="TYPE">` line 504
                   - [ ] `<Case Value="ON_OFF">` line 505
                     - [ ] `<STATE_OFF>` line 506
@@ -8300,31 +8300,31 @@
                 - [ ] `<Switch Param="TYPE">` line 608
                   - [ ] `<Case Value="ON_OFF">` line 609
                   - [ ] `<Case Value="OFF_ON_START">` line 610
-                    - [ ] `<SET_STATE_START>` line 611
+                    - [x] `<SET_STATE_START>` line 611
                     - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 612 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) #STATE_START# != #IS_STARTER_ON# and if{ 0 #SET_STARTER...`
                   - [ ] `<Case Value="OFF_L_R_BOTH">` line 614
-                    - [ ] `<SET_STATE_OFF>` line 615
-                    - [ ] `<SET_STATE_L>` line 616
-                    - [ ] `<SET_STATE_R>` line 617
+                    - [x] `<SET_STATE_OFF>` line 615
+                    - [x] `<SET_STATE_L>` line 616
+                    - [x] `<SET_STATE_R>` line 617
                     - [ ] `<Condition Valid="BOTH_INCLUDES_STARTER">` line 618
                       - [ ] `<True>` line 619
-                        - [ ] `<SET_STATE_BOTH>` line 620
+                        - [x] `<SET_STATE_BOTH>` line 620
                         - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 621 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) #STATE_BOTH# != #IS_STARTER_ON# and if{ 0 #SET_STARTER#...`
                       - [ ] `<False>` line 623
-                        - [ ] `<SET_STATE_BOTH>` line 624
+                        - [x] `<SET_STATE_BOTH>` line 624
                   - [ ] `<Case Value="OFF_L_R_BOTH_START">` line 628
-                    - [ ] `<SET_STATE_OFF>` line 629
-                    - [ ] `<SET_STATE_L>` line 630
-                    - [ ] `<SET_STATE_R>` line 631
-                    - [ ] `<SET_STATE_BOTH>` line 632
-                    - [ ] `<SET_STATE_START>` line 633
+                    - [x] `<SET_STATE_OFF>` line 629
+                    - [x] `<SET_STATE_L>` line 630
+                    - [x] `<SET_STATE_R>` line 631
+                    - [x] `<SET_STATE_BOTH>` line 632
+                    - [x] `<SET_STATE_START>` line 633
                     - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 634 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) #STATE_START# != #IS_STARTER_ON# and if{ 0 #SET_STARTER...`
               - [ ] `<Parameters Type="Override">` line 638
                 - [ ] `<Switch Param="TYPE">` line 639
                   - [ ] `<Case Value="ON_OFF">` line 640
                     - [ ] `<ON_STATE_CHANGED>` line 641
                     - [ ] `<ON_INIT>` line 648
-                    - [ ] `<TT_VALUE>` line 653 = `#GET_MAGNETO# #IS_MAGNETO_ON# @TT_OnOff_Cond`
+                    - [x] `<TT_VALUE>` line 653 = `#GET_MAGNETO# #IS_MAGNETO_ON# @TT_OnOff_Cond`
                   - [ ] `<Case Value="OFF_ON_START">` line 655
                     - [ ] `<ON_STATE_CHANGED>` line 656
                     - [ ] `<ON_INIT>` line 663
@@ -8349,9 +8349,9 @@
                 - [ ] `<Init>` line 743
                 - [ ] `<WatchVars>` line 744
                   - [ ] `<Condition NotEmpty="STATE_START">` line 745
-                    - [ ] `<Simvar ID="GENERAL ENG STARTER:#MAGNETO_ID#">` line 746
-                  - [ ] `<Simvar ID="RECIP ENG LEFT MAGNETO:#MAGNETO_ID#">` line 748
-                  - [ ] `<Simvar ID="RECIP ENG RIGHT MAGNETO:#MAGNETO_ID#">` line 749
+                    - [x] `<Simvar ID="GENERAL ENG STARTER:#MAGNETO_ID#">` line 746
+                  - [x] `<Simvar ID="RECIP ENG LEFT MAGNETO:#MAGNETO_ID#">` line 748
+                  - [x] `<Simvar ID="RECIP ENG RIGHT MAGNETO:#MAGNETO_ID#">` line 749
               - [ ] `<Inc>` line 752
                 - [ ] `<Code>` line 753 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) p0 + (>B:ENGINE_Magneto_#IE_MAGNETO_ID#_Set)`
                 - [ ] `<Parameters>` line 754
@@ -16469,15 +16469,15 @@
                 - [ ] `<STR_STATE_#POS_ON#>` line 1016
                 - [ ] `<STR_STATE_#POS_OFF#>` line 1017
                 - [ ] `<STR_STATE_#POS_ABORT#>` line 1018
-                - [ ] `<SET_STATE_#POS_ON#>` line 1019
-                - [ ] `<SET_STATE_#POS_OFF#>` line 1020
-                - [ ] `<SET_STATE_#POS_ABORT#>` line 1021
+                - [x] `<SET_STATE_#POS_ON#>` line 1019
+                - [x] `<SET_STATE_#POS_OFF#>` line 1020
+                - [x] `<SET_STATE_#POS_ABORT#>` line 1021
                 - [ ] `<TT_VALUE_#POS_ON#>` line 1022
                 - [ ] `<TT_VALUE_#POS_OFF#>` line 1023
                 - [ ] `<TT_VALUE_#POS_ABORT#>` line 1024
-                - [ ] `<GET_STATE_EXTERNAL>` line 1025
+                - [x] `<GET_STATE_EXTERNAL>` line 1025
                 - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 1026
-                - [ ] `<SIMVAR_TO_WATCH_0>` line 1027
+                - [x] `<SIMVAR_TO_WATCH_0>` line 1027
               - [ ] `<Case Value="AS04F">` line 1029
                 - [ ] `<TEMPLATE_TO_CALL>` line 1030
                 - [ ] `<STARTER_TYPE>` line 1031
@@ -16713,7 +16713,7 @@
                   - [ ] `<COVER_VAR_NAME>` line 1367 = `XMLVAR_ENGINE_Magneto_#MAGNETO_ID#_#MAGNETO_SIDE#_Cover_Opened`
                   - [ ] `<COVER_VAR_TYPE>` line 1368
                   - [ ] `<SWITCH_ANIM_CODE>` line 1371 = `(A:RECIP ENG #MAGNETO_SIDE# MAGNETO:#IE_MAGNETO_ID#, Number) 100 *`
-                  - [ ] `<TOGGLE_STATE>` line 1372
+                  - [x] `<TOGGLE_STATE>` line 1372
               - [ ] `<False>` line 1383
                 - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 1384
                   - [ ] `<LEFT_SINGLE_CODE>` line 1385 = `(>B:ENGINE_Magneto_#IE_MAGNETO_ID#_Toggle)`
@@ -16800,10 +16800,10 @@
       - [ ] `<Parameters Type="Default">` line 1500
         - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 1501
           - [ ] `<True>` line 1502
-            - [ ] `<SET_STARTER>` line 1503
-            - [ ] `<SET_MASTER>` line 1504
+            - [x] `<SET_STARTER>` line 1503
+            - [x] `<SET_MASTER>` line 1504
           - [ ] `<False>` line 1506
-            - [ ] `<SET_MASTER>` line 1507
+            - [x] `<SET_MASTER>` line 1507
       - [ ] `<UseTemplate Name="ASOBO_ENGINE_Base_Template">` line 1511
         - [ ] `<IE_NAME>` line 1512 = `Master_#ID#`
         - [ ] `<Switch Param="TYPE">` line 1513
@@ -16921,17 +16921,17 @@
               - [ ] `<BTN_ID>` line 1672 = `#IE_NAME_BASE#`
               - [ ] `<TT_ICON>` line 1673
               - [ ] `<ANIM>` line 1674 = `EXTERNAL`
-              - [ ] `<SET_STATE_EXTERNAL>` line 1675
+              - [x] `<SET_STATE_EXTERNAL>` line 1675
               - [ ] `<BINDING_SET_0>` line 1676
               - [ ] `<BINDING_SET_0_PARAM_0>` line 1677
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 1678
-              - [ ] `<TT_VALUE>` line 1679 = `(A:RECIP ENG PRIMER:#ID#, percent) '%d%%' @sprintf`
+              - [x] `<TT_VALUE>` line 1679 = `(A:RECIP ENG PRIMER:#ID#, percent) '%d%%' @sprintf`
               - [ ] `<TT_VALUE_IS_DYNAMIC>` line 1680
             - [ ] `<UseInputEvent ID="ENGINE">` line 1682
               - [ ] `<BTN_ID>` line 1683 = `#IE_NAME_BASE#_Lock`
               - [ ] `<TT_ICON>` line 1684
               - [ ] `<ANIM>` line 1685 = `EXTERNAL`
-              - [ ] `<SET_STATE_EXTERNAL>` line 1686
+              - [x] `<SET_STATE_EXTERNAL>` line 1686
               - [ ] `<BINDING_SET_0>` line 1687
               - [ ] `<BINDING_SET_0_PARAM_0>` line 1688
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 1689
@@ -17335,12 +17335,12 @@
             - [ ] `<IE_NAME>` line 2294 = `hydraulic_pump_#ID#`
             - [ ] `<INTERACTION_TYPE>` line 2295
             - [ ] `<IS_AIRLINER>` line 2296
-            - [ ] `<SET_STATE_EXTERNAL>` line 2297
-            - [ ] `<GET_STATE_EXTERNAL>` line 2298
-            - [ ] `<SIMVAR_TO_WATCH_0>` line 2299
-            - [ ] `<SEQ1_EMISSIVE_CODE>` line 2300 = `(A:HYDRAULIC SWITCH:#ID#, Bool)`
-            - [ ] `<SEQ2_EMISSIVE_CODE>` line 2301 = `(A:HYDRAULIC PRESSURE:#ID#, psi) #PRESS_WARNING_THRESHOLD_PSI# (A:HYDRAULIC RESERVOIR PERCENT:#ID#,...`
-            - [ ] `<TT_VALUE>` line 2302 = `(A:HYDRAULIC SWITCH:#ID#,Bool) @TT_OnOff_Cond`
+            - [x] `<SET_STATE_EXTERNAL>` line 2297
+            - [x] `<GET_STATE_EXTERNAL>` line 2298
+            - [x] `<SIMVAR_TO_WATCH_0>` line 2299
+            - [x] `<SEQ1_EMISSIVE_CODE>` line 2300 = `(A:HYDRAULIC SWITCH:#ID#, Bool)`
+            - [x] `<SEQ2_EMISSIVE_CODE>` line 2301 = `(A:HYDRAULIC PRESSURE:#ID#, psi) #PRESS_WARNING_THRESHOLD_PSI# (A:HYDRAULIC RESERVOIR PERCENT:#ID#,...`
+            - [x] `<TT_VALUE>` line 2302 = `(A:HYDRAULIC SWITCH:#ID#,Bool) @TT_OnOff_Cond`
             - [ ] `<TT_VALUE_IS_DYNAMIC>` line 2303
     - [ ] `<Template Name="ASOBO_ENGINE_CoolingFlaps_SubTemplate">` line 2311
       - [ ] `<Parameters Type="Default">` line 2312
@@ -17512,10 +17512,10 @@
           - [ ] `<LEFT_SINGLE_CODE>` line 2532 = `(>B:ENGINE_ADI_Toggle)`
           - [ ] `<ANIM_CODE>` line 2533 = `(B:ENGINE_ADI) 100 *`
         - [ ] `<UseInputEvent ID="ENGINE">` line 2536
-          - [ ] `<SET_STATE_ON>` line 2537
-          - [ ] `<SET_STATE_OFF>` line 2538
-          - [ ] `<GET_STATE_EXTERNAL>` line 2539
-          - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 2540
+          - [x] `<SET_STATE_ON>` line 2537
+          - [x] `<SET_STATE_OFF>` line 2538
+          - [x] `<GET_STATE_EXTERNAL>` line 2539
+          - [x] `<SIM_STATE_IS_ON_EXTERNAL>` line 2540
         - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 2542
     - [ ] `<Template Name="ASOBO_ENGINE_War_Emergency_Power_SubTemplate">` line 2547
       - [ ] `<Parameters Type="Default">` line 2548
@@ -17526,12 +17526,12 @@
         - [ ] `<TOOLTIP_TITLE>` line 2554
         - [ ] `<TT_DESCRIPTION_ID>` line 2555 = `@TT_Package.NITRO_ACTION`
       - [ ] `<Parameters Type="Override">` line 2557
-        - [ ] `<GET_SIMVAR>` line 2558 = `(A:RECIP ENG EMERGENCY BOOST ACTIVE:#ID#, Bool)`
-        - [ ] `<TOGGLE_SIMVAR>` line 2559 = `(>K:WAR_EMERGENCY_POWER)`
+        - [x] `<GET_SIMVAR>` line 2558 = `(A:RECIP ENG EMERGENCY BOOST ACTIVE:#ID#, Bool)`
+        - [x] `<TOGGLE_SIMVAR>` line 2559 = `(>K:WAR_EMERGENCY_POWER)`
         - [ ] `<BINDING_SET_0>` line 2560
         - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 2561
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 2562 = `WAR_EMERGENCY_POWER`
-        - [ ] `<SIMVAR_TO_WATCH_0>` line 2563
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 2562 = `WAR_EMERGENCY_POWER`
+        - [x] `<SIMVAR_TO_WATCH_0>` line 2563
       - [ ] `<UseTemplate Name="ASOBO_ENGINE_Base_Template">` line 2565
         - [ ] `<IE_NAME>` line 2566 = `War_Emergency_Power`
         - [ ] `<SET_STATE_EXTERNAL>` line 2567
@@ -46896,12 +46896,12 @@
           - [ ] `<Case Valid="MAGNETO_ID">` line 491
             - [ ] `<Preset ID="ENGINE_Magneto_#IE_MAGNETO_ID#">` line 492
               - [ ] `<Parameters Type="Default">` line 493
-                - [ ] `<SET_MAGNETO>` line 494
-                - [ ] `<GET_MAGNETO>` line 495
+                - [x] `<SET_MAGNETO>` line 494
+                - [x] `<GET_MAGNETO>` line 495
                 - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 499
               - [ ] `<Parameters Type="Default">` line 501
-                - [ ] `<IS_STARTER_ON>` line 502
-                - [ ] `<SET_STARTER>` line 503
+                - [x] `<IS_STARTER_ON>` line 502
+                - [x] `<SET_STARTER>` line 503
                 - [ ] `<Switch Param="TYPE">` line 504
                   - [ ] `<Case Value="ON_OFF">` line 505
                     - [ ] `<STATE_OFF>` line 506
@@ -46970,31 +46970,31 @@
                 - [ ] `<Switch Param="TYPE">` line 608
                   - [ ] `<Case Value="ON_OFF">` line 609
                   - [ ] `<Case Value="OFF_ON_START">` line 610
-                    - [ ] `<SET_STATE_START>` line 611
+                    - [x] `<SET_STATE_START>` line 611
                     - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 612 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) #STATE_START# != #IS_STARTER_ON# and if{ 0 #SET_STARTER...`
                   - [ ] `<Case Value="OFF_L_R_BOTH">` line 614
-                    - [ ] `<SET_STATE_OFF>` line 615
-                    - [ ] `<SET_STATE_L>` line 616
-                    - [ ] `<SET_STATE_R>` line 617
+                    - [x] `<SET_STATE_OFF>` line 615
+                    - [x] `<SET_STATE_L>` line 616
+                    - [x] `<SET_STATE_R>` line 617
                     - [ ] `<Condition Valid="BOTH_INCLUDES_STARTER">` line 618
                       - [ ] `<True>` line 619
-                        - [ ] `<SET_STATE_BOTH>` line 620
+                        - [x] `<SET_STATE_BOTH>` line 620
                         - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 621 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) #STATE_BOTH# != #IS_STARTER_ON# and if{ 0 #SET_STARTER#...`
                       - [ ] `<False>` line 623
-                        - [ ] `<SET_STATE_BOTH>` line 624
+                        - [x] `<SET_STATE_BOTH>` line 624
                   - [ ] `<Case Value="OFF_L_R_BOTH_START">` line 628
-                    - [ ] `<SET_STATE_OFF>` line 629
-                    - [ ] `<SET_STATE_L>` line 630
-                    - [ ] `<SET_STATE_R>` line 631
-                    - [ ] `<SET_STATE_BOTH>` line 632
-                    - [ ] `<SET_STATE_START>` line 633
+                    - [x] `<SET_STATE_OFF>` line 629
+                    - [x] `<SET_STATE_L>` line 630
+                    - [x] `<SET_STATE_R>` line 631
+                    - [x] `<SET_STATE_BOTH>` line 632
+                    - [x] `<SET_STATE_START>` line 633
                     - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 634 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) #STATE_START# != #IS_STARTER_ON# and if{ 0 #SET_STARTER...`
               - [ ] `<Parameters Type="Override">` line 638
                 - [ ] `<Switch Param="TYPE">` line 639
                   - [ ] `<Case Value="ON_OFF">` line 640
                     - [ ] `<ON_STATE_CHANGED>` line 641
                     - [ ] `<ON_INIT>` line 648
-                    - [ ] `<TT_VALUE>` line 653 = `#GET_MAGNETO# #IS_MAGNETO_ON# @TT_OnOff_Cond`
+                    - [x] `<TT_VALUE>` line 653 = `#GET_MAGNETO# #IS_MAGNETO_ON# @TT_OnOff_Cond`
                   - [ ] `<Case Value="OFF_ON_START">` line 655
                     - [ ] `<ON_STATE_CHANGED>` line 656
                     - [ ] `<ON_INIT>` line 663
@@ -47019,9 +47019,9 @@
                 - [ ] `<Init>` line 743
                 - [ ] `<WatchVars>` line 744
                   - [ ] `<Condition NotEmpty="STATE_START">` line 745
-                    - [ ] `<Simvar ID="GENERAL ENG STARTER:#MAGNETO_ID#">` line 746
-                  - [ ] `<Simvar ID="RECIP ENG LEFT MAGNETO:#MAGNETO_ID#">` line 748
-                  - [ ] `<Simvar ID="RECIP ENG RIGHT MAGNETO:#MAGNETO_ID#">` line 749
+                    - [x] `<Simvar ID="GENERAL ENG STARTER:#MAGNETO_ID#">` line 746
+                  - [x] `<Simvar ID="RECIP ENG LEFT MAGNETO:#MAGNETO_ID#">` line 748
+                  - [x] `<Simvar ID="RECIP ENG RIGHT MAGNETO:#MAGNETO_ID#">` line 749
               - [ ] `<Inc>` line 752
                 - [ ] `<Code>` line 753 = `(O:ENGINE_Magneto_#IE_MAGNETO_ID#_Position) p0 + (>B:ENGINE_Magneto_#IE_MAGNETO_ID#_Set)`
                 - [ ] `<Parameters>` line 754
@@ -55139,15 +55139,15 @@
                 - [ ] `<STR_STATE_#POS_ON#>` line 1016
                 - [ ] `<STR_STATE_#POS_OFF#>` line 1017
                 - [ ] `<STR_STATE_#POS_ABORT#>` line 1018
-                - [ ] `<SET_STATE_#POS_ON#>` line 1019
-                - [ ] `<SET_STATE_#POS_OFF#>` line 1020
-                - [ ] `<SET_STATE_#POS_ABORT#>` line 1021
+                - [x] `<SET_STATE_#POS_ON#>` line 1019
+                - [x] `<SET_STATE_#POS_OFF#>` line 1020
+                - [x] `<SET_STATE_#POS_ABORT#>` line 1021
                 - [ ] `<TT_VALUE_#POS_ON#>` line 1022
                 - [ ] `<TT_VALUE_#POS_OFF#>` line 1023
                 - [ ] `<TT_VALUE_#POS_ABORT#>` line 1024
-                - [ ] `<GET_STATE_EXTERNAL>` line 1025
+                - [x] `<GET_STATE_EXTERNAL>` line 1025
                 - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 1026
-                - [ ] `<SIMVAR_TO_WATCH_0>` line 1027
+                - [x] `<SIMVAR_TO_WATCH_0>` line 1027
               - [ ] `<Case Value="AS04F">` line 1029
                 - [ ] `<TEMPLATE_TO_CALL>` line 1030
                 - [ ] `<STARTER_TYPE>` line 1031
@@ -55383,7 +55383,7 @@
                   - [ ] `<COVER_VAR_NAME>` line 1367 = `XMLVAR_ENGINE_Magneto_#MAGNETO_ID#_#MAGNETO_SIDE#_Cover_Opened`
                   - [ ] `<COVER_VAR_TYPE>` line 1368
                   - [ ] `<SWITCH_ANIM_CODE>` line 1371 = `(A:RECIP ENG #MAGNETO_SIDE# MAGNETO:#IE_MAGNETO_ID#, Number) 100 *`
-                  - [ ] `<TOGGLE_STATE>` line 1372
+                  - [x] `<TOGGLE_STATE>` line 1372
               - [ ] `<False>` line 1383
                 - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 1384
                   - [ ] `<LEFT_SINGLE_CODE>` line 1385 = `(>B:ENGINE_Magneto_#IE_MAGNETO_ID#_Toggle)`
@@ -55470,10 +55470,10 @@
       - [ ] `<Parameters Type="Default">` line 1500
         - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 1501
           - [ ] `<True>` line 1502
-            - [ ] `<SET_STARTER>` line 1503
-            - [ ] `<SET_MASTER>` line 1504
+            - [x] `<SET_STARTER>` line 1503
+            - [x] `<SET_MASTER>` line 1504
           - [ ] `<False>` line 1506
-            - [ ] `<SET_MASTER>` line 1507
+            - [x] `<SET_MASTER>` line 1507
       - [ ] `<UseTemplate Name="ASOBO_ENGINE_Base_Template">` line 1511
         - [ ] `<IE_NAME>` line 1512 = `Master_#ID#`
         - [ ] `<Switch Param="TYPE">` line 1513
@@ -55591,17 +55591,17 @@
               - [ ] `<BTN_ID>` line 1672 = `#IE_NAME_BASE#`
               - [ ] `<TT_ICON>` line 1673
               - [ ] `<ANIM>` line 1674 = `EXTERNAL`
-              - [ ] `<SET_STATE_EXTERNAL>` line 1675
+              - [x] `<SET_STATE_EXTERNAL>` line 1675
               - [ ] `<BINDING_SET_0>` line 1676
               - [ ] `<BINDING_SET_0_PARAM_0>` line 1677
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 1678
-              - [ ] `<TT_VALUE>` line 1679 = `(A:RECIP ENG PRIMER:#ID#, percent) '%d%%' @sprintf`
+              - [x] `<TT_VALUE>` line 1679 = `(A:RECIP ENG PRIMER:#ID#, percent) '%d%%' @sprintf`
               - [ ] `<TT_VALUE_IS_DYNAMIC>` line 1680
             - [ ] `<UseInputEvent ID="ENGINE">` line 1682
               - [ ] `<BTN_ID>` line 1683 = `#IE_NAME_BASE#_Lock`
               - [ ] `<TT_ICON>` line 1684
               - [ ] `<ANIM>` line 1685 = `EXTERNAL`
-              - [ ] `<SET_STATE_EXTERNAL>` line 1686
+              - [x] `<SET_STATE_EXTERNAL>` line 1686
               - [ ] `<BINDING_SET_0>` line 1687
               - [ ] `<BINDING_SET_0_PARAM_0>` line 1688
               - [ ] `<BINDING_SET_0_PARAM_0_IS_DYNAMIC>` line 1689
@@ -56005,12 +56005,12 @@
             - [ ] `<IE_NAME>` line 2294 = `hydraulic_pump_#ID#`
             - [ ] `<INTERACTION_TYPE>` line 2295
             - [ ] `<IS_AIRLINER>` line 2296
-            - [ ] `<SET_STATE_EXTERNAL>` line 2297
-            - [ ] `<GET_STATE_EXTERNAL>` line 2298
-            - [ ] `<SIMVAR_TO_WATCH_0>` line 2299
-            - [ ] `<SEQ1_EMISSIVE_CODE>` line 2300 = `(A:HYDRAULIC SWITCH:#ID#, Bool)`
-            - [ ] `<SEQ2_EMISSIVE_CODE>` line 2301 = `(A:HYDRAULIC PRESSURE:#ID#, psi) #PRESS_WARNING_THRESHOLD_PSI# (A:HYDRAULIC RESERVOIR PERCENT:#ID#,...`
-            - [ ] `<TT_VALUE>` line 2302 = `(A:HYDRAULIC SWITCH:#ID#,Bool) @TT_OnOff_Cond`
+            - [x] `<SET_STATE_EXTERNAL>` line 2297
+            - [x] `<GET_STATE_EXTERNAL>` line 2298
+            - [x] `<SIMVAR_TO_WATCH_0>` line 2299
+            - [x] `<SEQ1_EMISSIVE_CODE>` line 2300 = `(A:HYDRAULIC SWITCH:#ID#, Bool)`
+            - [x] `<SEQ2_EMISSIVE_CODE>` line 2301 = `(A:HYDRAULIC PRESSURE:#ID#, psi) #PRESS_WARNING_THRESHOLD_PSI# (A:HYDRAULIC RESERVOIR PERCENT:#ID#,...`
+            - [x] `<TT_VALUE>` line 2302 = `(A:HYDRAULIC SWITCH:#ID#,Bool) @TT_OnOff_Cond`
             - [ ] `<TT_VALUE_IS_DYNAMIC>` line 2303
     - [ ] `<Template Name="ASOBO_ENGINE_CoolingFlaps_SubTemplate">` line 2311
       - [ ] `<Parameters Type="Default">` line 2312
@@ -56182,10 +56182,10 @@
           - [ ] `<LEFT_SINGLE_CODE>` line 2532 = `(>B:ENGINE_ADI_Toggle)`
           - [ ] `<ANIM_CODE>` line 2533 = `(B:ENGINE_ADI) 100 *`
         - [ ] `<UseInputEvent ID="ENGINE">` line 2536
-          - [ ] `<SET_STATE_ON>` line 2537
-          - [ ] `<SET_STATE_OFF>` line 2538
-          - [ ] `<GET_STATE_EXTERNAL>` line 2539
-          - [ ] `<SIM_STATE_IS_ON_EXTERNAL>` line 2540
+          - [x] `<SET_STATE_ON>` line 2537
+          - [x] `<SET_STATE_OFF>` line 2538
+          - [x] `<GET_STATE_EXTERNAL>` line 2539
+          - [x] `<SIM_STATE_IS_ON_EXTERNAL>` line 2540
         - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 2542
     - [ ] `<Template Name="ASOBO_ENGINE_War_Emergency_Power_SubTemplate">` line 2547
       - [ ] `<Parameters Type="Default">` line 2548
@@ -56196,12 +56196,12 @@
         - [ ] `<TOOLTIP_TITLE>` line 2554
         - [ ] `<TT_DESCRIPTION_ID>` line 2555 = `@TT_Package.NITRO_ACTION`
       - [ ] `<Parameters Type="Override">` line 2557
-        - [ ] `<GET_SIMVAR>` line 2558 = `(A:RECIP ENG EMERGENCY BOOST ACTIVE:#ID#, Bool)`
-        - [ ] `<TOGGLE_SIMVAR>` line 2559 = `(>K:WAR_EMERGENCY_POWER)`
+        - [x] `<GET_SIMVAR>` line 2558 = `(A:RECIP ENG EMERGENCY BOOST ACTIVE:#ID#, Bool)`
+        - [x] `<TOGGLE_SIMVAR>` line 2559 = `(>K:WAR_EMERGENCY_POWER)`
         - [ ] `<BINDING_SET_0>` line 2560
         - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 2561
-        - [ ] `<BINDING_SET_0_EVENT_ID>` line 2562 = `WAR_EMERGENCY_POWER`
-        - [ ] `<SIMVAR_TO_WATCH_0>` line 2563
+        - [x] `<BINDING_SET_0_EVENT_ID>` line 2562 = `WAR_EMERGENCY_POWER`
+        - [x] `<SIMVAR_TO_WATCH_0>` line 2563
       - [ ] `<UseTemplate Name="ASOBO_ENGINE_Base_Template">` line 2565
         - [ ] `<IE_NAME>` line 2566 = `War_Emergency_Power`
         - [ ] `<SET_STATE_EXTERNAL>` line 2567
