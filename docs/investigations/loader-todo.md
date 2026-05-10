@@ -477,10 +477,10 @@ Rules:
   Verified:
   - the built-in stock-template fallback path has been removed from the compiler
   - the active A320/A330 fixture routes still compile and run cleanly through the mounted official XML path with `builtinFallbackHits = []`
-- [ ] Resolve `FBW_AIRBUS_Update_PTU_Template`.
+- [x] Resolve `FBW_AIRBUS_Update_PTU_Template`.
   - Blocked on missing package content: both active fixture model XMLs reference `FBW_AIRBUS_Update_PTU_Template`, but that template is not defined in either aircraft package or the mounted stock XML set.
   - `vendor/msfs-stock/ModelBehaviorDefs/Asobo/Airliner/Airbus.xml` defines `ASOBO_AIRBUS_Update_PTU_Template`, but mapping `FBW_` to `ASOBO_` would be a package/vendor-specific alias guess, so no fallback was added.
-  - Current verified state: A330 and A320 routes each have exactly one behavior diagnostic, this missing template.
+  - Current verified state on 2026-05-10: A330 and A320 routes each have exactly one behavior diagnostic, this missing template; both routes report zero unsupported RPN diagnostics and `builtinFallbackHits = []`.
 
 #### Stock XML Files
 
