@@ -3631,7 +3631,6 @@ function handleVCockpitGaugeRuntimeRequest(
   runtimeHost: SharedMsfsRuntimeHost
 ): VCockpitGaugeRuntimeResponse {
   try {
-    runtimeHost.invokeBridgeCall(request.op)
     if (request.op === 'readVariable') {
       return {
         type: 'msfs-vcockpit-runtime-response',
