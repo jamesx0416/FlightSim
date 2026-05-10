@@ -9235,12 +9235,12 @@
                     - [ ] `<Binding>` line 361
                       - [ ] `<Param>` line 362 = `#STATE_ON#`
                     - [ ] `<Binding>` line 364
-                      - [ ] `<Param>` line 365 = `p1 #PUMP_ID# == if{ #STATE_ON# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
+                      - [x] `<Param>` line 365 = `p1 #PUMP_ID# == if{ #STATE_ON# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
                   - [ ] `<Condition Check="STATE_OFF">` line 368
                     - [ ] `<Binding>` line 369
                       - [ ] `<Param>` line 370 = `#STATE_OFF#`
                     - [ ] `<Binding>` line 372
-                      - [ ] `<Param>` line 373 = `p1 #PUMP_ID# == if{ #STATE_OFF# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
+                      - [x] `<Param>` line 373 = `p1 #PUMP_ID# == if{ #STATE_OFF# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
                   - [ ] `<Condition Check="STATE_AUTO">` line 376
                     - [ ] `<Binding>` line 377
                       - [ ] `<Param>` line 378 = `#STATE_AUTO#`
@@ -9261,60 +9261,60 @@
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 403
                         - [ ] `<True>` line 404
                           - [ ] `<Binding>` line 405
-                            - [ ] `<Param>` line 406 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ? } e...`
+                            - [x] `<Param>` line 406 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ? } e...`
                           - [ ] `<Binding>` line 408
-                            - [ ] `<Param>` line 409 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
+                            - [x] `<Param>` line 409 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
                         - [ ] `<False>` line 412
                           - [ ] `<Binding>` line 413
-                            - [ ] `<Param>` line 414 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
+                            - [x] `<Param>` line 414 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
                           - [ ] `<Binding>` line 416
-                            - [ ] `<Param>` line 417 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
+                            - [x] `<Param>` line 417 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
                           - [ ] `<Binding>` line 419
-                            - [ ] `<Param>` line 420 = `#STATE_ON# #STATE_ON# #STATE_OFF# 3 p1 case`
+                            - [x] `<Param>` line 420 = `#STATE_ON# #STATE_ON# #STATE_OFF# 3 p1 case`
                     - [ ] `<Case Value="AUTO_ON">` line 425
                       - [ ] `<Binding>` line 426
                         - [ ] `<Param>` line 427 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 429
                         - [ ] `<True>` line 430
                           - [ ] `<Binding>` line 431
-                            - [ ] `<Param>` line 432 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ? }...`
+                            - [x] `<Param>` line 432 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ? }...`
                           - [ ] `<Binding>` line 434
-                            - [ ] `<Param>` line 435 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#...`
+                            - [x] `<Param>` line 435 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#...`
                         - [ ] `<False>` line 438
                           - [ ] `<Binding>` line 439
-                            - [ ] `<Param>` line 440 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
+                            - [x] `<Param>` line 440 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
                           - [ ] `<Binding>` line 442
-                            - [ ] `<Param>` line 443 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
+                            - [x] `<Param>` line 443 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
                           - [ ] `<Binding>` line 445
-                            - [ ] `<Param>` line 446 = `#STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p1 case`
+                            - [x] `<Param>` line 446 = `#STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p1 case`
                     - [ ] `<Case Value="OFF_AUTO_ON">` line 451
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 452
                         - [ ] `<True>` line 453
                           - [ ] `<Binding>` line 454
-                            - [ ] `<Param>` line 455 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? } e...`
+                            - [x] `<Param>` line 455 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? } e...`
                           - [ ] `<Binding>` line 457
-                            - [ ] `<Param>` line 458 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#)...`
+                            - [x] `<Param>` line 458 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#)...`
                         - [ ] `<False>` line 461
                           - [ ] `<Binding>` line 462
-                            - [ ] `<Param>` line 463 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 463 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 465
-                            - [ ] `<Param>` line 466 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 466 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 468
-                            - [ ] `<Param>` line 469 = `#STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p1 case`
+                            - [x] `<Param>` line 469 = `#STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p1 case`
                     - [ ] `<Case Value="OFF_LOW_HIGH">` line 474
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 475
                         - [ ] `<True>` line 476
                           - [ ] `<Binding>` line 477
-                            - [ ] `<Param>` line 478 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? }...`
+                            - [x] `<Param>` line 478 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? }...`
                           - [ ] `<Binding>` line 480
-                            - [ ] `<Param>` line 481 = `p1 #PUMP_ID# == if{ #STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID...`
+                            - [x] `<Param>` line 481 = `p1 #PUMP_ID# == if{ #STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID...`
                         - [ ] `<False>` line 484
                           - [ ] `<Binding>` line 485
-                            - [ ] `<Param>` line 486 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 486 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 488
-                            - [ ] `<Param>` line 489 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 489 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 491
-                            - [ ] `<Param>` line 492 = `#STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p1 case`
+                            - [x] `<Param>` line 492 = `#STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p1 case`
           - [ ] `<Case Valid="MANUAL_PUMP_ID">` line 502
             - [ ] `<Preset ID="FUEL_Manual_Pump_#MANUAL_PUMP_ID#">` line 503
               - [ ] `<Parameters Type="Default">` line 504
@@ -9459,13 +9459,13 @@
                   - [ ] `<Binding>` line 706
                     - [ ] `<Param>` line 707 = `#STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #STATE_OFF# == ?`
                   - [ ] `<Binding>` line 709
-                    - [ ] `<Param>` line 710 = `#CHECK_VALVE# if{ #STATE_ON# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #S...`
+                    - [x] `<Param>` line 710 = `#CHECK_VALVE# if{ #STATE_ON# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #S...`
                   - [ ] `<Binding>` line 712
-                    - [ ] `<Param>` line 713 = `#CHECK_VALVE# if{ #STATE_OFF# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #...`
+                    - [x] `<Param>` line 713 = `#CHECK_VALVE# if{ #STATE_OFF# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #...`
                   - [ ] `<Binding>` line 715
-                    - [ ] `<Param>` line 716 = `#CHECK_VALVE# if{ #STATE_OFF# #STATE_ON# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #STATE_ON# == ? } el...`
+                    - [x] `<Param>` line 716 = `#CHECK_VALVE# if{ #STATE_OFF# #STATE_ON# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #STATE_ON# == ? } el...`
                   - [ ] `<Binding>` line 718
-                    - [ ] `<Param>` line 719 = `#CHECK_VALVE# if{ #STATE_ON# #STATE_OFF# p2 #STATE_ON# == ? } els{ #STATE_ON# #STATE_OFF# (O:FUEL_V...`
+                    - [x] `<Param>` line 719 = `#CHECK_VALVE# if{ #STATE_ON# #STATE_OFF# p2 #STATE_ON# == ? } els{ #STATE_ON# #STATE_OFF# (O:FUEL_V...`
           - [ ] `<Case Valid="SELECTOR_ID">` line 725
             - [ ] `<Preset ID="FUEL_Selector_#SELECTOR_ID#">` line 726
               - [ ] `<Parameters Type="Default">` line 727
@@ -9474,7 +9474,7 @@
                   - [ ] `<True>` line 730
                     - [ ] `<GET_FUEL_SELECTOR>` line 731
                     - [ ] `<SIMVAR_TO_WATCH>` line 732
-                    - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 733 = `#SELECTOR_ID# (>K:2:FUELSYSTEM_JUNCTION_SET)`
+                    - [x] `<SET_FUEL_SELECTOR_EVENT>` line 733 = `#SELECTOR_ID# (>K:2:FUELSYSTEM_JUNCTION_SET)`
                   - [ ] `<False>` line 735
                     - [ ] `<Condition Check="TYPE">` line 736
                       - [ ] `<True>` line 737
@@ -9482,17 +9482,17 @@
                         - [ ] `<SIMVAR_TO_WATCH>` line 740
                         - [ ] `<Condition Check="ENG_ID">` line 741
                           - [ ] `<True>` line 742
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 743 = `(>K:FUEL_SELECTOR_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 743 = `(>K:FUEL_SELECTOR_SET)`
                           - [ ] `<False>` line 745
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 746 = `(>K:FUEL_SELECTOR_#ENG_ID#_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 746 = `(>K:FUEL_SELECTOR_#ENG_ID#_SET)`
                       - [ ] `<False>` line 750
                         - [ ] `<GET_FUEL_SELECTOR>` line 752
                         - [ ] `<SIMVAR_TO_WATCH>` line 753
                         - [ ] `<Condition Check="SELECTOR_ID">` line 754
                           - [ ] `<True>` line 755
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 756 = `(>K:FUEL_SELECTOR_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 756 = `(>K:FUEL_SELECTOR_SET)`
                           - [ ] `<False>` line 758
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 759 = `(>K:FUEL_SELECTOR_#SELECTOR_ID#_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 759 = `(>K:FUEL_SELECTOR_#SELECTOR_ID#_SET)`
                 - [ ] `<IS_VALID_ENUM_VAL_TEST_EXTERNAL>` line 766
                 - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 767
                 - [ ] `<POS_TO_ENUM_VAL_EXTERNAL>` line 768
@@ -15116,7 +15116,7 @@
         - [ ] `<True>` line 472
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 473
             - [ ] `<FREQUENCY>` line 474
-            - [ ] `<UPDATE_CODE>` line 475 = `(A:APU SWITCH, Bool) #ACTIVE_FUEL_PUMP_ON_RPM# (>K:2:FUELSYSTEM_PUMP_SET)`
+            - [x] `<UPDATE_CODE>` line 475 = `(A:APU SWITCH, Bool) #ACTIVE_FUEL_PUMP_ON_RPM# (>K:2:FUELSYSTEM_PUMP_SET)`
     - [ ] `<Template Name="ASOBO_ELECTRICAL_APU_Generator_SubTemplate">` line 483
       - [ ] `<Parameters Type="Default">` line 484
         - [ ] `<ANIM_NAME>` line 485 = `ELECTRICAL_#INTERACTION_TYPE#_APU_Generator`
@@ -47905,12 +47905,12 @@
                     - [ ] `<Binding>` line 361
                       - [ ] `<Param>` line 362 = `#STATE_ON#`
                     - [ ] `<Binding>` line 364
-                      - [ ] `<Param>` line 365 = `p1 #PUMP_ID# == if{ #STATE_ON# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
+                      - [x] `<Param>` line 365 = `p1 #PUMP_ID# == if{ #STATE_ON# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
                   - [ ] `<Condition Check="STATE_OFF">` line 368
                     - [ ] `<Binding>` line 369
                       - [ ] `<Param>` line 370 = `#STATE_OFF#`
                     - [ ] `<Binding>` line 372
-                      - [ ] `<Param>` line 373 = `p1 #PUMP_ID# == if{ #STATE_OFF# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
+                      - [x] `<Param>` line 373 = `p1 #PUMP_ID# == if{ #STATE_OFF# } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
                   - [ ] `<Condition Check="STATE_AUTO">` line 376
                     - [ ] `<Binding>` line 377
                       - [ ] `<Param>` line 378 = `#STATE_AUTO#`
@@ -47931,60 +47931,60 @@
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 403
                         - [ ] `<True>` line 404
                           - [ ] `<Binding>` line 405
-                            - [ ] `<Param>` line 406 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ? } e...`
+                            - [x] `<Param>` line 406 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ? } e...`
                           - [ ] `<Binding>` line 408
-                            - [ ] `<Param>` line 409 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
+                            - [x] `<Param>` line 409 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#) }`
                         - [ ] `<False>` line 412
                           - [ ] `<Binding>` line 413
-                            - [ ] `<Param>` line 414 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
+                            - [x] `<Param>` line 414 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
                           - [ ] `<Binding>` line 416
-                            - [ ] `<Param>` line 417 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
+                            - [x] `<Param>` line 417 = `#STATE_ON# #STATE_OFF# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# == ?`
                           - [ ] `<Binding>` line 419
-                            - [ ] `<Param>` line 420 = `#STATE_ON# #STATE_ON# #STATE_OFF# 3 p1 case`
+                            - [x] `<Param>` line 420 = `#STATE_ON# #STATE_ON# #STATE_OFF# 3 p1 case`
                     - [ ] `<Case Value="AUTO_ON">` line 425
                       - [ ] `<Binding>` line 426
                         - [ ] `<Param>` line 427 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 429
                         - [ ] `<True>` line 430
                           - [ ] `<Binding>` line 431
-                            - [ ] `<Param>` line 432 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ? }...`
+                            - [x] `<Param>` line 432 = `p1 #PUMP_ID# == if{ #STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ? }...`
                           - [ ] `<Binding>` line 434
-                            - [ ] `<Param>` line 435 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#...`
+                            - [x] `<Param>` line 435 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#...`
                         - [ ] `<False>` line 438
                           - [ ] `<Binding>` line 439
-                            - [ ] `<Param>` line 440 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
+                            - [x] `<Param>` line 440 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
                           - [ ] `<Binding>` line 442
-                            - [ ] `<Param>` line 443 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
+                            - [x] `<Param>` line 443 = `#STATE_ON# #STATE_AUTO# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_AUTO# == ?`
                           - [ ] `<Binding>` line 445
-                            - [ ] `<Param>` line 446 = `#STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p1 case`
+                            - [x] `<Param>` line 446 = `#STATE_AUTO# #STATE_ON# #STATE_AUTO# 3 p1 case`
                     - [ ] `<Case Value="OFF_AUTO_ON">` line 451
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 452
                         - [ ] `<True>` line 453
                           - [ ] `<Binding>` line 454
-                            - [ ] `<Param>` line 455 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? } e...`
+                            - [x] `<Param>` line 455 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? } e...`
                           - [ ] `<Binding>` line 457
-                            - [ ] `<Param>` line 458 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#)...`
+                            - [x] `<Param>` line 458 = `p1 #PUMP_ID# == if{ #STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID#)...`
                         - [ ] `<False>` line 461
                           - [ ] `<Binding>` line 462
-                            - [ ] `<Param>` line 463 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 463 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 465
-                            - [ ] `<Param>` line 466 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 466 = `#STATE_OFF# #STATE_ON# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 468
-                            - [ ] `<Param>` line 469 = `#STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p1 case`
+                            - [x] `<Param>` line 469 = `#STATE_AUTO# #STATE_ON# #STATE_OFF# 3 p1 case`
                     - [ ] `<Case Value="OFF_LOW_HIGH">` line 474
                       - [ ] `<Condition Valid="USE_FUELSYSTEM">` line 475
                         - [ ] `<True>` line 476
                           - [ ] `<Binding>` line 477
-                            - [ ] `<Param>` line 478 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? }...`
+                            - [x] `<Param>` line 478 = `p1 #PUMP_ID# == if{ #STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ? }...`
                           - [ ] `<Binding>` line 480
-                            - [ ] `<Param>` line 481 = `p1 #PUMP_ID# == if{ #STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID...`
+                            - [x] `<Param>` line 481 = `p1 #PUMP_ID# == if{ #STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p2 case } els{ (B:FUEL_Pump_#IE_PUMP_ID...`
                         - [ ] `<False>` line 484
                           - [ ] `<Binding>` line 485
-                            - [ ] `<Param>` line 486 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 486 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 488
-                            - [ ] `<Param>` line 489 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
+                            - [x] `<Param>` line 489 = `#STATE_OFF# #STATE_HIGH# (O:FUEL_Pump_#IE_PUMP_ID#_Position) #STATE_OFF# != ?`
                           - [ ] `<Binding>` line 491
-                            - [ ] `<Param>` line 492 = `#STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p1 case`
+                            - [x] `<Param>` line 492 = `#STATE_HIGH# #STATE_HIGH# #STATE_OFF# 3 p1 case`
           - [ ] `<Case Valid="MANUAL_PUMP_ID">` line 502
             - [ ] `<Preset ID="FUEL_Manual_Pump_#MANUAL_PUMP_ID#">` line 503
               - [ ] `<Parameters Type="Default">` line 504
@@ -48129,13 +48129,13 @@
                   - [ ] `<Binding>` line 706
                     - [ ] `<Param>` line 707 = `#STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #STATE_OFF# == ?`
                   - [ ] `<Binding>` line 709
-                    - [ ] `<Param>` line 710 = `#CHECK_VALVE# if{ #STATE_ON# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #S...`
+                    - [x] `<Param>` line 710 = `#CHECK_VALVE# if{ #STATE_ON# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #S...`
                   - [ ] `<Binding>` line 712
-                    - [ ] `<Param>` line 713 = `#CHECK_VALVE# if{ #STATE_OFF# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #...`
+                    - [x] `<Param>` line 713 = `#CHECK_VALVE# if{ #STATE_OFF# } els{ #STATE_ON# #STATE_OFF# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #...`
                   - [ ] `<Binding>` line 715
-                    - [ ] `<Param>` line 716 = `#CHECK_VALVE# if{ #STATE_OFF# #STATE_ON# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #STATE_ON# == ? } el...`
+                    - [x] `<Param>` line 716 = `#CHECK_VALVE# if{ #STATE_OFF# #STATE_ON# (O:FUEL_Valve_#IE_VALVE_ID#_Position) #STATE_ON# == ? } el...`
                   - [ ] `<Binding>` line 718
-                    - [ ] `<Param>` line 719 = `#CHECK_VALVE# if{ #STATE_ON# #STATE_OFF# p2 #STATE_ON# == ? } els{ #STATE_ON# #STATE_OFF# (O:FUEL_V...`
+                    - [x] `<Param>` line 719 = `#CHECK_VALVE# if{ #STATE_ON# #STATE_OFF# p2 #STATE_ON# == ? } els{ #STATE_ON# #STATE_OFF# (O:FUEL_V...`
           - [ ] `<Case Valid="SELECTOR_ID">` line 725
             - [ ] `<Preset ID="FUEL_Selector_#SELECTOR_ID#">` line 726
               - [ ] `<Parameters Type="Default">` line 727
@@ -48144,7 +48144,7 @@
                   - [ ] `<True>` line 730
                     - [ ] `<GET_FUEL_SELECTOR>` line 731
                     - [ ] `<SIMVAR_TO_WATCH>` line 732
-                    - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 733 = `#SELECTOR_ID# (>K:2:FUELSYSTEM_JUNCTION_SET)`
+                    - [x] `<SET_FUEL_SELECTOR_EVENT>` line 733 = `#SELECTOR_ID# (>K:2:FUELSYSTEM_JUNCTION_SET)`
                   - [ ] `<False>` line 735
                     - [ ] `<Condition Check="TYPE">` line 736
                       - [ ] `<True>` line 737
@@ -48152,17 +48152,17 @@
                         - [ ] `<SIMVAR_TO_WATCH>` line 740
                         - [ ] `<Condition Check="ENG_ID">` line 741
                           - [ ] `<True>` line 742
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 743 = `(>K:FUEL_SELECTOR_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 743 = `(>K:FUEL_SELECTOR_SET)`
                           - [ ] `<False>` line 745
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 746 = `(>K:FUEL_SELECTOR_#ENG_ID#_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 746 = `(>K:FUEL_SELECTOR_#ENG_ID#_SET)`
                       - [ ] `<False>` line 750
                         - [ ] `<GET_FUEL_SELECTOR>` line 752
                         - [ ] `<SIMVAR_TO_WATCH>` line 753
                         - [ ] `<Condition Check="SELECTOR_ID">` line 754
                           - [ ] `<True>` line 755
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 756 = `(>K:FUEL_SELECTOR_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 756 = `(>K:FUEL_SELECTOR_SET)`
                           - [ ] `<False>` line 758
-                            - [ ] `<SET_FUEL_SELECTOR_EVENT>` line 759 = `(>K:FUEL_SELECTOR_#SELECTOR_ID#_SET)`
+                            - [x] `<SET_FUEL_SELECTOR_EVENT>` line 759 = `(>K:FUEL_SELECTOR_#SELECTOR_ID#_SET)`
                 - [ ] `<IS_VALID_ENUM_VAL_TEST_EXTERNAL>` line 766
                 - [ ] `<ENUM_VAL_TO_POS_EXTERNAL>` line 767
                 - [ ] `<POS_TO_ENUM_VAL_EXTERNAL>` line 768
@@ -53786,7 +53786,7 @@
         - [ ] `<True>` line 472
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 473
             - [ ] `<FREQUENCY>` line 474
-            - [ ] `<UPDATE_CODE>` line 475 = `(A:APU SWITCH, Bool) #ACTIVE_FUEL_PUMP_ON_RPM# (>K:2:FUELSYSTEM_PUMP_SET)`
+            - [x] `<UPDATE_CODE>` line 475 = `(A:APU SWITCH, Bool) #ACTIVE_FUEL_PUMP_ON_RPM# (>K:2:FUELSYSTEM_PUMP_SET)`
     - [ ] `<Template Name="ASOBO_ELECTRICAL_APU_Generator_SubTemplate">` line 483
       - [ ] `<Parameters Type="Default">` line 484
         - [ ] `<ANIM_NAME>` line 485 = `ELECTRICAL_#INTERACTION_TYPE#_APU_Generator`
