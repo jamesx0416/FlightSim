@@ -752,6 +752,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       sequence: this.htmlEventCount
     }
     this.values.set(normalizeRuntimeVariableKey(`H:${eventName}`), event.sequence)
+    this.applyHtmlEventSideEffects(eventName, event.args)
     this.recentHtmlEvents.push(event)
     if (this.recentHtmlEvents.length > 100) {
       this.recentHtmlEvents.splice(0, this.recentHtmlEvents.length - 100)
@@ -879,6 +880,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (!handledByBinding) {
       this.applyGenericControlEventName(name, value)
       this.applyGenericInputEventStateName(name, value)
+    }
+  }
+
+  private applyHtmlEventSideEffects(name: string, _args: readonly (number | string)[]): void {
+    const normalizedName = name.trim().toUpperCase()
+    if (normalizedName === 'GENERIC_GEAR_ADVISORY_PUSH') {
+      this.values.set(normalizeRuntimeVariableKey('L:Generic_Gear_Advisory_Active'), 0)
+      this.values.set(normalizeRuntimeVariableKey('L:Generic_Gear_Advisory_Acknowledged'), 1)
     }
   }
 
