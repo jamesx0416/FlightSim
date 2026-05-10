@@ -1226,6 +1226,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey.startsWith('A:GENERAL ENG THROTTLE LEVER POSITION:')) {
       return handled(convertPercentUnit(this.throttleLeverPosition, unit))
     }
+    if (isEngineControlPercentPositionKey(upperKey)) {
+      return handled(convertPercentToPosition16kUnit(0, unit))
+    }
     if (upperKey.startsWith('A:GENERAL ENG REVERSE THRUST ENGAGED:')) return handled(0)
     if (upperKey.includes('ENGINE_N1')) return handled(convertPercentUnit(cycles.engineCycle, unit))
     if (upperKey.includes('REVERSER')) return handled(convertPercentUnit(cycles.reverserCycle * 100, unit))
@@ -1372,6 +1375,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     if (this.applyDeiceAndIgnitionKeyEvent(name, args)) {
+      return
+    }
+    if (this.applyEngineControlKeyEvent(name, args)) {
       return
     }
     if (this.applyAutopilotAndTransponderKeyEvent(name, args)) {
@@ -1795,6 +1801,106 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     return false
   }
 
+  private applyEngineControlKeyEvent(name: string, args: readonly number[]): boolean {
+    const throttleSetMatch = /^(?:AXIS_)?THROTTLE(\d*)(?:_AXIS)?_SET(?:_EX1)?$/u.exec(name)
+    if (throttleSetMatch != null) {
+      this.setIndexedEnginePercentPosition(
+        'GENERAL ENG THROTTLE LEVER POSITION',
+        throttleSetMatch[1],
+        position16kToPercent(Number(args.at(-1) ?? 0), true)
+      )
+      return true
+    }
+
+    const throttleFullCutMatch = /^THROTTLE(\d*)_(FULL|CUT)$/u.exec(name)
+    if (throttleFullCutMatch != null) {
+      this.setIndexedEnginePercentPosition(
+        'GENERAL ENG THROTTLE LEVER POSITION',
+        throttleFullCutMatch[1],
+        throttleFullCutMatch[2] === 'FULL' ? 100 : 0
+      )
+      return true
+    }
+
+    const propPitchSetMatch = /^PROP_PITCH(\d*)_SET$/u.exec(name)
+    if (propPitchSetMatch != null) {
+      this.setIndexedEnginePercentPosition(
+        'GENERAL ENG PROPELLER LEVER POSITION',
+        propPitchSetMatch[1],
+        position16kToPercent(Number(args.at(-1) ?? 0), true)
+      )
+      return true
+    }
+
+    const mixtureSetMatch = /^(?:AXIS_)?MIXTURE(\d*)_SET$/u.exec(name)
+    if (mixtureSetMatch != null) {
+      this.setIndexedEnginePercentPosition(
+        'GENERAL ENG MIXTURE LEVER POSITION',
+        mixtureSetMatch[1],
+        position16kToPercent(Number(args.at(-1) ?? 0), false)
+      )
+      return true
+    }
+
+    const cowlFlapSetMatch = /^COWLFLAP(\d*)_SET$/u.exec(name)
+    if (cowlFlapSetMatch != null) {
+      this.setIndexedEnginePercentPosition(
+        'RECIP ENG COWL FLAP POSITION',
+        cowlFlapSetMatch[1],
+        position16kToPercent(Number(args.at(-1) ?? 0), false)
+      )
+      return true
+    }
+
+    const coolingFlapsSetMatch = /^([A-Z0-9_]+)_COOLING_FLAPS_SET$/u.exec(name)
+    if (coolingFlapsSetMatch != null) {
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:${coolingFlapsSetMatch[1].replace(/_/gu, ' ')} COOLING FLAPS POSITION`),
+        position16kToPercent(Number(args.at(-1) ?? 0), false)
+      )
+      return true
+    }
+
+    if (name === 'PROP_FORCE_BETA_ON' || name === 'PROP_FORCE_BETA_OFF') {
+      const index = Math.trunc(Number(args.at(-1) ?? 1))
+      if (Number.isFinite(index)) {
+        this.values.set(
+          normalizeRuntimeVariableKey(`A:PROP BETA FORCED ACTIVE:${index}`),
+          name === 'PROP_FORCE_BETA_ON' ? 1 : 0
+        )
+      }
+      return true
+    }
+
+    if (name === 'PROP_FORCE_BETA_VALUE_SET') {
+      const index = Math.trunc(Number(args.at(-1) ?? 1))
+      const value = Number(args.at(-2) ?? 0)
+      if (Number.isFinite(index)) {
+        this.values.set(
+          normalizeRuntimeVariableKey(`A:PROP BETA FORCED POSITION:${index}`),
+          position16kToPercent(value, false)
+        )
+      }
+      return true
+    }
+
+    return false
+  }
+
+  private setIndexedEnginePercentPosition(simvarName: string, rawIndex: string, percent: number): void {
+    const indexes = rawIndex === '' ? [1, 2, 3, 4] : [Number.parseInt(rawIndex, 10)]
+    for (const index of indexes) {
+      if (!Number.isFinite(index)) {
+        continue
+      }
+      const variableKey = normalizeRuntimeVariableKey(`A:${simvarName}:${Math.trunc(index)}`)
+      this.values.set(variableKey, percent)
+    }
+    if (simvarName === 'GENERAL ENG THROTTLE LEVER POSITION') {
+      this.throttleLeverPosition = percent
+    }
+  }
+
   private applyAutopilotAndTransponderKeyEvent(name: string, args: readonly number[]): boolean {
     if (name === 'AUTOPILOT_OFF') {
       this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT MASTER'), 0)
@@ -2080,6 +2186,9 @@ function resolveStoredRuntimeValue(key: string, value: number, unit: string | nu
   if (isEngineAntiIcePositionKey(key)) {
     return convertPercentToEngineAntiIcePositionUnit(value, unit)
   }
+  if (isEngineControlPercentPositionKey(key)) {
+    return convertPercentToPosition16kUnit(value, unit)
+  }
   return value
 }
 
@@ -2100,6 +2209,33 @@ function convertPercentToEngineAntiIcePositionUnit(value: number, unit: string |
     return clampedPercent / 100
   }
   return clampedPercent
+}
+
+function isEngineControlPercentPositionKey(key: string): boolean {
+  return (
+    key.startsWith('A:GENERAL ENG THROTTLE LEVER POSITION:') ||
+    key.startsWith('A:GENERAL ENG PROPELLER LEVER POSITION:') ||
+    key.startsWith('A:GENERAL ENG MIXTURE LEVER POSITION:') ||
+    key.startsWith('A:RECIP ENG COWL FLAP POSITION:') ||
+    key.endsWith(' COOLING FLAPS POSITION') ||
+    key.startsWith('A:PROP BETA FORCED POSITION:')
+  )
+}
+
+function convertPercentToPosition16kUnit(value: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  if (normalizedUnit === 'position 16k') {
+    return (value / 100) * 16_384
+  }
+  if (normalizedUnit === 'percent over 100') {
+    return value / 100
+  }
+  return value
+}
+
+function position16kToPercent(value: number, allowNegative: boolean): number {
+  const clampedValue = clamp(value, allowNegative ? -16_384 : 0, 16_384)
+  return (clampedValue / 16_384) * 100
 }
 
 function isCircuitPowerStateKey(key: string): boolean {
