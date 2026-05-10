@@ -1425,6 +1425,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    const directLightSetMatch = /^(STROBES|BEACON|NAV|LOGO|LANDING|TAXI|WING|CABIN|PANEL|RECOGNITION)_SET$/u.exec(name)
+    if (directLightSetMatch != null) {
+      this.setLightSwitch(directLightSetMatch[1], Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      return true
+    }
+
     const lightToggleMatch = /^(.+)_LIGHTS_TOGGLE$/u.exec(name)
     if (lightToggleMatch != null) {
       const variableKey = getLightSwitchVariableKey(lightToggleMatch[1])
@@ -1549,7 +1555,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
-    const identMatch = /^RADIO_(ADF2?|DME(\d+)|VOR(\d+))_IDENT_(ENABLE|DISABLE|TOGGLE)$/u.exec(name)
+    const identMatch = /^RADIO_(ADF2?|DME(\d+)|VOR(\d+))_IDENT_(ENABLE|DISABLE|TOGGLE|SET)$/u.exec(name)
     if (identMatch != null) {
       const family = identMatch[1].startsWith('ADF') ? 'ADF'
         : identMatch[1].startsWith('DME') ? 'DME'
@@ -1563,7 +1569,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       ]
       const action = identMatch[4]
       const currentValue = this.values.get(keys[0] ?? '') ?? 0
-      const nextValue = action === 'TOGGLE' ? currentValue > 0 ? 0 : 1 : action === 'ENABLE' ? 1 : 0
+      const nextValue =
+        action === 'TOGGLE'
+          ? currentValue > 0 ? 0 : 1
+          : action === 'SET' ? Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+            : action === 'ENABLE' ? 1 : 0
       for (const key of keys) {
         this.values.set(key, nextValue)
       }
