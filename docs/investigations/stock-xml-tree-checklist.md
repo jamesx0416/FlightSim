@@ -17536,7 +17536,8 @@
         - [ ] `<IE_NAME>` line 2566 = `War_Emergency_Power`
         - [ ] `<SET_STATE_EXTERNAL>` line 2567
         - [ ] `<GET_STATE_EXTERNAL>` line 2568
-- [ ] `Asobo/Common/Subtemplates/Fuel_Subtemplates.xml`
+- [x] `Asobo/Common/Subtemplates/Fuel_Subtemplates.xml`
+  - [x] Runtime key-event coverage verified on 2026-05-11 for stock mixture lean, engine fuel-valve set/toggle, custom transfer mode/index toggle, and fuel-system trigger toggle paths.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_FUEL_Mixture_SubTemplate">` line 7
       - [ ] `<Parameters Type="Default">` line 8
@@ -56206,7 +56207,8 @@
         - [ ] `<IE_NAME>` line 2566 = `War_Emergency_Power`
         - [ ] `<SET_STATE_EXTERNAL>` line 2567
         - [ ] `<GET_STATE_EXTERNAL>` line 2568
-- [ ] `Asobo/Common/Subtemplates/Fuel_Subtemplates.xml`
+- [x] `Asobo/Common/Subtemplates/Fuel_Subtemplates.xml`
+  - [x] Runtime key-event coverage verified on 2026-05-11 for stock mixture lean, engine fuel-valve set/toggle, custom transfer mode/index toggle, and fuel-system trigger toggle paths.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_FUEL_Mixture_SubTemplate">` line 7
       - [ ] `<Parameters Type="Default">` line 8

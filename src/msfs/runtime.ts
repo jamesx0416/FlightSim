@@ -2244,10 +2244,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
-    const mixtureRichMatch = /^MIXTURE(\d+)_RICH$/u.exec(name)
-    if (mixtureRichMatch != null) {
-      const index = Number.parseInt(mixtureRichMatch[1], 10)
-      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG MIXTURE LEVER POSITION:${index}`), 100)
+    const mixtureRichLeanMatch = /^MIXTURE(\d+)_(RICH|LEAN)$/u.exec(name)
+    if (mixtureRichLeanMatch != null) {
+      const index = Number.parseInt(mixtureRichLeanMatch[1], 10)
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:GENERAL ENG MIXTURE LEVER POSITION:${index}`),
+        mixtureRichLeanMatch[2] === 'RICH' ? 100 : 0
+      )
       return true
     }
 
@@ -2962,6 +2965,21 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
+    const engineFuelValveSetMatch = /^SET_FUEL_VALVE_ENG(\d+)$/u.exec(name)
+    if (engineFuelValveSetMatch != null) {
+      const engineIndex = Number.parseInt(engineFuelValveSetMatch[1], 10)
+      this.setEngineFuelValveState(engineIndex, Number(args.at(-1) ?? 0))
+      return true
+    }
+
+    const engineFuelValveToggleMatch = /^TOGGLE_FUEL_VALVE_ENG(\d+)$/u.exec(name)
+    if (engineFuelValveToggleMatch != null) {
+      const engineIndex = Number.parseInt(engineFuelValveToggleMatch[1], 10)
+      const valveKey = normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL VALVE:${engineIndex}`)
+      this.setEngineFuelValveState(engineIndex, (this.values.get(valveKey) ?? 0) > 0 ? 0 : 1)
+      return true
+    }
+
     const valveMatch = /^FUELSYSTEM_VALVE_(TOGGLE|OPEN|CLOSE|SET)$/u.exec(name)
     if (valveMatch != null) {
       const { index: valveIndex, value: valveValue } = valveMatch[1] === 'SET'
@@ -2985,6 +3003,31 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       const junctionIndex = Math.trunc(Number(args[1] ?? Number.NaN))
       if (Number.isFinite(setting) && Number.isFinite(junctionIndex)) {
         this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM JUNCTION SETTING:${junctionIndex}`), setting)
+      }
+      return true
+    }
+
+    if (name === 'SET_FUEL_TRANSFER_CUSTOM') {
+      this.values.set(normalizeRuntimeVariableKey('A:FUEL SELECTED TRANSFER MODE'), 5)
+      return true
+    }
+
+    if (name === 'FUEL_TRANSFER_CUSTOM_INDEX_TOGGLE') {
+      const transferIndex = Math.trunc(Number(args[0] ?? 1))
+      if (Number.isFinite(transferIndex)) {
+        const key = normalizeRuntimeVariableKey(`A:FUEL TRANSFER PUMP ON:${transferIndex}`)
+        const nextValue = (this.values.get(key) ?? 0) > 0 ? 0 : 1
+        this.values.set(key, nextValue)
+        this.values.set(normalizeRuntimeVariableKey(`A:FUEL TRANSFER PUMP SWITCH:${transferIndex}`), nextValue)
+      }
+      return true
+    }
+
+    if (name === 'FUELSYSTEM_TRIGGER_TOGGLE') {
+      const triggerIndex = Math.trunc(Number(args[0] ?? 1))
+      if (Number.isFinite(triggerIndex)) {
+        const key = normalizeRuntimeVariableKey(`A:FUELSYSTEM TRIGGER STATUS:${triggerIndex}`)
+        this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
       }
       return true
     }
@@ -3227,6 +3270,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL PUMP SWITCH EX1:${pumpIndex}`), nextValue)
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL PUMP ACTIVE:${pumpIndex}`), nextValue)
+  }
+
+  private setEngineFuelValveState(index: number, value: number): void {
+    if (!Number.isFinite(index)) {
+      return
+    }
+    const engineIndex = Math.trunc(index)
+    const nextValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL VALVE:${engineIndex}`), nextValue)
+    this.values.set(normalizeRuntimeVariableKey(`L:ENG FUEL VALVE:${engineIndex}`), nextValue)
   }
 
   private setFuelValveState(index: number, value: number): void {
