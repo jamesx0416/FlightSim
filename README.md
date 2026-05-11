@@ -111,6 +111,7 @@ await __DevApi.click('PUSH_STARTER', { holdMs: 1500 })
 await __DevApi.turn('KNOB_HEADING', { direction: 'up', steps: 3 })
 __DevApi.list({ kind: 'inputEvents', filter: 'ped_ecp' })
 __DevApi.checkGauge(undefined, { screenshot: true })
+__DevApi.diagnostics({ severity: 'warning', includeGauges: true })
 __DevApi.checkParam(['vspeed', 'altitude', 'pressure', 'location'])
 __DevApi.report()
 ```

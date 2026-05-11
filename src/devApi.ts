@@ -76,6 +76,13 @@ type DevApiTurnOptions = {
   }
 }
 
+type DevApiDiagnosticsOptions = {
+  readonly severity?: string
+  readonly filter?: string
+  readonly limit?: number
+  readonly includeGauges?: boolean
+}
+
 type DevApiWaitCondition =
   | string
   | {
@@ -105,7 +112,7 @@ type ViewerDevApi = {
   readonly checkGauge: (key?: string, options?: { readonly screenshot?: boolean }) => DevApiResponse
   readonly checkParam: (names: string | readonly string[]) => DevApiResponse
   readonly setParam: (name: string, value: number, unit?: string | null) => DevApiResponse
-  readonly diagnostics: (options?: { readonly severity?: string; readonly filter?: string }) => DevApiResponse
+  readonly diagnostics: (options?: DevApiDiagnosticsOptions) => DevApiResponse
   readonly readVar: (name: string, unit?: string | null) => DevApiResponse
   readonly writeVar: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly keyEvent: (name: string, args?: readonly number[]) => DevApiResponse
@@ -208,6 +215,79 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       else counts.other += 1
     }
     return counts
+  }
+  const matchesDiagnosticFilter = (diagnostic: ImportDiagnostic, filter: string): boolean =>
+    !filter || `${diagnostic.severity} ${diagnostic.code} ${diagnostic.message} ${diagnostic.sourcePath ?? ''}`.toLowerCase().includes(filter)
+  const collectGaugeDiagnostics = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
+    const rows: Record<string, unknown>[] = []
+    for (const gauge of gauges()) {
+      if (rows.length >= limit) break
+      const summary = summarizeGauge(gauge)
+      const scriptErrors = Array.isArray(summary.scriptErrors) ? summary.scriptErrors : []
+      const assetErrors = Array.isArray(summary.assetErrors) ? summary.assetErrors : []
+      const resourceErrors = Array.isArray(summary.resourceErrors) ? summary.resourceErrors : []
+      const bridgeStats = typeof summary.bridgeStats === 'object' && summary.bridgeStats != null
+        ? summary.bridgeStats as Record<string, unknown>
+        : null
+      const runtimeErrorCount = typeof bridgeStats?.runtimeErrorCount === 'number' ? bridgeStats.runtimeErrorCount : 0
+      const unsupportedCalls = Array.isArray(bridgeStats?.unsupportedCalls) ? bridgeStats.unsupportedCalls : []
+      if (
+        scriptErrors.length === 0 &&
+        assetErrors.length === 0 &&
+        resourceErrors.length === 0 &&
+        runtimeErrorCount === 0 &&
+        unsupportedCalls.length === 0
+      ) {
+        continue
+      }
+      const haystack = `${gauge.gaugeKey} ${gauge.surface} ${gauge.source} ${JSON.stringify({
+        scriptErrors,
+        assetErrors,
+        resourceErrors,
+        runtimeErrorCount,
+        unsupportedCalls
+      })}`.toLowerCase()
+      if (filter && !haystack.includes(filter)) continue
+      rows.push({
+        key: gauge.gaugeKey,
+        surface: gauge.surface,
+        source: gauge.source,
+        status: gauge.status,
+        scriptErrors,
+        assetErrors,
+        resourceErrors,
+        bridge: {
+          runtimeErrorCount,
+          unsupportedCalls,
+          wasmBridge: bridgeStats?.wasmBridge ?? null,
+          status: bridgeStats?.status ?? null
+        }
+      })
+    }
+    return rows
+  }
+  const collectDiagnosticsReport = (options: DevApiDiagnosticsOptions = {}): Record<string, unknown> => {
+    const severity = options.severity?.trim()
+    const filter = options.filter?.trim().toLowerCase() ?? ''
+    const limit = Math.max(1, Math.min(5_000, Math.floor(options.limit ?? 500)))
+    const diagnostics = getDiagnostics().filter(diagnostic =>
+      (severity == null || severity === '' || diagnostic.severity === severity) &&
+      matchesDiagnosticFilter(diagnostic, filter)
+    )
+    const gaugeDiagnostics = options.includeGauges === false ? [] : collectGaugeDiagnostics(filter, limit)
+    return {
+      counts: diagnosticCounts(),
+      filters: {
+        severity: severity == null || severity === '' ? null : severity,
+        filter: filter || null,
+        limit,
+        includeGauges: options.includeGauges !== false
+      },
+      diagnostics: diagnostics.slice(0, limit),
+      truncatedDiagnostics: Math.max(0, diagnostics.length - limit),
+      gaugeDiagnostics,
+      status: statusData()
+    }
   }
   const gauges = (): readonly VCockpitHtmlGaugeRuntime[] =>
     context.getLoadedModel().interior?.vcockpitBinding?.htmlGaugeRuntimes ?? []
@@ -574,7 +654,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       )
     }
     if (kind === 'variables') return ok('Listed runtime variables.', collectVariables(filter, limit))
-    if (kind === 'diagnostics') return ok('Listed diagnostics.', getDiagnostics().slice(0, limit))
+    if (kind === 'diagnostics') return api.diagnostics({ filter, limit })
     if (kind === 'events') return api.events()
     if (kind === 'settings') return api.settings.get()
     if (kind === 'camera') return api.camera.getPose()
@@ -599,6 +679,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
+        '__DevApi.diagnostics({ severity: "warning", includeGauges: true })',
         '__DevApi.checkParam(["vspeed", "altitude", "pressure", "location"])',
         '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
         '__DevApi.bridgeCall("InputEvent_Push_Long", [1, 1])',
@@ -611,6 +692,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
+      diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location']
     }),
@@ -709,11 +791,13 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     },
     setParam: (name, value, unit = null) => api.writeVar(name, value, unit),
     diagnostics: (options = {}) => {
-      const filter = options.filter?.toLowerCase() ?? ''
-      return ok('Collected diagnostics.', getDiagnostics().filter(diagnostic =>
-        (options.severity == null || diagnostic.severity === options.severity) &&
-        (!filter || `${diagnostic.code} ${diagnostic.message} ${diagnostic.sourcePath ?? ''}`.toLowerCase().includes(filter))
-      ))
+      const report = collectDiagnosticsReport(options)
+      const counts = report.counts as Record<string, number>
+      const gaugeDiagnostics = report.gaugeDiagnostics as readonly unknown[]
+      return ok(
+        `Collected diagnostics: ${counts.error ?? 0} error, ${counts.warning ?? 0} warning, ${counts.info ?? 0} info, ${gaugeDiagnostics.length} gauge issue group(s).`,
+        report
+      )
     },
     readVar: (name, unit = null) => ok(`Read ${name}.`, { name, unit, value: context.getRuntimeHost().readVariable(name, unit) }),
     writeVar: (name, value, unit = null) => {
@@ -895,8 +979,98 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       }
     }
   }
-  window.__DevApi = api
-  ;(globalThis as Record<string, unknown>).__DevApi = api
+  const consoleApi = wrapDevApiForConsole(api, error =>
+    fail('DevApi call failed.', {
+      name: error instanceof Error ? error.name : 'Error',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack ?? null : null
+    })
+  )
+  window.__DevApi = consoleApi
+  ;(globalThis as Record<string, unknown>).__DevApi = consoleApi
+}
+
+function wrapDevApiForConsole<T>(
+  value: T,
+  createErrorResponse: (error: unknown) => DevApiResponse
+): T {
+  return wrapDevApiValueForConsole(value, '__DevApi', createErrorResponse, new WeakMap()) as T
+}
+
+function wrapDevApiValueForConsole(
+  value: unknown,
+  path: string,
+  createErrorResponse: (error: unknown) => DevApiResponse,
+  seen: WeakMap<object, unknown>
+): unknown {
+  if (typeof value === 'function') {
+    return (...args: unknown[]) => {
+      try {
+        const result = value(...args)
+        if (isPromiseLike(result)) {
+          return result
+            .then((response: unknown) => {
+              logDevApiResponse(path, response)
+              return response
+            })
+            .catch((error: unknown) => {
+              const response = createErrorResponse(error)
+              logDevApiResponse(path, response)
+              return response
+            })
+        }
+        logDevApiResponse(path, result)
+        return result
+      } catch (error) {
+        const response = createErrorResponse(error)
+        logDevApiResponse(path, response)
+        return response
+      }
+    }
+  }
+  if (typeof value !== 'object' || value == null) {
+    return value
+  }
+  const cached = seen.get(value)
+  if (cached != null) {
+    return cached
+  }
+  const wrapped: Record<string, unknown> = {}
+  seen.set(value, wrapped)
+  for (const [key, child] of Object.entries(value)) {
+    wrapped[key] = wrapDevApiValueForConsole(
+      child,
+      `${path}.${key}`,
+      createErrorResponse,
+      seen
+    )
+  }
+  return wrapped
+}
+
+function isPromiseLike(value: unknown): value is Promise<unknown> {
+  return typeof value === 'object' &&
+    value != null &&
+    typeof (value as { readonly then?: unknown }).then === 'function'
+}
+
+function logDevApiResponse(path: string, response: unknown): void {
+  if (!isDevApiResponse(response)) {
+    console.info(`[DevApi] ${path} returned a non-response value.`, response)
+    return
+  }
+  const method = response.ok ? console.info : console.warn
+  method(`[DevApi] ${path}: ${response.summary}`, response)
+}
+
+function isDevApiResponse(value: unknown): value is DevApiResponse {
+  if (typeof value !== 'object' || value == null) {
+    return false
+  }
+  const candidate = value as { readonly ok?: unknown; readonly summary?: unknown; readonly data?: unknown }
+  return typeof candidate.ok === 'boolean' &&
+    typeof candidate.summary === 'string' &&
+    'data' in candidate
 }
 
 function createDevApiParamCheck(
