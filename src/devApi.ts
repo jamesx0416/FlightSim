@@ -2,6 +2,7 @@ import {
   Box3,
   Box3Helper,
   Group,
+  type Material,
   Object3D,
   PerspectiveCamera,
   Scene,
@@ -47,6 +48,7 @@ type DevApiListKind =
   | 'interactions'
   | 'gauges'
   | 'animations'
+  | 'materials'
   | 'inputEvents'
   | 'variables'
   | 'diagnostics'
@@ -99,6 +101,7 @@ type ViewerDevApi = {
   readonly release: (target: string) => DevApiResponse
   readonly turn: (target: string, options: DevApiTurnOptions) => Promise<DevApiResponse>
   readonly checkComponent: (target: string) => DevApiResponse
+  readonly checkMaterial: (target: string, options?: { readonly descendants?: boolean }) => DevApiResponse
   readonly checkGauge: (key?: string, options?: { readonly screenshot?: boolean }) => DevApiResponse
   readonly checkParam: (names: string | readonly string[]) => DevApiResponse
   readonly setParam: (name: string, value: number, unit?: string | null) => DevApiResponse
@@ -304,6 +307,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
           target: binding.target,
           kind: binding.kind,
           sourcePath: binding.sourcePath,
+          source: binding.expression.source,
+          releaseSource: binding.releaseExpression?.source ?? null,
           feedbackTargets: binding.feedbackTargets,
           soundEvents: binding.soundEvents,
           hasRelease: binding.releaseExpression != null,
@@ -329,6 +334,112 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         sourcePath: binding.sourcePath,
         value: runtimeState.animationValues.get(binding.target) ?? null
       }))
+  }
+  const summarizeMaterial = (material: Material): Record<string, unknown> => {
+    const materialRecord = material as Material & {
+      readonly color?: { readonly getHexString?: () => string }
+      readonly emissive?: { readonly getHexString?: () => string }
+      readonly emissiveIntensity?: number
+      readonly map?: unknown
+      readonly emissiveMap?: unknown
+      readonly alphaMap?: unknown
+      readonly opacity?: number
+      readonly transparent?: boolean
+      readonly depthTest?: boolean
+      readonly depthWrite?: boolean
+      readonly blending?: number
+      readonly colorWrite?: boolean
+    }
+    return {
+      name: material.name || null,
+      type: material.type,
+      visible: material.visible,
+      opacity: materialRecord.opacity ?? null,
+      transparent: materialRecord.transparent ?? null,
+      color: materialRecord.color?.getHexString == null
+        ? null
+        : `#${materialRecord.color.getHexString()}`,
+      emissive: materialRecord.emissive?.getHexString == null
+        ? null
+        : `#${materialRecord.emissive.getHexString()}`,
+      emissiveIntensity: materialRecord.emissiveIntensity ?? null,
+      map: materialRecord.map != null,
+      emissiveMap: materialRecord.emissiveMap != null,
+      alphaMap: materialRecord.alphaMap != null,
+      depthTest: materialRecord.depthTest ?? null,
+      depthWrite: materialRecord.depthWrite ?? null,
+      blending: materialRecord.blending ?? null,
+      colorWrite: materialRecord.colorWrite ?? null,
+      msfs: {
+        blendGBufferDepthMask: material.userData?.msfsBlendGBufferDepthMask ?? null,
+        blendGBufferForwardColor: material.userData?.msfsBlendGBufferForwardColor ?? null,
+        materialCode: material.userData?.msfsMaterialCode ?? null
+      }
+    }
+  }
+  const getObjectMaterials = (object: Object3D): readonly Material[] => {
+    const material = (object as Object3D & { readonly material?: Material | Material[] }).material
+    if (material == null) return []
+    return Array.isArray(material) ? material : [material]
+  }
+  const summarizeMaterialObject = (
+    object: Object3D,
+    options: { readonly descendants?: boolean } = {}
+  ): Record<string, unknown> => {
+    const rows: Record<string, unknown>[] = []
+    const appendObject = (candidate: Object3D): void => {
+      const materials = getObjectMaterials(candidate)
+      if (materials.length === 0) return
+      rows.push({
+        node: candidate.name || candidate.type,
+        visible: candidate.visible,
+        parent: candidate.parent?.name || candidate.parent?.type || null,
+        runtimeEmissiveValue: context.getRuntimeState().materialValues.get(candidate.name) ?? null,
+        bindings: context.getCompiledBehaviors().materialBindings
+          .filter(binding => binding.target === candidate.name)
+          .map(binding => ({
+            target: binding.target,
+            property: binding.property,
+            source: binding.expression.source,
+            overrideBaseEmissive: binding.overrideBaseEmissive,
+            sourcePath: binding.sourcePath
+          })),
+        materials: materials.map(summarizeMaterial)
+      })
+    }
+
+    appendObject(object)
+    if (options.descendants === true) {
+      object.traverse(child => {
+        if (child !== object) appendObject(child)
+      })
+    }
+    return {
+      object: object.name || object.type,
+      type: object.type,
+      visible: object.visible,
+      materialRows: rows
+    }
+  }
+  const collectMaterials = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
+    const needle = filter.trim().toLowerCase()
+    const rows: Record<string, unknown>[] = []
+    context.getLoadedModel().scene.traverse(object => {
+      if (rows.length >= limit) return
+      const materials = getObjectMaterials(object)
+      if (materials.length === 0) return
+      const objectLabel = object.name || object.type
+      const materialLabels = materials.map(material => material.name || material.type).join(' ')
+      if (
+        needle &&
+        !objectLabel.toLowerCase().includes(needle) &&
+        !materialLabels.toLowerCase().includes(needle)
+      ) {
+        return
+      }
+      rows.push(summarizeMaterialObject(object))
+    })
+    return rows
   }
   const collectVariables = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
     const needle = filter.trim().toLowerCase()
@@ -359,6 +470,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       },
       counts: {
         interactions: context.getRuntime().getInteractionBindings().length,
+        materialBindings: context.getCompiledBehaviors().materialBindings.length,
         gauges: binding?.htmlGaugeCount ?? 0,
         loadedGauges: binding?.loadedHtmlGaugeCount ?? 0,
         capturedGauges: binding?.capturedHtmlGaugeCount ?? 0,
@@ -450,6 +562,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     if (kind === 'components' || kind === 'interactions') return ok('Listed cockpit components/interactions.', collectComponents(filter, limit))
     if (kind === 'gauges') return ok('Listed VCockpit gauges.', gauges().map(summarizeGauge).slice(0, limit))
     if (kind === 'animations') return ok('Listed animation bindings.', collectAnimations(filter, limit))
+    if (kind === 'materials') return ok('Listed scene materials.', collectMaterials(filter, limit))
     if (kind === 'inputEvents') {
       const normalizedFilter = filter.trim().toLowerCase()
       return ok(
@@ -485,6 +598,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.click("PUSH_STARTER", { holdMs: 1500 })',
         'await __DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
+        '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
         '__DevApi.checkParam(["vspeed", "altitude", "pressure", "location"])',
         '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
         '__DevApi.bridgeCall("InputEvent_Push_Long", [1, 1])',
@@ -494,7 +608,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }),
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
-      listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
+      listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
@@ -562,6 +676,20 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         component: exact,
         matches,
         interactionStats: { ...context.cockpitInteractionStats }
+      })
+    },
+    checkMaterial: (target, options = {}) => {
+      const object = findObject(target)
+      if (object == null) {
+        return fail(`No scene object matched ${target}.`, {
+          target,
+          matches: collectNodes(target, 25),
+          materials: collectMaterials(target, 25)
+        })
+      }
+      return ok(`Checked materials for ${object.name || object.type}.`, {
+        target,
+        ...summarizeMaterialObject(object, options)
       })
     },
     checkGauge: (key, options = {}) => {

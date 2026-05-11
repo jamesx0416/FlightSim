@@ -3357,6 +3357,8 @@ export type VCockpitSurfaceBindingResult = {
 
 type VCockpitGaugeDirtyKind = 'dom' | 'canvas' | 'unknown'
 
+const VCOCKPIT_HTML_GAUGE_LOAD_TIMEOUT_MS = 15000
+
 export type VCockpitHtmlGaugeRuntime = {
   readonly surface: string
   readonly textureName: string
@@ -4379,9 +4381,9 @@ async function createSandboxedHtmlGaugeFrame(
   let iframeError: string | null = null
   const status = await new Promise<'loaded' | 'iframe-error'>(resolve => {
     const timeoutId = window.setTimeout(() => {
-      iframeError = 'iframe load timed out after 5000 ms'
+      iframeError = `iframe load timed out after ${VCOCKPIT_HTML_GAUGE_LOAD_TIMEOUT_MS} ms`
       resolve('iframe-error')
-    }, 5000)
+    }, VCOCKPIT_HTML_GAUGE_LOAD_TIMEOUT_MS)
     iframe.addEventListener(
       'load',
       () => {
@@ -5065,6 +5067,9 @@ function createVCockpitGaugeBridgeScript(
     getAutoPilotAirspeedHoldValue: () => readNumberSimVar('AUTOPILOT AIRSPEED HOLD VAR', 'Knots'),
     getAutoPilotMachHoldValue: () => readNumberSimVar('AUTOPILOT MACH HOLD VAR', 'Mach'),
     getAutoPilotVerticalSpeedHoldValue: () => readNumberSimVar('AUTOPILOT VERTICAL HOLD VAR', 'Feet per minute'),
+    getAutoPilotAirspeedManaged: () => readBoolSimVar('AUTOPILOT AIRSPEED MANAGED'),
+    getAutoPilotHeadingManaged: () => readBoolSimVar('AUTOPILOT HEADING MANAGED'),
+    getAutoPilotAltitudeManaged: () => readBoolSimVar('AUTOPILOT ALTITUDE MANAGED'),
     getAutoPilotFlightDirectorActive: () => readBoolSimVar('AUTOPILOT FLIGHT DIRECTOR ACTIVE'),
     getAutoPilotActive: () => readBoolSimVar('AUTOPILOT MASTER'),
     getIsGrounded: () => readBoolSimVar('SIM ON GROUND'),
@@ -10191,6 +10196,7 @@ function updateOverlay(
   compiledBehaviors: {
     readonly animationBindings: readonly unknown[]
     readonly visibilityBindings: readonly unknown[]
+    readonly materialBindings: readonly unknown[]
     readonly interactionBindings?: readonly unknown[]
     readonly variableKeys: readonly string[]
     readonly diagnostics: readonly { readonly severity: string; readonly message: string }[]
@@ -10230,6 +10236,7 @@ function updateOverlay(
     '',
     `Animations compiled: ${compiledBehaviors.animationBindings.length}`,
     `Visibility bindings: ${compiledBehaviors.visibilityBindings.length}`,
+    `Material bindings: ${compiledBehaviors.materialBindings.length}`,
     `Interaction bindings: ${compiledBehaviors.interactionBindings?.length ?? 0}`,
     `Variable symbols: ${compiledBehaviors.variableKeys.length}`,
     `Diagnostics: ${errors} error / ${warnings} warning / ${diagnostics.length - errors - warnings} info`,

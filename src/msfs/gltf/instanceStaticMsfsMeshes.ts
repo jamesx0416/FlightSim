@@ -146,6 +146,10 @@ function collectProtectedNodeNames(behaviorSet: CompiledBehaviorSet): ReadonlySe
     protectedNames.add(binding.target)
     protectedNames.add(binding.target.toLowerCase())
   }
+  for (const binding of behaviorSet.materialBindings) {
+    protectedNames.add(binding.target)
+    protectedNames.add(binding.target.toLowerCase())
+  }
   return protectedNames
 }
 
