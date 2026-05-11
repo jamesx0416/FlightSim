@@ -8590,11 +8590,14 @@ function isCockpitInteractionOccluderMesh(mesh: Mesh): boolean {
   }
 
   return materials.some(material => {
-    const materialRecord = material as Material & { readonly colorWrite?: boolean }
+    const materialRecord = material as Material & { readonly colorWrite?: boolean; readonly depthWrite?: boolean }
     if (material.visible === false || materialRecord.colorWrite === false) {
       return false
     }
     if (material.transparent && material.opacity <= 0.05) {
+      return false
+    }
+    if (material.transparent && materialRecord.depthWrite === false) {
       return false
     }
     return true
