@@ -5,6 +5,7 @@ import type {
   CompiledInputEventBinding,
   CompiledInteractionBinding,
   CompiledInteractionSoundEvent,
+  CompiledMaterialBinding,
   CompiledUpdateBinding,
   CompiledVisibilityBinding,
   ImportDiagnostic,
@@ -85,6 +86,7 @@ export async function compileMsfs2020Behaviors(
       aircraftId: aircraft.id,
       animationBindings: [],
       visibilityBindings: [],
+      materialBindings: [],
       updateBindings: [],
       inputEventBindings: [],
       interactionBindings: [],
@@ -115,6 +117,7 @@ export async function compileMsfs2020Behaviors(
 
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
+  const materialBindings: CompiledMaterialBinding[] = []
   const updateBindings: CompiledUpdateBinding[] = []
   const inputEventBindings: CompiledInputEventBinding[] = []
   const interactionBindings: CompiledInteractionBinding[] = []
@@ -146,6 +149,7 @@ export async function compileMsfs2020Behaviors(
       context,
       animationBindings,
       visibilityBindings,
+      materialBindings,
       updateBindings,
       inputEventBindings,
       interactionBindings
@@ -159,6 +163,11 @@ export async function compileMsfs2020Behaviors(
     }
   }
   for (const binding of visibilityBindings) {
+    for (const key of binding.expression.variableKeys) {
+      variableKeys.add(key)
+    }
+  }
+  for (const binding of materialBindings) {
     for (const key of binding.expression.variableKeys) {
       variableKeys.add(key)
     }
@@ -184,6 +193,7 @@ export async function compileMsfs2020Behaviors(
     aircraftId: aircraft.id,
     animationBindings,
     visibilityBindings,
+    materialBindings,
     updateBindings,
     inputEventBindings,
     interactionBindings,
@@ -504,6 +514,7 @@ function traverseElement(
   context: CompileContext,
   animationBindings: CompiledAnimationBinding[],
   visibilityBindings: CompiledVisibilityBinding[],
+  materialBindings: CompiledMaterialBinding[],
   updateBindings: CompiledUpdateBinding[],
   inputEventBindings: CompiledInputEventBinding[],
   interactionBindings: CompiledInteractionBinding[]
@@ -524,7 +535,7 @@ function traverseElement(
     const branch = selectConditionBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
       }
     }
     return
@@ -534,7 +545,7 @@ function traverseElement(
     const branch = selectSwitchBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
       }
     }
     return
@@ -556,7 +567,7 @@ function traverseElement(
       ) {
         continue
       }
-      traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
+      traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
     }
     return
   }
@@ -585,6 +596,20 @@ function traverseElement(
     )
     if (animationBinding != null) {
       animationBindings.push(animationBinding)
+    }
+    return
+  }
+
+  if (elementTagName === 'Material') {
+    const materialBinding = buildMaterialBinding(
+      element,
+      scopedState.params,
+      scopedState.currentNode,
+      state.path,
+      context.diagnostics
+    )
+    if (materialBinding != null) {
+      pushUniqueMaterialBinding(materialBindings, materialBinding)
     }
     return
   }
@@ -689,6 +714,7 @@ function traverseElement(
             context,
             animationBindings,
             visibilityBindings,
+            materialBindings,
             updateBindings,
             inputEventBindings,
             interactionBindings
@@ -706,6 +732,7 @@ function traverseElement(
       context,
       animationBindings,
       visibilityBindings,
+      materialBindings,
       updateBindings,
       inputEventBindings,
       interactionBindings
@@ -720,7 +747,7 @@ function traverseElement(
     ) {
       continue
     }
-    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
+    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
   }
 }
 
@@ -730,6 +757,7 @@ function expandTemplateUse(
   context: CompileContext,
   animationBindings: CompiledAnimationBinding[],
   visibilityBindings: CompiledVisibilityBinding[],
+  materialBindings: CompiledMaterialBinding[],
   updateBindings: CompiledUpdateBinding[],
   inputEventBindings: CompiledInputEventBinding[],
   interactionBindings: CompiledInteractionBinding[]
@@ -932,7 +960,7 @@ function expandTemplateUse(
     ) {
       continue
     }
-    traverseElement(child, nextState, context, animationBindings, visibilityBindings, updateBindings, inputEventBindings, interactionBindings)
+    traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
   }
 }
 
@@ -1011,6 +1039,61 @@ function buildVisibilityBinding(
   return {
     target,
     expression,
+    sourcePath
+  }
+}
+
+function buildMaterialBinding(
+  materialNode: Element,
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledMaterialBinding | null {
+  const emissiveFactorNode = getDirectChild(materialNode, 'EmissiveFactor')
+  const parameterNode = emissiveFactorNode == null
+    ? null
+    : getDirectChild(emissiveFactorNode, 'Parameter')
+  const codeNode = parameterNode == null ? null : getDirectChild(parameterNode, 'Code')
+  const source = substituteParameters(codeNode?.textContent ?? '', params).trim()
+  if (!source) {
+    return null
+  }
+
+  const target =
+    currentNode?.trim() ||
+    params.get('NODE_ID')?.trim() ||
+    params.get('PART_ID')?.trim() ||
+    null
+  if (!target) {
+    diagnostics.push({
+      code: 'material_params_missing',
+      message: 'Material emissive template expansion did not produce a node target.',
+      severity: 'warning',
+      sourcePath
+    })
+    return null
+  }
+
+  const expression = compileRpnExpression(source, {
+    sourcePath,
+    sourceExpression: source,
+    diagnostics,
+    localVariableScope: target
+  })
+  if (expression == null) return null
+
+  const overrideBaseEmissiveNode =
+    emissiveFactorNode == null ? null : getDirectChild(emissiveFactorNode, 'OverrideBaseEmissive')
+  const overrideBaseEmissive = overrideBaseEmissiveNode == null
+    ? true
+    : parseBoolean(substituteParameters(overrideBaseEmissiveNode.textContent ?? '', params))
+
+  return {
+    target,
+    property: 'emissive',
+    expression,
+    overrideBaseEmissive,
     sourcePath
   }
 }
@@ -1167,6 +1250,10 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
   if (directionalAxisSource) {
     return directionalAxisSource
   }
+  const toggleSimvarSource = buildInteractionToggleSimvarCodeSource(params)
+  if (toggleSimvarSource) {
+    return toggleSimvarSource
+  }
   return getFirstUsableInteractionParameter(params, [
     'CLOCKWISE_CODE_DEFAULT_IM',
     'CLOCKWISE_CODE',
@@ -1208,6 +1295,14 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
     'LEFT_DOWN_CODE',
     'LEFT_UP_CODE'
   ]) || buildInteractionGateCodeSource(params) || buildInteractionSwitchPositionCodeSource(params)
+}
+
+function buildInteractionToggleSimvarCodeSource(params: ReadonlyMap<string, string>): string {
+  const toggleSimvar = substituteParameters(params.get('TOGGLE_SIMVAR') ?? '', params).trim()
+  if (!toggleSimvar || isNoopInteractionParameter(toggleSimvar) || toggleSimvar.includes('#')) {
+    return ''
+  }
+  return `(${toggleSimvar}, Bool) ! (> ${toggleSimvar})`.replace('(> ', '(>')
 }
 
 function buildDirectionalAxisFallbackCodeSource(params: ReadonlyMap<string, string>): string {
@@ -2000,6 +2095,20 @@ function pushUniqueInputEventBinding(
 ): void {
   const duplicate = bindings.some(candidate =>
     candidate.name === binding.name &&
+    candidate.expression.source === binding.expression.source
+  )
+  if (!duplicate) {
+    bindings.push(binding)
+  }
+}
+
+function pushUniqueMaterialBinding(
+  bindings: CompiledMaterialBinding[],
+  binding: CompiledMaterialBinding
+): void {
+  const duplicate = bindings.some(candidate =>
+    candidate.target === binding.target &&
+    candidate.property === binding.property &&
     candidate.expression.source === binding.expression.source
   )
   if (!duplicate) {

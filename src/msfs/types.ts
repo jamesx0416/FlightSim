@@ -178,6 +178,14 @@ export interface CompiledVisibilityBinding {
   readonly sourcePath: string
 }
 
+export interface CompiledMaterialBinding {
+  readonly target: string
+  readonly property: 'emissive'
+  readonly expression: CompiledExpression
+  readonly overrideBaseEmissive: boolean
+  readonly sourcePath: string
+}
+
 export interface CompiledUpdateBinding {
   readonly expression: CompiledExpression
   readonly sourcePath: string
@@ -215,6 +223,7 @@ export interface CompiledBehaviorSet {
   readonly aircraftId: string
   readonly animationBindings: readonly CompiledAnimationBinding[]
   readonly visibilityBindings: readonly CompiledVisibilityBinding[]
+  readonly materialBindings: readonly CompiledMaterialBinding[]
   readonly updateBindings: readonly CompiledUpdateBinding[]
   readonly inputEventBindings: readonly CompiledInputEventBinding[]
   readonly interactionBindings: readonly CompiledInteractionBinding[]
@@ -227,6 +236,7 @@ export interface RuntimeState {
   readonly irVersion: 'msfs-runtime/v1'
   readonly animationValues: ReadonlyMap<string, number>
   readonly nodeVisibilities: ReadonlyMap<string, boolean>
+  readonly materialValues: ReadonlyMap<string, number>
   readonly diagnostics: readonly ImportDiagnostic[]
 }
 

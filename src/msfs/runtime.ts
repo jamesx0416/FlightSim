@@ -1,4 +1,4 @@
-import { AnimationMixer, type Object3D, Vector3 } from 'three'
+import { AnimationMixer, type Material, type Object3D, Vector3 } from 'three'
 
 import { evaluateCompiledExpression } from './rpn'
 import type {
@@ -8,6 +8,7 @@ import type {
   CompiledInputEventBinding,
   CompiledInteractionBinding,
   CompiledInteractionSoundEvent,
+  CompiledMaterialBinding,
   CompiledUpdateBinding,
   CompiledVisibilityBinding,
   ImportedAircraft,
@@ -28,6 +29,25 @@ interface RuntimeInteractionOptions {
   readonly mouseEvent?: string
 }
 
+interface RuntimeMaterialBinding {
+  readonly binding: CompiledMaterialBinding
+  readonly materials: readonly RuntimeBoundMaterial[]
+}
+
+interface RuntimeBoundMaterial {
+  readonly material: RuntimeMaterial
+  readonly baseEmissiveIntensity: number
+}
+
+type RuntimeMaterial = Material & {
+  emissiveIntensity?: number
+  needsUpdate: boolean
+}
+
+type MaterialObject = Object3D & {
+  material?: Material | Material[]
+}
+
 export class AircraftRuntime {
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
@@ -35,8 +55,10 @@ export class AircraftRuntime {
   private readonly canonicalNodes = new Map<string, Object3D>()
   private readonly animationValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
+  private readonly materialValues = new Map<string, number>()
   private activeAnimationBindings: readonly CompiledAnimationBinding[] = []
   private readonly activeVisibilityBindings: readonly CompiledVisibilityBinding[]
+  private readonly activeMaterialBindings: readonly RuntimeMaterialBinding[]
   private readonly runtimeState: RuntimeState
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
   private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
@@ -60,6 +82,7 @@ export class AircraftRuntime {
       irVersion: 'msfs-runtime/v1',
       animationValues: this.animationValues,
       nodeVisibilities: this.nodeVisibilities,
+      materialValues: this.materialValues,
       diagnostics: this.compiled.diagnostics
     }
     this.hostServices.setInputEventBindings?.(this.compiled.inputEventBindings)
@@ -78,6 +101,10 @@ export class AircraftRuntime {
     sceneRoot.updateWorldMatrix(true, true)
     this.activeVisibilityBindings = this.compiled.visibilityBindings.filter(binding =>
       this.nodes.has(binding.target) || this.nodes.has(binding.target.toLowerCase())
+    )
+    this.activeMaterialBindings = buildRuntimeMaterialBindings(
+      this.compiled.materialBindings,
+      this.nodes
     )
     this.wingFlexBindings = buildWingFlexBindings(
       aircraft?.model?.nodeAnimations ?? [],
@@ -147,6 +174,16 @@ export class AircraftRuntime {
         this.nodes.get(binding.target.toLowerCase())
       if (node != null) {
         node.visible = isVisible
+      }
+    }
+
+    for (const runtimeBinding of this.activeMaterialBindings) {
+      const value = evaluateCompiledExpression(runtimeBinding.binding.expression, {
+        readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
+      })
+      this.materialValues.set(runtimeBinding.binding.target, value)
+      for (const materialState of runtimeBinding.materials) {
+        applyRuntimeMaterialBinding(materialState, value, runtimeBinding.binding)
       }
     }
 
@@ -259,13 +296,17 @@ export class AircraftRuntime {
 
     const lowercaseTarget = trimmedTarget.toLowerCase()
     const canonicalTarget = canonicalizeNodeAnimationName(trimmedTarget)
-    const exactBinding = this.compiled.interactionBindings.find(binding => binding.target.trim() === trimmedTarget)
+    const exactBinding = selectBestInteractionBinding(
+      this.compiled.interactionBindings.filter(binding => binding.target.trim() === trimmedTarget)
+    )
     if (exactBinding != null) {
       return exactBinding
     }
 
-    const caseInsensitiveBinding = this.compiled.interactionBindings.find(
-      binding => binding.target.trim().toLowerCase() === lowercaseTarget
+    const caseInsensitiveBinding = selectBestInteractionBinding(
+      this.compiled.interactionBindings.filter(
+        binding => binding.target.trim().toLowerCase() === lowercaseTarget
+      )
     )
     if (caseInsensitiveBinding != null) {
       return caseInsensitiveBinding
@@ -275,10 +316,10 @@ export class AircraftRuntime {
       return null
     }
 
-    return (
-      this.compiled.interactionBindings.find(
+    return selectBestInteractionBinding(
+      this.compiled.interactionBindings.filter(
         binding => canonicalizeNodeAnimationName(binding.target.trim()) === canonicalTarget
-      ) ?? null
+      )
     )
   }
 
@@ -452,6 +493,125 @@ export class AircraftRuntime {
         }
       }
     }
+  }
+}
+
+function buildRuntimeMaterialBindings(
+  bindings: readonly CompiledMaterialBinding[],
+  nodes: ReadonlyMap<string, Object3D>
+): readonly RuntimeMaterialBinding[] {
+  const clonedObjects = new WeakSet<Object3D>()
+  const runtimeBindings: RuntimeMaterialBinding[] = []
+
+  for (const binding of bindings) {
+    const object = nodes.get(binding.target) ?? nodes.get(binding.target.toLowerCase())
+    if (object == null || !hasMaterial(object)) {
+      continue
+    }
+
+    const materials = ensureRuntimeMaterials(object, clonedObjects)
+    if (materials.length === 0) {
+      continue
+    }
+
+    runtimeBindings.push({
+      binding,
+      materials: materials.map(material => ({
+        material,
+        baseEmissiveIntensity: getMaterialEmissiveIntensity(material)
+      }))
+    })
+  }
+
+  return runtimeBindings
+}
+
+function hasMaterial(object: Object3D): object is MaterialObject {
+  return 'material' in object && (object as MaterialObject).material != null
+}
+
+function ensureRuntimeMaterials(
+  object: MaterialObject,
+  clonedObjects: WeakSet<Object3D>
+): readonly RuntimeMaterial[] {
+  if (!clonedObjects.has(object)) {
+    const material = object.material
+    if (Array.isArray(material)) {
+      object.material = material.map(candidate => candidate.clone())
+    } else if (material != null) {
+      object.material = material.clone()
+    }
+    clonedObjects.add(object)
+  }
+
+  const material = object.material
+  if (Array.isArray(material)) {
+    return material.filter((candidate): candidate is RuntimeMaterial => candidate != null)
+  }
+  return material == null ? [] : [material as RuntimeMaterial]
+}
+
+function applyRuntimeMaterialBinding(
+  state: RuntimeBoundMaterial,
+  value: number,
+  binding: CompiledMaterialBinding
+): void {
+  if (binding.property !== 'emissive') {
+    return
+  }
+
+  const nextIntensity = binding.overrideBaseEmissive
+    ? Math.max(0, value) * state.baseEmissiveIntensity
+    : state.baseEmissiveIntensity + Math.max(0, value)
+  const previousIntensity = getMaterialEmissiveIntensity(state.material)
+  if (Math.abs(previousIntensity - nextIntensity) < 1e-6) {
+    return
+  }
+
+  state.material.emissiveIntensity = nextIntensity
+  state.material.needsUpdate = true
+}
+
+function getMaterialEmissiveIntensity(material: RuntimeMaterial): number {
+  return typeof material.emissiveIntensity === 'number' ? material.emissiveIntensity : 1
+}
+
+function selectBestInteractionBinding(
+  bindings: readonly CompiledInteractionBinding[]
+): CompiledInteractionBinding | null {
+  if (bindings.length === 0) {
+    return null
+  }
+  return [...bindings].sort((left, right) =>
+    scoreInteractionBinding(right) - scoreInteractionBinding(left)
+  )[0] ?? null
+}
+
+function scoreInteractionBinding(binding: CompiledInteractionBinding): number {
+  const source = binding.expression.source
+  const sideEffectScore =
+    countSubstring(source, '(>K:') * 20 +
+    countSubstring(source, '(>H:') * 20 +
+    countSubstring(source, '(>B:') * 20 +
+    countSubstring(source, '(>L:') * 6 +
+    countSubstring(source, '(>A:') * 6 +
+    countSubstring(source, '(>O:') * 4
+  return sideEffectScore + source.length / 1000
+}
+
+function countSubstring(value: string, needle: string): number {
+  if (!needle) {
+    return 0
+  }
+  let count = 0
+  let offset = 0
+  while (true) {
+    const index = value.indexOf(needle, offset)
+    if (index < 0) {
+      return count
+    }
+    count += 1
+    offset = index + needle.length
   }
 }
 
@@ -660,6 +820,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     const normalizedKey = normalizeRuntimeVariableKey(key)
+    if (normalizedKey === 'A:TURBINE IGNITION SWITCH') {
+      const indexedValue = this.resolveIndexedTurbineIgnitionSwitch()
+      if (indexedValue != null) {
+        this.readCache.set(cacheKey, indexedValue)
+        return indexedValue
+      }
+    }
     let value: number
     if (!this.values.has(normalizedKey)) {
       const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
@@ -710,10 +877,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       }
       return
     }
+    if (normalizedKey.startsWith('K:')) {
+      this.invokeKeyEvent(normalizedKey.slice(2), [Number.isFinite(numericValue) ? numericValue : 0])
+      return
+    }
     this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
     if (normalizedKey.startsWith('H:')) {
       this.invokeHtmlEvent(normalizedKey.slice(2), [normalizedKey.slice(2), Number.isFinite(numericValue) ? numericValue : 0])
     }
+    this.applyLocalVariableSideEffects(normalizedKey, numericValue)
     this.applyElectricalVariableSideEffects(normalizedKey, numericValue, unit ?? null)
     this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
   }
@@ -892,6 +1064,34 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (normalizedName === 'GENERIC_GEAR_ADVISORY_PUSH') {
       this.values.set(normalizeRuntimeVariableKey('L:Generic_Gear_Advisory_Active'), 0)
       this.values.set(normalizeRuntimeVariableKey('L:Generic_Gear_Advisory_Acknowledged'), 1)
+    }
+  }
+
+  private applyLocalVariableSideEffects(key: string, value: number): void {
+    if (!key.startsWith('L:')) {
+      return
+    }
+    const normalizedValue = Number.isFinite(value) && value > 0 ? 1 : 0
+    if (isApuMasterLocalSwitchKey(key)) {
+      this.values.set(normalizeRuntimeVariableKey('A:APU MASTER SWITCH'), normalizedValue)
+      this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), normalizedValue)
+      if (normalizedValue > 0) {
+        this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR SWITCH:1'), 1)
+        this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
+        this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), Math.max(this.values.get(normalizeRuntimeVariableKey('A:APU PCT RPM')) ?? 0, 5))
+      } else {
+        this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 0)
+      }
+      return
+    }
+    if (isApuStartLocalSwitchKey(key)) {
+      this.values.set(normalizeRuntimeVariableKey('A:APU STARTER'), normalizedValue)
+      this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), normalizedValue)
+      this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), normalizedValue > 0 ? 100 : 0)
+      if (normalizedValue > 0) {
+        this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR SWITCH:1'), 1)
+        this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
+      }
     }
   }
 
@@ -1556,6 +1756,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     this.applyGenericControlEventName(name, value)
+  }
+
+  private resolveIndexedTurbineIgnitionSwitch(): number | null {
+    const values = [1, 2, 3, 4]
+      .map(index => this.values.get(normalizeRuntimeVariableKey(`A:TURBINE IGNITION SWITCH:${index}`)))
+      .filter((value): value is number => value != null)
+    if (values.length === 0) {
+      return null
+    }
+    return Math.max(...values)
   }
 
   private applyLightKeyEvent(name: string, args: readonly number[]): boolean {
@@ -2443,11 +2653,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const engineModeMatch = /^ENGINE_MODE_(CRANK|NORM|IGN)_SET$/u.exec(name)
     if (engineModeMatch != null) {
       const modeValue = engineModeMatch[1] === 'CRANK' ? 0 : engineModeMatch[1] === 'NORM' ? 1 : 2
-      this.values.set(normalizeRuntimeVariableKey('A:TURBINE IGNITION SWITCH'), modeValue)
-      for (let index = 1; index <= 4; index += 1) {
-        this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG IGNITION SWITCH EX1:${index}`), modeValue)
-        this.values.set(normalizeRuntimeVariableKey(`A:TURBINE IGNITION SWITCH:${index}`), modeValue)
-      }
+      this.setTurbineIgnitionMode(null, modeValue)
+      return true
+    }
+
+    const turbineIgnitionSetMatch = /^TURBINE_IGNITION_SWITCH_SET(\d*)$/u.exec(name)
+    if (turbineIgnitionSetMatch != null) {
+      const rawIndex = turbineIgnitionSetMatch[1] ?? ''
+      const engineIndex = rawIndex ? Number.parseInt(rawIndex, 10) : null
+      this.setTurbineIgnitionMode(engineIndex, Math.trunc(Number(args.at(-1) ?? 0)))
       return true
     }
 
@@ -2474,6 +2688,34 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     return false
+  }
+
+  private setTurbineIgnitionMode(engineIndex: number | null, value: number): void {
+    const modeValue = clamp(Math.trunc(Number.isFinite(value) ? value : 0), 0, 2)
+    if (engineIndex == null) {
+      this.values.set(normalizeRuntimeVariableKey('A:TURBINE IGNITION SWITCH'), modeValue)
+      for (let index = 1; index <= 4; index += 1) {
+        this.setTurbineIgnitionMode(index, modeValue)
+      }
+      return
+    }
+    if (!Number.isFinite(engineIndex)) {
+      return
+    }
+    const index = Math.trunc(engineIndex)
+    this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG IGNITION SWITCH EX1:${index}`), modeValue)
+    this.values.set(normalizeRuntimeVariableKey(`A:TURBINE IGNITION SWITCH:${index}`), modeValue)
+    this.values.set(normalizeRuntimeVariableKey('A:TURBINE IGNITION SWITCH'), modeValue)
+    const allKnownModes = [1, 2, 3, 4]
+      .map(candidate => this.values.get(normalizeRuntimeVariableKey(`A:TURBINE IGNITION SWITCH:${candidate}`)))
+      .filter((candidate): candidate is number => candidate != null)
+    if (allKnownModes.length > 0 && allKnownModes.every(candidate => candidate === modeValue)) {
+      this.values.set(normalizeRuntimeVariableKey('A:TURBINE IGNITION SWITCH'), modeValue)
+    }
+    const fuelValveValue = this.values.get(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE SWITCH:${index}`)) ?? 0
+    if (fuelValveValue > 0) {
+      this.applyTurbineFuelValveSideEffects(index, fuelValveValue)
+    }
   }
 
   private setEngineStarter(index: number, value: number): void {
@@ -3290,6 +3532,33 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE OPEN:${valveIndex}`), nextValue)
     this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE SWITCH:${valveIndex}`), nextValue)
+    this.applyTurbineFuelValveSideEffects(valveIndex, nextValue)
+  }
+
+  private applyTurbineFuelValveSideEffects(engineIndex: number, value: number): void {
+    if (!Number.isFinite(engineIndex)) {
+      return
+    }
+    const index = Math.trunc(engineIndex)
+    const nextValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL VALVE:${index}`), nextValue)
+    this.values.set(normalizeRuntimeVariableKey(`L:ENG FUEL VALVE:${index}`), nextValue)
+    if (nextValue <= 0) {
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${index}`), 0)
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION:${index}`), 0)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N2:${index}`), 0)
+      return
+    }
+    const ignitionMode =
+      this.values.get(normalizeRuntimeVariableKey(`A:TURB ENG IGNITION SWITCH EX1:${index}`)) ??
+      this.values.get(normalizeRuntimeVariableKey(`A:TURBINE IGNITION SWITCH:${index}`)) ??
+      this.values.get(normalizeRuntimeVariableKey('A:TURBINE IGNITION SWITCH')) ??
+      0
+    if (ignitionMode > 1) {
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${index}`), 1)
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION:${index}`), 1)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N2:${index}`), 55)
+    }
   }
 
   private toggleCircuitSwitch(circuitIndex: number): void {
@@ -3680,6 +3949,18 @@ function isGeneratorControlKey(key: string): boolean {
     key.startsWith('A:GENERAL ENG MASTER ALTERNATOR:') ||
     (key.includes('GENERATOR') && (key.includes('SWITCH') || key.endsWith('_IS_ON') || key.endsWith('_ON')))
   )
+}
+
+function isApuMasterLocalSwitchKey(key: string): boolean {
+  return key.includes('APU') &&
+    key.includes('MASTER') &&
+    (key.endsWith('_IS_ON') || key.endsWith('_PB_IS_ON') || key.includes('SW_PB_IS_ON'))
+}
+
+function isApuStartLocalSwitchKey(key: string): boolean {
+  return key.includes('APU') &&
+    (key.includes('START') || key.includes('STARTER')) &&
+    (key.endsWith('_IS_ON') || key.endsWith('_PB_IS_ON'))
 }
 
 function normalizeUnit(unit: string | null): string {
