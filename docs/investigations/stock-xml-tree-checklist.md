@@ -12632,7 +12632,8 @@
     - [ ] `<Template Name="ASOBO_LIGHTING_Pull_Event_Base_Template">` line 649
       - [ ] `<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">` line 650
         - [ ] `<USE_INPUT_EVENT_ID>` line 651 = `LIGHTING`
-- [ ] `Asobo/Common/Passenger.xml`
+- [x] `Asobo/Common/Passenger.xml`
+  - [x] Stock template expansion verified on 2026-05-11 through synthetic model XML using mounted `Generic/Index.xml` and `Common/Index.xml`; generated Passenger bridge bindings handled cabin air/heat writes.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
     - [ ] `<Include>` line 3
@@ -12676,7 +12677,8 @@
     - [ ] `<Template Name="ASOBO_PASSENGER_Pull_Event_Base_Template">` line 68
       - [ ] `<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">` line 69
         - [ ] `<USE_INPUT_EVENT_ID>` line 70 = `PASSENGER`
-- [ ] `Asobo/Common/Pilot.xml`
+- [x] `Asobo/Common/Pilot.xml`
+  - [x] Stock `ASOBO_Pilot_Visibility_Template` verified on 2026-05-11; compiled visibility source is `(A:PLANE IN PARKING STATE, bool) !`.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_Pilot_Visibility_Template">` line 3
       - [ ] `<DefaultTemplateParameters>` line 4
@@ -22894,7 +22896,8 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 984
       - [ ] `<UseTemplate Name="ASOBO_LIGHTING_Base_Template">` line 988
         - [ ] `<LIGHT_TYPE>` line 989
-- [ ] `Asobo/Common/Subtemplates/Passenger_Subtemplates.xml`
+- [x] `Asobo/Common/Subtemplates/Passenger_Subtemplates.xml`
+  - [x] Stock Passenger subtemplate bridge coverage verified on 2026-05-11 for generated cabin air/heat `Set`, `Inc`, `Dec`, and `Toggle` bindings.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_PASSENGER_Cabin_Air_SubTemplate">` line 2
       - [ ] `<Parameters Type="Default">` line 3
@@ -51303,7 +51306,8 @@
     - [ ] `<Template Name="ASOBO_LIGHTING_Pull_Event_Base_Template">` line 649
       - [ ] `<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">` line 650
         - [ ] `<USE_INPUT_EVENT_ID>` line 651 = `LIGHTING`
-- [ ] `Asobo/Common/Passenger.xml`
+- [x] `Asobo/Common/Passenger.xml`
+  - [x] Stock template expansion verified on 2026-05-11 through synthetic model XML using mounted `Generic/Index.xml` and `Common/Index.xml`; generated Passenger bridge bindings handled cabin air/heat writes.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
     - [ ] `<Include>` line 3
@@ -51347,7 +51351,8 @@
     - [ ] `<Template Name="ASOBO_PASSENGER_Pull_Event_Base_Template">` line 68
       - [ ] `<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">` line 69
         - [ ] `<USE_INPUT_EVENT_ID>` line 70 = `PASSENGER`
-- [ ] `Asobo/Common/Pilot.xml`
+- [x] `Asobo/Common/Pilot.xml`
+  - [x] Stock `ASOBO_Pilot_Visibility_Template` verified on 2026-05-11; compiled visibility source is `(A:PLANE IN PARKING STATE, bool) !`.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_Pilot_Visibility_Template">` line 3
       - [ ] `<DefaultTemplateParameters>` line 4
@@ -61565,7 +61570,8 @@
             - [ ] `<SET_STATE_EXTERNAL>` line 984
       - [ ] `<UseTemplate Name="ASOBO_LIGHTING_Base_Template">` line 988
         - [ ] `<LIGHT_TYPE>` line 989
-- [ ] `Asobo/Common/Subtemplates/Passenger_Subtemplates.xml`
+- [x] `Asobo/Common/Subtemplates/Passenger_Subtemplates.xml`
+  - [x] Stock Passenger subtemplate bridge coverage verified on 2026-05-11 for generated cabin air/heat `Set`, `Inc`, `Dec`, and `Toggle` bindings.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_PASSENGER_Cabin_Air_SubTemplate">` line 2
       - [ ] `<Parameters Type="Default">` line 3

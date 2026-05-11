@@ -546,6 +546,8 @@ Rules:
   - Verified with `tsc --noEmit` and direct Chrome DevTools Protocol on 2026-05-11: A330 and A320 exterior-only DevApi key-event harnesses set bleed source control to `3`, engine bleed 2 to on, engine bleed 1 to off, and warning/caution acknowledged to `1` with active flags cleared; both routes had zero diagnostics and about 60 FPS, with screenshots captured to `backups/agent-browser/bleed-safety-support/`.
   - Follow-up compiler support synthesizes generic `..._Inc` and `..._Dec` bridge bindings for `UseInputEvent` nodes that provide `SET_STATE_EXTERNAL` plus stock `INC_PARAM_0` / `DEC_PARAM_0`, matching the official generic input-event pattern used by passenger levers/knobs and pressurization knobs. Generated direct `..._Set` bindings now feed `p0` into bare write-sink `SET_STATE_EXTERNAL` code such as `(>O:...)`.
   - Verified with `tsc --noEmit` and `agent-browser` on 2026-05-11: a synthetic stock-style compile/runtime harness generated `PASSENGER_Cabin_Air_Inc` / `Dec` / `Set` with `5 p0 *` stepping and updated scoped `O:XMLVAR_Cabin_Air_Position` from `10 -> 20 -> 15`; the same harness generated `PRESSURIZATION_Climb_Altitude_Goal_Inc` / `Dec` / `Set`, fired the stock pressurization key events, and updated the cabin altitude goal `0 -> 500 -> 0` through the documented placeholder step. A330 and A320 exterior-only smokes both reported zero diagnostics and about 60 FPS; screenshots captured to `backups/agent-browser/generated-setstate-step-support/`.
+  - Follow-up stock Passenger/Pilot verification compiled a synthetic model XML that includes mounted `Asobo/Generic/Index.xml` and `Asobo/Common/Index.xml`, then expands the real `ASOBO_PASSENGER_*` and `ASOBO_Pilot_Visibility_Template` stock templates without package-specific aliases.
+  - Verified with `agent-browser` and in-browser compiler/runtime harnesses on 2026-05-11: the stock Passenger templates generated `PASSENGER_Cabin_Air_1_*` and `PASSENGER_Cabin_Heat_1_*` bindings with zero compile diagnostics; handled bridge calls wrote the expected component-scoped `O:...XMLVAR_CABIN_*_POSITION` values; the Pilot template compiled visibility source `(A:PLANE IN PARKING STATE, bool) !`. A330 and A320 exterior-only routes had zero diagnostics, with A320 settling back to about 60 FPS; screenshots captured to `backups/agent-browser/passenger-pilot-stock-support/`.
   - Follow-up runtime and DevApi support accepts argument lists for `SharedMsfsRuntimeHost.invokeBridgeCall`, VCockpit `bridgeCall` runtime requests, and `window.__DevApi.bridgeCall(name, args)`, while preserving scalar `B:` writes as `p0`. This covers stock timed press/long-push templates that declare `SET_ARG_COUNT=2` and read `p1` for press duration, such as `Asobo/Inputs/Templates.xml`, `Common/Safety.xml`, `Common/LandingGear.xml`, and `Common/Subtemplates/Safety_Subtemplates.xml`.
   - Verified with `tsc --noEmit` and a local Bun runtime harness on 2026-05-11: a compiled `p0`/`p1` binding invoked through `SharedMsfsRuntimeHost.invokeBridgeCall("TEST_PUSH_LONG", [1, 2.5])` wrote both parameters to runtime variables and recorded bridge diagnostics with `args: [1, 2.5]` and `handledByBinding: true`.
   - Follow-up compiler support appends `ON_STATE_CHANGED_EXTERNAL_CODE` after synthesized generated-input-event `Toggle`, named state, and direct `Set` bridge bindings. This preserves official stock side effects that are separate from the main `SET_STATE_*` body, including pressurization bleed sync code in `Common/Subtemplates/Pressurization_Subtemplates.xml`.
@@ -630,8 +632,8 @@ Scope note:
 - [x] `Common/Instrument.xml`
 - [x] `Common/LandingGear.xml`
 - [x] `Common/Lighting.xml`
-- [ ] `Common/Passenger.xml`
-- [ ] `Common/Pilot.xml`
+- [x] `Common/Passenger.xml`
+- [x] `Common/Pilot.xml`
 - [x] `Common/Pressurization.xml`
 - [x] `Common/Safety.xml`
 
@@ -665,7 +667,7 @@ Scope note:
 - [x] `Common/Subtemplates/Instrument_Subtemplates.xml`
 - [x] `Common/Subtemplates/LandingGear_Subtemplates.xml`
 - [x] `Common/Subtemplates/Lighting_Subtemplates.xml`
-- [ ] `Common/Subtemplates/Passenger_Subtemplates.xml`
+- [x] `Common/Subtemplates/Passenger_Subtemplates.xml`
 - [x] `Common/Subtemplates/Pressurization_Subtemplates.xml`
 - [x] `Common/Subtemplates/Safety_Subtemplates.xml`
 
@@ -767,7 +769,7 @@ Scope note:
 Checked stock XML families in this batch are limited to the families covered by the generic runtime/input work and A320/A330 DevApi verification above:
 - Common aircraft, handling, landing-gear, fuel, electrical, deice, engine, instrument, common-procedure, and autopilot event support was implemented from the mounted public XML paths and verified on both fixture routes with screenshots under the matching `backups/agent-browser/*-support/` folders.
 - NAVCOM and Transponder support was implemented from `Asobo/NAVCOM/*` and `Asobo/Transponder/*` plus their input XMLs, then verified on both fixture routes with `backups/agent-browser/navcom-transponder-support/` screenshots.
-- Passenger, pilot, GPS, glass cockpit, generic complex, and misc XML families remain unchecked because their mounted stock XML contracts have not yet been exercised and verified as complete on both fixture routes.
+- GPS, glass cockpit, generic complex, and misc XML families remain unchecked because their mounted stock XML contracts have not yet been exercised and verified as complete on both fixture routes.
 - Lighting, pressurization, safety, and electrical subtemplate coverage is checked in this batch because the mounted XML paths were reviewed, generic compiler/runtime support exists for their stock input-event/key-event patterns, and A330/A320 DevApi verification with screenshots is recorded above under the matching support folders.
 
 #### CFG Reference Targets
