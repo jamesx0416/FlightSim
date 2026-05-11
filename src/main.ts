@@ -4368,7 +4368,7 @@ async function createSandboxedHtmlGaugeFrame(
   iframe.sandbox.add('allow-scripts')
   iframe.sandbox.add('allow-same-origin')
   iframe.loading = 'eager'
-  iframe.srcdoc = adaptMsfsHtmlGaugeDocument(gaugeSourceHtml, resolvedUrl, gauge)
+  iframe.srcdoc = await adaptMsfsHtmlGaugeDocument(gaugeSourceHtml, resolvedUrl, gauge)
   iframe.style.position = 'fixed'
   iframe.style.left = '-10000px'
   iframe.style.top = '0'
@@ -4414,11 +4414,11 @@ async function createSandboxedHtmlGaugeFrame(
   return { status, iframe, error: null }
 }
 
-function adaptMsfsHtmlGaugeDocument(
+async function adaptMsfsHtmlGaugeDocument(
   sourceHtml: string,
   resolvedUrl: string,
   gauge: VCockpitGaugeEntry
-): string {
+): Promise<string> {
   const htmlUiRootUrl = getHtmlUiRootUrl(resolvedUrl)
   const updateThrottleMs = getVCockpitGaugeUpdateThrottleMs(
     new URLSearchParams(window.location.search)
@@ -4477,22 +4477,7 @@ function adaptMsfsHtmlGaugeDocument(
     script.remove()
   }
 
-  for (const script of [...document.querySelectorAll('script[import-script]')]) {
-    const importSource = script.getAttribute('import-script')
-    if (importSource == null || importSource.trim() === '') {
-      continue
-    }
-
-    if (isBrowserProvidedMsfsImport(importSource)) {
-      script.remove()
-      continue
-    }
-
-    const replacement = document.createElement('script')
-    replacement.src = resolveMsfsHtmlAssetUrl(importSource, htmlUiRootUrl, documentDirectoryUrl)
-    replacement.async = script.getAttribute('import-async') !== 'false'
-    script.replaceWith(replacement)
-  }
+  await inlineMsfsHtmlGaugeImports(document, htmlUiRootUrl, documentDirectoryUrl)
 
   for (const element of [...document.querySelectorAll<HTMLElement>('[href], [src]')]) {
     const href = element.getAttribute('href')
@@ -4512,6 +4497,80 @@ function adaptMsfsHtmlGaugeDocument(
   }
 
   return `<!doctype html>${document.documentElement.outerHTML}`
+}
+
+async function inlineMsfsHtmlGaugeImports(
+  document: Document,
+  htmlUiRootUrl: string,
+  documentDirectoryUrl: string,
+  visited = new Set<string>()
+): Promise<void> {
+  for (const script of [...document.querySelectorAll('script[import-script]')]) {
+    const importSource = script.getAttribute('import-script')
+    if (importSource == null || importSource.trim() === '') {
+      continue
+    }
+
+    if (isBrowserProvidedMsfsImport(importSource)) {
+      script.remove()
+      continue
+    }
+
+    const resolvedSource = resolveMsfsHtmlAssetUrl(importSource, htmlUiRootUrl, documentDirectoryUrl)
+    if (!isMsfsHtmlImport(resolvedSource)) {
+      const replacement = document.createElement('script')
+      replacement.src = resolvedSource
+      replacement.async = script.getAttribute('import-async') !== 'false'
+      script.replaceWith(replacement)
+      continue
+    }
+
+    if (visited.has(resolvedSource)) {
+      script.remove()
+      continue
+    }
+    visited.add(resolvedSource)
+
+    const response = await fetch(resolvedSource).catch(error => error)
+    if (response instanceof Error || !response.ok) {
+      const replacement = document.createElement('script')
+      replacement.src = resolvedSource
+      replacement.async = script.getAttribute('import-async') !== 'false'
+      script.replaceWith(replacement)
+      continue
+    }
+
+    const importedDocument = new DOMParser().parseFromString(await response.text(), 'text/html')
+    if (isViteFallbackHtmlDocument(importedDocument)) {
+      script.remove()
+      continue
+    }
+
+    const importedDirectoryUrl = new URL('.', resolvedSource).toString()
+    await inlineMsfsHtmlGaugeImports(importedDocument, htmlUiRootUrl, importedDirectoryUrl, visited)
+
+    const importedNodes = [
+      ...importedDocument.head.children,
+      ...importedDocument.body.children
+    ]
+      .filter(node => !isDisposableImportedHtmlNode(node))
+      .map(node => document.importNode(node, true))
+
+    script.replaceWith(...importedNodes)
+  }
+}
+
+function isMsfsHtmlImport(source: string): boolean {
+  const pathname = new URL(source, window.location.href).pathname.toLowerCase()
+  return pathname.endsWith('.html') || pathname.endsWith('.htm')
+}
+
+function isDisposableImportedHtmlNode(node: Element): boolean {
+  return node.tagName.toLowerCase() === 'base' || node.tagName.toLowerCase() === 'title'
+}
+
+function isViteFallbackHtmlDocument(document: Document): boolean {
+  return document.querySelector('script[src*="@vite/client"], script[src*="/src/main.ts"]') != null
 }
 
 function isBrowserProvidedMsfsImport(source: string): boolean {
@@ -4556,7 +4615,11 @@ function resolveMsfsHtmlAssetUrl(
   }
 
   if (trimmed.startsWith('/')) {
-    return new URL(trimmed.slice(1), htmlUiRootUrl).toString()
+    const normalized = trimmed.slice(1)
+    if (/^vfs\//iu.test(normalized)) {
+      return new URL(normalized.slice(4), getPackageRootUrlFromHtmlUiRootUrl(htmlUiRootUrl)).toString()
+    }
+    return new URL(normalized, htmlUiRootUrl).toString()
   }
 
   return new URL(trimmed, documentDirectoryUrl).toString()
@@ -4594,9 +4657,12 @@ function createVCockpitGaugeBridgeScript(
     if (text.startsWith('/')) {
       try {
         const normalized = text.replace(/^\\/+/, '');
+        if (/^vfs\\//iu.test(normalized)) {
+          return new URL(normalized.slice(4), packageRootUrl).toString();
+        }
         return new URL(
           normalized,
-          /^(?:vfs|html_ui)(?:\\/|$)/iu.test(normalized) ? packageRootUrl : htmlUiRootUrl
+          /^html_ui(?:\\/|$)/iu.test(normalized) ? packageRootUrl : htmlUiRootUrl
         ).toString();
       } catch {
         return text;
@@ -5304,6 +5370,53 @@ function createVCockpitGaugeBridgeScript(
       this.heading = Number(heading);
     }
   }
+  class LatLong {
+    constructor(latOrValue = 0, long = 0) {
+      if (typeof latOrValue === 'object' && latOrValue != null) {
+        this.lat = Number(latOrValue.lat ?? latOrValue.latitude ?? 0);
+        this.long = Number(latOrValue.long ?? latOrValue.lon ?? latOrValue.longitude ?? 0);
+        return;
+      }
+      this.lat = Number(latOrValue);
+      this.long = Number(long);
+    }
+  }
+  class CodexBingMapElement extends HTMLElement {
+    constructor() {
+      super();
+      this.m_configId = 0;
+      this.m_configs = [];
+    }
+    connectedCallback() {
+      this.dataset.msfsPlaceholder = 'bing-map';
+      this.style.display ||= 'block';
+      this.style.width ||= '100%';
+      this.style.height ||= '100%';
+      this.style.background ||= 'rgba(0, 12, 18, 0.85)';
+    }
+    setConfig(configId) { this.m_configId = Number(configId) || 0; }
+    setBingId(id) { this.dataset.bingId = String(id ?? ''); }
+    setVisible(visible) { this.style.visibility = visible ? 'visible' : 'hidden'; }
+    setParams(params) { this._params = params; }
+    setPositionRadius(lla, radius) { this._params = { lla, radius }; }
+  }
+  class SvgMapConfig {
+    constructor() {
+      this.loaded = false;
+      this.path = '';
+    }
+    load(path, callback) {
+      this.loaded = true;
+      this.path = String(path ?? '');
+      callback?.();
+    }
+    generateBingMap(mapElement) {
+      if (mapElement != null) {
+        mapElement.m_configs ??= [];
+        mapElement.m_configs.push({ id: 'placeholder', path: this.path });
+      }
+    }
+  }
   class PitchBankHeading {
     constructor(value = 0, bank = 0, heading = 0) {
       if (typeof value === 'object' && value != null) {
@@ -5347,8 +5460,13 @@ function createVCockpitGaugeBridgeScript(
   if (!customElements.get('wasm-instrument')) {
     customElements.define('wasm-instrument', CodexWasmInstrument);
   }
+  if (!customElements.get('bing-map')) {
+    customElements.define('bing-map', CodexBingMapElement);
+  }
+  globalThis.LatLong ??= LatLong;
   globalThis.LatLongAlt ??= LatLongAlt;
   globalThis.LatLongAltPBH ??= LatLongAltPBH;
+  globalThis.SvgMapConfig ??= SvgMapConfig;
   globalThis.PitchBankHeading ??= PitchBankHeading;
   globalThis.PID_STRUCT ??= PID_STRUCT;
   globalThis.XYZ ??= XYZ;
