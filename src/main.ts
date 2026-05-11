@@ -3859,8 +3859,8 @@ async function bindVCockpitPlaceholderSurfaces(
     }
   }
 
-  const loadBackendWasmGaugeRuntimes = (surface: VCockpitSurface): void => {
-    for (const gauge of getSurfaceHostedGaugeEntries(surface).filter(isWasmBackedHtmlGauge)) {
+  const loadBackendGaugeRuntimes = (surface: VCockpitSurface): void => {
+    for (const gauge of getSurfaceHostedGaugeEntries(surface)) {
       void scheduleVCockpitHtmlGaugeRuntimeLoad(() => {
         if (disposed) {
           return Promise.resolve(createAbandonedVCockpitHtmlGaugeRuntime(surface, gauge))
@@ -3890,20 +3890,23 @@ async function bindVCockpitPlaceholderSurfaces(
         }
         setVCockpitHtmlGaugeRuntimeActive(runtime, active)
         if (isLoadedVCockpitHtmlGaugeStatus(runtime.status)) {
+          const backendKind = isWasmBackedHtmlGauge(gauge) ? 'WASM bridge' : 'HTML'
           diagnostics.push({
-            code: 'vcockpit-backend-wasm-bridge-loaded',
+            code: isWasmBackedHtmlGauge(gauge)
+              ? 'vcockpit-backend-wasm-bridge-loaded'
+              : 'vcockpit-backend-html-gauge-loaded',
             severity: 'info',
             sourcePath: surface.panelPath,
-            message: `${surface.sectionName} ${gauge.key} loaded as a backend-only WASM bridge host without texture capture or material binding.`
+            message: `${surface.sectionName} ${gauge.key} loaded as a backend-only ${backendKind} host without texture capture or material binding.`
           })
         }
       })
       .catch(error => {
         diagnostics.push({
-          code: 'vcockpit-backend-wasm-bridge-error',
+          code: 'vcockpit-backend-html-gauge-error',
           severity: 'warning',
           sourcePath: surface.panelPath,
-          message: `${surface.sectionName} backend-only WASM bridge runtimes could not be created.`,
+          message: `${surface.sectionName} backend-only HTML gauge runtimes could not be created.`,
           details: error instanceof Error ? error.message : String(error)
         })
       })
@@ -3912,7 +3915,7 @@ async function bindVCockpitPlaceholderSurfaces(
 
   for (const surface of parsed.surfaces) {
     if (surface.normalizedTextureName === 'notexture') {
-      loadBackendWasmGaugeRuntimes(surface)
+      loadBackendGaugeRuntimes(surface)
     }
   }
 
