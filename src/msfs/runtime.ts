@@ -37,9 +37,16 @@ interface RuntimeMaterialBinding {
 interface RuntimeBoundMaterial {
   readonly material: RuntimeMaterial
   readonly baseEmissiveIntensity: number
+  readonly baseEmissiveColor: readonly [number, number, number] | null
 }
 
 type RuntimeMaterial = Material & {
+  emissive?: {
+    r: number
+    g: number
+    b: number
+    setRGB: (r: number, g: number, b: number) => unknown
+  }
   emissiveIntensity?: number
   needsUpdate: boolean
 }
@@ -518,7 +525,8 @@ function buildRuntimeMaterialBindings(
       binding,
       materials: materials.map(material => ({
         material,
-        baseEmissiveIntensity: getMaterialEmissiveIntensity(material)
+        baseEmissiveIntensity: getMaterialEmissiveIntensity(material),
+        baseEmissiveColor: getMaterialEmissiveColor(material)
       }))
     })
   }
@@ -564,16 +572,66 @@ function applyRuntimeMaterialBinding(
     ? Math.max(0, value) * state.baseEmissiveIntensity
     : state.baseEmissiveIntensity + Math.max(0, value)
   const previousIntensity = getMaterialEmissiveIntensity(state.material)
-  if (Math.abs(previousIntensity - nextIntensity) < 1e-6) {
+  const nextColor = resolveRuntimeEmissiveColor(state, nextIntensity, binding)
+  const previousColor = getMaterialEmissiveColor(state.material)
+  if (
+    Math.abs(previousIntensity - nextIntensity) < 1e-6 &&
+    emissiveColorsEqual(previousColor, nextColor)
+  ) {
     return
   }
 
+  if (nextColor != null && state.material.emissive != null) {
+    state.material.emissive.setRGB(nextColor[0], nextColor[1], nextColor[2])
+  }
   state.material.emissiveIntensity = nextIntensity
   state.material.needsUpdate = true
 }
 
 function getMaterialEmissiveIntensity(material: RuntimeMaterial): number {
   return typeof material.emissiveIntensity === 'number' ? material.emissiveIntensity : 1
+}
+
+function getMaterialEmissiveColor(material: RuntimeMaterial): readonly [number, number, number] | null {
+  return material.emissive == null
+    ? null
+    : [material.emissive.r, material.emissive.g, material.emissive.b]
+}
+
+function resolveRuntimeEmissiveColor(
+  state: RuntimeBoundMaterial,
+  nextIntensity: number,
+  binding: CompiledMaterialBinding
+): readonly [number, number, number] | null {
+  const baseColor = state.baseEmissiveColor
+  if (baseColor == null) {
+    return null
+  }
+  if (!binding.overrideBaseEmissive) {
+    return baseColor
+  }
+  if (nextIntensity <= 0) {
+    return baseColor
+  }
+  return isBlackEmissiveColor(baseColor) ? [1, 1, 1] : baseColor
+}
+
+function isBlackEmissiveColor(color: readonly [number, number, number]): boolean {
+  return color[0] <= 1e-6 && color[1] <= 1e-6 && color[2] <= 1e-6
+}
+
+function emissiveColorsEqual(
+  left: readonly [number, number, number] | null,
+  right: readonly [number, number, number] | null
+): boolean {
+  if (left == null || right == null) {
+    return left == null && right == null
+  }
+  return (
+    Math.abs(left[0] - right[0]) < 1e-6 &&
+    Math.abs(left[1] - right[1]) < 1e-6 &&
+    Math.abs(left[2] - right[2]) < 1e-6
+  )
 }
 
 function selectBestInteractionBinding(
@@ -1166,6 +1224,32 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:AVIONICS MASTER SWITCH'), this.electricalState.avionicsSwitch)
     this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MAIN BUS VOLTAGE'), powered > 0 ? 28 : 0)
     this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL AVIONICS BUS VOLTAGE'), powered > 0 ? 28 : 0)
+    this.publishGenericPanelPowerVariables(powered)
+  }
+
+  private publishGenericPanelPowerVariables(powered: number): void {
+    this.values.set(normalizeRuntimeVariableKey('A:CIRCUIT GENERAL PANEL ON'), powered)
+    this.values.set(normalizeRuntimeVariableKey('A:CIRCUIT SWITCH ON:20'), powered)
+    this.values.set(normalizeRuntimeVariableKey('A:LIGHT PANEL'), powered)
+    this.values.set(normalizeRuntimeVariableKey('A:LIGHT POTENTIOMETER:86'), powered > 0 ? 100 : 0)
+    this.values.set(normalizeRuntimeVariableKey('A:LIGHT POTENTIOMETER:87'), powered > 0 ? 100 : 0)
+
+    for (const bus of [
+      'L:A32NX_ELEC_AC_1_BUS_IS_POWERED',
+      'L:A32NX_ELEC_AC_2_BUS_IS_POWERED',
+      'L:A32NX_ELEC_AC_ESS_BUS_IS_POWERED',
+      'L:A32NX_ELEC_AC_ESS_SHED_BUS_IS_POWERED',
+      'L:A32NX_ELEC_AC_STAT_INV_BUS_IS_POWERED',
+      'L:A32NX_ELEC_DC_1_BUS_IS_POWERED',
+      'L:A32NX_ELEC_DC_2_BUS_IS_POWERED',
+      'L:A32NX_ELEC_DC_ESS_BUS_IS_POWERED',
+      'L:A32NX_ELEC_DC_ESS_SHED_BUS_IS_POWERED',
+      'L:A32NX_ELEC_DC_BAT_BUS_IS_POWERED',
+      'L:A32NX_ELEC_HOT_1_BUS_IS_POWERED',
+      'L:A32NX_ELEC_HOT_2_BUS_IS_POWERED'
+    ]) {
+      this.values.set(normalizeRuntimeVariableKey(bus), powered)
+    }
   }
 
   private seedColdAndDarkState(): void {
