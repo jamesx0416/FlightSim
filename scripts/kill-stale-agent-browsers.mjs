@@ -8,7 +8,7 @@ const option = (name, fallback) => {
   return inline?.slice(name.length + 3) ?? (index >= 0 ? args[index + 1] : fallback);
 };
 
-const maxAge = durationToSeconds(option("max-age", "20m"));
+const maxAge = durationToSeconds(option("max-age", "10m"));
 const dryRun = flag("dry-run");
 const force = flag("force");
 const killAll = flag("kill-all");
