@@ -1523,8 +1523,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey === 'A:STRUCTURAL DEICE SWITCH') return handled(0)
     if (upperKey === 'A:LIGHT BEACON') return handled(0)
     if (upperKey.includes('BRIGHTNESS') || upperKey.includes('POTENTIOMETER')) {
-      const poweredValue = this.hasElectricalPower() ? 100 : 0
-      return handled(normalizeUnit(unit) === 'percent over 100' ? poweredValue / 100 : poweredValue)
+      return handled(resolveBrightnessOrPotentiometerFallback(
+        upperKey,
+        unit,
+        this.hasElectricalPower()
+      ))
     }
     if (isRuntimeStoredVariableKey(upperKey)) {
       const storedValue = this.values.get(upperKey)
@@ -3792,6 +3795,15 @@ function convertPercentOver100Unit(value: number, unit: string | null): number {
   return value
 }
 
+function convertFractionalBrightnessUnit(value: number, unit: string | null): number {
+  const normalizedUnit = normalizeUnit(unit)
+  const clampedValue = clamp01(value)
+  if (normalizedUnit === 'percent' || normalizedUnit === 'pct') {
+    return clampedValue * 100
+  }
+  return clampedValue
+}
+
 function convertRpmUnit(valueRpm: number, unit: string | null): number {
   const normalizedUnit = normalizeUnit(unit)
   if (normalizedUnit === 'degrees per second') {
@@ -3824,8 +3836,7 @@ function resolveGenericStoredVariableFallback(
     return 0
   }
   if (key.includes('BRIGHTNESS') || key.includes('POTENTIOMETER')) {
-    const poweredValue = electricalPower ? 100 : 0
-    return normalizedUnit === 'percent over 100' ? poweredValue / 100 : poweredValue
+    return resolveBrightnessOrPotentiometerFallback(key, unit, electricalPower)
   }
   if (key.includes('POWER') || key.includes('POWERED') || key.includes('ELEC') || key.includes('BUS')) {
     return electricalPower ? 1 : 0
@@ -3833,7 +3844,22 @@ function resolveGenericStoredVariableFallback(
   return null
 }
 
+function resolveBrightnessOrPotentiometerFallback(
+  key: string,
+  unit: string | null,
+  electricalPower: boolean
+): number {
+  if (isFractionalBrightnessVariableKey(key)) {
+    return convertFractionalBrightnessUnit(electricalPower ? 1 : 0, unit)
+  }
+  const poweredValue = electricalPower ? 100 : 0
+  return normalizeUnit(unit) === 'percent over 100' ? poweredValue / 100 : poweredValue
+}
+
 function resolveStoredRuntimeValue(key: string, value: number, unit: string | null): number {
+  if (isFractionalBrightnessVariableKey(key)) {
+    return convertFractionalBrightnessUnit(value, unit)
+  }
   if (isEngineAntiIcePositionKey(key)) {
     return convertPercentToEngineAntiIcePositionUnit(value, unit)
   }
@@ -3976,6 +4002,14 @@ function isElectricalPowerKey(key: string): boolean {
     key.includes('IS_POWERED') ||
     (key.includes('ELECTRICAL') && (key.includes('POWER') || key.includes('SWITCH'))) ||
     (key.includes('ELEC') && (key.includes('POWER') || key.includes('POWERED')))
+  )
+}
+
+function isFractionalBrightnessVariableKey(key: string): boolean {
+  return (
+    (key.startsWith('I:') || key.startsWith('L:')) &&
+    key.includes('BRIGHTNESS') &&
+    !key.includes('POTENTIOMETER')
   )
 }
 
