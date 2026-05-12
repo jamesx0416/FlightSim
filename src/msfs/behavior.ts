@@ -1034,7 +1034,7 @@ function buildCallbackDraggingSource(node: Element | null): string | null {
   const scale = getDirectChildText(node, 'Scale') || '1'
   const minValue = getDirectChildText(node, 'MinValue') || '0'
   const maxValue = getDirectChildText(node, 'MaxValue') || '16384'
-  const eventId = getDirectChildText(node, 'EventID')
+  const eventId = normalizeKeyEventId(getDirectChildText(node, 'EventID'))
   const isRelative = parseBoolean(getDirectChildText(node, 'IsRelative') || 'False')
   const dragValue = `(M:DragPercent) ${scale} * ${maxValue} min ${minValue} max`
   const nextValue = isRelative
@@ -1055,8 +1055,8 @@ function buildCallbackJumpDraggingSource(node: Element | null): string | null {
   }
   const axis = getElementTagName(movementNode) === 'XMovement' ? 'X' : 'Y'
   const delta = getDirectChildText(movementNode, 'Delta') || '0.001'
-  const eventIdInc = getDirectChildText(movementNode, 'EventIdInc')
-  const eventIdDec = getDirectChildText(movementNode, 'EventIdDec')
+  const eventIdInc = normalizeKeyEventId(getDirectChildText(movementNode, 'EventIdInc'))
+  const eventIdDec = normalizeKeyEventId(getDirectChildText(movementNode, 'EventIdDec'))
   if (!eventIdInc || !eventIdDec) {
     return null
   }
