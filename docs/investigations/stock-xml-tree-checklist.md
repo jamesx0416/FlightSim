@@ -29444,45 +29444,46 @@
               - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 98
                 - [ ] `<FREQUENCY>` line 99
                 - [ ] `<UPDATE_CODE>` line 100 = `#INIT_VARS# 0 if{ } #UPDATE_STATES#`
-- [ ] `Asobo/Generic/Updates.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<Template Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates">` line 12
-      - [ ] `<DefaultTemplateParameters>` line 13
-        - [ ] `<NUM_STATES>` line 14
-        - [ ] `<SWITCH_POSITION_TYPE>` line 15
-        - [ ] `<SWITCH_POSITION_VAR>` line 16 = `SwitchState`
-        - [ ] `<INIT_VARS>` line 18
-        - [ ] `<UPDATE_STATES>` line 19
-      - [ ] `<UseTemplate Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates_ParamSetup">` line 22
-    - [ ] `<Template Name="ASOBO_GT_Update_SmoothLeverMovement">` line 26
-      - [ ] `<Parameters Type="Default">` line 27
-        - [ ] `<DRAG_ANIMATION_VARIABLE_TYPE>` line 28
-        - [ ] `<DRAG_ANIMATION_VARIABLE_NAME>` line 29 = `XMLVAR_#NODE_ID#_Animation_Position`
-        - [ ] `<DRAG_ANIMATION_TARGET_VARIABLE_TYPE>` line 30
-        - [ ] `<DRAG_ANIMATION_TARGET_VARIABLE_NAME>` line 31 = `XMLVAR_#NODE_ID#_Animation_Target_Position`
-        - [ ] `<PERCENT_PER_SECONDS>` line 32
-        - [ ] `<FREQUENCY>` line 33
-      - [ ] `<Parameters Type="Override">` line 35
-        - [ ] `<CHECK_SETTER_FAR_FROM_TARGET>` line 36
-        - [ ] `<CHECK_ANIM_FAR_FROM_TARGET>` line 37
-        - [ ] `<Condition Valid="IS_LOOPING">` line 38
-          - [ ] `<True>` line 39
-            - [ ] `<SET_TARGET>` line 40
-          - [ ] `<False>` line 54
-            - [ ] `<SET_TARGET>` line 55
-      - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 60
-        - [ ] `<UPDATE_CODE>` line 61 = `#CHECK_SETTER_FAR_FROM_TARGET# if{ #ANIMATION_CODE_SETTER# (>#DRAG_ANIMATION_TARGET_VARIABLE_TYPE#:...`
-    - [ ] `<Template Name="ASOBO_GT_Update">` line 80
-      - [ ] `<DefaultTemplateParameters>` line 81
-        - [ ] `<FREQUENCY>` line 82
-        - [ ] `<UPDATE_CODE>` line 83
-        - [ ] `<INTERACTION_MODEL>` line 84
-      - [ ] `<Condition Check="UPDATE_ONCE">` line 87
-        - [ ] `<True>` line 88
-          - [ ] `<Update>` line 89
-        - [ ] `<False>` line 93
-          - [ ] `<Update Frequency="#FREQUENCY#">` line 94
+- [x] `Asobo/Generic/Updates.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<Template Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates">` line 12
+      - [x] `<DefaultTemplateParameters>` line 13
+        - [x] `<NUM_STATES>` line 14
+        - [x] `<SWITCH_POSITION_TYPE>` line 15
+        - [x] `<SWITCH_POSITION_VAR>` line 16 = `SwitchState`
+        - [x] `<INIT_VARS>` line 18
+        - [x] `<UPDATE_STATES>` line 19
+      - [x] `<UseTemplate Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates_ParamSetup">` line 22
+    - [x] `<Template Name="ASOBO_GT_Update_SmoothLeverMovement">` line 26
+      - [x] `<Parameters Type="Default">` line 27
+        - [x] `<DRAG_ANIMATION_VARIABLE_TYPE>` line 28
+        - [x] `<DRAG_ANIMATION_VARIABLE_NAME>` line 29 = `XMLVAR_#NODE_ID#_Animation_Position`
+        - [x] `<DRAG_ANIMATION_TARGET_VARIABLE_TYPE>` line 30
+        - [x] `<DRAG_ANIMATION_TARGET_VARIABLE_NAME>` line 31 = `XMLVAR_#NODE_ID#_Animation_Target_Position`
+        - [x] `<PERCENT_PER_SECONDS>` line 32
+        - [x] `<FREQUENCY>` line 33
+      - [x] `<Parameters Type="Override">` line 35
+        - [x] `<CHECK_SETTER_FAR_FROM_TARGET>` line 36
+        - [x] `<CHECK_ANIM_FAR_FROM_TARGET>` line 37
+        - [x] `<Condition Valid="IS_LOOPING">` line 38
+          - [x] `<True>` line 39
+            - [x] `<SET_TARGET>` line 40
+          - [x] `<False>` line 54
+            - [x] `<SET_TARGET>` line 55
+      - [x] `<UseTemplate Name="ASOBO_GT_Update">` line 60
+        - [x] `<UPDATE_CODE>` line 61 = `#CHECK_SETTER_FAR_FROM_TARGET# if{ #ANIMATION_CODE_SETTER# (>#DRAG_ANIMATION_TARGET_VARIABLE_TYPE#:...`
+    - [x] `<Template Name="ASOBO_GT_Update">` line 80
+      - [x] `<DefaultTemplateParameters>` line 81
+        - [x] `<FREQUENCY>` line 82
+        - [x] `<UPDATE_CODE>` line 83
+        - [x] `<INTERACTION_MODEL>` line 84
+      - [x] `<Condition Check="UPDATE_ONCE">` line 87
+        - [x] `<True>` line 88
+          - [x] `<Update>` line 89
+        - [x] `<False>` line 93
+          - [x] `<Update Frequency="#FREQUENCY#">` line 94
+  - Verified through the generic update-binding path: stock templates expand to direct `<Update>` nodes, `buildUpdateNodeBinding()` compiles their RPN with `Frequency` and `Once`, and `AircraftRuntime.runUpdateBindings()` executes them with runtime variable, key-event, and HTML-event writes. A320/A330 fixture runs recorded hundreds of update bindings with zero unsupported RPN diagnostics.
 - [x] `Asobo/Generic/Visibility.xml`
   - [x] `<ModelBehaviors>` line 1
     - [x] `<Template Name="ASOBO_GT_Visibility_Sim">` line 15
@@ -68120,45 +68121,46 @@
               - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 98
                 - [ ] `<FREQUENCY>` line 99
                 - [ ] `<UPDATE_CODE>` line 100 = `#INIT_VARS# 0 if{ } #UPDATE_STATES#`
-- [ ] `Asobo/Generic/Updates.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<Template Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates">` line 12
-      - [ ] `<DefaultTemplateParameters>` line 13
-        - [ ] `<NUM_STATES>` line 14
-        - [ ] `<SWITCH_POSITION_TYPE>` line 15
-        - [ ] `<SWITCH_POSITION_VAR>` line 16 = `SwitchState`
-        - [ ] `<INIT_VARS>` line 18
-        - [ ] `<UPDATE_STATES>` line 19
-      - [ ] `<UseTemplate Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates_ParamSetup">` line 22
-    - [ ] `<Template Name="ASOBO_GT_Update_SmoothLeverMovement">` line 26
-      - [ ] `<Parameters Type="Default">` line 27
-        - [ ] `<DRAG_ANIMATION_VARIABLE_TYPE>` line 28
-        - [ ] `<DRAG_ANIMATION_VARIABLE_NAME>` line 29 = `XMLVAR_#NODE_ID#_Animation_Position`
-        - [ ] `<DRAG_ANIMATION_TARGET_VARIABLE_TYPE>` line 30
-        - [ ] `<DRAG_ANIMATION_TARGET_VARIABLE_NAME>` line 31 = `XMLVAR_#NODE_ID#_Animation_Target_Position`
-        - [ ] `<PERCENT_PER_SECONDS>` line 32
-        - [ ] `<FREQUENCY>` line 33
-      - [ ] `<Parameters Type="Override">` line 35
-        - [ ] `<CHECK_SETTER_FAR_FROM_TARGET>` line 36
-        - [ ] `<CHECK_ANIM_FAR_FROM_TARGET>` line 37
-        - [ ] `<Condition Valid="IS_LOOPING">` line 38
-          - [ ] `<True>` line 39
-            - [ ] `<SET_TARGET>` line 40
-          - [ ] `<False>` line 54
-            - [ ] `<SET_TARGET>` line 55
-      - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 60
-        - [ ] `<UPDATE_CODE>` line 61 = `#CHECK_SETTER_FAR_FROM_TARGET# if{ #ANIMATION_CODE_SETTER# (>#DRAG_ANIMATION_TARGET_VARIABLE_TYPE#:...`
-    - [ ] `<Template Name="ASOBO_GT_Update">` line 80
-      - [ ] `<DefaultTemplateParameters>` line 81
-        - [ ] `<FREQUENCY>` line 82
-        - [ ] `<UPDATE_CODE>` line 83
-        - [ ] `<INTERACTION_MODEL>` line 84
-      - [ ] `<Condition Check="UPDATE_ONCE">` line 87
-        - [ ] `<True>` line 88
-          - [ ] `<Update>` line 89
-        - [ ] `<False>` line 93
-          - [ ] `<Update Frequency="#FREQUENCY#">` line 94
+- [x] `Asobo/Generic/Updates.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<Template Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates">` line 12
+      - [x] `<DefaultTemplateParameters>` line 13
+        - [x] `<NUM_STATES>` line 14
+        - [x] `<SWITCH_POSITION_TYPE>` line 15
+        - [x] `<SWITCH_POSITION_VAR>` line 16 = `SwitchState`
+        - [x] `<INIT_VARS>` line 18
+        - [x] `<UPDATE_STATES>` line 19
+      - [x] `<UseTemplate Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates_ParamSetup">` line 22
+    - [x] `<Template Name="ASOBO_GT_Update_SmoothLeverMovement">` line 26
+      - [x] `<Parameters Type="Default">` line 27
+        - [x] `<DRAG_ANIMATION_VARIABLE_TYPE>` line 28
+        - [x] `<DRAG_ANIMATION_VARIABLE_NAME>` line 29 = `XMLVAR_#NODE_ID#_Animation_Position`
+        - [x] `<DRAG_ANIMATION_TARGET_VARIABLE_TYPE>` line 30
+        - [x] `<DRAG_ANIMATION_TARGET_VARIABLE_NAME>` line 31 = `XMLVAR_#NODE_ID#_Animation_Target_Position`
+        - [x] `<PERCENT_PER_SECONDS>` line 32
+        - [x] `<FREQUENCY>` line 33
+      - [x] `<Parameters Type="Override">` line 35
+        - [x] `<CHECK_SETTER_FAR_FROM_TARGET>` line 36
+        - [x] `<CHECK_ANIM_FAR_FROM_TARGET>` line 37
+        - [x] `<Condition Valid="IS_LOOPING">` line 38
+          - [x] `<True>` line 39
+            - [x] `<SET_TARGET>` line 40
+          - [x] `<False>` line 54
+            - [x] `<SET_TARGET>` line 55
+      - [x] `<UseTemplate Name="ASOBO_GT_Update">` line 60
+        - [x] `<UPDATE_CODE>` line 61 = `#CHECK_SETTER_FAR_FROM_TARGET# if{ #ANIMATION_CODE_SETTER# (>#DRAG_ANIMATION_TARGET_VARIABLE_TYPE#:...`
+    - [x] `<Template Name="ASOBO_GT_Update">` line 80
+      - [x] `<DefaultTemplateParameters>` line 81
+        - [x] `<FREQUENCY>` line 82
+        - [x] `<UPDATE_CODE>` line 83
+        - [x] `<INTERACTION_MODEL>` line 84
+      - [x] `<Condition Check="UPDATE_ONCE">` line 87
+        - [x] `<True>` line 88
+          - [x] `<Update>` line 89
+        - [x] `<False>` line 93
+          - [x] `<Update Frequency="#FREQUENCY#">` line 94
+  - Verified through the generic update-binding path: stock templates expand to direct `<Update>` nodes, `buildUpdateNodeBinding()` compiles their RPN with `Frequency` and `Once`, and `AircraftRuntime.runUpdateBindings()` executes them with runtime variable, key-event, and HTML-event writes. A320/A330 fixture runs recorded hundreds of update bindings with zero unsupported RPN diagnostics.
 - [x] `Asobo/Generic/Visibility.xml`
   - [x] `<ModelBehaviors>` line 1
     - [x] `<Template Name="ASOBO_GT_Visibility_Sim">` line 15
