@@ -8294,9 +8294,6 @@ function createCameraDepthClipController(
       lastCameraQuaternion.copy(camera.quaternion)
       lastCameraZoom = camera.zoom
     }
-    if (!forceNextUpdate && nowMs < nextAllowedUpdateMs) {
-      return
-    }
     forceNextUpdate = false
     nextAllowedUpdateMs = nowMs + CAMERA_DEPTH_CLIP_UPDATE_INTERVAL_MS
 
@@ -8348,10 +8345,15 @@ function createCameraDepthClipController(
       return
     }
 
+    const depthRange = Math.max(MIN_CAMERA_CLIP_RANGE, farthestDepth - nearestDepth)
+    const clipPadding = Math.max(
+      MIN_CAMERA_CLIP_PADDING,
+      depthRange * CAMERA_CLIP_DEPTH_PADDING_RATIO
+    )
     const nextNear = intersectsCamera
       ? MIN_CAMERA_CLIP_NEAR
-      : Math.max(MIN_CAMERA_CLIP_NEAR, nearestDepth)
-    const nextFar = Math.max(nextNear + MIN_CAMERA_CLIP_RANGE, farthestDepth)
+      : Math.max(MIN_CAMERA_CLIP_NEAR, nearestDepth - clipPadding)
+    const nextFar = Math.max(nextNear + MIN_CAMERA_CLIP_RANGE, farthestDepth + clipPadding)
 
     if (!shouldUpdateCameraClipPlane(camera.near, nextNear)) {
       if (!shouldUpdateCameraClipPlane(camera.far, nextFar)) {
@@ -8377,6 +8379,8 @@ function createCameraDepthClipController(
 
 const MIN_CAMERA_CLIP_NEAR = 0.01
 const MIN_CAMERA_CLIP_RANGE = 0.01
+const MIN_CAMERA_CLIP_PADDING = 0.5
+const CAMERA_CLIP_DEPTH_PADDING_RATIO = 0.08
 const CAMERA_DEPTH_CLIP_UPDATE_INTERVAL_MS = 125
 
 function shouldUpdateCameraClipPlane(current: number, next: number): boolean {
