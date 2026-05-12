@@ -3608,7 +3608,8 @@
           - [ ] `<Case Check="POTENTIOMETER">` line 1379
             - [x] `<EMISSIVE_CODE>` line 1380 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100)`
           - [ ] `<Case Check="SIMVAR_POWER_SETTING">` line 1382
-            - [ ] `<EMISSIVE_CODE>` line 1383 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100)`
+            - [x] `<EMISSIVE_CODE>` line 1383 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100)`
+              - Verified 2026-05-12: A320 powered light power-setting fallback read `A:LIGHT PANEL POWER SETTING, Percent over 100 = 1` and `A:LIGHT PEDESTAL POWER SETTING, Percent over 100 = 1`, while cold-and-dark stayed at `0`.
       - [ ] `<Condition Valid="POTENTIOMETER">` line 1387
         - [ ] `<True>` line 1388
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1389
@@ -42293,7 +42294,8 @@
           - [ ] `<Case Check="POTENTIOMETER">` line 1379
             - [x] `<EMISSIVE_CODE>` line 1380 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100)`
           - [ ] `<Case Check="SIMVAR_POWER_SETTING">` line 1382
-            - [ ] `<EMISSIVE_CODE>` line 1383 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100)`
+            - [x] `<EMISSIVE_CODE>` line 1383 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100)`
+              - Verified 2026-05-12: A320 powered light power-setting fallback read `A:LIGHT PANEL POWER SETTING, Percent over 100 = 1` and `A:LIGHT PEDESTAL POWER SETTING, Percent over 100 = 1`, while cold-and-dark stayed at `0`.
       - [ ] `<Condition Valid="POTENTIOMETER">` line 1387
         - [ ] `<True>` line 1388
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1389
