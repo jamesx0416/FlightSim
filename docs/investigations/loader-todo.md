@@ -474,6 +474,9 @@ Rules:
 - [x] Compile structured stock drag callback nodes.
   - Direct `MouseRect` children using structured `CallbackDragging` now compile into generic `M:DragPercent` set/write RPN, and `CallbackJumpDragging` X/Y movement nodes compile into generic wheel plus relative-drag inc/dec RPN.
   - Verified with `tsc --noEmit` and an Agent Browser in-page compiler/runtime harness on 2026-05-12: a synthetic stock `CallbackDragging` node emitted `TEST_DRAG_SET` with argument `42` for `M:DragPercent = 0.42`, a synthetic `CallbackJumpDragging` Y movement node emitted `TEST_INC` / `TEST_DEC` from relative drag direction plus `WheelDown`, and the synthetic compile had zero diagnostics.
+- [x] Preserve stock `MouseRect` default/drag interaction-mode callback code.
+  - `CallbackCode` nodes containing `IMCodeInstances` now compile default and drag code as an `M:InputType` branch instead of concatenating `IMDefault`, `IMDrag`, and non-code metadata text.
+  - Verified with `tsc --noEmit` and an Agent Browser in-page compiler/runtime harness on 2026-05-12: a synthetic `IMCodeInstances` node compiled to `(M:InputType) 1 == if{ ...IMDrag... } els{ ...IMDefault... }`, `inputType: 0` wrote `L:DEFAULT_PATH = 1`, `inputType: 1` wrote `L:DRAG_PATH = 2`, and compile diagnostics were empty.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.
