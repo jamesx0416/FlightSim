@@ -1528,10 +1528,7 @@ function getInteractionUseInputEventCodeSource(params: ReadonlyMap<string, strin
   for (const [key, value] of params) {
     const normalizedKey = key.trim().toUpperCase()
     if (
-      normalizedKey.startsWith('SET_STATE_') ||
-      normalizedKey.startsWith('BINDING_INC_') ||
-      normalizedKey.startsWith('BINDING_DEC_') ||
-      normalizedKey.startsWith('BINDING_SET_')
+      normalizedKey.startsWith('SET_STATE_')
     ) {
       const normalizedValue = value.trim()
       if (!isNoopInteractionParameter(normalizedValue) && !/^[A-Z][A-Z0-9_]*$/u.test(normalizedValue)) {
@@ -2046,9 +2043,18 @@ function collectInteractionInputEventBindingParameterSources(
       break
     }
 
-    parameterSources.push(parameterValue)
+    const isDynamic = parseBoolean(params.get(`${parameterName}_IS_DYNAMIC`)?.trim() ?? '')
+    parameterSources.push(isDynamic ? parameterValue : formatStaticRpnParameter(parameterValue))
   }
   return parameterSources
+}
+
+function formatStaticRpnParameter(value: string): string {
+  const trimmed = value.trim()
+  if (/^[+-]?(?:\d+\.?\d*|\.\d+)$/u.test(trimmed)) {
+    return trimmed
+  }
+  return `'${trimmed.replace(/'/gu, "\\'")}'`
 }
 
 function getInteractionInputEventBindingEventSource(
@@ -2059,9 +2065,10 @@ function getInteractionInputEventBindingEventSource(
 ): string {
   const explicitEventId = params.get(`BINDING_${kind}_${bindingIndex}_EVENT_ID`)?.trim() ?? ''
   if (explicitEventId) {
+    const normalizedEventId = normalizeKeyEventId(explicitEventId)
     return parameterSources.length > 1
-      ? `(>K:${parameterSources.length}:${explicitEventId})`
-      : `(>K:${explicitEventId})`
+      ? `(>K:${parameterSources.length}:${normalizedEventId})`
+      : `(>K:${normalizedEventId})`
   }
 
   switch (kind) {

@@ -2992,9 +2992,9 @@
                 - [ ] `<ANIM>` line 513 = `HOLD`
                 - [ ] `<SET_ARG_COUNT>` line 515
                 - [ ] `<SET_STATE_EXTERNAL>` line 517
-                - [ ] `<BINDING_SET_0>` line 528
-                - [ ] `<BINDING_SET_0_PARAM_0>` line 529
-                - [ ] `<BINDING_SET_0_PARAM_1>` line 530
+                - [x] `<BINDING_SET_0>` line 528
+                - [x] `<BINDING_SET_0_PARAM_0>` line 529
+                - [x] `<BINDING_SET_0_PARAM_1>` line 530
                 - [ ] `<BINDING_INC_0>` line 531
                 - [ ] `<BINDING_INC_0_PARAM_0>` line 532
                 - [ ] `<BINDING_DEC_0>` line 533
@@ -23608,9 +23608,9 @@
           - [ ] `<ANIM>` line 115 = `HOLD`
           - [ ] `<SET_ARG_COUNT>` line 117
           - [ ] `<SET_STATE_EXTERNAL>` line 118
-          - [ ] `<BINDING_SET_0>` line 123
-          - [ ] `<BINDING_SET_0_PARAM_0>` line 124
-          - [ ] `<BINDING_SET_0_PARAM_1>` line 125
+          - [x] `<BINDING_SET_0>` line 123
+          - [x] `<BINDING_SET_0_PARAM_0>` line 124
+          - [x] `<BINDING_SET_0_PARAM_1>` line 125
           - [ ] `<BINDING_INC_0>` line 126
           - [ ] `<BINDING_INC_0_PARAM_0>` line 127
           - [ ] `<BINDING_DEC_0>` line 128
