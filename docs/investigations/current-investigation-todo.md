@@ -141,6 +141,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - external-power availability local variables are now treated as dynamic runtime values instead of stale stored defaults; Agent Browser verified A320 `PUSH_OVHD_ELEC_EXTPWR` changes both `L:A32NX_OVHD_ELEC_EXT_PWR_PB_IS_ON` and `A:EXTERNAL POWER ON` from 0 to 1
   - turbine fuel-valve side effects now publish placeholder engine spool values consistently; Agent Browser verified A320 `KNOB_ENGINES_MODE`, `SWITCH_ENGINES_ENG1`, and `SWITCH_ENGINES_ENG2` set ignition, fuel valves, combustion, RPM, N1, and N2 from cold values to running placeholder values
   - generic SimVar array-batch reads and placeholder air-traffic `Coherent.call` support now cover the A320 SystemsHost traffic publisher without throwing; Agent Browser verified the A320 `SimVar.SimVarBatch is not a constructor` script error is gone
+  - VCockpit iframe runtime reads are now rate-limited more conservatively so gauges do not flood the parent runtime with repeated SimVar polling; Agent Browser verified A320 startup variables still update while cockpit runtime median dropped to about 3.9 ms in the performance diagnostics
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - continue `VCockpit` dynamic texture binding, using `panel.cfg` surface definitions generically
