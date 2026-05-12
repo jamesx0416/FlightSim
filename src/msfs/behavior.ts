@@ -1341,7 +1341,7 @@ function buildInteractionEventBinding(
   kind: CompiledInteractionBinding['kind'],
   diagnostics: ImportDiagnostic[]
 ): CompiledInteractionBinding | null {
-  const normalizedEventId = eventId.replace(/^\s*K:/iu, '').trim()
+  const normalizedEventId = normalizeKeyEventId(eventId)
   if (!normalizedEventId) {
     return null
   }
@@ -1360,6 +1360,10 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
   const directionalAxisSource = buildDirectionalAxisFallbackCodeSource(params)
   if (directionalAxisSource) {
     return directionalAxisSource
+  }
+  const directionalEventIdSource = buildDirectionalEventIdFallbackCodeSource(params)
+  if (directionalEventIdSource) {
+    return directionalEventIdSource
   }
   const toggleSimvarSource = buildInteractionToggleSimvarCodeSource(params)
   if (toggleSimvarSource) {
@@ -1488,6 +1492,16 @@ function buildDirectionalAxisFallbackCodeSource(params: ReadonlyMap<string, stri
   return `(M:Event) 'WheelDown' scmp 0 == if{ ${positiveSource} } els{ ${negativeSource} }`
 }
 
+function buildDirectionalEventIdFallbackCodeSource(params: ReadonlyMap<string, string>): string {
+  const clockwiseEventId = normalizeKeyEventId(params.get('CLOCKWISE_EVENTID')?.trim() ?? '')
+  const anticlockwiseEventId = normalizeKeyEventId(params.get('ANTICLOCKWISE_EVENTID')?.trim() ?? '')
+  if (!clockwiseEventId || !anticlockwiseEventId) {
+    return ''
+  }
+
+  return `(M:Event) 'WheelDown' scmp 0 == if{ (>K:${clockwiseEventId}) } els{ (>K:${anticlockwiseEventId}) }`
+}
+
 function getInteractionFallbackEventId(params: ReadonlyMap<string, string>): string {
   return getFirstUsableInteractionParameter(params, [
     'CLOCKWISE_EVENTID',
@@ -1542,6 +1556,10 @@ function expandInteractionInputEventBridgeWrites(
     (match, bridgeName: string) =>
       getInteractionInputEventBridgeCodeSource(bridgeName, params) || match
   )
+}
+
+function normalizeKeyEventId(eventId: string): string {
+  return eventId.replace(/^\s*K:/iu, '').trim()
 }
 
 function getInteractionInputEventBridgeCodeSource(
