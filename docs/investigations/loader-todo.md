@@ -502,6 +502,9 @@ Rules:
 - [x] Deduplicate exact compiler diagnostics before exposing them through DevApi.
   - Behavior compilation and DevApi diagnostic aggregation now collapse exact duplicate diagnostics by severity, code, source path, and message so repeated unresolved template expansions do not inflate warning counts or obscure distinct issues.
   - Verified with `tsc --noEmit` and an Agent Browser in-page compiler harness on 2026-05-12: two identical missing-template uses in a synthetic model produced a single `template_missing` warning while preserving the original warning text and source path. A fresh A320 LOD1 DevApi check on the same date reported one known `FBW_AIRBUS_Update_PTU_Template` warning instead of two.
+- [x] Bound DevApi event history output for cockpit action checks.
+  - `window.__DevApi.events()` now accepts `limit` alongside `kind`, returns only the latest requested entries per event stream, and documents the option in `schema()`, README, and AGENTS.md so button/gauge smoke checks stay readable when gauges are producing many key or sound events.
+  - Verified with `tsc --noEmit` and Agent Browser on 2026-05-12: `events({ kind: "key", limit: 3 })` returned exactly three key events, `events({ limit: 2 })` capped key and sound streams at two entries, and `schema().data.eventOptions` exposed `kind` and `limit`.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.
