@@ -1032,9 +1032,10 @@ async function init(): Promise<void> {
               effectiveSearchParams,
               'cockpitInstanceStatic'
             ),
-            mergeStaticMeshes:
-              isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitMergeStatic') ||
-              shouldLoadCockpitRangeTextures(effectiveSearchParams),
+            mergeStaticMeshes: isEnabledFlagSearchParam(
+              effectiveSearchParams,
+              'cockpitMergeStatic'
+            ),
             bindVCockpitSurfaces: shouldBindVCockpitSurfaces(effectiveSearchParams),
             liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(effectiveSearchParams),
             vcockpitGaugeMode: getVCockpitGaugeMode(effectiveSearchParams),
@@ -1644,9 +1645,10 @@ async function init(): Promise<void> {
             effectiveSearchParams,
             'cockpitInstanceStatic'
           ),
-          mergeStaticMeshes:
-            isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitMergeStatic') ||
-            shouldLoadCockpitRangeTextures(effectiveSearchParams),
+          mergeStaticMeshes: isEnabledFlagSearchParam(
+            effectiveSearchParams,
+            'cockpitMergeStatic'
+          ),
           bindVCockpitSurfaces: shouldBindVCockpitSurfaces(effectiveSearchParams),
           liveVCockpitGauges: shouldLiveRefreshVCockpitGauges(effectiveSearchParams),
           vcockpitGaugeMode: getVCockpitGaugeMode(effectiveSearchParams),
@@ -8218,6 +8220,12 @@ async function loadMsfsGltfLod(
   const sanitizeStartMs = performance.now()
   const sanitizedGltf = sanitizeMsfsGltf(gltfJson)
   recordPhase('lod:sanitize-msfs-gltf', sanitizeStartMs)
+  const preparedBuffers = await prepareExternalGltfBuffers(
+    sanitizedGltf,
+    baseUrl,
+    loadContext,
+    recordPhase
+  )
   if (loadContext != null) {
     setGlobalLoadStage({
       stage: 'gltf:lod:parse:start',
@@ -8225,15 +8233,241 @@ async function loadMsfsGltfLod(
     })
   }
   const loaderParseStartMs = performance.now()
-  const gltf = await loader.parseAsync(sanitizedGltf as never, baseUrl)
-  recordPhase('lod:gltf-loader-parse', loaderParseStartMs)
-  if (loadContext != null) {
-    setGlobalLoadStage({
-      stage: 'gltf:lod:parse:done',
-      ...loadContext
+  try {
+    const gltf = await loader.parseAsync(sanitizedGltf as never, baseUrl)
+    recordPhase('lod:gltf-loader-parse', loaderParseStartMs)
+    if (loadContext != null) {
+      setGlobalLoadStage({
+        stage: 'gltf:lod:parse:done',
+        ...loadContext
+      })
+    }
+    return gltf
+  } finally {
+    for (const objectUrl of preparedBuffers.objectUrls) {
+      URL.revokeObjectURL(objectUrl)
+    }
+  }
+}
+
+async function prepareExternalGltfBuffers(
+  gltfJson: Record<string, unknown>,
+  baseUrl: string,
+  loadContext: {
+    readonly aircraftId: string
+    readonly lodUrl: string
+    readonly lodMinSize: number
+  } | null,
+  recordPhase: (
+    label: string,
+    startMs: number,
+    details?: Record<string, unknown> | null
+  ) => void
+): Promise<{ readonly objectUrls: readonly string[] }> {
+  const buffers = Array.isArray(gltfJson.buffers)
+    ? gltfJson.buffers as Array<Record<string, unknown>>
+    : []
+  const externalBuffers = buffers
+    .map((buffer, index) => ({ buffer, index, uri: buffer.uri }))
+    .filter((entry): entry is {
+      readonly buffer: Record<string, unknown>
+      readonly index: number
+      readonly uri: string
+    } => typeof entry.uri === 'string' && !isEmbeddedGltfBufferUri(entry.uri))
+
+  if (externalBuffers.length === 0) {
+    return { objectUrls: [] }
+  }
+
+  const objectUrls: string[] = []
+  try {
+    await Promise.all(externalBuffers.map(async ({ buffer, index, uri }) => {
+      const bufferUrl = new URL(uri, baseUrl).toString()
+      const bufferStartMs = performance.now()
+      if (loadContext != null) {
+        setGlobalLoadStage({
+          stage: 'gltf:lod:buffer:fetch',
+          ...loadContext,
+          bufferIndex: index,
+          bufferUrl
+        })
+      }
+      const arrayBuffer = await fetchExternalGltfBuffer(bufferUrl, progress => {
+        if (loadContext != null) {
+          setGlobalLoadStage({
+            stage: 'gltf:lod:buffer:fetch',
+            ...loadContext,
+            bufferIndex: index,
+            bufferUrl,
+            ...progress
+          })
+        }
+      })
+      recordPhase('lod:fetch-buffer', bufferStartMs, {
+        bufferIndex: index,
+        byteLength: arrayBuffer.byteLength
+      })
+      const objectUrl = URL.createObjectURL(new Blob([arrayBuffer], {
+        type: 'application/octet-stream'
+      }))
+      objectUrls.push(objectUrl)
+      buffer.uri = objectUrl
+    }))
+  } catch (error) {
+    for (const objectUrl of objectUrls) {
+      URL.revokeObjectURL(objectUrl)
+    }
+    throw error
+  }
+
+  return { objectUrls }
+}
+
+const GLTF_BUFFER_CHUNK_BYTES = 1024 * 1024
+const GLTF_BUFFER_CHUNK_TIMEOUT_MS = 60000
+const GLTF_BUFFER_CHUNK_CONCURRENCY = 6
+
+async function fetchExternalGltfBuffer(
+  url: string,
+  onProgress: (progress: {
+    readonly loadedBytes: number
+    readonly totalBytes: number | null
+    readonly loadedChunks: number
+    readonly totalChunks: number | null
+  }) => void = () => {}
+): Promise<ArrayBuffer> {
+  const requestUrl = appendGltfBufferCacheBuster(url)
+  const firstEnd = GLTF_BUFFER_CHUNK_BYTES - 1
+  const firstResponse = await fetchExternalGltfBufferRange(requestUrl, 0, firstEnd)
+  if (firstResponse.status !== 206) {
+    if (!firstResponse.ok) {
+      throw new Error(`Failed to load ${url}: HTTP ${firstResponse.status}`)
+    }
+    onProgress({
+      loadedBytes: firstResponse.buffer.byteLength,
+      totalBytes: firstResponse.buffer.byteLength,
+      loadedChunks: 1,
+      totalChunks: 1
+    })
+    return firstResponse.buffer
+  }
+
+  const firstRange = parseContentRange(firstResponse.contentRange)
+  if (firstRange == null) {
+    return firstResponse.buffer
+  }
+
+  const output = new Uint8Array(firstRange.size)
+  output.set(new Uint8Array(firstResponse.buffer), 0)
+  const ranges: Array<{ readonly start: number; readonly end: number }> = []
+  for (let start = firstRange.end + 1; start < firstRange.size; start += GLTF_BUFFER_CHUNK_BYTES) {
+    ranges.push({
+      start,
+      end: Math.min(start + GLTF_BUFFER_CHUNK_BYTES - 1, firstRange.size - 1)
     })
   }
-  return gltf
+  const totalChunks = ranges.length + 1
+  let loadedChunks = 1
+  let loadedBytes = firstResponse.buffer.byteLength
+  onProgress({
+    loadedBytes,
+    totalBytes: firstRange.size,
+    loadedChunks,
+    totalChunks
+  })
+
+  let nextRangeIndex = 0
+  const loadNextRange = async (): Promise<void> => {
+    while (nextRangeIndex < ranges.length) {
+      const range = ranges[nextRangeIndex]!
+      nextRangeIndex += 1
+      const { start, end } = range
+      const response = await fetchExternalGltfBufferRange(requestUrl, start, end)
+      if (response.status !== 206 && !response.ok) {
+        throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
+      }
+      output.set(new Uint8Array(response.buffer), start)
+      loadedChunks += 1
+      loadedBytes += response.buffer.byteLength
+      onProgress({
+        loadedBytes,
+        totalBytes: firstRange.size,
+        loadedChunks,
+        totalChunks
+      })
+    }
+  }
+  await Promise.all(
+    Array.from({
+      length: Math.min(GLTF_BUFFER_CHUNK_CONCURRENCY, ranges.length)
+    }, () => loadNextRange())
+  )
+  return output.buffer
+}
+
+async function fetchExternalGltfBufferRange(
+  url: string,
+  start: number,
+  end: number
+): Promise<{
+  readonly ok: boolean
+  readonly status: number
+  readonly contentRange: string | null
+  readonly buffer: ArrayBuffer
+}> {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    GLTF_BUFFER_CHUNK_TIMEOUT_MS
+  )
+  try {
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        Range: `bytes=${start}-${end}`
+      },
+      signal: controller.signal
+    })
+    const buffer = await response.arrayBuffer()
+    return {
+      ok: response.ok,
+      status: response.status,
+      contentRange: response.headers.get('content-range'),
+      buffer
+    }
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
+function appendGltfBufferCacheBuster(url: string): string {
+  const parsedUrl = new URL(url, window.location.href)
+  parsedUrl.searchParams.set(
+    'msfsBufferLoad',
+    `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
+  )
+  return parsedUrl.toString()
+}
+
+function parseContentRange(header: string | null): {
+  readonly start: number
+  readonly end: number
+  readonly size: number
+} | null {
+  const match = /^bytes\s+(\d+)-(\d+)\/(\d+)$/iu.exec(header ?? '')
+  if (match == null) {
+    return null
+  }
+
+  return {
+    start: Number.parseInt(match[1]!, 10),
+    end: Number.parseInt(match[2]!, 10),
+    size: Number.parseInt(match[3]!, 10)
+  }
+}
+
+function isEmbeddedGltfBufferUri(uri: string): boolean {
+  return uri.startsWith('data:') || uri.startsWith('blob:')
 }
 
 function createDefaultModelTextureLoadOptions(): MSFSDDSLoadOptions {

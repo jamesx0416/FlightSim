@@ -286,7 +286,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     if (this.options.immediatePlaceholder !== true) {
       onLoad?.(texture)
     }
-    if (cause != null) {
+    if (cause != null && shouldLogDdsFallbacks()) {
       console.warn('DDS range mip load fell back to a placeholder.', cause)
     }
   }
@@ -886,6 +886,14 @@ async function fetchWithTimeout(
     })
   } finally {
     window.clearTimeout(timeoutId)
+  }
+}
+
+function shouldLogDdsFallbacks(): boolean {
+  try {
+    return new URLSearchParams(globalThis.location?.search ?? '').has('ddsDebug')
+  } catch {
+    return false
   }
 }
 

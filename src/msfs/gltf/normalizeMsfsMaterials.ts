@@ -152,6 +152,8 @@ type GltfParserLike = {
   getDependency(type: 'texture', index: number): Promise<Texture>
 }
 
+const MSFS_DETAIL_TEXTURE_LOAD_TIMEOUT_MS = 5000
+
 type MsfsDetailMapExtension = NonNullable<MsfsMaterialExtensions['ASOBO_material_detail_map']>
 
 type LoadedMsfsDetailTextures = {
@@ -1782,13 +1784,40 @@ async function loadMsfsTextureRef(
     textureCache.set(textureRef.index, pendingTexture)
   }
 
-  const texture = await pendingTexture
+  const texture = await withOptionalMsfsTextureTimeout(
+    pendingTexture,
+    MSFS_DETAIL_TEXTURE_LOAD_TIMEOUT_MS
+  )
+  if (texture == null) {
+    return null
+  }
+
   if (texture.colorSpace !== colorSpace) {
     texture.colorSpace = colorSpace
     texture.needsUpdate = true
   }
 
   return texture
+}
+
+async function withOptionalMsfsTextureTimeout(
+  texturePromise: Promise<Texture>,
+  timeoutMs: number
+): Promise<Texture | null> {
+  let timeoutId: number | null = null
+  const timeoutPromise = new Promise<null>(resolve => {
+    timeoutId = window.setTimeout(() => resolve(null), timeoutMs)
+  })
+
+  try {
+    return await Promise.race([texturePromise, timeoutPromise])
+  } catch {
+    return null
+  } finally {
+    if (timeoutId != null) {
+      window.clearTimeout(timeoutId)
+    }
+  }
 }
 
 function applyMsfsDetailMapShader(

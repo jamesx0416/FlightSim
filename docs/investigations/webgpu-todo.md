@@ -15,7 +15,7 @@ Use sources in this order:
 
 - The viewer now has a generic renderer factory with a fixed bootstrap order.
 - Startup now tries real `WebGPURenderer` first, then `WebGPURenderer({ forceWebGL: true })`, and only falls back to legacy `WebGLRenderer` if both fail.
-- The WebGPU path currently uses a flat environment fallback when PMREM scene generation is unavailable.
+- The WebGPU path uses a flat environment fallback instead of attempting Three's WebGL PMREM generator, avoiding incompatible internal `ShaderMaterial` builds before aircraft loading starts.
 - Signed compressed RG normal maps now use `three`'s WebGPU node-material conversion path and match the WebGL normal-scale application instead of re-scaling the blend factor a second time.
 - DDS BC5/BC5S normal sources can now be decoded to standard RGB normal maps on the WebGPU load path, so those materials can stay closer to plain `MeshStandardMaterial` behavior instead of requiring node-material conversion just for compressed normals.
 - `ASOBO_material_detail_map` now has a WebGPU node-material path for detail color, ORM, blend-mask, vertex-alpha blending, and detail-normal composition.
