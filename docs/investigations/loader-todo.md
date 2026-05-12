@@ -709,7 +709,7 @@ Scope note:
 - [x] `Generic/Index.xml`
 - [ ] `Generic/Interactions.xml`
 - [ ] `Generic/Updates.xml`
-- [ ] `Generic/Visibility.xml`
+- [x] `Generic/Visibility.xml`
 
 ##### Generic Complex
 
