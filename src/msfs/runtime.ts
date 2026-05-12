@@ -77,6 +77,82 @@ export type RuntimeUpdateProfile = {
   readonly updateBindingCount: number
 }
 
+interface RuntimeControlState {
+  gearTarget: number
+  gearPosition: number
+  flapsTarget: number
+  flapsPosition: number
+  spoilersTarget: number
+  spoilersPosition: number
+  aileronTarget: number
+  aileronPosition: number
+  elevatorTarget: number
+  elevatorPosition: number
+  rudderTarget: number
+  rudderPosition: number
+  parkingBrake: number
+}
+
+interface RuntimeElectricalState {
+  batterySwitch: number
+  externalPowerSwitch: number
+  externalPowerAvailable: number
+  avionicsSwitch: number
+}
+
+interface RuntimeCycles {
+  readonly gearCycle: number
+  readonly flapCycle: number
+  readonly spoilerCycle: number
+  readonly engineCycle: number
+  readonly aileronCycle: number
+  readonly elevatorCycle: number
+  readonly rudderCycle: number
+  readonly reverserCycle: number
+  readonly dtSeconds: number
+}
+
+function createInitialRuntimeControlState(): RuntimeControlState {
+  return {
+    gearTarget: 0,
+    gearPosition: 0,
+    flapsTarget: 0,
+    flapsPosition: 0,
+    spoilersTarget: 0,
+    spoilersPosition: 0,
+    aileronTarget: 0,
+    aileronPosition: 0,
+    elevatorTarget: 0,
+    elevatorPosition: 0,
+    rudderTarget: 0,
+    rudderPosition: 0,
+    parkingBrake: 0
+  }
+}
+
+function createInitialRuntimeElectricalState(): RuntimeElectricalState {
+  return {
+    batterySwitch: 0,
+    externalPowerSwitch: 0,
+    externalPowerAvailable: 1,
+    avionicsSwitch: 0
+  }
+}
+
+function createInitialRuntimeCycles(): RuntimeCycles {
+  return {
+    gearCycle: 0,
+    flapCycle: 0,
+    spoilerCycle: 0,
+    engineCycle: 0,
+    aileronCycle: 0,
+    elevatorCycle: 0,
+    rudderCycle: 0,
+    reverserCycle: 0,
+    dtSeconds: 0
+  }
+}
+
 export class AircraftRuntime {
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
@@ -964,57 +1040,54 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private readonly recentBridgeEvents: RuntimeBridgeEvent[] = []
   private readonly soundStates = new Map<string, boolean>()
   private readonly simVarSounds: readonly ImportedSimVarSound[]
-  private controlState = {
-    gearTarget: 0,
-    gearPosition: 0,
-    flapsTarget: 0,
-    flapsPosition: 0,
-    spoilersTarget: 0,
-    spoilersPosition: 0,
-    aileronTarget: 0,
-    aileronPosition: 0,
-    elevatorTarget: 0,
-    elevatorPosition: 0,
-    rudderTarget: 0,
-    rudderPosition: 0,
-    parkingBrake: 0
-  }
-  private electricalState = {
-    batterySwitch: 0,
-    externalPowerSwitch: 0,
-    externalPowerAvailable: 1,
-    avionicsSwitch: 0
-  }
-  private cycles: {
-    readonly gearCycle: number
-    readonly flapCycle: number
-    readonly spoilerCycle: number
-    readonly engineCycle: number
-    readonly aileronCycle: number
-    readonly elevatorCycle: number
-    readonly rudderCycle: number
-    readonly reverserCycle: number
-    readonly dtSeconds: number
-  } = {
-    gearCycle: 0,
-    flapCycle: 0,
-    spoilerCycle: 0,
-    engineCycle: 0,
-    aileronCycle: 0,
-    elevatorCycle: 0,
-    rudderCycle: 0,
-    reverserCycle: 0,
-    dtSeconds: 0
-  }
+  private readonly initialDiagnosticCount: number
+  private controlState = createInitialRuntimeControlState()
+  private electricalState = createInitialRuntimeElectricalState()
+  private cycles = createInitialRuntimeCycles()
 
   constructor(
     private readonly diagnostics: ImportDiagnostic[],
-    aircraft?: ImportedAircraft
+    private readonly aircraft?: ImportedAircraft
   ) {
+    this.initialDiagnosticCount = diagnostics.length
     this.wingFlexProfile = createDemoWingFlexProfile(aircraft)
     this.simVarSounds = aircraft?.soundDefinition?.simVarSounds ?? []
     this.seedColdAndDarkState()
     this.seedPreviewFlightState(aircraft?.previewFlightState ?? null)
+  }
+
+  resetRuntimeState(options: { readonly coldAndDark?: boolean } = {}): void {
+    this.elapsedSeconds = 0
+    this.values.clear()
+    this.readCache.clear()
+    this.defaultedKeys.clear()
+    this.engineCycleTarget = 0
+    this.throttleLeverPosition = 0
+    this.variableReadCount = 0
+    this.variableReadCacheHitCount = 0
+    this.variableReadCacheMissCount = 0
+    this.variableWriteCount = 0
+    this.keyEventCount = 0
+    this.htmlEventCount = 0
+    this.soundEventCount = 0
+    this.effectEventCount = 0
+    this.bridgeCallCount = 0
+    this.defaultedVariableCount = 0
+    this.activeInputEventBindings.clear()
+    this.recentHtmlEvents.length = 0
+    this.recentKeyEvents.length = 0
+    this.recentSoundEvents.length = 0
+    this.recentEffectEvents.length = 0
+    this.recentBridgeEvents.length = 0
+    this.soundStates.clear()
+    this.controlState = createInitialRuntimeControlState()
+    this.electricalState = createInitialRuntimeElectricalState()
+    this.cycles = createInitialRuntimeCycles()
+    this.diagnostics.splice(this.initialDiagnosticCount)
+    this.seedColdAndDarkState()
+    if (options.coldAndDark !== true) {
+      this.seedPreviewFlightState(this.aircraft?.previewFlightState ?? null)
+    }
   }
 
   tick(dtSeconds: number): void {
