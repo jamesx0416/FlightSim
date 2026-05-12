@@ -832,10 +832,10 @@ async function fetchArrayBufferRange(
 ): Promise<ArrayBuffer | null> {
   const headers = new Headers(requestHeader)
   headers.set('Range', `bytes=${start}-${end}`)
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers,
     credentials: 'same-origin'
-  })
+  }, 2000)
 
   if (response.status !== 206) {
     await response.body?.cancel()
@@ -855,10 +855,10 @@ export async function shouldBypassDdsRangeReduction(
 
   let response: Response
   try {
-    response = await fetch(`${url}.FLAGS`, {
+    response = await fetchWithTimeout(`${url}.FLAGS`, {
       headers: requestHeader,
       credentials: 'same-origin'
-    })
+    }, 500)
   } catch {
     return false
   }
@@ -870,6 +870,23 @@ export async function shouldBypassDdsRangeReduction(
 
   const flags = (await response.text()).toUpperCase()
   return flags.includes('+NOREDUCE') || /\bNOREDUCE\b/.test(flags)
+}
+
+async function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal
+    })
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
 }
 
 const DDS_MAGIC = 0x20534444

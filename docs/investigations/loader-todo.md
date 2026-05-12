@@ -529,6 +529,8 @@ Rules:
   - The spoiler object-position mapper accepts both compact detent positions and larger stock animation-length positions, so object/simvar sync code can round-trip without over-scaling deployment.
 - [x] Support generic stock handling trim input events.
   - `B:HANDLING_RudderTrim_*`, `B:HANDLING_ElevatorTrim_*`, and `B:HANDLING_AileronsTrim_*` bridge calls now update the corresponding `A:* TRIM PCT` / indicator SimVars instead of only changing bridge-local `B:` state, so stock trim knobs, switches, and drag callbacks have visible runtime state.
+- [x] Bound generic DDS side fetches during model load.
+  - Generic model texture loading now uses the existing range-low DDS path by default, falling back to placeholders when byte ranges or `.FLAGS` probes are unavailable. DDS range requests are bounded to 2 seconds and `.FLAGS` probes to 500 ms so slow or missing texture side requests do not make GLTF LOD parsing wait for browser network timeouts before the runtime and DevApi can come up.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.
