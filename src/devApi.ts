@@ -880,6 +880,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     perf: () => ok('Collected performance summary.', {
       fps: context.getFpsSnapshot(),
       rendererInfo: { memory: { ...context.renderer.info.memory }, render: { ...context.renderer.info.render } },
+      runtimeHost: context.getRuntimeHost().getStats(),
       cockpitPerf: context.getCockpitPerfDiagnostics().getSummary(),
       activeInterior: context.getCockpitPerfDiagnostics().getActiveInteriorStats(),
       panelSurfaces: context.getCockpitPerfDiagnostics().getPanelSurfaceStats()

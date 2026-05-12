@@ -748,6 +748,8 @@ export type RuntimeVariableNamespace = 'A' | 'L' | 'O' | 'K' | 'H' | 'B' | 'E' |
 
 export interface SharedRuntimeHostStats {
   readonly variableReadCount: number
+  readonly variableReadCacheHitCount: number
+  readonly variableReadCacheMissCount: number
   readonly variableWriteCount: number
   readonly keyEventCount: number
   readonly htmlEventCount: number
@@ -820,6 +822,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private engineCycleTarget = 0
   private throttleLeverPosition = 0
   private variableReadCount = 0
+  private variableReadCacheHitCount = 0
+  private variableReadCacheMissCount = 0
   private variableWriteCount = 0
   private keyEventCount = 0
   private htmlEventCount = 0
@@ -945,8 +949,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const cacheKey = `${key}\u0000${unit ?? ''}`
     const cachedValue = this.readCache.get(cacheKey)
     if (cachedValue != null) {
+      this.variableReadCacheHitCount += 1
       return cachedValue
     }
+    this.variableReadCacheMissCount += 1
 
     const normalizedKey = normalizeRuntimeVariableKey(key)
     if (normalizedKey === 'A:TURBINE IGNITION SWITCH') {
@@ -1232,6 +1238,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   getStats(): SharedRuntimeHostStats {
     return {
       variableReadCount: this.variableReadCount,
+      variableReadCacheHitCount: this.variableReadCacheHitCount,
+      variableReadCacheMissCount: this.variableReadCacheMissCount,
       variableWriteCount: this.variableWriteCount,
       keyEventCount: this.keyEventCount,
       htmlEventCount: this.htmlEventCount,
