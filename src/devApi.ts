@@ -911,9 +911,16 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     list,
     click: executeClick,
     release: target => {
+      const callbackReleased = context.getRuntime().executeInteractionCallbackEvent(target, {
+        holdFeedback: false,
+        mouseEvent: 'LeftRelease'
+      })
       const released = context.getRuntime().releaseInteraction(target)
       if (context.cockpitInteractionStats.activeHeldTarget === target) context.cockpitInteractionStats.activeHeldTarget = null
-      return (released ? ok : fail)(released ? `Released ${target}.` : `No interaction released for ${target}.`, { target, released })
+      return (released || callbackReleased ? ok : fail)(
+        released || callbackReleased ? `Released ${target}.` : `No interaction released for ${target}.`,
+        { target, released, callbackReleased }
+      )
     },
     turn: async (target, options) => {
       const steps = Math.max(1, Math.min(500, Math.floor(options.steps ?? 1)))
