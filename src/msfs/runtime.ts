@@ -946,7 +946,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   readVariable(key: string, unit?: string | null): number {
     this.variableReadCount += 1
-    const cacheKey = `${key}\u0000${unit ?? ''}`
+    const normalizedKey = normalizeRuntimeVariableKey(key)
+    const normalizedUnit = normalizeUnit(unit ?? null)
+    const cacheKey = `${normalizedKey}\u0000${normalizedUnit}`
     const cachedValue = this.readCache.get(cacheKey)
     if (cachedValue != null) {
       this.variableReadCacheHitCount += 1
@@ -954,7 +956,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
     this.variableReadCacheMissCount += 1
 
-    const normalizedKey = normalizeRuntimeVariableKey(key)
     if (normalizedKey === 'A:TURBINE IGNITION SWITCH') {
       const indexedValue = this.resolveIndexedTurbineIgnitionSwitch()
       if (indexedValue != null) {
