@@ -676,7 +676,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         await sleep(holdMs)
       }
       if (pressed && shouldRelease) {
-        const releaseMouseEvent = options.mouseEvent == null || options.mouseEvent === 'LeftSingle' || options.mouseEvent === 'Lock'
+        const releaseMouseEvent = holdMs > 0 && (options.mouseEvent == null || options.mouseEvent === 'LeftSingle' || options.mouseEvent === 'Lock')
           ? 'LeftRelease'
           : null
         if (releaseMouseEvent != null) {
