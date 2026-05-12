@@ -1802,6 +1802,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey.startsWith('A:CIRCUIT POWER SETTING:')) {
       return handled(convertPercentUnit(this.hasElectricalPower() ? 100 : 0, unit))
     }
+    if (isLightPercentVariableKey(upperKey)) {
+      return handled(convertPercentUnit(this.hasElectricalPower() ? 100 : 0, unit))
+    }
     if (isPoweredBusConnectionKey(upperKey)) return handled(1)
     if (isElectricalVoltageKey(upperKey)) return handled(this.hasElectricalPower() ? 28 : 0)
     if (isElectricalPowerKey(upperKey)) return handled(this.hasElectricalPower() ? 1 : 0)
