@@ -3433,6 +3433,7 @@ const VCOCKPIT_HTML_GAUGE_LOAD_CONCURRENCY = 1
 const VCOCKPIT_HTML_GAUGE_LOAD_IDLE_TIMEOUT_MS = 250
 const VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ = 8
 const VCOCKPIT_HTML_GAUGE_DEFAULT_RASTER_SCALE = 0.75
+const VCOCKPIT_RUNTIME_READ_MIN_INTERVAL_MS = 1000
 const VCOCKPIT_SURFACE_CAPTURE_CONCURRENCY = 1
 const CANVAS_ORIGIN_CLEAN_CACHE_MS = 10_000
 
@@ -5219,7 +5220,11 @@ function createVCockpitGaugeBridgeScript(
           : readDemoSimVar(name, unit);
     const nowMs = performance.now();
     const lastRequestMs = runtimeReadRequestTimes.get(storedKey) ?? -Infinity;
-    if (runtimeBridgeActive && !runtimeReadRequests.has(storedKey) && nowMs - lastRequestMs > 250) {
+    if (
+      runtimeBridgeActive &&
+      !runtimeReadRequests.has(storedKey) &&
+      nowMs - lastRequestMs > VCOCKPIT_RUNTIME_READ_MIN_INTERVAL_MS
+    ) {
       runtimeReadRequestTimes.set(storedKey, nowMs);
       const request = postRuntimeRequest({
         op: 'readVariable',
