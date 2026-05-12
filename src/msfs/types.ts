@@ -174,6 +174,17 @@ export interface CompiledAnimationBinding {
   readonly sourcePath: string
 }
 
+export interface CompiledAnimationTriggerBinding {
+  readonly animation: string
+  readonly eventName: string
+  readonly eventKind: 'sound' | 'effect'
+  readonly action: string
+  readonly direction: 'both' | 'forward' | 'backward'
+  readonly normalizedTime: number | null
+  readonly count: number | null
+  readonly sourcePath: string
+}
+
 export interface CompiledVisibilityBinding {
   readonly target: string
   readonly expression: CompiledExpression
@@ -224,6 +235,7 @@ export interface CompiledBehaviorSet {
   readonly irVersion: 'msfs-behavior/v1'
   readonly aircraftId: string
   readonly animationBindings: readonly CompiledAnimationBinding[]
+  readonly animationTriggerBindings: readonly CompiledAnimationTriggerBinding[]
   readonly visibilityBindings: readonly CompiledVisibilityBinding[]
   readonly materialBindings: readonly CompiledMaterialBinding[]
   readonly updateBindings: readonly CompiledUpdateBinding[]
@@ -287,6 +299,16 @@ export interface RuntimeHostServices {
       readonly normalizedTime: number | null
       readonly sourcePath: string
       readonly sourceParameter: string
+    }
+  ): void
+  invokeEffectEvent?(
+    name: string,
+    event: {
+      readonly action: string
+      readonly direction: 'forward' | 'backward'
+      readonly target: string
+      readonly normalizedTime: number | null
+      readonly sourcePath: string
     }
   ): void
 }

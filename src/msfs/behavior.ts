@@ -1,6 +1,7 @@
 import { compileRpnExpression, evaluateCompiledExpression } from './rpn'
 import type {
   CompiledAnimationBinding,
+  CompiledAnimationTriggerBinding,
   CompiledBehaviorSet,
   CompiledInputEventBinding,
   CompiledInteractionBinding,
@@ -37,6 +38,7 @@ interface CompileContext {
   readonly loadedDocuments: Map<string, LoadedDocument>
   readonly sourceRoots: readonly BehaviorSourceRoot[]
   readonly builtinFallbackHits: Set<string>
+  readonly animationTriggerBindings: CompiledAnimationTriggerBinding[]
 }
 
 interface CompileBehaviorOptions {
@@ -55,8 +57,7 @@ type ParameterBlockKind = 'default' | 'override'
 
 const ANIMATION_TEMPLATE_NAMES = new Set(['ASOBO_GT_ANIM_CODE'])
 const NOOP_TEMPLATE_NAMES = new Set([
-  'ASOBO_DOOR_INTERACTIVEPOINT_TEMPLATE',
-  'ASOBO_GT_ANIMTRIGGERS_2SOUNDEVENTS'
+  'ASOBO_DOOR_INTERACTIVEPOINT_TEMPLATE'
 ])
 const VISIBILITY_TEMPLATE_NAMES = new Set([
   'ASOBO_GT_VISIBILITY',
@@ -85,6 +86,7 @@ export async function compileMsfs2020Behaviors(
       irVersion: 'msfs-behavior/v1',
       aircraftId: aircraft.id,
       animationBindings: [],
+      animationTriggerBindings: [],
       visibilityBindings: [],
       materialBindings: [],
       updateBindings: [],
@@ -105,7 +107,8 @@ export async function compileMsfs2020Behaviors(
     parameterFunctionMap,
     loadedDocuments,
     sourceRoots,
-    builtinFallbackHits: new Set()
+    builtinFallbackHits: new Set(),
+    animationTriggerBindings: []
   }
 
   const aircraftModels = getAircraftModelDefinitions(aircraft, {
@@ -192,6 +195,7 @@ export async function compileMsfs2020Behaviors(
     irVersion: 'msfs-behavior/v1',
     aircraftId: aircraft.id,
     animationBindings,
+    animationTriggerBindings: context.animationTriggerBindings,
     visibilityBindings,
     materialBindings,
     updateBindings,
@@ -597,6 +601,13 @@ function traverseElement(
     if (animationBinding != null) {
       animationBindings.push(animationBinding)
     }
+    return
+  }
+
+  if (elementTagName === 'AnimationTriggers') {
+    context.animationTriggerBindings.push(
+      ...buildAnimationTriggerBindings(element, scopedState.params, state.path)
+    )
     return
   }
 
@@ -2728,6 +2739,106 @@ function buildAnimationNodeBinding(
     sourcePath
   })
   return null
+}
+
+function buildAnimationTriggerBindings(
+  animationTriggersNode: Element,
+  params: ReadonlyMap<string, string>,
+  sourcePath: string
+): readonly CompiledAnimationTriggerBinding[] {
+  const animation = substituteParameters(
+    getAttributeValue(animationTriggersNode, 'Animation') ?? '',
+    params
+  ).trim()
+  if (!animation) {
+    return []
+  }
+
+  const bindings: CompiledAnimationTriggerBinding[] = []
+  for (const eventTriggerNode of Array.from(animationTriggersNode.children)) {
+    if (getElementTagName(eventTriggerNode) !== 'EventTrigger') {
+      continue
+    }
+
+    const direction = parseAnimationTriggerDirection(
+      substituteParameters(getAttributeValue(eventTriggerNode, 'Direction') ?? 'Both', params)
+    )
+    const normalizedTime = parseAnimationTriggerNormalizedTime(
+      substituteParameters(getAttributeValue(eventTriggerNode, 'NormalizedTime') ?? '', params)
+    )
+    const count = parseAnimationTriggerCount(
+      substituteParameters(getAttributeValue(eventTriggerNode, 'Count') ?? '', params)
+    )
+
+    for (const eventNode of Array.from(eventTriggerNode.children)) {
+      const eventKind = getElementTagName(eventNode)
+      if (eventKind === 'SoundEvent') {
+        const eventName = substituteParameters(
+          getAttributeValue(eventNode, 'WwiseEvent') ?? '',
+          params
+        ).trim()
+        if (!eventName || eventName.includes('#')) {
+          continue
+        }
+        bindings.push({
+          animation,
+          eventName,
+          eventKind: 'sound',
+          action: substituteParameters(getAttributeValue(eventNode, 'Action') ?? 'Play', params).trim() || 'Play',
+          direction,
+          normalizedTime,
+          count,
+          sourcePath
+        })
+      } else if (eventKind === 'EffectEvent') {
+        const eventName = substituteParameters(
+          getAttributeValue(eventNode, 'Name') ?? '',
+          params
+        ).trim()
+        if (!eventName || eventName.includes('#')) {
+          continue
+        }
+        bindings.push({
+          animation,
+          eventName,
+          eventKind: 'effect',
+          action: substituteParameters(getAttributeValue(eventNode, 'Action') ?? 'Play', params).trim() || 'Play',
+          direction,
+          normalizedTime,
+          count,
+          sourcePath
+        })
+      }
+    }
+  }
+
+  return bindings
+}
+
+function parseAnimationTriggerDirection(value: string): CompiledAnimationTriggerBinding['direction'] {
+  const normalized = value.trim().toLowerCase()
+  if (normalized === 'forward') return 'forward'
+  if (normalized === 'backward') return 'backward'
+  return 'both'
+}
+
+function parseAnimationTriggerNormalizedTime(value: string): number | null {
+  if (!value.trim()) {
+    return null
+  }
+  const parsedValue = Number.parseFloat(value)
+  if (!Number.isFinite(parsedValue)) {
+    return null
+  }
+  return Math.min(Math.max(parsedValue, 0), 1)
+}
+
+function parseAnimationTriggerCount(value: string): number | null {
+  if (!value.trim()) {
+    return null
+  }
+  const parsedValue = Number.parseInt(value, 10)
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null
 }
 
 function resolveParameterReference(

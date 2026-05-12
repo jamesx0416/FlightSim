@@ -10,6 +10,8 @@ All possible things in the viewer should be able to be done by the API. The brow
 
 For cockpit/gauge verification, wait for settled state through DevApi instead of sampling immediately after entering the cockpit. Use `await window.__DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)` when the check depends on loaded and captured VCockpit gauges.
 
+For behavior-trigger checks, use `window.__DevApi.list({ kind: "animationTriggers" })` to inspect compiled stock `AnimationTriggers` bindings and `window.__DevApi.events({ kind: "effect" })` or `window.__DevApi.events({ kind: "sound" })` to inspect runtime trigger dispatch.
+
 # Dev server URL
 https://msfs-combined-375b8e3b-fresh-local.vanilla-3dtiles.localhost:3000
 
