@@ -672,7 +672,7 @@ Scope note:
 
 ##### Common Subtemplates
 
-- [ ] `Common/Subtemplates/Aircraft_Subtemplates.xml`
+- [x] `Common/Subtemplates/Aircraft_Subtemplates.xml`
 - [x] `Common/Subtemplates/Autopilot_Subtemplates.xml`
 - [x] `Common/Subtemplates/Deice_Subtemplates.xml`
 - [x] `Common/Subtemplates/Electrical_Subtemplates.xml`
