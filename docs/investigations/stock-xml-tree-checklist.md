@@ -19997,10 +19997,10 @@
               - [ ] `<CURSOR>` line 1950
               - [ ] `<HELPID>` line 1951 = `HELPID_GAUGE_FLAPS_SWITCH`
               - [ ] `<TOOLTIPID>` line 1952 = `TOOLTIPTEXT_FLAPS_SWITCH`
-              - [ ] `<DRAG_SIMVAR>` line 1953 = `FLAPS HANDLE PERCENT`
+              - [x] `<DRAG_SIMVAR>` line 1953 = `FLAPS HANDLE PERCENT`
               - [x] `<DRAG_CODE>` line 1954 = `#DRAG_POSITION# (>B:HANDLING_Flaps_Set)`
-              - [ ] `<POSITIVE_AXIS_CODE>` line 1955 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Inc)`
-              - [ ] `<NEGATIVE_AXIS_CODE>` line 1956 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Dec)`
+              - [x] `<POSITIVE_AXIS_CODE>` line 1955 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Inc)`
+              - [x] `<NEGATIVE_AXIS_CODE>` line 1956 = `#STEP_INCREMENT# (>B:HANDLING_Flaps_Dec)`
           - [ ] `<False>` line 1959
             - [ ] `<UseTemplate Name="ASOBO_GT_Lever_DraggingYAxis_Code">` line 1960
               - [ ] `<ANIM_NAME>` line 1961 = `#ANIM_NAME_LEVER#`
@@ -21927,7 +21927,7 @@
         - [ ] `<UseInputEvent ID="LANDING_GEAR">` line 32
           - [ ] `<GEAR_ID>` line 33 = `1`
         - [ ] `<UseTemplate Name="ASOBO_GT_Lever_DraggingYAxis_Code">` line 35
-          - [ ] `<ANIM_CODE>` line 36 = `(B:LANDING_GEAR_Gear) 100 *`
+          - [x] `<ANIM_CODE>` line 36 = `(B:LANDING_GEAR_Gear) 100 *`
       - [ ] `<Condition Check="EMISSIVE_CODE">` line 40
         - [ ] `<Component ID="#LIGHT_NODE_ID#" Node="#LIGHT_NODE_ID#">` line 41
           - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 42
@@ -21955,7 +21955,7 @@
     - [ ] `<Template Name="ASOBO_LANDING_GEAR_Light_SubTemplate">` line 87
       - [ ] `<Parameters Type="Default">` line 88
         - [ ] `<NODE_ID>` line 89 = `LANDING_GEAR_Light_#ID#`
-        - [ ] `<SIMVAR>` line 90 = `GEAR POSITION:#GEAR_ID#`
+        - [x] `<SIMVAR>` line 90 = `GEAR POSITION:#GEAR_ID#`
         - [ ] `<CHECKED_PERCENT_VALUE>` line 91 = `100`
         - [ ] `<PART_ID>` line 92 = `LANDING_GEAR_Light`
         - [ ] `<Condition Valid="INVERT_CONDITION">` line 93
