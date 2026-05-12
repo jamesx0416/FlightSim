@@ -520,6 +520,8 @@ Rules:
 - [x] Make DevApi runtime reset usable for cold-and-dark startup checks.
   - `window.__DevApi.reset({ coldAndDark: true })` now clears runtime variables/events/counters and seeds the generic cold-and-dark state; `reset({ runtime: true })` resets back to the package preview state, while plain `reset()` remains a transient DevApi diagnostics/highlight reset.
   - This prevents startup checks from accidentally reusing powered runtime state after previous probes and documents the reset contract in README and AGENTS.md.
+  - Follow-up cockpit-click verification fixed normal DevApi clicks so they do not emit a synthetic `LeftRelease` callback for unheld `LeftSingle` presses. This avoids toggling targets with both left-single and callback bindings twice, which previously made APU master appear to do nothing during startup checks.
+  - Follow-up APU startup support keeps APU master/start responsible for APU running/available state while leaving `A:APU GENERATOR SWITCH:#` under the APU generator switch event/button, so a realistic APU master -> start -> generator sequence does not toggle the generator back off.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.

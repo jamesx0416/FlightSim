@@ -1443,7 +1443,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.values.set(normalizeRuntimeVariableKey('A:APU MASTER SWITCH'), normalizedValue)
       this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), normalizedValue)
       if (normalizedValue > 0) {
-        this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR SWITCH:1'), 1)
         this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
         this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), Math.max(this.values.get(normalizeRuntimeVariableKey('A:APU PCT RPM')) ?? 0, 5))
       } else {
@@ -1456,7 +1455,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), normalizedValue)
       this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), normalizedValue > 0 ? 100 : 0)
       if (normalizedValue > 0) {
-        this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR SWITCH:1'), 1)
         this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
       }
     }
@@ -2313,6 +2311,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (name === 'APU_STARTER') {
       this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), 1)
       this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 100)
+      this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_ON'), 1)
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_AVAILABLE'), 1)
       return true
@@ -2320,6 +2319,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (name === 'APU_OFF_SWITCH') {
       this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), 0)
       this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 0)
+      this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 0)
+      this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR SWITCH:1'), 0)
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_ON'), 0)
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_AVAILABLE'), 0)
       return true
