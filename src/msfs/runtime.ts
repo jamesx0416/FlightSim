@@ -885,6 +885,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         return indexedValue
       }
     }
+    const dynamicControlValue = this.resolveDynamicControlFallbackValue(normalizedKey, unit ?? null)
+    if (dynamicControlValue != null) {
+      this.readCache.set(cacheKey, dynamicControlValue)
+      return dynamicControlValue
+    }
     let value: number
     if (!this.values.has(normalizedKey)) {
       const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
@@ -1579,6 +1584,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         : this.wingFlexProfile.baseFlexPct
       return handled(convertPercentOver100Unit(flexPct, unit))
     }
+    const dynamicControlValue = this.resolveDynamicControlFallbackValue(upperKey, unit)
+    if (dynamicControlValue != null) {
+      return handled(dynamicControlValue)
+    }
     if (upperKey.startsWith('A:GEAR STEER ANGLE:')) return handled(0)
     if (upperKey.startsWith('A:GENERAL ENG RPM:')) {
       return handled(convertRpmUnit(cycles.engineCycle, unit))
@@ -1666,6 +1675,33 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (key.includes('PARKING') || key.includes('PARK BRAKE')) {
       this.controlState.parkingBrake = normalizedValue > 0 ? 1 : 0
     }
+  }
+
+  private resolveDynamicControlFallbackValue(key: string, unit: string | null): number | null {
+    if (key.includes('GEAR') && key.includes('HANDLE') && key.includes('POSITION')) {
+      return this.controlState.gearTarget
+    }
+    if (key.includes('GEAR') && key.includes('POSITION')) {
+      return convertPercentUnit(this.controlState.gearPosition * 100, unit)
+    }
+    if ((key.includes('FLAP') || key.includes('SLAT')) && key.includes('INDEX')) {
+      return Math.round(this.controlState.flapsPosition * 4)
+    }
+    if ((key.includes('FLAP') || key.includes('SLAT')) && key.includes('POSITION')) {
+      return convertPercentUnit(this.controlState.flapsPosition * 100, unit)
+    }
+    if ((key.includes('FLAP') || key.includes('SLAT')) && key.includes('PERCENT')) {
+      return convertPercentUnit(this.controlState.flapsPosition * 100, unit)
+    }
+    if (key.includes('SPOILER') && (key.includes('POSITION') || key.includes('DEFLECTION'))) {
+      return convertPercentUnit(this.controlState.spoilersPosition * 100, unit)
+    }
+    if (key.includes('PARKING') || key.includes('PARK_BRAKE')) {
+      if (key.includes('POSITION') || key.includes('LEVER') || key.endsWith('_POS')) {
+        return this.controlState.parkingBrake
+      }
+    }
+    return null
   }
 
   private applyKeyEvent(name: string, args: readonly number[]): void {
@@ -4043,7 +4079,19 @@ function isDynamicRuntimeFallbackKey(key: string): boolean {
     key.includes('BRIGHTNESS') ||
     key.includes('POTENTIOMETER') ||
     key.includes('POWERED') ||
-    key.includes('IS_POWERED')
+    key.includes('IS_POWERED') ||
+    isDynamicControlFallbackKey(key)
+  )
+}
+
+function isDynamicControlFallbackKey(key: string): boolean {
+  return (
+    (key.includes('GEAR') && key.includes('POSITION')) ||
+    ((key.includes('FLAP') || key.includes('SLAT')) &&
+      (key.includes('POSITION') || key.includes('PERCENT') || key.includes('INDEX'))) ||
+    (key.includes('SPOILER') && (key.includes('POSITION') || key.includes('DEFLECTION'))) ||
+    ((key.includes('PARKING') || key.includes('PARK_BRAKE')) &&
+      (key.includes('POSITION') || key.includes('LEVER') || key.endsWith('_POS')))
   )
 }
 
