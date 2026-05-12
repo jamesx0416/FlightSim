@@ -1063,6 +1063,13 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       return ok('Collected watch samples.', { targets: names, samples })
     },
     waitFor: async (condition, timeoutMs = 10_000) => {
+      const waitKind = getDevApiWaitConditionKind(condition)
+      if (!isKnownDevApiWaitConditionKind(waitKind)) {
+        return fail(`Unknown wait condition "${waitKind ?? ''}".`, {
+          condition,
+          supportedKinds: DEV_API_WAIT_CONDITION_KINDS
+        })
+      }
       const started = performance.now()
       while (performance.now() - started < timeoutMs) {
         if (evaluateDevApiWaitCondition(condition, api, context)) return ok('Wait condition satisfied.', { condition, elapsedMs: performance.now() - started })
@@ -1389,7 +1396,7 @@ function evaluateDevApiWaitCondition(
   api: ViewerDevApi,
   context: ViewerDevApiContext
 ): boolean {
-  const kind = typeof condition === 'string' ? condition : condition.kind
+  const kind = getDevApiWaitConditionKind(condition)
   if (kind === 'viewerReady' || kind === 'ready') {
     const status = api.status().data as { readonly loadStage?: { readonly stage?: unknown } }
     return typeof status.loadStage?.stage === 'string' && status.loadStage.stage !== 'init:error'
@@ -1456,4 +1463,27 @@ function evaluateDevApiWaitCondition(
     return status.diagnostics?.error === 0
   }
   return false
+}
+
+const DEV_API_WAIT_CONDITION_KINDS = [
+  'viewerReady',
+  'ready',
+  'cockpitReady',
+  'cockpitActive',
+  'gaugesLoaded',
+  'gaugesReady',
+  'gaugeCaptured',
+  'componentAvailable',
+  'varEquals',
+  'varAbove',
+  'varBelow',
+  'noNewErrors'
+] as const
+
+function getDevApiWaitConditionKind(condition: DevApiWaitCondition): string | undefined {
+  return typeof condition === 'string' ? condition : condition.kind
+}
+
+function isKnownDevApiWaitConditionKind(kind: string | undefined): boolean {
+  return kind != null && DEV_API_WAIT_CONDITION_KINDS.includes(kind as (typeof DEV_API_WAIT_CONDITION_KINDS)[number])
 }
