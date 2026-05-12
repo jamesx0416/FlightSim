@@ -110,6 +110,7 @@ await __DevApi.click('PUSH_AP_MASTER', { count: 2 })
 await __DevApi.click('PUSH_STARTER', { holdMs: 1500 })
 await __DevApi.click('LEVER_FLAPS', { mouseEvent: 'WheelUp' })
 await __DevApi.turn('KNOB_HEADING', { direction: 'up', steps: 3 })
+await __DevApi.drag('LEVER_THROTTLE', { axis: 'y', start: 0, end: 1, endPercent: 1 })
 await __DevApi.waitFor({ kind: 'gaugesReady', captured: true }, 45000)
 __DevApi.list({ kind: 'inputEvents', filter: 'ped_ecp' })
 __DevApi.list({ kind: 'animationTriggers', filter: 'flap' })
@@ -123,6 +124,8 @@ __DevApi.report()
 ```
 
 `click()` can also supply stock mouse interaction variables for generic MSFS `MouseRect` / callback code: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables.
+
+`drag()` emits the generic stock drag sequence (`Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, `Unlock`) and supplies the same mouse variables for templates that read relative position or drag percent.
 
 ## Project Layout
 

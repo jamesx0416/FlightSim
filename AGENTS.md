@@ -14,6 +14,8 @@ For behavior-trigger checks, use `window.__DevApi.list({ kind: "animationTrigger
 
 For generic mouse-interaction checks, pass stock mouse variables through `window.__DevApi.click(target, options)`: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables. For example, `await window.__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })`.
 
+For stock drag/callback interaction checks, prefer `window.__DevApi.drag(target, options)` over manually sequencing events. It emits `Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, and `Unlock` with configurable `axis`, `start`, `end`, `startPercent`, `endPercent`, `steps`, and `inputType`.
+
 # Dev server URL
 https://msfs-combined-375b8e3b-fresh-local.vanilla-3dtiles.localhost:3000
 
