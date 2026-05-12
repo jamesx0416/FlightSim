@@ -29483,31 +29483,32 @@
           - [ ] `<Update>` line 89
         - [ ] `<False>` line 93
           - [ ] `<Update Frequency="#FREQUENCY#">` line 94
-- [ ] `Asobo/Generic/Visibility.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_Visibility_Sim">` line 15
-      - [ ] `<DefaultTemplateParameters>` line 16
-        - [ ] `<VISIBILITY_SIMVAR_SCALE>` line 17
-        - [ ] `<VISIBILITY_SIMVAR_BIAS>` line 18
-      - [ ] `<Visibility>` line 21
-        - [ ] `<Parameter>` line 22
-          - [ ] `<Sim>` line 23
-            - [ ] `<Variable>` line 24
-            - [ ] `<Units>` line 25 = `#VISIBILITY_SIMVAR_UNITS#`
-            - [ ] `<Scale>` line 26
-            - [ ] `<Bias>` line 27
-    - [ ] `<Template Name="ASOBO_GT_Visibility_Code">` line 40
-      - [ ] `<DefaultTemplateParameters>` line 41
-        - [ ] `<ONCE>` line 42
-      - [ ] `<Visibility>` line 45
-        - [ ] `<Parameter>` line 46
-          - [ ] `<Code>` line 47 = `#VISIBILITY_CODE#`
-    - [ ] `<Template Name="ASOBO_GT_Visibility">` line 58
-      - [ ] `<Condition Check="VISIBILITY_SIMVAR">` line 59
-        - [ ] `<True>` line 60
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Sim">` line 61
-        - [ ] `<False>` line 64
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 65
+- [x] `Asobo/Generic/Visibility.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_Visibility_Sim">` line 15
+      - [x] `<DefaultTemplateParameters>` line 16
+        - [x] `<VISIBILITY_SIMVAR_SCALE>` line 17
+        - [x] `<VISIBILITY_SIMVAR_BIAS>` line 18
+      - [x] `<Visibility>` line 21
+        - [x] `<Parameter>` line 22
+          - [x] `<Sim>` line 23
+            - [x] `<Variable>` line 24
+            - [x] `<Units>` line 25 = `#VISIBILITY_SIMVAR_UNITS#`
+            - [x] `<Scale>` line 26
+            - [x] `<Bias>` line 27
+    - [x] `<Template Name="ASOBO_GT_Visibility_Code">` line 40
+      - [x] `<DefaultTemplateParameters>` line 41
+        - [x] `<ONCE>` line 42
+      - [x] `<Visibility>` line 45
+        - [x] `<Parameter>` line 46
+          - [x] `<Code>` line 47 = `#VISIBILITY_CODE#`
+    - [x] `<Template Name="ASOBO_GT_Visibility">` line 58
+      - [x] `<Condition Check="VISIBILITY_SIMVAR">` line 59
+        - [x] `<True>` line 60
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Sim">` line 61
+        - [x] `<False>` line 64
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 65
+  - Verified through the generic behavior compiler/runtime visibility path: `buildVisibilityBinding()` compiles simvar/code visibility expressions into `CompiledVisibilityBinding`, `AircraftRuntime.update()` applies them to node visibility, and A320/A330 fixture runs recorded hundreds of visibility bindings with zero unsupported RPN diagnostics.
 - [ ] `Asobo/GlassCockpit/AS1000.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
@@ -68158,31 +68159,32 @@
           - [ ] `<Update>` line 89
         - [ ] `<False>` line 93
           - [ ] `<Update Frequency="#FREQUENCY#">` line 94
-- [ ] `Asobo/Generic/Visibility.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_Visibility_Sim">` line 15
-      - [ ] `<DefaultTemplateParameters>` line 16
-        - [ ] `<VISIBILITY_SIMVAR_SCALE>` line 17
-        - [ ] `<VISIBILITY_SIMVAR_BIAS>` line 18
-      - [ ] `<Visibility>` line 21
-        - [ ] `<Parameter>` line 22
-          - [ ] `<Sim>` line 23
-            - [ ] `<Variable>` line 24
-            - [ ] `<Units>` line 25 = `#VISIBILITY_SIMVAR_UNITS#`
-            - [ ] `<Scale>` line 26
-            - [ ] `<Bias>` line 27
-    - [ ] `<Template Name="ASOBO_GT_Visibility_Code">` line 40
-      - [ ] `<DefaultTemplateParameters>` line 41
-        - [ ] `<ONCE>` line 42
-      - [ ] `<Visibility>` line 45
-        - [ ] `<Parameter>` line 46
-          - [ ] `<Code>` line 47 = `#VISIBILITY_CODE#`
-    - [ ] `<Template Name="ASOBO_GT_Visibility">` line 58
-      - [ ] `<Condition Check="VISIBILITY_SIMVAR">` line 59
-        - [ ] `<True>` line 60
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Sim">` line 61
-        - [ ] `<False>` line 64
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 65
+- [x] `Asobo/Generic/Visibility.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_Visibility_Sim">` line 15
+      - [x] `<DefaultTemplateParameters>` line 16
+        - [x] `<VISIBILITY_SIMVAR_SCALE>` line 17
+        - [x] `<VISIBILITY_SIMVAR_BIAS>` line 18
+      - [x] `<Visibility>` line 21
+        - [x] `<Parameter>` line 22
+          - [x] `<Sim>` line 23
+            - [x] `<Variable>` line 24
+            - [x] `<Units>` line 25 = `#VISIBILITY_SIMVAR_UNITS#`
+            - [x] `<Scale>` line 26
+            - [x] `<Bias>` line 27
+    - [x] `<Template Name="ASOBO_GT_Visibility_Code">` line 40
+      - [x] `<DefaultTemplateParameters>` line 41
+        - [x] `<ONCE>` line 42
+      - [x] `<Visibility>` line 45
+        - [x] `<Parameter>` line 46
+          - [x] `<Code>` line 47 = `#VISIBILITY_CODE#`
+    - [x] `<Template Name="ASOBO_GT_Visibility">` line 58
+      - [x] `<Condition Check="VISIBILITY_SIMVAR">` line 59
+        - [x] `<True>` line 60
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Sim">` line 61
+        - [x] `<False>` line 64
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 65
+  - Verified through the generic behavior compiler/runtime visibility path: `buildVisibilityBinding()` compiles simvar/code visibility expressions into `CompiledVisibilityBinding`, `AircraftRuntime.update()` applies them to node visibility, and A320/A330 fixture runs recorded hundreds of visibility bindings with zero unsupported RPN diagnostics.
 - [ ] `Asobo/GlassCockpit/AS1000.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
