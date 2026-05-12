@@ -486,6 +486,9 @@ Rules:
 - [x] Filter boolean flag parameters out of interaction feedback targets.
   - The behavior compiler no longer treats flag-style target parameters such as `NO_HIGHLIGHT_NODE_ID=True` or `DISABLE_*` as cockpit node feedback targets, and it drops boolean / numeric / `__NO_HIGHLIGHT__` sentinel values before creating `O:<target>:_ButtonAnimVar` feedback state.
   - Verified with `tsc --noEmit` and Agent Browser on 2026-05-12 using the A320 LOD1 cockpit route: the compiled interaction list had `0` feedback targets equal to `True`, `False`, `0`, `1`, or `__NO_HIGHLIGHT__`; `PUSH_MCDUL_L1` fed back only to `PUSH_MCDUL_L1`, clicked successfully, emitted `H:A320_Neo_CDU_1_BTN_L1`, and reported zero error diagnostics.
+- [x] Preserve direction for generic rotary key-event fallback bindings.
+  - Templates that provide both `CLOCKWISE_EVENTID` and `ANTICLOCKWISE_EVENTID` without explicit RPN code now compile a generic `M:Event` branch instead of falling back to only the first key event.
+  - Verified with `tsc --noEmit` and an Agent Browser in-page compiler harness on 2026-05-12: a synthetic stock-shaped rotary template with `CLOCKWISE_EVENTID=K:TEST_INC` and `ANTICLOCKWISE_EVENTID=TEST_DEC` compiled to `(M:Event) 'WheelDown' scmp 0 == if{ (>K:TEST_INC) } els{ (>K:TEST_DEC) }` with zero diagnostics; the A320 LOD1 cockpit route still compiled 766 interactions with zero errors.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.
