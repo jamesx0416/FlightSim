@@ -63,6 +63,7 @@ const VISIBILITY_TEMPLATE_NAMES = new Set([
   'ASOBO_GT_VISIBILITY',
   'ASOBO_GT_VISIBILITY_CODE'
 ])
+const BEHAVIOR_FETCH_TIMEOUT_MS = 10000
 let activeParameterFunctionMap: ReadonlyMap<string, Element> = new Map()
 
 export async function compileMsfs2020Behaviors(
@@ -377,7 +378,10 @@ async function tryLoadBehaviorSourceRootUncached(
   diagnostics: ImportDiagnostic[]
 ): Promise<BehaviorSourceRoot | null> {
   try {
-    const response = await fetch(new URL('layout.json', rootUrl))
+    const response = await fetchWithTimeout(
+      new URL('layout.json', rootUrl).toString(),
+      BEHAVIOR_FETCH_TIMEOUT_MS
+    )
     if (!response.ok) {
       diagnostics.push({
         code: 'behavior_root_layout_missing',
@@ -439,7 +443,10 @@ async function loadBehaviorDocumentFromCacheUncached(
   rootUrl: string,
   path: string
 ): Promise<LoadedDocument | null> {
-  const response = await fetch(new URL(path, rootUrl))
+  const response = await fetchWithTimeout(
+    new URL(path, rootUrl).toString(),
+    BEHAVIOR_FETCH_TIMEOUT_MS
+  )
   if (!response.ok) {
     return null
   }
@@ -455,6 +462,18 @@ async function loadBehaviorDocumentFromCacheUncached(
     path,
     document: parsedDocument.document,
     rootElement: parsedDocument.rootElement
+  }
+}
+
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, {
+      signal: controller.signal
+    })
+  } finally {
+    window.clearTimeout(timeoutId)
   }
 }
 

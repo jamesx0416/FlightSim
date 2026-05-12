@@ -2577,7 +2577,8 @@ function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDS
   if (getCockpitTextureMode(searchParams) === 'range-low') {
     return {
       rangeMaxTextureSize: getCockpitRangeTextureSize(searchParams),
-      rangeFallback: 'placeholder'
+      rangeFallback: 'placeholder',
+      immediatePlaceholder: true
     }
   }
 
@@ -8323,7 +8324,7 @@ async function prepareExternalGltfBuffers(
   return { objectUrls }
 }
 
-const GLTF_BUFFER_CHUNK_BYTES = 1024 * 1024
+const GLTF_BUFFER_CHUNK_BYTES = 256 * 1024
 const GLTF_BUFFER_CHUNK_TIMEOUT_MS = 60000
 const GLTF_BUFFER_CHUNK_CONCURRENCY = 6
 
@@ -8473,7 +8474,8 @@ function isEmbeddedGltfBufferUri(uri: string): boolean {
 function createDefaultModelTextureLoadOptions(): MSFSDDSLoadOptions {
   return {
     rangeMaxTextureSize: 1024,
-    rangeFallback: 'placeholder'
+    rangeFallback: 'placeholder',
+    immediatePlaceholder: true
   }
 }
 
@@ -8931,7 +8933,7 @@ function selectModelLodIndexForScreenSize(
   ).index
 }
 
-const AUTO_COCKPIT_INTERIOR_LOD_MAX_ESTIMATED_BYTES = 64 * 1024 * 1024
+const AUTO_COCKPIT_INTERIOR_LOD_MAX_ESTIMATED_BYTES = 8 * 1024 * 1024
 
 function selectAutoCockpitInteriorLodIndex(modelDefinition: ImportedModelDefinition): number {
   const lodEntries = [...modelDefinition.lods]

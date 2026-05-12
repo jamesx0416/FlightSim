@@ -117,15 +117,18 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       return texture
     }
 
-    if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
-      this.loadRangeTexture(url, texture, onLoad, onProgress, onError)
-      return texture
-    }
-
     const useImmediatePlaceholder = this.options.immediatePlaceholder === true
     if (useImmediatePlaceholder) {
       applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
       onLoad?.(texture)
+      if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
+        return texture
+      }
+    }
+
+    if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
+      this.loadRangeTexture(url, texture, onLoad, onProgress, onError)
+      return texture
     }
 
     fileLoader.load(
