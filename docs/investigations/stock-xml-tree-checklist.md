@@ -25329,7 +25329,7 @@
         - [ ] `<THRESHOLD_Y_MOUSE>` line 225
       - [ ] `<UseTemplate Name="ASOBO_GT_Joystick">` line 227
         - [ ] `<NO_ANIMATION>` line 228
-        - [ ] `<NO_HIGHLIGHT_NODE_ID>` line 229 = `True`
+        - [x] `<NO_HIGHLIGHT_NODE_ID>` line 229 = `True`
         - [ ] `<NO_DRAG_IM_INTERACTION>` line 230
         - [ ] `<UPARROW_DRAG_IM>` line 231
         - [ ] `<DOWNARROW_DRAG_IM>` line 232
@@ -28707,8 +28707,8 @@
           - [ ] `<True>` line 1957
             - [ ] `<DRAG_SCALAR>` line 1958
         - [ ] `<Switch>` line 1961
-          - [ ] `<Case Valid="NO_HIGHLIGHT_NODE_ID">` line 1962
-            - [ ] `<HIGHLIGHT_NODE_ID>` line 1964 = `__NO_HIGHLIGHT__`
+          - [x] `<Case Valid="NO_HIGHLIGHT_NODE_ID">` line 1962
+            - [x] `<HIGHLIGHT_NODE_ID>` line 1964 = `__NO_HIGHLIGHT__`
           - [ ] `<Case NotEmpty="HIGHLIGHT_NODE_ID">` line 1966
             - [ ] `<HIGHLIGHT_NODE_ID>` line 1968 = `#HIGHLIGHT_NODE_ID#`
           - [ ] `<Default>` line 1970
@@ -64012,7 +64012,7 @@
         - [ ] `<THRESHOLD_Y_MOUSE>` line 225
       - [ ] `<UseTemplate Name="ASOBO_GT_Joystick">` line 227
         - [ ] `<NO_ANIMATION>` line 228
-        - [ ] `<NO_HIGHLIGHT_NODE_ID>` line 229 = `True`
+        - [x] `<NO_HIGHLIGHT_NODE_ID>` line 229 = `True`
         - [ ] `<NO_DRAG_IM_INTERACTION>` line 230
         - [ ] `<UPARROW_DRAG_IM>` line 231
         - [ ] `<DOWNARROW_DRAG_IM>` line 232
@@ -67390,8 +67390,8 @@
           - [ ] `<True>` line 1957
             - [ ] `<DRAG_SCALAR>` line 1958
         - [ ] `<Switch>` line 1961
-          - [ ] `<Case Valid="NO_HIGHLIGHT_NODE_ID">` line 1962
-            - [ ] `<HIGHLIGHT_NODE_ID>` line 1964 = `__NO_HIGHLIGHT__`
+          - [x] `<Case Valid="NO_HIGHLIGHT_NODE_ID">` line 1962
+            - [x] `<HIGHLIGHT_NODE_ID>` line 1964 = `__NO_HIGHLIGHT__`
           - [ ] `<Case NotEmpty="HIGHLIGHT_NODE_ID">` line 1966
             - [ ] `<HIGHLIGHT_NODE_ID>` line 1968 = `#HIGHLIGHT_NODE_ID#`
           - [ ] `<Default>` line 1970
