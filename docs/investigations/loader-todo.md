@@ -465,6 +465,9 @@ Rules:
 - [x] Support generic paired directional-axis interaction fallback code.
   - Interaction fallback compilation now preserves both positive and negative axis code paths when a stock template provides both, selecting the positive path for `M:Event == WheelDown` and the negative path otherwise instead of dropping one direction.
   - Verified with `agent-browser` on 2026-05-10 using the A320 route: `LEVER_FLAPS` compiled to `(M:Event) 'WheelDown' scmp 0 == if{ (>K:FLAPS_DECR) } els{ (>K:FLAPS_INCR) }`; executing a normal click moved `A:FLAPS HANDLE PERCENT`, left/right flap simvars, and `l_flap_percent_key` / `r_flap_percent_key` animation values to 25, then executing with `mouseEvent: 'WheelDown'` returned them to 0.
+- [x] Expose generic mouse interaction variables to DevApi-triggered interaction RPN.
+  - `__DevApi.click()` now accepts `mouseEvent`, `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent`, and the runtime maps those to stock `M:Event`, `M:InputType`, `M:RelativeX/Y/Z`, and `M:DragPercent` reads before falling back to simulator variables.
+  - Verified with Agent Browser on 2026-05-12 using the A320 cockpit route: `__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })` moved `A:FLAPS HANDLE PERCENT` from `0` to `43.1375`, and `__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelDown" })` returned it to `0` with zero errors.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.

@@ -62,6 +62,12 @@ type DevApiClickOptions = {
   readonly delayMs?: number
   readonly holdMs?: number
   readonly release?: boolean
+  readonly mouseEvent?: string
+  readonly inputType?: number
+  readonly relativeX?: number
+  readonly relativeY?: number
+  readonly relativeZ?: number
+  readonly dragPercent?: number
 }
 
 type DevApiTurnOptions = {
@@ -622,10 +628,19 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     const delayMs = Math.max(0, Math.min(10_000, Math.floor(options.delayMs ?? 0)))
     const holdMs = Math.max(0, Math.min(60_000, Math.floor(options.holdMs ?? 0)))
     const shouldRelease = options.release !== false
+    const interactionOptions = {
+      holdFeedback: holdMs > 0,
+      mouseEvent: options.mouseEvent,
+      inputType: options.inputType,
+      relativeX: options.relativeX,
+      relativeY: options.relativeY,
+      relativeZ: options.relativeZ,
+      dragPercent: options.dragPercent
+    }
     const before = context.getRuntime().getInteractionExecutionCount()
     const presses: Record<string, unknown>[] = []
     for (let index = 0; index < count; index += 1) {
-      const pressed = context.getRuntime().executeInteraction(target, { holdFeedback: holdMs > 0 })
+      const pressed = context.getRuntime().executeInteraction(target, interactionOptions)
       presses.push({ index, pressed })
       if (pressed && holdMs > 0) {
         context.cockpitInteractionStats.activeHeldTarget = target
@@ -717,6 +732,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.find("baro")',
         'await __DevApi.click("PUSH_AP_MASTER", { count: 2 })',
         'await __DevApi.click("PUSH_STARTER", { holdMs: 1500 })',
+        'await __DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })',
         'await __DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })',
         'await __DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
@@ -783,7 +799,11 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       let executedCount = 0
       const results: unknown[] = []
       for (let index = 0; index < steps; index += 1) {
-        const result = await executeClick(resolved.target, { count: 1, delayMs: options.delayMs })
+        const mouseEvent =
+          options.direction === 'up' || options.direction === 'right' || options.direction === 'inc' || options.direction === 'increase'
+            ? 'WheelUp'
+            : 'WheelDown'
+        const result = await executeClick(resolved.target, { count: 1, delayMs: options.delayMs, mouseEvent })
         results.push(result.data)
         const data = result.data as { readonly executedCount?: unknown }
         executedCount += typeof data.executedCount === 'number' ? data.executedCount : 0

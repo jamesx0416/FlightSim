@@ -12,6 +12,8 @@ For cockpit/gauge verification, wait for settled state through DevApi instead of
 
 For behavior-trigger checks, use `window.__DevApi.list({ kind: "animationTriggers" })` to inspect compiled stock `AnimationTriggers` bindings and `window.__DevApi.events({ kind: "effect" })` or `window.__DevApi.events({ kind: "sound" })` to inspect runtime trigger dispatch.
 
+For generic mouse-interaction checks, pass stock mouse variables through `window.__DevApi.click(target, options)`: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables. For example, `await window.__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })`.
+
 # Dev server URL
 https://msfs-combined-375b8e3b-fresh-local.vanilla-3dtiles.localhost:3000
 
