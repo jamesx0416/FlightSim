@@ -93,6 +93,8 @@ type DevApiWaitCondition =
       readonly equals?: number
       readonly above?: number
       readonly below?: number
+      readonly minimum?: number
+      readonly captured?: boolean
     }
 
 type ViewerDevApi = {
@@ -707,6 +709,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.click("PUSH_AP_MASTER", { count: 2 })',
         'await __DevApi.click("PUSH_STARTER", { holdMs: 1500 })',
         'await __DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })',
+        'await __DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
         '__DevApi.diagnostics({ severity: "warning", includeGauges: true })',
@@ -723,6 +726,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
+      waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
@@ -1179,6 +1183,44 @@ function evaluateDevApiWaitCondition(
     return typeof status.loadStage?.stage === 'string' && status.loadStage.stage !== 'init:error'
   }
   if (kind === 'cockpitReady' || kind === 'cockpitActive') return context.getCockpitCameraController().isActive()
+  if (kind === 'gaugesLoaded' || kind === 'gaugesReady') {
+    const status = api.status().data as {
+      readonly counts?: {
+        readonly gauges?: unknown
+        readonly loadedGauges?: unknown
+        readonly capturedGauges?: unknown
+      }
+    }
+    const total = typeof status.counts?.gauges === 'number' ? status.counts.gauges : 0
+    const loaded = typeof status.counts?.loadedGauges === 'number' ? status.counts.loadedGauges : 0
+    const captured = typeof status.counts?.capturedGauges === 'number' ? status.counts.capturedGauges : 0
+    const gaugeRows = api.list({ kind: 'gauges', limit: 5_000 }).data as readonly {
+      readonly captured?: unknown
+      readonly hasCaptureImage?: unknown
+      readonly textureName?: unknown
+    }[]
+    const isCapturableGauge = (gauge: { readonly captured?: unknown; readonly hasCaptureImage?: unknown; readonly textureName?: unknown }): boolean =>
+      gauge.captured === true ||
+      gauge.hasCaptureImage === true ||
+      (typeof gauge.textureName === 'string' && gauge.textureName.toUpperCase() !== 'NO_TEXTURE')
+    const capturableTotal = gaugeRows.filter(isCapturableGauge).length
+    const capturableCaptured = gaugeRows.filter(
+      gauge => isCapturableGauge(gauge) && gauge.captured === true
+    ).length
+    const requestedMinimum = typeof condition === 'string' ? undefined : condition.minimum
+    const minimum =
+      requestedMinimum == null
+        ? total
+        : Math.max(0, Math.min(total, Math.floor(requestedMinimum)))
+    const capturedMinimum =
+      requestedMinimum == null
+        ? capturableTotal
+        : Math.max(0, Math.min(capturableTotal, Math.floor(requestedMinimum)))
+    const requireCaptured =
+      kind === 'gaugesReady' &&
+      (typeof condition === 'string' || condition.captured !== false)
+    return total > 0 && loaded >= minimum && (!requireCaptured || (captured >= capturedMinimum && capturableCaptured >= capturedMinimum))
+  }
   if (kind === 'gaugeCaptured') {
     const target = typeof condition === 'string' ? undefined : condition.target
     const gauge = (api.checkGauge(target).data as { readonly gauge?: { readonly captured?: unknown } }).gauge
