@@ -1245,7 +1245,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.recentKeyEvents.splice(0, this.recentKeyEvents.length - 100)
     }
     for (const listener of this.keyEventListeners) {
-      listener(event)
+      try {
+        listener(event)
+      } catch (error) {
+        console.warn('MSFS runtime key-event listener failed.', error)
+      }
     }
   }
 
@@ -1268,7 +1272,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.recentHtmlEvents.splice(0, this.recentHtmlEvents.length - 100)
     }
     for (const listener of this.htmlEventListeners) {
-      listener(event)
+      try {
+        listener(event)
+      } catch (error) {
+        console.warn('MSFS runtime HTML-event listener failed.', error)
+      }
     }
   }
 
