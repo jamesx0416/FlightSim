@@ -45,7 +45,7 @@ import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
-import { AircraftRuntime, SharedMsfsRuntimeHost } from './msfs/runtime'
+import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
 import { installViewerDevApi } from './devApi'
 import type {
   CompiledBehaviorSet,
@@ -1905,8 +1905,9 @@ async function init(): Promise<void> {
       const dtSeconds = clock.getDelta()
       fpsCounter.recordFrame(dtSeconds)
       const runtimeStartMs = performance.now()
-      runtimeState = runtime.update(dtSeconds)
+      runtimeState = runtime.update(dtSeconds, { profile: true })
       const runtimeEndMs = performance.now()
+      const runtimeProfile = runtime.getLastUpdateProfile()
       ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
       syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
       const cameraStartMs = performance.now()
@@ -1930,6 +1931,7 @@ async function init(): Promise<void> {
         loadedInteriorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
         frameMs: renderEndMs - frameStartMs,
         runtimeMs: runtimeEndMs - runtimeStartMs,
+        runtimeProfile,
         cameraMs: cameraEndMs - cameraStartMs,
         renderMs: renderEndMs - renderStartMs,
         rendererCalls: renderer.info.render.calls,
@@ -1981,6 +1983,7 @@ type CockpitPerfFrameSample = {
   readonly loadedInteriorLodIndex: number | null
   readonly frameMs: number
   readonly runtimeMs: number
+  readonly runtimeProfile: RuntimeUpdateProfile | null
   readonly cameraMs: number
   readonly renderMs: number
   readonly rendererCalls: number
@@ -2053,12 +2056,45 @@ function summarizeCockpitPerfSamples(samples: readonly CockpitPerfFrameSample[])
     latest: sourceSamples.at(-1) ?? null,
     frameMs: summarizeNumericSamples(sourceSamples.map(sample => sample.frameMs)),
     runtimeMs: summarizeNumericSamples(sourceSamples.map(sample => sample.runtimeMs)),
+    runtimeProfile: summarizeRuntimeUpdateProfiles(
+      sourceSamples
+        .map(sample => sample.runtimeProfile)
+        .filter(profile => profile != null)
+    ),
     cameraMs: summarizeNumericSamples(sourceSamples.map(sample => sample.cameraMs)),
     renderMs: summarizeNumericSamples(sourceSamples.map(sample => sample.renderMs)),
     rendererCalls: summarizeNumericSamples(sourceSamples.map(sample => sample.rendererCalls)),
     rendererTriangles: summarizeNumericSamples(sourceSamples.map(sample => sample.rendererTriangles)),
     rendererTextures: sourceSamples.at(-1)?.rendererTextures ?? null,
     rendererGeometries: sourceSamples.at(-1)?.rendererGeometries ?? null
+  }
+}
+
+function summarizeRuntimeUpdateProfiles(
+  profiles: readonly RuntimeUpdateProfile[]
+): Record<string, unknown> | null {
+  if (profiles.length === 0) {
+    return null
+  }
+
+  const latest = profiles.at(-1)!
+  return {
+    latest,
+    totalMs: summarizeNumericSamples(profiles.map(profile => profile.totalMs)),
+    hostTickMs: summarizeNumericSamples(profiles.map(profile => profile.hostTickMs)),
+    updateBindingsMs: summarizeNumericSamples(profiles.map(profile => profile.updateBindingsMs)),
+    interactionFeedbackMs: summarizeNumericSamples(profiles.map(profile => profile.interactionFeedbackMs)),
+    animationMs: summarizeNumericSamples(profiles.map(profile => profile.animationMs)),
+    mixerMs: summarizeNumericSamples(profiles.map(profile => profile.mixerMs)),
+    wingFlexMs: summarizeNumericSamples(profiles.map(profile => profile.wingFlexMs)),
+    visibilityMs: summarizeNumericSamples(profiles.map(profile => profile.visibilityMs)),
+    materialMs: summarizeNumericSamples(profiles.map(profile => profile.materialMs)),
+    bindingCounts: {
+      animation: latest.animationBindingCount,
+      visibility: latest.visibilityBindingCount,
+      material: latest.materialBindingCount,
+      update: latest.updateBindingCount
+    }
   }
 }
 

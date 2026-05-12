@@ -55,6 +55,22 @@ type MaterialObject = Object3D & {
   material?: Material | Material[]
 }
 
+export type RuntimeUpdateProfile = {
+  readonly totalMs: number
+  readonly hostTickMs: number
+  readonly updateBindingsMs: number
+  readonly interactionFeedbackMs: number
+  readonly animationMs: number
+  readonly mixerMs: number
+  readonly wingFlexMs: number
+  readonly visibilityMs: number
+  readonly materialMs: number
+  readonly animationBindingCount: number
+  readonly visibilityBindingCount: number
+  readonly materialBindingCount: number
+  readonly updateBindingCount: number
+}
+
 export class AircraftRuntime {
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
@@ -77,6 +93,7 @@ export class AircraftRuntime {
   private readonly delayedInteractionReleases: RuntimeDelayedInteractionRelease[] = []
   private interactionFeedbackClockSeconds = 0
   private interactionExecutionCount = 0
+  private lastUpdateProfile: RuntimeUpdateProfile | null = null
 
   constructor(
     private readonly compiled: CompiledBehaviorSet,
@@ -137,12 +154,39 @@ export class AircraftRuntime {
     this.activeAnimationBindings = activeAnimationBindings
   }
 
-  update(dtSeconds: number): RuntimeState {
+  update(
+    dtSeconds: number,
+    options: { readonly profile?: boolean } = {}
+  ): RuntimeState {
+    const profile = options.profile === true
+    const updateStartMs = profile ? performance.now() : 0
+    let phaseStartMs = updateStartMs
+    let hostTickMs = 0
+    let updateBindingsMs = 0
+    let interactionFeedbackMs = 0
+    let animationMs = 0
+    let mixerMs = 0
+    let wingFlexMs = 0
+    let visibilityMs = 0
+    let materialMs = 0
+    const finishPhase = (): number => {
+      if (!profile) {
+        return 0
+      }
+      const nowMs = performance.now()
+      const durationMs = nowMs - phaseStartMs
+      phaseStartMs = nowMs
+      return durationMs
+    }
+
     this.interactionFeedbackClockSeconds += dtSeconds
     this.hostServices.tick(dtSeconds)
+    hostTickMs = finishPhase()
     this.runUpdateBindings(dtSeconds)
+    updateBindingsMs = finishPhase()
     this.publishDelayedInteractionReleases()
     this.publishInteractionFeedback(dtSeconds)
+    interactionFeedbackMs = finishPhase()
 
     for (const binding of this.activeAnimationBindings) {
       const evaluatedValue = evaluateCompiledExpression(binding.expression, {
@@ -165,9 +209,12 @@ export class AircraftRuntime {
         action.time = normalizedValue * duration
       }
     }
+    animationMs = finishPhase()
 
     this.mixer.update(0)
+    mixerMs = finishPhase()
     this.applyWingFlexBindings()
+    wingFlexMs = finishPhase()
 
     for (const binding of this.activeVisibilityBindings) {
       const isVisible =
@@ -183,6 +230,7 @@ export class AircraftRuntime {
         node.visible = isVisible
       }
     }
+    visibilityMs = finishPhase()
 
     for (const runtimeBinding of this.activeMaterialBindings) {
       const value = evaluateCompiledExpression(runtimeBinding.binding.expression, {
@@ -193,8 +241,31 @@ export class AircraftRuntime {
         applyRuntimeMaterialBinding(materialState, value, runtimeBinding.binding)
       }
     }
+    materialMs = finishPhase()
+
+    if (profile) {
+      this.lastUpdateProfile = {
+        totalMs: performance.now() - updateStartMs,
+        hostTickMs,
+        updateBindingsMs,
+        interactionFeedbackMs,
+        animationMs,
+        mixerMs,
+        wingFlexMs,
+        visibilityMs,
+        materialMs,
+        animationBindingCount: this.activeAnimationBindings.length,
+        visibilityBindingCount: this.activeVisibilityBindings.length,
+        materialBindingCount: this.activeMaterialBindings.length,
+        updateBindingCount: this.compiled.updateBindings.length
+      }
+    }
 
     return this.runtimeState
+  }
+
+  getLastUpdateProfile(): RuntimeUpdateProfile | null {
+    return this.lastUpdateProfile
   }
 
   dispose(): void {
