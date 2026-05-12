@@ -705,7 +705,7 @@ Scope note:
 - [x] `Generic/Animations.xml`
 - [x] `Generic/Emissive.xml`
 - [x] `Generic/FX.xml`
-- [ ] `Generic/Helpers.xml`
+- [x] `Generic/Helpers.xml`
 - [x] `Generic/Index.xml`
 - [ ] `Generic/Interactions.xml`
 - [x] `Generic/Updates.xml`
