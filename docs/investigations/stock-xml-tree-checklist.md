@@ -6557,12 +6557,12 @@
                   - [ ] `<BINDING_SET_0>` line 29
                   - [ ] `<BINDING_SET_0_PARAM_0>` line 30
                   - [x] `<BINDING_SET_0_EVENT_ID>` line 31 = `ENGINE_AUTO_START`
-                  - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 32
+                  - [x] `<BINDING_SET_0_EVENT_ID_ONLY>` line 32
                 - [ ] `<Condition NotEmpty="ON_AUTOSTOP">` line 34
                   - [ ] `<BINDING_SET_1>` line 35
                   - [ ] `<BINDING_SET_1_PARAM_0>` line 36
                   - [x] `<BINDING_SET_1_EVENT_ID>` line 37 = `ENGINE_AUTO_SHUTDOWN`
-                  - [ ] `<BINDING_SET_1_EVENT_ID_ONLY>` line 38
+                  - [x] `<BINDING_SET_1_EVENT_ID_ONLY>` line 38
                 - [ ] `<INC_CODE>` line 40 = `1 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
                 - [ ] `<DEC_CODE>` line 41 = `0 (>B:#INPUT_EVENT_ID_SOURCE#_#IE_NAME#_Set)`
                 - [ ] `<SET_CODE>` line 42 = `p0 if{ #ON_AUTOSTART# } els{ #ON_AUTOSTOP# }`
@@ -6657,7 +6657,7 @@
                 - [ ] `<VALUE_CODE>` line 175
                 - [ ] `<SET_ARG_COUNT>` line 176
                 - [ ] `<BINDING_SET_0>` line 177
-                - [ ] `<BINDING_SET_0_EVENT_ID_ONLY>` line 178
+                - [x] `<BINDING_SET_0_EVENT_ID_ONLY>` line 178
                 - [x] `<BINDING_SET_0_EVENT_ID>` line 179 = `ALL_LIGHTS_TOGGLE`
                 - [ ] `<BINDING_SET_0_PARAM_0>` line 180
           - [ ] `<Default>` line 184
@@ -13815,11 +13815,11 @@
           - [ ] `<BINDING_INC_0>` line 812
           - [ ] `<BINDING_INC_0_PARAM_0>` line 813
           - [x] `<BINDING_INC_0_EVENT_ID>` line 814 = `AP_ALT_VAR_INC`
-          - [ ] `<BINDING_INC_0_EVENT_ID_ONLY>` line 815
+          - [x] `<BINDING_INC_0_EVENT_ID_ONLY>` line 815
           - [ ] `<BINDING_DEC_0>` line 816
           - [ ] `<BINDING_DEC_0_PARAM_0>` line 817
           - [x] `<BINDING_DEC_0_EVENT_ID>` line 818 = `AP_ALT_VAR_DEC`
-          - [ ] `<BINDING_DEC_0_EVENT_ID_ONLY>` line 819
+          - [x] `<BINDING_DEC_0_EVENT_ID_ONLY>` line 819
           - [ ] `<TT_DESCRIPTION_ID>` line 820 = `@TT_Package.AUTOPILOT_KNOB_ALTITUDESELECTED_ACTION_ADJUST`
           - [ ] `<TOOLTIP_TITLE>` line 821
           - [ ] `<GET_TT_VALUE_STATE>` line 822
@@ -33144,7 +33144,7 @@
                     - [ ] `<Condition Check="BINDING_INC_#ID#_EVENT_ID">` line 676
                       - [ ] `<True>` line 677
                         - [ ] `<EVENT_ID>` line 678 = `BINDING_INC_#ID#_EVENT_ID`
-                        - [ ] `<Condition Valid="BINDING_INC_#ID#_EVENT_ID_ONLY">` line 679
+                        - [x] `<Condition Valid="BINDING_INC_#ID#_EVENT_ID_ONLY">` line 679
                           - [ ] `<True>` line 680
                             - [ ] `<ALIAS_ID>` line 681
                           - [ ] `<False>` line 683
@@ -33219,7 +33219,7 @@
                     - [ ] `<Condition Check="BINDING_DEC_#ID#_EVENT_ID">` line 791
                       - [ ] `<True>` line 792
                         - [ ] `<EVENT_ID>` line 793 = `BINDING_DEC_#ID#_EVENT_ID`
-                        - [ ] `<Condition Valid="BINDING_DEC_#ID#_EVENT_ID_ONLY">` line 794
+                        - [x] `<Condition Valid="BINDING_DEC_#ID#_EVENT_ID_ONLY">` line 794
                           - [ ] `<True>` line 795
                             - [ ] `<ALIAS_ID>` line 796
                           - [ ] `<False>` line 798
@@ -33294,7 +33294,7 @@
                     - [ ] `<Condition Check="BINDING_SET_#ID#_EVENT_ID">` line 906
                       - [ ] `<True>` line 907
                         - [ ] `<EVENT_ID>` line 908 = `BINDING_SET_#ID#_EVENT_ID`
-                        - [ ] `<Condition Valid="BINDING_SET_#ID#_EVENT_ID_ONLY">` line 909
+                        - [x] `<Condition Valid="BINDING_SET_#ID#_EVENT_ID_ONLY">` line 909
                           - [ ] `<True>` line 910
                             - [ ] `<ALIAS_ID>` line 911
                           - [ ] `<False>` line 913
