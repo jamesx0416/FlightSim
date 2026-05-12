@@ -123,6 +123,8 @@ __DevApi.setParam('spoilers', 50)
 __DevApi.report()
 ```
 
+`status().counts` separates loaded gauge runtimes from visual gauge capture readiness: `capturableGauges` and `capturedCapturableGauges` ignore backend-only `NO_TEXTURE` gauge hosts, while `backendOnlyGauges` counts loaded systems/bridge hosts that do not render to a cockpit texture.
+
 `click()` can also supply stock mouse interaction variables for generic MSFS `MouseRect` / callback code: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables.
 
 `drag()` emits the generic stock drag sequence (`Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, `Unlock`) and supplies the same mouse variables for templates that read relative position or drag percent.

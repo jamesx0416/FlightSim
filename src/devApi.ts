@@ -314,6 +314,11 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   }
   const gauges = (): readonly VCockpitHtmlGaugeRuntime[] =>
     context.getLoadedModel().interior?.vcockpitBinding?.htmlGaugeRuntimes ?? []
+  const isCapturableGauge = (runtime: VCockpitHtmlGaugeRuntime): boolean =>
+    runtime.captured ||
+    runtime.captureImage != null ||
+    runtime.staticCaptureImage != null ||
+    runtime.textureName.toUpperCase() !== 'NO_TEXTURE'
   const summarizeGauge = (runtime: VCockpitHtmlGaugeRuntime): Record<string, unknown> => ({
     key: runtime.gaugeKey,
     surface: runtime.surface,
@@ -327,6 +332,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     lastRenderKind: runtime.lastRenderKind,
     lastCaptureError: runtime.lastCaptureError,
     captureAttemptCount: runtime.captureAttemptCount,
+    capturable: isCapturableGauge(runtime),
+    backendOnly: !isCapturableGauge(runtime),
     hasIframe: runtime.iframe != null,
     hasCaptureImage: runtime.captureImage != null || runtime.staticCaptureImage != null,
     ...summarizeGaugeFrame(runtime)
@@ -593,6 +600,9 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     const loadedModel = context.getLoadedModel()
     const cockpit = context.getCockpitCameraController()
     const binding = loadedModel.interior?.vcockpitBinding ?? null
+    const gaugeRows = gauges()
+    const capturableGaugeCount = gaugeRows.filter(isCapturableGauge).length
+    const capturedCapturableGaugeCount = gaugeRows.filter(gauge => isCapturableGauge(gauge) && gauge.captured).length
     return {
       loadStage: getLoadStage(),
       packageRoot: context.packageRoot,
@@ -615,6 +625,9 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         gauges: binding?.htmlGaugeCount ?? 0,
         loadedGauges: binding?.loadedHtmlGaugeCount ?? 0,
         capturedGauges: binding?.capturedHtmlGaugeCount ?? 0,
+        capturableGauges: capturableGaugeCount,
+        capturedCapturableGauges: capturedCapturableGaugeCount,
+        backendOnlyGauges: Math.max(0, gaugeRows.length - capturableGaugeCount),
         variables: Object.keys(context.getRuntimeHost().getSnapshot()).length
       },
       fps: context.getFpsSnapshot(),
