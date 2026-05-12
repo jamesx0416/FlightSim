@@ -671,11 +671,15 @@ function traverseElement(
 
   if (elementTagName === 'MouseRect') {
     const callbackNode =
-      getDirectChild(element, 'CallbackCode') ??
-      getDirectChild(element, 'CallbackDragging')
+      getDirectChild(element, 'CallbackCode')
+    const callbackSource =
+      callbackNode?.textContent ??
+      buildCallbackDraggingSource(getDirectChild(element, 'CallbackDragging')) ??
+      buildCallbackJumpDraggingSource(getDirectChild(element, 'CallbackJumpDragging')) ??
+      ''
     if (callbackNode != null) {
       const interactionBinding = buildInteractionCodeBinding(
-        callbackNode.textContent ?? '',
+        callbackSource,
         null,
         scopedState.params,
         scopedState.currentNode,
@@ -692,6 +696,19 @@ function traverseElement(
     if (eventId) {
       const interactionBinding = buildInteractionEventBinding(
         eventId,
+        scopedState.params,
+        scopedState.currentNode,
+        state.path,
+        'callback',
+        context.diagnostics
+      )
+      if (interactionBinding != null) {
+        pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+      }
+    } else if (callbackSource.trim()) {
+      const interactionBinding = buildInteractionCodeBinding(
+        callbackSource,
+        null,
         scopedState.params,
         scopedState.currentNode,
         state.path,
@@ -973,6 +990,59 @@ function expandTemplateUse(
     }
     traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
   }
+}
+
+function buildCallbackDraggingSource(node: Element | null): string | null {
+  if (node == null) {
+    return null
+  }
+  const variable = getDirectChildText(node, 'Variable')
+  if (!variable) {
+    return null
+  }
+  const units = getDirectChildText(node, 'Units') || 'Number'
+  const scale = getDirectChildText(node, 'Scale') || '1'
+  const minValue = getDirectChildText(node, 'MinValue') || '0'
+  const maxValue = getDirectChildText(node, 'MaxValue') || '16384'
+  const eventId = getDirectChildText(node, 'EventID')
+  const isRelative = parseBoolean(getDirectChildText(node, 'IsRelative') || 'False')
+  const dragValue = `(M:DragPercent) ${scale} * ${maxValue} min ${minValue} max`
+  const nextValue = isRelative
+    ? `(A:${variable}, ${units}) ${dragValue} +`
+    : dragValue
+  return eventId
+    ? `${nextValue} (>K:${eventId})`
+    : `${nextValue} (>A:${variable}, ${units})`
+}
+
+function buildCallbackJumpDraggingSource(node: Element | null): string | null {
+  if (node == null) {
+    return null
+  }
+  const movementNode = getDirectChild(node, 'XMovement') ?? getDirectChild(node, 'YMovement')
+  if (movementNode == null) {
+    return null
+  }
+  const axis = getElementTagName(movementNode) === 'XMovement' ? 'X' : 'Y'
+  const delta = getDirectChildText(movementNode, 'Delta') || '0.001'
+  const eventIdInc = getDirectChildText(movementNode, 'EventIdInc')
+  const eventIdDec = getDirectChildText(movementNode, 'EventIdDec')
+  if (!eventIdInc || !eventIdDec) {
+    return null
+  }
+  return `
+    (M:Event) 'WheelUp' scmi 0 == if{ (>K:${eventIdInc}) } els{
+    (M:Event) 'WheelDown' scmi 0 == if{ (>K:${eventIdDec}) } els{
+    (M:Event) 'LeftSingle' scmi 0 == if{ (M:Relative${axis}) (>O:_Last${axis}) } els{
+    (M:Event) 'Lock' scmi 0 == if{ (M:Relative${axis}) (>O:_Last${axis}) } els{
+    (M:Event) 'LeftDrag' scmi 0 == if{
+      (M:Relative${axis}) (O:_Last${axis}) - sp0
+      l0 abs ${delta} > if{
+        l0 0 > if{ (>K:${eventIdInc}) } els{ (>K:${eventIdDec}) }
+        (M:Relative${axis}) (>O:_Last${axis})
+      }
+    } } } } }
+  `
 }
 
 function buildAnimationBinding(
@@ -2984,6 +3054,10 @@ function getDirectChild(parent: Element, tagName: string): Element | null {
   return (
     Array.from(parent.children).find(child => getElementTagName(child) === tagName) ?? null
   )
+}
+
+function getDirectChildText(parent: Element, tagName: string): string {
+  return getDirectChild(parent, tagName)?.textContent?.trim() ?? ''
 }
 
 function executeLoop(
