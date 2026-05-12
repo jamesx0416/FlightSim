@@ -113,6 +113,8 @@ __DevApi.list({ kind: 'inputEvents', filter: 'ped_ecp' })
 __DevApi.checkGauge(undefined, { screenshot: true })
 __DevApi.diagnostics({ severity: 'warning', includeGauges: true })
 __DevApi.checkParam(['vspeed', 'altitude', 'pressure', 'location'])
+__DevApi.checkParam(['gear', 'flaps', 'spoilers', 'parkingBrake'])
+__DevApi.setParam('spoilers', 50)
 __DevApi.report()
 ```
 

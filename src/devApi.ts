@@ -710,7 +710,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
         '__DevApi.diagnostics({ severity: "warning", includeGauges: true })',
-        '__DevApi.checkParam(["vspeed", "altitude", "pressure", "location"])',
+        '__DevApi.checkParam(["gear", "flaps", "spoilers", "parkingBrake"])',
+        '__DevApi.setParam("spoilers", 50)',
         '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
         '__DevApi.bridgeCall("InputEvent_Push_Long", [1, 1])',
         '__DevApi.report()'
@@ -724,7 +725,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
-      paramPresets: ['vspeed', 'altitude', 'pressure', 'location']
+      paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
     }),
     report: () => ok('Collected viewer debug report.', {
       status: statusData(),
@@ -819,7 +820,10 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'Plane physics state is not wired into this viewer loop; plane source is unavailable in v1.'
       ])
     },
-    setParam: (name, value, unit = null) => api.writeVar(name, value, unit),
+    setParam: (name, value, unit = null) => {
+      const mapping = resolveDevApiParamMapping(name, unit)
+      return api.writeVar(mapping.simVar, value, mapping.unit)
+    },
     diagnostics: (options = {}) => {
       const report = collectDiagnosticsReport(options)
       const counts = report.counts as Record<string, number>
@@ -1108,31 +1112,21 @@ function createDevApiParamCheck(
   name: string,
   runtimeHost: SharedMsfsRuntimeHost
 ): Record<string, unknown> {
-  const preset = name.trim().toLowerCase().replace(/[\s_-]+/gu, '')
-  const mapping =
-    preset === 'vspeed' || preset === 'verticalspeed'
-      ? { simVar: 'A:VERTICAL SPEED', unit: 'feet per minute' }
-      : preset === 'alt' || preset === 'altitude'
-        ? { simVar: 'A:PLANE ALTITUDE', unit: 'feet' }
-        : preset === 'pressure' || preset === 'baro' || preset === 'barometricpressure'
-          ? { simVar: 'A:AMBIENT PRESSURE', unit: 'inHg' }
-          : preset === 'location' || preset === 'position'
-            ? { simVar: 'A:GPS POSITION LAT', unit: 'degrees' }
-            : { simVar: name, unit: null }
+  const mapping = resolveDevApiParamMapping(name)
   const simValue = runtimeHost.readVariable(mapping.simVar, mapping.unit)
   return {
     name,
-    preset,
+    preset: mapping.preset,
     unit: mapping.unit,
     plane: { available: false, value: null, source: null },
     sim: {
       available: true,
       variable: mapping.simVar,
       value: simValue,
-      longitude: preset === 'location' || preset === 'position'
+      longitude: mapping.preset === 'location' || mapping.preset === 'position'
         ? runtimeHost.readVariable('A:GPS POSITION LON', 'degrees')
         : undefined,
-      altitude: preset === 'location' || preset === 'position'
+      altitude: mapping.preset === 'location' || mapping.preset === 'position'
         ? runtimeHost.readVariable('A:PLANE ALTITUDE', 'feet')
         : undefined,
       source: 'SharedMsfsRuntimeHost'
@@ -1140,6 +1134,38 @@ function createDevApiParamCheck(
     delta: null,
     sources: { plane: 'unavailable', sim: 'runtime-host' }
   }
+}
+
+function resolveDevApiParamMapping(
+  name: string,
+  unit: string | null = null
+): { readonly preset: string; readonly simVar: string; readonly unit: string | null } {
+  const preset = name.trim().toLowerCase().replace(/[\s_-]+/gu, '')
+  if (preset === 'vspeed' || preset === 'verticalspeed') {
+    return { preset, simVar: 'A:VERTICAL SPEED', unit: 'feet per minute' }
+  }
+  if (preset === 'alt' || preset === 'altitude') {
+    return { preset, simVar: 'A:PLANE ALTITUDE', unit: 'feet' }
+  }
+  if (preset === 'pressure' || preset === 'baro' || preset === 'barometricpressure') {
+    return { preset, simVar: 'A:AMBIENT PRESSURE', unit: 'inHg' }
+  }
+  if (preset === 'location' || preset === 'position') {
+    return { preset, simVar: 'A:GPS POSITION LAT', unit: 'degrees' }
+  }
+  if (preset === 'gear' || preset === 'gearhandle' || preset === 'landinggear') {
+    return { preset, simVar: 'A:GEAR HANDLE POSITION', unit: null }
+  }
+  if (preset === 'flap' || preset === 'flaps' || preset === 'flapshandle') {
+    return { preset, simVar: 'A:FLAPS HANDLE PERCENT', unit: unit ?? 'percent' }
+  }
+  if (preset === 'spoiler' || preset === 'spoilers' || preset === 'speedbrake' || preset === 'speedbrakes') {
+    return { preset, simVar: 'A:SPOILERS HANDLE POSITION', unit: unit ?? 'percent' }
+  }
+  if (preset === 'parkingbrake' || preset === 'parkbrake') {
+    return { preset, simVar: 'A:BRAKE PARKING POSITION', unit: null }
+  }
+  return { preset, simVar: name, unit }
 }
 
 function evaluateDevApiWaitCondition(
