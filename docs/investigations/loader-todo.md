@@ -495,6 +495,9 @@ Rules:
 - [x] Preserve percent-unit rudder trim set behavior for callback rotary interactions.
   - `RUDDER_TRIM_SET` now accepts authored percent values while `RUDDER_TRIM_SET_EX1` remains a 16k-position event, and stored `A:* TRIM PCT` values convert correctly when RPN asks for `Percent`.
   - Verified with `tsc --noEmit` and Agent Browser on 2026-05-12 using the A330 LOD0 cockpit route: `__DevApi.click("KNOB_RUDDERTRIM", { mouseEvent: "WheelDown" })` moved `A:RUDDER TRIM PCT` from `0` to `0.05` and `A:RUDDER TRIM PCT, Percent` to `5`; `WheelUp` returned both values to `0`.
+- [x] Preserve percent-over-100 unit semantics for stored light brightness values.
+  - Stored `A:LIGHT POTENTIOMETER:*` and `A:LIGHT * POWER SETTING` values now convert from internal 0-100 percent to 0-1 when stock XML asks for `Percent over 100`, matching FMC/MCDU and lighting emissive templates.
+  - Verified with `tsc --noEmit` and Agent Browser on 2026-05-12 using the A320 LOD1 cockpit route: after battery, external power, and avionics key events, `A:LIGHT POTENTIOMETER:86` read as `100`, `A:LIGHT POTENTIOMETER:86, Percent over 100` read as `1`, and `I:XMLVAR_MCDU_1_Brightness` read as `1` / `100%` with zero reported diagnostics in the sampled window.
 - [x] Preserve id-only key-event dispatch for stackless RPN key writes.
   - RPN key-event writes now consume only values actually present on the stack, so stackless writes such as `(>K:GEAR_UP)` dispatch as id-only events instead of synthetic zero-argument writes, while value-carrying writes such as `5 (>K:RUDDER_TRIM_SET)` still dispatch their authored value.
   - Verified with `tsc --noEmit` and Agent Browser on 2026-05-12 using the A330 LOD0 cockpit route: `LEVER_LANDINGGEAR` emitted `GEAR_UP` / `GEAR_DOWN` with `args: []` and `K:GEAR_UP = 1`, while `KNOB_RUDDERTRIM` still emitted `RUDDER_TRIM_SET` with `args: [5]` and `A:RUDDER TRIM PCT, Percent = 5`.

@@ -4170,6 +4170,9 @@ function resolveStoredRuntimeValue(key: string, value: number, unit: string | nu
   if (key.startsWith('A:HYDRAULIC RESERVOIR PERCENT:')) {
     return convertPercentUnit(value, unit)
   }
+  if (isLightPercentVariableKey(key)) {
+    return convertPercentUnit(value, unit)
+  }
   if (isFractionalTrimPercentKey(key)) {
     return convertPercentOver100Unit(value, unit)
   }
@@ -4270,6 +4273,13 @@ function isFractionalTrimPercentKey(key: string): boolean {
     key === 'A:AILERON TRIM PCT' ||
     key === 'A:ELEVATOR TRIM PCT' ||
     key === 'A:RUDDER TRIM PCT'
+  )
+}
+
+function isLightPercentVariableKey(key: string): boolean {
+  return (
+    key.startsWith('A:LIGHT POTENTIOMETER:') ||
+    /^A:LIGHT [A-Z0-9_ ]+ POWER SETTING(?::|$)/u.test(key)
   )
 }
 
