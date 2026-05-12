@@ -3369,6 +3369,7 @@ export type VCockpitHtmlGaugeRuntime = {
   readonly gauge: VCockpitGaugeEntry | null
   readonly source: string
   readonly resolvedUrl: string | null
+  readonly wasmModuleUrl: string | null
   readonly status:
     | 'loaded'
     | 'loaded-wasm-bridge'
@@ -4134,6 +4135,7 @@ function createAbandonedVCockpitHtmlGaugeRuntime(
     gauge: null,
     source: gauge.source,
     resolvedUrl: null,
+    wasmModuleUrl: null,
     status: 'iframe-error',
     iframe: null,
     captured: false,
@@ -4198,6 +4200,9 @@ async function createVCockpitHtmlGaugeRuntime(
 ): Promise<VCockpitHtmlGaugeRuntime> {
   const wasmBacked = isWasmBackedHtmlGauge(gauge)
   const resolvedUrl = resolvePanelAssetUrl(gauge.source)
+  const wasmModuleUrl = wasmBacked
+    ? resolveSyntheticWasmModuleUrl(surface, gauge, resolvePanelAssetUrl)
+    : ''
   if (resolvedUrl == null) {
     if (wasmBacked) {
       diagnostics.push({
@@ -4207,7 +4212,6 @@ async function createVCockpitHtmlGaugeRuntime(
         message: `${surface.sectionName} ${gauge.key} uses a synthetic bridge-first host for ${gauge.source}; native MSFS WASM ABI execution is not emulated.`
       })
 
-      const wasmModuleUrl = resolveSyntheticWasmModuleUrl(gauge, resolvePanelAssetUrl)
       const syntheticUrl = createSyntheticWasmInstrumentHostUrl(gauge, wasmModuleUrl)
       const loadResult = await createSandboxedHtmlGaugeFrame(
         surface,
@@ -4236,6 +4240,7 @@ async function createVCockpitHtmlGaugeRuntime(
         gauge,
         source: gauge.source,
         resolvedUrl: syntheticUrl,
+        wasmModuleUrl: wasmModuleUrl === '' ? null : wasmModuleUrl,
         status: loadResult.status === 'loaded' ? 'loaded-wasm-bridge' : loadResult.status,
         iframe: loadResult.iframe,
         captured: false,
@@ -4267,6 +4272,7 @@ async function createVCockpitHtmlGaugeRuntime(
       gauge: null,
       source: gauge.source,
       resolvedUrl: null,
+      wasmModuleUrl: null,
       status: 'missing',
       iframe: null,
       captured: false,
@@ -4316,6 +4322,7 @@ async function createVCockpitHtmlGaugeRuntime(
     gauge,
     source: gauge.source,
     resolvedUrl,
+    wasmModuleUrl: wasmModuleUrl === '' ? null : wasmModuleUrl,
     status: loadResult.status === 'loaded' && wasmBacked
       ? 'loaded-wasm-bridge'
       : loadResult.status,
@@ -4357,12 +4364,21 @@ function createSyntheticWasmInstrumentHostUrl(
 }
 
 function resolveSyntheticWasmModuleUrl(
+  surface: VCockpitSurface,
   gauge: VCockpitGaugeEntry,
   resolvePanelAssetUrl: (source: string) => string | null
 ): string {
   const params = new URLSearchParams(gauge.source.split('?')[1] ?? '')
   const wasmModule = params.get('wasm_module') ?? ''
-  return wasmModule === '' ? '' : resolvePanelAssetUrl(wasmModule) ?? ''
+  if (wasmModule === '') {
+    return ''
+  }
+  const panelDirectory = surface.panelPath.replace(/[^/\\]*$/u, '')
+  return (
+    resolvePanelAssetUrl(`${panelDirectory}${wasmModule}`) ??
+    resolvePanelAssetUrl(wasmModule) ??
+    ''
+  )
 }
 
 function createSyntheticWasmInstrumentHostHtml(
@@ -4398,9 +4414,6 @@ function createSyntheticWasmInstrumentHostHtml(
       data-msfs-wasm-module-url="${escapeHtmlAttribute(wasmModuleUrl)}"
       data-msfs-wasm-gauge="${escapeHtmlAttribute(wasmGauge)}"
       data-msfs-wasm-source="${escapeHtmlAttribute(gauge.source)}"></wasm-instrument>
-    <script>
-      globalThis.__msfsSyntheticWasmModuleUrl = ${JSON.stringify(wasmModuleUrl)};
-    </script>
   </body>
 </html>`
 }
@@ -4892,7 +4905,6 @@ function createVCockpitGaugeBridgeScript(
     htmlEventCount: 0,
     wasmBridge,
     gaugeKind,
-    wasmModuleInfo: null,
     listenerCount: 0,
     storageWriteCount: 0
   };
@@ -4919,79 +4931,6 @@ function createVCockpitGaugeBridgeScript(
       })
     });
   };
-  const inspectSyntheticWasmModule = () => {
-    let moduleUrl = String(globalThis.__msfsSyntheticWasmModuleUrl ?? '');
-    if (moduleUrl === '') {
-      try {
-        moduleUrl = new URL(globalThis.location.href).searchParams.get('wasmModuleUrl') ?? '';
-      } catch {
-        moduleUrl = '';
-      }
-    }
-    if (!wasmBridge || moduleUrl === '' || typeof WebAssembly === 'undefined') {
-      return;
-    }
-    bridgeStats.wasmModuleInfo = {
-      url: moduleUrl,
-      status: 'available-uninspected',
-      byteLength: 0,
-      imports: [],
-      exports: [],
-      error: null
-    };
-    let shouldInspect = false;
-    try {
-      const search = globalThis.top?.location?.search ?? globalThis.location?.search ?? '';
-      const params = new URLSearchParams(search);
-      shouldInspect = params.get('vcockpitWasmInspect') === '1' ||
-        params.get('vcockpitWasmInspect') === 'true' ||
-        params.get('vcockpitWasmInspect') === 'on';
-    } catch {
-      shouldInspect = false;
-    }
-    if (!shouldInspect) {
-      return;
-    }
-    bridgeStats.wasmModuleInfo = {
-      url: moduleUrl,
-      status: 'loading',
-      byteLength: 0,
-      imports: [],
-      exports: [],
-      error: null
-    };
-    nativeFetch(moduleUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('HTTP ' + response.status + ' ' + response.statusText);
-        }
-        return response.arrayBuffer();
-      })
-      .then(bytes => WebAssembly.compile(bytes).then(module => ({ bytes, module })))
-      .then(({ bytes, module }) => {
-        bridgeStats.wasmModuleInfo = {
-          url: moduleUrl,
-          status: 'compiled',
-          byteLength: bytes.byteLength,
-          imports: WebAssembly.Module.imports(module).slice(0, 80),
-          exports: WebAssembly.Module.exports(module).slice(0, 80),
-          error: null
-        };
-        markGaugeChanged('unknown');
-      })
-      .catch(error => {
-        bridgeStats.wasmModuleInfo = {
-          url: moduleUrl,
-          status: 'error',
-          byteLength: 0,
-          imports: [],
-          exports: [],
-          error: String(error?.message ?? error)
-        };
-        markGaugeChanged('unknown');
-      });
-  };
-  inspectSyntheticWasmModule();
   let nextRuntimeRequestId = 1;
   const pendingRuntimeRequests = new Map();
   window.addEventListener('message', event => {
@@ -7157,6 +7096,8 @@ function getVCockpitHtmlGaugeRuntimeStats(
       })
     | null
     | undefined
+  const bridgeStats = frameWindow?.__msfsGaugeBridgeStats ?? null
+  const wasmModuleUrl = getSyntheticWasmModuleUrlFromRuntime(gaugeRuntime)
   return {
     key: gaugeRuntime.gaugeKey,
     source: gaugeRuntime.source,
@@ -7175,10 +7116,41 @@ function getVCockpitHtmlGaugeRuntimeStats(
     svgCount: frameDocument?.querySelectorAll('svg').length ?? null,
     dirtyStats: frameWindow?.__msfsGaugeDirtyStats ?? null,
     instrumentStats: frameWindow?.__msfsInstrumentRuntimeStats ?? null,
-    bridgeStats: frameWindow?.__msfsGaugeBridgeStats ?? null,
+    bridgeStats: wasmModuleUrl == null
+      ? bridgeStats
+      : {
+          ...(typeof bridgeStats === 'object' ? bridgeStats : {}),
+          wasmModuleInfo: {
+            url: wasmModuleUrl,
+            status: 'resolved-url-only',
+            byteLength: 0,
+            imports: [],
+            exports: [],
+            error: null
+          }
+        },
     scriptErrors: frameWindow?.__msfsGaugeErrors ?? null,
     assetErrors: frameWindow?.__msfsGaugeAssetErrors ?? null,
     resourceErrors: frameWindow?.__msfsGaugeResourceErrors ?? null
+  }
+}
+
+function getSyntheticWasmModuleUrlFromRuntime(
+  gaugeRuntime: VCockpitHtmlGaugeRuntime
+): string | null {
+  if (gaugeRuntime.status !== 'loaded-wasm-bridge') {
+    return null
+  }
+  if (gaugeRuntime.wasmModuleUrl != null) {
+    return gaugeRuntime.wasmModuleUrl
+  }
+  if (gaugeRuntime.resolvedUrl == null) {
+    return null
+  }
+  try {
+    return new URL(gaugeRuntime.resolvedUrl).searchParams.get('wasmModuleUrl')
+  } catch {
+    return null
   }
 }
 
