@@ -329,6 +329,16 @@ export class AircraftRuntime {
     return true
   }
 
+  executeInteractionCallbackEvent(target: string, options: RuntimeInteractionOptions = {}): boolean {
+    const binding = this.findInteractionBindingForTarget(target)
+    if (binding == null || binding.kind !== 'callback') {
+      return false
+    }
+
+    this.executeInteractionBinding(binding, options)
+    return true
+  }
+
   executeInteractionForObject(
     object: Object3D,
     options: RuntimeInteractionOptions = {}

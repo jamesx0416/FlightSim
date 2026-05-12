@@ -653,6 +653,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }
     const before = context.getRuntime().getInteractionExecutionCount()
     const presses: Record<string, unknown>[] = []
+    let callbackReleaseCount = 0
     for (let index = 0; index < count; index += 1) {
       const pressed = context.getRuntime().executeInteraction(target, interactionOptions)
       presses.push({ index, pressed })
@@ -661,6 +662,17 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         await sleep(holdMs)
       }
       if (pressed && shouldRelease) {
+        const releaseMouseEvent = options.mouseEvent == null || options.mouseEvent === 'LeftSingle' || options.mouseEvent === 'Lock'
+          ? 'LeftRelease'
+          : null
+        if (releaseMouseEvent != null) {
+          const callbackReleased = context.getRuntime().executeInteractionCallbackEvent(target, {
+            ...interactionOptions,
+            holdFeedback: false,
+            mouseEvent: releaseMouseEvent
+          })
+          if (callbackReleased) callbackReleaseCount += 1
+        }
         context.getRuntime().releaseInteraction(target)
         if (context.cockpitInteractionStats.activeHeldTarget === target) {
           context.cockpitInteractionStats.activeHeldTarget = null
@@ -670,8 +682,10 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }
     const executedCount = context.getRuntime().getInteractionExecutionCount() - before
     return (executedCount > 0 ? ok : fail)(
-      executedCount > 0 ? `Executed ${executedCount} press(es) for ${target}.` : `No interaction executed for ${target}.`,
-      { target, requestedCount: count, executedCount, held: holdMs > 0 && !shouldRelease, presses, interactionStats: { ...context.cockpitInteractionStats } },
+      executedCount > 0
+        ? `Executed ${count} requested click(s) for ${target}; ${executedCount} runtime interaction event(s).`
+        : `No interaction executed for ${target}.`,
+      { target, requestedCount: count, executedCount, callbackReleaseCount, held: holdMs > 0 && !shouldRelease, presses, interactionStats: { ...context.cockpitInteractionStats } },
       executedCount > 0 ? undefined : [`No exact interaction target matched "${target}". Try __DevApi.find("${target}").`]
     )
   }
