@@ -443,10 +443,15 @@ async function loadBehaviorDocumentFromCacheUncached(
   rootUrl: string,
   path: string
 ): Promise<LoadedDocument | null> {
-  const response = await fetchWithTimeout(
-    new URL(path, rootUrl).toString(),
-    BEHAVIOR_FETCH_TIMEOUT_MS
-  )
+  let response: Response
+  try {
+    response = await fetchWithTimeout(
+      new URL(path, rootUrl).toString(),
+      BEHAVIOR_FETCH_TIMEOUT_MS
+    )
+  } catch {
+    return null
+  }
   if (!response.ok) {
     return null
   }
