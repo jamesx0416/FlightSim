@@ -321,16 +321,46 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         })
       | null
       | undefined
+    const bridgeStats = frameWindow?.__msfsGaugeBridgeStats ?? null
+    const wasmModuleUrl = getWasmModuleUrl(runtime)
     return {
       domNodeCount: frameDocument?.getElementsByTagName('*').length ?? null,
       canvasCount: frameDocument?.querySelectorAll('canvas').length ?? null,
       svgCount: frameDocument?.querySelectorAll('svg').length ?? null,
       dirtyStats: frameWindow?.__msfsGaugeDirtyStats ?? null,
       instrumentStats: frameWindow?.__msfsInstrumentRuntimeStats ?? null,
-      bridgeStats: frameWindow?.__msfsGaugeBridgeStats ?? null,
+      bridgeStats: wasmModuleUrl == null
+        ? bridgeStats
+        : {
+            ...(typeof bridgeStats === 'object' ? bridgeStats : {}),
+            wasmModuleInfo: {
+              url: wasmModuleUrl,
+              status: 'resolved-url-only',
+              byteLength: 0,
+              imports: [],
+              exports: [],
+              error: null
+            }
+          },
       scriptErrors: frameWindow?.__msfsGaugeErrors ?? null,
       assetErrors: frameWindow?.__msfsGaugeAssetErrors ?? null,
       resourceErrors: frameWindow?.__msfsGaugeResourceErrors ?? null
+    }
+  }
+  const getWasmModuleUrl = (runtime: VCockpitHtmlGaugeRuntime): string | null => {
+    if (runtime.status !== 'loaded-wasm-bridge') {
+      return null
+    }
+    if (runtime.wasmModuleUrl != null) {
+      return runtime.wasmModuleUrl
+    }
+    if (runtime.resolvedUrl == null) {
+      return null
+    }
+    try {
+      return new URL(runtime.resolvedUrl).searchParams.get('wasmModuleUrl')
+    } catch {
+      return null
     }
   }
   const canvasDataUrl = (canvas: HTMLCanvasElement): string | null => {
