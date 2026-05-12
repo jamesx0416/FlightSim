@@ -83,6 +83,19 @@ type DevApiTurnOptions = {
   }
 }
 
+type DevApiDragOptions = {
+  readonly axis?: 'x' | 'y' | 'z'
+  readonly start?: number
+  readonly end?: number
+  readonly startPercent?: number
+  readonly endPercent?: number
+  readonly steps?: number
+  readonly durationMs?: number
+  readonly inputType?: number
+  readonly lock?: boolean
+  readonly release?: boolean
+}
+
 type DevApiDiagnosticsOptions = {
   readonly severity?: string
   readonly filter?: string
@@ -116,6 +129,7 @@ type ViewerDevApi = {
   readonly click: (target: string, options?: DevApiClickOptions) => Promise<DevApiResponse>
   readonly release: (target: string) => DevApiResponse
   readonly turn: (target: string, options: DevApiTurnOptions) => Promise<DevApiResponse>
+  readonly drag: (target: string, options?: DevApiDragOptions) => Promise<DevApiResponse>
   readonly checkComponent: (target: string) => DevApiResponse
   readonly checkMaterial: (target: string, options?: { readonly descendants?: boolean }) => DevApiResponse
   readonly checkGauge: (key?: string, options?: { readonly screenshot?: boolean }) => DevApiResponse
@@ -689,6 +703,95 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       (until.below != null && value < until.below)
     )
   }
+  const executeDrag = async (
+    target: string,
+    options: DevApiDragOptions = {}
+  ): Promise<DevApiResponse> => {
+    const axis = options.axis ?? 'y'
+    const steps = Math.max(1, Math.min(200, Math.floor(options.steps ?? 8)))
+    const durationMs = Math.max(0, Math.min(60_000, Math.floor(options.durationMs ?? 250)))
+    const stepDelayMs = steps > 1 ? durationMs / (steps - 1) : 0
+    const inputType = options.inputType ?? 1
+    const start = finiteNumberOr(options.start, 0)
+    const end = finiteNumberOr(options.end, 1)
+    const startPercent = clamp01(finiteNumberOr(options.startPercent, start))
+    const endPercent = clamp01(finiteNumberOr(options.endPercent, end))
+    const shouldLock = options.lock !== false
+    const shouldRelease = options.release !== false
+    const phases: Record<string, unknown>[] = []
+    const before = context.getRuntime().getInteractionExecutionCount()
+    const createMouseOptions = (
+      mouseEvent: string,
+      relativeValue: number,
+      dragPercent: number
+    ): DevApiClickOptions => {
+      const base = {
+        count: 1,
+        release: false,
+        mouseEvent,
+        inputType,
+        dragPercent
+      }
+      if (axis === 'x') return { ...base, relativeX: relativeValue }
+      if (axis === 'z') return { ...base, relativeZ: relativeValue }
+      return { ...base, relativeY: relativeValue }
+    }
+    const runPhase = async (
+      phase: string,
+      mouseEvent: string,
+      relativeValue: number,
+      dragPercent: number
+    ): Promise<void> => {
+      const response = await executeClick(target, createMouseOptions(mouseEvent, relativeValue, dragPercent))
+      phases.push({
+        phase,
+        mouseEvent,
+        relativeValue,
+        dragPercent,
+        ok: response.ok,
+        executedCount: (response.data as { readonly executedCount?: unknown }).executedCount
+      })
+    }
+
+    if (shouldLock) await runPhase('lock', 'Lock', start, startPercent)
+    await runPhase('press', 'LeftSingle', start, startPercent)
+    for (let index = 0; index < steps; index += 1) {
+      const ratio = steps === 1 ? 1 : index / (steps - 1)
+      const relativeValue = start + (end - start) * ratio
+      const dragPercent = startPercent + (endPercent - startPercent) * ratio
+      await runPhase('drag', 'LeftDrag', relativeValue, dragPercent)
+      if (index < steps - 1 && stepDelayMs > 0) await sleep(stepDelayMs)
+    }
+    if (shouldRelease) {
+      await runPhase('release', 'LeftRelease', end, endPercent)
+      if (shouldLock) await runPhase('unlock', 'Unlock', end, endPercent)
+      const released = context.getRuntime().releaseInteraction(target)
+      phases.push({ phase: 'runtimeRelease', released })
+      if (context.cockpitInteractionStats.activeHeldTarget === target) {
+        context.cockpitInteractionStats.activeHeldTarget = null
+      }
+    }
+
+    const executedCount = context.getRuntime().getInteractionExecutionCount() - before
+    return (executedCount > 0 ? ok : fail)(
+      executedCount > 0 ? `Dragged ${target} across ${steps} step(s).` : `No drag interaction executed for ${target}.`,
+      {
+        target,
+        axis,
+        inputType,
+        start,
+        end,
+        startPercent,
+        endPercent,
+        steps,
+        durationMs,
+        executedCount,
+        phases,
+        interactionStats: { ...context.cockpitInteractionStats }
+      },
+      executedCount > 0 ? undefined : [`No exact interaction target matched "${target}". Try __DevApi.find("${target}").`]
+    )
+  }
   const list = (options: { readonly kind?: DevApiListKind; readonly filter?: string; readonly limit?: number } = {}): DevApiResponse => {
     const kind = options.kind ?? 'components'
     const filter = options.filter ?? ''
@@ -734,6 +837,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.click("PUSH_STARTER", { holdMs: 1500 })',
         'await __DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })',
         'await __DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })',
+        'await __DevApi.drag("LEVER_THROTTLE", { axis: "y", start: 0, end: 1, endPercent: 1 })',
         'await __DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
@@ -749,8 +853,9 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
       listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
-      clickOptions: ['count', 'delayMs', 'holdMs', 'release'],
+      clickOptions: ['count', 'delayMs', 'holdMs', 'release', 'mouseEvent', 'inputType', 'relativeX', 'relativeY', 'relativeZ', 'dragPercent'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
+      dragOptions: ['axis', 'start', 'end', 'startPercent', 'endPercent', 'steps', 'durationMs', 'inputType', 'lock', 'release'],
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
@@ -815,6 +920,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         executedCount > 0 ? undefined : [`Try __DevApi.find("${target}") to inspect available rotary targets.`]
       )
     },
+    drag: executeDrag,
     checkComponent: target => {
       const matches = collectComponents(target, 50)
       const exact = matches.find(row => row.target === target) ?? matches[0] ?? null
@@ -1200,6 +1306,14 @@ function resolveDevApiParamMapping(
     return { preset, simVar: 'A:BRAKE PARKING POSITION', unit: null }
   }
   return { preset, simVar: name, unit }
+}
+
+function finiteNumberOr(value: number | undefined, fallback: number): number {
+  return Number.isFinite(value) ? Number(value) : fallback
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value))
 }
 
 function evaluateDevApiWaitCondition(
