@@ -140,7 +140,7 @@ type ViewerDevApi = {
   readonly writeVar: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly keyEvent: (name: string, args?: readonly number[]) => DevApiResponse
   readonly bridgeCall: (name: string, args?: readonly number[]) => DevApiResponse
-  readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'effect' | 'bridge' | 'interaction' }) => DevApiResponse
+  readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'effect' | 'bridge' | 'interaction'; readonly limit?: number }) => DevApiResponse
   readonly watch: (
     targets: string | readonly string[],
     options?: { readonly durationMs?: number; readonly intervalMs?: number; readonly unit?: string | null }
@@ -860,6 +860,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.setParam("spoilers", 50)',
         '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
         '__DevApi.bridgeCall("InputEvent_Push_Long", [1, 1])',
+        '__DevApi.events({ kind: "html", limit: 5 })',
         '__DevApi.report()'
       ],
       methods: Object.keys(window.__DevApi ?? {})
@@ -872,6 +873,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       dragOptions: ['axis', 'start', 'end', 'startPercent', 'endPercent', 'steps', 'durationMs', 'inputType', 'lock', 'release'],
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
+      eventOptions: ['kind', 'limit'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
     }),
@@ -1004,14 +1006,18 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         value: context.getRuntimeHost().readVariable(`B:${name}`)
       })
     },
-    events: (options = {}) => ok('Collected recent runtime events.', {
-      key: options.kind == null || options.kind === 'key' ? context.getRuntimeHost().getKeyEvents() : [],
-      html: options.kind == null || options.kind === 'html' ? context.getRuntimeHost().getHtmlEvents() : [],
-      sound: options.kind == null || options.kind === 'sound' ? context.getRuntimeHost().getSoundEvents() : [],
-      effect: options.kind == null || options.kind === 'effect' ? context.getRuntimeHost().getEffectEvents() : [],
-      bridge: options.kind == null || options.kind === 'bridge' ? context.getRuntimeHost().getBridgeEvents() : [],
-      interaction: options.kind == null || options.kind === 'interaction' ? { ...context.cockpitInteractionStats } : null
-    }),
+    events: (options = {}) => {
+      const limit = Math.max(1, Math.min(500, Math.floor(options.limit ?? 100)))
+      const recent = <T>(events: readonly T[]): readonly T[] => events.slice(-limit)
+      return ok('Collected recent runtime events.', {
+        key: options.kind == null || options.kind === 'key' ? recent(context.getRuntimeHost().getKeyEvents()) : [],
+        html: options.kind == null || options.kind === 'html' ? recent(context.getRuntimeHost().getHtmlEvents()) : [],
+        sound: options.kind == null || options.kind === 'sound' ? recent(context.getRuntimeHost().getSoundEvents()) : [],
+        effect: options.kind == null || options.kind === 'effect' ? recent(context.getRuntimeHost().getEffectEvents()) : [],
+        bridge: options.kind == null || options.kind === 'bridge' ? recent(context.getRuntimeHost().getBridgeEvents()) : [],
+        interaction: options.kind == null || options.kind === 'interaction' ? { ...context.cockpitInteractionStats } : null
+      })
+    },
     watch: async (targets, options = {}) => {
       const names = Array.isArray(targets) ? targets : [targets]
       const durationMs = Math.max(0, Math.min(60_000, Math.floor(options.durationMs ?? 1_000)))
