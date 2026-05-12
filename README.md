@@ -108,6 +108,7 @@ await __DevApi.ready()
 __DevApi.find('baro')
 await __DevApi.click('PUSH_AP_MASTER', { count: 2 })
 await __DevApi.click('PUSH_STARTER', { holdMs: 1500 })
+await __DevApi.click('LEVER_FLAPS', { mouseEvent: 'WheelUp' })
 await __DevApi.turn('KNOB_HEADING', { direction: 'up', steps: 3 })
 await __DevApi.waitFor({ kind: 'gaugesReady', captured: true }, 45000)
 __DevApi.list({ kind: 'inputEvents', filter: 'ped_ecp' })
@@ -120,6 +121,8 @@ __DevApi.checkParam(['gear', 'flaps', 'spoilers', 'parkingBrake'])
 __DevApi.setParam('spoilers', 50)
 __DevApi.report()
 ```
+
+`click()` can also supply stock mouse interaction variables for generic MSFS `MouseRect` / callback code: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables.
 
 ## Project Layout
 

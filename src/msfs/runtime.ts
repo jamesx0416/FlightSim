@@ -28,6 +28,11 @@ import type {
 interface RuntimeInteractionOptions {
   readonly holdFeedback?: boolean
   readonly mouseEvent?: string
+  readonly inputType?: number
+  readonly relativeX?: number
+  readonly relativeY?: number
+  readonly relativeZ?: number
+  readonly dragPercent?: number
 }
 
 interface RuntimeMaterialBinding {
@@ -441,7 +446,7 @@ export class AircraftRuntime {
     this.invokeInteractionSoundEvents(binding, 'press')
     const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
     evaluateCompiledExpression(binding.expression, {
-      readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+      readVariable: (key, unit) => readRuntimeMouseVariable(key, options) ?? this.hostServices.readVariable(key, unit),
       readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
@@ -4932,6 +4937,23 @@ function selectCfgSectionWithKeys(
 
 function readRuntimeStringVariable(key: string, mouseEvent: string): string {
   return key.toUpperCase() === 'M:EVENT' ? mouseEvent : ''
+}
+
+function readRuntimeMouseVariable(key: string, options: RuntimeInteractionOptions): number | null {
+  switch (key.toUpperCase()) {
+    case 'M:INPUTTYPE':
+      return options.inputType ?? 0
+    case 'M:RELATIVEX':
+      return options.relativeX ?? 0
+    case 'M:RELATIVEY':
+      return options.relativeY ?? 0
+    case 'M:RELATIVEZ':
+      return options.relativeZ ?? 0
+    case 'M:DRAGPERCENT':
+      return options.dragPercent ?? 0
+    default:
+      return null
+  }
 }
 
 function clamp(value: number, min: number, max: number): number {
