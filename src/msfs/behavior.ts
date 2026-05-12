@@ -2159,7 +2159,7 @@ function collectInteractionFeedbackTargets(
   const targets = new Set<string>()
   const addTarget = (candidate: string): void => {
     const trimmed = candidate.trim()
-    if (trimmed) {
+    if (isUsableInteractionFeedbackTarget(trimmed)) {
       targets.add(trimmed)
     }
   }
@@ -2196,8 +2196,20 @@ function collectInteractionFeedbackTargets(
   return [...targets]
 }
 
+function isUsableInteractionFeedbackTarget(value: string): boolean {
+  const normalized = value.trim()
+  if (!normalized || normalized.includes('#')) {
+    return false
+  }
+  const upper = normalized.toUpperCase()
+  return upper !== 'TRUE' && upper !== 'FALSE' && upper !== '0' && upper !== '1'
+}
+
 function isInteractionTargetParameterName(key: string): boolean {
   const normalized = key.trim().toUpperCase()
+  if (normalized.startsWith('NO_') || normalized.startsWith('DISABLE_')) {
+    return false
+  }
   return (
     normalized === 'NODE_ID' ||
     normalized === 'ANIM_NAME' ||
