@@ -3976,17 +3976,34 @@ async function bindVCockpitPlaceholderSurfaces(
           ? [object.material]
           : []
 
-      for (const material of materials) {
-        if (
-          material == null ||
-          normalizeSurfaceLookupName(material.name) !== surface.normalizedTextureName
-        ) {
+      for (const [materialIndex, material] of materials.entries()) {
+        if (material == null) {
           continue
         }
 
-        if (!replacementByMaterial.has(material)) {
-          replacementByMaterial.set(
-            material,
+        const materialMatchesSurface =
+          normalizeSurfaceLookupName(material.name) === surface.normalizedTextureName
+        const meshMatchesSurface =
+          !materialMatchesSurface && doesMeshMatchVCockpitSurfaceName(object, surface)
+        if (!materialMatchesSurface && !meshMatchesSurface) {
+          continue
+        }
+
+        if (materialMatchesSurface) {
+          if (!replacementByMaterial.has(material)) {
+            replacementByMaterial.set(
+              material,
+              createVCockpitSurfaceMaterial(
+                material,
+                surface,
+                surfaceTextureRuntime.texture
+              )
+            )
+          }
+        } else {
+          setMeshMaterialAtIndex(
+            object,
+            materialIndex,
             createVCockpitSurfaceMaterial(
               material,
               surface,
@@ -4133,6 +4150,44 @@ function createAbandonedVCockpitHtmlGaugeRuntime(
     staticCaptureImage: null,
     staticCaptureSignature: null
   }
+}
+
+function doesMeshMatchVCockpitSurfaceName(mesh: Mesh, surface: VCockpitSurface): boolean {
+  const objectName = normalizeSurfaceLookupName(mesh.name)
+  const geometryName = normalizeSurfaceLookupName(mesh.geometry?.name ?? '')
+  if (objectName.includes('glass') || geometryName.includes('glass')) {
+    return false
+  }
+  const names = new Set<string>([objectName, geometryName].filter(name => name !== ''))
+  const candidates = createVCockpitSurfaceScreenNameCandidates(surface.normalizedTextureName)
+  for (const name of names) {
+    for (const candidate of candidates) {
+      if (name.includes(`screen${candidate}`)) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+function createVCockpitSurfaceScreenNameCandidates(normalizedTextureName: string): readonly string[] {
+  const candidates = new Set<string>([normalizedTextureName])
+  const ndMatch = /^nd([lr])$/u.exec(normalizedTextureName)
+  if (ndMatch != null) {
+    candidates.add(`mfd${ndMatch[1]}`)
+  }
+  return [...candidates]
+}
+
+function setMeshMaterialAtIndex(mesh: Mesh, materialIndex: number, material: Material): void {
+  if (Array.isArray(mesh.material)) {
+    const materials = [...mesh.material]
+    materials[materialIndex] = material
+    mesh.material = materials
+    return
+  }
+
+  mesh.material = material
 }
 
 async function createVCockpitHtmlGaugeRuntime(
