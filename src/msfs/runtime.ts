@@ -93,6 +93,7 @@ export class AircraftRuntime {
   private readonly delayedInteractionReleases: RuntimeDelayedInteractionRelease[] = []
   private interactionFeedbackClockSeconds = 0
   private interactionExecutionCount = 0
+  private modelRevision = 0
   private lastUpdateProfile: RuntimeUpdateProfile | null = null
 
   constructor(
@@ -187,6 +188,7 @@ export class AircraftRuntime {
     this.publishDelayedInteractionReleases()
     this.publishInteractionFeedback(dtSeconds)
     interactionFeedbackMs = finishPhase()
+    let modelChanged = false
 
     for (const binding of this.activeAnimationBindings) {
       const evaluatedValue = evaluateCompiledExpression(binding.expression, {
@@ -199,6 +201,9 @@ export class AircraftRuntime {
           ? moveTowards(previousValue, rawValue, binding.lagFramesPerSecond * dtSeconds)
           : rawValue
       this.animationValues.set(binding.target, value)
+      if (Math.abs(value - previousValue) > 1e-6) {
+        modelChanged = true
+      }
 
       const action = this.actions.get(binding.target)
       if (action != null) {
@@ -222,12 +227,17 @@ export class AircraftRuntime {
           readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
         }) !== 0
 
+      const previousVisibility = this.nodeVisibilities.get(binding.target)
       this.nodeVisibilities.set(binding.target, isVisible)
+      if (previousVisibility !== isVisible) {
+        modelChanged = true
+      }
       const node =
         this.nodes.get(binding.target) ??
         this.nodes.get(binding.target.toLowerCase())
-      if (node != null) {
+      if (node != null && node.visible !== isVisible) {
         node.visible = isVisible
+        modelChanged = true
       }
     }
     visibilityMs = finishPhase()
@@ -242,6 +252,9 @@ export class AircraftRuntime {
       }
     }
     materialMs = finishPhase()
+    if (modelChanged) {
+      this.modelRevision += 1
+    }
 
     if (profile) {
       this.lastUpdateProfile = {
@@ -266,6 +279,10 @@ export class AircraftRuntime {
 
   getLastUpdateProfile(): RuntimeUpdateProfile | null {
     return this.lastUpdateProfile
+  }
+
+  getModelRevision(): number {
+    return this.modelRevision
   }
 
   dispose(): void {
