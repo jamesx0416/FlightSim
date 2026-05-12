@@ -13250,19 +13250,20 @@
     - [ ] `<Template Name="ASOBO_SAFETY_Pull_Event_Base_Template">` line 839
       - [ ] `<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">` line 840
         - [ ] `<USE_INPUT_EVENT_ID>` line 841 = `SAFETY`
-- [ ] `Asobo/Common/Subtemplates/Aircraft_Subtemplates.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 2
-      - [ ] `<Parameters Type="Default">` line 3
-        - [ ] `<DOOR_OPENING_CONDITION>` line 4 = `(A:SIM ON GROUND, Bool) (A:AIRSPEED TRUE, Knots) 30 < and`
-        - [ ] `<WWISE_EVENT_1>` line 5
-        - [ ] `<WWISE_EVENT_2>` line 6
-      - [ ] `<Parameters Type="Override">` line 8
-        - [ ] `<Condition Valid="ALWAYS_ALLOW_DOOR_OPENING">` line 9
-          - [ ] `<False>` line 10
-            - [ ] `<LEFT_SINGLE_CODE>` line 11 = `#ANIM_CODE# 0 > #DOOR_OPENING_CONDITION# or if{ #LEFT_SINGLE_CODE# }`
-      - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 19
-        - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 20
+- [x] `Asobo/Common/Subtemplates/Aircraft_Subtemplates.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 2
+      - [x] `<Parameters Type="Default">` line 3
+        - [x] `<DOOR_OPENING_CONDITION>` line 4 = `(A:SIM ON GROUND, Bool) (A:AIRSPEED TRUE, Knots) 30 < and`
+        - [x] `<WWISE_EVENT_1>` line 5
+        - [x] `<WWISE_EVENT_2>` line 6
+      - [x] `<Parameters Type="Override">` line 8
+        - [x] `<Condition Valid="ALWAYS_ALLOW_DOOR_OPENING">` line 9
+          - [x] `<False>` line 10
+            - [x] `<LEFT_SINGLE_CODE>` line 11 = `#ANIM_CODE# 0 > #DOOR_OPENING_CONDITION# or if{ #LEFT_SINGLE_CODE# }`
+      - [x] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 19
+        - [x] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 20
+  - Verified by static review against `vendor/msfs-stock/ModelBehaviorDefs/Asobo/Common/Subtemplates/Aircraft_Subtemplates.xml` plus the already-recorded A320/A330 aircraft-exit runtime support: the subtemplate only wraps `ASOBO_GT_Switch_Code`, preserves Wwise lock/unlock metadata, and gates the existing left-single code with the generic on-ground / low-airspeed condition unless `ALWAYS_ALLOW_DOOR_OPENING` is set.
 - [ ] `Asobo/Common/Subtemplates/Autopilot_Subtemplates.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_AUTOPILOT_Push_Active_Template">` line 7
@@ -51924,19 +51925,20 @@
     - [ ] `<Template Name="ASOBO_SAFETY_Pull_Event_Base_Template">` line 839
       - [ ] `<UseTemplate Name="ASOBO_Interaction_Pull_Event_Base_Template">` line 840
         - [ ] `<USE_INPUT_EVENT_ID>` line 841 = `SAFETY`
-- [ ] `Asobo/Common/Subtemplates/Aircraft_Subtemplates.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 2
-      - [ ] `<Parameters Type="Default">` line 3
-        - [ ] `<DOOR_OPENING_CONDITION>` line 4 = `(A:SIM ON GROUND, Bool) (A:AIRSPEED TRUE, Knots) 30 < and`
-        - [ ] `<WWISE_EVENT_1>` line 5
-        - [ ] `<WWISE_EVENT_2>` line 6
-      - [ ] `<Parameters Type="Override">` line 8
-        - [ ] `<Condition Valid="ALWAYS_ALLOW_DOOR_OPENING">` line 9
-          - [ ] `<False>` line 10
-            - [ ] `<LEFT_SINGLE_CODE>` line 11 = `#ANIM_CODE# 0 > #DOOR_OPENING_CONDITION# or if{ #LEFT_SINGLE_CODE# }`
-      - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 19
-        - [ ] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 20
+- [x] `Asobo/Common/Subtemplates/Aircraft_Subtemplates.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_AIRCRAFT_Lever_Exit_SubTemplate">` line 2
+      - [x] `<Parameters Type="Default">` line 3
+        - [x] `<DOOR_OPENING_CONDITION>` line 4 = `(A:SIM ON GROUND, Bool) (A:AIRSPEED TRUE, Knots) 30 < and`
+        - [x] `<WWISE_EVENT_1>` line 5
+        - [x] `<WWISE_EVENT_2>` line 6
+      - [x] `<Parameters Type="Override">` line 8
+        - [x] `<Condition Valid="ALWAYS_ALLOW_DOOR_OPENING">` line 9
+          - [x] `<False>` line 10
+            - [x] `<LEFT_SINGLE_CODE>` line 11 = `#ANIM_CODE# 0 > #DOOR_OPENING_CONDITION# or if{ #LEFT_SINGLE_CODE# }`
+      - [x] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 19
+        - [x] `<UseTemplate Name="ASOBO_GT_Switch_Code">` line 20
+  - Verified by static review against `vendor/msfs-stock/ModelBehaviorDefs/Asobo/Common/Subtemplates/Aircraft_Subtemplates.xml` plus the already-recorded A320/A330 aircraft-exit runtime support: the subtemplate only wraps `ASOBO_GT_Switch_Code`, preserves Wwise lock/unlock metadata, and gates the existing left-single code with the generic on-ground / low-airspeed condition unless `ALWAYS_ALLOW_DOOR_OPENING` is set.
 - [ ] `Asobo/Common/Subtemplates/Autopilot_Subtemplates.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_AUTOPILOT_Push_Active_Template">` line 7
