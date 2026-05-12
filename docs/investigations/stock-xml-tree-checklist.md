@@ -28427,7 +28427,7 @@
         - [ ] `<CALLBACKCODE_DRAG_IM>` line 1291
         - [ ] `<MOUSEFLAGS_DEFAULT_IM>` line 1337
         - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 1338
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_EventSet">` line 1365
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_EventSet">` line 1365
       - [ ] `<DefaultTemplateParameters>` line 1366
         - [ ] `<HELPID>` line 1367
         - [ ] `<TOOLTIPID>` line 1368
@@ -28440,7 +28440,7 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1377
         - [ ] `<MouseFlags>` line 1378
         - [ ] `<CALLBACKDRAGGING>` line 1379
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_EventSet">` line 1393
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_EventSet">` line 1393
       - [ ] `<DefaultTemplateParameters>` line 1394
         - [ ] `<HELPID>` line 1395
         - [ ] `<TOOLTIPID>` line 1396
@@ -28522,7 +28522,7 @@
         - [ ] `<GATE_DIRECTION>` line 1623
         - [ ] `<AXIS>` line 1624
         - [ ] `<SIMVAR_CONVERSION>` line 1630
-        - [ ] `<EVENTID_CONVERSION>` line 1631
+        - [x] `<EVENTID_CONVERSION>` line 1631
       - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates_Base">` line 1635
     - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1648
       - [ ] `<DefaultTemplateParameters>` line 1649
@@ -28904,7 +28904,7 @@
               - [ ] `<ZScale>` line 2245
               - [ ] `<MinValue>` line 2246 = `#DRAG_MIN_VALUE#`
               - [ ] `<MaxValue>` line 2247 = `#DRAG_MAX_VALUE#`
-              - [ ] `<EventID>` line 2248 = `#DRAG_EVENTID_SET#`
+              - [x] `<EventID>` line 2248 = `#DRAG_EVENTID_SET#`
               - [ ] `<IsRelative>` line 2249
               - [ ] `<DragAnimName>` line 2250 = `#DRAG_ANIM_NAME#`
               - [ ] `<DragNodeId>` line 2251 = `#DRAG_NODE_ID#`
@@ -67110,7 +67110,7 @@
         - [ ] `<CALLBACKCODE_DRAG_IM>` line 1291
         - [ ] `<MOUSEFLAGS_DEFAULT_IM>` line 1337
         - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 1338
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_EventSet">` line 1365
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_EventSet">` line 1365
       - [ ] `<DefaultTemplateParameters>` line 1366
         - [ ] `<HELPID>` line 1367
         - [ ] `<TOOLTIPID>` line 1368
@@ -67123,7 +67123,7 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1377
         - [ ] `<MouseFlags>` line 1378
         - [ ] `<CALLBACKDRAGGING>` line 1379
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_EventSet">` line 1393
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_EventSet">` line 1393
       - [ ] `<DefaultTemplateParameters>` line 1394
         - [ ] `<HELPID>` line 1395
         - [ ] `<TOOLTIPID>` line 1396
@@ -67205,7 +67205,7 @@
         - [ ] `<GATE_DIRECTION>` line 1623
         - [ ] `<AXIS>` line 1624
         - [ ] `<SIMVAR_CONVERSION>` line 1630
-        - [ ] `<EVENTID_CONVERSION>` line 1631
+        - [x] `<EVENTID_CONVERSION>` line 1631
       - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates_Base">` line 1635
     - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1648
       - [ ] `<DefaultTemplateParameters>` line 1649
@@ -67587,7 +67587,7 @@
               - [ ] `<ZScale>` line 2245
               - [ ] `<MinValue>` line 2246 = `#DRAG_MIN_VALUE#`
               - [ ] `<MaxValue>` line 2247 = `#DRAG_MAX_VALUE#`
-              - [ ] `<EventID>` line 2248 = `#DRAG_EVENTID_SET#`
+              - [x] `<EventID>` line 2248 = `#DRAG_EVENTID_SET#`
               - [ ] `<IsRelative>` line 2249
               - [ ] `<DragAnimName>` line 2250 = `#DRAG_ANIM_NAME#`
               - [ ] `<DragNodeId>` line 2251 = `#DRAG_NODE_ID#`
