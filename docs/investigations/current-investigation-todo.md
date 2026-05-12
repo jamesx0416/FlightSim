@@ -140,6 +140,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - auto cockpit/interior-view LOD selection now uses package `layout.json` file-size estimates to avoid browser-hostile preferred LODs while preserving explicit `?interiorLod=0`; Agent Browser verified the A320 default route auto-selected cockpit LOD1, loaded 21 gauge runtimes, captured 15 visible gauges, and stayed around 60 FPS after the 150 MB LOD00 buffer crashed the browser context
   - external-power availability local variables are now treated as dynamic runtime values instead of stale stored defaults; Agent Browser verified A320 `PUSH_OVHD_ELEC_EXTPWR` changes both `L:A32NX_OVHD_ELEC_EXT_PWR_PB_IS_ON` and `A:EXTERNAL POWER ON` from 0 to 1
   - turbine fuel-valve side effects now publish placeholder engine spool values consistently; Agent Browser verified A320 `KNOB_ENGINES_MODE`, `SWITCH_ENGINES_ENG1`, and `SWITCH_ENGINES_ENG2` set ignition, fuel valves, combustion, RPM, N1, and N2 from cold values to running placeholder values
+  - generic SimVar array-batch reads and placeholder air-traffic `Coherent.call` support now cover the A320 SystemsHost traffic publisher without throwing; Agent Browser verified the A320 `SimVar.SimVarBatch is not a constructor` script error is gone
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - continue `VCockpit` dynamic texture binding, using `panel.cfg` surface definitions generically
