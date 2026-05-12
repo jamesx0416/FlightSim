@@ -26045,8 +26045,8 @@
       - [ ] `<DefaultTemplateParameters>` line 10
         - [ ] `<ANIM_LENGTH>` line 11
         - [ ] `<ANIM_DURATION>` line 12 = `0.5`
-        - [ ] `<SWITCH_POSITION_TYPE>` line 13
-        - [ ] `<SWITCH_POSITION_VAR>` line 14 = `_ButtonAnimVar`
+        - [x] `<SWITCH_POSITION_TYPE>` line 13
+        - [x] `<SWITCH_POSITION_VAR>` line 14 = `_ButtonAnimVar`
         - [ ] `<Condition Valid="LEFT_SINGLE_CODE_REPEAT_FREQUENCY">` line 15
           - [ ] `<True>` line 16
             - [ ] `<LEFT_LEAVE_CODE>` line 17 = `0`
@@ -26306,8 +26306,8 @@
     - [ ] `<Template Name="ASOBO_GT_Push_Button_Held">` line 473
       - [ ] `<DefaultTemplateParameters>` line 474
         - [ ] `<ANIM_LENGTH>` line 475
-        - [ ] `<SWITCH_POSITION_TYPE>` line 476
-        - [ ] `<SWITCH_POSITION_VAR>` line 477 = `_ButtonAnimVar`
+        - [x] `<SWITCH_POSITION_TYPE>` line 476
+        - [x] `<SWITCH_POSITION_VAR>` line 477 = `_ButtonAnimVar`
         - [ ] `<LEFT_SINGLE_CODE>` line 478
         - [ ] `<LEFT_LEAVE_CODE>` line 479
         - [ ] `<ANIM_DURATION>` line 480 = `0.3`

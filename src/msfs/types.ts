@@ -215,6 +215,7 @@ export interface CompiledInputEventBinding {
 export interface CompiledInteractionBinding {
   readonly target: string
   readonly feedbackTargets: readonly string[]
+  readonly feedbackVariableKeys: readonly string[]
   readonly soundEvents: readonly CompiledInteractionSoundEvent[]
   readonly minHeldDurationSeconds: number
   readonly animationDurationSeconds: number | null

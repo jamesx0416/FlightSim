@@ -467,6 +467,9 @@ export class AircraftRuntime {
 
   private triggerInteractionFeedback(binding: CompiledInteractionBinding, mode: 'hold' | 'pulse'): void {
     const targets = binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]
+    for (const variableKey of binding.feedbackVariableKeys) {
+      this.hostServices.writeVariable(variableKey, 1)
+    }
     for (const target of targets) {
       const trimmedTarget = target.trim()
       if (!trimmedTarget) {
@@ -494,6 +497,11 @@ export class AircraftRuntime {
     const targets = binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]
     let shouldRunReleaseExpression = true
     let maxRemainingMinimumHoldSeconds = 0
+    const resetFeedbackVariables = (): void => {
+      for (const variableKey of binding.feedbackVariableKeys) {
+        this.hostServices.writeVariable(variableKey, 0)
+      }
+    }
     for (const target of targets) {
       const trimmedTarget = target.trim()
       if (!trimmedTarget) {
@@ -527,8 +535,20 @@ export class AircraftRuntime {
         }
         if (!this.interactionFeedbackTimers.has(trimmedTarget) && binding.animationDurationSeconds == null) {
           this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 0)
+          resetFeedbackVariables()
         }
       }
+    }
+    if (binding.feedbackVariableKeys.length > 0) {
+      for (const target of targets) {
+        const trimmedTarget = target.trim()
+        if (trimmedTarget) {
+          this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 0)
+        }
+      }
+    }
+    if (targets.length === 0 || binding.animationDurationSeconds == null) {
+      resetFeedbackVariables()
     }
     if (shouldRunReleaseExpression) {
       this.executeInteractionReleaseBinding(binding)
