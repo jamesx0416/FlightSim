@@ -223,12 +223,12 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     const value = (globalThis as Record<string, unknown>).__msfsLoadStage
     return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
   }
-  const getDiagnostics = (): readonly ImportDiagnostic[] => [
+  const getDiagnostics = (): readonly ImportDiagnostic[] => dedupeDiagnostics([
     ...context.packageData.diagnostics,
     ...context.getCompiledBehaviors().diagnostics,
     ...context.getRuntimeState().diagnostics,
     ...(context.getLoadedModel().interior?.vcockpitBinding?.diagnostics ?? [])
-  ]
+  ])
   const diagnosticCounts = (): Record<string, number> => {
     const counts = { error: 0, warning: 0, info: 0, other: 0 }
     for (const diagnostic of getDiagnostics()) {
@@ -1328,6 +1328,25 @@ function finiteNumberOr(value: number | undefined, fallback: number): number {
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
+}
+
+function dedupeDiagnostics(diagnostics: readonly ImportDiagnostic[]): ImportDiagnostic[] {
+  const seen = new Set<string>()
+  const deduped: ImportDiagnostic[] = []
+  for (const diagnostic of diagnostics) {
+    const key = [
+      diagnostic.severity,
+      diagnostic.code,
+      diagnostic.sourcePath ?? '',
+      diagnostic.message
+    ].join('\0')
+    if (seen.has(key)) {
+      continue
+    }
+    seen.add(key)
+    deduped.push(diagnostic)
+  }
+  return deduped
 }
 
 function evaluateDevApiWaitCondition(
