@@ -11,6 +11,69 @@
     </style>
   </head>
   <body>
+    <script>
+      (() => {
+        const installedAt = performance.now()
+        const getLoadStage = () => {
+          const value = globalThis.__msfsLoadStage
+          return value && typeof value === 'object' ? value : null
+        }
+        const response = (ok, summary, data, warnings) => ({
+          ok,
+          summary,
+          data,
+          ...(warnings && warnings.length ? { warnings } : {})
+        })
+        const loadingData = () => ({
+          ready: false,
+          loadStage: getLoadStage(),
+          elapsedMs: performance.now() - installedAt,
+          location: window.location.href
+        })
+        const unavailable = method => response(
+          false,
+          'Viewer module is still loading; full DevApi is not ready yet.',
+          { ...loadingData(), method },
+          ['Use __DevApi.status() or __DevApi.diagnostics() to inspect boot progress, then retry after __DevApi.ready().']
+        )
+        let bootProxy
+        const bootApi = {
+          __bootPhase: 'html',
+          ready: async () => {
+            while (window.__DevApi === bootProxy) {
+              await new Promise(resolve => window.setTimeout(resolve, 250))
+            }
+            return window.__DevApi && typeof window.__DevApi.ready === 'function'
+              ? window.__DevApi.ready()
+              : unavailable('ready')
+          },
+          status: () => response(true, 'Viewer module is still loading.', loadingData()),
+          diagnostics: () => response(true, 'Returned boot diagnostics.', { ...loadingData(), diagnostics: [] }),
+          report: () => response(true, 'Returned boot report.', { ...loadingData(), diagnostics: [], performance: { fps: null } }),
+          help: () => response(true, 'Boot DevApi is available while the viewer module loads.', {
+            methods: ['__DevApi.status()', '__DevApi.diagnostics()', 'await __DevApi.ready()'],
+            note: 'Interaction, camera, gauge, and runtime helpers become available after the viewer module and model loading complete.'
+          }),
+          schema: () => response(true, 'Returned boot DevApi schema summary.', {
+            ready: false,
+            methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report']
+          })
+        }
+        bootProxy = new Proxy(bootApi, {
+          get(target, property, receiver) {
+            if (property in target) {
+              return Reflect.get(target, property, receiver)
+            }
+            if (typeof property === 'string') {
+              return () => unavailable(property)
+            }
+            return undefined
+          }
+        })
+        window.__DevApi = bootProxy
+        globalThis.__DevApi = window.__DevApi
+      })()
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

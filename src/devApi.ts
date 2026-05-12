@@ -203,6 +203,112 @@ type ViewerDevApiContext = {
   readonly applySettings: (settings: Partial<ViewerConfigProfile>) => Promise<string | null>
 }
 
+export function installViewerBootDevApi(): void {
+  const installedAt = performance.now()
+  const ok = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
+    ok: true,
+    summary,
+    data,
+    ...(warnings != null && warnings.length > 0 ? { warnings } : {})
+  })
+  const fail = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
+    ok: false,
+    summary,
+    data,
+    ...(warnings != null && warnings.length > 0 ? { warnings } : {})
+  })
+  const sleep = (delayMs: number): Promise<void> =>
+    new Promise(resolve => window.setTimeout(resolve, Math.max(0, delayMs)))
+  const getLoadStage = (): Record<string, unknown> | null => {
+    const value = (globalThis as Record<string, unknown>).__msfsLoadStage
+    return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
+  }
+  const loadingData = (): Record<string, unknown> => ({
+    ready: false,
+    loadStage: getLoadStage(),
+    elapsedMs: performance.now() - installedAt,
+    location: window.location.href
+  })
+  const unavailable = (method: string): DevApiResponse =>
+    fail('Viewer is still loading; full DevApi is not ready yet.', {
+      ...loadingData(),
+      method
+    }, [
+      'Use __DevApi.status() or __DevApi.diagnostics() to inspect boot progress, then retry after __DevApi.ready().'
+    ])
+
+  let consoleApi: ViewerDevApi
+  const bootApi: Partial<ViewerDevApi> = {
+    ready: async () => {
+      while (window.__DevApi === consoleApi) {
+        await sleep(250)
+      }
+      return window.__DevApi?.ready?.() ?? unavailable('ready')
+    },
+    status: () => ok('Viewer is still loading.', loadingData()),
+    help: () => ok('Boot DevApi is available while the full viewer loads.', {
+      methods: [
+        '__DevApi.status()',
+        '__DevApi.diagnostics()',
+        'await __DevApi.ready()'
+      ],
+      note: 'Interaction, camera, gauge, and runtime helpers become available after model loading completes.'
+    }),
+    schema: () => ok('Returned boot DevApi schema summary.', {
+      ready: false,
+      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report']
+    }),
+    diagnostics: () => ok('Returned boot diagnostics.', {
+      ...loadingData(),
+      diagnostics: []
+    }),
+    report: () => ok('Returned boot report.', {
+      ...loadingData(),
+      diagnostics: [],
+      performance: {
+        fps: null
+      }
+    }),
+    camera: {
+      enterCockpit: async () => unavailable('camera.enterCockpit'),
+      exitCockpit: () => unavailable('camera.exitCockpit'),
+      getPose: () => unavailable('camera.getPose'),
+      setPose: () => unavailable('camera.setPose'),
+      frame: () => unavailable('camera.frame')
+    },
+    settings: {
+      get: () => unavailable('settings.get'),
+      set: async () => unavailable('settings.set')
+    },
+    input: {
+      pointer: () => unavailable('input.pointer'),
+      key: () => unavailable('input.key'),
+      wheel: () => unavailable('input.wheel')
+    }
+  }
+  const proxy = new Proxy(bootApi, {
+    get(target, property, receiver) {
+      if (property in target) {
+        return Reflect.get(target, property, receiver)
+      }
+      if (typeof property === 'string') {
+        return () => unavailable(property)
+      }
+      return undefined
+    }
+  }) as ViewerDevApi
+
+  consoleApi = wrapDevApiForConsole(proxy, error =>
+    fail('Boot DevApi call failed.', {
+      name: error instanceof Error ? error.name : 'Error',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack ?? null : null
+    })
+  )
+  window.__DevApi = consoleApi
+  ;(globalThis as Record<string, unknown>).__DevApi = consoleApi
+}
+
 export function installViewerDevApi(context: ViewerDevApiContext): void {
   let highlightGroup: Group | null = null
   const ok = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
