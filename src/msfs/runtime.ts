@@ -1525,6 +1525,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (isExternalPowerAvailableKey(upperKey)) {
       return handled(this.electricalState.externalPowerAvailable)
     }
+    if (upperKey.startsWith('A:GENERAL ENG RPM:')) {
+      return handled(convertRpmUnit(cycles.engineCycle, unit))
+    }
+    if (
+      upperKey.startsWith('A:TURB ENG N1:') ||
+      upperKey.startsWith('A:TURB ENG CORRECTED N1:')
+    ) {
+      return handled(convertPercentUnit(cycles.engineCycle, unit))
+    }
     if (upperKey.includes('BRIGHTNESS') || upperKey.includes('POTENTIOMETER')) {
       return handled(resolveBrightnessOrPotentiometerFallback(
         upperKey,
@@ -3517,6 +3526,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const engineIndex = Math.trunc(index)
     const combustionValue = running ? 1 : 0
     const rpmValue = running ? 20 : 0
+    this.engineCycleTarget = running ? Math.max(this.engineCycleTarget, rpmValue) : 0
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION:${engineIndex}`), combustionValue)
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG RPM:${engineIndex}`), rpmValue)
     this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N1:${engineIndex}`), rpmValue)
@@ -3636,6 +3646,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (nextValue <= 0) {
       this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${index}`), 0)
       this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION:${index}`), 0)
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG RPM:${index}`), 0)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N1:${index}`), 0)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG CORRECTED N1:${index}`), 0)
       this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N2:${index}`), 0)
       return
     }
@@ -3645,8 +3658,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.values.get(normalizeRuntimeVariableKey('A:TURBINE IGNITION SWITCH')) ??
       0
     if (ignitionMode > 1) {
+      this.engineCycleTarget = Math.max(this.engineCycleTarget, 55)
       this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${index}`), 1)
       this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION:${index}`), 1)
+      this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG RPM:${index}`), 55)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N1:${index}`), 55)
+      this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG CORRECTED N1:${index}`), 55)
       this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N2:${index}`), 55)
     }
   }
