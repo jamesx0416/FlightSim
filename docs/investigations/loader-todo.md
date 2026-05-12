@@ -499,6 +499,9 @@ Rules:
 - [x] Honor explicit input-event key-only bindings.
   - `BINDING_*_*_EVENT_ID_ONLY` now suppresses the synthetic default `1` parameter for explicit key-event input bindings, matching stock XML alias-generation semantics where the binding is intended to dispatch only the event ID.
   - Verified with `tsc --noEmit` and an Agent Browser in-page compiler harness on 2026-05-12: a synthetic `UseInputEvent` with `BINDING_SET_0_EVENT_ID_ONLY=True` emitted `(>K:TEST_EVENT_ONLY)` without a default parameter, while the same binding without `EVENT_ID_ONLY` still emitted `1 (>K:TEST_EVENT_WITH_DEFAULT)`, both with zero diagnostics and no interaction bindings.
+- [x] Deduplicate exact compiler diagnostics before exposing them through DevApi.
+  - Behavior compilation now collapses exact duplicate diagnostics by severity, code, source path, and message so repeated unresolved template expansions do not inflate warning counts or obscure distinct issues.
+  - Verified with `tsc --noEmit` and an Agent Browser in-page compiler harness on 2026-05-12: two identical missing-template uses in a synthetic model produced a single `template_missing` warning while preserving the original warning text and source path.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.

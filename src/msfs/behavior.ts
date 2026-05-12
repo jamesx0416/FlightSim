@@ -94,7 +94,7 @@ export async function compileMsfs2020Behaviors(
       interactionBindings: [],
       variableKeys: [],
       builtinFallbackHits: [],
-      diagnostics
+      diagnostics: dedupeImportDiagnostics(diagnostics)
     }
   }
 
@@ -203,11 +203,30 @@ export async function compileMsfs2020Behaviors(
     interactionBindings,
     variableKeys: [...variableKeys].sort(),
     builtinFallbackHits: [...context.builtinFallbackHits].sort(),
-    diagnostics
+    diagnostics: dedupeImportDiagnostics(diagnostics)
   }
 
   activeParameterFunctionMap = new Map()
   return compiled
+}
+
+function dedupeImportDiagnostics(diagnostics: readonly ImportDiagnostic[]): ImportDiagnostic[] {
+  const seen = new Set<string>()
+  const deduped: ImportDiagnostic[] = []
+  for (const diagnostic of diagnostics) {
+    const key = [
+      diagnostic.severity,
+      diagnostic.code,
+      diagnostic.sourcePath ?? '',
+      diagnostic.message
+    ].join('\0')
+    if (seen.has(key)) {
+      continue
+    }
+    seen.add(key)
+    deduped.push(diagnostic)
+  }
+  return deduped
 }
 
 function getAircraftModelDefinitions(
