@@ -123,7 +123,7 @@ type ViewerDevApi = {
   readonly help: () => DevApiResponse
   readonly schema: () => DevApiResponse
   readonly report: () => DevApiResponse
-  readonly reset: () => DevApiResponse
+  readonly reset: (options?: { readonly runtime?: boolean; readonly coldAndDark?: boolean }) => DevApiResponse
   readonly find: (query: string, options?: { readonly limit?: number }) => DevApiResponse
   readonly list: (options?: { readonly kind?: DevApiListKind; readonly filter?: string; readonly limit?: number }) => DevApiResponse
   readonly click: (target: string, options?: DevApiClickOptions) => Promise<DevApiResponse>
@@ -888,6 +888,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       eventOptions: ['kind', 'limit'],
+      resetOptions: ['runtime', 'coldAndDark'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
     }),
@@ -900,14 +901,21 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       events: api.events().data,
       perf: api.perf().data
     }),
-    reset: () => {
+    reset: (options = {}) => {
       if (highlightGroup != null) {
         context.scene.remove(highlightGroup)
         highlightGroup.clear()
         highlightGroup = null
       }
       context.getCockpitPerfDiagnostics().reset()
-      return ok('Reset DevApi transient diagnostics.', { perf: context.getCockpitPerfDiagnostics().getSummary() })
+      const shouldResetRuntime = options.runtime === true || options.coldAndDark === true
+      if (shouldResetRuntime) {
+        context.getRuntimeHost().resetRuntimeState({ coldAndDark: options.coldAndDark === true })
+      }
+      return ok(shouldResetRuntime ? 'Reset DevApi transient diagnostics and runtime state.' : 'Reset DevApi transient diagnostics.', {
+        perf: context.getCockpitPerfDiagnostics().getSummary(),
+        runtime: shouldResetRuntime ? context.getRuntimeHost().getStats() : null
+      })
     },
     find: (query, options = {}) => {
       const limit = Math.max(1, Math.min(1_000, Math.floor(options.limit ?? 50)))

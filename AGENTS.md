@@ -8,6 +8,8 @@ Always use `bun` as the package manager for this project unless told otherwise.
 
 All possible things in the viewer should be able to be done by the API. The browser API is `window.__DevApi`; agents should prefer it over synthetic UI gestures when equivalent API functionality exists. When adding a new user-facing viewer capability, add or update the matching `__DevApi` method in the same change so agents can do anything a user can do.
 
+For startup verification, use `window.__DevApi.reset({ coldAndDark: true })` to clear runtime variables/events and seed the generic cold-and-dark state. Plain `reset()` only clears transient DevApi diagnostics/highlights.
+
 For cockpit/gauge verification, wait for settled state through DevApi instead of sampling immediately after entering the cockpit. Use `await window.__DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)` when the check depends on loaded and captured VCockpit gauges.
 
 When interpreting loaded gauge status, use `window.__DevApi.status().counts.capturedCapturableGauges` versus `capturableGauges` for visual readiness; backend-only `NO_TEXTURE` hosts are counted separately as `backendOnlyGauges` and are not failed display captures.
