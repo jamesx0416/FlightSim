@@ -212,7 +212,9 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
 
         applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
         onLoad?.(texture)
-        console.warn('Decoded DDS range mip load fell back to a placeholder.', error)
+        if (shouldLogDdsFallbacks()) {
+          console.warn('Decoded DDS range mip load fell back to a placeholder.', error)
+        }
       })
   }
 
@@ -641,6 +643,14 @@ async function fetchWithTimeout(
     })
   } finally {
     window.clearTimeout(timeoutId)
+  }
+}
+
+function shouldLogDdsFallbacks(): boolean {
+  try {
+    return new URLSearchParams(globalThis.location?.search ?? '').has('ddsDebug')
+  } catch {
+    return false
   }
 }
 

@@ -14,6 +14,7 @@ import { MSFSMipSafeDDSLoader } from './MSFSMipSafeDDSLoader'
 import { MSFSDDSLoader, type MSFSDDSLoadOptions } from './MSFSDDSLoader'
 
 const EXTENSION_NAME = 'MSFT_texture_dds'
+const MSFS_DDS_TEXTURE_DEPENDENCY_TIMEOUT_MS = 15000
 
 interface GltfTextureDef {
   readonly extensions?: {
@@ -121,14 +122,39 @@ class MSFTTextureDDSExtension {
           ? new MSFSMipSafeDDSLoader(this.parser.options.manager, textureLoadOptions)
           : new MSFSDDSLoader(this.parser.options.manager, textureLoadOptions)
 
-    return this.parser
+    const fallbackTexture = (): Texture =>
+      createFallbackTexture({
+        transparent: decodeTransparentBaseColor,
+        normal: normalSource
+      })
+    const texturePromise = this.parser
       .loadTextureImage(textureIndex, sourceIndex, loader)
-      .catch(() =>
-        createFallbackTexture({
-          transparent: decodeTransparentBaseColor,
-          normal: normalSource
-        })
-      )
+      .catch(() => fallbackTexture())
+
+    return withTextureDependencyTimeout(
+      texturePromise,
+      MSFS_DDS_TEXTURE_DEPENDENCY_TIMEOUT_MS,
+      fallbackTexture
+    )
+  }
+}
+
+async function withTextureDependencyTimeout(
+  texturePromise: Promise<unknown>,
+  timeoutMs: number,
+  createFallback: () => Texture
+): Promise<unknown> {
+  let timeoutId: number | null = null
+  const timeoutPromise = new Promise<Texture>(resolve => {
+    timeoutId = window.setTimeout(() => resolve(createFallback()), timeoutMs)
+  })
+
+  try {
+    return await Promise.race([texturePromise, timeoutPromise])
+  } finally {
+    if (timeoutId != null) {
+      window.clearTimeout(timeoutId)
+    }
   }
 }
 

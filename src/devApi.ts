@@ -223,9 +223,14 @@ export function installViewerBootDevApi(): void {
     const value = (globalThis as Record<string, unknown>).__msfsLoadStage
     return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
   }
+  const getGltfLoadingManagerStats = (): Record<string, unknown> | null => {
+    const value = (globalThis as Record<string, unknown>).__msfsGltfLoadingManagerStats
+    return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
+  }
   const loadingData = (): Record<string, unknown> => ({
     ready: false,
     loadStage: getLoadStage(),
+    gltfLoadingManager: getGltfLoadingManagerStats(),
     elapsedMs: performance.now() - installedAt,
     location: window.location.href
   })
