@@ -2202,7 +2202,7 @@ function isUsableInteractionFeedbackTarget(value: string): boolean {
     return false
   }
   const upper = normalized.toUpperCase()
-  return upper !== 'TRUE' && upper !== 'FALSE' && upper !== '0' && upper !== '1'
+  return upper !== 'TRUE' && upper !== 'FALSE' && upper !== '0' && upper !== '1' && upper !== '__NO_HIGHLIGHT__'
 }
 
 function isInteractionTargetParameterName(key: string): boolean {
