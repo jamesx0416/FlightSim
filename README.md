@@ -126,6 +126,8 @@ __DevApi.report()
 
 `status().counts` separates loaded gauge runtimes from visual gauge capture readiness: `capturableGauges` and `capturedCapturableGauges` ignore backend-only `NO_TEXTURE` gauge hosts, while `backendOnlyGauges` counts loaded systems/bridge hosts that do not render to a cockpit texture.
 
+`__DevApi.status()`, `__DevApi.diagnostics()`, and `__DevApi.report()` are available from the initial HTML bootstrap. Before the full viewer runtime is ready they return structured boot progress with `loadStage` and `elapsedMs`; action methods return structured "still loading" responses instead of being missing or producing `undefined`.
+
 `reset()` clears transient DevApi diagnostics by default. Pass `{ runtime: true }` to reset the runtime host to the package preview state, or `{ coldAndDark: true }` to clear runtime variables/events and seed the generic cold-and-dark state for startup tests.
 
 `click()` can also supply stock mouse interaction variables for generic MSFS `MouseRect` / callback code: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables.

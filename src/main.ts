@@ -46,7 +46,7 @@ import { importBuiltMsfs2020Package } from './msfs/importer'
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
-import { installViewerDevApi } from './devApi'
+import { installViewerBootDevApi, installViewerDevApi } from './devApi'
 import type {
   CompiledBehaviorSet,
   ImportedAircraft,
@@ -221,6 +221,7 @@ type FpsCounter = {
 
 async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'init:start' })
+  installViewerBootDevApi()
   const backgroundColor = new Color('#405264')
   const searchParams = new URLSearchParams(window.location.search)
   const configStore = loadViewerConfigStore()
