@@ -673,7 +673,7 @@ function traverseElement(
     const callbackNode =
       getDirectChild(element, 'CallbackCode')
     const callbackSource =
-      callbackNode?.textContent ??
+      buildCallbackCodeSource(callbackNode) ??
       buildCallbackDraggingSource(getDirectChild(element, 'CallbackDragging')) ??
       buildCallbackJumpDraggingSource(getDirectChild(element, 'CallbackJumpDragging')) ??
       ''
@@ -990,6 +990,22 @@ function expandTemplateUse(
     }
     traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
   }
+}
+
+function buildCallbackCodeSource(node: Element | null): string | null {
+  if (node == null) {
+    return null
+  }
+  const instanceNode = getDirectChild(node, 'IMCodeInstances')
+  if (instanceNode == null) {
+    return node.textContent ?? ''
+  }
+  const defaultSource = getDirectChildText(instanceNode, 'IMDefault')
+  const dragSource = getDirectChildText(instanceNode, 'IMDrag')
+  if (defaultSource && dragSource) {
+    return `(M:InputType) 1 == if{ ${dragSource} } els{ ${defaultSource} }`
+  }
+  return dragSource || defaultSource || ''
 }
 
 function buildCallbackDraggingSource(node: Element | null): string | null {
