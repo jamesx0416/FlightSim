@@ -443,6 +443,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
           source: binding.expression.source,
           releaseSource: binding.releaseExpression?.source ?? null,
           feedbackTargets: binding.feedbackTargets,
+          feedbackVariableKeys: binding.feedbackVariableKeys,
           soundEvents: binding.soundEvents,
           hasRelease: binding.releaseExpression != null,
           pickMeshes,

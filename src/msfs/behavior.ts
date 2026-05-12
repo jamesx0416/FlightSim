@@ -1310,6 +1310,7 @@ function buildInteractionCodeBinding(
   return {
     target,
     feedbackTargets: collectInteractionFeedbackTargets(params, currentNode, target),
+    feedbackVariableKeys: collectInteractionFeedbackVariableKeys(params),
     soundEvents: collectInteractionSoundEvents(params),
     minHeldDurationSeconds: Math.max(parseNumber(params.get('MIN_HELD_DURATION'), 0), 0),
     animationDurationSeconds: parseOptionalPositiveNumber(params.get('ANIM_DURATION')),
@@ -2253,6 +2254,23 @@ function collectInteractionFeedbackTargets(
     }
   }
   return [...targets]
+}
+
+function collectInteractionFeedbackVariableKeys(
+  params: ReadonlyMap<string, string>
+): readonly string[] {
+  const type = params.get('SWITCH_POSITION_TYPE')?.trim() ?? ''
+  const variable = params.get('SWITCH_POSITION_VAR')?.trim() ?? ''
+  if (
+    !type ||
+    !variable ||
+    type.includes('#') ||
+    variable.includes('#') ||
+    type.toUpperCase() === 'O'
+  ) {
+    return []
+  }
+  return [`${type}:${variable}`]
 }
 
 function isUsableInteractionFeedbackTarget(value: string): boolean {
