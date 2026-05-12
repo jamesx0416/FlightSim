@@ -27659,171 +27659,173 @@
       - [ ] `<Component ID="FX_GLIDER_BALAST_HIGH_SPEED" Node="#FX_NODE#">` line 1061
         - [ ] `<UseTemplate Name="ASOBO_GT_FX">` line 1062
           - [ ] `<FX_CODE>` line 1063 = `(A:WATER BALLAST VALVE FLOW RATE:1, gph) 0 > (A:WATER BALLAST VALVE FLOW RATE:2, gph) 0 > or (A:AIR...`
-- [ ] `Asobo/Generic/Helpers.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder">` line 2
-      - [ ] `<DefaultTemplateParameters>` line 3
-        - [ ] `<PARAM_REPEATED_START>` line 4
-        - [ ] `<PARAM_REPEATED_END>` line 5
-        - [ ] `<PARAM_START>` line 6
-        - [ ] `<PARAM_END>` line 7
-        - [ ] `<ID>` line 8 = `1`
-      - [ ] `<OverrideTemplateParameters>` line 10
-        - [ ] `<PARAM_TO_BUILD>` line 11
-        - [ ] `<NEXT_ID>` line 12 = `2`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 15
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 19
-      - [ ] `<DefaultTemplateParameters>` line 20
-        - [ ] `<PARAM_REPEATED_2_START>` line 21
-        - [ ] `<PARAM_REPEATED_2_END>` line 22
-      - [ ] `<OverrideTemplateParameters>` line 24
-        - [ ] `<Condition>` line 25
-          - [ ] `<Test>` line 26
-            - [ ] `<Or>` line 27
-              - [ ] `<Arg NotEmpty="PARAM_REPEATED_2_START">` line 28
-              - [ ] `<Arg NotEmpty="PARAM_REPEATED_2_END">` line 29
-          - [ ] `<True>` line 32
-            - [ ] `<PARAM_TO_BUILD>` line 33
-          - [ ] `<False>` line 35
-            - [ ] `<PARAM_TO_BUILD>` line 36
-        - [ ] `<TEST_ID>` line 39 = `ID#NEXT_ID#`
-      - [ ] `<Condition NotEmpty="TEST_ID">` line 42
-        - [ ] `<True>` line 43
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 44
-            - [ ] `<ID>` line 45 = `#TEST_ID#`
-            - [ ] `<NEXT_ID>` line 46 = `#NEXT_ID# 1 +`
-        - [ ] `<False>` line 49
-          - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 50
-            - [ ] `<#PARAM_NAME#>` line 51
-    - [ ] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC">` line 58
-      - [ ] `<DefaultTemplateParameters>` line 59
-        - [ ] `<CONTENT>` line 60
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 62
-        - [ ] `<PARAM_ID>` line 63 = `1`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 66
-      - [ ] `<OverrideTemplateParameters>` line 67
-        - [ ] `<Condition Valid="PARAM#PARAM_ID#">` line 68
-          - [ ] `<Condition Valid="PROCESS_PARAM#PARAM_ID#">` line 69
-            - [ ] `<PROCESS_PARAM>` line 70 = `True`
-        - [ ] `<PARAM_NAME>` line 72 = `PARAM#PARAM_ID#`
-        - [ ] `<Condition Valid="PARAM#PARAM_ID#_PREFIX">` line 73
-          - [ ] `<True>` line 74
-            - [ ] `<PREFIX>` line 75
-          - [ ] `<False>` line 77
-            - [ ] `<PREFIX>` line 78
-        - [ ] `<Condition Valid="PARAM#PARAM_ID#_SUFFIX">` line 81
-          - [ ] `<True>` line 82
-            - [ ] `<SUFFIX>` line 83
-          - [ ] `<False>` line 85
-            - [ ] `<SUFFIX>` line 86
-      - [ ] `<Switch>` line 91
-        - [ ] `<Case Valid="PARAM#PARAM_ID#">` line 92
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 93
-            - [ ] `<PARAM_ID>` line 94 = `#PARAM_ID# 1 +`
-            - [ ] `<Condition Valid="PROCESS_PARAM">` line 95
-              - [ ] `<True>` line 96
-                - [ ] `<Condition NotEmpty="#PREFIX##CONTENT##SUFFIX#">` line 97
-                  - [ ] `<#PARAM_NAME#>` line 98
-                  - [ ] `<PROCESS_PARAM>` line 99 = `False`
-              - [ ] `<False>` line 102
-                - [ ] `<#PARAM_NAME#>` line 103
-        - [ ] `<Default>` line 108
-          - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 109
-    - [ ] `<Template Name="ASOBO_GT_Helper_Increasing_ID">` line 117
-      - [ ] `<DefaultTemplateParameters>` line 118
-        - [ ] `<FIRST_ID>` line 119 = `1`
-        - [ ] `<MAX_ID>` line 120 = `1`
-        - [ ] `<PARAM>` line 121 = `BTN_ID`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 123
-        - [ ] `<NEXT_ID>` line 124 = `#FIRST_ID#`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Increasing_ID_2">` line 128
-      - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 129
-        - [ ] `<#PARAM#>` line 130
-      - [ ] `<Condition>` line 133
-        - [ ] `<Test>` line 134
-          - [ ] `<Lower>` line 135
-            - [ ] `<Value>` line 136 = `NEXT_ID`
-            - [ ] `<Value>` line 137 = `MAX_ID`
-        - [ ] `<True>` line 140
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 141
-            - [ ] `<NEXT_ID>` line 142 = `#NEXT_ID# 1 +`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_ID">` line 156
-      - [ ] `<DefaultTemplateParameters>` line 157
-        - [ ] `<FIRST_ID>` line 158 = `1`
-        - [ ] `<MAX_ID>` line 159 = `1`
-        - [ ] `<PARAM1>` line 160
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 162
-        - [ ] `<NEXT_ID>` line 163 = `#FIRST_ID#`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_ID_2">` line 167
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC">` line 168
-        - [ ] `<CONTENT>` line 169
-      - [ ] `<Condition>` line 171
-        - [ ] `<Test>` line 172
-          - [ ] `<Lower>` line 173
-            - [ ] `<Value>` line 174 = `NEXT_ID`
-            - [ ] `<Value>` line 175 = `MAX_ID`
-        - [ ] `<True>` line 178
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 179
-            - [ ] `<NEXT_ID>` line 180 = `#NEXT_ID# 1 +`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 186
-      - [ ] `<DefaultTemplateParameters>` line 187
-        - [ ] `<Switch>` line 188
-          - [ ] `<Case Valid="DONT_APPEND_ID">` line 189
-            - [ ] `<SUFFIX_ID>` line 190
-          - [ ] `<Default>` line 192
-            - [ ] `<Condition NotEmpty="CONTAINER_ID">` line 193
-              - [ ] `<True>` line 194
-                - [ ] `<SUFFIX_ID>` line 195 = `_#CONTAINER_ID#`
-              - [ ] `<False>` line 197
-                - [ ] `<SUFFIX_ID>` line 198 = `_#ID#`
-      - [ ] `<UseTemplate Name="#TEMPLATE_TO_CALL#">` line 205
-    - [ ] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code">` line 209
-      - [ ] `<DefaultTemplateParameters>` line 210
-        - [ ] `<SELECTION>` line 211
-        - [ ] `<ANIM_VALUE_0>` line 215
-        - [ ] `<REF_VALUE_0>` line 216
-        - [ ] `<ANIM_VALUE_1>` line 217
-        - [ ] `<REF_VALUE_1>` line 218
-        - [ ] `<ANIM_LENGTH>` line 221
-        - [ ] `<MAX_POINT_INDEX>` line 222
-        - [ ] `<MAX_DISPLAYABLE>` line 223
-        - [ ] `<MIN_DISPLAYABLE>` line 224
-        - [ ] `<EXIT_TEMPLATE>` line 225
-        - [ ] `<EXIT_PARAM_NAME>` line 226 = `ANIM_CODE`
-        - [ ] `<CONTENT>` line 227
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 229
-        - [ ] `<NEXT_ID>` line 230 = `#MAX_POINT_INDEX#`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 234
-      - [ ] `<OverrideTemplateParameters>` line 235
-        - [ ] `<ANIM_VAL_CURRENT_POINT>` line 236
-        - [ ] `<REF_VAL_CURRENT_POINT>` line 237
-      - [ ] `<Condition>` line 239
-        - [ ] `<Test>` line 240
-          - [ ] `<GreaterOrEqual>` line 241
-            - [ ] `<Value>` line 242 = `NEXT_ID`
-            - [ ] `<Number>` line 243
-        - [ ] `<True>` line 246
-          - [ ] `<Condition>` line 247
-            - [ ] `<Test>` line 248
-              - [ ] `<Equal>` line 249
-                - [ ] `<Value>` line 250 = `NEXT_ID`
-                - [ ] `<Value>` line 251 = `MAX_POINT_INDEX`
-            - [ ] `<True>` line 254
-              - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 256
-                - [ ] `<NEXT_ID>` line 257 = `#NEXT_ID# 1 -`
-                - [ ] `<ANIM_VAL_PREVIOUS_POINT>` line 258
-                - [ ] `<REF_VAL_PREVIOUS_POINT>` line 259
-            - [ ] `<False>` line 262
-              - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 263
-                - [ ] `<NEXT_ID>` line 264 = `#NEXT_ID# 1 -`
-                - [ ] `<CONTENT>` line 265
-                - [ ] `<ANIM_VAL_PREVIOUS_POINT>` line 271
-                - [ ] `<REF_VAL_PREVIOUS_POINT>` line 272
-        - [ ] `<False>` line 277
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 278
-    - [ ] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 284
-      - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 285
-        - [ ] `<#EXIT_PARAM_NAME#>` line 286
+- [x] `Asobo/Generic/Helpers.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder">` line 2
+      - [x] `<DefaultTemplateParameters>` line 3
+        - [x] `<PARAM_REPEATED_START>` line 4
+        - [x] `<PARAM_REPEATED_END>` line 5
+        - [x] `<PARAM_START>` line 6
+        - [x] `<PARAM_END>` line 7
+        - [x] `<ID>` line 8 = `1`
+      - [x] `<OverrideTemplateParameters>` line 10
+        - [x] `<PARAM_TO_BUILD>` line 11
+        - [x] `<NEXT_ID>` line 12 = `2`
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 15
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 19
+      - [x] `<DefaultTemplateParameters>` line 20
+        - [x] `<PARAM_REPEATED_2_START>` line 21
+        - [x] `<PARAM_REPEATED_2_END>` line 22
+      - [x] `<OverrideTemplateParameters>` line 24
+        - [x] `<Condition>` line 25
+          - [x] `<Test>` line 26
+            - [x] `<Or>` line 27
+              - [x] `<Arg NotEmpty="PARAM_REPEATED_2_START">` line 28
+              - [x] `<Arg NotEmpty="PARAM_REPEATED_2_END">` line 29
+          - [x] `<True>` line 32
+            - [x] `<PARAM_TO_BUILD>` line 33
+          - [x] `<False>` line 35
+            - [x] `<PARAM_TO_BUILD>` line 36
+        - [x] `<TEST_ID>` line 39 = `ID#NEXT_ID#`
+      - [x] `<Condition NotEmpty="TEST_ID">` line 42
+        - [x] `<True>` line 43
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 44
+            - [x] `<ID>` line 45 = `#TEST_ID#`
+            - [x] `<NEXT_ID>` line 46 = `#NEXT_ID# 1 +`
+        - [x] `<False>` line 49
+          - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 50
+            - [x] `<#PARAM_NAME#>` line 51
+    - [x] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC">` line 58
+      - [x] `<DefaultTemplateParameters>` line 59
+        - [x] `<CONTENT>` line 60
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 62
+        - [x] `<PARAM_ID>` line 63 = `1`
+    - [x] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 66
+      - [x] `<OverrideTemplateParameters>` line 67
+        - [x] `<Condition Valid="PARAM#PARAM_ID#">` line 68
+          - [x] `<Condition Valid="PROCESS_PARAM#PARAM_ID#">` line 69
+            - [x] `<PROCESS_PARAM>` line 70 = `True`
+        - [x] `<PARAM_NAME>` line 72 = `PARAM#PARAM_ID#`
+        - [x] `<Condition Valid="PARAM#PARAM_ID#_PREFIX">` line 73
+          - [x] `<True>` line 74
+            - [x] `<PREFIX>` line 75
+          - [x] `<False>` line 77
+            - [x] `<PREFIX>` line 78
+        - [x] `<Condition Valid="PARAM#PARAM_ID#_SUFFIX">` line 81
+          - [x] `<True>` line 82
+            - [x] `<SUFFIX>` line 83
+          - [x] `<False>` line 85
+            - [x] `<SUFFIX>` line 86
+      - [x] `<Switch>` line 91
+        - [x] `<Case Valid="PARAM#PARAM_ID#">` line 92
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 93
+            - [x] `<PARAM_ID>` line 94 = `#PARAM_ID# 1 +`
+            - [x] `<Condition Valid="PROCESS_PARAM">` line 95
+              - [x] `<True>` line 96
+                - [x] `<Condition NotEmpty="#PREFIX##CONTENT##SUFFIX#">` line 97
+                  - [x] `<#PARAM_NAME#>` line 98
+                  - [x] `<PROCESS_PARAM>` line 99 = `False`
+              - [x] `<False>` line 102
+                - [x] `<#PARAM_NAME#>` line 103
+        - [x] `<Default>` line 108
+          - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 109
+    - [x] `<Template Name="ASOBO_GT_Helper_Increasing_ID">` line 117
+      - [x] `<DefaultTemplateParameters>` line 118
+        - [x] `<FIRST_ID>` line 119 = `1`
+        - [x] `<MAX_ID>` line 120 = `1`
+        - [x] `<PARAM>` line 121 = `BTN_ID`
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 123
+        - [x] `<NEXT_ID>` line 124 = `#FIRST_ID#`
+    - [x] `<Template Name="ASOBO_GT_Helper_Increasing_ID_2">` line 128
+      - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 129
+        - [x] `<#PARAM#>` line 130
+      - [x] `<Condition>` line 133
+        - [x] `<Test>` line 134
+          - [x] `<Lower>` line 135
+            - [x] `<Value>` line 136 = `NEXT_ID`
+            - [x] `<Value>` line 137 = `MAX_ID`
+        - [x] `<True>` line 140
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 141
+            - [x] `<NEXT_ID>` line 142 = `#NEXT_ID# 1 +`
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_ID">` line 156
+      - [x] `<DefaultTemplateParameters>` line 157
+        - [x] `<FIRST_ID>` line 158 = `1`
+        - [x] `<MAX_ID>` line 159 = `1`
+        - [x] `<PARAM1>` line 160
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 162
+        - [x] `<NEXT_ID>` line 163 = `#FIRST_ID#`
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_ID_2">` line 167
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC">` line 168
+        - [x] `<CONTENT>` line 169
+      - [x] `<Condition>` line 171
+        - [x] `<Test>` line 172
+          - [x] `<Lower>` line 173
+            - [x] `<Value>` line 174 = `NEXT_ID`
+            - [x] `<Value>` line 175 = `MAX_ID`
+        - [x] `<True>` line 178
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 179
+            - [x] `<NEXT_ID>` line 180 = `#NEXT_ID# 1 +`
+    - [x] `<Template Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 186
+      - [x] `<DefaultTemplateParameters>` line 187
+        - [x] `<Switch>` line 188
+          - [x] `<Case Valid="DONT_APPEND_ID">` line 189
+            - [x] `<SUFFIX_ID>` line 190
+          - [x] `<Default>` line 192
+            - [x] `<Condition NotEmpty="CONTAINER_ID">` line 193
+              - [x] `<True>` line 194
+                - [x] `<SUFFIX_ID>` line 195 = `_#CONTAINER_ID#`
+              - [x] `<False>` line 197
+                - [x] `<SUFFIX_ID>` line 198 = `_#ID#`
+      - [x] `<UseTemplate Name="#TEMPLATE_TO_CALL#">` line 205
+    - [x] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code">` line 209
+      - [x] `<DefaultTemplateParameters>` line 210
+        - [x] `<SELECTION>` line 211
+        - [x] `<ANIM_VALUE_0>` line 215
+        - [x] `<REF_VALUE_0>` line 216
+        - [x] `<ANIM_VALUE_1>` line 217
+        - [x] `<REF_VALUE_1>` line 218
+        - [x] `<ANIM_LENGTH>` line 221
+        - [x] `<MAX_POINT_INDEX>` line 222
+        - [x] `<MAX_DISPLAYABLE>` line 223
+        - [x] `<MIN_DISPLAYABLE>` line 224
+        - [x] `<EXIT_TEMPLATE>` line 225
+        - [x] `<EXIT_PARAM_NAME>` line 226 = `ANIM_CODE`
+        - [x] `<CONTENT>` line 227
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 229
+        - [x] `<NEXT_ID>` line 230 = `#MAX_POINT_INDEX#`
+    - [x] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 234
+      - [x] `<OverrideTemplateParameters>` line 235
+        - [x] `<ANIM_VAL_CURRENT_POINT>` line 236
+        - [x] `<REF_VAL_CURRENT_POINT>` line 237
+      - [x] `<Condition>` line 239
+        - [x] `<Test>` line 240
+          - [x] `<GreaterOrEqual>` line 241
+            - [x] `<Value>` line 242 = `NEXT_ID`
+            - [x] `<Number>` line 243
+        - [x] `<True>` line 246
+          - [x] `<Condition>` line 247
+            - [x] `<Test>` line 248
+              - [x] `<Equal>` line 249
+                - [x] `<Value>` line 250 = `NEXT_ID`
+                - [x] `<Value>` line 251 = `MAX_POINT_INDEX`
+            - [x] `<True>` line 254
+              - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 256
+                - [x] `<NEXT_ID>` line 257 = `#NEXT_ID# 1 -`
+                - [x] `<ANIM_VAL_PREVIOUS_POINT>` line 258
+                - [x] `<REF_VAL_PREVIOUS_POINT>` line 259
+            - [x] `<False>` line 262
+              - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 263
+                - [x] `<NEXT_ID>` line 264 = `#NEXT_ID# 1 -`
+                - [x] `<CONTENT>` line 265
+                - [x] `<ANIM_VAL_PREVIOUS_POINT>` line 271
+                - [x] `<REF_VAL_PREVIOUS_POINT>` line 272
+        - [x] `<False>` line 277
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 278
+    - [x] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 284
+      - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 285
+        - [x] `<#EXIT_PARAM_NAME#>` line 286
+  - Verified through the generic template expansion path: recursive helper templates use parameter-sensitive template recursion, dynamic UseTemplate names, dynamic parameter tag preprocessing, Condition/Switch branches, and Process="Param|Int|Float" evaluation. Agent Browser DevApi checks on 2026-05-12 covered A320 and A330 cockpit routes with zero errors; both had only the documented missing FBW_AIRBUS_Update_PTU_Template warnings. A320 compiled 665 animation bindings, 766 interactions, 362 material entries, 276 input events, and 1319 variables; A330 compiled 735 animation bindings, 859 interactions, 361 material entries, 306 input events, and 1467 variables. Screenshots: backups/agent-browser/generic-helpers-support/screenshot-1778576959544.png and backups/agent-browser/generic-helpers-support/screenshot-1778576863800.png.
+
 - [ ] `Asobo/Generic/Index.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 4
@@ -66338,171 +66340,173 @@
       - [ ] `<Component ID="FX_GLIDER_BALAST_HIGH_SPEED" Node="#FX_NODE#">` line 1061
         - [ ] `<UseTemplate Name="ASOBO_GT_FX">` line 1062
           - [ ] `<FX_CODE>` line 1063 = `(A:WATER BALLAST VALVE FLOW RATE:1, gph) 0 > (A:WATER BALLAST VALVE FLOW RATE:2, gph) 0 > or (A:AIR...`
-- [ ] `Asobo/Generic/Helpers.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder">` line 2
-      - [ ] `<DefaultTemplateParameters>` line 3
-        - [ ] `<PARAM_REPEATED_START>` line 4
-        - [ ] `<PARAM_REPEATED_END>` line 5
-        - [ ] `<PARAM_START>` line 6
-        - [ ] `<PARAM_END>` line 7
-        - [ ] `<ID>` line 8 = `1`
-      - [ ] `<OverrideTemplateParameters>` line 10
-        - [ ] `<PARAM_TO_BUILD>` line 11
-        - [ ] `<NEXT_ID>` line 12 = `2`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 15
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 19
-      - [ ] `<DefaultTemplateParameters>` line 20
-        - [ ] `<PARAM_REPEATED_2_START>` line 21
-        - [ ] `<PARAM_REPEATED_2_END>` line 22
-      - [ ] `<OverrideTemplateParameters>` line 24
-        - [ ] `<Condition>` line 25
-          - [ ] `<Test>` line 26
-            - [ ] `<Or>` line 27
-              - [ ] `<Arg NotEmpty="PARAM_REPEATED_2_START">` line 28
-              - [ ] `<Arg NotEmpty="PARAM_REPEATED_2_END">` line 29
-          - [ ] `<True>` line 32
-            - [ ] `<PARAM_TO_BUILD>` line 33
-          - [ ] `<False>` line 35
-            - [ ] `<PARAM_TO_BUILD>` line 36
-        - [ ] `<TEST_ID>` line 39 = `ID#NEXT_ID#`
-      - [ ] `<Condition NotEmpty="TEST_ID">` line 42
-        - [ ] `<True>` line 43
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 44
-            - [ ] `<ID>` line 45 = `#TEST_ID#`
-            - [ ] `<NEXT_ID>` line 46 = `#NEXT_ID# 1 +`
-        - [ ] `<False>` line 49
-          - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 50
-            - [ ] `<#PARAM_NAME#>` line 51
-    - [ ] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC">` line 58
-      - [ ] `<DefaultTemplateParameters>` line 59
-        - [ ] `<CONTENT>` line 60
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 62
-        - [ ] `<PARAM_ID>` line 63 = `1`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 66
-      - [ ] `<OverrideTemplateParameters>` line 67
-        - [ ] `<Condition Valid="PARAM#PARAM_ID#">` line 68
-          - [ ] `<Condition Valid="PROCESS_PARAM#PARAM_ID#">` line 69
-            - [ ] `<PROCESS_PARAM>` line 70 = `True`
-        - [ ] `<PARAM_NAME>` line 72 = `PARAM#PARAM_ID#`
-        - [ ] `<Condition Valid="PARAM#PARAM_ID#_PREFIX">` line 73
-          - [ ] `<True>` line 74
-            - [ ] `<PREFIX>` line 75
-          - [ ] `<False>` line 77
-            - [ ] `<PREFIX>` line 78
-        - [ ] `<Condition Valid="PARAM#PARAM_ID#_SUFFIX">` line 81
-          - [ ] `<True>` line 82
-            - [ ] `<SUFFIX>` line 83
-          - [ ] `<False>` line 85
-            - [ ] `<SUFFIX>` line 86
-      - [ ] `<Switch>` line 91
-        - [ ] `<Case Valid="PARAM#PARAM_ID#">` line 92
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 93
-            - [ ] `<PARAM_ID>` line 94 = `#PARAM_ID# 1 +`
-            - [ ] `<Condition Valid="PROCESS_PARAM">` line 95
-              - [ ] `<True>` line 96
-                - [ ] `<Condition NotEmpty="#PREFIX##CONTENT##SUFFIX#">` line 97
-                  - [ ] `<#PARAM_NAME#>` line 98
-                  - [ ] `<PROCESS_PARAM>` line 99 = `False`
-              - [ ] `<False>` line 102
-                - [ ] `<#PARAM_NAME#>` line 103
-        - [ ] `<Default>` line 108
-          - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 109
-    - [ ] `<Template Name="ASOBO_GT_Helper_Increasing_ID">` line 117
-      - [ ] `<DefaultTemplateParameters>` line 118
-        - [ ] `<FIRST_ID>` line 119 = `1`
-        - [ ] `<MAX_ID>` line 120 = `1`
-        - [ ] `<PARAM>` line 121 = `BTN_ID`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 123
-        - [ ] `<NEXT_ID>` line 124 = `#FIRST_ID#`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Increasing_ID_2">` line 128
-      - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 129
-        - [ ] `<#PARAM#>` line 130
-      - [ ] `<Condition>` line 133
-        - [ ] `<Test>` line 134
-          - [ ] `<Lower>` line 135
-            - [ ] `<Value>` line 136 = `NEXT_ID`
-            - [ ] `<Value>` line 137 = `MAX_ID`
-        - [ ] `<True>` line 140
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 141
-            - [ ] `<NEXT_ID>` line 142 = `#NEXT_ID# 1 +`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_ID">` line 156
-      - [ ] `<DefaultTemplateParameters>` line 157
-        - [ ] `<FIRST_ID>` line 158 = `1`
-        - [ ] `<MAX_ID>` line 159 = `1`
-        - [ ] `<PARAM1>` line 160
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 162
-        - [ ] `<NEXT_ID>` line 163 = `#FIRST_ID#`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Recursive_ID_2">` line 167
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC">` line 168
-        - [ ] `<CONTENT>` line 169
-      - [ ] `<Condition>` line 171
-        - [ ] `<Test>` line 172
-          - [ ] `<Lower>` line 173
-            - [ ] `<Value>` line 174 = `NEXT_ID`
-            - [ ] `<Value>` line 175 = `MAX_ID`
-        - [ ] `<True>` line 178
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 179
-            - [ ] `<NEXT_ID>` line 180 = `#NEXT_ID# 1 +`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 186
-      - [ ] `<DefaultTemplateParameters>` line 187
-        - [ ] `<Switch>` line 188
-          - [ ] `<Case Valid="DONT_APPEND_ID">` line 189
-            - [ ] `<SUFFIX_ID>` line 190
-          - [ ] `<Default>` line 192
-            - [ ] `<Condition NotEmpty="CONTAINER_ID">` line 193
-              - [ ] `<True>` line 194
-                - [ ] `<SUFFIX_ID>` line 195 = `_#CONTAINER_ID#`
-              - [ ] `<False>` line 197
-                - [ ] `<SUFFIX_ID>` line 198 = `_#ID#`
-      - [ ] `<UseTemplate Name="#TEMPLATE_TO_CALL#">` line 205
-    - [ ] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code">` line 209
-      - [ ] `<DefaultTemplateParameters>` line 210
-        - [ ] `<SELECTION>` line 211
-        - [ ] `<ANIM_VALUE_0>` line 215
-        - [ ] `<REF_VALUE_0>` line 216
-        - [ ] `<ANIM_VALUE_1>` line 217
-        - [ ] `<REF_VALUE_1>` line 218
-        - [ ] `<ANIM_LENGTH>` line 221
-        - [ ] `<MAX_POINT_INDEX>` line 222
-        - [ ] `<MAX_DISPLAYABLE>` line 223
-        - [ ] `<MIN_DISPLAYABLE>` line 224
-        - [ ] `<EXIT_TEMPLATE>` line 225
-        - [ ] `<EXIT_PARAM_NAME>` line 226 = `ANIM_CODE`
-        - [ ] `<CONTENT>` line 227
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 229
-        - [ ] `<NEXT_ID>` line 230 = `#MAX_POINT_INDEX#`
-    - [ ] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 234
-      - [ ] `<OverrideTemplateParameters>` line 235
-        - [ ] `<ANIM_VAL_CURRENT_POINT>` line 236
-        - [ ] `<REF_VAL_CURRENT_POINT>` line 237
-      - [ ] `<Condition>` line 239
-        - [ ] `<Test>` line 240
-          - [ ] `<GreaterOrEqual>` line 241
-            - [ ] `<Value>` line 242 = `NEXT_ID`
-            - [ ] `<Number>` line 243
-        - [ ] `<True>` line 246
-          - [ ] `<Condition>` line 247
-            - [ ] `<Test>` line 248
-              - [ ] `<Equal>` line 249
-                - [ ] `<Value>` line 250 = `NEXT_ID`
-                - [ ] `<Value>` line 251 = `MAX_POINT_INDEX`
-            - [ ] `<True>` line 254
-              - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 256
-                - [ ] `<NEXT_ID>` line 257 = `#NEXT_ID# 1 -`
-                - [ ] `<ANIM_VAL_PREVIOUS_POINT>` line 258
-                - [ ] `<REF_VAL_PREVIOUS_POINT>` line 259
-            - [ ] `<False>` line 262
-              - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 263
-                - [ ] `<NEXT_ID>` line 264 = `#NEXT_ID# 1 -`
-                - [ ] `<CONTENT>` line 265
-                - [ ] `<ANIM_VAL_PREVIOUS_POINT>` line 271
-                - [ ] `<REF_VAL_PREVIOUS_POINT>` line 272
-        - [ ] `<False>` line 277
-          - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 278
-    - [ ] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 284
-      - [ ] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 285
-        - [ ] `<#EXIT_PARAM_NAME#>` line 286
+- [x] `Asobo/Generic/Helpers.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder">` line 2
+      - [x] `<DefaultTemplateParameters>` line 3
+        - [x] `<PARAM_REPEATED_START>` line 4
+        - [x] `<PARAM_REPEATED_END>` line 5
+        - [x] `<PARAM_START>` line 6
+        - [x] `<PARAM_END>` line 7
+        - [x] `<ID>` line 8 = `1`
+      - [x] `<OverrideTemplateParameters>` line 10
+        - [x] `<PARAM_TO_BUILD>` line 11
+        - [x] `<NEXT_ID>` line 12 = `2`
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 15
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 19
+      - [x] `<DefaultTemplateParameters>` line 20
+        - [x] `<PARAM_REPEATED_2_START>` line 21
+        - [x] `<PARAM_REPEATED_2_END>` line 22
+      - [x] `<OverrideTemplateParameters>` line 24
+        - [x] `<Condition>` line 25
+          - [x] `<Test>` line 26
+            - [x] `<Or>` line 27
+              - [x] `<Arg NotEmpty="PARAM_REPEATED_2_START">` line 28
+              - [x] `<Arg NotEmpty="PARAM_REPEATED_2_END">` line 29
+          - [x] `<True>` line 32
+            - [x] `<PARAM_TO_BUILD>` line 33
+          - [x] `<False>` line 35
+            - [x] `<PARAM_TO_BUILD>` line 36
+        - [x] `<TEST_ID>` line 39 = `ID#NEXT_ID#`
+      - [x] `<Condition NotEmpty="TEST_ID">` line 42
+        - [x] `<True>` line 43
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_Param_Builder_2">` line 44
+            - [x] `<ID>` line 45 = `#TEST_ID#`
+            - [x] `<NEXT_ID>` line 46 = `#NEXT_ID# 1 +`
+        - [x] `<False>` line 49
+          - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 50
+            - [x] `<#PARAM_NAME#>` line 51
+    - [x] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC">` line 58
+      - [x] `<DefaultTemplateParameters>` line 59
+        - [x] `<CONTENT>` line 60
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 62
+        - [x] `<PARAM_ID>` line 63 = `1`
+    - [x] `<Template Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 66
+      - [x] `<OverrideTemplateParameters>` line 67
+        - [x] `<Condition Valid="PARAM#PARAM_ID#">` line 68
+          - [x] `<Condition Valid="PROCESS_PARAM#PARAM_ID#">` line 69
+            - [x] `<PROCESS_PARAM>` line 70 = `True`
+        - [x] `<PARAM_NAME>` line 72 = `PARAM#PARAM_ID#`
+        - [x] `<Condition Valid="PARAM#PARAM_ID#_PREFIX">` line 73
+          - [x] `<True>` line 74
+            - [x] `<PREFIX>` line 75
+          - [x] `<False>` line 77
+            - [x] `<PREFIX>` line 78
+        - [x] `<Condition Valid="PARAM#PARAM_ID#_SUFFIX">` line 81
+          - [x] `<True>` line 82
+            - [x] `<SUFFIX>` line 83
+          - [x] `<False>` line 85
+            - [x] `<SUFFIX>` line 86
+      - [x] `<Switch>` line 91
+        - [x] `<Case Valid="PARAM#PARAM_ID#">` line 92
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC_1">` line 93
+            - [x] `<PARAM_ID>` line 94 = `#PARAM_ID# 1 +`
+            - [x] `<Condition Valid="PROCESS_PARAM">` line 95
+              - [x] `<True>` line 96
+                - [x] `<Condition NotEmpty="#PREFIX##CONTENT##SUFFIX#">` line 97
+                  - [x] `<#PARAM_NAME#>` line 98
+                  - [x] `<PROCESS_PARAM>` line 99 = `False`
+              - [x] `<False>` line 102
+                - [x] `<#PARAM_NAME#>` line 103
+        - [x] `<Default>` line 108
+          - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 109
+    - [x] `<Template Name="ASOBO_GT_Helper_Increasing_ID">` line 117
+      - [x] `<DefaultTemplateParameters>` line 118
+        - [x] `<FIRST_ID>` line 119 = `1`
+        - [x] `<MAX_ID>` line 120 = `1`
+        - [x] `<PARAM>` line 121 = `BTN_ID`
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 123
+        - [x] `<NEXT_ID>` line 124 = `#FIRST_ID#`
+    - [x] `<Template Name="ASOBO_GT_Helper_Increasing_ID_2">` line 128
+      - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 129
+        - [x] `<#PARAM#>` line 130
+      - [x] `<Condition>` line 133
+        - [x] `<Test>` line 134
+          - [x] `<Lower>` line 135
+            - [x] `<Value>` line 136 = `NEXT_ID`
+            - [x] `<Value>` line 137 = `MAX_ID`
+        - [x] `<True>` line 140
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Increasing_ID_2">` line 141
+            - [x] `<NEXT_ID>` line 142 = `#NEXT_ID# 1 +`
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_ID">` line 156
+      - [x] `<DefaultTemplateParameters>` line 157
+        - [x] `<FIRST_ID>` line 158 = `1`
+        - [x] `<MAX_ID>` line 159 = `1`
+        - [x] `<PARAM1>` line 160
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 162
+        - [x] `<NEXT_ID>` line 163 = `#FIRST_ID#`
+    - [x] `<Template Name="ASOBO_GT_Helper_Recursive_ID_2">` line 167
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Param_Builder_INC">` line 168
+        - [x] `<CONTENT>` line 169
+      - [x] `<Condition>` line 171
+        - [x] `<Test>` line 172
+          - [x] `<Lower>` line 173
+            - [x] `<Value>` line 174 = `NEXT_ID`
+            - [x] `<Value>` line 175 = `MAX_ID`
+        - [x] `<True>` line 178
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Recursive_ID_2">` line 179
+            - [x] `<NEXT_ID>` line 180 = `#NEXT_ID# 1 +`
+    - [x] `<Template Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 186
+      - [x] `<DefaultTemplateParameters>` line 187
+        - [x] `<Switch>` line 188
+          - [x] `<Case Valid="DONT_APPEND_ID">` line 189
+            - [x] `<SUFFIX_ID>` line 190
+          - [x] `<Default>` line 192
+            - [x] `<Condition NotEmpty="CONTAINER_ID">` line 193
+              - [x] `<True>` line 194
+                - [x] `<SUFFIX_ID>` line 195 = `_#CONTAINER_ID#`
+              - [x] `<False>` line 197
+                - [x] `<SUFFIX_ID>` line 198 = `_#ID#`
+      - [x] `<UseTemplate Name="#TEMPLATE_TO_CALL#">` line 205
+    - [x] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code">` line 209
+      - [x] `<DefaultTemplateParameters>` line 210
+        - [x] `<SELECTION>` line 211
+        - [x] `<ANIM_VALUE_0>` line 215
+        - [x] `<REF_VALUE_0>` line 216
+        - [x] `<ANIM_VALUE_1>` line 217
+        - [x] `<REF_VALUE_1>` line 218
+        - [x] `<ANIM_LENGTH>` line 221
+        - [x] `<MAX_POINT_INDEX>` line 222
+        - [x] `<MAX_DISPLAYABLE>` line 223
+        - [x] `<MIN_DISPLAYABLE>` line 224
+        - [x] `<EXIT_TEMPLATE>` line 225
+        - [x] `<EXIT_PARAM_NAME>` line 226 = `ANIM_CODE`
+        - [x] `<CONTENT>` line 227
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 229
+        - [x] `<NEXT_ID>` line 230 = `#MAX_POINT_INDEX#`
+    - [x] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 234
+      - [x] `<OverrideTemplateParameters>` line 235
+        - [x] `<ANIM_VAL_CURRENT_POINT>` line 236
+        - [x] `<REF_VAL_CURRENT_POINT>` line 237
+      - [x] `<Condition>` line 239
+        - [x] `<Test>` line 240
+          - [x] `<GreaterOrEqual>` line 241
+            - [x] `<Value>` line 242 = `NEXT_ID`
+            - [x] `<Number>` line 243
+        - [x] `<True>` line 246
+          - [x] `<Condition>` line 247
+            - [x] `<Test>` line 248
+              - [x] `<Equal>` line 249
+                - [x] `<Value>` line 250 = `NEXT_ID`
+                - [x] `<Value>` line 251 = `MAX_POINT_INDEX`
+            - [x] `<True>` line 254
+              - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 256
+                - [x] `<NEXT_ID>` line 257 = `#NEXT_ID# 1 -`
+                - [x] `<ANIM_VAL_PREVIOUS_POINT>` line 258
+                - [x] `<REF_VAL_PREVIOUS_POINT>` line 259
+            - [x] `<False>` line 262
+              - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_2">` line 263
+                - [x] `<NEXT_ID>` line 264 = `#NEXT_ID# 1 -`
+                - [x] `<CONTENT>` line 265
+                - [x] `<ANIM_VAL_PREVIOUS_POINT>` line 271
+                - [x] `<REF_VAL_PREVIOUS_POINT>` line 272
+        - [x] `<False>` line 277
+          - [x] `<UseTemplate Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 278
+    - [x] `<Template Name="ASOBO_GT_Helper_Non_Linear_Animation_Code_3">` line 284
+      - [x] `<UseTemplate Name="#EXIT_TEMPLATE#">` line 285
+        - [x] `<#EXIT_PARAM_NAME#>` line 286
+  - Verified through the generic template expansion path: recursive helper templates use parameter-sensitive template recursion, dynamic UseTemplate names, dynamic parameter tag preprocessing, Condition/Switch branches, and Process="Param|Int|Float" evaluation. Agent Browser DevApi checks on 2026-05-12 covered A320 and A330 cockpit routes with zero errors; both had only the documented missing FBW_AIRBUS_Update_PTU_Template warnings. A320 compiled 665 animation bindings, 766 interactions, 362 material entries, 276 input events, and 1319 variables; A330 compiled 735 animation bindings, 859 interactions, 361 material entries, 306 input events, and 1467 variables. Screenshots: backups/agent-browser/generic-helpers-support/screenshot-1778576959544.png and backups/agent-browser/generic-helpers-support/screenshot-1778576863800.png.
+
 - [ ] `Asobo/Generic/Index.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 4
