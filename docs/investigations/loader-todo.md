@@ -708,7 +708,7 @@ Scope note:
 - [ ] `Generic/Helpers.xml`
 - [x] `Generic/Index.xml`
 - [ ] `Generic/Interactions.xml`
-- [ ] `Generic/Updates.xml`
+- [x] `Generic/Updates.xml`
 - [x] `Generic/Visibility.xml`
 
 ##### Generic Complex
