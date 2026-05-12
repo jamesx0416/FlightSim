@@ -433,6 +433,7 @@ async function init(): Promise<void> {
   let runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
   let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
   runtime.bindAnimations(loadedModel.animations)
+  let lastRuntimeModelRevision = runtime.getModelRevision()
   ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
   const cockpitInteractionStats = {
     attemptCount: 0,
@@ -754,6 +755,8 @@ async function init(): Promise<void> {
     syncCockpitInteractionHitboxHelpers()
     runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
     runtimeState = runtime.update(0)
+    lastRuntimeModelRevision = runtime.getModelRevision()
+    cameraDepthClipController.markModelChanged()
     ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
   }
 
@@ -1556,7 +1559,16 @@ async function init(): Promise<void> {
   const clock = new Clock()
   const fpsCounter = createFpsCounter()
   let runtimeState: RuntimeState = runtime.update(0)
+  lastRuntimeModelRevision = runtime.getModelRevision()
   ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
+  const updateCameraDepthClipController = (): void => {
+    const runtimeModelRevision = runtime.getModelRevision()
+    if (runtimeModelRevision !== lastRuntimeModelRevision) {
+      lastRuntimeModelRevision = runtimeModelRevision
+      cameraDepthClipController.markModelChanged()
+    }
+    cameraDepthClipController.update()
+  }
   let cockpitPerfDiagnostics = isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf')
     ? createCockpitPerfDiagnostics(aircraft, () => loadedModel)
     : createDisabledCockpitPerfDiagnostics(aircraft, () => loadedModel)
@@ -1915,7 +1927,7 @@ async function init(): Promise<void> {
       if (!cockpitCameraController.isActive()) {
         controls.update()
       }
-      cameraDepthClipController.update()
+      updateCameraDepthClipController()
       const cameraEndMs = performance.now()
       loadedModel.interior?.vcockpitBinding?.update(
         performance.now(),
@@ -1951,7 +1963,7 @@ async function init(): Promise<void> {
       if (!cockpitCameraController.isActive()) {
         controls.update()
       }
-      cameraDepthClipController.update()
+      updateCameraDepthClipController()
       loadedModel.interior?.vcockpitBinding?.update(
         performance.now(),
         camera,
@@ -8425,6 +8437,7 @@ function fitCameraToObject(
 
 type CameraDepthClipController = {
   refreshBounds(): void
+  markModelChanged(): void
   update(): void
 }
 
@@ -8575,6 +8588,9 @@ function createCameraDepthClipController(
     refreshBounds: () => {
       refreshBounds()
       update()
+    },
+    markModelChanged: () => {
+      forceNextUpdate = true
     },
     update
   }
