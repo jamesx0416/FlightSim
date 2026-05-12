@@ -22688,6 +22688,7 @@
                     - [ ] `<KEY_ID_TOGGLE>` line 675
                   - [ ] `<Case Value="PEDESTRAL">` line 677
                     - [ ] `<KEY_ID_TOGGLE>` line 678
+                    - Verified 2026-05-13: generic light power-setting runtime normalizes the stock `PEDESTRAL_LIGHTS_POWER_SETTING_SET` event spelling to the authored `A:LIGHT PEDESTAL POWER SETTING` SimVar family.
                   - [ ] `<Case Value="STROBE">` line 680
                     - [ ] `<KEY_ID_SET>` line 681
                     - [ ] `<KEY_ID_ON>` line 682
@@ -61374,6 +61375,7 @@
                     - [ ] `<KEY_ID_TOGGLE>` line 675
                   - [ ] `<Case Value="PEDESTRAL">` line 677
                     - [ ] `<KEY_ID_TOGGLE>` line 678
+                    - Verified 2026-05-13: generic light power-setting runtime normalizes the stock `PEDESTRAL_LIGHTS_POWER_SETTING_SET` event spelling to the authored `A:LIGHT PEDESTAL POWER SETTING` SimVar family.
                   - [ ] `<Case Value="STROBE">` line 680
                     - [ ] `<KEY_ID_SET>` line 681
                     - [ ] `<KEY_ID_ON>` line 682
