@@ -480,6 +480,9 @@ Rules:
 - [x] Preserve stock left/leave/wheel mouse-event callback code.
   - Templates that declare `LEFT_SINGLE_CODE` together with leave or wheel code now compile as a generic `M:Event` callback binding instead of dropping `LEFT_LEAVE_CODE`, `WHEEL_UP_CODE`, or `WHEEL_DOWN_CODE` behind a simple left-single binding.
   - Verified with `tsc --noEmit` and an Agent Browser in-page compiler/runtime harness on 2026-05-12: synthetic `ASOBO_GT_Interaction_LeftSingle_Leave_Code` emitted one callback binding, and executing `LeftSingle`, `Unlock`, `WheelUp`, and `WheelDown` wrote `L:LEFT_SINGLE`, `L:LEFT_LEAVE`, `L:WHEEL_UP`, and `L:WHEEL_DOWN` with zero compile diagnostics.
+- [x] Release callback-backed momentary buttons during normal DevApi clicks.
+  - `__DevApi.click()` now emits a callback `LeftRelease` event for callback-backed targets after default, `LeftSingle`, or `Lock` press events, then still clears the runtime hold feedback state.
+  - Verified with `tsc --noEmit` and Agent Browser on 2026-05-12 using the A330 LOD0 and A320 LOD1 cockpit routes: `__DevApi.click("PUSH_THROTTLE_1")` executed one press plus one callback release, returned `L:A32NX_AUTOTHRUST_DISCONNECT` to `0`, and reported zero error diagnostics.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.
