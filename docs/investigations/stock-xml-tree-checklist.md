@@ -26768,166 +26768,167 @@
             - [ ] `<PART_ID>` line 779 = `#COVER_PART_ID#`
           - [ ] `<Condition NotEmpty="COVER_HIGHLIGHT_NODE_ID">` line 781
             - [ ] `<HIGHLIGHT_NODE_ID>` line 782 = `#COVER_HIGHLIGHT_NODE_ID#`
-- [ ] `Asobo/Generic/Emissive.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_Material_Emissive_Sim">` line 14
-      - [ ] `<DefaultTemplateParameters>` line 15
-        - [ ] `<EMISSIVE_SIMVAR_SCALE>` line 16
-        - [ ] `<EMISSIVE_SIMVAR_BIAS>` line 17
-      - [ ] `<OverrideTemplateParameters>` line 19
-        - [ ] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 20
-          - [ ] `<True>` line 21
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 22
-          - [ ] `<False>` line 24
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 25
-      - [ ] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 29
-      - [ ] `<Material>` line 30
-        - [ ] `<EmissiveFactor>` line 31
-          - [ ] `<Parameter>` line 32
-            - [ ] `<Sim>` line 33
-              - [ ] `<Variable>` line 34
-              - [ ] `<Units>` line 35 = `#EMISSIVE_SIMVAR_UNITS#`
-              - [ ] `<Scale>` line 36
-              - [ ] `<Bias>` line 37
-          - [ ] `<OverrideBaseEmissive>` line 40
-    - [ ] `<Template Name="ASOBO_GT_Material_Emissive_Code">` line 52
-      - [ ] `<DefaultTemplateParameters>` line 53
-        - [ ] `<FAILURE>` line 54
-      - [ ] `<OverrideTemplateParameters>` line 56
-        - [ ] `<Condition NotEmpty="EMISSIVE_CODE_FACTOR">` line 57
-          - [ ] `<True>` line 58
-            - [ ] `<EMISSIVE_CODE_FACTOR>` line 59
-          - [ ] `<False>` line 61
-            - [ ] `<EMISSIVE_CODE_FACTOR>` line 62
-        - [ ] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 65
-          - [ ] `<True>` line 66
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 67
-          - [ ] `<False>` line 69
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 70
-        - [ ] `<Condition NotEmpty="OVERRIDE_EMISSIVE_CODE">` line 73
-          - [ ] `<True>` line 74
-            - [ ] `<EMISSIVE_CODE>` line 75 = `#OVERRIDE_EMISSIVE_CODE#`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 79
-      - [ ] `<Condition Valid="INTERCEPT_INTERACTIONS">` line 81
-        - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 82
-          - [ ] `<NO_HIGHLIGHT_NODE_ID>` line 83 = `True`
-          - [ ] `<MOUSEFLAGS>` line 84
-          - [ ] `<CALLBACKCODE>` line 85 = `0`
-      - [ ] `<Material>` line 88
-        - [ ] `<EmissiveFactor>` line 89
-          - [ ] `<Parameter>` line 90
-            - [ ] `<Code>` line 91 = `#EMISSIVE_CODE# #FAILURE# * #EMISSIVE_CODE_FACTOR#`
-          - [ ] `<OverrideBaseEmissive>` line 93
-    - [ ] `<Template Name="ASOBO_GT_Component_Emissive_Gauge">` line 106
-      - [ ] `<Parameters Type="Default">` line 107
-        - [ ] `<COMPONENT_ID>` line 108 = `#NODE_ID#`
-      - [ ] `<Component ID="#COMPONENT_ID#" Node="#NODE_ID#">` line 110
-        - [ ] `<Switch>` line 111
-          - [ ] `<Case Valid="POTENTIOMETER">` line 112
-            - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Potentiometer">` line 113
-          - [ ] `<Case Valid="SIMVAR_POWER_SETTING">` line 116
-            - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Power_Setting">` line 117
-          - [ ] `<Default>` line 120
-            - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 121
-        - [ ] `<Condition Valid="CAMERA_TITLE">` line 125
-          - [ ] `<CameraTitle>` line 126
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Gauge">` line 138
-      - [ ] `<Parameters Type="Default">` line 139
-        - [ ] `<Condition Check="FAILURE_CIRCUIT">` line 140
-          - [ ] `<False>` line 141
-            - [ ] `<FAILURE>` line 142
-          - [ ] `<True>` line 144
-            - [ ] `<FAILURE>` line 145
-        - [ ] `<Condition Valid="BLINK">` line 148
-          - [ ] `<BLINK_FREQUENCY>` line 149
-          - [ ] `<BLINK_DURATION>` line 150 = `50`
-      - [ ] `<Parameters Type="Override">` line 153
-        - [ ] `<Condition Valid="BLINK">` line 154
-          - [ ] `<EMISSIVE_CODE>` line 155 = `#EMISSIVE_CODE# (P:Absolute time, seconds) #BLINK_FREQUENCY# % #BLINK_FREQUENCY# 100 #BLINK_DURATIO...`
-      - [ ] `<Parameters Type="Override">` line 158
-        - [ ] `<Condition Check="ALT_CODE">` line 159
-          - [ ] `<EMISSIVE_CODE>` line 160 = `#EMISSIVE_CODE# #ALT_CODE# max`
-      - [ ] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 164
-        - [ ] `<True>` line 165
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 166
-            - [ ] `<VISIBILITY_CODE>` line 167 = `#EMISSIVE_CODE# 0 > #FAILURE# and`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 172
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Potentiometer">` line 182
-      - [ ] `<DefaultTemplateParameters>` line 183
-        - [ ] `<EMISSIVE_CODE>` line 184 = `1`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 187
-        - [ ] `<EMISSIVE_CODE>` line 188 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) #EMISSIVE_CODE# *`
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Power_Setting">` line 198
-      - [ ] `<DefaultTemplateParameters>` line 199
-        - [ ] `<EMISSIVE_CODE>` line 200 = `1`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 203
-        - [ ] `<EMISSIVE_CODE>` line 204 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100) #EMISSIVE_CODE# *`
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Gauge_Sim">` line 215
-      - [ ] `<DefaultTemplateParameters>` line 216
-        - [ ] `<FAILURE>` line 217
-        - [ ] `<EMISSIVE_SIMVAR_SCALE>` line 218
-        - [ ] `<EMISSIVE_SIMVAR_BIAS>` line 219
-        - [ ] `<EMISSIVE_SIMVAR_UNITS>` line 220 = `Bool`
-        - [ ] `<EMISSIVE_DRIVES_VISIBILITY>` line 221
-      - [ ] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 223
-        - [ ] `<True>` line 224
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 225
-            - [ ] `<VISIBILITY_CODE>` line 226 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 230
-        - [ ] `<EMISSIVE_CODE>` line 231 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_SIMVAR_BIAS# +`
-        - [ ] `<Condition Check="ALT_CODE">` line 232
-          - [ ] `<EMISSIVE_CODE>` line 233 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
-    - [ ] `<Template Name="ASOBO_GT_Screen_Template">` line 239
-      - [ ] `<DefaultTemplateParameters>` line 240
-        - [ ] `<POTENTIOMETER>` line 241
-        - [ ] `<SCREEN_LIGHT_DIMMING_SCALE>` line 242
-        - [ ] `<SCREEN_MIN_EMISSIVE_PERCENT>` line 243
-        - [ ] `<MIN_AMBIENT_EMISSIVE_PERCENT>` line 244
-        - [ ] `<MAX_EMISSIVE_PERCENT>` line 245
-        - [ ] `<MAX_AMBIENT_PERCENT>` line 246
-        - [ ] `<INSTR_ID>` line 247 = `1`
-        - [ ] `<ID>` line 248 = `1`
-        - [ ] `<SCREEN_PREFIX>` line 249
-        - [ ] `<SCREEN_ID>` line 250
-      - [ ] `<OverrideTemplateParameters>` line 252
-        - [ ] `<EMISSIVE_BASE_RANGE>` line 253
-        - [ ] `<AMBIENT_BASE_RANGE>` line 254
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 256
-        - [ ] `<TEMPLATE_TO_CALL>` line 257
-    - [ ] `<Template Name="ASOBO_GT_Screen_SubTemplate">` line 261
-      - [ ] `<DefaultTemplateParameters>` line 262
-        - [ ] `<NODE_ID>` line 263 = `#SCREEN_PREFIX##SCREEN_ID#`
-        - [ ] `<SCREEN_AVERAGE_LUMINOSITY>` line 264
-        - [ ] `<Condition Check="CIRCUIT_ID">` line 265
-          - [ ] `<True>` line 266
-            - [ ] `<FAILURE>` line 267
-          - [ ] `<False>` line 269
-            - [ ] `<FAILURE>` line 270
-        - [ ] `<Condition Valid="STATIC_INTENSITY">` line 273
-          - [ ] `<True>` line 274
-            - [ ] `<BASE_INTENSITY_FACTOR>` line 275
-          - [ ] `<False>` line 277
-            - [ ] `<Condition Valid="SIMVAR_POWER_SETTING">` line 278
-              - [ ] `<True>` line 279
-                - [ ] `<BASE_INTENSITY_FACTOR>` line 280
-              - [ ] `<False>` line 282
-                - [ ] `<BASE_INTENSITY_FACTOR>` line 283
-        - [ ] `<Condition NotEmpty="AUTOMATIC_BRIGHTNESS">` line 288
-          - [ ] `<True>` line 289
-            - [ ] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 290
-          - [ ] `<False>` line 292
-            - [ ] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 293
-      - [ ] `<OverrideTemplateParameters>` line 297
-        - [ ] `<SCREEN_EMISSIVE_CODE>` line 298 = `#BASE_INTENSITY_FACTOR# #EMISSIVE_BASE_RANGE# * #AUTOMATIC_BRIGHTNESS_FACTOR# * #SCREEN_MIN_EMISSIV...`
-        - [ ] `<AMBIENT_EMISSIVE_CODE>` line 299 = `#SCREEN_AVERAGE_LUMINOSITY# #BASE_INTENSITY_FACTOR# * #AMBIENT_BASE_RANGE# * #MIN_AMBIENT_EMISSIVE_...`
-      - [ ] `<Condition Check="AMBIENT_POTENTIOMETER">` line 301
-        - [ ] `<UseTemplate Name="ASOBO_LIGHTING_Ambient_Template">` line 302
-          - [ ] `<BOUNCE_POTENTIOMETER_PERCENT>` line 303
-          - [ ] `<POTENTIOMETER>` line 304
-      - [ ] `<Component ID="#NODE_ID#_Emissive" Node="#NODE_ID#">` line 307
-        - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 308
-          - [ ] `<PART_ID>` line 309 = `#SCREEN_PREFIX##SCREEN_ID#`
-          - [ ] `<EMISSIVE_CODE>` line 310 = `#SCREEN_EMISSIVE_CODE#`
+- [x] `Asobo/Generic/Emissive.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_Material_Emissive_Sim">` line 14
+      - [x] `<DefaultTemplateParameters>` line 15
+        - [x] `<EMISSIVE_SIMVAR_SCALE>` line 16
+        - [x] `<EMISSIVE_SIMVAR_BIAS>` line 17
+      - [x] `<OverrideTemplateParameters>` line 19
+        - [x] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 20
+          - [x] `<True>` line 21
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 22
+          - [x] `<False>` line 24
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 25
+      - [x] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 29
+      - [x] `<Material>` line 30
+        - [x] `<EmissiveFactor>` line 31
+          - [x] `<Parameter>` line 32
+            - [x] `<Sim>` line 33
+              - [x] `<Variable>` line 34
+              - [x] `<Units>` line 35 = `#EMISSIVE_SIMVAR_UNITS#`
+              - [x] `<Scale>` line 36
+              - [x] `<Bias>` line 37
+          - [x] `<OverrideBaseEmissive>` line 40
+    - [x] `<Template Name="ASOBO_GT_Material_Emissive_Code">` line 52
+      - [x] `<DefaultTemplateParameters>` line 53
+        - [x] `<FAILURE>` line 54
+      - [x] `<OverrideTemplateParameters>` line 56
+        - [x] `<Condition NotEmpty="EMISSIVE_CODE_FACTOR">` line 57
+          - [x] `<True>` line 58
+            - [x] `<EMISSIVE_CODE_FACTOR>` line 59
+          - [x] `<False>` line 61
+            - [x] `<EMISSIVE_CODE_FACTOR>` line 62
+        - [x] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 65
+          - [x] `<True>` line 66
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 67
+          - [x] `<False>` line 69
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 70
+        - [x] `<Condition NotEmpty="OVERRIDE_EMISSIVE_CODE">` line 73
+          - [x] `<True>` line 74
+            - [x] `<EMISSIVE_CODE>` line 75 = `#OVERRIDE_EMISSIVE_CODE#`
+      - [x] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 79
+      - [x] `<Condition Valid="INTERCEPT_INTERACTIONS">` line 81
+        - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 82
+          - [x] `<NO_HIGHLIGHT_NODE_ID>` line 83 = `True`
+          - [x] `<MOUSEFLAGS>` line 84
+          - [x] `<CALLBACKCODE>` line 85 = `0`
+      - [x] `<Material>` line 88
+        - [x] `<EmissiveFactor>` line 89
+          - [x] `<Parameter>` line 90
+            - [x] `<Code>` line 91 = `#EMISSIVE_CODE# #FAILURE# * #EMISSIVE_CODE_FACTOR#`
+          - [x] `<OverrideBaseEmissive>` line 93
+    - [x] `<Template Name="ASOBO_GT_Component_Emissive_Gauge">` line 106
+      - [x] `<Parameters Type="Default">` line 107
+        - [x] `<COMPONENT_ID>` line 108 = `#NODE_ID#`
+      - [x] `<Component ID="#COMPONENT_ID#" Node="#NODE_ID#">` line 110
+        - [x] `<Switch>` line 111
+          - [x] `<Case Valid="POTENTIOMETER">` line 112
+            - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Potentiometer">` line 113
+          - [x] `<Case Valid="SIMVAR_POWER_SETTING">` line 116
+            - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Power_Setting">` line 117
+          - [x] `<Default>` line 120
+            - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 121
+        - [x] `<Condition Valid="CAMERA_TITLE">` line 125
+          - [x] `<CameraTitle>` line 126
+    - [x] `<Template Name="ASOBO_GT_Emissive_Gauge">` line 138
+      - [x] `<Parameters Type="Default">` line 139
+        - [x] `<Condition Check="FAILURE_CIRCUIT">` line 140
+          - [x] `<False>` line 141
+            - [x] `<FAILURE>` line 142
+          - [x] `<True>` line 144
+            - [x] `<FAILURE>` line 145
+        - [x] `<Condition Valid="BLINK">` line 148
+          - [x] `<BLINK_FREQUENCY>` line 149
+          - [x] `<BLINK_DURATION>` line 150 = `50`
+      - [x] `<Parameters Type="Override">` line 153
+        - [x] `<Condition Valid="BLINK">` line 154
+          - [x] `<EMISSIVE_CODE>` line 155 = `#EMISSIVE_CODE# (P:Absolute time, seconds) #BLINK_FREQUENCY# % #BLINK_FREQUENCY# 100 #BLINK_DURATIO...`
+      - [x] `<Parameters Type="Override">` line 158
+        - [x] `<Condition Check="ALT_CODE">` line 159
+          - [x] `<EMISSIVE_CODE>` line 160 = `#EMISSIVE_CODE# #ALT_CODE# max`
+      - [x] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 164
+        - [x] `<True>` line 165
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 166
+            - [x] `<VISIBILITY_CODE>` line 167 = `#EMISSIVE_CODE# 0 > #FAILURE# and`
+      - [x] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 172
+    - [x] `<Template Name="ASOBO_GT_Emissive_Potentiometer">` line 182
+      - [x] `<DefaultTemplateParameters>` line 183
+        - [x] `<EMISSIVE_CODE>` line 184 = `1`
+      - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 187
+        - [x] `<EMISSIVE_CODE>` line 188 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) #EMISSIVE_CODE# *`
+    - [x] `<Template Name="ASOBO_GT_Emissive_Power_Setting">` line 198
+      - [x] `<DefaultTemplateParameters>` line 199
+        - [x] `<EMISSIVE_CODE>` line 200 = `1`
+      - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 203
+        - [x] `<EMISSIVE_CODE>` line 204 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100) #EMISSIVE_CODE# *`
+    - [x] `<Template Name="ASOBO_GT_Emissive_Gauge_Sim">` line 215
+      - [x] `<DefaultTemplateParameters>` line 216
+        - [x] `<FAILURE>` line 217
+        - [x] `<EMISSIVE_SIMVAR_SCALE>` line 218
+        - [x] `<EMISSIVE_SIMVAR_BIAS>` line 219
+        - [x] `<EMISSIVE_SIMVAR_UNITS>` line 220 = `Bool`
+        - [x] `<EMISSIVE_DRIVES_VISIBILITY>` line 221
+      - [x] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 223
+        - [x] `<True>` line 224
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 225
+            - [x] `<VISIBILITY_CODE>` line 226 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
+      - [x] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 230
+        - [x] `<EMISSIVE_CODE>` line 231 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_SIMVAR_BIAS# +`
+        - [x] `<Condition Check="ALT_CODE">` line 232
+          - [x] `<EMISSIVE_CODE>` line 233 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
+    - [x] `<Template Name="ASOBO_GT_Screen_Template">` line 239
+      - [x] `<DefaultTemplateParameters>` line 240
+        - [x] `<POTENTIOMETER>` line 241
+        - [x] `<SCREEN_LIGHT_DIMMING_SCALE>` line 242
+        - [x] `<SCREEN_MIN_EMISSIVE_PERCENT>` line 243
+        - [x] `<MIN_AMBIENT_EMISSIVE_PERCENT>` line 244
+        - [x] `<MAX_EMISSIVE_PERCENT>` line 245
+        - [x] `<MAX_AMBIENT_PERCENT>` line 246
+        - [x] `<INSTR_ID>` line 247 = `1`
+        - [x] `<ID>` line 248 = `1`
+        - [x] `<SCREEN_PREFIX>` line 249
+        - [x] `<SCREEN_ID>` line 250
+      - [x] `<OverrideTemplateParameters>` line 252
+        - [x] `<EMISSIVE_BASE_RANGE>` line 253
+        - [x] `<AMBIENT_BASE_RANGE>` line 254
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 256
+        - [x] `<TEMPLATE_TO_CALL>` line 257
+    - [x] `<Template Name="ASOBO_GT_Screen_SubTemplate">` line 261
+      - [x] `<DefaultTemplateParameters>` line 262
+        - [x] `<NODE_ID>` line 263 = `#SCREEN_PREFIX##SCREEN_ID#`
+        - [x] `<SCREEN_AVERAGE_LUMINOSITY>` line 264
+        - [x] `<Condition Check="CIRCUIT_ID">` line 265
+          - [x] `<True>` line 266
+            - [x] `<FAILURE>` line 267
+          - [x] `<False>` line 269
+            - [x] `<FAILURE>` line 270
+        - [x] `<Condition Valid="STATIC_INTENSITY">` line 273
+          - [x] `<True>` line 274
+            - [x] `<BASE_INTENSITY_FACTOR>` line 275
+          - [x] `<False>` line 277
+            - [x] `<Condition Valid="SIMVAR_POWER_SETTING">` line 278
+              - [x] `<True>` line 279
+                - [x] `<BASE_INTENSITY_FACTOR>` line 280
+              - [x] `<False>` line 282
+                - [x] `<BASE_INTENSITY_FACTOR>` line 283
+        - [x] `<Condition NotEmpty="AUTOMATIC_BRIGHTNESS">` line 288
+          - [x] `<True>` line 289
+            - [x] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 290
+          - [x] `<False>` line 292
+            - [x] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 293
+      - [x] `<OverrideTemplateParameters>` line 297
+        - [x] `<SCREEN_EMISSIVE_CODE>` line 298 = `#BASE_INTENSITY_FACTOR# #EMISSIVE_BASE_RANGE# * #AUTOMATIC_BRIGHTNESS_FACTOR# * #SCREEN_MIN_EMISSIV...`
+        - [x] `<AMBIENT_EMISSIVE_CODE>` line 299 = `#SCREEN_AVERAGE_LUMINOSITY# #BASE_INTENSITY_FACTOR# * #AMBIENT_BASE_RANGE# * #MIN_AMBIENT_EMISSIVE_...`
+      - [x] `<Condition Check="AMBIENT_POTENTIOMETER">` line 301
+        - [x] `<UseTemplate Name="ASOBO_LIGHTING_Ambient_Template">` line 302
+          - [x] `<BOUNCE_POTENTIOMETER_PERCENT>` line 303
+          - [x] `<POTENTIOMETER>` line 304
+      - [x] `<Component ID="#NODE_ID#_Emissive" Node="#NODE_ID#">` line 307
+        - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 308
+          - [x] `<PART_ID>` line 309 = `#SCREEN_PREFIX##SCREEN_ID#`
+          - [x] `<EMISSIVE_CODE>` line 310 = `#SCREEN_EMISSIVE_CODE#`
+  - Verified through the generic material-emissive path: stock emissive templates expand to Material EmissiveFactor nodes, buildMaterialBinding() compiles code-driven emissive RPN into material bindings, and AircraftRuntime applies emissive intensity/color updates. A330 cockpit verification recorded powered panel text/button emissive materials turning white/bright with zero errors, and MCDU/FMC brightness support verifies the stock screen-emissive scale.
 - [ ] `Asobo/Generic/FX.xml`
   - [ ] `<ModelBehaviors>` line 6
     - [ ] `<Template Name="ASOBO_GT_FX">` line 15
@@ -65445,166 +65446,167 @@
             - [ ] `<PART_ID>` line 779 = `#COVER_PART_ID#`
           - [ ] `<Condition NotEmpty="COVER_HIGHLIGHT_NODE_ID">` line 781
             - [ ] `<HIGHLIGHT_NODE_ID>` line 782 = `#COVER_HIGHLIGHT_NODE_ID#`
-- [ ] `Asobo/Generic/Emissive.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_Material_Emissive_Sim">` line 14
-      - [ ] `<DefaultTemplateParameters>` line 15
-        - [ ] `<EMISSIVE_SIMVAR_SCALE>` line 16
-        - [ ] `<EMISSIVE_SIMVAR_BIAS>` line 17
-      - [ ] `<OverrideTemplateParameters>` line 19
-        - [ ] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 20
-          - [ ] `<True>` line 21
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 22
-          - [ ] `<False>` line 24
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 25
-      - [ ] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 29
-      - [ ] `<Material>` line 30
-        - [ ] `<EmissiveFactor>` line 31
-          - [ ] `<Parameter>` line 32
-            - [ ] `<Sim>` line 33
-              - [ ] `<Variable>` line 34
-              - [ ] `<Units>` line 35 = `#EMISSIVE_SIMVAR_UNITS#`
-              - [ ] `<Scale>` line 36
-              - [ ] `<Bias>` line 37
-          - [ ] `<OverrideBaseEmissive>` line 40
-    - [ ] `<Template Name="ASOBO_GT_Material_Emissive_Code">` line 52
-      - [ ] `<DefaultTemplateParameters>` line 53
-        - [ ] `<FAILURE>` line 54
-      - [ ] `<OverrideTemplateParameters>` line 56
-        - [ ] `<Condition NotEmpty="EMISSIVE_CODE_FACTOR">` line 57
-          - [ ] `<True>` line 58
-            - [ ] `<EMISSIVE_CODE_FACTOR>` line 59
-          - [ ] `<False>` line 61
-            - [ ] `<EMISSIVE_CODE_FACTOR>` line 62
-        - [ ] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 65
-          - [ ] `<True>` line 66
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 67
-          - [ ] `<False>` line 69
-            - [ ] `<OVERRIDE_BASE_EMISSIVE>` line 70
-        - [ ] `<Condition NotEmpty="OVERRIDE_EMISSIVE_CODE">` line 73
-          - [ ] `<True>` line 74
-            - [ ] `<EMISSIVE_CODE>` line 75 = `#OVERRIDE_EMISSIVE_CODE#`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 79
-      - [ ] `<Condition Valid="INTERCEPT_INTERACTIONS">` line 81
-        - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 82
-          - [ ] `<NO_HIGHLIGHT_NODE_ID>` line 83 = `True`
-          - [ ] `<MOUSEFLAGS>` line 84
-          - [ ] `<CALLBACKCODE>` line 85 = `0`
-      - [ ] `<Material>` line 88
-        - [ ] `<EmissiveFactor>` line 89
-          - [ ] `<Parameter>` line 90
-            - [ ] `<Code>` line 91 = `#EMISSIVE_CODE# #FAILURE# * #EMISSIVE_CODE_FACTOR#`
-          - [ ] `<OverrideBaseEmissive>` line 93
-    - [ ] `<Template Name="ASOBO_GT_Component_Emissive_Gauge">` line 106
-      - [ ] `<Parameters Type="Default">` line 107
-        - [ ] `<COMPONENT_ID>` line 108 = `#NODE_ID#`
-      - [ ] `<Component ID="#COMPONENT_ID#" Node="#NODE_ID#">` line 110
-        - [ ] `<Switch>` line 111
-          - [ ] `<Case Valid="POTENTIOMETER">` line 112
-            - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Potentiometer">` line 113
-          - [ ] `<Case Valid="SIMVAR_POWER_SETTING">` line 116
-            - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Power_Setting">` line 117
-          - [ ] `<Default>` line 120
-            - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 121
-        - [ ] `<Condition Valid="CAMERA_TITLE">` line 125
-          - [ ] `<CameraTitle>` line 126
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Gauge">` line 138
-      - [ ] `<Parameters Type="Default">` line 139
-        - [ ] `<Condition Check="FAILURE_CIRCUIT">` line 140
-          - [ ] `<False>` line 141
-            - [ ] `<FAILURE>` line 142
-          - [ ] `<True>` line 144
-            - [ ] `<FAILURE>` line 145
-        - [ ] `<Condition Valid="BLINK">` line 148
-          - [ ] `<BLINK_FREQUENCY>` line 149
-          - [ ] `<BLINK_DURATION>` line 150 = `50`
-      - [ ] `<Parameters Type="Override">` line 153
-        - [ ] `<Condition Valid="BLINK">` line 154
-          - [ ] `<EMISSIVE_CODE>` line 155 = `#EMISSIVE_CODE# (P:Absolute time, seconds) #BLINK_FREQUENCY# % #BLINK_FREQUENCY# 100 #BLINK_DURATIO...`
-      - [ ] `<Parameters Type="Override">` line 158
-        - [ ] `<Condition Check="ALT_CODE">` line 159
-          - [ ] `<EMISSIVE_CODE>` line 160 = `#EMISSIVE_CODE# #ALT_CODE# max`
-      - [ ] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 164
-        - [ ] `<True>` line 165
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 166
-            - [ ] `<VISIBILITY_CODE>` line 167 = `#EMISSIVE_CODE# 0 > #FAILURE# and`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 172
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Potentiometer">` line 182
-      - [ ] `<DefaultTemplateParameters>` line 183
-        - [ ] `<EMISSIVE_CODE>` line 184 = `1`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 187
-        - [ ] `<EMISSIVE_CODE>` line 188 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) #EMISSIVE_CODE# *`
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Power_Setting">` line 198
-      - [ ] `<DefaultTemplateParameters>` line 199
-        - [ ] `<EMISSIVE_CODE>` line 200 = `1`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 203
-        - [ ] `<EMISSIVE_CODE>` line 204 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100) #EMISSIVE_CODE# *`
-    - [ ] `<Template Name="ASOBO_GT_Emissive_Gauge_Sim">` line 215
-      - [ ] `<DefaultTemplateParameters>` line 216
-        - [ ] `<FAILURE>` line 217
-        - [ ] `<EMISSIVE_SIMVAR_SCALE>` line 218
-        - [ ] `<EMISSIVE_SIMVAR_BIAS>` line 219
-        - [ ] `<EMISSIVE_SIMVAR_UNITS>` line 220 = `Bool`
-        - [ ] `<EMISSIVE_DRIVES_VISIBILITY>` line 221
-      - [ ] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 223
-        - [ ] `<True>` line 224
-          - [ ] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 225
-            - [ ] `<VISIBILITY_CODE>` line 226 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 230
-        - [ ] `<EMISSIVE_CODE>` line 231 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_SIMVAR_BIAS# +`
-        - [ ] `<Condition Check="ALT_CODE">` line 232
-          - [ ] `<EMISSIVE_CODE>` line 233 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
-    - [ ] `<Template Name="ASOBO_GT_Screen_Template">` line 239
-      - [ ] `<DefaultTemplateParameters>` line 240
-        - [ ] `<POTENTIOMETER>` line 241
-        - [ ] `<SCREEN_LIGHT_DIMMING_SCALE>` line 242
-        - [ ] `<SCREEN_MIN_EMISSIVE_PERCENT>` line 243
-        - [ ] `<MIN_AMBIENT_EMISSIVE_PERCENT>` line 244
-        - [ ] `<MAX_EMISSIVE_PERCENT>` line 245
-        - [ ] `<MAX_AMBIENT_PERCENT>` line 246
-        - [ ] `<INSTR_ID>` line 247 = `1`
-        - [ ] `<ID>` line 248 = `1`
-        - [ ] `<SCREEN_PREFIX>` line 249
-        - [ ] `<SCREEN_ID>` line 250
-      - [ ] `<OverrideTemplateParameters>` line 252
-        - [ ] `<EMISSIVE_BASE_RANGE>` line 253
-        - [ ] `<AMBIENT_BASE_RANGE>` line 254
-      - [ ] `<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 256
-        - [ ] `<TEMPLATE_TO_CALL>` line 257
-    - [ ] `<Template Name="ASOBO_GT_Screen_SubTemplate">` line 261
-      - [ ] `<DefaultTemplateParameters>` line 262
-        - [ ] `<NODE_ID>` line 263 = `#SCREEN_PREFIX##SCREEN_ID#`
-        - [ ] `<SCREEN_AVERAGE_LUMINOSITY>` line 264
-        - [ ] `<Condition Check="CIRCUIT_ID">` line 265
-          - [ ] `<True>` line 266
-            - [ ] `<FAILURE>` line 267
-          - [ ] `<False>` line 269
-            - [ ] `<FAILURE>` line 270
-        - [ ] `<Condition Valid="STATIC_INTENSITY">` line 273
-          - [ ] `<True>` line 274
-            - [ ] `<BASE_INTENSITY_FACTOR>` line 275
-          - [ ] `<False>` line 277
-            - [ ] `<Condition Valid="SIMVAR_POWER_SETTING">` line 278
-              - [ ] `<True>` line 279
-                - [ ] `<BASE_INTENSITY_FACTOR>` line 280
-              - [ ] `<False>` line 282
-                - [ ] `<BASE_INTENSITY_FACTOR>` line 283
-        - [ ] `<Condition NotEmpty="AUTOMATIC_BRIGHTNESS">` line 288
-          - [ ] `<True>` line 289
-            - [ ] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 290
-          - [ ] `<False>` line 292
-            - [ ] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 293
-      - [ ] `<OverrideTemplateParameters>` line 297
-        - [ ] `<SCREEN_EMISSIVE_CODE>` line 298 = `#BASE_INTENSITY_FACTOR# #EMISSIVE_BASE_RANGE# * #AUTOMATIC_BRIGHTNESS_FACTOR# * #SCREEN_MIN_EMISSIV...`
-        - [ ] `<AMBIENT_EMISSIVE_CODE>` line 299 = `#SCREEN_AVERAGE_LUMINOSITY# #BASE_INTENSITY_FACTOR# * #AMBIENT_BASE_RANGE# * #MIN_AMBIENT_EMISSIVE_...`
-      - [ ] `<Condition Check="AMBIENT_POTENTIOMETER">` line 301
-        - [ ] `<UseTemplate Name="ASOBO_LIGHTING_Ambient_Template">` line 302
-          - [ ] `<BOUNCE_POTENTIOMETER_PERCENT>` line 303
-          - [ ] `<POTENTIOMETER>` line 304
-      - [ ] `<Component ID="#NODE_ID#_Emissive" Node="#NODE_ID#">` line 307
-        - [ ] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 308
-          - [ ] `<PART_ID>` line 309 = `#SCREEN_PREFIX##SCREEN_ID#`
-          - [ ] `<EMISSIVE_CODE>` line 310 = `#SCREEN_EMISSIVE_CODE#`
+- [x] `Asobo/Generic/Emissive.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_Material_Emissive_Sim">` line 14
+      - [x] `<DefaultTemplateParameters>` line 15
+        - [x] `<EMISSIVE_SIMVAR_SCALE>` line 16
+        - [x] `<EMISSIVE_SIMVAR_BIAS>` line 17
+      - [x] `<OverrideTemplateParameters>` line 19
+        - [x] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 20
+          - [x] `<True>` line 21
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 22
+          - [x] `<False>` line 24
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 25
+      - [x] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 29
+      - [x] `<Material>` line 30
+        - [x] `<EmissiveFactor>` line 31
+          - [x] `<Parameter>` line 32
+            - [x] `<Sim>` line 33
+              - [x] `<Variable>` line 34
+              - [x] `<Units>` line 35 = `#EMISSIVE_SIMVAR_UNITS#`
+              - [x] `<Scale>` line 36
+              - [x] `<Bias>` line 37
+          - [x] `<OverrideBaseEmissive>` line 40
+    - [x] `<Template Name="ASOBO_GT_Material_Emissive_Code">` line 52
+      - [x] `<DefaultTemplateParameters>` line 53
+        - [x] `<FAILURE>` line 54
+      - [x] `<OverrideTemplateParameters>` line 56
+        - [x] `<Condition NotEmpty="EMISSIVE_CODE_FACTOR">` line 57
+          - [x] `<True>` line 58
+            - [x] `<EMISSIVE_CODE_FACTOR>` line 59
+          - [x] `<False>` line 61
+            - [x] `<EMISSIVE_CODE_FACTOR>` line 62
+        - [x] `<Condition Valid="DONT_OVERRIDE_BASE_EMISSIVE">` line 65
+          - [x] `<True>` line 66
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 67
+          - [x] `<False>` line 69
+            - [x] `<OVERRIDE_BASE_EMISSIVE>` line 70
+        - [x] `<Condition NotEmpty="OVERRIDE_EMISSIVE_CODE">` line 73
+          - [x] `<True>` line 74
+            - [x] `<EMISSIVE_CODE>` line 75 = `#OVERRIDE_EMISSIVE_CODE#`
+      - [x] `<UseTemplate Name="ASOBO_GT_Part_ID">` line 79
+      - [x] `<Condition Valid="INTERCEPT_INTERACTIONS">` line 81
+        - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 82
+          - [x] `<NO_HIGHLIGHT_NODE_ID>` line 83 = `True`
+          - [x] `<MOUSEFLAGS>` line 84
+          - [x] `<CALLBACKCODE>` line 85 = `0`
+      - [x] `<Material>` line 88
+        - [x] `<EmissiveFactor>` line 89
+          - [x] `<Parameter>` line 90
+            - [x] `<Code>` line 91 = `#EMISSIVE_CODE# #FAILURE# * #EMISSIVE_CODE_FACTOR#`
+          - [x] `<OverrideBaseEmissive>` line 93
+    - [x] `<Template Name="ASOBO_GT_Component_Emissive_Gauge">` line 106
+      - [x] `<Parameters Type="Default">` line 107
+        - [x] `<COMPONENT_ID>` line 108 = `#NODE_ID#`
+      - [x] `<Component ID="#COMPONENT_ID#" Node="#NODE_ID#">` line 110
+        - [x] `<Switch>` line 111
+          - [x] `<Case Valid="POTENTIOMETER">` line 112
+            - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Potentiometer">` line 113
+          - [x] `<Case Valid="SIMVAR_POWER_SETTING">` line 116
+            - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Power_Setting">` line 117
+          - [x] `<Default>` line 120
+            - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 121
+        - [x] `<Condition Valid="CAMERA_TITLE">` line 125
+          - [x] `<CameraTitle>` line 126
+    - [x] `<Template Name="ASOBO_GT_Emissive_Gauge">` line 138
+      - [x] `<Parameters Type="Default">` line 139
+        - [x] `<Condition Check="FAILURE_CIRCUIT">` line 140
+          - [x] `<False>` line 141
+            - [x] `<FAILURE>` line 142
+          - [x] `<True>` line 144
+            - [x] `<FAILURE>` line 145
+        - [x] `<Condition Valid="BLINK">` line 148
+          - [x] `<BLINK_FREQUENCY>` line 149
+          - [x] `<BLINK_DURATION>` line 150 = `50`
+      - [x] `<Parameters Type="Override">` line 153
+        - [x] `<Condition Valid="BLINK">` line 154
+          - [x] `<EMISSIVE_CODE>` line 155 = `#EMISSIVE_CODE# (P:Absolute time, seconds) #BLINK_FREQUENCY# % #BLINK_FREQUENCY# 100 #BLINK_DURATIO...`
+      - [x] `<Parameters Type="Override">` line 158
+        - [x] `<Condition Check="ALT_CODE">` line 159
+          - [x] `<EMISSIVE_CODE>` line 160 = `#EMISSIVE_CODE# #ALT_CODE# max`
+      - [x] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 164
+        - [x] `<True>` line 165
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 166
+            - [x] `<VISIBILITY_CODE>` line 167 = `#EMISSIVE_CODE# 0 > #FAILURE# and`
+      - [x] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 172
+    - [x] `<Template Name="ASOBO_GT_Emissive_Potentiometer">` line 182
+      - [x] `<DefaultTemplateParameters>` line 183
+        - [x] `<EMISSIVE_CODE>` line 184 = `1`
+      - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 187
+        - [x] `<EMISSIVE_CODE>` line 188 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) #EMISSIVE_CODE# *`
+    - [x] `<Template Name="ASOBO_GT_Emissive_Power_Setting">` line 198
+      - [x] `<DefaultTemplateParameters>` line 199
+        - [x] `<EMISSIVE_CODE>` line 200 = `1`
+      - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 203
+        - [x] `<EMISSIVE_CODE>` line 204 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100) #EMISSIVE_CODE# *`
+    - [x] `<Template Name="ASOBO_GT_Emissive_Gauge_Sim">` line 215
+      - [x] `<DefaultTemplateParameters>` line 216
+        - [x] `<FAILURE>` line 217
+        - [x] `<EMISSIVE_SIMVAR_SCALE>` line 218
+        - [x] `<EMISSIVE_SIMVAR_BIAS>` line 219
+        - [x] `<EMISSIVE_SIMVAR_UNITS>` line 220 = `Bool`
+        - [x] `<EMISSIVE_DRIVES_VISIBILITY>` line 221
+      - [x] `<Condition Valid="EMISSIVE_DRIVES_VISIBILITY">` line 223
+        - [x] `<True>` line 224
+          - [x] `<UseTemplate Name="ASOBO_GT_Visibility_Code">` line 225
+            - [x] `<VISIBILITY_CODE>` line 226 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
+      - [x] `<UseTemplate Name="ASOBO_GT_Material_Emissive_Code">` line 230
+        - [x] `<EMISSIVE_CODE>` line 231 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_SIMVAR_BIAS# +`
+        - [x] `<Condition Check="ALT_CODE">` line 232
+          - [x] `<EMISSIVE_CODE>` line 233 = `(A:#EMISSIVE_SIMVAR#, #EMISSIVE_SIMVAR_UNITS#) #ALT_CODE# max #EMISSIVE_SIMVAR_SCALE# * #EMISSIVE_S...`
+    - [x] `<Template Name="ASOBO_GT_Screen_Template">` line 239
+      - [x] `<DefaultTemplateParameters>` line 240
+        - [x] `<POTENTIOMETER>` line 241
+        - [x] `<SCREEN_LIGHT_DIMMING_SCALE>` line 242
+        - [x] `<SCREEN_MIN_EMISSIVE_PERCENT>` line 243
+        - [x] `<MIN_AMBIENT_EMISSIVE_PERCENT>` line 244
+        - [x] `<MAX_EMISSIVE_PERCENT>` line 245
+        - [x] `<MAX_AMBIENT_PERCENT>` line 246
+        - [x] `<INSTR_ID>` line 247 = `1`
+        - [x] `<ID>` line 248 = `1`
+        - [x] `<SCREEN_PREFIX>` line 249
+        - [x] `<SCREEN_ID>` line 250
+      - [x] `<OverrideTemplateParameters>` line 252
+        - [x] `<EMISSIVE_BASE_RANGE>` line 253
+        - [x] `<AMBIENT_BASE_RANGE>` line 254
+      - [x] `<UseTemplate Name="ASOBO_GT_Helper_Suffix_ID_Appender">` line 256
+        - [x] `<TEMPLATE_TO_CALL>` line 257
+    - [x] `<Template Name="ASOBO_GT_Screen_SubTemplate">` line 261
+      - [x] `<DefaultTemplateParameters>` line 262
+        - [x] `<NODE_ID>` line 263 = `#SCREEN_PREFIX##SCREEN_ID#`
+        - [x] `<SCREEN_AVERAGE_LUMINOSITY>` line 264
+        - [x] `<Condition Check="CIRCUIT_ID">` line 265
+          - [x] `<True>` line 266
+            - [x] `<FAILURE>` line 267
+          - [x] `<False>` line 269
+            - [x] `<FAILURE>` line 270
+        - [x] `<Condition Valid="STATIC_INTENSITY">` line 273
+          - [x] `<True>` line 274
+            - [x] `<BASE_INTENSITY_FACTOR>` line 275
+          - [x] `<False>` line 277
+            - [x] `<Condition Valid="SIMVAR_POWER_SETTING">` line 278
+              - [x] `<True>` line 279
+                - [x] `<BASE_INTENSITY_FACTOR>` line 280
+              - [x] `<False>` line 282
+                - [x] `<BASE_INTENSITY_FACTOR>` line 283
+        - [x] `<Condition NotEmpty="AUTOMATIC_BRIGHTNESS">` line 288
+          - [x] `<True>` line 289
+            - [x] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 290
+          - [x] `<False>` line 292
+            - [x] `<AUTOMATIC_BRIGHTNESS_FACTOR>` line 293
+      - [x] `<OverrideTemplateParameters>` line 297
+        - [x] `<SCREEN_EMISSIVE_CODE>` line 298 = `#BASE_INTENSITY_FACTOR# #EMISSIVE_BASE_RANGE# * #AUTOMATIC_BRIGHTNESS_FACTOR# * #SCREEN_MIN_EMISSIV...`
+        - [x] `<AMBIENT_EMISSIVE_CODE>` line 299 = `#SCREEN_AVERAGE_LUMINOSITY# #BASE_INTENSITY_FACTOR# * #AMBIENT_BASE_RANGE# * #MIN_AMBIENT_EMISSIVE_...`
+      - [x] `<Condition Check="AMBIENT_POTENTIOMETER">` line 301
+        - [x] `<UseTemplate Name="ASOBO_LIGHTING_Ambient_Template">` line 302
+          - [x] `<BOUNCE_POTENTIOMETER_PERCENT>` line 303
+          - [x] `<POTENTIOMETER>` line 304
+      - [x] `<Component ID="#NODE_ID#_Emissive" Node="#NODE_ID#">` line 307
+        - [x] `<UseTemplate Name="ASOBO_GT_Emissive_Gauge">` line 308
+          - [x] `<PART_ID>` line 309 = `#SCREEN_PREFIX##SCREEN_ID#`
+          - [x] `<EMISSIVE_CODE>` line 310 = `#SCREEN_EMISSIVE_CODE#`
+  - Verified through the generic material-emissive path: stock emissive templates expand to Material EmissiveFactor nodes, buildMaterialBinding() compiles code-driven emissive RPN into material bindings, and AircraftRuntime applies emissive intensity/color updates. A330 cockpit verification recorded powered panel text/button emissive materials turning white/bright with zero errors, and MCDU/FMC brightness support verifies the stock screen-emissive scale.
 - [ ] `Asobo/Generic/FX.xml`
   - [ ] `<ModelBehaviors>` line 6
     - [ ] `<Template Name="ASOBO_GT_FX">` line 15
