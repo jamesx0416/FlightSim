@@ -910,7 +910,21 @@ function expandTemplateUse(
     templateParams.get('LEFT_SINGLE_CODE')?.trim() ||
     templateParams.get('LEFT_SINGLE_CODE_DEFAULT_IM')?.trim() ||
     ''
-  if (leftSingleSource) {
+  const mouseEventCallbackSource = buildMouseEventInteractionCodeSource(templateParams)
+  if (mouseEventCallbackSource) {
+    const interactionBinding = buildInteractionCodeBinding(
+      mouseEventCallbackSource,
+      null,
+      templateParams,
+      state.currentNode,
+      state.path,
+      'callback',
+      context.diagnostics
+    )
+    if (interactionBinding != null) {
+      pushUniqueInteractionBinding(interactionBindings, interactionBinding)
+    }
+  } else if (leftSingleSource) {
     const leftReleaseSource =
       templateParams.get('LEFT_LEAVE_CODE')?.trim() ||
       templateParams.get('LEFT_RELEASE_CODE')?.trim() ||
@@ -1392,6 +1406,44 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
     'LEFT_DOWN_CODE',
     'LEFT_UP_CODE'
   ]) || buildInteractionGateCodeSource(params) || buildInteractionSwitchPositionCodeSource(params)
+}
+
+function buildMouseEventInteractionCodeSource(params: ReadonlyMap<string, string>): string {
+  const leftSingleSource =
+    params.get('LEFT_SINGLE_CODE')?.trim() ||
+    params.get('LEFT_SINGLE_CODE_DEFAULT_IM')?.trim() ||
+    ''
+  if (!leftSingleSource) {
+    return ''
+  }
+  const entries: string[] = []
+  const addEvent = (eventName: string, source: string): void => {
+    const trimmedSource = source.trim()
+    if (trimmedSource) {
+      entries.push(`(M:Event) '${eventName}' scmi 0 == if{ ${trimmedSource} }`)
+    }
+  }
+  addEvent('LeftSingle', leftSingleSource)
+  addEvent('Lock', leftSingleSource)
+  addEvent(
+    'LeftRelease',
+    params.get('LEFT_RELEASE_CODE')?.trim() ||
+    params.get('LEFT_LEAVE_CODE')?.trim() ||
+    params.get('LEFT_RELEASE_CODE_DEFAULT_IM')?.trim() ||
+    params.get('LEFT_LEAVE_CODE_DEFAULT_IM')?.trim() ||
+    ''
+  )
+  addEvent(
+    'Unlock',
+    params.get('LEFT_LEAVE_CODE')?.trim() ||
+    params.get('LEFT_RELEASE_CODE')?.trim() ||
+    params.get('LEFT_LEAVE_CODE_DEFAULT_IM')?.trim() ||
+    params.get('LEFT_RELEASE_CODE_DEFAULT_IM')?.trim() ||
+    ''
+  )
+  addEvent('WheelUp', params.get('WHEEL_UP_CODE')?.trim() ?? '')
+  addEvent('WheelDown', params.get('WHEEL_DOWN_CODE')?.trim() ?? '')
+  return entries.length > 2 ? entries.join(' els{ ') + ' }'.repeat(entries.length - 1) : ''
 }
 
 function buildInteractionToggleSimvarCodeSource(params: ReadonlyMap<string, string>): string {
