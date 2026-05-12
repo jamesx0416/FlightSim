@@ -138,6 +138,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - cockpit/interior-view LOD selection is generalized beyond the hard-coded LOD00 cockpit path with `?interiorLod=` and profile/settings support
     - verified on 2026-05-10 with `tsc --noEmit` and Agent Browser on the A320 route: default auto selected active cockpit LOD0 with bound VCockpit surfaces, and explicit `?interiorLod=2` selected active cockpit LOD2 without a VCockpit binding because that lower-detail LOD has no bound panel surfaces
   - auto cockpit/interior-view LOD selection now uses package `layout.json` file-size estimates to avoid browser-hostile preferred LODs while preserving explicit `?interiorLod=0`; Agent Browser verified the A320 default route auto-selected cockpit LOD1, loaded 21 gauge runtimes, captured 15 visible gauges, and stayed around 60 FPS after the 150 MB LOD00 buffer crashed the browser context
+  - external-power availability local variables are now treated as dynamic runtime values instead of stale stored defaults; Agent Browser verified A320 `PUSH_OVHD_ELEC_EXTPWR` changes both `L:A32NX_OVHD_ELEC_EXT_PWR_PB_IS_ON` and `A:EXTERNAL POWER ON` from 0 to 1
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - continue `VCockpit` dynamic texture binding, using `panel.cfg` surface definitions generically
