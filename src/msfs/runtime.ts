@@ -1956,6 +1956,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (/^[BHK]:/u.test(key) && this.applyGenericControlEventName(key.slice(2), normalizedValue)) {
       return
     }
+    if (isSpoilerObjectPositionKey(key)) {
+      this.applySpoilerObjectPosition(normalizedValue)
+      return
+    }
     if (!key.startsWith('A:')) {
       return
     }
@@ -1986,6 +1990,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (key.includes('PARKING') || key.includes('PARK BRAKE')) {
       this.controlState.parkingBrake = normalizedValue > 0 ? 1 : 0
     }
+  }
+
+  private applySpoilerObjectPosition(value: number): void {
+    const position = Math.max(0, value)
+    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS ARMED'), position === 1 ? 1 : 0)
+    const deployRatio = position <= 3 ? (position - 1) / 2 : (position - 1) / 200
+    this.controlState.spoilersTarget = position <= 1 ? 0 : clamp01(deployRatio)
   }
 
   private resolveDynamicControlFallbackValue(key: string, unit: string | null): number | null {
@@ -4250,6 +4261,9 @@ function resolveStoredRuntimeValue(key: string, value: number, unit: string | nu
   if (isLightPercentVariableKey(key)) {
     return convertPercentUnit(value, unit)
   }
+  if (isControlPercentVariableKey(key)) {
+    return convertPercentToPosition16kUnit(value, unit)
+  }
   if (isFractionalTrimPercentKey(key)) {
     return convertPercentOver100Unit(value, unit)
   }
@@ -4360,6 +4374,23 @@ function isLightPercentVariableKey(key: string): boolean {
   )
 }
 
+function isControlPercentVariableKey(key: string): boolean {
+  return (
+    key === 'A:GEAR ANIMATION POSITION' ||
+    key === 'A:GEAR CENTER POSITION' ||
+    key === 'A:GEAR LEFT POSITION' ||
+    key === 'A:GEAR RIGHT POSITION' ||
+    key === 'A:FLAPS HANDLE PERCENT' ||
+    key === 'A:TRAILING EDGE FLAPS LEFT PERCENT' ||
+    key === 'A:TRAILING EDGE FLAPS RIGHT PERCENT' ||
+    key === 'A:LEADING EDGE FLAPS LEFT PERCENT' ||
+    key === 'A:LEADING EDGE FLAPS RIGHT PERCENT' ||
+    key === 'A:SPOILERS HANDLE POSITION' ||
+    key === 'A:SPOILERS LEFT POSITION' ||
+    key === 'A:SPOILERS RIGHT POSITION'
+  )
+}
+
 function convertPercentToPrimerUnit(value: number, unit: string | null): number {
   const clampedPercent = clamp(value, 0, 100)
   const normalizedUnit = normalizeUnit(unit)
@@ -4443,6 +4474,12 @@ function isDynamicControlFallbackKey(key: string): boolean {
     ((key.includes('PARKING') || key.includes('PARK_BRAKE')) &&
       (key.includes('POSITION') || key.includes('LEVER') || key.endsWith('_POS')))
   )
+}
+
+function isSpoilerObjectPositionKey(key: string): boolean {
+  return key.startsWith('O:') &&
+    (key.includes('SPOILER') || key.includes('SPEEDBRAKE')) &&
+    (key.endsWith(':POSITION') || key.endsWith('_POSITION'))
 }
 
 function isBatteryControlKey(key: string): boolean {
