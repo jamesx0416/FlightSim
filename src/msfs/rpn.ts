@@ -408,7 +408,7 @@ function executeInstructions(
         break
       }
       case 'invokeKeyEvent': {
-        const args = new Array<number>(Math.max(0, instruction.argCount))
+        const args = new Array<number>(Math.min(Math.max(0, instruction.argCount), stack.length))
         for (let index = args.length - 1; index >= 0; index -= 1) {
           args[index] = toNumber(stack.pop() ?? 0)
         }
