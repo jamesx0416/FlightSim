@@ -895,6 +895,7 @@ Checked stock XML families in this batch are limited to the families covered by 
   - explicit values are validated as zero-based nonnegative integers
   - selected values are clamped to available interior LODs only after the active aircraft/interior model is known
   - cockpit activation, cockpit benchmarks, range-low cockpit texture loading, VCockpit surface binding, cockpit static batching experiments, runtime diagnostics, settings profiles, and query documentation all refer to the selected cockpit/interior LOD rather than assuming LOD00
+  - 2026-05-12: auto cockpit/interior-view LOD selection now uses package `layout.json` model and sibling-buffer sizes to skip oversized default LODs in the web viewer while preserving explicit `?interiorLod=0`; Agent Browser verified the A320 default route auto-selected cockpit LOD1, reached `gltf:interior-upgrade:ready`, loaded 21 gauge runtimes, captured 15 visible gauges, and stayed around 60 FPS
   Verification before checkoff:
   - run typecheck/lint
   - verify the default A330 route still starts cleanly

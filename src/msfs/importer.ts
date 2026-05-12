@@ -291,6 +291,15 @@ function resolveLayoutPath(path: string, context: ImportContext): string | null 
   return context.layoutPathIndex.get(normalizePath(path).toLowerCase()) ?? null
 }
 
+function resolveLayoutEntrySize(path: string, context: ImportContext): number | undefined {
+  const resolvedPath = resolveLayoutPath(path, context)
+  if (resolvedPath == null) {
+    return undefined
+  }
+
+  return context.layoutEntries.find(entry => entry.path === resolvedPath)?.size
+}
+
 function resolveBehaviorLayoutPath(
   path: string,
   context: ImportContext,
@@ -713,12 +722,18 @@ async function importModelDefinition(
         .map(node => node.getAttribute('id') ?? '')
         .map(value => value.trim())
         .filter(value => value.length > 0)
+      const modelPath = joinPath(dirname(behaviorPath), modelFile)
       return {
         minSize: Number.parseFloat(lodNode.getAttribute('minSize') ?? '0') || 0,
-        path: joinPath(dirname(behaviorPath), modelFile),
+        path: modelPath,
         url: resolvePackageUrl(
           context.rootUrl,
-          joinPath(dirname(behaviorPath), modelFile)
+          modelPath
+        ),
+        modelFileSize: resolveLayoutEntrySize(modelPath, context),
+        siblingBufferFileSize: resolveLayoutEntrySize(
+          modelPath.replace(/\.(?:gltf|glb)$/iu, '.bin'),
+          context
         ),
         mergeModels,
         attachModelIds
