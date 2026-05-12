@@ -5648,6 +5648,34 @@ function createVCockpitGaugeBridgeScript(
     incrementBridgeCall('SimVar.SetGlobalVarValue');
     return writeTrackedSimVar(name, unit, value, 'GlobalVar');
   };
+  globalThis.SimVar.SimVarBatch ??= class {
+    constructor(countName, indexName) {
+      this.countName = countName;
+      this.indexName = indexName;
+      this.entries = [];
+    }
+
+    add(name, unit, type = unit) {
+      this.entries.push({ name, unit, type });
+      return this;
+    }
+  };
+  globalThis.SimVar.GetSimVarArrayValues = (batch, callback) => {
+    incrementBridgeCall('SimVar.GetSimVarArrayValues');
+    const entries = Array.isArray(batch?.entries) ? batch.entries : [];
+    const count = Math.max(0, Math.min(512, Math.trunc(Number(readTrackedDemoSimVar(batch?.countName, 'Number', 'SimVar')) || 0)));
+    const rows = [];
+    for (let index = 0; index < count; index += 1) {
+      if (batch?.indexName != null) {
+        writeTrackedSimVar(batch.indexName, 'Number', index, 'SimVar');
+      }
+      rows.push(entries.map(entry => readTrackedDemoSimVar(entry.name, entry.unit, 'SimVar')));
+    }
+    if (typeof callback === 'function') {
+      window.setTimeout(() => callback(rows), 0);
+    }
+    return rows;
+  };
   globalThis.SimVar.SetBatchSimVarValue = values => {
     incrementBridgeCall('SimVar.SetBatchSimVarValue');
     const entries = values == null
@@ -5894,6 +5922,10 @@ function createVCockpitGaugeBridgeScript(
       }
       if (normalizedCallName.toUpperCase() === 'TRIGGER_KEY_EVENT') {
         return triggerRuntimeKeyEvent(args[0], [args[2], args[3], args[4]]);
+      }
+      if (normalizedCallName.toUpperCase() === 'GET_AIR_TRAFFIC') {
+        incrementBridgeCall('Coherent.call:' + normalizedCallName);
+        return Promise.resolve([]);
       }
       if (isSupportedNoopCoherentCall(normalizedCallName)) {
         incrementBridgeCall('Coherent.call:' + normalizedCallName);
