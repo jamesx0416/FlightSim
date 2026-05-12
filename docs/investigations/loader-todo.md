@@ -527,6 +527,8 @@ Rules:
   - Stock spoiler/speedbrake lever callbacks can update an object-scoped `O:*:Position` without emitting a `K:SPOILERS_SET` event on every aircraft path. The runtime now maps spoiler/speedbrake object positions to `A:SPOILERS ARMED` and the generic spoiler control target so cockpit lever movement drives `A:SPOILERS HANDLE POSITION`, `A:SPOILERS LEFT POSITION`, and `A:SPOILERS RIGHT POSITION` animation state.
   - Stored gear/flap/spoiler percent-style control SimVars now honor `Percent over 100` and `Position 16k` unit reads after the runtime publishes them, preventing stock update code such as `A:SPOILERS HANDLE POSITION, Percent over 100` from inflating object positions.
   - The spoiler object-position mapper accepts both compact detent positions and larger stock animation-length positions, so object/simvar sync code can round-trip without over-scaling deployment.
+- [x] Support generic stock handling trim input events.
+  - `B:HANDLING_RudderTrim_*`, `B:HANDLING_ElevatorTrim_*`, and `B:HANDLING_AileronsTrim_*` bridge calls now update the corresponding `A:* TRIM PCT` / indicator SimVars instead of only changing bridge-local `B:` state, so stock trim knobs, switches, and drag callbacks have visible runtime state.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.

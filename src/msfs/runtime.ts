@@ -4080,6 +4080,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applyGenericControlEventName(name: string, value: number): boolean {
     const normalizedName = normalizeKeyEventName(name)
+    const trimMatch = /^HANDLING_(RUDDER|ELEVATOR|AILERONS?)TRIM(?:_[A-Z0-9]+)?(?:_(INC|DEC|SET|RESET))?$/u.exec(normalizedName)
+    if (trimMatch != null) {
+      this.applyHandlingTrimInputEvent(trimMatch[1], trimMatch[2] ?? 'SET', value)
+      return true
+    }
+
     if (normalizedName.includes('GEAR')) {
       if (normalizedName.includes('UP') || normalizedName.includes('RETRACT')) {
         this.controlState.gearTarget = 0
@@ -4135,6 +4141,34 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     return false
+  }
+
+  private applyHandlingTrimInputEvent(type: string, action: string, value: number): void {
+    const normalizedType = type === 'AILERONS' ? 'AILERON' : type
+    const currentValue = this.values.get(normalizeRuntimeVariableKey(`A:${normalizedType} TRIM PCT`)) ?? 0
+    const step = Math.abs(Number.isFinite(value) && value !== 0 ? value : 5) / 100
+    const nextValue =
+      action === 'RESET'
+        ? 0
+        : action === 'INC'
+          ? currentValue + step
+          : action === 'DEC'
+            ? currentValue - step
+            : trimSetEventValueToFraction(value)
+
+    if (normalizedType === 'RUDDER') {
+      this.setRudderTrim(nextValue)
+      return
+    }
+    if (normalizedType === 'AILERON') {
+      this.setAileronTrim(nextValue)
+      return
+    }
+
+    const trim = clamp(nextValue, -1, 1)
+    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM PCT'), trim)
+    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM POSITION'), trim)
+    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM INDICATOR'), trim * 100)
   }
 
   private applyGenericInputEventStateName(name: string, value: number): boolean {
