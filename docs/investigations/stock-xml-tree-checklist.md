@@ -25121,48 +25121,49 @@
 - [ ] `Asobo/Generic.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
-- [ ] `Asobo/Generic/Animations.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<Template Name="ASOBO_GT_Anim_Sim">` line 17
-      - [ ] `<DefaultTemplateParameters>` line 18
-        - [ ] `<ANIM_LENGTH>` line 19
-        - [ ] `<ANIM_SIMVAR_SCALE>` line 20
-        - [ ] `<ANIM_SIMVAR_BIAS>` line 21
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 24
-        - [ ] `<False>` line 25
-          - [ ] `<Condition Check="INVERT_ANIM">` line 26
-            - [ ] `<True>` line 27
-              - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 28
-                - [ ] `<ANIM_CODE>` line 29 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
-            - [ ] `<False>` line 32
-              - [ ] `<Condition Check="FAILURE">` line 33
-                - [ ] `<True>` line 34
-                  - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 35
-                    - [ ] `<ANIM_CODE>` line 36 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
-                - [ ] `<False>` line 39
-                  - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Sim_Base">` line 40
-    - [ ] `<Template Name="ASOBO_GT_Anim_Code">` line 57
-      - [ ] `<DefaultTemplateParameters>` line 58
-        - [ ] `<ANIM_LENGTH>` line 59
-        - [ ] `<ID>` line 60
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 63
-        - [ ] `<False>` line 64
-          - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code_Failure_Test">` line 65
-    - [ ] `<Template Name="ASOBO_GT_Anim">` line 77
-      - [ ] `<DefaultTemplateParameters>` line 78
-      - [ ] `<Condition Check="ANIM_SIMVAR">` line 81
-        - [ ] `<True>` line 82
-          - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Sim">` line 83
-        - [ ] `<False>` line 86
-          - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 87
-    - [ ] `<Template Name="ASOBO_GT_Anim_Setup">` line 101
-      - [ ] `<DefaultTemplateParameters>` line 102
-        - [ ] `<NODE_ID>` line 103 = `#ANIM_NAME#`
-        - [ ] `<ANIM_LENGTH>` line 104
-      - [ ] `<Component ID="#NODE_ID#" Node="NODE_ID">` line 106
-        - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code_Base">` line 107
-          - [ ] `<ANIM_CODE>` line 108 = `#PERCENT#`
+- [x] `Asobo/Generic/Animations.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<Template Name="ASOBO_GT_Anim_Sim">` line 17
+      - [x] `<DefaultTemplateParameters>` line 18
+        - [x] `<ANIM_LENGTH>` line 19
+        - [x] `<ANIM_SIMVAR_SCALE>` line 20
+        - [x] `<ANIM_SIMVAR_BIAS>` line 21
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 24
+        - [x] `<False>` line 25
+          - [x] `<Condition Check="INVERT_ANIM">` line 26
+            - [x] `<True>` line 27
+              - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 28
+                - [x] `<ANIM_CODE>` line 29 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
+            - [x] `<False>` line 32
+              - [x] `<Condition Check="FAILURE">` line 33
+                - [x] `<True>` line 34
+                  - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 35
+                    - [x] `<ANIM_CODE>` line 36 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
+                - [x] `<False>` line 39
+                  - [x] `<UseTemplate Name="ASOBO_GT_Anim_Sim_Base">` line 40
+    - [x] `<Template Name="ASOBO_GT_Anim_Code">` line 57
+      - [x] `<DefaultTemplateParameters>` line 58
+        - [x] `<ANIM_LENGTH>` line 59
+        - [x] `<ID>` line 60
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 63
+        - [x] `<False>` line 64
+          - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code_Failure_Test">` line 65
+    - [x] `<Template Name="ASOBO_GT_Anim">` line 77
+      - [x] `<DefaultTemplateParameters>` line 78
+      - [x] `<Condition Check="ANIM_SIMVAR">` line 81
+        - [x] `<True>` line 82
+          - [x] `<UseTemplate Name="ASOBO_GT_Anim_Sim">` line 83
+        - [x] `<False>` line 86
+          - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 87
+    - [x] `<Template Name="ASOBO_GT_Anim_Setup">` line 101
+      - [x] `<DefaultTemplateParameters>` line 102
+        - [x] `<NODE_ID>` line 103 = `#ANIM_NAME#`
+        - [x] `<ANIM_LENGTH>` line 104
+      - [x] `<Component ID="#NODE_ID#" Node="NODE_ID">` line 106
+        - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code_Base">` line 107
+          - [x] `<ANIM_CODE>` line 108 = `#PERCENT#`
+  - Verified through the generic animation compiler/runtime path: `ASOBO_GT_Anim` dispatches to code or simvar forms, `buildAnimationBinding()` / `buildAnimationSimBinding()` compile the RPN, and A320/A330 fixture runs recorded hundreds of animation bindings with zero `animation_params_missing` diagnostics.
 - [ ] `Asobo/Generic/AnimationTriggers.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_GT_AnimTriggers_EffectEvent">` line 15
@@ -63799,48 +63800,49 @@
 - [ ] `Asobo/Generic.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
-- [ ] `Asobo/Generic/Animations.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Include>` line 2
-    - [ ] `<Template Name="ASOBO_GT_Anim_Sim">` line 17
-      - [ ] `<DefaultTemplateParameters>` line 18
-        - [ ] `<ANIM_LENGTH>` line 19
-        - [ ] `<ANIM_SIMVAR_SCALE>` line 20
-        - [ ] `<ANIM_SIMVAR_BIAS>` line 21
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 24
-        - [ ] `<False>` line 25
-          - [ ] `<Condition Check="INVERT_ANIM">` line 26
-            - [ ] `<True>` line 27
-              - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 28
-                - [ ] `<ANIM_CODE>` line 29 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
-            - [ ] `<False>` line 32
-              - [ ] `<Condition Check="FAILURE">` line 33
-                - [ ] `<True>` line 34
-                  - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 35
-                    - [ ] `<ANIM_CODE>` line 36 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
-                - [ ] `<False>` line 39
-                  - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Sim_Base">` line 40
-    - [ ] `<Template Name="ASOBO_GT_Anim_Code">` line 57
-      - [ ] `<DefaultTemplateParameters>` line 58
-        - [ ] `<ANIM_LENGTH>` line 59
-        - [ ] `<ID>` line 60
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 63
-        - [ ] `<False>` line 64
-          - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code_Failure_Test">` line 65
-    - [ ] `<Template Name="ASOBO_GT_Anim">` line 77
-      - [ ] `<DefaultTemplateParameters>` line 78
-      - [ ] `<Condition Check="ANIM_SIMVAR">` line 81
-        - [ ] `<True>` line 82
-          - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Sim">` line 83
-        - [ ] `<False>` line 86
-          - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 87
-    - [ ] `<Template Name="ASOBO_GT_Anim_Setup">` line 101
-      - [ ] `<DefaultTemplateParameters>` line 102
-        - [ ] `<NODE_ID>` line 103 = `#ANIM_NAME#`
-        - [ ] `<ANIM_LENGTH>` line 104
-      - [ ] `<Component ID="#NODE_ID#" Node="NODE_ID">` line 106
-        - [ ] `<UseTemplate Name="ASOBO_GT_Anim_Code_Base">` line 107
-          - [ ] `<ANIM_CODE>` line 108 = `#PERCENT#`
+- [x] `Asobo/Generic/Animations.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Include>` line 2
+    - [x] `<Template Name="ASOBO_GT_Anim_Sim">` line 17
+      - [x] `<DefaultTemplateParameters>` line 18
+        - [x] `<ANIM_LENGTH>` line 19
+        - [x] `<ANIM_SIMVAR_SCALE>` line 20
+        - [x] `<ANIM_SIMVAR_BIAS>` line 21
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 24
+        - [x] `<False>` line 25
+          - [x] `<Condition Check="INVERT_ANIM">` line 26
+            - [x] `<True>` line 27
+              - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 28
+                - [x] `<ANIM_CODE>` line 29 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
+            - [x] `<False>` line 32
+              - [x] `<Condition Check="FAILURE">` line 33
+                - [x] `<True>` line 34
+                  - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 35
+                    - [x] `<ANIM_CODE>` line 36 = `(A:#ANIM_SIMVAR#, #ANIM_SIMVAR_UNITS#) #ANIM_SIMVAR_SCALE# * #ANIM_SIMVAR_BIAS# +`
+                - [x] `<False>` line 39
+                  - [x] `<UseTemplate Name="ASOBO_GT_Anim_Sim_Base">` line 40
+    - [x] `<Template Name="ASOBO_GT_Anim_Code">` line 57
+      - [x] `<DefaultTemplateParameters>` line 58
+        - [x] `<ANIM_LENGTH>` line 59
+        - [x] `<ID>` line 60
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 63
+        - [x] `<False>` line 64
+          - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code_Failure_Test">` line 65
+    - [x] `<Template Name="ASOBO_GT_Anim">` line 77
+      - [x] `<DefaultTemplateParameters>` line 78
+      - [x] `<Condition Check="ANIM_SIMVAR">` line 81
+        - [x] `<True>` line 82
+          - [x] `<UseTemplate Name="ASOBO_GT_Anim_Sim">` line 83
+        - [x] `<False>` line 86
+          - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code">` line 87
+    - [x] `<Template Name="ASOBO_GT_Anim_Setup">` line 101
+      - [x] `<DefaultTemplateParameters>` line 102
+        - [x] `<NODE_ID>` line 103 = `#ANIM_NAME#`
+        - [x] `<ANIM_LENGTH>` line 104
+      - [x] `<Component ID="#NODE_ID#" Node="NODE_ID">` line 106
+        - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code_Base">` line 107
+          - [x] `<ANIM_CODE>` line 108 = `#PERCENT#`
+  - Verified through the generic animation compiler/runtime path: `ASOBO_GT_Anim` dispatches to code or simvar forms, `buildAnimationBinding()` / `buildAnimationSimBinding()` compile the RPN, and A320/A330 fixture runs recorded hundreds of animation bindings with zero `animation_params_missing` diagnostics.
 - [ ] `Asobo/Generic/AnimationTriggers.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_GT_AnimTriggers_EffectEvent">` line 15
