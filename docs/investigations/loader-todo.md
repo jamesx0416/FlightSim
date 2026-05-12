@@ -927,14 +927,15 @@ Checked stock XML families in this batch are limited to the families covered by 
 - [ ] Revisit the A320 wing structure/transform issue after stock XML and CFG coverage is expanded.
 - [ ] Implement generic model-level `NodeAnimation` runtime support from official docs.
   Documented-first scope:
-  - [ ] Audit and list all `NodeAnimation` types present in mounted aircraft fixtures and stock docs.
-  - [ ] Confirm which `NodeAnimation` fields are already parsed and preserved from model XML.
+  - [x] Audit and list all `NodeAnimation` types present in mounted aircraft fixtures and stock docs.
+  - [x] Confirm which `NodeAnimation` fields are already parsed and preserved from model XML.
   - [x] Implement generic runtime plumbing for documented `NodeAnimation` inputs and node targets.
   - [x] Implement `NodeAnimation type="WingFlex"` only up to the published contract:
     `WING FLEX PCT`, `wingflex_scalar`, `wingflex_surface_scalar`, `wingflex_offset`, and the documented 12-node layout.
-  - [ ] If the exact node deformation math is still not published, mark the remaining transform behavior as blocked rather than guessing.
+  - [x] If the exact node deformation math is still not published, mark the remaining transform behavior as blocked rather than guessing.
   - [ ] Verify A320 and A330 with agent-browser screenshots before checking this item off.
   Current status:
+  - 2026-05-13 audit: the mounted A320 and A330 model XML fixtures only contain `NodeAnimation type="WingFlex"`; the mounted stock XML mirror has no additional `NodeAnimation` entries. The importer currently preserves the documented `type` attribute and ordered `Node` list in `ModelNodeAnimation`.
   - The importer preserves `NodeAnimation type="WingFlex"` nodes and the runtime has generic plumbing for documented node targets and simvar/cfg inputs.
   - The runtime deliberately returns no WingFlex deformation bindings until the exact deformation math is backed by official docs or direct authoritative package/runtime evidence.
   - 2026-05-03: the implicit primitive/material-order decal depth-bias experiment for `ASOBO_material_blend_gbuffer` materials without explicit `ASOBO_material_draw_order` was rejected after A320 testing showed worse z-fighting; keep it reverted.
