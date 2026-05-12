@@ -4490,10 +4490,11 @@ function getLightSwitchVariableKey(type: string, index?: number): string {
 
 function getLightPowerSettingType(type: string): string {
   const normalizedType = type.replace(/_/gu, ' ').trim().toUpperCase()
-  return normalizedType === 'STROBES' ? 'STROBE'
-    : normalizedType === 'NAV' ? 'NAV'
-      : normalizedType.endsWith('S') ? normalizedType.slice(0, -1)
-        : normalizedType
+  return normalizedType === 'PEDESTRAL' ? 'PEDESTAL'
+    : normalizedType === 'STROBES' ? 'STROBE'
+      : normalizedType === 'NAV' ? 'NAV'
+        : normalizedType.endsWith('S') ? normalizedType.slice(0, -1)
+          : normalizedType
 }
 
 function clamp01(value: number): number {
