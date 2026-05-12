@@ -8241,7 +8241,7 @@ function createCameraDepthClipController(
   const lastCameraPosition = new Vector3(Number.NaN, Number.NaN, Number.NaN)
   const lastCameraQuaternion = camera.quaternion.clone()
   let lastCameraZoom = Number.NaN
-  let nextAllowedUpdateMs = 0
+  let nextFallbackUpdateMs = 0
   let forceNextUpdate = true
 
   const refreshBounds = (): void => {
@@ -8286,7 +8286,7 @@ function createCameraDepthClipController(
       camera.position.distanceToSquared(lastCameraPosition) > 1e-6 ||
       Math.abs(camera.quaternion.dot(lastCameraQuaternion)) < 0.999999 ||
       Math.abs(camera.zoom - lastCameraZoom) > 1e-4
-    if (!cameraChanged && nowMs < nextAllowedUpdateMs) {
+    if (!cameraChanged && nowMs < nextFallbackUpdateMs) {
       return
     }
     if (cameraChanged) {
@@ -8295,7 +8295,7 @@ function createCameraDepthClipController(
       lastCameraZoom = camera.zoom
     }
     forceNextUpdate = false
-    nextAllowedUpdateMs = nowMs + CAMERA_DEPTH_CLIP_UPDATE_INTERVAL_MS
+    nextFallbackUpdateMs = nowMs + CAMERA_DEPTH_CLIP_FALLBACK_INTERVAL_MS
 
     camera.updateMatrixWorld()
     camera.getWorldPosition(cameraWorldPosition)
@@ -8381,7 +8381,7 @@ const MIN_CAMERA_CLIP_NEAR = 0.01
 const MIN_CAMERA_CLIP_RANGE = 0.01
 const MIN_CAMERA_CLIP_PADDING = 0.5
 const CAMERA_CLIP_DEPTH_PADDING_RATIO = 0.08
-const CAMERA_DEPTH_CLIP_UPDATE_INTERVAL_MS = 125
+const CAMERA_DEPTH_CLIP_FALLBACK_INTERVAL_MS = 1_000
 
 function shouldUpdateCameraClipPlane(current: number, next: number): boolean {
   return Math.abs(current - next) > Math.max(0.001, Math.abs(next) * 0.001)
