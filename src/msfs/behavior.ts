@@ -2033,11 +2033,12 @@ function collectInteractionInputEventBindingParameterSources(
   params: ReadonlyMap<string, string>
 ): readonly string[] {
   const parameterSources: string[] = []
+  const eventIdOnly = parseBoolean(params.get(`BINDING_${kind}_${bindingIndex}_EVENT_ID_ONLY`)?.trim() ?? '')
   for (let parameterIndex = 0; parameterIndex < 16; parameterIndex += 1) {
     const parameterName = `BINDING_${kind}_${bindingIndex}_PARAM_${parameterIndex}`
     const parameterValue = params.get(parameterName)?.trim()
     if (parameterValue == null || parameterValue === '') {
-      if (parameterIndex === 0) {
+      if (parameterIndex === 0 && !eventIdOnly) {
         parameterSources.push('1')
       }
       break
