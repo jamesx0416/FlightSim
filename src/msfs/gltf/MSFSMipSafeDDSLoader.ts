@@ -46,6 +46,10 @@ export class MSFSMipSafeDDSLoader extends Loader<Texture> {
       return placeholder
     }
 
+    if (this.options.immediatePlaceholder === true) {
+      onLoad?.(placeholder)
+    }
+
     if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
       const rangeLoader = new MSFSDecodedDDSLoader(this.manager, this.options)
       rangeLoader.setPath(this.path)
@@ -66,15 +70,30 @@ export class MSFSMipSafeDDSLoader extends Loader<Texture> {
 
           if (shouldDecodeForGeneratedMipmaps(compressed)) {
             try {
-              onLoad?.(createDecodedTextureWithGeneratedMipmaps(arrayBuffer, this.options))
+              const decodedTexture = createDecodedTextureWithGeneratedMipmaps(arrayBuffer, this.options)
+              if (this.options.immediatePlaceholder === true) {
+                copyLoadedTextureState(placeholder, decodedTexture)
+              } else {
+                onLoad?.(decodedTexture)
+              }
               return
             } catch {
-              onLoad?.(createCompressedTexture(compressed))
+              const compressedTexture = createCompressedTexture(compressed)
+              if (this.options.immediatePlaceholder === true) {
+                copyLoadedTextureState(placeholder, compressedTexture)
+              } else {
+                onLoad?.(compressedTexture)
+              }
               return
             }
           }
 
-          onLoad?.(createCompressedTexture(compressed))
+          const compressedTexture = createCompressedTexture(compressed)
+          if (this.options.immediatePlaceholder === true) {
+            copyLoadedTextureState(placeholder, compressedTexture)
+          } else {
+            onLoad?.(compressedTexture)
+          }
         } catch (error) {
           onError?.(error)
           this.manager.itemError(url)
@@ -86,6 +105,19 @@ export class MSFSMipSafeDDSLoader extends Loader<Texture> {
 
     return placeholder
   }
+}
+
+function copyLoadedTextureState(target: Texture, source: Texture): void {
+  target.image = source.image
+  target.mipmaps = source.mipmaps
+  target.format = source.format
+  target.type = source.type
+  target.colorSpace = source.colorSpace
+  target.flipY = source.flipY
+  target.minFilter = source.minFilter
+  target.magFilter = source.magFilter
+  target.generateMipmaps = source.generateMipmaps
+  target.needsUpdate = true
 }
 
 function shouldDecodeForGeneratedMipmaps(parsed: ReturnType<MSFSDDSLoader['parse']>): boolean {

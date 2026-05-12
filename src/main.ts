@@ -3133,7 +3133,7 @@ function createAircraftModelLoadContext(
       createMsfsGltfLoader({
         urlResolver: textureUrlResolver,
         decodeNormalSources,
-        textureLoadOptions: options?.textureLoadOptions
+        textureLoadOptions: options?.textureLoadOptions ?? createDefaultModelTextureLoadOptions()
       }),
     createNodeMaterial: createNodeMaterialFactory(rendererInfo.renderer),
     resolvePanelAssetUrl: createPanelAssetUrlResolver(
@@ -8234,6 +8234,13 @@ async function loadMsfsGltfLod(
     })
   }
   return gltf
+}
+
+function createDefaultModelTextureLoadOptions(): MSFSDDSLoadOptions {
+  return {
+    rangeMaxTextureSize: 1024,
+    rangeFallback: 'placeholder'
+  }
 }
 
 function createTextureUrlResolver(
