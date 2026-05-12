@@ -3606,14 +3606,15 @@
       - [ ] `<Parameters Type="Override">` line 1377
         - [ ] `<Switch>` line 1378
           - [ ] `<Case Check="POTENTIOMETER">` line 1379
-            - [ ] `<EMISSIVE_CODE>` line 1380 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100)`
+            - [x] `<EMISSIVE_CODE>` line 1380 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100)`
           - [ ] `<Case Check="SIMVAR_POWER_SETTING">` line 1382
             - [ ] `<EMISSIVE_CODE>` line 1383 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100)`
       - [ ] `<Condition Valid="POTENTIOMETER">` line 1387
         - [ ] `<True>` line 1388
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1389
             - [ ] `<UPDATE_ONCE>` line 1390
-            - [ ] `<UPDATE_CODE>` line 1391 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) 0.1 max (>I:XMLVAR_MCDU_#ID#_Brightness)`
+            - [x] `<UPDATE_CODE>` line 1391 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) 0.1 max (>I:XMLVAR_MCDU_#ID#_Brightness)`
+              - Verified 2026-05-12: A320 powered MCDU path read `A:LIGHT POTENTIOMETER:86, Percent over 100 = 1` and `I:XMLVAR_MCDU_1_Brightness = 1`, confirming the stock percent-over-100 update/emissive contract.
         - [ ] `<False>` line 1394
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1395
             - [ ] `<UPDATE_ONCE>` line 1396
@@ -42290,14 +42291,15 @@
       - [ ] `<Parameters Type="Override">` line 1377
         - [ ] `<Switch>` line 1378
           - [ ] `<Case Check="POTENTIOMETER">` line 1379
-            - [ ] `<EMISSIVE_CODE>` line 1380 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100)`
+            - [x] `<EMISSIVE_CODE>` line 1380 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100)`
           - [ ] `<Case Check="SIMVAR_POWER_SETTING">` line 1382
             - [ ] `<EMISSIVE_CODE>` line 1383 = `(A:#SIMVAR_POWER_SETTING#, Percent over 100)`
       - [ ] `<Condition Valid="POTENTIOMETER">` line 1387
         - [ ] `<True>` line 1388
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1389
             - [ ] `<UPDATE_ONCE>` line 1390
-            - [ ] `<UPDATE_CODE>` line 1391 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) 0.1 max (>I:XMLVAR_MCDU_#ID#_Brightness)`
+            - [x] `<UPDATE_CODE>` line 1391 = `(A:LIGHT POTENTIOMETER:#POTENTIOMETER#, Percent over 100) 0.1 max (>I:XMLVAR_MCDU_#ID#_Brightness)`
+              - Verified 2026-05-12: A320 powered MCDU path read `A:LIGHT POTENTIOMETER:86, Percent over 100 = 1` and `I:XMLVAR_MCDU_1_Brightness = 1`, confirming the stock percent-over-100 update/emissive contract.
         - [ ] `<False>` line 1394
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1395
             - [ ] `<UPDATE_ONCE>` line 1396
