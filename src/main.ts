@@ -52,6 +52,7 @@ import type {
   ImportedAircraft,
   ImportedCfgSection,
   ImportDiagnostic,
+  ModelLodEntry,
   RuntimeState
 } from './msfs/types'
 import type { CompiledInteractionBinding } from './msfs/types'
@@ -862,8 +863,12 @@ async function init(): Promise<void> {
       return null
     }
 
+    if (requestedInteriorLodIndex == null) {
+      return selectAutoCockpitInteriorLodIndex(interiorModel)
+    }
+
     return Math.min(
-      Math.max(requestedInteriorLodIndex ?? 0, 0),
+      Math.max(requestedInteriorLodIndex, 0),
       interiorModel.lods.length - 1
     )
   }
@@ -1018,7 +1023,6 @@ async function init(): Promise<void> {
           {
             kind: 'interior',
             preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
-            fallbackToOtherLods: false,
             textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
             instanceStaticMeshes: isEnabledFlagSearchParam(
               effectiveSearchParams,
@@ -1622,7 +1626,6 @@ async function init(): Promise<void> {
         {
           kind: 'interior',
           preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
-          fallbackToOtherLods: false,
           textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
           instanceStaticMeshes: isEnabledFlagSearchParam(
             effectiveSearchParams,
@@ -8468,6 +8471,36 @@ function selectModelLodIndexForScreenSize(
     lodEntries.find(({ lod }) => screenSizePercent >= lod.minSize) ??
     lodEntries.at(-1)!
   ).index
+}
+
+const AUTO_COCKPIT_INTERIOR_LOD_MAX_ESTIMATED_BYTES = 64 * 1024 * 1024
+
+function selectAutoCockpitInteriorLodIndex(modelDefinition: ImportedModelDefinition): number {
+  const lodEntries = [...modelDefinition.lods]
+    .sort((left, right) => right.minSize - left.minSize)
+    .map((lod, index) => ({ lod, index }))
+
+  for (const { lod, index } of lodEntries) {
+    const estimatedBytes = estimateModelLodResourceBytes(lod)
+    if (
+      estimatedBytes == null ||
+      estimatedBytes <= AUTO_COCKPIT_INTERIOR_LOD_MAX_ESTIMATED_BYTES
+    ) {
+      return index
+    }
+  }
+
+  return lodEntries.at(-1)?.index ?? 0
+}
+
+function estimateModelLodResourceBytes(lod: ModelLodEntry): number | null {
+  const sizes = [lod.modelFileSize, lod.siblingBufferFileSize]
+    .filter((size): size is number => typeof size === 'number' && Number.isFinite(size))
+  if (sizes.length === 0) {
+    return null
+  }
+
+  return sizes.reduce((sum, size) => sum + size, 0)
 }
 
 function computeViewerOrbitTarget(object: Group, bounds: Box3): Vector3 {

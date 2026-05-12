@@ -137,6 +137,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - live LOD00 verification on the A339X package now captures 15 non-WASM HTML gauges without blocking LOD00 binding; WASM hosts and the EFB remain explicitly deferred or diagnosed
   - cockpit/interior-view LOD selection is generalized beyond the hard-coded LOD00 cockpit path with `?interiorLod=` and profile/settings support
     - verified on 2026-05-10 with `tsc --noEmit` and Agent Browser on the A320 route: default auto selected active cockpit LOD0 with bound VCockpit surfaces, and explicit `?interiorLod=2` selected active cockpit LOD2 without a VCockpit binding because that lower-detail LOD has no bound panel surfaces
+  - auto cockpit/interior-view LOD selection now uses package `layout.json` file-size estimates to avoid browser-hostile preferred LODs while preserving explicit `?interiorLod=0`; Agent Browser verified the A320 default route auto-selected cockpit LOD1, loaded 21 gauge runtimes, captured 15 visible gauges, and stayed around 60 FPS after the 150 MB LOD00 buffer crashed the browser context
 - Plan:
   - add cockpit shell/interior loading first as an opt-in path, not a default path
   - continue `VCockpit` dynamic texture binding, using `panel.cfg` surface definitions generically

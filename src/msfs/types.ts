@@ -24,6 +24,8 @@ export interface ModelLodEntry {
   readonly minSize: number
   readonly path: string
   readonly url: string
+  readonly modelFileSize?: number
+  readonly siblingBufferFileSize?: number
   readonly mergeModels: readonly string[]
   readonly attachModelIds: readonly string[]
 }
