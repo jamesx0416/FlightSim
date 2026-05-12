@@ -206,7 +206,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
       .catch(error => {
         this.manager.itemEnd(resolvedUrl)
         if (shouldUseCompressedRangeFallback(error)) {
-          new MSFSDDSLoader(this.manager, this.options).load(url, onLoad, onProgress, onError)
+          this.createCompressedFallbackLoader().load(url, onLoad, onProgress, onError)
           return
         }
 
@@ -214,6 +214,14 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         onLoad?.(texture)
         console.warn('Decoded DDS range mip load fell back to a placeholder.', error)
       })
+  }
+
+  private createCompressedFallbackLoader(): MSFSDDSLoader {
+    const loader = new MSFSDDSLoader(this.manager, this.options)
+    loader.setPath(this.path)
+    loader.setRequestHeader(this.requestHeader)
+    loader.setWithCredentials(this.withCredentials)
+    return loader
   }
 
   private loadFullTexture(
