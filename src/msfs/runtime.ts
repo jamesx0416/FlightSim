@@ -3,6 +3,7 @@ import { AnimationMixer, type Material, type Object3D, Vector3 } from 'three'
 import { evaluateCompiledExpression } from './rpn'
 import type {
   CompiledAnimationBinding,
+  CompiledAnimationTriggerBinding,
   CompiledBehaviorSet,
   CompiledExpression,
   CompiledInputEventBinding,
@@ -77,9 +78,12 @@ export class AircraftRuntime {
   private readonly nodes = new Map<string, Object3D>()
   private readonly canonicalNodes = new Map<string, Object3D>()
   private readonly animationValues = new Map<string, number>()
+  private readonly animationTriggerValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly materialValues = new Map<string, number>()
   private activeAnimationBindings: readonly CompiledAnimationBinding[] = []
+  private activeAnimationTriggerBindings: readonly CompiledAnimationTriggerBinding[] = []
+  private readonly activeAnimationTriggerBindingsByAnimation = new Map<string, readonly CompiledAnimationTriggerBinding[]>()
   private readonly activeVisibilityBindings: readonly CompiledVisibilityBinding[]
   private readonly activeMaterialBindings: readonly RuntimeMaterialBinding[]
   private readonly runtimeState: RuntimeState
@@ -142,6 +146,7 @@ export class AircraftRuntime {
 
   bindAnimations(clips: readonly { readonly name: string }[]): void {
     const activeAnimationBindings: CompiledAnimationBinding[] = []
+    const activeAnimationNames = new Set<string>()
     for (const binding of this.compiled.animationBindings) {
       const clip = clips.find(candidate => candidate.name === binding.target)
       if (clip == null) continue
@@ -151,8 +156,17 @@ export class AircraftRuntime {
       action.paused = true
       this.actions.set(binding.target, action)
       activeAnimationBindings.push(binding)
+      activeAnimationNames.add(binding.target)
     }
     this.activeAnimationBindings = activeAnimationBindings
+    this.activeAnimationTriggerBindings = this.compiled.animationTriggerBindings.filter(binding =>
+      activeAnimationNames.has(binding.animation)
+    )
+    this.activeAnimationTriggerBindingsByAnimation.clear()
+    for (const binding of this.activeAnimationTriggerBindings) {
+      const bindings = this.activeAnimationTriggerBindingsByAnimation.get(binding.animation) ?? []
+      this.activeAnimationTriggerBindingsByAnimation.set(binding.animation, [...bindings, binding])
+    }
   }
 
   update(
@@ -211,6 +225,7 @@ export class AircraftRuntime {
         const normalizedValue = binding.wrap
           ? positiveModulo(value, binding.length) / binding.length
           : clamp(value / binding.length, 0, 1)
+        this.invokeAnimationTriggerBindings(binding.target, normalizedValue)
         action.time = normalizedValue * duration
       }
     }
@@ -542,6 +557,51 @@ export class AircraftRuntime {
     }
   }
 
+  private invokeAnimationTriggerBindings(animation: string, normalizedValue: number): void {
+    const previousValue = this.animationTriggerValues.get(animation)
+    this.animationTriggerValues.set(animation, normalizedValue)
+    if (previousValue == null || Math.abs(normalizedValue - previousValue) <= 1e-6) {
+      return
+    }
+
+    const direction = normalizedValue > previousValue ? 'forward' : 'backward'
+    for (const binding of this.activeAnimationTriggerBindingsByAnimation.get(animation) ?? []) {
+      if (
+        binding.direction !== 'both' && binding.direction !== direction
+      ) {
+        continue
+      }
+
+      const crossedTrigger =
+        binding.normalizedTime == null
+          ? true
+          : direction === 'forward'
+            ? previousValue < binding.normalizedTime && normalizedValue >= binding.normalizedTime
+            : previousValue > binding.normalizedTime && normalizedValue <= binding.normalizedTime
+      if (!crossedTrigger) {
+        continue
+      }
+
+      if (binding.eventKind === 'sound') {
+        this.hostServices.invokeSoundEvent?.(binding.eventName, {
+          phase: direction === 'forward' ? 'press' : 'release',
+          target: binding.animation,
+          normalizedTime: binding.normalizedTime,
+          sourcePath: binding.sourcePath,
+          sourceParameter: `AnimationTriggers:${binding.action}`
+        })
+      } else {
+        this.hostServices.invokeEffectEvent?.(binding.eventName, {
+          action: binding.action,
+          direction,
+          target: binding.animation,
+          normalizedTime: binding.normalizedTime,
+          sourcePath: binding.sourcePath
+        })
+      }
+    }
+  }
+
   private publishDelayedInteractionReleases(): void {
     for (let index = this.delayedInteractionReleases.length - 1; index >= 0; index -= 1) {
       const delayedRelease = this.delayedInteractionReleases[index]
@@ -807,6 +867,16 @@ export interface RuntimeSoundEvent {
   readonly sequence: number
 }
 
+export interface RuntimeEffectEvent {
+  readonly name: string
+  readonly action: string
+  readonly direction: 'forward' | 'backward'
+  readonly target: string
+  readonly normalizedTime: number | null
+  readonly sourcePath: string
+  readonly sequence: number
+}
+
 export interface RuntimeHtmlEvent {
   readonly name: string
   readonly args: readonly (number | string)[]
@@ -845,6 +915,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private keyEventCount = 0
   private htmlEventCount = 0
   private soundEventCount = 0
+  private effectEventCount = 0
   private bridgeCallCount = 0
   private defaultedVariableCount = 0
   private readonly inputEventBindings = new Map<string, CompiledExpression>()
@@ -854,6 +925,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private readonly recentKeyEvents: RuntimeKeyEvent[] = []
   private readonly keyEventListeners = new Set<RuntimeKeyEventListener>()
   private readonly recentSoundEvents: RuntimeSoundEvent[] = []
+  private readonly recentEffectEvents: RuntimeEffectEvent[] = []
   private readonly recentBridgeEvents: RuntimeBridgeEvent[] = []
   private readonly soundStates = new Map<string, boolean>()
   private readonly simVarSounds: readonly ImportedSimVarSound[]
@@ -1119,6 +1191,35 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.recordSoundEvent(name, event)
   }
 
+  invokeEffectEvent(
+    name: string,
+    event: {
+      readonly action: string
+      readonly direction: 'forward' | 'backward'
+      readonly target: string
+      readonly normalizedTime: number | null
+      readonly sourcePath: string
+    }
+  ): void {
+    const effectName = name.trim()
+    if (!effectName) {
+      return
+    }
+    this.effectEventCount += 1
+    this.recentEffectEvents.push({
+      name: effectName,
+      action: event.action,
+      direction: event.direction,
+      target: event.target,
+      normalizedTime: event.normalizedTime,
+      sourcePath: event.sourcePath,
+      sequence: this.effectEventCount
+    })
+    if (this.recentEffectEvents.length > 100) {
+      this.recentEffectEvents.splice(0, this.recentEffectEvents.length - 100)
+    }
+  }
+
   setInputEventBindings(bindings: readonly CompiledInputEventBinding[]): void {
     this.inputEventBindings.clear()
     for (const binding of bindings) {
@@ -1276,6 +1377,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   getSoundEvents(): readonly RuntimeSoundEvent[] {
     return this.recentSoundEvents.map(event => ({ ...event }))
+  }
+
+  getEffectEvents(): readonly RuntimeEffectEvent[] {
+    return this.recentEffectEvents.map(event => ({ ...event }))
   }
 
   getKeyEvents(): readonly RuntimeKeyEvent[] {

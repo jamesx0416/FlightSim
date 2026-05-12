@@ -48,6 +48,7 @@ type DevApiListKind =
   | 'interactions'
   | 'gauges'
   | 'animations'
+  | 'animationTriggers'
   | 'materials'
   | 'inputEvents'
   | 'variables'
@@ -119,7 +120,7 @@ type ViewerDevApi = {
   readonly writeVar: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly keyEvent: (name: string, args?: readonly number[]) => DevApiResponse
   readonly bridgeCall: (name: string, args?: readonly number[]) => DevApiResponse
-  readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'bridge' | 'interaction' }) => DevApiResponse
+  readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'effect' | 'bridge' | 'interaction' }) => DevApiResponse
   readonly watch: (
     targets: string | readonly string[],
     options?: { readonly durationMs?: number; readonly intervalMs?: number; readonly unit?: string | null }
@@ -447,6 +448,13 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         value: runtimeState.animationValues.get(binding.target) ?? null
       }))
   }
+  const collectAnimationTriggers = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
+    const needle = filter.trim().toLowerCase()
+    return context.getCompiledBehaviors().animationTriggerBindings
+      .filter(binding => !needle || binding.animation.toLowerCase().includes(needle) || binding.eventName.toLowerCase().includes(needle))
+      .slice(0, limit)
+      .map(binding => ({ ...binding }))
+  }
   const summarizeMaterial = (material: Material): Record<string, unknown> => {
     const materialRecord = material as Material & {
       readonly color?: { readonly getHexString?: () => string }
@@ -674,6 +682,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     if (kind === 'components' || kind === 'interactions') return ok('Listed cockpit components/interactions.', collectComponents(filter, limit))
     if (kind === 'gauges') return ok('Listed VCockpit gauges.', gauges().map(summarizeGauge).slice(0, limit))
     if (kind === 'animations') return ok('Listed animation bindings.', collectAnimations(filter, limit))
+    if (kind === 'animationTriggers') return ok('Listed animation trigger bindings.', collectAnimationTriggers(filter, limit))
     if (kind === 'materials') return ok('Listed scene materials.', collectMaterials(filter, limit))
     if (kind === 'inputEvents') {
       const normalizedFilter = filter.trim().toLowerCase()
@@ -723,7 +732,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }),
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
-      listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
+      listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
@@ -859,6 +868,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       key: options.kind == null || options.kind === 'key' ? context.getRuntimeHost().getKeyEvents() : [],
       html: options.kind == null || options.kind === 'html' ? context.getRuntimeHost().getHtmlEvents() : [],
       sound: options.kind == null || options.kind === 'sound' ? context.getRuntimeHost().getSoundEvents() : [],
+      effect: options.kind == null || options.kind === 'effect' ? context.getRuntimeHost().getEffectEvents() : [],
       bridge: options.kind == null || options.kind === 'bridge' ? context.getRuntimeHost().getBridgeEvents() : [],
       interaction: options.kind == null || options.kind === 'interaction' ? { ...context.cockpitInteractionStats } : null
     }),

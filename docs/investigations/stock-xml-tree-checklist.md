@@ -25164,74 +25164,76 @@
         - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code_Base">` line 107
           - [x] `<ANIM_CODE>` line 108 = `#PERCENT#`
   - Verified through the generic animation compiler/runtime path: `ASOBO_GT_Anim` dispatches to code or simvar forms, `buildAnimationBinding()` / `buildAnimationSimBinding()` compile the RPN, and A320/A330 fixture runs recorded hundreds of animation bindings with zero `animation_params_missing` diagnostics.
-- [ ] `Asobo/Generic/AnimationTriggers.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_EffectEvent">` line 15
-      - [ ] `<DefaultTemplateParameters>` line 16
-        - [ ] `<NORMALIZED_TIME>` line 17
-        - [ ] `<DIRECTION>` line 18
-        - [ ] `<ACTION>` line 19
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 22
-        - [ ] `<False>` line 23
-          - [ ] `<AnimationTriggers>` line 24
-            - [ ] `<EventTrigger>` line 25
-              - [ ] `<EffectEvent Name="#EVENT_NAME#">` line 26
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvent">` line 44
-      - [ ] `<DefaultTemplateParameters>` line 45
-        - [ ] `<WWISE_EVENT>` line 46 = `button_switch_generic`
-        - [ ] `<NORMALIZED_TIME>` line 47
-        - [ ] `<DIRECTION>` line 48
-        - [ ] `<ACTION>` line 49
-      - [ ] `<OverrideTemplateParameters>` line 51
-        - [ ] `<Condition Check="AUDIO_NORMALIZED_TIME">` line 52
-          - [ ] `<NORMALIZED_TIME>` line 53
-        - [ ] `<Condition Check="AUDIO_DIRECTION">` line 55
-          - [ ] `<DIRECTION>` line 56
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 60
-        - [ ] `<False>` line 61
-          - [ ] `<AnimationTriggers>` line 62
-            - [ ] `<EventTrigger>` line 63
-              - [ ] `<SoundEvent>` line 64
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvents_Same">` line 71
-      - [ ] `<DefaultTemplateParameters>` line 72
-        - [ ] `<WWISE_EVENT>` line 73 = `button_switch_generic`
-        - [ ] `<ACTION>` line 74
-        - [ ] `<COUNT>` line 75
-        - [ ] `<AUDIO_DIRECTION>` line 76
-      - [ ] `<OverrideTemplateParameters>` line 78
-        - [ ] `<Condition Check="AUDIO_DIRECTION">` line 79
-          - [ ] `<DIRECTION>` line 80
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 84
-        - [ ] `<False>` line 85
-          - [ ] `<AnimationTriggers>` line 86
-            - [ ] `<EventTrigger>` line 87
-              - [ ] `<SoundEvent>` line 88
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_2SoundEvents">` line 102
-      - [ ] `<DefaultTemplateParameters>` line 103
-        - [ ] `<WWISE_EVENT_1>` line 104
-        - [ ] `<ACTION_1>` line 105
-        - [ ] `<NORMALIZED_TIME_1>` line 106
-        - [ ] `<DIRECTION_1>` line 107
-        - [ ] `<WWISE_EVENT_2>` line 108
-        - [ ] `<ACTION_2>` line 109
-        - [ ] `<NORMALIZED_TIME_2>` line 110
-        - [ ] `<DIRECTION_2>` line 111
-      - [ ] `<OverrideTemplateParameters>` line 113
-        - [ ] `<Condition Check="AUDIO_NORMALIZED_TIME_1">` line 114
-          - [ ] `<NORMALIZED_TIME_1>` line 115
-        - [ ] `<Condition Check="AUDIO_NORMALIZED_TIME_2">` line 117
-          - [ ] `<NORMALIZED_TIME_2>` line 118
-        - [ ] `<Condition Check="AUDIO_DIRECTION_1">` line 120
-          - [ ] `<DIRECTION_1>` line 121
-        - [ ] `<Condition Check="AUDIO_DIRECTION_2">` line 123
-          - [ ] `<DIRECTION_2>` line 124
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 128
-        - [ ] `<False>` line 129
-          - [ ] `<AnimationTriggers>` line 130
-            - [ ] `<EventTrigger>` line 131
-              - [ ] `<SoundEvent>` line 132
-            - [ ] `<EventTrigger>` line 134
-              - [ ] `<SoundEvent>` line 135
+- [x] `Asobo/Generic/AnimationTriggers.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_EffectEvent">` line 15
+      - [x] `<DefaultTemplateParameters>` line 16
+        - [x] `<NORMALIZED_TIME>` line 17
+        - [x] `<DIRECTION>` line 18
+        - [x] `<ACTION>` line 19
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 22
+        - [x] `<False>` line 23
+          - [x] `<AnimationTriggers>` line 24
+            - [x] `<EventTrigger>` line 25
+              - [x] `<EffectEvent Name="#EVENT_NAME#">` line 26
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvent">` line 44
+      - [x] `<DefaultTemplateParameters>` line 45
+        - [x] `<WWISE_EVENT>` line 46 = `button_switch_generic`
+        - [x] `<NORMALIZED_TIME>` line 47
+        - [x] `<DIRECTION>` line 48
+        - [x] `<ACTION>` line 49
+      - [x] `<OverrideTemplateParameters>` line 51
+        - [x] `<Condition Check="AUDIO_NORMALIZED_TIME">` line 52
+          - [x] `<NORMALIZED_TIME>` line 53
+        - [x] `<Condition Check="AUDIO_DIRECTION">` line 55
+          - [x] `<DIRECTION>` line 56
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 60
+        - [x] `<False>` line 61
+          - [x] `<AnimationTriggers>` line 62
+            - [x] `<EventTrigger>` line 63
+              - [x] `<SoundEvent>` line 64
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvents_Same">` line 71
+      - [x] `<DefaultTemplateParameters>` line 72
+        - [x] `<WWISE_EVENT>` line 73 = `button_switch_generic`
+        - [x] `<ACTION>` line 74
+        - [x] `<COUNT>` line 75
+        - [x] `<AUDIO_DIRECTION>` line 76
+      - [x] `<OverrideTemplateParameters>` line 78
+        - [x] `<Condition Check="AUDIO_DIRECTION">` line 79
+          - [x] `<DIRECTION>` line 80
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 84
+        - [x] `<False>` line 85
+          - [x] `<AnimationTriggers>` line 86
+            - [x] `<EventTrigger>` line 87
+              - [x] `<SoundEvent>` line 88
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_2SoundEvents">` line 102
+      - [x] `<DefaultTemplateParameters>` line 103
+        - [x] `<WWISE_EVENT_1>` line 104
+        - [x] `<ACTION_1>` line 105
+        - [x] `<NORMALIZED_TIME_1>` line 106
+        - [x] `<DIRECTION_1>` line 107
+        - [x] `<WWISE_EVENT_2>` line 108
+        - [x] `<ACTION_2>` line 109
+        - [x] `<NORMALIZED_TIME_2>` line 110
+        - [x] `<DIRECTION_2>` line 111
+      - [x] `<OverrideTemplateParameters>` line 113
+        - [x] `<Condition Check="AUDIO_NORMALIZED_TIME_1">` line 114
+          - [x] `<NORMALIZED_TIME_1>` line 115
+        - [x] `<Condition Check="AUDIO_NORMALIZED_TIME_2">` line 117
+          - [x] `<NORMALIZED_TIME_2>` line 118
+        - [x] `<Condition Check="AUDIO_DIRECTION_1">` line 120
+          - [x] `<DIRECTION_1>` line 121
+        - [x] `<Condition Check="AUDIO_DIRECTION_2">` line 123
+          - [x] `<DIRECTION_2>` line 124
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 128
+        - [x] `<False>` line 129
+          - [x] `<AnimationTriggers>` line 130
+            - [x] `<EventTrigger>` line 131
+              - [x] `<SoundEvent>` line 132
+            - [x] `<EventTrigger>` line 134
+              - [x] `<SoundEvent>` line 135
+  - Verified through the generic animation-trigger compiler/runtime path: stock AnimationTriggers nodes now compile to animation trigger bindings, ASOBO_GT_AnimTriggers_2SoundEvents expands instead of no-oping, SoundEvent triggers are indexed by animation for runtime dispatch, and EffectEvent triggers are recorded through DevApi effect events. Agent Browser DevApi checks on 2026-05-12 covered A320 and A330 routes with zero errors; A320 listed 997 animation trigger bindings and setting flaps to 60 recorded 10 CAM_FLAPS effect events, while A330 listed 1168 animation trigger bindings including 1156 sound and 12 effect triggers and held 60 FPS after reload. Screenshots: backups/agent-browser/generic-animation-triggers-support/screenshot-1778578417654.png and backups/agent-browser/generic-animation-triggers-support/screenshot-1778578472711.png.
+
 - [ ] `Asobo/Generic/Complex/Index.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 4
@@ -63845,74 +63847,76 @@
         - [x] `<UseTemplate Name="ASOBO_GT_Anim_Code_Base">` line 107
           - [x] `<ANIM_CODE>` line 108 = `#PERCENT#`
   - Verified through the generic animation compiler/runtime path: `ASOBO_GT_Anim` dispatches to code or simvar forms, `buildAnimationBinding()` / `buildAnimationSimBinding()` compile the RPN, and A320/A330 fixture runs recorded hundreds of animation bindings with zero `animation_params_missing` diagnostics.
-- [ ] `Asobo/Generic/AnimationTriggers.xml`
-  - [ ] `<ModelBehaviors>` line 1
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_EffectEvent">` line 15
-      - [ ] `<DefaultTemplateParameters>` line 16
-        - [ ] `<NORMALIZED_TIME>` line 17
-        - [ ] `<DIRECTION>` line 18
-        - [ ] `<ACTION>` line 19
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 22
-        - [ ] `<False>` line 23
-          - [ ] `<AnimationTriggers>` line 24
-            - [ ] `<EventTrigger>` line 25
-              - [ ] `<EffectEvent Name="#EVENT_NAME#">` line 26
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvent">` line 44
-      - [ ] `<DefaultTemplateParameters>` line 45
-        - [ ] `<WWISE_EVENT>` line 46 = `button_switch_generic`
-        - [ ] `<NORMALIZED_TIME>` line 47
-        - [ ] `<DIRECTION>` line 48
-        - [ ] `<ACTION>` line 49
-      - [ ] `<OverrideTemplateParameters>` line 51
-        - [ ] `<Condition Check="AUDIO_NORMALIZED_TIME">` line 52
-          - [ ] `<NORMALIZED_TIME>` line 53
-        - [ ] `<Condition Check="AUDIO_DIRECTION">` line 55
-          - [ ] `<DIRECTION>` line 56
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 60
-        - [ ] `<False>` line 61
-          - [ ] `<AnimationTriggers>` line 62
-            - [ ] `<EventTrigger>` line 63
-              - [ ] `<SoundEvent>` line 64
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvents_Same">` line 71
-      - [ ] `<DefaultTemplateParameters>` line 72
-        - [ ] `<WWISE_EVENT>` line 73 = `button_switch_generic`
-        - [ ] `<ACTION>` line 74
-        - [ ] `<COUNT>` line 75
-        - [ ] `<AUDIO_DIRECTION>` line 76
-      - [ ] `<OverrideTemplateParameters>` line 78
-        - [ ] `<Condition Check="AUDIO_DIRECTION">` line 79
-          - [ ] `<DIRECTION>` line 80
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 84
-        - [ ] `<False>` line 85
-          - [ ] `<AnimationTriggers>` line 86
-            - [ ] `<EventTrigger>` line 87
-              - [ ] `<SoundEvent>` line 88
-    - [ ] `<Template Name="ASOBO_GT_AnimTriggers_2SoundEvents">` line 102
-      - [ ] `<DefaultTemplateParameters>` line 103
-        - [ ] `<WWISE_EVENT_1>` line 104
-        - [ ] `<ACTION_1>` line 105
-        - [ ] `<NORMALIZED_TIME_1>` line 106
-        - [ ] `<DIRECTION_1>` line 107
-        - [ ] `<WWISE_EVENT_2>` line 108
-        - [ ] `<ACTION_2>` line 109
-        - [ ] `<NORMALIZED_TIME_2>` line 110
-        - [ ] `<DIRECTION_2>` line 111
-      - [ ] `<OverrideTemplateParameters>` line 113
-        - [ ] `<Condition Check="AUDIO_NORMALIZED_TIME_1">` line 114
-          - [ ] `<NORMALIZED_TIME_1>` line 115
-        - [ ] `<Condition Check="AUDIO_NORMALIZED_TIME_2">` line 117
-          - [ ] `<NORMALIZED_TIME_2>` line 118
-        - [ ] `<Condition Check="AUDIO_DIRECTION_1">` line 120
-          - [ ] `<DIRECTION_1>` line 121
-        - [ ] `<Condition Check="AUDIO_DIRECTION_2">` line 123
-          - [ ] `<DIRECTION_2>` line 124
-      - [ ] `<Condition Valid="DISABLE_ANIMATION">` line 128
-        - [ ] `<False>` line 129
-          - [ ] `<AnimationTriggers>` line 130
-            - [ ] `<EventTrigger>` line 131
-              - [ ] `<SoundEvent>` line 132
-            - [ ] `<EventTrigger>` line 134
-              - [ ] `<SoundEvent>` line 135
+- [x] `Asobo/Generic/AnimationTriggers.xml`
+  - [x] `<ModelBehaviors>` line 1
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_EffectEvent">` line 15
+      - [x] `<DefaultTemplateParameters>` line 16
+        - [x] `<NORMALIZED_TIME>` line 17
+        - [x] `<DIRECTION>` line 18
+        - [x] `<ACTION>` line 19
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 22
+        - [x] `<False>` line 23
+          - [x] `<AnimationTriggers>` line 24
+            - [x] `<EventTrigger>` line 25
+              - [x] `<EffectEvent Name="#EVENT_NAME#">` line 26
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvent">` line 44
+      - [x] `<DefaultTemplateParameters>` line 45
+        - [x] `<WWISE_EVENT>` line 46 = `button_switch_generic`
+        - [x] `<NORMALIZED_TIME>` line 47
+        - [x] `<DIRECTION>` line 48
+        - [x] `<ACTION>` line 49
+      - [x] `<OverrideTemplateParameters>` line 51
+        - [x] `<Condition Check="AUDIO_NORMALIZED_TIME">` line 52
+          - [x] `<NORMALIZED_TIME>` line 53
+        - [x] `<Condition Check="AUDIO_DIRECTION">` line 55
+          - [x] `<DIRECTION>` line 56
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 60
+        - [x] `<False>` line 61
+          - [x] `<AnimationTriggers>` line 62
+            - [x] `<EventTrigger>` line 63
+              - [x] `<SoundEvent>` line 64
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_SoundEvents_Same">` line 71
+      - [x] `<DefaultTemplateParameters>` line 72
+        - [x] `<WWISE_EVENT>` line 73 = `button_switch_generic`
+        - [x] `<ACTION>` line 74
+        - [x] `<COUNT>` line 75
+        - [x] `<AUDIO_DIRECTION>` line 76
+      - [x] `<OverrideTemplateParameters>` line 78
+        - [x] `<Condition Check="AUDIO_DIRECTION">` line 79
+          - [x] `<DIRECTION>` line 80
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 84
+        - [x] `<False>` line 85
+          - [x] `<AnimationTriggers>` line 86
+            - [x] `<EventTrigger>` line 87
+              - [x] `<SoundEvent>` line 88
+    - [x] `<Template Name="ASOBO_GT_AnimTriggers_2SoundEvents">` line 102
+      - [x] `<DefaultTemplateParameters>` line 103
+        - [x] `<WWISE_EVENT_1>` line 104
+        - [x] `<ACTION_1>` line 105
+        - [x] `<NORMALIZED_TIME_1>` line 106
+        - [x] `<DIRECTION_1>` line 107
+        - [x] `<WWISE_EVENT_2>` line 108
+        - [x] `<ACTION_2>` line 109
+        - [x] `<NORMALIZED_TIME_2>` line 110
+        - [x] `<DIRECTION_2>` line 111
+      - [x] `<OverrideTemplateParameters>` line 113
+        - [x] `<Condition Check="AUDIO_NORMALIZED_TIME_1">` line 114
+          - [x] `<NORMALIZED_TIME_1>` line 115
+        - [x] `<Condition Check="AUDIO_NORMALIZED_TIME_2">` line 117
+          - [x] `<NORMALIZED_TIME_2>` line 118
+        - [x] `<Condition Check="AUDIO_DIRECTION_1">` line 120
+          - [x] `<DIRECTION_1>` line 121
+        - [x] `<Condition Check="AUDIO_DIRECTION_2">` line 123
+          - [x] `<DIRECTION_2>` line 124
+      - [x] `<Condition Valid="DISABLE_ANIMATION">` line 128
+        - [x] `<False>` line 129
+          - [x] `<AnimationTriggers>` line 130
+            - [x] `<EventTrigger>` line 131
+              - [x] `<SoundEvent>` line 132
+            - [x] `<EventTrigger>` line 134
+              - [x] `<SoundEvent>` line 135
+  - Verified through the generic animation-trigger compiler/runtime path: stock AnimationTriggers nodes now compile to animation trigger bindings, ASOBO_GT_AnimTriggers_2SoundEvents expands instead of no-oping, SoundEvent triggers are indexed by animation for runtime dispatch, and EffectEvent triggers are recorded through DevApi effect events. Agent Browser DevApi checks on 2026-05-12 covered A320 and A330 routes with zero errors; A320 listed 997 animation trigger bindings and setting flaps to 60 recorded 10 CAM_FLAPS effect events, while A330 listed 1168 animation trigger bindings including 1156 sound and 12 effect triggers and held 60 FPS after reload. Screenshots: backups/agent-browser/generic-animation-triggers-support/screenshot-1778578417654.png and backups/agent-browser/generic-animation-triggers-support/screenshot-1778578472711.png.
+
 - [ ] `Asobo/Generic/Complex/Index.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 4

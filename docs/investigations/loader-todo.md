@@ -701,7 +701,7 @@ Scope note:
 ##### Generic
 
 - [x] `Generic.xml`
-- [ ] `Generic/AnimationTriggers.xml`
+- [x] `Generic/AnimationTriggers.xml`
 - [x] `Generic/Animations.xml`
 - [x] `Generic/Emissive.xml`
 - [x] `Generic/FX.xml`
