@@ -1437,7 +1437,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.electricalState.externalPowerSwitch = this.hasStoredExternalPower() ? 1 : normalizedValue
       return
     }
-    if (key === 'A:EXTERNAL POWER AVAILABLE' || key.includes('EXT_PWR_AVAIL')) {
+    if (isExternalPowerAvailableKey(key)) {
       this.electricalState.externalPowerAvailable = normalizedValue
       return
     }
@@ -1522,6 +1522,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey === 'A:WINDSHIELD DEICE SWITCH') return handled(0)
     if (upperKey === 'A:STRUCTURAL DEICE SWITCH') return handled(0)
     if (upperKey === 'A:LIGHT BEACON') return handled(0)
+    if (isExternalPowerAvailableKey(upperKey)) {
+      return handled(this.electricalState.externalPowerAvailable)
+    }
     if (upperKey.includes('BRIGHTNESS') || upperKey.includes('POTENTIOMETER')) {
       return handled(resolveBrightnessOrPotentiometerFallback(
         upperKey,
@@ -4017,6 +4020,7 @@ function isDynamicRuntimeFallbackKey(key: string): boolean {
   return (
     isElectricalPowerKey(key) ||
     isElectricalVoltageKey(key) ||
+    isExternalPowerAvailableKey(key) ||
     isCircuitPowerStateKey(key) ||
     key.startsWith('A:CIRCUIT POWER SETTING:') ||
     key.includes('BRIGHTNESS') ||
@@ -4055,6 +4059,15 @@ function isExternalPowerControlKey(key: string): boolean {
     key === 'A:EXTERNAL POWER ON' ||
     ((key.includes('EXTERNAL POWER') || key.includes('EXT_PWR')) &&
       (key.includes('SWITCH') || key.includes('PB_IS_ON') || key.endsWith('_IS_ON') || key.endsWith('_ON')))
+  )
+}
+
+function isExternalPowerAvailableKey(key: string): boolean {
+  return (
+    key === 'A:EXTERNAL POWER AVAILABLE' ||
+    key.includes('EXTERNAL POWER AVAILABLE') ||
+    key.includes('EXT_PWR_AVAIL') ||
+    key.includes('EXTERNAL_POWER_AVAILABLE')
   )
 }
 
