@@ -2089,16 +2089,30 @@ function getInteractionInputEventBindingEventSource(
 }
 
 function buildInteractionGateCodeSource(params: ReadonlyMap<string, string>): string {
-  const eventIdSet = params.get('EVENTID_SET')?.trim() ?? ''
+  const eventIdSet =
+    params.get('EVENTID_SET')?.trim() ||
+    params.get('DRAG_EVENTID_SET')?.trim() ||
+    ''
   if (eventIdSet) {
-    const simvar = params.get('SIMVAR')?.trim() ?? ''
-    const simvarUnits = params.get('SIMVAR_UNITS')?.trim() || 'number'
-    const increment = params.get('INCREMENT')?.trim() || params.get('DRAG_SPEED')?.trim() || '1'
+    const normalizedEventIdSet = normalizeKeyEventId(eventIdSet)
+    const simvar =
+      params.get('SIMVAR')?.trim() ||
+      params.get('DRAG_SIMVAR')?.trim() ||
+      ''
+    const simvarUnits =
+      params.get('SIMVAR_UNITS')?.trim() ||
+      params.get('DRAG_SIMVAR_UNITS')?.trim() ||
+      'number'
+    const increment =
+      params.get('INCREMENT')?.trim() ||
+      params.get('DRAG_SPEED')?.trim() ||
+      params.get('DRAG_DELTA')?.trim() ||
+      '1'
     const eventConversion = params.get('EVENTID_CONVERSION')?.trim() ?? ''
     if (simvar) {
-      return `(A:${simvar}, ${simvarUnits}) ${increment} + ${eventConversion} (>K:${eventIdSet})`
+      return `(A:${simvar}, ${simvarUnits}) ${increment} + ${eventConversion} (>K:${normalizedEventIdSet})`
     }
-    return `1 (>K:${eventIdSet})`
+    return `1 (>K:${normalizedEventIdSet})`
   }
 
   const positionType = params.get('POSITION_TYPE')?.trim() || 'O'

@@ -489,6 +489,9 @@ Rules:
 - [x] Preserve direction for generic rotary key-event fallback bindings.
   - Templates that provide both `CLOCKWISE_EVENTID` and `ANTICLOCKWISE_EVENTID` without explicit RPN code now compile a generic `M:Event` branch instead of falling back to only the first key event.
   - Verified with `tsc --noEmit` and an Agent Browser in-page compiler harness on 2026-05-12: a synthetic stock-shaped rotary template with `CLOCKWISE_EVENTID=K:TEST_INC` and `ANTICLOCKWISE_EVENTID=TEST_DEC` compiled to `(M:Event) 'WheelDown' scmp 0 == if{ (>K:TEST_INC) } els{ (>K:TEST_DEC) }` with zero diagnostics; the A320 LOD1 cockpit route still compiled 766 interactions with zero errors.
+- [x] Preserve value-carrying drag set-event fallbacks.
+  - Templates that provide `DRAG_EVENTID_SET` without explicit callback RPN now compile a value-carrying set-event expression using `DRAG_SIMVAR`, `DRAG_SIMVAR_UNITS`, `DRAG_SPEED` / `DRAG_DELTA`, and optional `EVENTID_CONVERSION` instead of invoking the set event without a value.
+  - Verified with `tsc --noEmit` and an Agent Browser in-page compiler harness on 2026-05-12: a synthetic stock-shaped drag template with `DRAG_EVENTID_SET=K:TEST_AXIS_SET`, `DRAG_SIMVAR=TEST AXIS POSITION`, `DRAG_SIMVAR_UNITS=percent`, `DRAG_SPEED=5`, and `EVENTID_CONVERSION=2 *` compiled to `(A:TEST AXIS POSITION, percent) 5 + 2 * (>K:TEST_AXIS_SET)` with zero diagnostics.
 - [x] Support value-carrying simple key-event writes for cockpit systems.
   - Simple `value (>K:EVENT)` RPN writes now consume the top stack value instead of always invoking the key event with no arguments, matching cockpit lighting, electrical, and fuel templates that use simple event writes without an explicit `>K:N:` argument count.
   - The demo runtime host now applies generic light potentiometer, light switch, fuel pump/valve/junction, and electrical circuit key events to corresponding SimVars.
