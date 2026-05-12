@@ -28875,27 +28875,27 @@
               - [ ] `<DragScalar>` line 2208
               - [ ] `<DragFlagsLockable>` line 2209
           - [ ] `<Case Check="Y_MOVEMENT">` line 2212
-            - [ ] `<CallbackJumpDragging>` line 2213
+            - [x] `<CallbackJumpDragging>` line 2213
               - [ ] `<YMovement>` line 2214
                 - [ ] `<Delta>` line 2215
                 - [ ] `<DragScalar>` line 2216
-                - [ ] `<EventIdInc>` line 2217
-                - [ ] `<EventIdDec>` line 2218
+                - [x] `<EventIdInc>` line 2217
+                - [x] `<EventIdDec>` line 2218
               - [ ] `<DragUseAnimLag>` line 2220
               - [ ] `<DragScalar>` line 2221
               - [ ] `<DragFlagsLockable>` line 2222
           - [ ] `<Case Check="X_MOVEMENT">` line 2225
-            - [ ] `<CallbackJumpDragging>` line 2226
+            - [x] `<CallbackJumpDragging>` line 2226
               - [ ] `<XMovement>` line 2227
                 - [ ] `<Delta>` line 2228
                 - [ ] `<DragScalar>` line 2229
-                - [ ] `<EventIdInc>` line 2230
-                - [ ] `<EventIdDec>` line 2231
+                - [x] `<EventIdInc>` line 2230
+                - [x] `<EventIdDec>` line 2231
               - [ ] `<DragUseAnimLag>` line 2233
               - [ ] `<DragScalar>` line 2234
               - [ ] `<DragFlagsLockable>` line 2235
           - [ ] `<Case Check="CALLBACKDRAGGING">` line 2238
-            - [ ] `<CallbackDragging>` line 2239
+            - [x] `<CallbackDragging>` line 2239
               - [ ] `<Variable>` line 2240
               - [ ] `<Units>` line 2241 = `#DRAG_SIMVAR_UNITS#`
               - [ ] `<Scale>` line 2242
@@ -67558,27 +67558,27 @@
               - [ ] `<DragScalar>` line 2208
               - [ ] `<DragFlagsLockable>` line 2209
           - [ ] `<Case Check="Y_MOVEMENT">` line 2212
-            - [ ] `<CallbackJumpDragging>` line 2213
+            - [x] `<CallbackJumpDragging>` line 2213
               - [ ] `<YMovement>` line 2214
                 - [ ] `<Delta>` line 2215
                 - [ ] `<DragScalar>` line 2216
-                - [ ] `<EventIdInc>` line 2217
-                - [ ] `<EventIdDec>` line 2218
+                - [x] `<EventIdInc>` line 2217
+                - [x] `<EventIdDec>` line 2218
               - [ ] `<DragUseAnimLag>` line 2220
               - [ ] `<DragScalar>` line 2221
               - [ ] `<DragFlagsLockable>` line 2222
           - [ ] `<Case Check="X_MOVEMENT">` line 2225
-            - [ ] `<CallbackJumpDragging>` line 2226
+            - [x] `<CallbackJumpDragging>` line 2226
               - [ ] `<XMovement>` line 2227
                 - [ ] `<Delta>` line 2228
                 - [ ] `<DragScalar>` line 2229
-                - [ ] `<EventIdInc>` line 2230
-                - [ ] `<EventIdDec>` line 2231
+                - [x] `<EventIdInc>` line 2230
+                - [x] `<EventIdDec>` line 2231
               - [ ] `<DragUseAnimLag>` line 2233
               - [ ] `<DragScalar>` line 2234
               - [ ] `<DragFlagsLockable>` line 2235
           - [ ] `<Case Check="CALLBACKDRAGGING">` line 2238
-            - [ ] `<CallbackDragging>` line 2239
+            - [x] `<CallbackDragging>` line 2239
               - [ ] `<Variable>` line 2240
               - [ ] `<Units>` line 2241 = `#DRAG_SIMVAR_UNITS#`
               - [ ] `<Scale>` line 2242
