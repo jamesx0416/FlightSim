@@ -19286,6 +19286,7 @@
                 - [ ] `<TT_ICON>` line 909
                 - [ ] `<IE_NAME>` line 910 = `RudderTrim_Reset`
                 - [x] `<SET_CODE>` line 911 = `0 (>K:RUDDER_TRIM_SET) 1 (>O:_ButtonAnimVar)`
+                  - Verified 2026-05-12: `RUDDER_TRIM_SET` handles percent-style authored values generically while reset `0` remains stable; A330 `KNOB_RUDDERTRIM` `WheelDown` / `WheelUp` moved `A:RUDDER TRIM PCT` to `0.05` then back to `0`.
                 - [ ] `<WWISE_EVENT_1>` line 912
                 - [ ] `<WWISE_EVENT_2>` line 913
                 - [ ] `<TT_DESCRIPTION_ID>` line 914 = `@TT_Package.HANDLING_PUSH_RUDDERRESET_ACTION`
@@ -57969,6 +57970,7 @@
                 - [ ] `<TT_ICON>` line 909
                 - [ ] `<IE_NAME>` line 910 = `RudderTrim_Reset`
                 - [x] `<SET_CODE>` line 911 = `0 (>K:RUDDER_TRIM_SET) 1 (>O:_ButtonAnimVar)`
+                  - Verified 2026-05-12: `RUDDER_TRIM_SET` handles percent-style authored values generically while reset `0` remains stable; A330 `KNOB_RUDDERTRIM` `WheelDown` / `WheelUp` moved `A:RUDDER TRIM PCT` to `0.05` then back to `0`.
                 - [ ] `<WWISE_EVENT_1>` line 912
                 - [ ] `<WWISE_EVENT_2>` line 913
                 - [ ] `<TT_DESCRIPTION_ID>` line 914 = `@TT_Package.HANDLING_PUSH_RUDDERRESET_ACTION`

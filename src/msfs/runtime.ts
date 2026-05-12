@@ -2613,7 +2613,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
-    if (name === 'RUDDER_TRIM_SET' || name === 'RUDDER_TRIM_SET_EX1') {
+    if (name === 'RUDDER_TRIM_SET') {
+      this.setRudderTrim(trimSetEventValueToFraction(Number(args.at(-1) ?? 0)))
+      return true
+    }
+
+    if (name === 'RUDDER_TRIM_SET_EX1') {
       this.setRudderTrim(Number(args.at(-1) ?? 0) / 16_384)
       return true
     }
@@ -4165,6 +4170,9 @@ function resolveStoredRuntimeValue(key: string, value: number, unit: string | nu
   if (key.startsWith('A:HYDRAULIC RESERVOIR PERCENT:')) {
     return convertPercentUnit(value, unit)
   }
+  if (isFractionalTrimPercentKey(key)) {
+    return convertPercentOver100Unit(value, unit)
+  }
   if (isHandlingPercentPositionKey(key)) {
     return convertPercentToPosition16kUnit(value, unit)
   }
@@ -4218,6 +4226,16 @@ function position16kToPercent(value: number, allowNegative: boolean): number {
   return (clampedValue / 16_384) * 100
 }
 
+function trimSetEventValueToFraction(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0
+  }
+  if (Math.abs(value) <= 100) {
+    return value / 100
+  }
+  return value / 16_384
+}
+
 function getFlexibleIndexedSetEventArgs(args: readonly number[], defaultIndex: number): { index: number; value: number } {
   if (args.length >= 2) {
     const first = Number(args[0] ?? Number.NaN)
@@ -4244,6 +4262,14 @@ function isHandlingPercentPositionKey(key: string): boolean {
     key === 'A:BRAKE LEFT POSITION' ||
     key === 'A:BRAKE RIGHT POSITION' ||
     key === 'A:WATER RUDDER HANDLE POSITION'
+  )
+}
+
+function isFractionalTrimPercentKey(key: string): boolean {
+  return (
+    key === 'A:AILERON TRIM PCT' ||
+    key === 'A:ELEVATOR TRIM PCT' ||
+    key === 'A:RUDDER TRIM PCT'
   )
 }
 
