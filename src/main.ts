@@ -3430,6 +3430,7 @@ export type VCockpitHtmlGaugeRuntime = {
     | 'iframe-error'
     | 'unsupported-native-abi'
   iframe: HTMLIFrameElement | null
+  sourceObjectUrl: string | null
   captured: boolean
   captureImage: HTMLCanvasElement | null
   captureAttemptCount: number
@@ -3483,6 +3484,7 @@ type VCockpitSurfaceTextureRuntime = {
 
 const VCOCKPIT_HTML_MAX_CAPTURE_ATTEMPTS = 6
 const VCOCKPIT_HTML_GAUGE_LOAD_CONCURRENCY = 1
+const VCOCKPIT_HTML_GAUGE_DOM_READY_TIMEOUT_MS = 1000
 const VCOCKPIT_HTML_GAUGE_LOAD_IDLE_TIMEOUT_MS = 250
 const VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ = 8
 const VCOCKPIT_HTML_GAUGE_DEFAULT_RASTER_SCALE = 0.75
@@ -3767,7 +3769,7 @@ async function bindVCockpitPlaceholderSurfaces(
     }
 
     const response = handleVCockpitGaugeRuntimeRequest(event.data, runtimeHost)
-    sourceWindow.postMessage(response, '*')
+    postWindowMessage(sourceWindow, response)
   }
   const removeHtmlEventListener = runtimeHost.addHtmlEventListener(event => {
     if (disposed) {
@@ -3780,7 +3782,7 @@ async function bindVCockpitPlaceholderSurfaces(
       sequence: event.sequence
     }
     for (const gaugeRuntime of htmlGaugeRuntimes) {
-      gaugeRuntime.iframe?.contentWindow?.postMessage(message, '*')
+      postVCockpitGaugeRuntimeMessage(gaugeRuntime, message)
     }
   })
   const removeKeyEventListener = runtimeHost.addKeyEventListener(event => {
@@ -3794,7 +3796,7 @@ async function bindVCockpitPlaceholderSurfaces(
       sequence: event.sequence
     }
     for (const gaugeRuntime of htmlGaugeRuntimes) {
-      gaugeRuntime.iframe?.contentWindow?.postMessage(message, '*')
+      postVCockpitGaugeRuntimeMessage(gaugeRuntime, message)
     }
   })
   const markGaugeRuntimeDirty = (
@@ -3910,7 +3912,7 @@ async function bindVCockpitPlaceholderSurfaces(
           severity: 'warning',
           sourcePath: surface.panelPath,
           message: `${surface.sectionName} HTML gauge runtimes could not be created.`,
-          details: error instanceof Error ? error.message : String(error)
+          details: formatCaughtErrorForDiagnostics(error)
         })
       })
     }
@@ -3964,7 +3966,7 @@ async function bindVCockpitPlaceholderSurfaces(
           severity: 'warning',
           sourcePath: surface.panelPath,
           message: `${surface.sectionName} backend-only HTML gauge runtimes could not be created.`,
-          details: error instanceof Error ? error.message : String(error)
+          details: formatCaughtErrorForDiagnostics(error)
         })
       })
     }
@@ -4190,6 +4192,7 @@ function createAbandonedVCockpitHtmlGaugeRuntime(
     wasmModuleUrl: null,
     status: 'iframe-error',
     iframe: null,
+    sourceObjectUrl: null,
     captured: false,
     captureImage: null,
     captureAttemptCount: 0,
@@ -4206,17 +4209,31 @@ function createAbandonedVCockpitHtmlGaugeRuntime(
   }
 }
 
+function formatCaughtErrorForDiagnostics(error: unknown): string {
+  if (error instanceof Error) {
+    return error.stack != null && error.stack !== ''
+      ? error.stack
+      : error.message
+  }
+
+  try {
+    return JSON.stringify(error)
+  } catch {
+    return String(error)
+  }
+}
+
 function doesMeshMatchVCockpitSurfaceName(mesh: Mesh, surface: VCockpitSurface): boolean {
   const objectName = normalizeSurfaceLookupName(mesh.name)
   const geometryName = normalizeSurfaceLookupName(mesh.geometry?.name ?? '')
-  if (objectName.includes('glass') || geometryName.includes('glass')) {
-    return false
-  }
   const names = new Set<string>([objectName, geometryName].filter(name => name !== ''))
   const candidates = createVCockpitSurfaceScreenNameCandidates(surface.normalizedTextureName)
   for (const name of names) {
     for (const candidate of candidates) {
       if (name.includes(`screen${candidate}`)) {
+        return true
+      }
+      if (doesDisplayMeshNameContainSurfaceCandidate(name, candidate)) {
         return true
       }
     }
@@ -4231,6 +4248,18 @@ function createVCockpitSurfaceScreenNameCandidates(normalizedTextureName: string
     candidates.add(`mfd${ndMatch[1]}`)
   }
   return [...candidates]
+}
+
+function doesDisplayMeshNameContainSurfaceCandidate(name: string, candidate: string): boolean {
+  if (candidate.length < 3 || !name.includes(candidate)) {
+    return false
+  }
+
+  return (
+    name.includes('screen') ||
+    name.includes('display') ||
+    name.includes('glass')
+  )
 }
 
 function setMeshMaterialAtIndex(mesh: Mesh, materialIndex: number, material: Material): void {
@@ -4295,6 +4324,7 @@ async function createVCockpitHtmlGaugeRuntime(
         wasmModuleUrl: wasmModuleUrl === '' ? null : wasmModuleUrl,
         status: loadResult.status === 'loaded' ? 'loaded-wasm-bridge' : loadResult.status,
         iframe: loadResult.iframe,
+        sourceObjectUrl: loadResult.sourceObjectUrl,
         captured: false,
         captureImage: null,
         captureAttemptCount: 0,
@@ -4327,6 +4357,7 @@ async function createVCockpitHtmlGaugeRuntime(
       wasmModuleUrl: null,
       status: 'missing',
       iframe: null,
+      sourceObjectUrl: null,
       captured: false,
       captureImage: null,
       captureAttemptCount: 0,
@@ -4379,6 +4410,7 @@ async function createVCockpitHtmlGaugeRuntime(
       ? 'loaded-wasm-bridge'
       : loadResult.status,
     iframe: loadResult.iframe,
+    sourceObjectUrl: loadResult.sourceObjectUrl,
     captured: false,
     captureImage: null,
     captureAttemptCount: 0,
@@ -4487,18 +4519,20 @@ async function createSandboxedHtmlGaugeFrame(
 ): Promise<{
   readonly status: 'loaded' | 'iframe-error'
   readonly iframe: HTMLIFrameElement | null
+  readonly sourceObjectUrl: string | null
   readonly error: string | null
 }> {
   let sourceHtml = sourceHtmlOverride
   if (sourceHtml == null) {
     const htmlResponse = await fetch(resolvedUrl).catch(error => error)
     if (htmlResponse instanceof Error) {
-      return { status: 'iframe-error', iframe: null, error: htmlResponse.message }
+      return { status: 'iframe-error', iframe: null, sourceObjectUrl: null, error: htmlResponse.message }
     }
     if (!htmlResponse.ok) {
       return {
         status: 'iframe-error',
         iframe: null,
+        sourceObjectUrl: null,
         error: `HTTP ${htmlResponse.status} ${htmlResponse.statusText}`.trim()
       }
     }
@@ -4521,7 +4555,11 @@ async function createSandboxedHtmlGaugeFrame(
   iframe.sandbox.add('allow-scripts')
   iframe.sandbox.add('allow-same-origin')
   iframe.loading = 'eager'
-  iframe.srcdoc = await adaptMsfsHtmlGaugeDocument(gaugeSourceHtml, resolvedUrl, gauge)
+  const sourceObjectUrl = URL.createObjectURL(new Blob(
+    [await adaptMsfsHtmlGaugeDocument(gaugeSourceHtml, resolvedUrl, gauge)],
+    { type: 'text/html' }
+  ))
+  iframe.src = sourceObjectUrl
   iframe.style.position = 'fixed'
   iframe.style.left = '-10000px'
   iframe.style.top = '0'
@@ -4533,15 +4571,31 @@ async function createSandboxedHtmlGaugeFrame(
 
   let iframeError: string | null = null
   const status = await new Promise<'loaded' | 'iframe-error'>(resolve => {
+    let settled = false
+    const settle = (nextStatus: 'loaded' | 'iframe-error'): void => {
+      if (settled) {
+        return
+      }
+      settled = true
+      window.clearTimeout(domReadyTimeoutId)
+      window.clearTimeout(loadTimeoutId)
+      resolve(nextStatus)
+    }
+    const domReadyTimeoutId = window.setTimeout(() => {
+      const frameDocument = iframe.contentDocument
+      if (frameDocument?.documentElement != null && frameDocument.body != null) {
+        settle('loaded')
+      }
+    }, VCOCKPIT_HTML_GAUGE_DOM_READY_TIMEOUT_MS)
     const timeoutId = window.setTimeout(() => {
       iframeError = `iframe load timed out after ${VCOCKPIT_HTML_GAUGE_LOAD_TIMEOUT_MS} ms`
-      resolve('iframe-error')
+      settle('iframe-error')
     }, VCOCKPIT_HTML_GAUGE_LOAD_TIMEOUT_MS)
+    const loadTimeoutId = timeoutId
     iframe.addEventListener(
       'load',
       () => {
-        window.clearTimeout(timeoutId)
-        resolve('loaded')
+        settle('loaded')
       },
       { once: true }
     )
@@ -4551,8 +4605,7 @@ async function createSandboxedHtmlGaugeFrame(
         iframeError = event instanceof ErrorEvent
           ? event.message
           : 'iframe emitted an error event'
-        window.clearTimeout(timeoutId)
-        resolve('iframe-error')
+        settle('iframe-error')
       },
       { once: true }
     )
@@ -4561,10 +4614,11 @@ async function createSandboxedHtmlGaugeFrame(
 
   if (status !== 'loaded') {
     iframe.remove()
-    return { status, iframe: null, error: iframeError }
+    URL.revokeObjectURL(sourceObjectUrl)
+    return { status, iframe: null, sourceObjectUrl: null, error: iframeError }
   }
 
-  return { status, iframe, error: null }
+  return { status, iframe, sourceObjectUrl, error: null }
 }
 
 async function adaptMsfsHtmlGaugeDocument(
@@ -7119,6 +7173,10 @@ function disposeVCockpitSurfaceTextureRuntime(
 function releaseVCockpitHtmlGaugeFrame(gaugeRuntime: VCockpitHtmlGaugeRuntime): void {
   gaugeRuntime.iframe?.remove()
   gaugeRuntime.iframe = null
+  if (gaugeRuntime.sourceObjectUrl != null) {
+    URL.revokeObjectURL(gaugeRuntime.sourceObjectUrl)
+    gaugeRuntime.sourceObjectUrl = null
+  }
   gaugeRuntime.staticCaptureImage = null
   gaugeRuntime.staticCaptureSignature = null
 }
@@ -7127,10 +7185,25 @@ function setVCockpitHtmlGaugeRuntimeActive(
   gaugeRuntime: VCockpitHtmlGaugeRuntime,
   active: boolean
 ): void {
-  gaugeRuntime.iframe?.contentWindow?.postMessage({
+  postVCockpitGaugeRuntimeMessage(gaugeRuntime, {
     type: 'msfs-vcockpit-gauge-active',
     active
-  }, '*')
+  })
+}
+
+function postVCockpitGaugeRuntimeMessage(
+  gaugeRuntime: VCockpitHtmlGaugeRuntime,
+  message: unknown
+): void {
+  const frameWindow = gaugeRuntime.iframe?.contentWindow
+  if (frameWindow == null) {
+    return
+  }
+  postWindowMessage(frameWindow, message)
+}
+
+function postWindowMessage(targetWindow: Window, message: unknown): void {
+  targetWindow.postMessage(message, '*')
 }
 
 function getVCockpitHtmlGaugeRuntimeStats(
