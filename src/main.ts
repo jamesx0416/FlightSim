@@ -1114,7 +1114,7 @@ async function init(): Promise<void> {
   const handleCockpitInteractionPress = (
     event: MouseEvent | PointerEvent,
     options: { readonly holdFeedback: boolean }
-  ): string | null => {
+  ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.attemptCount += 1
     cockpitInteractionStats.lastMissReason = null
     cockpitInteractionStats.lastHitKind = null
@@ -1251,26 +1251,30 @@ async function init(): Promise<void> {
     hitObject: Object3D,
     hitKind: 'interaction-mesh' | 'fallback-hitbox',
     options: { readonly holdFeedback: boolean }
-  ): string | null => {
+  ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
     cockpitInteractionStats.lastHitKind = hitKind
-    if (runtime.executeInteraction(binding.target, { holdFeedback: options.holdFeedback })) {
+    if (runtime.executeInteractionBindingDirect(binding, { holdFeedback: options.holdFeedback })) {
       cockpitInteractionStats.executedCount += 1
       cockpitInteractionStats.lastTarget = binding.target
       cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? binding.target : null
       cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
-      return binding.target
+      return binding
     }
 
     return null
   }
 
-  const releaseCockpitInteractionPress = (target: string | null): void => {
-    if (target == null) {
+  const releaseCockpitInteractionPress = (binding: CompiledInteractionBinding | null): void => {
+    if (binding == null) {
       return
     }
-    runtime.releaseInteraction(target)
-    if (cockpitInteractionStats.activeHeldTarget === target) {
+    runtime.executeInteractionCallbackEventForBinding(binding, {
+      holdFeedback: false,
+      mouseEvent: 'LeftRelease'
+    })
+    runtime.releaseInteractionBinding(binding)
+    if (cockpitInteractionStats.activeHeldTarget === binding.target) {
       cockpitInteractionStats.activeHeldTarget = null
     }
   }
@@ -9332,8 +9336,8 @@ function installCockpitCameraShortcut(
   onCockpitPress?: (
     event: MouseEvent | PointerEvent,
     options: { readonly holdFeedback: boolean }
-  ) => string | null,
-  onCockpitRelease?: (target: string | null) => void
+  ) => CompiledInteractionBinding | null,
+  onCockpitRelease?: (binding: CompiledInteractionBinding | null) => void
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -9365,7 +9369,7 @@ function installCockpitCameraShortcut(
   let activePointerId: number | null = null
   let lastPointerX = 0
   let lastPointerY = 0
-  let activeCockpitPressTarget: string | null = null
+  let activeCockpitPressBinding: CompiledInteractionBinding | null = null
   let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
   let exteriorVisibilityBeforeCockpit = exteriorScene.visible
   const previousTouchAction = domElement.style.touchAction
@@ -9484,7 +9488,7 @@ function installCockpitCameraShortcut(
     activePointerId = event.pointerId
     lastPointerX = event.clientX
     lastPointerY = event.clientY
-    activeCockpitPressTarget = onCockpitPress?.(event, { holdFeedback: true }) ?? null
+    activeCockpitPressBinding = onCockpitPress?.(event, { holdFeedback: true }) ?? null
     domElement.setPointerCapture(event.pointerId)
     event.preventDefault()
   }
@@ -9513,8 +9517,8 @@ function installCockpitCameraShortcut(
       return
     }
 
-    onCockpitRelease?.(activeCockpitPressTarget)
-    activeCockpitPressTarget = null
+    onCockpitRelease?.(activeCockpitPressBinding)
+    activeCockpitPressBinding = null
     releasePointer()
     event.preventDefault()
   }

@@ -2428,7 +2428,9 @@ function collectImmediateParameters(
     inheritedParams,
     params,
     sourcePath,
-    diagnostics
+    diagnostics,
+    undefined,
+    true
   )
   return params
 }
@@ -2497,8 +2499,7 @@ function selectConditionBranch(
 
   const valid = getAttributeValue(conditionNode, 'Valid')
   if (valid) {
-    const value = resolveParameterReference(valid, params)
-    return isTruthyConditionValue(value)
+    return isTruthyParameterReference(valid, params)
       ? conditionNode.querySelector(':scope > True')
       : conditionNode.querySelector(':scope > False')
   }
@@ -2508,7 +2509,7 @@ function selectConditionBranch(
     const value = resolveParameterReference(check, params)
     const match = getAttributeValue(conditionNode, 'Match')
     const matches = match == null
-      ? isTruthyConditionValue(value)
+      ? isTruthyParameterReference(check, params)
       : value === substituteParameters(match, params).trim()
     return matches ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
   }
@@ -2545,7 +2546,7 @@ function selectSwitchBranch(
     }
 
     const valid = getAttributeValue(child, 'Valid')
-    if (valid != null && isTruthyConditionValue(resolveParameterReference(valid, params))) {
+    if (valid != null && isTruthyParameterReference(valid, params)) {
       return child
     }
 
@@ -2554,7 +2555,7 @@ function selectSwitchBranch(
       const resolvedValue = resolveParameterReference(check, params)
       const match = getAttributeValue(child, 'Match')
       const matches = match == null
-        ? isTruthyConditionValue(resolvedValue)
+        ? isTruthyParameterReference(check, params)
         : resolvedValue === substituteParameters(match, params).trim()
       if (matches) {
         return child
@@ -2656,7 +2657,8 @@ function collectParameterEntries(
   values: Map<string, string>,
   sourcePath: string,
   diagnostics: ImportDiagnostic[],
-  defaultExistingKeys?: ReadonlySet<string>
+  defaultExistingKeys?: ReadonlySet<string>,
+  promoteValuelessMarkers = false
 ): void {
   const scopedParams = new Map<string, string>(params)
   for (const [key, value] of values) {
@@ -2679,7 +2681,8 @@ function collectParameterEntries(
           values,
           sourcePath,
           diagnostics,
-          defaultExistingKeys
+          defaultExistingKeys,
+          promoteValuelessMarkers
         )
         for (const [key, value] of values) {
           scopedParams.set(key, value)
@@ -2697,7 +2700,8 @@ function collectParameterEntries(
           values,
           sourcePath,
           diagnostics,
-          defaultExistingKeys
+          defaultExistingKeys,
+          promoteValuelessMarkers
         )
         for (const [key, value] of values) {
           scopedParams.set(key, value)
@@ -2748,7 +2752,8 @@ function collectParameterEntries(
             values,
             sourcePath,
             diagnostics,
-            defaultExistingKeys
+            defaultExistingKeys,
+            promoteValuelessMarkers
           )
           for (const [key, value] of values) {
             scopedParams.set(key, value)
@@ -2767,9 +2772,22 @@ function collectParameterEntries(
     }
 
     const value = resolveProcessedParameterValue(child, scopedParams, sourcePath, diagnostics, params)
+    if (promoteValuelessMarkers && !value && isValuelessMarkerParameterName(key)) {
+      values.set(key, 'True')
+      scopedParams.set(key, 'True')
+      continue
+    }
     values.set(key, value)
     scopedParams.set(key, value)
   }
+}
+
+function isValuelessMarkerParameterName(key: string): boolean {
+  const normalized = key.trim().toUpperCase()
+  if (!normalized) {
+    return false
+  }
+  return !/(?:^|_)(?:CODE|ID|NAME|VAR|SIMVAR|EVENT|FREQUENCY|DURATION|LENGTH|TIME|VALUE|STATE|SOURCE|TARGET|INDEX|TYPE|TITLE|TOOLTIP|POTENTIOMETER|CONDITION|EXPRESSION)$/u.test(normalized)
 }
 
 function resolveProcessedParameterValue(
@@ -3100,6 +3118,13 @@ function resolveParameterReference(
   return substituted ? (params.get(substituted) ?? '') : ''
 }
 
+function isTruthyParameterReference(
+  expression: string,
+  params: ReadonlyMap<string, string>
+): boolean {
+  return isTruthyConditionValue(resolveParameterReference(expression, params))
+}
+
 function isTruthyConditionValue(value: string): boolean {
   const normalizedValue = value.trim().toLowerCase()
   if (!normalizedValue) {
@@ -3183,14 +3208,14 @@ function evaluateTestOperator(
       }
       const valid = getAttributeValue(node, 'Valid')
       if (valid != null) {
-        return isTruthyConditionValue(resolveParameterReference(valid, params))
+        return isTruthyParameterReference(valid, params)
       }
       const check = getAttributeValue(node, 'Check')
       if (check != null) {
         const value = resolveParameterReference(check, params)
         const match = getAttributeValue(node, 'Match')
         return match == null
-          ? isTruthyConditionValue(value)
+          ? isTruthyParameterReference(check, params)
           : value === substituteParameters(match, params).trim()
       }
       return false

@@ -405,9 +405,46 @@ export class AircraftRuntime {
     return true
   }
 
+  executeInteractionBindingDirect(
+    binding: CompiledInteractionBinding,
+    options: RuntimeInteractionOptions = {}
+  ): boolean {
+    if (!this.compiled.interactionBindings.includes(binding)) {
+      return false
+    }
+    this.executeInteractionBinding(binding, options)
+    return true
+  }
+
   executeInteractionCallbackEvent(target: string, options: RuntimeInteractionOptions = {}): boolean {
     const binding = this.findInteractionBindingForTarget(target)
     if (binding == null || binding.kind !== 'callback') {
+      return false
+    }
+    const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
+    if (
+      isRuntimeInteractionReleaseMouseEvent(mouseEvent) &&
+      !doesRuntimeInteractionExpressionHandleMouseEvent(binding.expression)
+    ) {
+      return false
+    }
+
+    this.executeInteractionBinding(binding, options)
+    return true
+  }
+
+  executeInteractionCallbackEventForBinding(
+    binding: CompiledInteractionBinding,
+    options: RuntimeInteractionOptions = {}
+  ): boolean {
+    if (!this.compiled.interactionBindings.includes(binding) || binding.kind !== 'callback') {
+      return false
+    }
+    const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
+    if (
+      isRuntimeInteractionReleaseMouseEvent(mouseEvent) &&
+      !doesRuntimeInteractionExpressionHandleMouseEvent(binding.expression)
+    ) {
       return false
     }
 
@@ -438,6 +475,15 @@ export class AircraftRuntime {
   releaseInteraction(target: string): boolean {
     const binding = this.findInteractionBindingForTarget(target)
     if (binding == null) {
+      return false
+    }
+
+    this.releaseInteractionFeedback(binding)
+    return true
+  }
+
+  releaseInteractionBinding(binding: CompiledInteractionBinding): boolean {
+    if (!this.compiled.interactionBindings.includes(binding)) {
       return false
     }
 
@@ -528,9 +574,12 @@ export class AircraftRuntime {
     binding: CompiledInteractionBinding,
     options: RuntimeInteractionOptions = {}
   ): void {
-    this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
-    this.invokeInteractionSoundEvents(binding, 'press')
     const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
+    const isReleaseEvent = isRuntimeInteractionReleaseMouseEvent(mouseEvent)
+    if (!isReleaseEvent) {
+      this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
+      this.invokeInteractionSoundEvents(binding, 'press')
+    }
     evaluateCompiledExpression(binding.expression, {
       readVariable: (key, unit) => readRuntimeMouseVariable(key, options) ?? this.hostServices.readVariable(key, unit),
       readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
@@ -538,6 +587,9 @@ export class AircraftRuntime {
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     })
+    if (isReleaseEvent) {
+      this.invokeInteractionSoundEvents(binding, 'release')
+    }
     this.interactionExecutionCount += 1
   }
 
@@ -608,6 +660,9 @@ export class AircraftRuntime {
           this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 1)
           shouldRunReleaseExpression = false
           continue
+        }
+        if (previousState != null) {
+          this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 0)
         }
         if (!this.interactionFeedbackTimers.has(trimmedTarget) && binding.animationDurationSeconds == null) {
           this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 0)
@@ -5178,6 +5233,15 @@ function selectCfgSectionWithKeys(
 
 function readRuntimeStringVariable(key: string, mouseEvent: string): string {
   return key.toUpperCase() === 'M:EVENT' ? mouseEvent : ''
+}
+
+function isRuntimeInteractionReleaseMouseEvent(mouseEvent: string): boolean {
+  const normalized = mouseEvent.trim().toUpperCase()
+  return normalized === 'LEFTRELEASE' || normalized === 'LEFTLEAVE' || normalized === 'UNLOCK'
+}
+
+function doesRuntimeInteractionExpressionHandleMouseEvent(expression: CompiledExpression): boolean {
+  return /\(\s*M\s*:\s*Event\b/iu.test(expression.source)
 }
 
 function readRuntimeMouseVariable(key: string, options: RuntimeInteractionOptions): number | null {
