@@ -2577,8 +2577,7 @@ function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDS
   if (getCockpitTextureMode(searchParams) === 'range-low') {
     return {
       rangeMaxTextureSize: getCockpitRangeTextureSize(searchParams),
-      rangeFallback: 'placeholder',
-      immediatePlaceholder: true
+      rangeFallback: 'placeholder'
     }
   }
 
