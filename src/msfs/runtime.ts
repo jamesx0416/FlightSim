@@ -1766,6 +1766,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.electricalState.avionicsSwitch = normalizedValue
       return
     }
+    if (isAvionicsControlKey(key)) {
+      this.electricalState.avionicsSwitch = normalizedValue
+      return
+    }
     if (key.includes('THROTTLE LEVER POSITION')) {
       this.throttleLeverPosition = toPercentOver100(value, unit) * 100
       return
@@ -4562,6 +4566,20 @@ function isExternalPowerAvailableKey(key: string): boolean {
     key.includes('EXTERNAL POWER AVAILABLE') ||
     key.includes('EXT_PWR_AVAIL') ||
     key.includes('EXTERNAL_POWER_AVAILABLE')
+  )
+}
+
+function isAvionicsControlKey(key: string): boolean {
+  if (key.includes('FAULT') || key.includes('LIGHT') || key.includes('DISPLAY')) {
+    return false
+  }
+  return (
+    key === 'A:AVIONICS MASTER SWITCH' ||
+    (key.includes('AVIONICS') &&
+      (key.includes('SWITCH') ||
+        key.includes('PB_IS_ON') ||
+        key.endsWith('_IS_ON') ||
+        key.endsWith('_ON')))
   )
 }
 

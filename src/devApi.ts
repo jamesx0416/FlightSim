@@ -1472,6 +1472,15 @@ function resolveDevApiParamMapping(
   if (preset === 'parkingbrake' || preset === 'parkbrake') {
     return { preset, simVar: 'A:BRAKE PARKING POSITION', unit: null }
   }
+  if (preset === 'battery' || preset === 'batteryswitch' || preset === 'masterbattery') {
+    return { preset, simVar: 'A:BATTERY SWITCH', unit: null }
+  }
+  if (preset === 'externalpower' || preset === 'externalpowerswitch' || preset === 'extpower') {
+    return { preset, simVar: 'A:EXTERNAL POWER ON', unit: null }
+  }
+  if (preset === 'avionics' || preset === 'avionicsswitch' || preset === 'avionicsmaster') {
+    return { preset, simVar: 'A:AVIONICS MASTER SWITCH', unit: null }
+  }
   return { preset, simVar: name, unit }
 }
 
