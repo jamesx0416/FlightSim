@@ -8547,8 +8547,7 @@ function isEmbeddedGltfBufferUri(uri: string): boolean {
 function createDefaultModelTextureLoadOptions(): MSFSDDSLoadOptions {
   return {
     rangeMaxTextureSize: 1024,
-    rangeFallback: 'placeholder',
-    immediatePlaceholder: true
+    rangeFallback: 'placeholder'
   }
 }
 
