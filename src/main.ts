@@ -867,6 +867,13 @@ async function init(): Promise<void> {
       return null
     }
 
+    if (
+      requestedInteriorLodIndex == null &&
+      aircraft.model?.modelOptions.withInteriorForceFirstLod === true
+    ) {
+      return 0
+    }
+
     if (requestedInteriorLodIndex == null) {
       return selectAutoCockpitInteriorLodIndex(interiorModel)
     }
