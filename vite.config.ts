@@ -1,9 +1,13 @@
+import { execFile } from 'node:child_process'
 import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
+import { promisify } from 'node:util'
 import { defineConfig, type Plugin } from 'vite'
 
+const execFileAsync = promisify(execFile)
+
 export default defineConfig({
-  plugins: [aircraftsIndexPlugin()],
+  plugins: [aircraftsIndexPlugin(), devMetadataPlugin()],
   server: {
     host: true
   }
@@ -25,6 +29,64 @@ function aircraftsIndexPlugin(): Plugin {
       })
     }
   }
+}
+
+function devMetadataPlugin(): Plugin {
+  const route = '/__devapi/git.json'
+
+  return {
+    name: 'devapi-git-metadata',
+    configureServer(server) {
+      server.middlewares.use(route, async (_request, response) => {
+        await sendGitMetadata(server.config.root, response)
+      })
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(route, async (_request, response) => {
+        await sendGitMetadata(server.config.root, response)
+      })
+    }
+  }
+}
+
+async function sendGitMetadata(
+  root: string,
+  response: { statusCode: number; setHeader(name: string, value: string): void; end(body: string): void }
+): Promise<void> {
+  const metadata = await readGitMetadata(root)
+  response.statusCode = 200
+  response.setHeader('Content-Type', 'application/json; charset=utf-8')
+  response.setHeader('Cache-Control', 'no-store')
+  response.end(JSON.stringify(metadata))
+}
+
+async function readGitMetadata(root: string): Promise<Record<string, unknown>> {
+  try {
+    const [hash, shortHash, branch, status] = await Promise.all([
+      execGit(root, ['rev-parse', 'HEAD']),
+      execGit(root, ['rev-parse', '--short', 'HEAD']),
+      execGit(root, ['branch', '--show-current']),
+      execGit(root, ['status', '--porcelain'])
+    ])
+
+    return {
+      available: true,
+      hash,
+      shortHash,
+      branch: branch || null,
+      dirty: status.length > 0
+    }
+  } catch (error) {
+    return {
+      available: false,
+      error: error instanceof Error ? error.message : String(error)
+    }
+  }
+}
+
+async function execGit(root: string, args: readonly string[]): Promise<string> {
+  const { stdout } = await execFileAsync('git', args, { cwd: root })
+  return stdout.trim()
 }
 
 async function sendAircraftsIndex(

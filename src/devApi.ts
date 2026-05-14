@@ -107,6 +107,18 @@ type DevApiBenchOptions = {
   readonly includeEvents?: boolean
 }
 
+type StoredBenchRun = {
+  readonly id: string
+  readonly kind: string
+  readonly createdAt: string
+  readonly localDate: string
+  readonly localTime: string
+  readonly commit: unknown
+  readonly ok: boolean
+  readonly summary: string
+  readonly data: unknown
+}
+
 type DevApiWaitCondition =
   | string
   | {
@@ -154,6 +166,9 @@ type ViewerDevApi = {
   readonly bench: {
     readonly startup: () => DevApiResponse
     readonly cockpitLod0: (options?: DevApiBenchOptions) => Promise<DevApiResponse>
+    readonly all: (options?: DevApiBenchOptions) => Promise<DevApiResponse>
+    readonly history: (options?: { readonly limit?: number }) => DevApiResponse
+    readonly clearHistory: () => DevApiResponse
   }
   readonly screenshot: (options?: { readonly target?: 'viewport' | 'gauge'; readonly key?: string }) => DevApiResponse
   readonly visualCheck: (target?: string) => DevApiResponse
@@ -226,9 +241,14 @@ function getLoadStageHistory(): readonly Record<string, unknown>[] {
 }
 
 function getStartupBenchmarkData(): Record<string, unknown> {
-  const history = getLoadStageHistory()
+  const loadStageHistory = getLoadStageHistory()
+  const sceneReadyIndex = loadStageHistory.findIndex(entry => entry.stage === 'scene:ready')
+  const history = sceneReadyIndex >= 0
+    ? loadStageHistory.slice(0, sceneReadyIndex + 1)
+    : loadStageHistory
   const first = history[0] ?? null
   const latest = history.at(-1) ?? null
+  const currentLoadStage = loadStageHistory.at(-1) ?? null
   const firstNowMs = typeof first?.nowMs === 'number' ? first.nowMs : null
   const latestNowMs = typeof latest?.nowMs === 'number' ? latest.nowMs : null
   const previousByStage = new Map<string, Record<string, unknown>>()
@@ -305,7 +325,9 @@ function getStartupBenchmarkData(): Record<string, unknown> {
     currentElapsedMs:
       firstNowMs != null ? Number((performance.now() - firstNowMs).toFixed(1)) : null,
     currentStage: latest,
+    currentLoadStage,
     stageCount: history.length,
+    totalLoadStageCount: loadStageHistory.length,
     milestones,
     phases: {
       importPackageMs: elapsedBetween(firstStage('init:start'), firstStage('import:package')),
@@ -336,6 +358,78 @@ function stripCockpitBenchmarkEvents(result: unknown): unknown {
   }
   const { events: _events, ...rest } = result as Record<string, unknown>
   return rest
+}
+
+const DEV_API_BENCH_HISTORY_KEY = 'msfs.devapi.bench.history.v1'
+const DEV_API_BENCH_HISTORY_LIMIT = 50
+
+function readBenchHistory(): readonly StoredBenchRun[] {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(DEV_API_BENCH_HISTORY_KEY) ?? '[]')
+    return Array.isArray(parsed)
+      ? parsed.filter((entry): entry is StoredBenchRun => (
+          entry != null &&
+          typeof entry === 'object' &&
+          typeof (entry as Record<string, unknown>).id === 'string'
+        ))
+      : []
+  } catch {
+    return []
+  }
+}
+
+function writeBenchHistory(history: readonly StoredBenchRun[]): void {
+  window.localStorage.setItem(
+    DEV_API_BENCH_HISTORY_KEY,
+    JSON.stringify(history.slice(-DEV_API_BENCH_HISTORY_LIMIT))
+  )
+}
+
+function clearBenchHistory(): void {
+  window.localStorage.removeItem(DEV_API_BENCH_HISTORY_KEY)
+}
+
+function createLocalBenchTimestamp(now: Date): {
+  readonly localDate: string
+  readonly localTime: string
+} {
+  return {
+    localDate: now.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }),
+    localTime: now.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    })
+  }
+}
+
+async function getDevApiGitMetadata(): Promise<unknown> {
+  try {
+    const response = await fetch('/__devapi/git.json', { cache: 'no-store' })
+    if (!response.ok) {
+      return {
+        available: false,
+        error: `HTTP ${response.status}`
+      }
+    }
+    return await response.json()
+  } catch (error) {
+    return {
+      available: false,
+      error: error instanceof Error ? error.message : String(error)
+    }
+  }
+}
+
+function storeBenchRun(run: StoredBenchRun): StoredBenchRun {
+  const history = [...readBenchHistory(), run].slice(-DEV_API_BENCH_HISTORY_LIMIT)
+  writeBenchHistory(history)
+  return run
 }
 
 export function installViewerBootDevApi(): void {
@@ -391,13 +485,15 @@ export function installViewerBootDevApi(): void {
         '__DevApi.status()',
         '__DevApi.diagnostics()',
         '__DevApi.bench.startup()',
+        'await __DevApi.bench.all()',
+        '__DevApi.bench.history()',
         'await __DevApi.ready()'
       ],
       note: 'Interaction, camera, gauge, and runtime helpers become available after model loading completes.'
     }),
     schema: () => ok('Returned boot DevApi schema summary.', {
       ready: false,
-      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'bench.startup']
+      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'bench.startup', 'bench.all', 'bench.history']
     }),
     diagnostics: () => ok('Returned boot diagnostics.', {
       ...loadingData(),
@@ -412,7 +508,21 @@ export function installViewerBootDevApi(): void {
     }),
     bench: {
       startup: () => ok('Collected startup benchmark.', getStartupBenchmarkData()),
-      cockpitLod0: async () => unavailable('bench.cockpitLod0')
+      cockpitLod0: async () => unavailable('bench.cockpitLod0'),
+      all: async () => unavailable('bench.all'),
+      history: (options = {}) => {
+        const limit = Math.max(1, Math.min(DEV_API_BENCH_HISTORY_LIMIT, Math.floor(options.limit ?? DEV_API_BENCH_HISTORY_LIMIT)))
+        return ok('Collected stored benchmark history.', {
+          storageKey: DEV_API_BENCH_HISTORY_KEY,
+          entries: readBenchHistory().slice(-limit)
+        })
+      },
+      clearHistory: () => {
+        clearBenchHistory()
+        return ok('Cleared stored benchmark history.', {
+          storageKey: DEV_API_BENCH_HISTORY_KEY
+        })
+      }
     },
     camera: {
       enterCockpit: async () => unavailable('camera.enterCockpit'),
@@ -1128,6 +1238,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.events({ kind: "html", limit: 5 })',
         '__DevApi.bench.startup()',
         'await __DevApi.bench.cockpitLod0()',
+        'await __DevApi.bench.all()',
+        '__DevApi.bench.history()',
         '__DevApi.report()'
       ],
       methods: Object.keys(window.__DevApi ?? {})
@@ -1141,7 +1253,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       eventOptions: ['kind', 'limit'],
-      benchMethods: ['startup', 'cockpitLod0'],
+      benchMethods: ['startup', 'cockpitLod0', 'all', 'history', 'clearHistory'],
       resetOptions: ['runtime', 'coldAndDark'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
@@ -1370,6 +1482,70 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             error: error instanceof Error ? error.message : String(error)
           })
         }
+      },
+      all: async (options = {}) => {
+        const started = performance.now()
+        const startup = api.bench.startup()
+        const cockpitLod0 = await api.bench.cockpitLod0(options)
+        const now = new Date()
+        const localTimestamp = createLocalBenchTimestamp(now)
+        const commit = await getDevApiGitMetadata()
+        const data = {
+          createdAt: now.toISOString(),
+          ...localTimestamp,
+          commit,
+          elapsedMs: Number((performance.now() - started).toFixed(1)),
+          startup: startup.data,
+          cockpitLod0: cockpitLod0.data,
+          results: {
+            startup: {
+              ok: startup.ok,
+              summary: startup.summary,
+              warnings: startup.warnings ?? []
+            },
+            cockpitLod0: {
+              ok: cockpitLod0.ok,
+              summary: cockpitLod0.summary,
+              warnings: cockpitLod0.warnings ?? []
+            }
+          }
+        }
+        const allOk = startup.ok && cockpitLod0.ok
+        const summary = allOk
+            ? 'Collected all performance benchmarks.'
+            : 'One or more performance benchmarks failed.'
+        const stored = storeBenchRun({
+          id: `${now.toISOString()}-${Math.random().toString(36).slice(2, 10)}`,
+          kind: 'all',
+          createdAt: now.toISOString(),
+          ...localTimestamp,
+          commit,
+          ok: allOk,
+          summary,
+          data
+        })
+
+        return (allOk ? ok : fail)(summary, {
+          ...data,
+          stored: {
+            key: DEV_API_BENCH_HISTORY_KEY,
+            id: stored.id,
+            count: readBenchHistory().length
+          }
+        })
+      },
+      history: (options = {}) => {
+        const limit = Math.max(1, Math.min(DEV_API_BENCH_HISTORY_LIMIT, Math.floor(options.limit ?? DEV_API_BENCH_HISTORY_LIMIT)))
+        return ok('Collected stored benchmark history.', {
+          storageKey: DEV_API_BENCH_HISTORY_KEY,
+          entries: readBenchHistory().slice(-limit)
+        })
+      },
+      clearHistory: () => {
+        clearBenchHistory()
+        return ok('Cleared stored benchmark history.', {
+          storageKey: DEV_API_BENCH_HISTORY_KEY
+        })
       }
     },
     screenshot: (options = {}) => {
