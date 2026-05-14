@@ -65,6 +65,7 @@ type DevApiWasmModuleInfo = {
 
 type DevApiListKind =
   | 'nodes'
+  | 'nodeAnimations'
   | 'components'
   | 'interactions'
   | 'gauges'
@@ -830,6 +831,48 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     })
     return rows
   }
+  const collectNodeAnimations = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
+    const needle = filter.trim().toLowerCase()
+    const rows: Record<string, unknown>[] = []
+    const sceneNodes = collectNodes('', 5_000)
+    const sceneNodeNames = new Set<string>()
+    const canonicalSceneNodeNames = new Set<string>()
+    for (const row of sceneNodes) {
+      if (typeof row.name !== 'string') continue
+      sceneNodeNames.add(row.name.toLowerCase())
+      const canonicalName = canonicalizeDevApiNodeAnimationName(row.name)
+      if (canonicalName != null) canonicalSceneNodeNames.add(canonicalName)
+    }
+    for (const animation of context.aircraft.model?.nodeAnimations ?? []) {
+      if (rows.length >= limit) break
+      const label = animation.type || 'NodeAnimation'
+      const nodes = animation.nodes.map(node => {
+        const canonicalName = canonicalizeDevApiNodeAnimationName(node)
+        const exactMatched = sceneNodeNames.has(node.toLowerCase())
+        const canonicalMatched = canonicalName != null && canonicalSceneNodeNames.has(canonicalName)
+        return {
+          name: node,
+          matched: exactMatched || canonicalMatched,
+          match: exactMatched ? 'exact' : canonicalMatched ? 'canonical' : null,
+          canonicalName
+        }
+      })
+      if (
+        needle &&
+        !label.toLowerCase().includes(needle) &&
+        !nodes.some(node => node.name.toLowerCase().includes(needle))
+      ) {
+        continue
+      }
+      rows.push({
+        type: animation.type || null,
+        nodeCount: nodes.length,
+        matchedNodeCount: nodes.filter(node => node.matched).length,
+        nodes
+      })
+    }
+    return rows
+  }
   const collectComponents = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
     const needle = filter.trim().toLowerCase()
     const registry = context.getCockpitInteractionPickRegistry()
@@ -1232,6 +1275,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     const filter = options.filter ?? ''
     const limit = Math.max(1, Math.min(5_000, Math.floor(options.limit ?? 500)))
     if (kind === 'nodes') return ok('Listed scene nodes.', collectNodes(filter, limit))
+    if (kind === 'nodeAnimations') return ok('Listed model node animations.', collectNodeAnimations(filter, limit))
     if (kind === 'components' || kind === 'interactions') return ok('Listed cockpit components/interactions.', collectComponents(filter, limit))
     if (kind === 'gauges') return ok('Listed VCockpit gauges.', gauges().map(summarizeGauge).slice(0, limit))
     if (kind === 'animations') return ok('Listed animation bindings.', collectAnimations(filter, limit))
@@ -1293,7 +1337,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }),
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
-      listKinds: ['nodes', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
+      listKinds: ['nodes', 'nodeAnimations', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release', 'mouseEvent', 'inputType', 'relativeX', 'relativeY', 'relativeZ', 'dragPercent'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       dragOptions: ['axis', 'start', 'end', 'startPercent', 'endPercent', 'steps', 'durationMs', 'inputType', 'lock', 'release'],
@@ -2139,6 +2183,35 @@ const DEV_API_WAIT_CONDITION_KINDS = [
 
 function getDevApiWaitConditionKind(condition: DevApiWaitCondition): string | undefined {
   return typeof condition === 'string' ? condition : condition.kind
+}
+
+function canonicalizeDevApiNodeAnimationName(name: string): string | null {
+  const normalizedName = name.trim().toUpperCase()
+  if (!normalizedName) return null
+
+  if (normalizedName.includes('WING') && normalizedName.includes('BONE')) {
+    const side = normalizedName.includes('LEFT') ? 'left'
+      : normalizedName.includes('RIGHT') ? 'right'
+      : null
+    if (side == null) return null
+    const indexMatch =
+      normalizedName.match(/WING[_ ]*BONE(?:[_ ]*(?:LEFT|RIGHT))?[_ ]*0*([0-9]+)/u) ??
+      normalizedName.match(/WING[_ ]*BONE[_ ]*0*([0-9]+)(?:[_ ]*(?:LEFT|RIGHT))?/u)
+    const index = Number.parseInt(indexMatch?.[1] ?? '', 10)
+    return `wingBone:${side}:${Number.isFinite(index) && index > 0 ? index : 1}`
+  }
+
+  if (normalizedName.includes('ENGINE') && normalizedName.includes('PIVOT')) {
+    const side = normalizedName.includes('LEFT') ? 'left'
+      : normalizedName.includes('RIGHT') ? 'right'
+      : null
+    if (side == null) return null
+    const allNumbers = [...normalizedName.matchAll(/([0-9]+)/gu)].map(match => Number.parseInt(match[1] ?? '', 10))
+    const index = allNumbers.at(-1) ?? 1
+    return `enginePivot:${side}:${Number.isFinite(index) && index > 0 ? index : 1}`
+  }
+
+  return null
 }
 
 function isKnownDevApiWaitConditionKind(kind: string | undefined): boolean {
