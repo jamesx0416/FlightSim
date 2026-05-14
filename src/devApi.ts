@@ -149,6 +149,7 @@ type ViewerDevApi = {
   readonly checkComponent: (target: string) => DevApiResponse
   readonly checkMaterial: (target: string, options?: { readonly descendants?: boolean }) => DevApiResponse
   readonly checkGauge: (key?: string, options?: { readonly screenshot?: boolean }) => DevApiResponse
+  readonly inspectWasm: (key?: string, options?: { readonly maxBytes?: number }) => Promise<DevApiResponse>
   readonly checkParam: (names: string | readonly string[]) => DevApiResponse
   readonly setParam: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly diagnostics: (options?: DevApiDiagnosticsOptions) => DevApiResponse
@@ -493,7 +494,7 @@ export function installViewerBootDevApi(): void {
     }),
     schema: () => ok('Returned boot DevApi schema summary.', {
       ready: false,
-      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'bench.startup', 'bench.all', 'bench.history']
+      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'inspectWasm', 'bench.startup', 'bench.all', 'bench.history']
     }),
     diagnostics: () => ok('Returned boot diagnostics.', {
       ...loadingData(),
@@ -539,7 +540,8 @@ export function installViewerBootDevApi(): void {
       pointer: () => unavailable('input.pointer'),
       key: () => unavailable('input.key'),
       wheel: () => unavailable('input.wheel')
-    }
+    },
+    inspectWasm: async () => unavailable('inspectWasm')
   }
   const proxy = new Proxy(bootApi, {
     get(target, property, receiver) {
@@ -1229,6 +1231,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.drag("LEVER_THROTTLE", { axis: "y", start: 0, end: 1, endPercent: 1 })',
         'await __DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
+        'await __DevApi.inspectWasm("terronnd")',
         '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
         '__DevApi.diagnostics({ severity: "warning", includeGauges: true })',
         '__DevApi.checkParam(["gear", "flaps", "spoilers", "parkingBrake"])',
@@ -1253,6 +1256,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       eventOptions: ['kind', 'limit'],
+      inspectWasmOptions: ['maxBytes'],
       benchMethods: ['startup', 'cockpitLod0', 'all', 'history', 'clearHistory'],
       resetOptions: ['runtime', 'coldAndDark'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
@@ -1367,6 +1371,85 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         gauge: summarizeGauge(gauge),
         screenshot: options.screenshot === true && canvas != null ? canvasDataUrl(canvas) : null
       })
+    },
+    inspectWasm: async (key, options = {}) => {
+      const gauge = resolveGauge(key)
+      if (gauge == null) {
+        return fail('No VCockpit gauge matched.', { key, gauges: gauges().map(summarizeGauge) })
+      }
+
+      const wasmModuleUrl = getWasmModuleUrl(gauge)
+      if (wasmModuleUrl == null) {
+        return fail('Matched gauge is not a bridge-backed WASM gauge.', summarizeGauge(gauge))
+      }
+
+      const maxBytes = Math.max(
+        1,
+        Math.min(100 * 1024 * 1024, Math.floor(options.maxBytes ?? 25 * 1024 * 1024))
+      )
+      try {
+        const response = await fetch(wasmModuleUrl)
+        if (!response.ok) {
+          return fail('Failed to fetch WASM module.', {
+            key: gauge.gaugeKey,
+            source: gauge.source,
+            wasmModuleUrl,
+            status: response.status,
+            statusText: response.statusText
+          })
+        }
+
+        const contentLength = Number(response.headers.get('content-length') ?? NaN)
+        if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+          return fail('WASM module exceeds inspectWasm maxBytes.', {
+            key: gauge.gaugeKey,
+            source: gauge.source,
+            wasmModuleUrl,
+            byteLength: contentLength,
+            maxBytes
+          })
+        }
+
+        const bytes = await response.arrayBuffer()
+        if (bytes.byteLength > maxBytes) {
+          return fail('WASM module exceeds inspectWasm maxBytes.', {
+            key: gauge.gaugeKey,
+            source: gauge.source,
+            wasmModuleUrl,
+            byteLength: bytes.byteLength,
+            maxBytes
+          })
+        }
+
+        const module = await WebAssembly.compile(bytes)
+        const imports = WebAssembly.Module.imports(module).map(entry => ({
+          module: entry.module,
+          name: entry.name,
+          kind: entry.kind
+        }))
+        const exports = WebAssembly.Module.exports(module).map(entry => ({
+          name: entry.name,
+          kind: entry.kind
+        }))
+
+        return ok('Inspected resolved WASM module without instantiating native MSFS ABI.', {
+          key: gauge.gaugeKey,
+          surface: gauge.surface,
+          source: gauge.source,
+          wasmModuleUrl,
+          byteLength: bytes.byteLength,
+          imports,
+          exports,
+          nativeAbiExecuted: false
+        })
+      } catch (error) {
+        return fail('Failed to inspect WASM module.', {
+          key: gauge.gaugeKey,
+          source: gauge.source,
+          wasmModuleUrl,
+          error: error instanceof Error ? error.message : String(error)
+        })
+      }
     },
     checkParam: names => {
       const requested = Array.isArray(names) ? names : [names]
