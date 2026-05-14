@@ -6248,11 +6248,11 @@ function createVCockpitGaugeBridgeScript(
         return triggerRuntimeKeyEvent(args[0], [args[2], args[3], args[4]]);
       }
       if (normalizedCallName.toUpperCase() === 'GET_AIR_TRAFFIC') {
-        incrementBridgeCall('Coherent.call:' + normalizedCallName);
+        recordSupportedHostServiceCall('Coherent.call:' + normalizedCallName, args);
         return Promise.resolve([]);
       }
       if (normalizedCallName.toUpperCase() === 'SEARCH_NEAREST') {
-        incrementBridgeCall('Coherent.call:' + normalizedCallName);
+        recordSupportedHostServiceCall('Coherent.call:' + normalizedCallName, args);
         return Promise.resolve([]);
       }
       if (normalizedCallName.toUpperCase() === 'FSCOMMBUSREGISTER') {
@@ -6265,7 +6265,7 @@ function createVCockpitGaugeBridgeScript(
         return Promise.resolve(globalThis.fsCommBusCall(args[0], ...args.slice(1)));
       }
       if (isSupportedNoopCoherentCall(normalizedCallName)) {
-        incrementBridgeCall('Coherent.call:' + normalizedCallName);
+        recordSupportedHostServiceCall('Coherent.call:' + normalizedCallName, args);
         return Promise.resolve(args[0] ?? 0);
       }
       recordUnsupportedBridgeCall('Coherent.call:' + normalizedCallName, args);
