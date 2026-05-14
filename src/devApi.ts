@@ -103,6 +103,10 @@ type DevApiDiagnosticsOptions = {
   readonly includeGauges?: boolean
 }
 
+type DevApiBenchOptions = {
+  readonly includeEvents?: boolean
+}
+
 type DevApiWaitCondition =
   | string
   | {
@@ -147,6 +151,10 @@ type ViewerDevApi = {
   ) => Promise<DevApiResponse>
   readonly waitFor: (condition: DevApiWaitCondition, timeoutMs?: number) => Promise<DevApiResponse>
   readonly perf: () => DevApiResponse
+  readonly bench: {
+    readonly startup: () => DevApiResponse
+    readonly cockpitLod0: (options?: DevApiBenchOptions) => Promise<DevApiResponse>
+  }
   readonly screenshot: (options?: { readonly target?: 'viewport' | 'gauge'; readonly key?: string }) => DevApiResponse
   readonly visualCheck: (target?: string) => DevApiResponse
   readonly highlight: (target: string, options?: { readonly durationMs?: number }) => DevApiResponse
@@ -200,7 +208,134 @@ type ViewerDevApiContext = {
   readonly cockpitInteractionStats: Record<string, unknown>
   readonly getCockpitInteractionPickRegistry: () => CockpitInteractionPickRegistry
   readonly getCockpitCameraController: () => CockpitCameraController
+  readonly getCockpitBenchmarkState: () => Record<string, unknown>
+  readonly runCockpitBenchmark: (options?: {
+    readonly targetInteriorLodIndex?: number
+    readonly forceCold?: boolean
+  }) => Promise<unknown>
   readonly applySettings: (settings: Partial<ViewerConfigProfile>) => Promise<string | null>
+}
+
+function getLoadStageHistory(): readonly Record<string, unknown>[] {
+  const value = (globalThis as Record<string, unknown>).__msfsLoadStageHistory
+  return Array.isArray(value)
+    ? value.filter((entry): entry is Record<string, unknown> => (
+      entry != null && typeof entry === 'object'
+    ))
+    : []
+}
+
+function getStartupBenchmarkData(): Record<string, unknown> {
+  const history = getLoadStageHistory()
+  const first = history[0] ?? null
+  const latest = history.at(-1) ?? null
+  const firstNowMs = typeof first?.nowMs === 'number' ? first.nowMs : null
+  const latestNowMs = typeof latest?.nowMs === 'number' ? latest.nowMs : null
+  const previousByStage = new Map<string, Record<string, unknown>>()
+  const firstByStage = new Map<string, Record<string, unknown>>()
+  const lastByStage = new Map<string, Record<string, unknown>>()
+  const stages = history.map((entry, index) => {
+    const stage = typeof entry.stage === 'string' ? entry.stage : null
+    const nowMs = typeof entry.nowMs === 'number' ? entry.nowMs : null
+    const previous = stage != null ? previousByStage.get(stage) ?? null : null
+    if (stage != null) {
+      if (!firstByStage.has(stage)) {
+        firstByStage.set(stage, entry)
+      }
+      previousByStage.set(stage, entry)
+      lastByStage.set(stage, entry)
+    }
+    const previousNowMs = typeof previous?.nowMs === 'number' ? previous.nowMs : null
+
+    return {
+      index,
+      stage,
+      aircraftId: typeof entry.aircraftId === 'string' ? entry.aircraftId : null,
+      packageRoot: typeof entry.packageRoot === 'string' ? entry.packageRoot : null,
+      timestamp: typeof entry.timestamp === 'number' ? entry.timestamp : null,
+      elapsedFromFirstMs:
+        firstNowMs != null && nowMs != null ? Number((nowMs - firstNowMs).toFixed(1)) : null,
+      elapsedSincePreviousSameStageMs:
+        previousNowMs != null && nowMs != null ? Number((nowMs - previousNowMs).toFixed(1)) : null
+    }
+  })
+  const elapsedFromFirst = (entry: Record<string, unknown> | null): number | null => {
+    const nowMs = typeof entry?.nowMs === 'number' ? entry.nowMs : null
+    return firstNowMs != null && nowMs != null ? Number((nowMs - firstNowMs).toFixed(1)) : null
+  }
+  const elapsedBetween = (
+    start: Record<string, unknown> | null,
+    end: Record<string, unknown> | null
+  ): number | null => {
+    const startMs = typeof start?.nowMs === 'number' ? start.nowMs : null
+    const endMs = typeof end?.nowMs === 'number' ? end.nowMs : null
+    return startMs != null && endMs != null ? Number((endMs - startMs).toFixed(1)) : null
+  }
+  const firstStage = (stage: string): Record<string, unknown> | null => firstByStage.get(stage) ?? null
+  const lastStage = (stage: string): Record<string, unknown> | null => lastByStage.get(stage) ?? null
+  const milestoneNames = [
+    'init:start',
+    'import:package',
+    'compile:behaviors',
+    'renderer:create',
+    'gltf:load',
+    'gltf:lod:fetch',
+    'gltf:lod:json:loaded',
+    'gltf:lod:parse:start',
+    'gltf:lod:parse:done',
+    'gltf:lod:ready',
+    'gltf:loaded',
+    'scene:ready'
+  ]
+  const milestones = milestoneNames.flatMap(stage => {
+    const entry = firstStage(stage)
+    return entry == null
+      ? []
+      : [{
+          stage,
+          elapsedFromFirstMs: elapsedFromFirst(entry),
+          timestamp: typeof entry.timestamp === 'number' ? entry.timestamp : null
+        }]
+  })
+
+  return {
+    ready: typeof latest?.stage === 'string' && latest.stage !== 'init:error',
+    totalElapsedMs:
+      firstNowMs != null && latestNowMs != null ? Number((latestNowMs - firstNowMs).toFixed(1)) : null,
+    currentElapsedMs:
+      firstNowMs != null ? Number((performance.now() - firstNowMs).toFixed(1)) : null,
+    currentStage: latest,
+    stageCount: history.length,
+    milestones,
+    phases: {
+      importPackageMs: elapsedBetween(firstStage('init:start'), firstStage('import:package')),
+      behaviorCompileToRendererCreateMs: elapsedBetween(
+        firstStage('compile:behaviors'),
+        firstStage('renderer:create')
+      ),
+      rendererCreateToGltfLoadMs: elapsedBetween(
+        firstStage('renderer:create'),
+        firstStage('gltf:load')
+      ),
+      gltfLoadToLoadedMs: elapsedBetween(firstStage('gltf:load'), firstStage('gltf:loaded')),
+      gltfLoadToSceneReadyMs: elapsedBetween(firstStage('gltf:load'), firstStage('scene:ready')),
+      gltfParseMs: elapsedBetween(firstStage('gltf:lod:parse:start'), firstStage('gltf:lod:parse:done')),
+      gltfNormalizeAndReadyMs: elapsedBetween(
+        firstStage('gltf:lod:parse:done'),
+        lastStage('gltf:lod:ready')
+      ),
+      sceneFinalizeMs: elapsedBetween(firstStage('gltf:loaded'), firstStage('scene:ready'))
+    },
+    stages
+  }
+}
+
+function stripCockpitBenchmarkEvents(result: unknown): unknown {
+  if (result == null || typeof result !== 'object') {
+    return result
+  }
+  const { events: _events, ...rest } = result as Record<string, unknown>
+  return rest
 }
 
 export function installViewerBootDevApi(): void {
@@ -255,13 +390,14 @@ export function installViewerBootDevApi(): void {
       methods: [
         '__DevApi.status()',
         '__DevApi.diagnostics()',
+        '__DevApi.bench.startup()',
         'await __DevApi.ready()'
       ],
       note: 'Interaction, camera, gauge, and runtime helpers become available after model loading completes.'
     }),
     schema: () => ok('Returned boot DevApi schema summary.', {
       ready: false,
-      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report']
+      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'bench.startup']
     }),
     diagnostics: () => ok('Returned boot diagnostics.', {
       ...loadingData(),
@@ -274,6 +410,10 @@ export function installViewerBootDevApi(): void {
         fps: null
       }
     }),
+    bench: {
+      startup: () => ok('Collected startup benchmark.', getStartupBenchmarkData()),
+      cockpitLod0: async () => unavailable('bench.cockpitLod0')
+    },
     camera: {
       enterCockpit: async () => unavailable('camera.enterCockpit'),
       exitCockpit: () => unavailable('camera.exitCockpit'),
@@ -986,6 +1126,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
         '__DevApi.bridgeCall("InputEvent_Push_Long", [1, 1])',
         '__DevApi.events({ kind: "html", limit: 5 })',
+        '__DevApi.bench.startup()',
+        'await __DevApi.bench.cockpitLod0()',
         '__DevApi.report()'
       ],
       methods: Object.keys(window.__DevApi ?? {})
@@ -999,6 +1141,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       eventOptions: ['kind', 'limit'],
+      benchMethods: ['startup', 'cockpitLod0'],
       resetOptions: ['runtime', 'coldAndDark'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
@@ -1010,7 +1153,11 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       cockpitInteractionStats: { ...context.cockpitInteractionStats },
       gauges: gauges().map(summarizeGauge),
       events: api.events().data,
-      perf: api.perf().data
+      perf: api.perf().data,
+      bench: {
+        startup: api.bench.startup().data,
+        cockpitLod0State: context.getCockpitBenchmarkState()
+      }
     }),
     reset: (options = {}) => {
       if (highlightGroup != null) {
@@ -1196,6 +1343,35 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       activeInterior: context.getCockpitPerfDiagnostics().getActiveInteriorStats(),
       panelSurfaces: context.getCockpitPerfDiagnostics().getPanelSurfaceStats()
     }),
+    bench: {
+      startup: () => ok('Collected startup benchmark.', getStartupBenchmarkData()),
+      cockpitLod0: async (options = {}) => {
+        const state = context.getCockpitBenchmarkState()
+        if (state.cockpitCameraAvailable !== true) {
+          return fail('Cockpit LOD0 benchmark is unavailable because the selected aircraft has no cockpit camera.', state)
+        }
+        if (state.benchmarkRunning === true) {
+          return fail('Cockpit LOD0 benchmark is already running.', state)
+        }
+
+        try {
+          const result = await context.runCockpitBenchmark({
+            targetInteriorLodIndex: 0,
+            forceCold: true
+          })
+          const data =
+            options.includeEvents === false
+              ? stripCockpitBenchmarkEvents(result)
+              : result
+          return ok('Collected cockpit LOD0 load benchmark.', data)
+        } catch (error) {
+          return fail('Cockpit LOD0 benchmark failed.', {
+            state: context.getCockpitBenchmarkState(),
+            error: error instanceof Error ? error.message : String(error)
+          })
+        }
+      }
+    },
     screenshot: (options = {}) => {
       if (options.target === 'gauge') {
         const gauge = resolveGauge(options.key)

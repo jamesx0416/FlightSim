@@ -18,6 +18,23 @@
           const value = globalThis.__msfsLoadStage
           return value && typeof value === 'object' ? value : null
         }
+        const getStartupBenchmark = () => {
+          const history = Array.isArray(globalThis.__msfsLoadStageHistory)
+            ? globalThis.__msfsLoadStageHistory
+            : []
+          const first = history[0] || null
+          const latest = history[history.length - 1] || null
+          const firstNowMs = first && typeof first.nowMs === 'number' ? first.nowMs : null
+          const latestNowMs = latest && typeof latest.nowMs === 'number' ? latest.nowMs : null
+          return {
+            ready: latest && typeof latest.stage === 'string' && latest.stage !== 'init:error',
+            totalElapsedMs: firstNowMs != null && latestNowMs != null ? latestNowMs - firstNowMs : null,
+            currentElapsedMs: firstNowMs != null ? performance.now() - firstNowMs : null,
+            currentStage: latest,
+            stageCount: history.length,
+            stages: history
+          }
+        }
         const response = (ok, summary, data, warnings) => ({
           ok,
           summary,
@@ -51,13 +68,17 @@
           diagnostics: () => response(true, 'Returned boot diagnostics.', { ...loadingData(), diagnostics: [] }),
           report: () => response(true, 'Returned boot report.', { ...loadingData(), diagnostics: [], performance: { fps: null } }),
           help: () => response(true, 'Boot DevApi is available while the viewer module loads.', {
-            methods: ['__DevApi.status()', '__DevApi.diagnostics()', 'await __DevApi.ready()'],
+            methods: ['__DevApi.status()', '__DevApi.diagnostics()', '__DevApi.bench.startup()', 'await __DevApi.ready()'],
             note: 'Interaction, camera, gauge, and runtime helpers become available after the viewer module and model loading complete.'
           }),
           schema: () => response(true, 'Returned boot DevApi schema summary.', {
             ready: false,
-            methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report']
-          })
+            methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'bench.startup']
+          }),
+          bench: {
+            startup: () => response(true, 'Collected startup benchmark.', getStartupBenchmark()),
+            cockpitLod0: () => unavailable('bench.cockpitLod0')
+          }
         }
         bootProxy = new Proxy(bootApi, {
           get(target, property, receiver) {
