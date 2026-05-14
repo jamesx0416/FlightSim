@@ -3589,6 +3589,7 @@
         - [ ] `<NODE_ID>` line 1354 = `#NODE_ID_DTO#`
         - [ ] `<ANIM_NAME>` line 1355 = `#ANIM_NAME_DTO#`
     - [ ] `<Template Name="ASOBO_FMC_Push_BRT_DIM_Template">` line 1358
+      - Partial verified 2026-05-14: the runtime now applies the same stock BRT/DIM brightness step used by this template to compatible airliner CDU HTML events such as `A320_Neo_CDU_1_BTN_BRT` / `..._DIM`. A330 and A320 LOD0 `PUSH_MCDUL_BRT` smokes moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50` with zero gauge issue groups. The full stock template remains unchecked until both split-button and 3-state `UseInputEvent` expansion paths are exercised directly.
       - [ ] `<Parameters Type="Default">` line 1359
         - [ ] `<NODE_ID_BRT_DIM>` line 1360
         - [ ] `<ANIM_NAME_BRT_DIM>` line 1361
@@ -42277,6 +42278,7 @@
         - [ ] `<NODE_ID>` line 1354 = `#NODE_ID_DTO#`
         - [ ] `<ANIM_NAME>` line 1355 = `#ANIM_NAME_DTO#`
     - [ ] `<Template Name="ASOBO_FMC_Push_BRT_DIM_Template">` line 1358
+      - Partial verified 2026-05-14: the runtime now applies the same stock BRT/DIM brightness step used by this template to compatible airliner CDU HTML events such as `A320_Neo_CDU_1_BTN_BRT` / `..._DIM`. A330 and A320 LOD0 `PUSH_MCDUL_BRT` smokes moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50` with zero gauge issue groups. The full stock template remains unchecked until both split-button and 3-state `UseInputEvent` expansion paths are exercised directly.
       - [ ] `<Parameters Type="Default">` line 1359
         - [ ] `<NODE_ID_BRT_DIM>` line 1360
         - [ ] `<ANIM_NAME_BRT_DIM>` line 1361
