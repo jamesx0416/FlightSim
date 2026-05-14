@@ -27968,6 +27968,7 @@
           - [ ] `<MOUSEFLAGS>` line 254
           - [ ] `<MOUSE_WHEEL_INPUTS>` line 255
     - [ ] `<Template Name="ASOBO_GT_Interaction_Left_Timed_Code">` line 267
+      - Partial verified 2026-05-14: the default timed branch compiled from the real mounted stock XML into one callback interaction and one 10 Hz update binding. Short release executed release+short+leave code; holding past `LONG_CLICK_TIME=1` executed long code from the update binding and then only leave code on release. The `TIMED_TYPE=X_EVENTS` branch remains unchecked.
       - [ ] `<Parameters Type="Default">` line 268
         - [ ] `<Switch Param="TIMED_TYPE">` line 269
           - [ ] `<Case Value="X_EVENTS">` line 270
@@ -27999,9 +28000,9 @@
       - [ ] `<Switch Param="TIMED_TYPE">` line 318
         - [ ] `<Case Value="X_EVENTS">` line 319
           - [ ] `<Update Frequency="10">` line 320
-        - [ ] `<Default>` line 342
-          - [ ] `<Update Frequency="10">` line 343
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 362
+        - [x] `<Default>` line 342
+          - [x] `<Update Frequency="10">` line 343
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 362
     - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates">` line 370
       - [ ] `<DefaultTemplateParameters>` line 371
         - [ ] `<NUM_STATES>` line 372
@@ -66660,6 +66661,7 @@
           - [ ] `<MOUSEFLAGS>` line 254
           - [ ] `<MOUSE_WHEEL_INPUTS>` line 255
     - [ ] `<Template Name="ASOBO_GT_Interaction_Left_Timed_Code">` line 267
+      - Partial verified 2026-05-14: the default timed branch compiled from the real mounted stock XML into one callback interaction and one 10 Hz update binding. Short release executed release+short+leave code; holding past `LONG_CLICK_TIME=1` executed long code from the update binding and then only leave code on release. The `TIMED_TYPE=X_EVENTS` branch remains unchecked.
       - [ ] `<Parameters Type="Default">` line 268
         - [ ] `<Switch Param="TIMED_TYPE">` line 269
           - [ ] `<Case Value="X_EVENTS">` line 270
@@ -66691,9 +66693,9 @@
       - [ ] `<Switch Param="TIMED_TYPE">` line 318
         - [ ] `<Case Value="X_EVENTS">` line 319
           - [ ] `<Update Frequency="10">` line 320
-        - [ ] `<Default>` line 342
-          - [ ] `<Update Frequency="10">` line 343
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 362
+        - [x] `<Default>` line 342
+          - [x] `<Update Frequency="10">` line 343
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 362
     - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates">` line 370
       - [ ] `<DefaultTemplateParameters>` line 371
         - [ ] `<NUM_STATES>` line 372
