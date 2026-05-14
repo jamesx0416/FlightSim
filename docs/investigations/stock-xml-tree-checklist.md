@@ -3423,14 +3423,15 @@
         - [ ] `<HTML_EVENT_ID>` line 1129 = `ATC`
         - [ ] `<NODE_ID>` line 1130 = `#NODE_ID_ATC_COMM#`
         - [ ] `<ANIM_NAME>` line 1131 = `#ANIM_NAME_ATC_COMM#`
-    - [ ] `<Template Name="ASOBO_FMC_Push_MCDU_MENU_Template">` line 1134
-      - [ ] `<Parameters Type="Default">` line 1135
-        - [ ] `<NODE_ID_MCDU_MENU>` line 1136
-        - [ ] `<ANIM_NAME_MCDU_MENU>` line 1137
-      - [ ] `<UseTemplate Name="ASOBO_FMC_PushButton">` line 1139
-        - [ ] `<HTML_EVENT_ID>` line 1140 = `MENU`
-        - [ ] `<NODE_ID>` line 1141 = `#NODE_ID_MCDU_MENU#`
-        - [ ] `<ANIM_NAME>` line 1142 = `#ANIM_NAME_MCDU_MENU#`
+    - [x] `<Template Name="ASOBO_FMC_Push_MCDU_MENU_Template">` line 1134
+      - Verified 2026-05-14: A320 and A330 LOD0 DevApi cockpit smokes clicked `PUSH_MCDUL_MENU` through the expanded generic FMC push-button path; each route executed one interaction, emitted `A320_Neo_CDU_1_BTN_MENU`, and kept zero gauge issue groups.
+      - [x] `<Parameters Type="Default">` line 1135
+        - [x] `<NODE_ID_MCDU_MENU>` line 1136
+        - [x] `<ANIM_NAME_MCDU_MENU>` line 1137
+      - [x] `<UseTemplate Name="ASOBO_FMC_PushButton">` line 1139
+        - [x] `<HTML_EVENT_ID>` line 1140 = `MENU`
+        - [x] `<NODE_ID>` line 1141 = `#NODE_ID_MCDU_MENU#`
+        - [x] `<ANIM_NAME>` line 1142 = `#ANIM_NAME_MCDU_MENU#`
     - [ ] `<Template Name="ASOBO_FMC_Push_AIRPORT_Template">` line 1145
       - [ ] `<Parameters Type="Default">` line 1146
         - [ ] `<NODE_ID_AIRPORT>` line 1147
@@ -42110,14 +42111,15 @@
         - [ ] `<HTML_EVENT_ID>` line 1129 = `ATC`
         - [ ] `<NODE_ID>` line 1130 = `#NODE_ID_ATC_COMM#`
         - [ ] `<ANIM_NAME>` line 1131 = `#ANIM_NAME_ATC_COMM#`
-    - [ ] `<Template Name="ASOBO_FMC_Push_MCDU_MENU_Template">` line 1134
-      - [ ] `<Parameters Type="Default">` line 1135
-        - [ ] `<NODE_ID_MCDU_MENU>` line 1136
-        - [ ] `<ANIM_NAME_MCDU_MENU>` line 1137
-      - [ ] `<UseTemplate Name="ASOBO_FMC_PushButton">` line 1139
-        - [ ] `<HTML_EVENT_ID>` line 1140 = `MENU`
-        - [ ] `<NODE_ID>` line 1141 = `#NODE_ID_MCDU_MENU#`
-        - [ ] `<ANIM_NAME>` line 1142 = `#ANIM_NAME_MCDU_MENU#`
+    - [x] `<Template Name="ASOBO_FMC_Push_MCDU_MENU_Template">` line 1134
+      - Verified 2026-05-14: A320 and A330 LOD0 DevApi cockpit smokes clicked `PUSH_MCDUL_MENU` through the expanded generic FMC push-button path; each route executed one interaction, emitted `A320_Neo_CDU_1_BTN_MENU`, and kept zero gauge issue groups.
+      - [x] `<Parameters Type="Default">` line 1135
+        - [x] `<NODE_ID_MCDU_MENU>` line 1136
+        - [x] `<ANIM_NAME_MCDU_MENU>` line 1137
+      - [x] `<UseTemplate Name="ASOBO_FMC_PushButton">` line 1139
+        - [x] `<HTML_EVENT_ID>` line 1140 = `MENU`
+        - [x] `<NODE_ID>` line 1141 = `#NODE_ID_MCDU_MENU#`
+        - [x] `<ANIM_NAME>` line 1142 = `#ANIM_NAME_MCDU_MENU#`
     - [ ] `<Template Name="ASOBO_FMC_Push_AIRPORT_Template">` line 1145
       - [ ] `<Parameters Type="Default">` line 1146
         - [ ] `<NODE_ID_AIRPORT>` line 1147
