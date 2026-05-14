@@ -1265,7 +1265,39 @@ async function init(): Promise<void> {
     return null
   }
 
-  const releaseCockpitInteractionPress = (binding: CompiledInteractionBinding | null): void => {
+  const executeCockpitInteractionDrag = (
+    binding: CompiledInteractionBinding | null,
+    options: {
+      readonly relativeX: number
+      readonly relativeY: number
+      readonly relativeZ: number
+      readonly dragPercent: number
+    }
+  ): boolean => {
+    if (binding == null || binding.kind !== 'callback' || !binding.expression.source.includes('LeftDrag')) {
+      return false
+    }
+    const dragged = runtime.executeInteractionCallbackEventForBinding(binding, {
+      holdFeedback: true,
+      mouseEvent: 'LeftDrag',
+      inputType: 1,
+      relativeX: options.relativeX,
+      relativeY: options.relativeY,
+      relativeZ: options.relativeZ,
+      dragPercent: options.dragPercent
+    })
+    if (dragged) {
+      cockpitInteractionStats.executedCount += 1
+      cockpitInteractionStats.lastTarget = binding.target
+      cockpitInteractionStats.activeHeldTarget = binding.target
+    }
+    return dragged
+  }
+
+  const releaseCockpitInteractionPress = (
+    binding: CompiledInteractionBinding | null,
+    options: { readonly unlock: boolean } = { unlock: false }
+  ): void => {
     if (binding == null) {
       return
     }
@@ -1273,6 +1305,12 @@ async function init(): Promise<void> {
       holdFeedback: false,
       mouseEvent: 'LeftRelease'
     })
+    if (options.unlock) {
+      runtime.executeInteractionCallbackEventForBinding(binding, {
+        holdFeedback: false,
+        mouseEvent: 'Unlock'
+      })
+    }
     runtime.releaseInteractionBinding(binding)
     if (cockpitInteractionStats.activeHeldTarget === binding.target) {
       cockpitInteractionStats.activeHeldTarget = null
@@ -1397,6 +1435,7 @@ async function init(): Promise<void> {
       recordCockpitBenchmarkEvent(`cockpit:toggle:${mode}`, { source })
     },
     handleCockpitInteractionPress,
+    executeCockpitInteractionDrag,
     releaseCockpitInteractionPress
   )
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
@@ -9459,7 +9498,19 @@ function installCockpitCameraShortcut(
     event: MouseEvent | PointerEvent,
     options: { readonly holdFeedback: boolean }
   ) => CompiledInteractionBinding | null,
-  onCockpitRelease?: (binding: CompiledInteractionBinding | null) => void
+  onCockpitDrag?: (
+    binding: CompiledInteractionBinding | null,
+    options: {
+      readonly relativeX: number
+      readonly relativeY: number
+      readonly relativeZ: number
+      readonly dragPercent: number
+    }
+  ) => boolean,
+  onCockpitRelease?: (
+    binding: CompiledInteractionBinding | null,
+    options?: { readonly unlock: boolean }
+  ) => void
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -9491,6 +9542,10 @@ function installCockpitCameraShortcut(
   let activePointerId: number | null = null
   let lastPointerX = 0
   let lastPointerY = 0
+  let startPointerX = 0
+  let startPointerY = 0
+  let activeCockpitPressDragged = false
+  let activeCockpitDragCallbackEmitted = false
   let activeCockpitPressBinding: CompiledInteractionBinding | null = null
   let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
   let exteriorVisibilityBeforeCockpit = exteriorScene.visible
@@ -9535,6 +9590,40 @@ function installCockpitCameraShortcut(
       }
     }
     activePointerId = null
+    activeCockpitPressDragged = false
+    activeCockpitDragCallbackEmitted = false
+  }
+
+  const isSupportedCockpitPointerButton = (event: PointerEvent): boolean =>
+    event.pointerType !== 'mouse' || event.button === 0 || event.button === 2
+
+  const getPointerRelativeValues = (event: PointerEvent): {
+    readonly relativeX: number
+    readonly relativeY: number
+    readonly relativeZ: number
+    readonly dragPercent: number
+  } => {
+    const rect = domElement.getBoundingClientRect()
+    const width = Math.max(rect.width, 1)
+    const height = Math.max(rect.height, 1)
+    const relativeX = Math.min(1, Math.max(0, (event.clientX - rect.left) / width))
+    const relativeY = Math.min(1, Math.max(0, (event.clientY - rect.top) / height))
+    const dragPercent = Math.min(
+      1,
+      Math.max(
+        0,
+        Math.max(
+          Math.abs(event.clientX - startPointerX) / width,
+          Math.abs(event.clientY - startPointerY) / height
+        )
+      )
+    )
+    return {
+      relativeX,
+      relativeY,
+      relativeZ: 0,
+      dragPercent
+    }
   }
 
   const exitCockpitView = (source: CockpitViewToggleSource = 'keyboard'): void => {
@@ -9603,13 +9692,17 @@ function installCockpitCameraShortcut(
     if (!isCockpitViewActive) {
       return
     }
-    if (event.pointerType === 'mouse' && event.button !== 0) {
+    if (!isSupportedCockpitPointerButton(event)) {
       return
     }
 
     activePointerId = event.pointerId
     lastPointerX = event.clientX
     lastPointerY = event.clientY
+    startPointerX = event.clientX
+    startPointerY = event.clientY
+    activeCockpitPressDragged = false
+    activeCockpitDragCallbackEmitted = false
     activeCockpitPressBinding = onCockpitPress?.(event, { holdFeedback: true }) ?? null
     domElement.setPointerCapture(event.pointerId)
     event.preventDefault()
@@ -9624,6 +9717,20 @@ function installCockpitCameraShortcut(
     const deltaY = event.clientY - lastPointerY
     lastPointerX = event.clientX
     lastPointerY = event.clientY
+    if (activeCockpitPressBinding != null) {
+      const movedFarEnough = Math.hypot(event.clientX - startPointerX, event.clientY - startPointerY) >= 2
+      if (movedFarEnough) {
+        activeCockpitPressDragged = true
+      }
+      if (activeCockpitPressDragged) {
+        activeCockpitDragCallbackEmitted =
+          onCockpitDrag?.(activeCockpitPressBinding, getPointerRelativeValues(event)) === true ||
+          activeCockpitDragCallbackEmitted
+      }
+      event.preventDefault()
+      return
+    }
+
     yawOffsetRadians += deltaX * LOOK_RADIANS_PER_PIXEL
     const nextPitchRadians = basePitchRadians + pitchOffsetRadians - deltaY * LOOK_RADIANS_PER_PIXEL
     pitchOffsetRadians = Math.min(
@@ -9639,9 +9746,16 @@ function installCockpitCameraShortcut(
       return
     }
 
-    onCockpitRelease?.(activeCockpitPressBinding)
+    onCockpitRelease?.(activeCockpitPressBinding, { unlock: activeCockpitDragCallbackEmitted })
     activeCockpitPressBinding = null
     releasePointer()
+    event.preventDefault()
+  }
+
+  const onContextMenu = (event: MouseEvent): void => {
+    if (!isCockpitViewActive) {
+      return
+    }
     event.preventDefault()
   }
 
@@ -9663,6 +9777,7 @@ function installCockpitCameraShortcut(
   domElement.addEventListener('pointermove', onPointerMove)
   domElement.addEventListener('pointerup', onPointerUp)
   domElement.addEventListener('pointercancel', onPointerUp)
+  domElement.addEventListener('contextmenu', onContextMenu)
   domElement.addEventListener('wheel', onWheel, { passive: false })
   disposeCockpitCameraShortcut = () => {
     exitCockpitView()
@@ -9671,6 +9786,7 @@ function installCockpitCameraShortcut(
     domElement.removeEventListener('pointermove', onPointerMove)
     domElement.removeEventListener('pointerup', onPointerUp)
     domElement.removeEventListener('pointercancel', onPointerUp)
+    domElement.removeEventListener('contextmenu', onContextMenu)
     domElement.removeEventListener('wheel', onWheel)
   }
 

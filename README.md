@@ -140,6 +140,8 @@ Gauge bridge diagnostics keep supported generic host-service shims separate from
 
 `drag()` emits the generic stock drag sequence (`Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, `Unlock`) and supplies the same mouse variables for templates that read relative position or drag percent.
 
+For testing the actual cockpit pointer path rather than the direct runtime drag helper, use `input.pointer()` after `camera.enterCockpit()`. It accepts `button: 0` for left mouse and `button: 2` for right mouse; right-button cockpit drags over interaction targets emit the same generic stock drag callbacks and suppress the browser context menu.
+
 ## Project Layout
 
 - [`docs/investigations/plan.md`](docs/investigations/plan.md): implementation plan and phase boundaries
