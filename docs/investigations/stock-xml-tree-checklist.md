@@ -27846,6 +27846,7 @@
     - [ ] `<Include>` line 10
     - [ ] `<Include>` line 11
 - [ ] `Asobo/Generic/Interactions.xml`
+  - Partial verified 2026-05-14: an in-browser synthetic stock XML harness mounted the real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` and exercised left-single event/code, left-single leave/wheel callbacks, multistate switch-position recursion, drag event-set, and wheel/left-drag axis fallback with zero diagnostics. Remaining rows stay unchecked until representative timed, blocker, tooltip/emissive, and all drag gate/sim-gate variants are directly exercised.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
     - [ ] `<Template Name="ASOBO_GT_Interaction_NoInteraction">` line 12
@@ -27896,14 +27897,14 @@
           - [ ] `<Component ID="#NODE_ID#_3" Node="#NODE_ID#_3">` line 92
             - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_NoInteraction">` line 93
               - [ ] `<TOOLTIPID>` line 94 = `TT:COCKPIT.TOOLTIPS.INOP`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Event">` line 109
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Event">` line 109
       - [ ] `<DefaultTemplateParameters>` line 110
         - [ ] `<HELPID>` line 111
         - [ ] `<TOOLTIPID>` line 112
         - [ ] `<CURSOR>` line 113
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 116
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 116
         - [ ] `<MouseFlags>` line 117
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Code">` line 129
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Code">` line 129
       - [ ] `<Parameters Type="Override">` line 130
         - [ ] `<IS_SWITCH>` line 131
       - [ ] `<Parameters Type="Default">` line 133
@@ -27952,17 +27953,17 @@
               - [ ] `<IS_SWITCH>` line 191
             - [ ] `<True>` line 193
               - [ ] `<LEFT_SINGLE_CODE_DRAG_IM>` line 194
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 224
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 224
         - [ ] `<CALLBACKCODE_DRAG_IM>` line 225
         - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 228
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 243
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 243
       - [ ] `<DefaultTemplateParameters>` line 244
         - [ ] `<HELPID>` line 245
         - [ ] `<TOOLTIPID>` line 246
         - [ ] `<CURSOR>` line 247
         - [ ] `<MOUSEFLAGS>` line 248
         - [ ] `<MOUSE_WHEEL_INPUTS>` line 249
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 252
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 252
         - [ ] `<Condition Check="WHEEL_UP_CODE">` line 253
           - [ ] `<MOUSEFLAGS>` line 254
           - [ ] `<MOUSE_WHEEL_INPUTS>` line 255
@@ -28001,7 +28002,7 @@
         - [ ] `<Default>` line 342
           - [ ] `<Update Frequency="10">` line 343
       - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 362
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates">` line 370
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates">` line 370
       - [ ] `<DefaultTemplateParameters>` line 371
         - [ ] `<NUM_STATES>` line 372
         - [ ] `<SWITCH_POSITION_TYPE>` line 373
@@ -28030,7 +28031,7 @@
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 402
             - [ ] `<UPDATE_ONCE>` line 403
             - [ ] `<UPDATE_CODE>` line 404 = `(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 0 == if{ 1 (>#SWITCH_POSITION_TYPE#:#SWITCH_POSITION...`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 408
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 408
     - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft">` line 419
       - [ ] `<DefaultTemplateParameters>` line 420
         - [ ] `<SWITCH_DIRECTION>` line 421
@@ -28319,7 +28320,7 @@
           - [ ] `<False>` line 1067
             - [ ] `<LEFT_SINGLE_CODE>` line 1068 = `(E:SIMULATION TIME, second) (>O:_PressTime) #LEFT_SINGLE_CODE#`
             - [ ] `<LEFT_LEAVE_CODE>` line 1072 = `(O:_PressTime) 0 > if{ (E:SIMULATION TIME, second) (O:_PressTime) #LONG_CLICK_TIME# + < if{ #SHORT_...`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelLeftDrag_Axis">` line 1085
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelLeftDrag_Axis">` line 1085
       - [ ] `<Parameters Type="Default">` line 1086
         - [ ] `<HELPID>` line 1087
         - [ ] `<TOOLTIPID>` line 1088
@@ -29020,19 +29021,20 @@
           - [ ] `<UseTemplate Name="ASOBO_GT_Recursive_AnimEvents">` line 197
             - [ ] `<ANIM_EVENT_ID>` line 198 = `#ANIM_EVENT_ID# 1 +`
 - [ ] `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml`
+  - Partial verified 2026-05-14 through the same stock harness as `Asobo/Generic/Interactions.xml`: left-single leave subtemplate expansion, multistate parameter/code recursion, and base multistate mouse callback emission compiled and executed for representative non-momentary 3-state switch code. Remaining momentary, lockable, center, timed, and repeat variants stay unchecked.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Macro Name="IsUsingRelativePos">` line 2
     - [ ] `<Macro Name="DragLockResetTimer">` line 3
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 5
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 6
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 5
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 6
         - [ ] `<Condition Check="WHEEL_DOWN_CODE">` line 7
           - [ ] `<MOUSEFLAGS>` line 8
           - [ ] `<MOUSE_WHEEL_INPUTS>` line 9
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 14
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 14
       - [ ] `<DefaultTemplateParameters>` line 15
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 18
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 18
         - [ ] `<CALLBACKCODE>` line 19 = `(M:Event) 'Lock' scmi 0 == if{ #LEFT_SINGLE_CODE# } els{ (M:Event) 'Unlock' scmi 0 == if{ #LEFT_LEA...`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 29
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 29
       - [ ] `<DefaultTemplateParameters>` line 30
         - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 31
         - [ ] `<Condition Check="MOMENTARY_SWITCH">` line 32
@@ -29053,16 +29055,16 @@
             - [ ] `<MOMENTARY_UP_0>` line 61
         - [ ] `<Condition Valid="DISABLE_ON_STATE_CHANGED_EXTERNAL_CODE_IN_MR">` line 64
           - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 65
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 68
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 68
         - [ ] `<CURRENT_ID>` line 69 = `#START_STATE#`
         - [ ] `<POS_MAX>` line 70
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 74
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 74
       - [ ] `<DefaultTemplateParameters>` line 75
         - [ ] `<CODE_POS_#CURRENT_ID#_VERIF>` line 76
         - [ ] `<ANIMTIP_#CURRENT_ID#_ON_PERCENT>` line 77
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 80
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 80
         - [ ] `<CURRENT_ENUM_VAL_POS>` line 81
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 84
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 84
       - [ ] `<DefaultTemplateParameters>` line 85
         - [ ] `<Condition NotEmpty="CURRENT_ENUM_VAL_POS">` line 86
           - [ ] `<True>` line 87
@@ -29077,16 +29079,16 @@
             - [ ] `<Value>` line 104 = `CURRENT_ID`
             - [ ] `<Number>` line 105
         - [ ] `<True>` line 108
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 109
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 109
         - [ ] `<False>` line 112
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 113
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 113
             - [ ] `<CURRENT_ID>` line 114 = `#START_STATE#`
             - [ ] `<NEXT_ID>` line 115 = `#START_STATE# 1 -`
             - [ ] `<CODE_POS_MAX>` line 116
             - [ ] `<CODE_POS_MAX_VERIF>` line 117
             - [ ] `<ELSE_BRACKET_OPENING>` line 118
             - [ ] `<ELSE_BRACKET_CLOSING>` line 119
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 125
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 125
       - [ ] `<DefaultTemplateParameters>` line 126
         - [ ] `<Condition Check="MOMENTARY_SWITCH">` line 127
           - [ ] `<True>` line 128
@@ -29117,7 +29119,7 @@
             - [ ] `<Value>` line 171 = `NEXT_ID`
             - [ ] `<Number>` line 172
         - [ ] `<True>` line 175
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 176
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 176
             - [ ] `<CODE_UP>` line 177
             - [ ] `<CODE_UP_CLOSING>` line 188
             - [ ] `<CODE_DOWN>` line 192
@@ -29130,10 +29132,10 @@
             - [ ] `<CURRENT_ID>` line 221 = `#NEXT_ID#`
             - [ ] `<NEXT_ID>` line 222 = `#NEXT_ID# 1 -`
         - [ ] `<False>` line 225
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 226
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 226
             - [ ] `<Condition Valid="CURRENT_CODE_REPEAT">` line 227
               - [ ] `<CODE_REPEAT>` line 228
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 242
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 242
       - [ ] `<Parameters Type="Default">` line 243
         - [ ] `<Condition Check="SWITCH_DIRECTION">` line 244
           - [ ] `<UPARROW>` line 245
@@ -29243,7 +29245,7 @@
           - [ ] `<False>` line 428
             - [ ] `<DRAG_CODE_VERTICAL>` line 429
             - [ ] `<DRAG_CODE_HORIZONTAL>` line 442
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 458
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 458
         - [ ] `<Condition Check="IS_LOOPING">` line 459
           - [ ] `<True>` line 460
             - [ ] `<ANIMCURSOR_MIN>` line 461
@@ -29257,7 +29259,7 @@
           - [ ] `<Case Value="Horizontal">` line 525
             - [ ] `<INPUT_CODE_IM_DEFAULT>` line 526
             - [ ] `<INPUT_CODE_IM_DRAG>` line 542
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 565
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 565
       - [ ] `<DefaultTemplateParameters>` line 566
         - [ ] `<HELPID>` line 567
         - [ ] `<TOOLTIPID>` line 568
@@ -29289,7 +29291,7 @@
         - [ ] `<Condition Check="MOMENTARY_REPEAT_FREQUENCY">` line 647
           - [ ] `<True>` line 648
             - [ ] `<Update Frequency="#MOMENTARY_REPEAT_FREQUENCY#">` line 649
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 664
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 664
         - [ ] `<MouseFlags>` line 665
         - [ ] `<ANIMATION_CODE_SETTER>` line 666
         - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 667
@@ -66536,6 +66538,7 @@
     - [ ] `<Include>` line 10
     - [ ] `<Include>` line 11
 - [ ] `Asobo/Generic/Interactions.xml`
+  - Partial verified 2026-05-14: an in-browser synthetic stock XML harness mounted the real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` and exercised left-single event/code, left-single leave/wheel callbacks, multistate switch-position recursion, drag event-set, and wheel/left-drag axis fallback with zero diagnostics. Remaining rows stay unchecked until representative timed, blocker, tooltip/emissive, and all drag gate/sim-gate variants are directly exercised.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
     - [ ] `<Template Name="ASOBO_GT_Interaction_NoInteraction">` line 12
@@ -66586,14 +66589,14 @@
           - [ ] `<Component ID="#NODE_ID#_3" Node="#NODE_ID#_3">` line 92
             - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_NoInteraction">` line 93
               - [ ] `<TOOLTIPID>` line 94 = `TT:COCKPIT.TOOLTIPS.INOP`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Event">` line 109
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Event">` line 109
       - [ ] `<DefaultTemplateParameters>` line 110
         - [ ] `<HELPID>` line 111
         - [ ] `<TOOLTIPID>` line 112
         - [ ] `<CURSOR>` line 113
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 116
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 116
         - [ ] `<MouseFlags>` line 117
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Code">` line 129
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Code">` line 129
       - [ ] `<Parameters Type="Override">` line 130
         - [ ] `<IS_SWITCH>` line 131
       - [ ] `<Parameters Type="Default">` line 133
@@ -66642,17 +66645,17 @@
               - [ ] `<IS_SWITCH>` line 191
             - [ ] `<True>` line 193
               - [ ] `<LEFT_SINGLE_CODE_DRAG_IM>` line 194
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 224
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 224
         - [ ] `<CALLBACKCODE_DRAG_IM>` line 225
         - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 228
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 243
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 243
       - [ ] `<DefaultTemplateParameters>` line 244
         - [ ] `<HELPID>` line 245
         - [ ] `<TOOLTIPID>` line 246
         - [ ] `<CURSOR>` line 247
         - [ ] `<MOUSEFLAGS>` line 248
         - [ ] `<MOUSE_WHEEL_INPUTS>` line 249
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 252
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 252
         - [ ] `<Condition Check="WHEEL_UP_CODE">` line 253
           - [ ] `<MOUSEFLAGS>` line 254
           - [ ] `<MOUSE_WHEEL_INPUTS>` line 255
@@ -66691,7 +66694,7 @@
         - [ ] `<Default>` line 342
           - [ ] `<Update Frequency="10">` line 343
       - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 362
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates">` line 370
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates">` line 370
       - [ ] `<DefaultTemplateParameters>` line 371
         - [ ] `<NUM_STATES>` line 372
         - [ ] `<SWITCH_POSITION_TYPE>` line 373
@@ -66720,7 +66723,7 @@
           - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 402
             - [ ] `<UPDATE_ONCE>` line 403
             - [ ] `<UPDATE_CODE>` line 404 = `(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 0 == if{ 1 (>#SWITCH_POSITION_TYPE#:#SWITCH_POSITION...`
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 408
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 408
     - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft">` line 419
       - [ ] `<DefaultTemplateParameters>` line 420
         - [ ] `<SWITCH_DIRECTION>` line 421
@@ -67009,7 +67012,7 @@
           - [ ] `<False>` line 1067
             - [ ] `<LEFT_SINGLE_CODE>` line 1068 = `(E:SIMULATION TIME, second) (>O:_PressTime) #LEFT_SINGLE_CODE#`
             - [ ] `<LEFT_LEAVE_CODE>` line 1072 = `(O:_PressTime) 0 > if{ (E:SIMULATION TIME, second) (O:_PressTime) #LONG_CLICK_TIME# + < if{ #SHORT_...`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelLeftDrag_Axis">` line 1085
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelLeftDrag_Axis">` line 1085
       - [ ] `<Parameters Type="Default">` line 1086
         - [ ] `<HELPID>` line 1087
         - [ ] `<TOOLTIPID>` line 1088
@@ -67710,19 +67713,20 @@
           - [ ] `<UseTemplate Name="ASOBO_GT_Recursive_AnimEvents">` line 197
             - [ ] `<ANIM_EVENT_ID>` line 198 = `#ANIM_EVENT_ID# 1 +`
 - [ ] `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml`
+  - Partial verified 2026-05-14 through the same stock harness as `Asobo/Generic/Interactions.xml`: left-single leave subtemplate expansion, multistate parameter/code recursion, and base multistate mouse callback emission compiled and executed for representative non-momentary 3-state switch code. Remaining momentary, lockable, center, timed, and repeat variants stay unchecked.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Macro Name="IsUsingRelativePos">` line 2
     - [ ] `<Macro Name="DragLockResetTimer">` line 3
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 5
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 6
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate1">` line 5
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 6
         - [ ] `<Condition Check="WHEEL_DOWN_CODE">` line 7
           - [ ] `<MOUSEFLAGS>` line 8
           - [ ] `<MOUSE_WHEEL_INPUTS>` line 9
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 14
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code_Subtemplate2">` line 14
       - [ ] `<DefaultTemplateParameters>` line 15
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 18
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 18
         - [ ] `<CALLBACKCODE>` line 19 = `(M:Event) 'Lock' scmi 0 == if{ #LEFT_SINGLE_CODE# } els{ (M:Event) 'Unlock' scmi 0 == if{ #LEFT_LEA...`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 29
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 29
       - [ ] `<DefaultTemplateParameters>` line 30
         - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 31
         - [ ] `<Condition Check="MOMENTARY_SWITCH">` line 32
@@ -67743,16 +67747,16 @@
             - [ ] `<MOMENTARY_UP_0>` line 61
         - [ ] `<Condition Valid="DISABLE_ON_STATE_CHANGED_EXTERNAL_CODE_IN_MR">` line 64
           - [ ] `<ON_STATE_CHANGED_EXTERNAL_CODE>` line 65
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 68
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 68
         - [ ] `<CURRENT_ID>` line 69 = `#START_STATE#`
         - [ ] `<POS_MAX>` line 70
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 74
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 74
       - [ ] `<DefaultTemplateParameters>` line 75
         - [ ] `<CODE_POS_#CURRENT_ID#_VERIF>` line 76
         - [ ] `<ANIMTIP_#CURRENT_ID#_ON_PERCENT>` line 77
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 80
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 80
         - [ ] `<CURRENT_ENUM_VAL_POS>` line 81
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 84
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_2">` line 84
       - [ ] `<DefaultTemplateParameters>` line 85
         - [ ] `<Condition NotEmpty="CURRENT_ENUM_VAL_POS">` line 86
           - [ ] `<True>` line 87
@@ -67767,16 +67771,16 @@
             - [ ] `<Value>` line 104 = `CURRENT_ID`
             - [ ] `<Number>` line 105
         - [ ] `<True>` line 108
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 109
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup_Recursive_1">` line 109
         - [ ] `<False>` line 112
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 113
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 113
             - [ ] `<CURRENT_ID>` line 114 = `#START_STATE#`
             - [ ] `<NEXT_ID>` line 115 = `#START_STATE# 1 -`
             - [ ] `<CODE_POS_MAX>` line 116
             - [ ] `<CODE_POS_MAX_VERIF>` line 117
             - [ ] `<ELSE_BRACKET_OPENING>` line 118
             - [ ] `<ELSE_BRACKET_CLOSING>` line 119
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 125
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 125
       - [ ] `<DefaultTemplateParameters>` line 126
         - [ ] `<Condition Check="MOMENTARY_SWITCH">` line 127
           - [ ] `<True>` line 128
@@ -67807,7 +67811,7 @@
             - [ ] `<Value>` line 171 = `NEXT_ID`
             - [ ] `<Number>` line 172
         - [ ] `<True>` line 175
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 176
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_CodeSetup_Recursive">` line 176
             - [ ] `<CODE_UP>` line 177
             - [ ] `<CODE_UP_CLOSING>` line 188
             - [ ] `<CODE_DOWN>` line 192
@@ -67820,10 +67824,10 @@
             - [ ] `<CURRENT_ID>` line 221 = `#NEXT_ID#`
             - [ ] `<NEXT_ID>` line 222 = `#NEXT_ID# 1 -`
         - [ ] `<False>` line 225
-          - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 226
+          - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 226
             - [ ] `<Condition Valid="CURRENT_CODE_REPEAT">` line 227
               - [ ] `<CODE_REPEAT>` line 228
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 242
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_1">` line 242
       - [ ] `<Parameters Type="Default">` line 243
         - [ ] `<Condition Check="SWITCH_DIRECTION">` line 244
           - [ ] `<UPARROW>` line 245
@@ -67933,7 +67937,7 @@
           - [ ] `<False>` line 428
             - [ ] `<DRAG_CODE_VERTICAL>` line 429
             - [ ] `<DRAG_CODE_HORIZONTAL>` line 442
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 458
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 458
         - [ ] `<Condition Check="IS_LOOPING">` line 459
           - [ ] `<True>` line 460
             - [ ] `<ANIMCURSOR_MIN>` line 461
@@ -67947,7 +67951,7 @@
           - [ ] `<Case Value="Horizontal">` line 525
             - [ ] `<INPUT_CODE_IM_DEFAULT>` line 526
             - [ ] `<INPUT_CODE_IM_DRAG>` line 542
-    - [ ] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 565
+    - [x] `<Template Name="ASOBO_GT_Interaction_LeftSingle_MultiStates_Base_2">` line 565
       - [ ] `<DefaultTemplateParameters>` line 566
         - [ ] `<HELPID>` line 567
         - [ ] `<TOOLTIPID>` line 568
@@ -67979,7 +67983,7 @@
         - [ ] `<Condition Check="MOMENTARY_REPEAT_FREQUENCY">` line 647
           - [ ] `<True>` line 648
             - [ ] `<Update Frequency="#MOMENTARY_REPEAT_FREQUENCY#">` line 649
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 664
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 664
         - [ ] `<MouseFlags>` line 665
         - [ ] `<ANIMATION_CODE_SETTER>` line 666
         - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 667
