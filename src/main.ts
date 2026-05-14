@@ -4877,6 +4877,7 @@ function createVCockpitGaugeBridgeScript(
   const wasmBridge = ${JSON.stringify(wasmBridge)};
   const gaugeDocumentDirectoryUrl = new URL('.', gaugeDocumentUrl).toString();
   const instrumentUpdateMs = ${JSON.stringify(updateThrottleMs)};
+  const runtimeReadMinIntervalMs = ${JSON.stringify(VCOCKPIT_RUNTIME_READ_MIN_INTERVAL_MS)};
   const resolveMsfsResourceUrl = value => {
     const text = String(value ?? '');
     const couiHtmlUiPrefix = 'coui://html_ui/';
@@ -5464,7 +5465,7 @@ function createVCockpitGaugeBridgeScript(
     if (
       runtimeBridgeActive &&
       !runtimeReadRequests.has(storedKey) &&
-      nowMs - lastRequestMs > VCOCKPIT_RUNTIME_READ_MIN_INTERVAL_MS
+      nowMs - lastRequestMs > runtimeReadMinIntervalMs
     ) {
       runtimeReadRequestTimes.set(storedKey, nowMs);
       const request = postRuntimeRequest({
@@ -6247,6 +6248,10 @@ function createVCockpitGaugeBridgeScript(
         return triggerRuntimeKeyEvent(args[0], [args[2], args[3], args[4]]);
       }
       if (normalizedCallName.toUpperCase() === 'GET_AIR_TRAFFIC') {
+        incrementBridgeCall('Coherent.call:' + normalizedCallName);
+        return Promise.resolve([]);
+      }
+      if (normalizedCallName.toUpperCase() === 'SEARCH_NEAREST') {
         incrementBridgeCall('Coherent.call:' + normalizedCallName);
         return Promise.resolve([]);
       }
