@@ -1491,10 +1491,25 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applyHtmlEventSideEffects(name: string, _args: readonly (number | string)[]): void {
     const normalizedName = name.trim().toUpperCase()
+    this.applyFmcBrightnessHtmlEventSideEffects(normalizedName)
     if (normalizedName === 'GENERIC_GEAR_ADVISORY_PUSH') {
       this.values.set(normalizeRuntimeVariableKey('L:Generic_Gear_Advisory_Active'), 0)
       this.values.set(normalizeRuntimeVariableKey('L:Generic_Gear_Advisory_Acknowledged'), 1)
     }
+  }
+
+  private applyFmcBrightnessHtmlEventSideEffects(normalizedName: string): void {
+    const match = /(?:^|_)CDU_([1-9]\d*)_BTN_(BRT|DIM)$/u.exec(normalizedName)
+    if (match == null) {
+      return
+    }
+
+    const [, id, direction] = match
+    const brightnessKey = normalizeRuntimeVariableKey(`I:XMLVAR_MCDU_${id}_Brightness`)
+    const current = this.readVariable(brightnessKey)
+    const delta = direction === 'BRT' ? 0.03 : -0.03
+    this.values.set(brightnessKey, clamp(current + delta, 0.05, 1))
+    this.readCache.clear()
   }
 
   private applyLocalVariableSideEffects(key: string, value: number): void {
