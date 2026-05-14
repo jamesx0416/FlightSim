@@ -16,7 +16,7 @@ For cockpit/gauge verification, wait for settled state through DevApi instead of
 
 When interpreting loaded gauge status, use `window.__DevApi.status().counts.capturedCapturableGauges` versus `capturableGauges` for visual readiness; backend-only `NO_TEXTURE` hosts are counted separately as `backendOnlyGauges` and are not failed display captures.
 
-For bridge-backed WASM gauge investigation, use `await window.__DevApi.inspectWasm(key)` to fetch and compile the resolved `.wasm` module for imports/exports without instantiating the native MSFS ABI. Normal gauge diagnostics only expose resolved WASM URLs.
+For bridge-backed WASM gauge investigation, use `await window.__DevApi.inspectWasm(key)` to fetch and compile the resolved `.wasm` module for imports/exports without instantiating the native MSFS ABI. Normal gauge diagnostics only expose resolved WASM URLs until `inspectWasm()` is called; after inspection, the same per-URL module info is visible in gauge summaries and diagnostics. Gauge keys repeat across VCockpit surfaces, so pass `surface` or `source` from `list({ kind: "gauges" })` when inspecting a specific duplicate key.
 
 For behavior-trigger checks, use `window.__DevApi.list({ kind: "animationTriggers" })` to inspect compiled stock `AnimationTriggers` bindings and `window.__DevApi.events({ kind: "effect", limit: 10 })` or `window.__DevApi.events({ kind: "sound", limit: 10 })` to inspect runtime trigger dispatch.
 

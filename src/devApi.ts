@@ -42,6 +42,27 @@ type DevApiResponse<T = unknown> = {
   readonly warnings?: readonly string[]
 }
 
+type DevApiWasmModuleImport = {
+  readonly module: string
+  readonly name: string
+  readonly kind: string
+}
+
+type DevApiWasmModuleExport = {
+  readonly name: string
+  readonly kind: string
+}
+
+type DevApiWasmModuleInfo = {
+  readonly url: string
+  readonly status: 'resolved-url-only' | 'compiled' | 'fetch-error' | 'too-large' | 'inspect-error'
+  readonly byteLength: number
+  readonly imports: readonly DevApiWasmModuleImport[]
+  readonly exports: readonly DevApiWasmModuleExport[]
+  readonly error: string | null
+  readonly inspectedAt: string | null
+}
+
 type DevApiListKind =
   | 'nodes'
   | 'components'
@@ -148,8 +169,14 @@ type ViewerDevApi = {
   readonly drag: (target: string, options?: DevApiDragOptions) => Promise<DevApiResponse>
   readonly checkComponent: (target: string) => DevApiResponse
   readonly checkMaterial: (target: string, options?: { readonly descendants?: boolean }) => DevApiResponse
-  readonly checkGauge: (key?: string, options?: { readonly screenshot?: boolean }) => DevApiResponse
-  readonly inspectWasm: (key?: string, options?: { readonly maxBytes?: number }) => Promise<DevApiResponse>
+  readonly checkGauge: (
+    key?: string,
+    options?: { readonly screenshot?: boolean; readonly surface?: string; readonly source?: string }
+  ) => DevApiResponse
+  readonly inspectWasm: (
+    key?: string,
+    options?: { readonly maxBytes?: number; readonly surface?: string; readonly source?: string }
+  ) => Promise<DevApiResponse>
   readonly checkParam: (names: string | readonly string[]) => DevApiResponse
   readonly setParam: (name: string, value: number, unit?: string | null) => DevApiResponse
   readonly diagnostics: (options?: DevApiDiagnosticsOptions) => DevApiResponse
@@ -582,6 +609,21 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   })
   const sleep = (delayMs: number): Promise<void> =>
     new Promise(resolve => window.setTimeout(resolve, Math.max(0, delayMs)))
+  const inspectedWasmModules = new Map<string, DevApiWasmModuleInfo>()
+  const getWasmModuleInfo = (url: string): DevApiWasmModuleInfo =>
+    inspectedWasmModules.get(url) ?? {
+      url,
+      status: 'resolved-url-only',
+      byteLength: 0,
+      imports: [],
+      exports: [],
+      error: null,
+      inspectedAt: null
+    }
+  const storeWasmModuleInfo = (info: DevApiWasmModuleInfo): DevApiWasmModuleInfo => {
+    inspectedWasmModules.set(info.url, info)
+    return info
+  }
   const getLoadStage = (): Record<string, unknown> | null => {
     const value = (globalThis as Record<string, unknown>).__msfsLoadStage
     return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
@@ -726,14 +768,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         ? bridgeStats
         : {
             ...(typeof bridgeStats === 'object' ? bridgeStats : {}),
-            wasmModuleInfo: {
-              url: wasmModuleUrl,
-              status: 'resolved-url-only',
-              byteLength: 0,
-              imports: [],
-              exports: [],
-              error: null
-            }
+            wasmModuleInfo: getWasmModuleInfo(wasmModuleUrl)
           },
       scriptErrors: frameWindow?.__msfsGaugeErrors ?? null,
       assetErrors: frameWindow?.__msfsGaugeAssetErrors ?? null,
@@ -1001,10 +1036,19 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     const stage = getLoadStage()?.stage
     return typeof stage === 'string' && stage !== 'init:error'
   }
-  const resolveGauge = (key?: string): VCockpitHtmlGaugeRuntime | null => {
-    if (key == null || key.trim() === '') return gauges()[0] ?? null
+  const resolveGauge = (
+    key?: string,
+    options: { readonly surface?: string; readonly source?: string } = {}
+  ): VCockpitHtmlGaugeRuntime | null => {
+    const surfaceNeedle = options.surface?.trim().toLowerCase() ?? ''
+    const sourceNeedle = options.source?.trim().toLowerCase() ?? ''
+    const candidates = gauges().filter(gauge =>
+      (!surfaceNeedle || gauge.surface.toLowerCase().includes(surfaceNeedle)) &&
+      (!sourceNeedle || gauge.source.toLowerCase().includes(sourceNeedle))
+    )
+    if (key == null || key.trim() === '') return candidates[0] ?? null
     const needle = key.trim().toLowerCase()
-    return gauges().find(gauge =>
+    return candidates.find(gauge =>
       gauge.gaugeKey.toLowerCase() === needle ||
       gauge.gaugeKey.toLowerCase().includes(needle) ||
       gauge.source.toLowerCase().includes(needle) ||
@@ -1256,7 +1300,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       eventOptions: ['kind', 'limit'],
-      inspectWasmOptions: ['maxBytes'],
+      checkGaugeOptions: ['screenshot', 'surface', 'source'],
+      inspectWasmOptions: ['maxBytes', 'surface', 'source'],
       benchMethods: ['startup', 'cockpitLod0', 'all', 'history', 'clearHistory'],
       resetOptions: ['runtime', 'coldAndDark'],
       runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
@@ -1364,7 +1409,10 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       })
     },
     checkGauge: (key, options = {}) => {
-      const gauge = resolveGauge(key)
+      const gauge = resolveGauge(key, {
+        surface: options.surface,
+        source: options.source
+      })
       if (gauge == null) return fail('No VCockpit gauge matched.', { key, gauges: gauges().map(summarizeGauge) })
       const canvas = gauge.captureImage ?? gauge.staticCaptureImage
       return ok(`Checked gauge ${gauge.gaugeKey}.`, {
@@ -1373,7 +1421,10 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       })
     },
     inspectWasm: async (key, options = {}) => {
-      const gauge = resolveGauge(key)
+      const gauge = resolveGauge(key, {
+        surface: options.surface,
+        source: options.source
+      })
       if (gauge == null) {
         return fail('No VCockpit gauge matched.', { key, gauges: gauges().map(summarizeGauge) })
       }
@@ -1390,34 +1441,64 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       try {
         const response = await fetch(wasmModuleUrl)
         if (!response.ok) {
+          const info = storeWasmModuleInfo({
+            url: wasmModuleUrl,
+            status: 'fetch-error',
+            byteLength: 0,
+            imports: [],
+            exports: [],
+            error: `${response.status} ${response.statusText}`.trim(),
+            inspectedAt: new Date().toISOString()
+          })
           return fail('Failed to fetch WASM module.', {
             key: gauge.gaugeKey,
             source: gauge.source,
             wasmModuleUrl,
             status: response.status,
-            statusText: response.statusText
+            statusText: response.statusText,
+            wasmModuleInfo: info
           })
         }
 
         const contentLength = Number(response.headers.get('content-length') ?? NaN)
         if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+          const info = storeWasmModuleInfo({
+            url: wasmModuleUrl,
+            status: 'too-large',
+            byteLength: contentLength,
+            imports: [],
+            exports: [],
+            error: `Module byte length ${contentLength} exceeds maxBytes ${maxBytes}.`,
+            inspectedAt: new Date().toISOString()
+          })
           return fail('WASM module exceeds inspectWasm maxBytes.', {
             key: gauge.gaugeKey,
             source: gauge.source,
             wasmModuleUrl,
             byteLength: contentLength,
-            maxBytes
+            maxBytes,
+            wasmModuleInfo: info
           })
         }
 
         const bytes = await response.arrayBuffer()
         if (bytes.byteLength > maxBytes) {
+          const info = storeWasmModuleInfo({
+            url: wasmModuleUrl,
+            status: 'too-large',
+            byteLength: bytes.byteLength,
+            imports: [],
+            exports: [],
+            error: `Module byte length ${bytes.byteLength} exceeds maxBytes ${maxBytes}.`,
+            inspectedAt: new Date().toISOString()
+          })
           return fail('WASM module exceeds inspectWasm maxBytes.', {
             key: gauge.gaugeKey,
             source: gauge.source,
             wasmModuleUrl,
             byteLength: bytes.byteLength,
-            maxBytes
+            maxBytes,
+            wasmModuleInfo: info
           })
         }
 
@@ -1431,6 +1512,15 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
           name: entry.name,
           kind: entry.kind
         }))
+        const info = storeWasmModuleInfo({
+          url: wasmModuleUrl,
+          status: 'compiled',
+          byteLength: bytes.byteLength,
+          imports,
+          exports,
+          error: null,
+          inspectedAt: new Date().toISOString()
+        })
 
         return ok('Inspected resolved WASM module without instantiating native MSFS ABI.', {
           key: gauge.gaugeKey,
@@ -1440,14 +1530,26 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
           byteLength: bytes.byteLength,
           imports,
           exports,
+          wasmModuleInfo: info,
           nativeAbiExecuted: false
         })
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error)
+        const info = storeWasmModuleInfo({
+          url: wasmModuleUrl,
+          status: 'inspect-error',
+          byteLength: 0,
+          imports: [],
+          exports: [],
+          error: errorMessage,
+          inspectedAt: new Date().toISOString()
+        })
         return fail('Failed to inspect WASM module.', {
           key: gauge.gaugeKey,
           source: gauge.source,
           wasmModuleUrl,
-          error: error instanceof Error ? error.message : String(error)
+          error: errorMessage,
+          wasmModuleInfo: info
         })
       }
     },
