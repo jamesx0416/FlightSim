@@ -1425,7 +1425,10 @@ async function init(): Promise<void> {
     })
   }
 
-  const runCockpitBenchmark = async (): Promise<CockpitBenchmarkRunResult> => {
+  const runCockpitBenchmark = async (options: {
+    readonly targetInteriorLodIndex?: number
+    readonly forceCold?: boolean
+  } = {}): Promise<CockpitBenchmarkRunResult> => {
     if (!cockpitCameraController.isAvailable()) {
       throw new Error('Cockpit benchmark is unavailable because the selected aircraft has no cockpit camera.')
     }
@@ -1442,6 +1445,10 @@ async function init(): Promise<void> {
 
     const events: CockpitBenchmarkEvent[] = []
     activeCockpitBenchmarkEvents = events
+    const previousRequestedInteriorLodIndex = requestedInteriorLodIndex
+    if (options.targetInteriorLodIndex != null) {
+      requestedInteriorLodIndex = options.targetInteriorLodIndex
+    }
 
     try {
       if (cockpitCameraController.isActive()) {
@@ -1455,6 +1462,9 @@ async function init(): Promise<void> {
         'exterior LOD01 state before benchmark start'
       )
       await waitForAnimationFrames(3)
+      if (options.forceCold === true) {
+        invalidateCachedCockpitInterior()
+      }
 
       const coldAvailable = cachedCockpitInterior == null
       const targetCockpitInteriorLodIndex = getCockpitInteriorPreferredLodIndex()
@@ -1544,6 +1554,7 @@ async function init(): Promise<void> {
       ;(globalThis as Record<string, unknown>).__lastCockpitBenchmarkResult = result
       return result
     } finally {
+      requestedInteriorLodIndex = previousRequestedInteriorLodIndex
       activeCockpitBenchmarkEvents = null
     }
   }
@@ -1890,6 +1901,11 @@ async function init(): Promise<void> {
     getCockpitInteractionPickRegistry: () =>
       getCockpitInteractionPickRegistry(loadedModel.scene, runtime),
     getCockpitCameraController: () => cockpitCameraController,
+    getCockpitBenchmarkState: () =>
+      ((globalThis as Record<string, unknown>).__cockpitBenchmark as {
+        readonly getState?: () => Record<string, unknown>
+      } | undefined)?.getState?.() ?? {},
+    runCockpitBenchmark: async options => runCockpitBenchmark(options),
     applySettings: async settings => {
       const nextStore = loadViewerConfigStore()
       const key = getViewerAircraftConfigKey(packageRoot, aircraft.id)
@@ -11178,10 +11194,19 @@ async function tryLoadAssetRoot(rootUrl: string): Promise<AssetRoot | null> {
 }
 
 function setGlobalLoadStage(payload: Record<string, unknown>): void {
-  ;(globalThis as Record<string, unknown>).__msfsLoadStage = {
+  const stage = {
     ...(payload),
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    nowMs: performance.now()
   }
+  ;(globalThis as Record<string, unknown>).__msfsLoadStage = stage
+
+  const globalRecord = globalThis as Record<string, unknown>
+  const history = Array.isArray(globalRecord.__msfsLoadStageHistory)
+    ? globalRecord.__msfsLoadStageHistory
+    : []
+  history.push(stage)
+  globalRecord.__msfsLoadStageHistory = history
 }
 
 init().catch(error => {
