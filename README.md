@@ -129,6 +129,8 @@ __DevApi.report()
 
 `inspectWasm(key, { surface, source })` fetches and compiles a resolved bridge-backed WASM module on demand, returning imports and exports without instantiating the native MSFS ABI. Normal startup only reports resolved WASM URLs; after a module is inspected, gauge summaries and diagnostics include the cached import/export inventory for that resolved URL. Use `surface` or `source` from `list({ kind: 'gauges' })` when a key such as `htmlgauge00` appears on multiple VCockpit surfaces.
 
+Gauge bridge diagnostics keep supported generic host-service shims separate from unsupported calls. `bridgeStats.supportedHostServiceCalls` records browser-host services such as `fsCommBusRegister`, `fsCommBusUnregister`, and `fsCommBusCall`; this does not mean native WASM ABI execution has run.
+
 `__DevApi.status()`, `__DevApi.diagnostics()`, and `__DevApi.report()` are available from the initial HTML bootstrap. Before the full viewer runtime is ready they return structured boot progress with `loadStage` and `elapsedMs`; action methods return structured "still loading" responses instead of being missing or producing `undefined`.
 
 `reset()` clears transient DevApi diagnostics by default. Pass `{ runtime: true }` to reset the runtime host to the package preview state, or `{ coldAndDark: true }` to clear runtime variables/events and seed the generic cold-and-dark state for startup tests.
