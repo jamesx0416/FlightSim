@@ -1436,7 +1436,7 @@ async function init(): Promise<void> {
       throw new Error('Cockpit benchmark is unavailable because the selected aircraft has no interior model.')
     }
     await ensureExteriorViewInteriorLoaded()
-    if (exteriorViewInterior == null) {
+    if (shouldLoadExteriorViewInterior() && exteriorViewInterior == null) {
       throw new Error('Cockpit benchmark is unavailable because the exterior-view interior LOD could not be loaded.')
     }
     if (activeCockpitBenchmarkEvents != null) {
