@@ -114,6 +114,7 @@ await __DevApi.drag('LEVER_THROTTLE', { axis: 'y', start: 0, end: 1, endPercent:
 await __DevApi.waitFor({ kind: 'gaugesReady', captured: true }, 45000)
 __DevApi.list({ kind: 'inputEvents', filter: 'ped_ecp' })
 __DevApi.list({ kind: 'animationTriggers', filter: 'flap' })
+__DevApi.list({ kind: 'nodeAnimations', filter: 'WingFlex' })
 __DevApi.events({ kind: 'effect', limit: 10 })
 __DevApi.checkGauge(undefined, { screenshot: true })
 await __DevApi.inspectWasm('terronnd')

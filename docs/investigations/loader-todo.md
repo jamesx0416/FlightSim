@@ -941,7 +941,7 @@ Checked stock XML families in this batch are limited to the families covered by 
 ### 7. Revisit The A320 Wing Structure / Transform Issue
 
 - [ ] Revisit the A320 wing structure/transform issue after stock XML and CFG coverage is expanded.
-- [ ] Implement generic model-level `NodeAnimation` runtime support from official docs.
+- [x] Implement generic model-level `NodeAnimation` runtime support from official docs.
   Documented-first scope:
   - [x] Audit and list all `NodeAnimation` types present in mounted aircraft fixtures and stock docs.
   - [x] Confirm which `NodeAnimation` fields are already parsed and preserved from model XML.
@@ -949,11 +949,12 @@ Checked stock XML families in this batch are limited to the families covered by 
   - [x] Implement `NodeAnimation type="WingFlex"` only up to the published contract:
     `WING FLEX PCT`, `wingflex_scalar`, `wingflex_surface_scalar`, `wingflex_offset`, and the documented 12-node layout.
   - [x] If the exact node deformation math is still not published, mark the remaining transform behavior as blocked rather than guessing.
-  - [ ] Verify A320 and A330 with agent-browser screenshots before checking this item off.
+  - [x] Verify A320 and A330 with agent-browser screenshots before checking this item off.
   Current status:
   - 2026-05-13 audit: the mounted A320 and A330 model XML fixtures only contain `NodeAnimation type="WingFlex"`; the mounted stock XML mirror has no additional `NodeAnimation` entries. The importer currently preserves the documented `type` attribute and ordered `Node` list in `ModelNodeAnimation`.
   - The importer preserves `NodeAnimation type="WingFlex"` nodes and the runtime has generic plumbing for documented node targets and simvar/cfg inputs.
   - The runtime deliberately returns no WingFlex deformation bindings until the exact deformation math is backed by official docs or direct authoritative package/runtime evidence.
+  - Verified with `tsc --noEmit` and Agent Browser on 2026-05-14 using `window.__DevApi.list({ kind: "nodeAnimations", filter: "WingFlex" })`: A330 reported one `WingFlex` block with 10/10 declared nodes matched exactly; A320 reported one `WingFlex` block with 12/12 declared nodes matched, including engine pivots matched through the same generic canonical wing-bone / engine-pivot naming used by the runtime. Both routes had zero error diagnostics after the check, settled at about 30 FPS in exterior-interior deferred mode, and screenshots were captured to `backups/agent-browser/node-animation-support/a330-node-animation.png` and `backups/agent-browser/node-animation-support/a320-node-animation.png`.
   - 2026-05-03: the implicit primitive/material-order decal depth-bias experiment for `ASOBO_material_blend_gbuffer` materials without explicit `ASOBO_material_draw_order` was rejected after A320 testing showed worse z-fighting; keep it reverted.
   - 2026-05-03: A32NX/A330 flap comparison found this is not a WingFlex or skin bind-pose bug. The affected A32NX `FLAPS_02_*` and `FLAPS_01_*` meshes contain `WINGS` base primitives and `ASOBO_material_blend_gbuffer` decal primitives (`METALFLAPS`, plus `RIBBONS` on `FLAPS_02_*`) inside the same skinned mesh. In bind pose, before runtime animation, `METALFLAPS` vertices already sit about 1.5-1.9 mm median from the covered `WINGS` surface, with p95 offsets about 4.1-5.1 mm. The current A330 flap meshes use ordinary `A339_AIRFRAME_WING_PARTS` / `A339_AIRFRAME_BLACK` primitives and do not have comparable flap-local blend-gbuffer decal primitives, matching the report that A330 does not show this issue.
   - 2026-05-03: landed generic renderer/depth work instead of a material-specific offset: blend-gbuffer drawables stay in their original base-pass layers and are added to the decal layer; the base pass hides blend materials, the decal pass hides non-blend materials on those drawables; the camera clip planes are tightened from visible per-mesh bounds with exact rest-pose skinned boxes. A320 browser verification reached `near ~= 0.027m` in the close flap view instead of the old `0.01m` floor.

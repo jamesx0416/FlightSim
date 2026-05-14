@@ -22,6 +22,8 @@ Bridge-backed gauge diagnostics distinguish unsupported calls from supported gen
 
 For behavior-trigger checks, use `window.__DevApi.list({ kind: "animationTriggers" })` to inspect compiled stock `AnimationTriggers` bindings and `window.__DevApi.events({ kind: "effect", limit: 10 })` or `window.__DevApi.events({ kind: "sound", limit: 10 })` to inspect runtime trigger dispatch.
 
+For model-level node animation checks, use `window.__DevApi.list({ kind: "nodeAnimations" })` to inspect parsed model XML `NodeAnimation` blocks and whether their node names matched loaded scene nodes.
+
 For generic mouse-interaction checks, pass stock mouse variables through `window.__DevApi.click(target, options)`: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables. For example, `await window.__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })`.
 
 For stock drag/callback interaction checks, prefer `window.__DevApi.drag(target, options)` over manually sequencing events. It emits `Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, and `Unlock` with configurable `axis`, `start`, `end`, `startPercent`, `endPercent`, `steps`, and `inputType`.
