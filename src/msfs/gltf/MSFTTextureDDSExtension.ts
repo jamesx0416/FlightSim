@@ -130,6 +130,10 @@ class MSFTTextureDDSExtension {
     const texturePromise = this.parser
       .loadTextureImage(textureIndex, sourceIndex, loader)
       .catch(() => fallbackTexture())
+      .then(async texture => {
+        await waitUntilDocumentVisible()
+        return texture
+      })
 
     return withTextureDependencyTimeout(
       texturePromise,
@@ -137,6 +141,25 @@ class MSFTTextureDDSExtension {
       fallbackTexture
     )
   }
+}
+
+function waitUntilDocumentVisible(): Promise<void> {
+  if (!document.hidden) {
+    return Promise.resolve()
+  }
+
+  return new Promise(resolve => {
+    const handleVisibilityChange = (): void => {
+      if (document.hidden) {
+        return
+      }
+
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      resolve()
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+  })
 }
 
 async function withTextureDependencyTimeout(
