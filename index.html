@@ -68,16 +68,27 @@
           diagnostics: () => response(true, 'Returned boot diagnostics.', { ...loadingData(), diagnostics: [] }),
           report: () => response(true, 'Returned boot report.', { ...loadingData(), diagnostics: [], performance: { fps: null } }),
           help: () => response(true, 'Boot DevApi is available while the viewer module loads.', {
-            methods: ['__DevApi.status()', '__DevApi.diagnostics()', '__DevApi.bench.startup()', 'await __DevApi.ready()'],
+            methods: ['__DevApi.status()', '__DevApi.diagnostics()', '__DevApi.bench.startup()', 'await __DevApi.bench.all()', '__DevApi.bench.history()', 'await __DevApi.ready()'],
             note: 'Interaction, camera, gauge, and runtime helpers become available after the viewer module and model loading complete.'
           }),
           schema: () => response(true, 'Returned boot DevApi schema summary.', {
             ready: false,
-            methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'bench.startup']
+            methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'bench.startup', 'bench.all', 'bench.history']
           }),
           bench: {
             startup: () => response(true, 'Collected startup benchmark.', getStartupBenchmark()),
-            cockpitLod0: () => unavailable('bench.cockpitLod0')
+            cockpitLod0: () => unavailable('bench.cockpitLod0'),
+            all: () => unavailable('bench.all'),
+            history: () => response(true, 'Collected stored benchmark history.', {
+              storageKey: 'msfs.devapi.bench.history.v1',
+              entries: JSON.parse(window.localStorage.getItem('msfs.devapi.bench.history.v1') || '[]')
+            }),
+            clearHistory: () => {
+              window.localStorage.removeItem('msfs.devapi.bench.history.v1')
+              return response(true, 'Cleared stored benchmark history.', {
+                storageKey: 'msfs.devapi.bench.history.v1'
+              })
+            }
           }
         }
         bootProxy = new Proxy(bootApi, {
