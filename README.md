@@ -116,6 +116,7 @@ __DevApi.list({ kind: 'inputEvents', filter: 'ped_ecp' })
 __DevApi.list({ kind: 'animationTriggers', filter: 'flap' })
 __DevApi.events({ kind: 'effect', limit: 10 })
 __DevApi.checkGauge(undefined, { screenshot: true })
+await __DevApi.inspectWasm('terronnd')
 __DevApi.diagnostics({ severity: 'warning', includeGauges: true })
 __DevApi.checkParam(['vspeed', 'altitude', 'pressure', 'location'])
 __DevApi.checkParam(['gear', 'flaps', 'spoilers', 'parkingBrake'])
@@ -125,6 +126,8 @@ __DevApi.report()
 ```
 
 `status().counts` separates loaded gauge runtimes from visual gauge capture readiness: `capturableGauges` and `capturedCapturableGauges` ignore backend-only `NO_TEXTURE` gauge hosts, while `backendOnlyGauges` counts loaded systems/bridge hosts that do not render to a cockpit texture.
+
+`inspectWasm(key)` fetches and compiles a resolved bridge-backed WASM module on demand, returning imports and exports without instantiating the native MSFS ABI. Normal startup only reports resolved WASM URLs.
 
 `__DevApi.status()`, `__DevApi.diagnostics()`, and `__DevApi.report()` are available from the initial HTML bootstrap. Before the full viewer runtime is ready they return structured boot progress with `loadStage` and `elapsedMs`; action methods return structured "still loading" responses instead of being missing or producing `undefined`.
 
