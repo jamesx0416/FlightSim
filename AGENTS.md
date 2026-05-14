@@ -28,6 +28,8 @@ For generic mouse-interaction checks, pass stock mouse variables through `window
 
 For stock drag/callback interaction checks, prefer `window.__DevApi.drag(target, options)` over manually sequencing events. It emits `Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, and `Unlock` with configurable `axis`, `start`, `end`, `startPercent`, `endPercent`, `steps`, and `inputType`.
 
+For cockpit pointer gesture checks, `window.__DevApi.input.pointer()` dispatches real viewer pointer events and supports `button: 0` for left mouse and `button: 2` for right mouse. In cockpit view, right-button pointerdown/move/up over an interaction target follows the same generic stock drag path as left-button drag and should not open the browser context menu.
+
 # Dev server URL
 https://msfs-combined-375b8e3b-fresh-local.vanilla-3dtiles.localhost:3000
 
