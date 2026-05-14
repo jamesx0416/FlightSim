@@ -1414,6 +1414,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return false
     }
 
+    if (shouldPublishGenericHandledInputEventState(normalizedName)) {
+      this.applyGenericInputEventStateName(normalizedName, value)
+    }
     this.activeInputEventBindings.add(normalizedName)
     let handledByBinding = false
     try {
@@ -4816,6 +4819,10 @@ function getGenericInputEventStateUpdate(
     baseName,
     baseValue
   }
+}
+
+function shouldPublishGenericHandledInputEventState(name: string): boolean {
+  return /_(PUSH|RELEASE|ON|OFF)$/u.test(name)
 }
 
 function getGenericBooleanStateNameValue(stateName: string): number | null {

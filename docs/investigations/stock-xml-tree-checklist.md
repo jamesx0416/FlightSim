@@ -3589,7 +3589,8 @@
         - [ ] `<NODE_ID>` line 1354 = `#NODE_ID_DTO#`
         - [ ] `<ANIM_NAME>` line 1355 = `#ANIM_NAME_DTO#`
     - [ ] `<Template Name="ASOBO_FMC_Push_BRT_DIM_Template">` line 1358
-      - Partial verified 2026-05-14: the runtime now applies the same stock BRT/DIM brightness step used by this template to compatible airliner CDU HTML events such as `A320_Neo_CDU_1_BTN_BRT` / `..._DIM`. A330 and A320 LOD0 `PUSH_MCDUL_BRT` smokes moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50` with zero gauge issue groups. The full stock template remains unchecked until both split-button and 3-state `UseInputEvent` expansion paths are exercised directly.
+      - Partial verified 2026-05-14: the runtime now applies the same stock BRT/DIM brightness step used by this template to compatible airliner CDU HTML events such as `A320_Neo_CDU_1_BTN_BRT` / `..._DIM`. A330 and A320 LOD0 `PUSH_MCDUL_BRT` smokes moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50` with zero gauge issue groups.
+      - Verified 2026-05-14: a synthetic stock XML harness mounted `Asobo/Airliner/FMC.xml` and exercised both 3-state and split `ASOBO_FMC_Push_BRT_DIM_Template` branches. The 3-state `UseInputEvent` bindings compiled with zero diagnostics and moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50`; the split held-button branch compiled `_Push` / `_Release` bindings, published base held state `B:FMC_TEST_2_Button_BRT_Solo = 1 -> 0`, and let the stock update binding move `I:XMLVAR_MCDU_2_Brightness` while BRT/DIM was held. Visual emissive/tooltip rows below remain unchecked unless separately verified.
       - [ ] `<Parameters Type="Default">` line 1359
         - [ ] `<NODE_ID_BRT_DIM>` line 1360
         - [ ] `<ANIM_NAME_BRT_DIM>` line 1361
@@ -3648,7 +3649,7 @@
               - [ ] `<STR_STATE_OFF>` line 1425
             - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1427
               - [ ] `<FREQUENCY>` line 1428
-              - [ ] `<UPDATE_CODE>` line 1429 = `(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#, Bool) if{ (O:XMLVAR_BRT_Update_Count) 1 + (>O:XMLVAR_BRT_U...`
+              - [x] `<UPDATE_CODE>` line 1429 = `(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#, Bool) if{ (O:XMLVAR_BRT_Update_Count) 1 + (>O:XMLVAR_BRT_U...`
             - [ ] `<UseTemplate Name="ASOBO_GT_Push_Button_Airliner">` line 1436
               - [ ] `<TOOLTIP_TITLE>` line 1437
               - [ ] `<TT_DESCRIPTION_ID>` line 1438 = `#TT_DESCRIPTION_ID_BRT#`
@@ -3658,8 +3659,8 @@
               - [ ] `<ANIM_NAME>` line 1442 = `#ANIM_NAME_BRT_DIM#`
               - [ ] `<SET_STATE_EXTERNAL>` line 1443
               - [ ] `<GET_STATE_EXTERNAL>` line 1444
-              - [ ] `<LEFT_SINGLE_CODE>` line 1445 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Push)`
-              - [ ] `<LEFT_LEAVE_CODE>` line 1446 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Release)`
+              - [x] `<LEFT_SINGLE_CODE>` line 1445 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Push)`
+              - [x] `<LEFT_LEAVE_CODE>` line 1446 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Release)`
               - [ ] `<TT_VALUE_ON>` line 1447
               - [ ] `<STR_STATE_ON>` line 1448
             - [ ] `<UseTemplate Name="ASOBO_GT_Push_Button_Airliner">` line 1450
@@ -3671,8 +3672,8 @@
               - [ ] `<ANIM_NAME>` line 1456 = `#ANIM_NAME_BRT_DIM_2#`
               - [ ] `<SET_STATE_EXTERNAL>` line 1457
               - [ ] `<GET_STATE_EXTERNAL>` line 1458
-              - [ ] `<LEFT_SINGLE_CODE>` line 1459 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Push)`
-              - [ ] `<LEFT_LEAVE_CODE>` line 1460 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Release)`
+              - [x] `<LEFT_SINGLE_CODE>` line 1459 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Push)`
+              - [x] `<LEFT_LEAVE_CODE>` line 1460 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Release)`
               - [ ] `<TT_VALUE_ON>` line 1461
               - [ ] `<STR_STATE_ON>` line 1462
         - [ ] `<False>` line 1466
@@ -3704,10 +3705,10 @@
             - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1497
               - [ ] `<FREQUENCY>` line 1498
               - [ ] `<UPDATE_CODE>` line 1499 = `(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#) #POS_STBY# != if{ (O:XMLVAR_Update_Count) 1 + (>O:XMLVAR_Updat...`
-            - [ ] `<UseInputEvent ID="FMC">` line 1507
-              - [ ] `<SET_STATE_#POS_BRT#>` line 1508
+            - [x] `<UseInputEvent ID="FMC">` line 1507
+              - [x] `<SET_STATE_#POS_BRT#>` line 1508
               - [ ] `<SET_STATE_#POS_STBY#>` line 1512
-              - [ ] `<SET_STATE_#POS_DIM#>` line 1513
+              - [x] `<SET_STATE_#POS_DIM#>` line 1513
               - [ ] `<STR_STATE_#POS_BRT#>` line 1517
               - [ ] `<STR_STATE_#POS_STBY#>` line 1518
               - [ ] `<STR_STATE_#POS_DIM#>` line 1519
@@ -3720,9 +3721,9 @@
               - [ ] `<TOOLTIP_TITLE>` line 1527
               - [ ] `<TOOLTIP_ENTRY_0>` line 1528
               - [ ] `<ANIM_NAME>` line 1529 = `#ANIM_NAME_BRT_DIM#`
-              - [ ] `<CODE_POS_#POS_BRT#>` line 1530
+              - [x] `<CODE_POS_#POS_BRT#>` line 1530
               - [ ] `<CODE_POS_#POS_STBY#>` line 1531
-              - [ ] `<CODE_POS_#POS_DIM#>` line 1532
+              - [x] `<CODE_POS_#POS_DIM#>` line 1532
               - [ ] `<STATE#POS_BRT#_TEST>` line 1533
               - [ ] `<STATE#POS_STBY#_TEST>` line 1534
               - [ ] `<STATE#POS_DIM#_TEST>` line 1535
@@ -42278,7 +42279,8 @@
         - [ ] `<NODE_ID>` line 1354 = `#NODE_ID_DTO#`
         - [ ] `<ANIM_NAME>` line 1355 = `#ANIM_NAME_DTO#`
     - [ ] `<Template Name="ASOBO_FMC_Push_BRT_DIM_Template">` line 1358
-      - Partial verified 2026-05-14: the runtime now applies the same stock BRT/DIM brightness step used by this template to compatible airliner CDU HTML events such as `A320_Neo_CDU_1_BTN_BRT` / `..._DIM`. A330 and A320 LOD0 `PUSH_MCDUL_BRT` smokes moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50` with zero gauge issue groups. The full stock template remains unchecked until both split-button and 3-state `UseInputEvent` expansion paths are exercised directly.
+      - Partial verified 2026-05-14: the runtime now applies the same stock BRT/DIM brightness step used by this template to compatible airliner CDU HTML events such as `A320_Neo_CDU_1_BTN_BRT` / `..._DIM`. A330 and A320 LOD0 `PUSH_MCDUL_BRT` smokes moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50` with zero gauge issue groups.
+      - Verified 2026-05-14: a synthetic stock XML harness mounted `Asobo/Airliner/FMC.xml` and exercised both 3-state and split `ASOBO_FMC_Push_BRT_DIM_Template` branches. The 3-state `UseInputEvent` bindings compiled with zero diagnostics and moved `I:XMLVAR_MCDU_1_Brightness` `0.50 -> 0.53 -> 0.50`; the split held-button branch compiled `_Push` / `_Release` bindings, published base held state `B:FMC_TEST_2_Button_BRT_Solo = 1 -> 0`, and let the stock update binding move `I:XMLVAR_MCDU_2_Brightness` while BRT/DIM was held. Visual emissive/tooltip rows below remain unchecked unless separately verified.
       - [ ] `<Parameters Type="Default">` line 1359
         - [ ] `<NODE_ID_BRT_DIM>` line 1360
         - [ ] `<ANIM_NAME_BRT_DIM>` line 1361
@@ -42337,7 +42339,7 @@
               - [ ] `<STR_STATE_OFF>` line 1425
             - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1427
               - [ ] `<FREQUENCY>` line 1428
-              - [ ] `<UPDATE_CODE>` line 1429 = `(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#, Bool) if{ (O:XMLVAR_BRT_Update_Count) 1 + (>O:XMLVAR_BRT_U...`
+              - [x] `<UPDATE_CODE>` line 1429 = `(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#, Bool) if{ (O:XMLVAR_BRT_Update_Count) 1 + (>O:XMLVAR_BRT_U...`
             - [ ] `<UseTemplate Name="ASOBO_GT_Push_Button_Airliner">` line 1436
               - [ ] `<TOOLTIP_TITLE>` line 1437
               - [ ] `<TT_DESCRIPTION_ID>` line 1438 = `#TT_DESCRIPTION_ID_BRT#`
@@ -42347,8 +42349,8 @@
               - [ ] `<ANIM_NAME>` line 1442 = `#ANIM_NAME_BRT_DIM#`
               - [ ] `<SET_STATE_EXTERNAL>` line 1443
               - [ ] `<GET_STATE_EXTERNAL>` line 1444
-              - [ ] `<LEFT_SINGLE_CODE>` line 1445 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Push)`
-              - [ ] `<LEFT_LEAVE_CODE>` line 1446 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Release)`
+              - [x] `<LEFT_SINGLE_CODE>` line 1445 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Push)`
+              - [x] `<LEFT_LEAVE_CODE>` line 1446 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_BRT#_Release)`
               - [ ] `<TT_VALUE_ON>` line 1447
               - [ ] `<STR_STATE_ON>` line 1448
             - [ ] `<UseTemplate Name="ASOBO_GT_Push_Button_Airliner">` line 1450
@@ -42360,8 +42362,8 @@
               - [ ] `<ANIM_NAME>` line 1456 = `#ANIM_NAME_BRT_DIM_2#`
               - [ ] `<SET_STATE_EXTERNAL>` line 1457
               - [ ] `<GET_STATE_EXTERNAL>` line 1458
-              - [ ] `<LEFT_SINGLE_CODE>` line 1459 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Push)`
-              - [ ] `<LEFT_LEAVE_CODE>` line 1460 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Release)`
+              - [x] `<LEFT_SINGLE_CODE>` line 1459 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Push)`
+              - [x] `<LEFT_LEAVE_CODE>` line 1460 = `(>B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID_DIM#_Release)`
               - [ ] `<TT_VALUE_ON>` line 1461
               - [ ] `<STR_STATE_ON>` line 1462
         - [ ] `<False>` line 1466
@@ -42393,10 +42395,10 @@
             - [ ] `<UseTemplate Name="ASOBO_GT_Update">` line 1497
               - [ ] `<FREQUENCY>` line 1498
               - [ ] `<UPDATE_CODE>` line 1499 = `(B:#INPUT_EVENT_ID_SOURCE#_#BTN_ID#) #POS_STBY# != if{ (O:XMLVAR_Update_Count) 1 + (>O:XMLVAR_Updat...`
-            - [ ] `<UseInputEvent ID="FMC">` line 1507
-              - [ ] `<SET_STATE_#POS_BRT#>` line 1508
+            - [x] `<UseInputEvent ID="FMC">` line 1507
+              - [x] `<SET_STATE_#POS_BRT#>` line 1508
               - [ ] `<SET_STATE_#POS_STBY#>` line 1512
-              - [ ] `<SET_STATE_#POS_DIM#>` line 1513
+              - [x] `<SET_STATE_#POS_DIM#>` line 1513
               - [ ] `<STR_STATE_#POS_BRT#>` line 1517
               - [ ] `<STR_STATE_#POS_STBY#>` line 1518
               - [ ] `<STR_STATE_#POS_DIM#>` line 1519
@@ -42409,9 +42411,9 @@
               - [ ] `<TOOLTIP_TITLE>` line 1527
               - [ ] `<TOOLTIP_ENTRY_0>` line 1528
               - [ ] `<ANIM_NAME>` line 1529 = `#ANIM_NAME_BRT_DIM#`
-              - [ ] `<CODE_POS_#POS_BRT#>` line 1530
+              - [x] `<CODE_POS_#POS_BRT#>` line 1530
               - [ ] `<CODE_POS_#POS_STBY#>` line 1531
-              - [ ] `<CODE_POS_#POS_DIM#>` line 1532
+              - [x] `<CODE_POS_#POS_DIM#>` line 1532
               - [ ] `<STATE#POS_BRT#_TEST>` line 1533
               - [ ] `<STATE#POS_STBY#_TEST>` line 1534
               - [ ] `<STATE#POS_DIM#_TEST>` line 1535
