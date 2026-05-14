@@ -18,6 +18,8 @@ When interpreting loaded gauge status, use `window.__DevApi.status().counts.capt
 
 For bridge-backed WASM gauge investigation, use `await window.__DevApi.inspectWasm(key)` to fetch and compile the resolved `.wasm` module for imports/exports without instantiating the native MSFS ABI. Normal gauge diagnostics only expose resolved WASM URLs until `inspectWasm()` is called; after inspection, the same per-URL module info is visible in gauge summaries and diagnostics. Gauge keys repeat across VCockpit surfaces, so pass `surface` or `source` from `list({ kind: "gauges" })` when inspecting a specific duplicate key.
 
+Bridge-backed gauge diagnostics distinguish unsupported calls from supported generic host-service shims. `bridgeStats.supportedHostServiceCalls` includes generic local services such as `fsCommBusRegister`, `fsCommBusUnregister`, and `fsCommBusCall`; these are browser-host shims, not native WASM ABI execution.
+
 For behavior-trigger checks, use `window.__DevApi.list({ kind: "animationTriggers" })` to inspect compiled stock `AnimationTriggers` bindings and `window.__DevApi.events({ kind: "effect", limit: 10 })` or `window.__DevApi.events({ kind: "sound", limit: 10 })` to inspect runtime trigger dispatch.
 
 For generic mouse-interaction checks, pass stock mouse variables through `window.__DevApi.click(target, options)`: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables. For example, `await window.__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })`.

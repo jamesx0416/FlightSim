@@ -5027,6 +5027,7 @@ function createVCockpitGaugeBridgeScript(
   };
   const bridgeStats = {
     unsupportedCalls: [],
+    supportedHostServiceCalls: [],
     apiCallCounts: {},
     registeredSimVarCount: 0,
     storedSimVarCount: 0,
@@ -5035,14 +5036,26 @@ function createVCockpitGaugeBridgeScript(
     runtimeErrorCount: 0,
     keyEventCount: 0,
     htmlEventCount: 0,
+    hostServiceCallCount: 0,
     wasmBridge,
     gaugeKind,
     listenerCount: 0,
+    commBusSubscriberCount: 0,
     storageWriteCount: 0
   };
   globalThis.__msfsGaugeBridgeStats = bridgeStats;
   const incrementBridgeCall = name => {
     bridgeStats.apiCallCounts[name] = (bridgeStats.apiCallCounts[name] ?? 0) + 1;
+  };
+  const serializeBridgeArg = value => {
+    if (value == null || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
+      return value;
+    }
+    try {
+      return JSON.stringify(value).slice(0, 300);
+    } catch {
+      return Object.prototype.toString.call(value);
+    }
   };
   const recordUnsupportedBridgeCall = (name, args = []) => {
     incrementBridgeCall(name);
@@ -5051,16 +5064,18 @@ function createVCockpitGaugeBridgeScript(
     }
     bridgeStats.unsupportedCalls.push({
       name: String(name),
-      args: Array.from(args).slice(0, 8).map(value => {
-        if (value == null || typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') {
-          return value;
-        }
-        try {
-          return JSON.stringify(value).slice(0, 300);
-        } catch {
-          return Object.prototype.toString.call(value);
-        }
-      })
+      args: Array.from(args).slice(0, 8).map(serializeBridgeArg)
+    });
+  };
+  const recordSupportedHostServiceCall = (name, args = []) => {
+    incrementBridgeCall(name);
+    bridgeStats.hostServiceCallCount += 1;
+    if (bridgeStats.supportedHostServiceCalls.length >= 100) {
+      bridgeStats.supportedHostServiceCalls.splice(0, bridgeStats.supportedHostServiceCalls.length - 99);
+    }
+    bridgeStats.supportedHostServiceCalls.push({
+      name: String(name),
+      args: Array.from(args).slice(0, 8).map(serializeBridgeArg)
     });
   };
   let nextRuntimeRequestId = 1;
@@ -5965,6 +5980,83 @@ function createVCockpitGaugeBridgeScript(
     return callbacks.length;
   };
   globalThis.__msfsDispatchCoherentEvent = dispatchGlobalListener;
+  const commBusSubscribers = new Map();
+  const normalizeCommBusChannel = channel => String(channel ?? '').trim();
+  const updateCommBusSubscriberCount = () => {
+    bridgeStats.commBusSubscriberCount = Array.from(commBusSubscribers.values())
+      .reduce((total, subscribers) => total + subscribers.size, 0);
+  };
+  const subscribeCommBus = (channel, callback) => {
+    const normalizedChannel = normalizeCommBusChannel(channel);
+    if (normalizedChannel === '' || typeof callback !== 'function') {
+      updateCommBusSubscriberCount();
+      return noop;
+    }
+    const subscribers = commBusSubscribers.get(normalizedChannel) ?? new Set();
+    subscribers.add(callback);
+    commBusSubscribers.set(normalizedChannel, subscribers);
+    updateCommBusSubscriberCount();
+    return () => {
+      subscribers.delete(callback);
+      if (subscribers.size === 0) {
+        commBusSubscribers.delete(normalizedChannel);
+      }
+      updateCommBusSubscriberCount();
+    };
+  };
+  const unsubscribeCommBus = (channel, callback) => {
+    const normalizedChannel = normalizeCommBusChannel(channel);
+    if (normalizedChannel === '') {
+      return;
+    }
+    const subscribers = commBusSubscribers.get(normalizedChannel);
+    if (subscribers == null) {
+      return;
+    }
+    if (typeof callback === 'function') {
+      subscribers.delete(callback);
+    } else {
+      subscribers.clear();
+    }
+    if (subscribers.size === 0) {
+      commBusSubscribers.delete(normalizedChannel);
+    }
+    updateCommBusSubscriberCount();
+  };
+  const callCommBus = (channel, ...args) => {
+    const normalizedChannel = normalizeCommBusChannel(channel);
+    if (normalizedChannel === '') {
+      return 0;
+    }
+    let delivered = 0;
+    for (const callback of commBusSubscribers.get(normalizedChannel) ?? []) {
+      try {
+        callback(...args);
+        delivered += 1;
+      } catch (error) {
+        console.warn('MSFS fsCommBus callback failed', normalizedChannel, error);
+      }
+    }
+    delivered += dispatchGlobalListener('fsCommBus:' + normalizedChannel, ...args);
+    if (delivered > 0) {
+      markGaugeChanged('unknown');
+    }
+    return delivered;
+  };
+  globalThis.fsCommBusRegister ??= (channel, callback) => {
+    recordSupportedHostServiceCall('fsCommBusRegister', [channel]);
+    subscribeCommBus(channel, callback);
+    return normalizeCommBusChannel(channel);
+  };
+  globalThis.fsCommBusUnregister ??= (channel, callback) => {
+    recordSupportedHostServiceCall('fsCommBusUnregister', [channel]);
+    unsubscribeCommBus(channel, callback);
+    return 0;
+  };
+  globalThis.fsCommBusCall ??= (channel, ...args) => {
+    recordSupportedHostServiceCall('fsCommBusCall', [channel, ...args]);
+    return callCommBus(channel, ...args);
+  };
   const createListenerHandle = name => {
     incrementBridgeCall(name);
     bridgeStats.listenerCount += 1;
@@ -6157,6 +6249,15 @@ function createVCockpitGaugeBridgeScript(
       if (normalizedCallName.toUpperCase() === 'GET_AIR_TRAFFIC') {
         incrementBridgeCall('Coherent.call:' + normalizedCallName);
         return Promise.resolve([]);
+      }
+      if (normalizedCallName.toUpperCase() === 'FSCOMMBUSREGISTER') {
+        return Promise.resolve(globalThis.fsCommBusRegister(args[0], args[1]));
+      }
+      if (normalizedCallName.toUpperCase() === 'FSCOMMBUSUNREGISTER') {
+        return Promise.resolve(globalThis.fsCommBusUnregister(args[0], args[1]));
+      }
+      if (normalizedCallName.toUpperCase() === 'FSCOMMBUSCALL') {
+        return Promise.resolve(globalThis.fsCommBusCall(args[0], ...args.slice(1)));
       }
       if (isSupportedNoopCoherentCall(normalizedCallName)) {
         incrementBridgeCall('Coherent.call:' + normalizedCallName);
