@@ -14,7 +14,6 @@ import { MSFSMipSafeDDSLoader } from './MSFSMipSafeDDSLoader'
 import { MSFSDDSLoader, type MSFSDDSLoadOptions } from './MSFSDDSLoader'
 
 const EXTENSION_NAME = 'MSFT_texture_dds'
-const MSFS_DDS_TEXTURE_DEPENDENCY_TIMEOUT_MS = 15000
 
 interface GltfTextureDef {
   readonly extensions?: {
@@ -130,126 +129,9 @@ class MSFTTextureDDSExtension {
     const texturePromise = this.parser
       .loadTextureImage(textureIndex, sourceIndex, loader)
       .catch(() => fallbackTexture())
-      .then(async texture => {
-        await waitUntilDocumentVisible()
-        return texture
-      })
 
-    return withTextureDependencyTimeout(
-      texturePromise,
-      MSFS_DDS_TEXTURE_DEPENDENCY_TIMEOUT_MS,
-      fallbackTexture
-    )
+    return texturePromise
   }
-}
-
-function waitUntilDocumentVisible(): Promise<void> {
-  if (!document.hidden) {
-    return Promise.resolve()
-  }
-
-  return new Promise(resolve => {
-    const handleVisibilityChange = (): void => {
-      if (document.hidden) {
-        return
-      }
-
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      resolve()
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-  })
-}
-
-async function withTextureDependencyTimeout(
-  texturePromise: Promise<unknown>,
-  timeoutMs: number,
-  createFallback: () => Texture
-): Promise<unknown> {
-  const timeout = createVisiblePageTimeout(timeoutMs)
-  try {
-    return await Promise.race([
-      texturePromise,
-      timeout.promise.then(createFallback)
-    ])
-  } finally {
-    timeout.cancel()
-  }
-}
-
-function createVisiblePageTimeout(timeoutMs: number): {
-  readonly promise: Promise<void>
-  readonly cancel: () => void
-} {
-  let cancel = (): void => {}
-  const promise = new Promise<void>(resolve => {
-    let remainingMs = Math.max(0, timeoutMs)
-    let timerStartMs: number | null = null
-    let timeoutId: number | null = null
-    let settled = false
-
-    const clearActiveTimer = (): void => {
-      if (timeoutId != null) {
-        window.clearTimeout(timeoutId)
-        timeoutId = null
-      }
-    }
-
-    const finish = (): void => {
-      if (settled) {
-        return
-      }
-      settled = true
-      clearActiveTimer()
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      resolve()
-    }
-
-    cancel = (): void => {
-      if (settled) {
-        return
-      }
-      settled = true
-      clearActiveTimer()
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-
-    const pause = (): void => {
-      if (timerStartMs != null) {
-        remainingMs = Math.max(0, remainingMs - (performance.now() - timerStartMs))
-        timerStartMs = null
-      }
-      clearActiveTimer()
-    }
-
-    const resume = (): void => {
-      if (timeoutId != null) {
-        return
-      }
-      if (document.hidden) {
-        return
-      }
-      if (remainingMs <= 0) {
-        finish()
-        return
-      }
-      timerStartMs = performance.now()
-      timeoutId = window.setTimeout(finish, remainingMs)
-    }
-
-    function handleVisibilityChange(): void {
-      if (document.hidden) {
-        pause()
-      } else {
-        resume()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    resume()
-  })
-  return { promise, cancel }
 }
 
 function createFallbackTexture(options: {
