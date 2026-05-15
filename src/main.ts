@@ -9540,6 +9540,7 @@ function installCockpitCameraShortcut(
   let pitchOffsetRadians = 0
   let cockpitZoom = camera.zoom
   let activePointerId: number | null = null
+  let activePointerIsRightMouse = false
   let lastPointerX = 0
   let lastPointerY = 0
   let startPointerX = 0
@@ -9590,6 +9591,7 @@ function installCockpitCameraShortcut(
       }
     }
     activePointerId = null
+    activePointerIsRightMouse = false
     activeCockpitPressDragged = false
     activeCockpitDragCallbackEmitted = false
   }
@@ -9697,6 +9699,7 @@ function installCockpitCameraShortcut(
     }
 
     activePointerId = event.pointerId
+    activePointerIsRightMouse = event.pointerType === 'mouse' && event.button === 2
     lastPointerX = event.clientX
     lastPointerY = event.clientY
     startPointerX = event.clientX
@@ -9722,7 +9725,7 @@ function installCockpitCameraShortcut(
       if (movedFarEnough) {
         activeCockpitPressDragged = true
       }
-      if (activeCockpitPressDragged) {
+      if (activePointerIsRightMouse && activeCockpitPressDragged) {
         activeCockpitDragCallbackEmitted =
           onCockpitDrag?.(activeCockpitPressBinding, getPointerRelativeValues(event)) === true ||
           activeCockpitDragCallbackEmitted
