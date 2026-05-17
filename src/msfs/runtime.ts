@@ -19,6 +19,7 @@ import type {
   ImportedSimVarSound,
   ImportedSoundRange,
   ImportedSoundVariable,
+  Instruction,
   ImportDiagnostic,
   ModelNodeAnimation,
   RuntimeHostServices,
@@ -38,12 +39,20 @@ interface RuntimeInteractionOptions {
 interface RuntimeMaterialBinding {
   readonly binding: CompiledMaterialBinding
   readonly materials: readonly RuntimeBoundMaterial[]
+  readonly dependencies: readonly RuntimeExpressionDependency[] | null
+  lastAppliedValue: number | null
+  lastDependencyValues: readonly number[] | null
 }
 
 interface RuntimeBoundMaterial {
   readonly material: RuntimeMaterial
   readonly baseEmissiveIntensity: number
   readonly baseEmissiveColor: readonly [number, number, number] | null
+}
+
+interface RuntimeExpressionDependency {
+  readonly key: string
+  readonly unit: string | null
 }
 
 type RuntimeMaterial = Material & {
@@ -167,6 +176,8 @@ export class AircraftRuntime {
   private readonly activeAnimationTriggerBindingsByAnimation = new Map<string, readonly CompiledAnimationTriggerBinding[]>()
   private readonly activeVisibilityBindings: readonly CompiledVisibilityBinding[]
   private readonly activeMaterialBindings: readonly RuntimeMaterialBinding[]
+  private readonly readOnlyExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
+  private readonly updateExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly runtimeState: RuntimeState
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
   private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
@@ -196,6 +207,15 @@ export class AircraftRuntime {
       diagnostics: this.compiled.diagnostics
     }
     this.hostServices.setInputEventBindings?.(this.compiled.inputEventBindings)
+    this.readOnlyExpressionServices = {
+      readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
+    }
+    this.updateExpressionServices = {
+      readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+      writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit),
+      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
+      invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
+    }
 
     sceneRoot.traverse(node => {
       if (node.name) {
@@ -286,9 +306,7 @@ export class AircraftRuntime {
     let modelChanged = false
 
     for (const binding of this.activeAnimationBindings) {
-      const evaluatedValue = evaluateCompiledExpression(binding.expression, {
-        readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
-      })
+      const evaluatedValue = evaluateCompiledExpression(binding.expression, this.readOnlyExpressionServices)
       const previousValue = this.animationValues.get(binding.target) ?? 0
       const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
       const value =
@@ -319,9 +337,7 @@ export class AircraftRuntime {
 
     for (const binding of this.activeVisibilityBindings) {
       const isVisible =
-        evaluateCompiledExpression(binding.expression, {
-          readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
-        }) !== 0
+        evaluateCompiledExpression(binding.expression, this.readOnlyExpressionServices) !== 0
 
       const previousVisibility = this.nodeVisibilities.get(binding.target)
       this.nodeVisibilities.set(binding.target, isVisible)
@@ -339,10 +355,36 @@ export class AircraftRuntime {
     visibilityMs = finishPhase()
 
     for (const runtimeBinding of this.activeMaterialBindings) {
-      const value = evaluateCompiledExpression(runtimeBinding.binding.expression, {
-        readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
-      })
+      const dependencyValues =
+        runtimeBinding.lastAppliedValue == null || runtimeBinding.dependencies == null
+          ? null
+          : readRuntimeExpressionDependencyValues(
+            runtimeBinding.dependencies,
+            this.hostServices
+          )
+      const canReuseValue =
+        runtimeBinding.lastAppliedValue != null &&
+        dependencyValues != null &&
+        runtimeDependencyValuesEqual(runtimeBinding.lastDependencyValues, dependencyValues)
+      const value = canReuseValue
+        ? runtimeBinding.lastAppliedValue!
+        : evaluateCompiledExpression(
+          runtimeBinding.binding.expression,
+          this.readOnlyExpressionServices
+        )
       this.materialValues.set(runtimeBinding.binding.target, value)
+      if (canReuseValue) {
+        continue
+      }
+      runtimeBinding.lastAppliedValue = value
+      runtimeBinding.lastDependencyValues =
+        runtimeBinding.dependencies == null
+          ? null
+          : dependencyValues ??
+            readRuntimeExpressionDependencyValues(
+              runtimeBinding.dependencies,
+              this.hostServices
+            )
       for (const materialState of runtimeBinding.materials) {
         applyRuntimeMaterialBinding(materialState, value, runtimeBinding.binding)
       }
@@ -511,12 +553,7 @@ export class AircraftRuntime {
         state.elapsedSeconds = 0
       }
 
-      evaluateCompiledExpression(binding.expression, {
-        readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
-        writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit),
-        invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
-        invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
-      })
+      evaluateCompiledExpression(binding.expression, this.updateExpressionServices)
 
       state.ranOnce = true
       this.updateState.set(binding, state)
@@ -837,6 +874,9 @@ function buildRuntimeMaterialBindings(
 
     runtimeBindings.push({
       binding,
+      dependencies: getRuntimeExpressionDependencies(binding.expression),
+      lastAppliedValue: null,
+      lastDependencyValues: null,
       materials: materials.map(material => ({
         material,
         baseEmissiveIntensity: getMaterialEmissiveIntensity(material),
@@ -846,6 +886,73 @@ function buildRuntimeMaterialBindings(
   }
 
   return runtimeBindings
+}
+
+function getRuntimeExpressionDependencies(
+  expression: CompiledExpression
+): readonly RuntimeExpressionDependency[] | null {
+  const dependencies = new Map<string, RuntimeExpressionDependency>()
+  if (!collectRuntimeExpressionDependencies(expression.instructions, dependencies)) {
+    return null
+  }
+  return [...dependencies.values()]
+}
+
+function collectRuntimeExpressionDependencies(
+  instructions: readonly Instruction[],
+  dependencies: Map<string, RuntimeExpressionDependency>
+): boolean {
+  for (const instruction of instructions) {
+    switch (instruction.op) {
+      case 'pushVariable': {
+        const cacheKey = `${instruction.key}\u0000${instruction.unit ?? ''}`
+        dependencies.set(cacheKey, {
+          key: instruction.key,
+          unit: instruction.unit
+        })
+        break
+      }
+      case 'pushStringVariable':
+      case 'pushParameter':
+      case 'writeVariable':
+      case 'invokeKeyEvent':
+      case 'invokeHtmlEvent':
+        return false
+      case 'if':
+        if (
+          !collectRuntimeExpressionDependencies(instruction.thenInstructions, dependencies) ||
+          !collectRuntimeExpressionDependencies(instruction.elseInstructions, dependencies)
+        ) {
+          return false
+        }
+        break
+    }
+  }
+  return true
+}
+
+function readRuntimeExpressionDependencyValues(
+  dependencies: readonly RuntimeExpressionDependency[],
+  hostServices: RuntimeHostServices
+): readonly number[] {
+  return dependencies.map(dependency =>
+    hostServices.readVariable(dependency.key, dependency.unit)
+  )
+}
+
+function runtimeDependencyValuesEqual(
+  left: readonly number[] | null,
+  right: readonly number[]
+): boolean {
+  if (left == null || left.length !== right.length) {
+    return false
+  }
+  for (let index = 0; index < right.length; index += 1) {
+    if (Math.abs(left[index]! - right[index]!) >= 1e-6) {
+      return false
+    }
+  }
+  return true
 }
 
 function hasMaterial(object: Object3D): object is MaterialObject {
