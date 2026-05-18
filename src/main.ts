@@ -2643,7 +2643,7 @@ function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDS
   if (getCockpitTextureMode(searchParams) === 'range-low') {
     return {
       rangeMaxTextureSize: getCockpitRangeTextureSize(searchParams),
-      rangeFallback: 'placeholder'
+      rangeFallback: 'full'
     }
   }
 
@@ -8718,7 +8718,7 @@ function isEmbeddedGltfBufferUri(uri: string): boolean {
 function createDefaultModelTextureLoadOptions(): MSFSDDSLoadOptions {
   return {
     rangeMaxTextureSize: 1024,
-    rangeFallback: 'placeholder'
+    rangeFallback: 'full'
   }
 }
 

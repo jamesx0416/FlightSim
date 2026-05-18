@@ -838,7 +838,7 @@ async function fetchArrayBufferRange(
   const response = await fetchWithTimeout(url, {
     headers,
     credentials: 'same-origin'
-  }, 2000)
+  }, 30_000)
 
   if (response.status !== 206) {
     await response.body?.cancel()
