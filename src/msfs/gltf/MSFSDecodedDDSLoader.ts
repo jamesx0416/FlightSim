@@ -121,9 +121,6 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     if (useImmediatePlaceholder) {
       applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
       onLoad?.(texture)
-      if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
-        return texture
-      }
     }
 
     if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
@@ -203,7 +200,9 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
           applyDecodedTexture(texture, parsed)
         }
 
-        onLoad?.(texture)
+        if (this.options.immediatePlaceholder !== true) {
+          onLoad?.(texture)
+        }
         this.manager.itemEnd(resolvedUrl)
       })
       .catch(error => {
@@ -214,7 +213,10 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
         }
 
         applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
-        onLoad?.(texture)
+
+        if (this.options.immediatePlaceholder !== true) {
+          onLoad?.(texture)
+        }
         if (shouldLogDdsFallbacks()) {
           console.warn('Decoded DDS range mip load fell back to a placeholder.', error)
         }

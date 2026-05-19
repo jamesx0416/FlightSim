@@ -32,6 +32,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPrimitiveBaseVertex'
 import { createMsfsGltfLoader } from './msfs/gltf/createMsfsGltfLoader'
+import { getMsfsGltfLoadingManagerStats } from './msfs/gltf/createMsfsGltfLoader'
 import type { MSFSDDSLoadOptions } from './msfs/gltf/MSFSDDSLoader'
 import { normalizeAsoboPrimitiveWinding } from './msfs/gltf/normalizeAsoboPrimitiveWinding'
 import { normalizeMsfsMaterials } from './msfs/gltf/normalizeMsfsMaterials'
@@ -66,11 +67,14 @@ import {
   type RendererInfo
 } from './rendering/createAppRenderer'
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
+import { queueTask } from './worker/pool'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
 const DEFAULT_STOCK_BEHAVIOR_ROOT = '/vendor/msfs-stock/'
 const DEV_DEFAULT_PACKAGE_ROOT = '/aircrafts/headwindsim-aircraft-a330-900/'
 const DEV_DEFAULT_AIRCRAFT_ID = 'SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0'
+const DEFAULT_COCKPIT_RANGE_TEXTURE_SIZE = 1024
+const DEFAULT_BACKGROUND_COCKPIT_RANGE_TEXTURE_SIZE = 512
 type AssetRoot = {
   readonly rootUrl: string
   readonly layoutPathIndex: ReadonlyMap<string, string>
@@ -120,6 +124,24 @@ type ModelLoadPhase = {
 type ModelLoadDiagnostics = {
   readonly phases: readonly ModelLoadPhase[]
   readonly totalDurationMs: number
+}
+
+type PreparedMsfsGltfLodWorkerPhase = {
+  readonly label: string
+  readonly durationMs: number
+  readonly details: Record<string, unknown> | null
+}
+
+type PreparedMsfsGltfLodWorkerBuffer = {
+  readonly index: number
+  readonly buffer: ArrayBuffer
+  readonly byteLength: number
+}
+
+type PreparedMsfsGltfLodWorkerResult = {
+  readonly gltfJson: Record<string, unknown>
+  readonly buffers: readonly PreparedMsfsGltfLodWorkerBuffer[]
+  readonly phases: readonly PreparedMsfsGltfLodWorkerPhase[]
 }
 
 type ModelResourceStats = {
@@ -1034,7 +1056,10 @@ async function init(): Promise<void> {
           {
             kind: 'interior',
             preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
-            textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
+            textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams, {
+              immediatePlaceholder: true,
+              defaultRangeMaxTextureSize: DEFAULT_BACKGROUND_COCKPIT_RANGE_TEXTURE_SIZE
+            }),
             instanceStaticMeshes: isEnabledFlagSearchParam(
               effectiveSearchParams,
               'cockpitInstanceStatic'
@@ -1054,7 +1079,9 @@ async function init(): Promise<void> {
               isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf') ||
               activeCockpitBenchmarkEvents != null,
             behaviorSet: compiledBehaviors,
-            runtimeHost
+            runtimeHost,
+            prepareGltfInWorker: true,
+            waitForTextureLoads: true
           }
         )
         cachedCockpitInterior = nextInterior
@@ -1701,7 +1728,12 @@ async function init(): Promise<void> {
         {
           kind: 'interior',
           preferredLodIndex: getCockpitInteriorPreferredLodIndex(),
-          textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams),
+          textureLoadOptions: createCockpitTextureLoadOptions(effectiveSearchParams, {
+            immediatePlaceholder: cockpitCameraController.isActive(),
+            defaultRangeMaxTextureSize: cockpitCameraController.isActive()
+              ? DEFAULT_BACKGROUND_COCKPIT_RANGE_TEXTURE_SIZE
+              : DEFAULT_COCKPIT_RANGE_TEXTURE_SIZE
+          }),
           instanceStaticMeshes: isEnabledFlagSearchParam(
             effectiveSearchParams,
             'cockpitInstanceStatic'
@@ -1721,7 +1753,9 @@ async function init(): Promise<void> {
             isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitPerf') ||
             activeCockpitBenchmarkEvents != null,
           behaviorSet: compiledBehaviors,
-          runtimeHost
+          runtimeHost,
+          prepareGltfInWorker: cockpitCameraController.isActive(),
+          waitForTextureLoads: cockpitCameraController.isActive()
         }
       )
     }
@@ -2639,11 +2673,21 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
-function createCockpitTextureLoadOptions(searchParams: URLSearchParams): MSFSDDSLoadOptions {
+function createCockpitTextureLoadOptions(
+  searchParams: URLSearchParams,
+  options: {
+    readonly immediatePlaceholder?: boolean
+    readonly defaultRangeMaxTextureSize?: number
+  } = {}
+): MSFSDDSLoadOptions {
   if (getCockpitTextureMode(searchParams) === 'range-low') {
     return {
-      rangeMaxTextureSize: getCockpitRangeTextureSize(searchParams),
-      rangeFallback: 'full'
+      rangeMaxTextureSize: getCockpitRangeTextureSize(
+        searchParams,
+        options.defaultRangeMaxTextureSize
+      ),
+      rangeFallback: 'full',
+      immediatePlaceholder: options.immediatePlaceholder
     }
   }
 
@@ -2767,15 +2811,18 @@ function isEnabledFlagSearchParam(searchParams: URLSearchParams, key: string): b
   return normalized !== 'off' && normalized !== 'false' && normalized !== '0'
 }
 
-function getCockpitRangeTextureSize(searchParams: URLSearchParams): number {
+function getCockpitRangeTextureSize(
+  searchParams: URLSearchParams,
+  defaultSize = DEFAULT_COCKPIT_RANGE_TEXTURE_SIZE
+): number {
   const rawSize = searchParams.get('cockpitTextureSize')
   if (rawSize == null || rawSize.trim() === '') {
-    return 1024
+    return defaultSize
   }
 
   const parsed = Number.parseInt(rawSize, 10)
   if (!Number.isFinite(parsed)) {
-    return 1024
+    return defaultSize
   }
 
   return Math.min(2048, Math.max(128, parsed))
@@ -3285,6 +3332,8 @@ async function loadAircraftModelComponent(
     readonly runtimeHost?: SharedMsfsRuntimeHost
     readonly collectResourceStats?: boolean
     readonly behaviorSet?: CompiledBehaviorSet
+    readonly prepareGltfInWorker?: boolean
+    readonly waitForTextureLoads?: boolean
   }
 ): Promise<LoadedModelComponent> {
   const phases: ModelLoadPhase[] = []
@@ -3314,7 +3363,8 @@ async function loadAircraftModelComponent(
     options.preferredLodIndex,
     options.fallbackToOtherLods ?? true,
     recordPhase,
-    options.firstAllowedLodIndex ?? null
+    options.firstAllowedLodIndex ?? null,
+    options.prepareGltfInWorker === true
   )
   if (options.stripTextures === true) {
     const stripStartMs = performance.now()
@@ -3393,6 +3443,9 @@ async function loadAircraftModelComponent(
       loadedHtmlGaugeCount: vcockpitBinding.loadedHtmlGaugeCount,
       capturedHtmlGaugeCount: vcockpitBinding.capturedHtmlGaugeCount
     })
+  }
+  if (options.waitForTextureLoads === true) {
+    await waitForMsfsGltfLoaderIdle(loader, recordPhase)
   }
   const resourceStatsStartMs = performance.now()
   const resourceStats =
@@ -8268,7 +8321,8 @@ async function loadAircraftModelDefinitionGltf(
     startMs: number,
     details?: Record<string, unknown> | null
   ) => void = () => {},
-  firstAllowedLodIndex: number | null = null
+  firstAllowedLodIndex: number | null = null,
+  prepareGltfInWorker = false
 ): Promise<{
   readonly gltf: GLTF
   readonly loadedLodIndex: number
@@ -8315,7 +8369,7 @@ async function loadAircraftModelDefinitionGltf(
         aircraftId: aircraft.id,
         lodUrl: lod.url,
         lodMinSize: lod.minSize
-      }, recordPhase)
+      }, recordPhase, prepareGltfInWorker)
       setGlobalLoadStage({
         stage: 'gltf:lod:repair-skinned',
         aircraftId: aircraft.id,
@@ -8400,6 +8454,10 @@ async function loadAircraftModelDefinitionGltf(
       }
     } catch (error) {
       lastError = error
+      recordPhase('lod:error', performance.now(), {
+        loadedLodIndex: index,
+        error: error instanceof Error ? error.message : String(error)
+      })
       setGlobalLoadStage({
         stage: 'gltf:lod:error',
         aircraftId: aircraft.id,
@@ -8427,8 +8485,180 @@ async function loadMsfsGltfLod(
     label: string,
     startMs: number,
     details?: Record<string, unknown> | null
-  ) => void = () => {}
+  ) => void = () => {},
+  prepareGltfInWorker = false
 ): Promise<GLTF> {
+  const baseUrl = url.slice(0, url.lastIndexOf('/') + 1)
+  const workerPrepared = !prepareGltfInWorker
+    ? null
+    : await prepareMsfsGltfLodWithWorkerFallback(
+      url,
+      loadContext,
+      recordPhase
+    )
+  const sanitizedGltf = workerPrepared?.gltfJson ?? await prepareMsfsGltfJsonOnMainThread(
+    url,
+    loadContext,
+    recordPhase
+  )
+  const preparedBuffers = workerPrepared ?? await prepareExternalGltfBuffers(
+    sanitizedGltf,
+    baseUrl,
+    loadContext,
+    recordPhase
+  )
+  if (loadContext != null) {
+    setGlobalLoadStage({
+      stage: 'gltf:lod:parse:start',
+      ...loadContext
+    })
+  }
+  const loaderParseStartMs = performance.now()
+  try {
+    const gltf = await loader.parseAsync(sanitizedGltf as never, baseUrl)
+    recordPhase('lod:gltf-loader-parse', loaderParseStartMs)
+    if (loadContext != null) {
+      setGlobalLoadStage({
+        stage: 'gltf:lod:parse:done',
+        ...loadContext
+      })
+    }
+    return gltf
+  } finally {
+    for (const objectUrl of preparedBuffers.objectUrls) {
+      URL.revokeObjectURL(objectUrl)
+    }
+  }
+}
+
+async function waitForMsfsGltfLoaderIdle(
+  loader: GLTFLoader,
+  recordPhase: (
+    label: string,
+    startMs: number,
+    details?: Record<string, unknown> | null
+  ) => void
+): Promise<void> {
+  const stats = getMsfsGltfLoadingManagerStats(loader.manager)
+  if (stats == null || stats.activeCount === 0) {
+    return
+  }
+
+  const waitStartMs = performance.now()
+  while (stats.activeCount > 0) {
+    await new Promise<void>(resolve => {
+      requestAnimationFrame(() => resolve())
+    })
+  }
+  recordPhase('component:wait-textures', waitStartMs, {
+    started: stats.started,
+    ended: stats.ended,
+    errored: stats.errored
+  })
+}
+
+async function prepareMsfsGltfLodWithWorkerFallback(
+  url: string,
+  loadContext: {
+    readonly aircraftId: string
+    readonly lodUrl: string
+    readonly lodMinSize: number
+  } | null,
+  recordPhase: (
+    label: string,
+    startMs: number,
+    details?: Record<string, unknown> | null
+  ) => void
+): Promise<{
+  readonly gltfJson: Record<string, unknown>
+  readonly objectUrls: readonly string[]
+} | null> {
+  const workerStartMs = performance.now()
+  if (loadContext != null) {
+    setGlobalLoadStage({
+      stage: 'gltf:lod:worker:start',
+      ...loadContext
+    })
+  }
+  try {
+    const prepared = await queueTask('prepareMsfsGltfLod', [url])
+    const workerPrepared = createPreparedGltfObjectUrls(prepared)
+    recordPhase('lod:worker-prepare', workerStartMs, {
+      bufferCount: prepared.buffers.length,
+      byteLength: prepared.buffers.reduce((total, buffer) => {
+        return total + buffer.byteLength
+      }, 0),
+      workerPhases: prepared.phases
+    })
+    if (loadContext != null) {
+      setGlobalLoadStage({
+        stage: 'gltf:lod:worker:done',
+        ...loadContext
+      })
+    }
+    return workerPrepared
+  } catch (error) {
+    recordPhase('lod:worker-prepare:error', workerStartMs, {
+      error: error instanceof Error ? error.message : String(error)
+    })
+    if (loadContext != null) {
+      setGlobalLoadStage({
+        stage: 'gltf:lod:worker:fallback',
+        ...loadContext,
+        error: error instanceof Error ? error.message : String(error)
+      })
+    }
+    return null
+  }
+}
+
+function createPreparedGltfObjectUrls(
+  prepared: PreparedMsfsGltfLodWorkerResult
+): {
+  readonly gltfJson: Record<string, unknown>
+  readonly objectUrls: readonly string[]
+} {
+  const buffers = Array.isArray(prepared.gltfJson.buffers)
+    ? prepared.gltfJson.buffers as Array<Record<string, unknown>>
+    : []
+  const objectUrls: string[] = []
+  try {
+    for (const preparedBuffer of prepared.buffers) {
+      const gltfBuffer = buffers[preparedBuffer.index]
+      if (gltfBuffer == null) {
+        throw new Error(`Prepared GLTF buffer ${preparedBuffer.index} was not found.`)
+      }
+      const objectUrl = URL.createObjectURL(new Blob([preparedBuffer.buffer], {
+        type: 'application/octet-stream'
+      }))
+      objectUrls.push(objectUrl)
+      gltfBuffer.uri = objectUrl
+    }
+    return {
+      gltfJson: prepared.gltfJson,
+      objectUrls
+    }
+  } catch (error) {
+    for (const objectUrl of objectUrls) {
+      URL.revokeObjectURL(objectUrl)
+    }
+    throw error
+  }
+}
+
+async function prepareMsfsGltfJsonOnMainThread(
+  url: string,
+  loadContext: {
+    readonly aircraftId: string
+    readonly lodUrl: string
+    readonly lodMinSize: number
+  } | null,
+  recordPhase: (
+    label: string,
+    startMs: number,
+    details?: Record<string, unknown> | null
+  ) => void
+): Promise<Record<string, unknown>> {
   const fetchStartMs = performance.now()
   const response = await fetch(url)
   recordPhase('lod:fetch', fetchStartMs, {
@@ -8461,38 +8691,11 @@ async function loadMsfsGltfLod(
       byteLength: Number.isFinite(contentLength) ? contentLength : null
     })
   }
-  const baseUrl = url.slice(0, url.lastIndexOf('/') + 1)
+
   const sanitizeStartMs = performance.now()
   const sanitizedGltf = sanitizeMsfsGltf(gltfJson)
   recordPhase('lod:sanitize-msfs-gltf', sanitizeStartMs)
-  const preparedBuffers = await prepareExternalGltfBuffers(
-    sanitizedGltf,
-    baseUrl,
-    loadContext,
-    recordPhase
-  )
-  if (loadContext != null) {
-    setGlobalLoadStage({
-      stage: 'gltf:lod:parse:start',
-      ...loadContext
-    })
-  }
-  const loaderParseStartMs = performance.now()
-  try {
-    const gltf = await loader.parseAsync(sanitizedGltf as never, baseUrl)
-    recordPhase('lod:gltf-loader-parse', loaderParseStartMs)
-    if (loadContext != null) {
-      setGlobalLoadStage({
-        stage: 'gltf:lod:parse:done',
-        ...loadContext
-      })
-    }
-    return gltf
-  } finally {
-    for (const objectUrl of preparedBuffers.objectUrls) {
-      URL.revokeObjectURL(objectUrl)
-    }
-  }
+  return sanitizedGltf
 }
 
 async function prepareExternalGltfBuffers(
@@ -8537,17 +8740,20 @@ async function prepareExternalGltfBuffers(
           bufferUrl
         })
       }
-      const arrayBuffer = await fetchExternalGltfBuffer(bufferUrl, progress => {
-        if (loadContext != null) {
-          setGlobalLoadStage({
-            stage: 'gltf:lod:buffer:fetch',
-            ...loadContext,
-            bufferIndex: index,
-            bufferUrl,
-            ...progress
-          })
+      const arrayBuffer = await fetchExternalGltfBuffer(
+        bufferUrl,
+        progress => {
+          if (loadContext != null) {
+            setGlobalLoadStage({
+              stage: 'gltf:lod:buffer:fetch',
+              ...loadContext,
+              bufferIndex: index,
+              bufferUrl,
+              ...progress
+            })
+          }
         }
-      })
+      )
       recordPhase('lod:fetch-buffer', bufferStartMs, {
         bufferIndex: index,
         byteLength: arrayBuffer.byteLength

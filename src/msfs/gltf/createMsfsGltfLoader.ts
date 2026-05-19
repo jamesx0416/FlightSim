@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { createMsftTextureDdsExtension } from './MSFTTextureDDSExtension'
 import { MSFSDDSLoader, type MSFSDDSLoadOptions } from './MSFSDDSLoader'
 
-type GltfLoadingManagerStats = {
+export type GltfLoadingManagerStats = {
   readonly createdAtMs: number
   started: number
   ended: number
@@ -15,6 +15,21 @@ type GltfLoadingManagerStats = {
     readonly count: number
     readonly ageMs: number
   }>
+}
+
+const MSFS_GLTF_LOADING_MANAGER_STATS = Symbol('MSFS_GLTF_LOADING_MANAGER_STATS')
+
+export type MsfsGltfLoadingManagerWithStats = LoadingManager & {
+  [MSFS_GLTF_LOADING_MANAGER_STATS]?: GltfLoadingManagerStats
+}
+
+export function getMsfsGltfLoadingManagerStats(
+  loadingManager: LoadingManager
+): GltfLoadingManagerStats | null {
+  return (
+    (loadingManager as MsfsGltfLoadingManagerWithStats)[MSFS_GLTF_LOADING_MANAGER_STATS] ??
+    null
+  )
 }
 
 export function createMsfsGltfLoader(
@@ -55,6 +70,8 @@ function installLoadingManagerDiagnostics(loadingManager: LoadingManager): void 
     activeCount: 0,
     active: []
   }
+  ;(loadingManager as MsfsGltfLoadingManagerWithStats)[MSFS_GLTF_LOADING_MANAGER_STATS] =
+    stats
   const updateActiveStats = (): void => {
     stats.activeCount = 0
     stats.active = [...active.entries()]
