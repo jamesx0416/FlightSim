@@ -46,16 +46,16 @@ export class MSFSMipSafeDDSLoader extends Loader<Texture> {
       return placeholder
     }
 
-    if (this.options.immediatePlaceholder === true) {
-      onLoad?.(placeholder)
-    }
-
     if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
       const rangeLoader = new MSFSDecodedDDSLoader(this.manager, this.options)
       rangeLoader.setPath(this.path)
       rangeLoader.setRequestHeader(this.requestHeader)
       rangeLoader.setWithCredentials(this.withCredentials)
       return rangeLoader.load(url, onLoad, onProgress, onError)
+    }
+
+    if (this.options.immediatePlaceholder === true) {
+      onLoad?.(placeholder)
     }
 
     fileLoader.load(

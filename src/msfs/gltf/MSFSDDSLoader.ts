@@ -107,9 +107,6 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     if (useImmediatePlaceholder) {
       applyPlaceholderTexture(texture, this.options.placeholderKind ?? 'color')
       onLoad?.(texture)
-      if (this.options.rangeMaxTextureSize != null && this.options.rangeMaxTextureSize > 0) {
-        return texture
-      }
     }
 
     const handleParsedTexture = (texDatas: DdsParseResult): void => {
