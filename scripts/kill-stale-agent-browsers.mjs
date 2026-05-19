@@ -13,6 +13,16 @@ const dryRun = flag("dry-run");
 const force = flag("force");
 const killAll = flag("kill-all");
 const once = flag("once") || killAll;
+const processTypes = [
+  {
+    label: "agent-browser",
+    pattern: /\/agent-browser(?:-[^/\s]+)?(?:\s|$)/,
+  },
+  {
+    label: "chrome-devtools-mcp",
+    pattern: /\/chrome-devtools-mcp(?:-[^/\s]+)?\/.*\/index\.js(?:\s|$)/,
+  },
+];
 
 while (true) {
   const waitSeconds = await sweep();
@@ -28,20 +38,27 @@ while (true) {
 async function sweep() {
   const processes = await readProcesses();
   const childrenByParent = Map.groupBy(processes, (process) => process.ppid);
-  const agents = processes.filter((process) => /\/agent-browser(?:-[^/\s]+)?(?:\s|$)/.test(process.command));
-  const targets = killAll ? agents : agents.filter((process) => process.age > maxAge);
+  const roots = processes.flatMap((process) => {
+    const type = processTypes.find((type) => type.pattern.test(process.command));
+    return type ? [{ ...process, label: type.label }] : [];
+  });
+  const targets = killAll ? roots : roots.filter((process) => process.age > maxAge);
 
   if (targets.length === 0) {
-    console.log(killAll ? "No agent-browser instances found." : `No agent-browser instances older than ${formatSeconds(maxAge)}.`);
+    console.log(
+      killAll
+        ? "No agent-browser or chrome-devtools-mcp instances found."
+        : `No agent-browser or chrome-devtools-mcp instances older than ${formatSeconds(maxAge)}.`,
+    );
   }
 
-  for (const agent of targets) {
-    const descendants = descendantsOf(agent.pid, childrenByParent);
-    const processGroup = [...descendants, agent];
+  for (const target of targets) {
+    const descendants = descendantsOf(target.pid, childrenByParent);
+    const processGroup = [...descendants, target];
 
     console.log(
-      `${dryRun ? "Would kill" : "Killing"} agent-browser PID ${agent.pid} ` +
-        `(${formatSeconds(agent.age)} old) and ${descendants.length} child process(es).`,
+      `${dryRun ? "Would kill" : "Killing"} ${target.label} PID ${target.pid} ` +
+        `(${formatSeconds(target.age)} old) and ${descendants.length} child process(es).`,
     );
 
     if (dryRun) {
@@ -63,8 +80,8 @@ async function sweep() {
     }
   }
 
-  const freshAgents = agents.filter((process) => !targets.includes(process));
-  return freshAgents.length === 0 ? maxAge : Math.max(1, maxAge - Math.max(...freshAgents.map((process) => process.age)));
+  const freshRoots = roots.filter((process) => !targets.includes(process));
+  return freshRoots.length === 0 ? maxAge : Math.max(1, maxAge - Math.max(...freshRoots.map((process) => process.age)));
 }
 
 async function readProcesses() {
