@@ -44,6 +44,13 @@ interface RuntimeMaterialBinding {
   lastDependencyValues: readonly number[] | null
 }
 
+interface RuntimeAnimationBinding {
+  readonly binding: CompiledAnimationBinding
+  readonly dependencies: readonly RuntimeExpressionDependency[] | null
+  lastEvaluatedValue: number | null
+  lastDependencyValues: readonly number[] | null
+}
+
 interface RuntimeBoundMaterial {
   readonly material: RuntimeMaterial
   readonly baseEmissiveIntensity: number
@@ -171,7 +178,7 @@ export class AircraftRuntime {
   private readonly animationTriggerValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly materialValues = new Map<string, number>()
-  private activeAnimationBindings: readonly CompiledAnimationBinding[] = []
+  private activeAnimationBindings: readonly RuntimeAnimationBinding[] = []
   private activeAnimationTriggerBindings: readonly CompiledAnimationTriggerBinding[] = []
   private readonly activeAnimationTriggerBindingsByAnimation = new Map<string, readonly CompiledAnimationTriggerBinding[]>()
   private readonly activeVisibilityBindings: readonly CompiledVisibilityBinding[]
@@ -246,7 +253,7 @@ export class AircraftRuntime {
   }
 
   bindAnimations(clips: readonly { readonly name: string }[]): void {
-    const activeAnimationBindings: CompiledAnimationBinding[] = []
+    const activeAnimationBindings: RuntimeAnimationBinding[] = []
     const activeAnimationNames = new Set<string>()
     for (const binding of this.compiled.animationBindings) {
       const clip = clips.find(candidate => candidate.name === binding.target)
@@ -256,7 +263,12 @@ export class AircraftRuntime {
       action.play()
       action.paused = true
       this.actions.set(binding.target, action)
-      activeAnimationBindings.push(binding)
+      activeAnimationBindings.push({
+        binding,
+        dependencies: getRuntimeExpressionDependencies(binding.expression),
+        lastEvaluatedValue: null,
+        lastDependencyValues: null
+      })
       activeAnimationNames.add(binding.target)
     }
     this.activeAnimationBindings = activeAnimationBindings
@@ -305,8 +317,33 @@ export class AircraftRuntime {
     interactionFeedbackMs = finishPhase()
     let modelChanged = false
 
-    for (const binding of this.activeAnimationBindings) {
-      const evaluatedValue = evaluateCompiledExpression(binding.expression, this.readOnlyExpressionServices)
+    for (const runtimeBinding of this.activeAnimationBindings) {
+      const { binding } = runtimeBinding
+      const dependencyValues =
+        runtimeBinding.lastEvaluatedValue == null || runtimeBinding.dependencies == null
+          ? null
+          : readRuntimeExpressionDependencyValues(
+            runtimeBinding.dependencies,
+            this.hostServices
+          )
+      const canReuseEvaluatedValue =
+        runtimeBinding.lastEvaluatedValue != null &&
+        dependencyValues != null &&
+        runtimeDependencyValuesEqual(runtimeBinding.lastDependencyValues, dependencyValues)
+      const evaluatedValue = canReuseEvaluatedValue
+        ? runtimeBinding.lastEvaluatedValue!
+        : evaluateCompiledExpression(binding.expression, this.readOnlyExpressionServices)
+      if (!canReuseEvaluatedValue) {
+        runtimeBinding.lastEvaluatedValue = evaluatedValue
+        runtimeBinding.lastDependencyValues =
+          runtimeBinding.dependencies == null
+            ? null
+            : dependencyValues ??
+              readRuntimeExpressionDependencyValues(
+                runtimeBinding.dependencies,
+                this.hostServices
+              )
+      }
       const previousValue = this.animationValues.get(binding.target) ?? 0
       const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
       const value =
@@ -373,7 +410,13 @@ export class AircraftRuntime {
           this.readOnlyExpressionServices
         )
       this.materialValues.set(runtimeBinding.binding.target, value)
-      if (canReuseValue) {
+      if (
+        canReuseValue ||
+        (
+          runtimeBinding.lastAppliedValue != null &&
+          Math.abs(runtimeBinding.lastAppliedValue - value) <= 1e-6
+        )
+      ) {
         continue
       }
       runtimeBinding.lastAppliedValue = value
@@ -4990,16 +5033,30 @@ function readStoredSoundVariable(
 }
 
 function getSoundVariableKeyCandidates(variable: ImportedSoundVariable): readonly string[] {
+  const cachedCandidates = soundVariableKeyCandidatesCache.get(variable)
+  if (cachedCandidates != null) {
+    return cachedCandidates
+  }
+
   const prefix = variable.kind === 'localvar' ? 'L' : 'A'
   const baseKey = normalizeRuntimeVariableKey(`${prefix}:${variable.name}`)
   if (variable.index == null || variable.index === 0) {
-    return [baseKey]
+    const candidates = [baseKey]
+    soundVariableKeyCandidatesCache.set(variable, candidates)
+    return candidates
   }
-  return [
+  const candidates = [
     normalizeRuntimeVariableKey(`${prefix}:${variable.name}:${Math.trunc(variable.index)}`),
     baseKey
   ]
+  soundVariableKeyCandidatesCache.set(variable, candidates)
+  return candidates
 }
+
+const soundVariableKeyCandidatesCache = new WeakMap<
+  ImportedSoundVariable,
+  readonly string[]
+>()
 
 function formatSoundVariableKey(variable: ImportedSoundVariable): string {
   const prefix = variable.kind === 'localvar' ? 'L' : 'A'
