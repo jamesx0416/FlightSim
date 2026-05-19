@@ -865,17 +865,19 @@ async function init(): Promise<void> {
 
     loadedModel = replaceLoadedAircraftInterior(loadedModel, nextInterior)
     ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
-    cameraDepthClipController.refreshBounds()
+    cameraDepthClipController.markModelChanged()
     const runtimeRebuildStartMs = performance.now()
     rebuildRuntimeForLoadedModel()
     recordSwapPhase('interior-swap:runtime-rebuild', runtimeRebuildStartMs)
     const renderPassRefreshStartMs = performance.now()
     renderPasses.refresh()
     recordSwapPhase('interior-swap:render-pass-refresh', renderPassRefreshStartMs)
+    clock.getDelta()
     recordCockpitBenchmarkEvent('cockpit:interior:swap-complete', {
       loadedLodIndex: nextInterior?.loadedLodIndex ?? null,
       swapPhases
     })
+    markCockpitPerfFrames('interior-swap', 12)
   }
 
   const shouldUpdateVCockpitGaugesForCurrentView = (): boolean =>
@@ -1093,6 +1095,7 @@ async function init(): Promise<void> {
           loadDiagnostics: nextInterior.loadDiagnostics,
           resourceStats: nextInterior.resourceStats
         })
+        markCockpitPerfFrames('interior-component-loaded', 12)
 
         if (shouldUseCockpitInterior && loadedModel.interior !== nextInterior) {
           setActiveInteriorComponent(nextInterior)
@@ -1663,6 +1666,26 @@ async function init(): Promise<void> {
     ? createCockpitPerfDiagnostics(aircraft, () => loadedModel)
     : createDisabledCockpitPerfDiagnostics(aircraft, () => loadedModel)
   ;(globalThis as Record<string, unknown>).__cockpitPerf = cockpitPerfDiagnostics
+  let cockpitPerfFrameMarker: { label: string; remainingFrames: number } | null = null
+  const markCockpitPerfFrames = (label: string, frameCount: number): void => {
+    cockpitPerfFrameMarker = {
+      label,
+      remainingFrames: Math.max(0, Math.floor(frameCount))
+    }
+  }
+  const consumeCockpitPerfFrameMarker = (): string | null => {
+    if (cockpitPerfFrameMarker == null || cockpitPerfFrameMarker.remainingFrames <= 0) {
+      cockpitPerfFrameMarker = null
+      return null
+    }
+
+    const label = cockpitPerfFrameMarker.label
+    cockpitPerfFrameMarker.remainingFrames -= 1
+    if (cockpitPerfFrameMarker.remainingFrames <= 0) {
+      cockpitPerfFrameMarker = null
+    }
+    return label
+  }
   let cockpitInteractionHitboxHelperGroup: Group | null = null
   let cockpitInteractionMeshHelperPairs: { readonly source: Mesh; readonly helper: Mesh }[] = []
   updateOverlay(
@@ -2032,22 +2055,26 @@ async function init(): Promise<void> {
       }
       updateCameraDepthClipController()
       const cameraEndMs = performance.now()
+      const vcockpitStartMs = performance.now()
       loadedModel.interior?.vcockpitBinding?.update(
         performance.now(),
         camera,
         renderer.domElement
       )
+      const vcockpitEndMs = performance.now()
       updateCockpitInteractionHitboxHelpers()
       const renderStartMs = performance.now()
       renderPasses.render()
       const renderEndMs = performance.now()
       cockpitPerfDiagnostics.recordFrame({
+        marker: consumeCockpitPerfFrameMarker(),
         cockpitActive: cockpitCameraController.isActive(),
         loadedInteriorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
         frameMs: renderEndMs - frameStartMs,
         runtimeMs: runtimeEndMs - runtimeStartMs,
         runtimeProfile,
         cameraMs: cameraEndMs - cameraStartMs,
+        vcockpitMs: vcockpitEndMs - vcockpitStartMs,
         renderMs: renderEndMs - renderStartMs,
         rendererCalls: renderer.info.render.calls,
         rendererTriangles: renderer.info.render.triangles,
@@ -2094,12 +2121,14 @@ async function init(): Promise<void> {
 
 
 type CockpitPerfFrameSample = {
+  readonly marker: string | null
   readonly cockpitActive: boolean
   readonly loadedInteriorLodIndex: number | null
   readonly frameMs: number
   readonly runtimeMs: number
   readonly runtimeProfile: RuntimeUpdateProfile | null
   readonly cameraMs: number
+  readonly vcockpitMs: number
   readonly renderMs: number
   readonly rendererCalls: number
   readonly rendererTriangles: number
@@ -2177,12 +2206,61 @@ function summarizeCockpitPerfSamples(samples: readonly CockpitPerfFrameSample[])
         .filter(profile => profile != null)
     ),
     cameraMs: summarizeNumericSamples(sourceSamples.map(sample => sample.cameraMs)),
+    vcockpitMs: summarizeNumericSamples(sourceSamples.map(sample => sample.vcockpitMs)),
     renderMs: summarizeNumericSamples(sourceSamples.map(sample => sample.renderMs)),
+    markedFrames: summarizeMarkedCockpitPerfFrames(sourceSamples),
+    slowestFrames: summarizeSlowestCockpitPerfFrames(sourceSamples),
     rendererCalls: summarizeNumericSamples(sourceSamples.map(sample => sample.rendererCalls)),
     rendererTriangles: summarizeNumericSamples(sourceSamples.map(sample => sample.rendererTriangles)),
     rendererTextures: sourceSamples.at(-1)?.rendererTextures ?? null,
     rendererGeometries: sourceSamples.at(-1)?.rendererGeometries ?? null
   }
+}
+
+function summarizeMarkedCockpitPerfFrames(
+  samples: readonly CockpitPerfFrameSample[]
+): Record<string, unknown> {
+  const samplesByMarker = new Map<string, CockpitPerfFrameSample[]>()
+  for (const sample of samples) {
+    if (sample.marker == null) {
+      continue
+    }
+    const markerSamples = samplesByMarker.get(sample.marker) ?? []
+    markerSamples.push(sample)
+    samplesByMarker.set(sample.marker, markerSamples)
+  }
+
+  return Object.fromEntries(
+    [...samplesByMarker.entries()].map(([marker, markerSamples]) => [
+      marker,
+      {
+        sampleCount: markerSamples.length,
+        frameMs: summarizeNumericSamples(markerSamples.map(sample => sample.frameMs)),
+        runtimeMs: summarizeNumericSamples(markerSamples.map(sample => sample.runtimeMs)),
+        vcockpitMs: summarizeNumericSamples(markerSamples.map(sample => sample.vcockpitMs)),
+        renderMs: summarizeNumericSamples(markerSamples.map(sample => sample.renderMs))
+      }
+    ])
+  )
+}
+
+function summarizeSlowestCockpitPerfFrames(
+  samples: readonly CockpitPerfFrameSample[]
+): readonly Record<string, unknown>[] {
+  return [...samples]
+    .sort((left, right) => right.frameMs - left.frameMs)
+    .slice(0, 8)
+    .map(sample => ({
+      marker: sample.marker,
+      loadedInteriorLodIndex: sample.loadedInteriorLodIndex,
+      frameMs: sample.frameMs,
+      runtimeMs: sample.runtimeMs,
+      runtimeProfile: sample.runtimeProfile,
+      cameraMs: sample.cameraMs,
+      vcockpitMs: sample.vcockpitMs,
+      renderMs: sample.renderMs,
+      rendererCalls: sample.rendererCalls
+    }))
 }
 
 function summarizeRuntimeUpdateProfiles(
@@ -9137,6 +9215,9 @@ type CameraDepthClipController = {
 type CameraDepthClipBound = {
   readonly mesh: Mesh
   readonly localBox: Box3
+  readonly worldBox: Box3
+  readonly lastMatrixWorld: number[]
+  hasWorldBox: boolean
 }
 
 function createCameraDepthClipController(
@@ -9178,7 +9259,10 @@ function createCameraDepthClipController(
 
       meshBounds.push({
         mesh: node,
-        localBox: localBox.clone()
+        localBox: localBox.clone(),
+        worldBox: new Box3(),
+        lastMatrixWorld: new Array<number>(16).fill(Number.NaN),
+        hasWorldBox: false
       })
     })
     forceNextUpdate = true
@@ -9212,15 +9296,14 @@ function createCameraDepthClipController(
     let farthestDepth = 0
     let intersectsCamera = false
 
-    for (const { mesh, localBox } of meshBounds) {
+    for (const bound of meshBounds) {
+      const { mesh } = bound
       if (!isVisibleInHierarchy(mesh)) {
         continue
       }
 
-      meshWorldBox.makeEmpty()
-      forEachBoxCorner(localBox, cameraSpaceCorner, corner => {
-        meshWorldBox.expandByPoint(corner.applyMatrix4(mesh.matrixWorld))
-      })
+      updateCameraDepthClipWorldBox(bound)
+      meshWorldBox.copy(bound.worldBox)
 
       if (meshWorldBox.isEmpty()) {
         continue
@@ -9294,6 +9377,39 @@ const MIN_CAMERA_CLIP_RANGE = 0.01
 const MIN_CAMERA_CLIP_PADDING = 0.5
 const CAMERA_CLIP_DEPTH_PADDING_RATIO = 0.08
 const CAMERA_DEPTH_CLIP_FALLBACK_INTERVAL_MS = 1_000
+
+const cameraDepthClipWorldBoxCorner = new Vector3()
+
+function updateCameraDepthClipWorldBox(bound: CameraDepthClipBound): void {
+  if (
+    bound.hasWorldBox &&
+    matrixWorldElementsEqual(bound.mesh.matrixWorld.elements, bound.lastMatrixWorld)
+  ) {
+    return
+  }
+
+  const matrixWorldElements = bound.mesh.matrixWorld.elements
+  bound.worldBox.makeEmpty()
+  forEachBoxCorner(bound.localBox, cameraDepthClipWorldBoxCorner, corner => {
+    bound.worldBox.expandByPoint(corner.applyMatrix4(bound.mesh.matrixWorld))
+  })
+  for (let index = 0; index < 16; index += 1) {
+    bound.lastMatrixWorld[index] = matrixWorldElements[index]!
+  }
+  bound.hasWorldBox = true
+}
+
+function matrixWorldElementsEqual(
+  left: readonly number[],
+  right: readonly number[]
+): boolean {
+  for (let index = 0; index < 16; index += 1) {
+    if (Math.abs(left[index]! - right[index]!) > 1e-10) {
+      return false
+    }
+  }
+  return true
+}
 
 function shouldUpdateCameraClipPlane(current: number, next: number): boolean {
   return Math.abs(current - next) > Math.max(0.001, Math.abs(next) * 0.001)
