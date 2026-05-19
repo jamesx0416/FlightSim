@@ -853,6 +853,24 @@ export async function shouldBypassDdsRangeReduction(
     return false
   }
 
+  const cacheKey = createDdsRangeReductionBypassCacheKey(url, requestHeader)
+  const cached = ddsRangeReductionBypassCache.get(cacheKey)
+  if (cached != null) {
+    return cached
+  }
+
+  const request = shouldBypassDdsRangeReductionUncached(url, requestHeader).catch(error => {
+    ddsRangeReductionBypassCache.delete(cacheKey)
+    throw error
+  })
+  ddsRangeReductionBypassCache.set(cacheKey, request)
+  return request
+}
+
+async function shouldBypassDdsRangeReductionUncached(
+  url: string,
+  requestHeader: Record<string, string>
+): Promise<boolean> {
   let response: Response
   try {
     response = await fetchWithTimeout(`${url}.FLAGS`, {
@@ -868,9 +886,29 @@ export async function shouldBypassDdsRangeReduction(
     return false
   }
 
+  const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+  if (contentType.includes('text/html')) {
+    await response.body?.cancel()
+    return false
+  }
+
   const flags = (await response.text()).toUpperCase()
   return flags.includes('+NOREDUCE') || /\bNOREDUCE\b/.test(flags)
 }
+
+function createDdsRangeReductionBypassCacheKey(
+  url: string,
+  requestHeader: Record<string, string>
+): string {
+  const headers = Object.entries(requestHeader)
+    .map(([key, value]) => [key.toLowerCase(), value] as const)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}:${value}`)
+    .join('\n')
+  return `${url}\n${headers}`
+}
+
+const ddsRangeReductionBypassCache = new Map<string, Promise<boolean>>()
 
 async function fetchWithTimeout(
   url: string,
