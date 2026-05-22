@@ -63,6 +63,7 @@ import {
   createAppRenderer,
   createNodeMaterialFactory,
   getRendererPixelRatio,
+  type AppRenderer,
   type NodeMaterialFactory,
   type RendererInfo
 } from './rendering/createAppRenderer'
@@ -872,6 +873,9 @@ async function init(): Promise<void> {
     const renderPassRefreshStartMs = performance.now()
     renderPasses.refresh()
     recordSwapPhase('interior-swap:render-pass-refresh', renderPassRefreshStartMs)
+    if (cockpitCameraController.isActive()) {
+      refreshCockpitCameraClipPlanes()
+    }
     clock.getDelta()
     recordCockpitBenchmarkEvent('cockpit:interior:swap-complete', {
       loadedLodIndex: nextInterior?.loadedLodIndex ?? null,
@@ -882,6 +886,19 @@ async function init(): Promise<void> {
 
   const shouldUpdateVCockpitGaugesForCurrentView = (): boolean =>
     cockpitCameraController.isActive() || shouldUpdateVCockpitGaugesOutside(effectiveSearchParams)
+  let cockpitCameraClipPlanes: CameraClipPlanes = {
+    near: COCKPIT_CAMERA_CLIP_NEAR,
+    far: COCKPIT_CAMERA_DEFAULT_CLIP_FAR
+  }
+  const refreshCockpitCameraClipPlanes = (): void => {
+    cockpitCameraClipPlanes = {
+      near: COCKPIT_CAMERA_CLIP_NEAR,
+      far:
+        loadedModel.interior == null
+          ? COCKPIT_CAMERA_DEFAULT_CLIP_FAR
+          : computeCockpitCameraFarPlane(camera, loadedModel.interior.scene)
+    }
+  }
 
   let exteriorViewInterior = loadedModel.interior
   let exteriorViewInteriorLoadPromise: Promise<LoadedModelComponent | null> | null = null
@@ -911,6 +928,41 @@ async function init(): Promise<void> {
     loadedModel.interior?.loadedLodIndex === getCockpitInteriorPreferredLodIndex()
       ? loadedModel.interior
       : null
+  const rendererWarmedInteriorComponents = new WeakSet<LoadedModelComponent>()
+  const warmInteriorRendererResources = async (
+    interior: LoadedModelComponent,
+    label: string
+  ): Promise<Record<string, unknown> | null> => {
+    if (rendererWarmedInteriorComponents.has(interior)) {
+      return {
+        skipped: 'already-warmed'
+      }
+    }
+
+    const compileAsync = getRendererCompileAsync(renderer)
+    if (compileAsync == null) {
+      return {
+        skipped: 'unsupported-renderer'
+      }
+    }
+
+    const startMs = performance.now()
+    markCockpitPerfFrames(`${label}:renderer-warm`, 12)
+
+    try {
+      await compileAsync(interior.scene, camera, scene)
+      rendererWarmedInteriorComponents.add(interior)
+      return {
+        durationMs: performance.now() - startMs
+      }
+    } catch (error) {
+      console.warn('Failed to warm interior renderer resources.', error)
+      return {
+        durationMs: performance.now() - startMs,
+        error: error instanceof Error ? error.message : String(error)
+      }
+    }
+  }
   let shouldUseCockpitInterior = false
   let hasRequestedCockpitInterior = false
   let interiorLodUpgradePromise: Promise<void> | null = null
@@ -921,6 +973,109 @@ async function init(): Promise<void> {
       aircraft.model?.modelOptions.withExteriorShowInterior === true
     )
   }
+
+  const canUseExteriorViewInteriorMeshForCockpit = (): boolean => {
+    return (
+      !isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitInstanceStatic') &&
+      !isEnabledFlagSearchParam(effectiveSearchParams, 'cockpitMergeStatic')
+    )
+  }
+
+  const canReuseExteriorViewInteriorForCockpit = (
+    interior: LoadedModelComponent
+  ): boolean =>
+    interior.loadedLodIndex === getCockpitInteriorPreferredLodIndex() &&
+    canUseExteriorViewInteriorMeshForCockpit()
+
+  const showExteriorViewInteriorCockpitFallback = (
+    interior: LoadedModelComponent
+  ): void => {
+    if (
+      !shouldUseCockpitInterior ||
+      cachedCockpitInterior != null ||
+      !canUseExteriorViewInteriorMeshForCockpit()
+    ) {
+      return
+    }
+
+    recordCockpitBenchmarkEvent('cockpit:interior-upgrade:exterior-fallback', {
+      loadedLodIndex: interior.loadedLodIndex,
+      preferredLodIndex: getCockpitInteriorPreferredLodIndex()
+    })
+    interior.scene.visible = true
+    if (loadedModel.interior === interior) {
+      if (interior.scene.parent !== loadedModel.scene) {
+        loadedModel.scene.add(interior.scene)
+      }
+      interior.vcockpitBinding?.setActive(shouldUpdateVCockpitGaugesForCurrentView())
+      cameraDepthClipController.markModelChanged()
+      renderPasses.refresh()
+      return
+    }
+
+    setActiveInteriorComponent(interior)
+  }
+
+  let exteriorViewInteriorCockpitPromotionPromise:
+    | Promise<LoadedModelComponent | null>
+    | null = null
+  const prepareExteriorViewInteriorForCockpit =
+    async (): Promise<LoadedModelComponent | null> => {
+      if (exteriorViewInteriorCockpitPromotionPromise != null) {
+        return exteriorViewInteriorCockpitPromotionPromise
+      }
+
+      exteriorViewInteriorCockpitPromotionPromise = (async () => {
+        const candidate =
+          exteriorViewInterior ??
+          (
+            exteriorViewInteriorLoadPromise != null
+              ? await exteriorViewInteriorLoadPromise
+              : null
+          )
+        if (candidate == null || !canReuseExteriorViewInteriorForCockpit(candidate)) {
+          return null
+        }
+
+        if (
+          candidate.vcockpitBinding != null ||
+          !shouldBindVCockpitSurfaces(effectiveSearchParams)
+        ) {
+          return candidate
+        }
+
+        const vcockpitBinding = await bindVCockpitPlaceholderSurfaces(
+          candidate.scene,
+          aircraft,
+          aircraftModelLoadContext.resolvePanelAssetUrl,
+          shouldLiveRefreshVCockpitGauges(effectiveSearchParams),
+          getVCockpitGaugeMode(effectiveSearchParams),
+          getVCockpitGaugeVideoFps(effectiveSearchParams),
+          getVCockpitGaugeCaptureFps(effectiveSearchParams),
+          getVCockpitGaugeRasterScale(effectiveSearchParams),
+          shouldDebugVCockpitGauges(effectiveSearchParams),
+          runtimeHost
+        )
+        vcockpitBinding.setActive(shouldUpdateVCockpitGaugesForCurrentView())
+        ;(globalThis as Record<string, unknown>).__lastVCockpitSurfaceBinding =
+          vcockpitBinding
+
+        const promoted: LoadedModelComponent = {
+          ...candidate,
+          vcockpitBinding
+        }
+        exteriorViewInterior = promoted
+        if (loadedModel.interior === candidate) {
+          loadedModel = replaceLoadedAircraftInterior(loadedModel, promoted)
+          ;(globalThis as Record<string, unknown>).__lastLoadedGltf = loadedModel
+        }
+        return promoted
+      })().finally(() => {
+        exteriorViewInteriorCockpitPromotionPromise = null
+      })
+
+      return exteriorViewInteriorCockpitPromotionPromise
+    }
 
   const getExteriorViewInteriorPreferredLodIndex = (): number | null => {
     const interiorModel = aircraft.interiorModel
@@ -995,6 +1150,9 @@ async function init(): Promise<void> {
         })
         if (!cockpitCameraController.isActive() && loadedModel.interior !== nextInterior) {
           setActiveInteriorComponent(nextInterior)
+        } else if (cockpitCameraController.isActive()) {
+          showExteriorViewInteriorCockpitFallback(nextInterior)
+          requestInteriorLodUpgrade()
         }
         return nextInterior
       })
@@ -1019,6 +1177,16 @@ async function init(): Promise<void> {
       return
     }
 
+    if (exteriorViewInterior != null) {
+      showExteriorViewInteriorCockpitFallback(exteriorViewInterior)
+    } else if (exteriorViewInteriorLoadPromise != null) {
+      void exteriorViewInteriorLoadPromise.then(interior => {
+        if (interior != null) {
+          showExteriorViewInteriorCockpitFallback(interior)
+        }
+      })
+    }
+
     if (cachedCockpitInterior != null) {
       if (
         shouldUseCockpitInterior &&
@@ -1030,7 +1198,20 @@ async function init(): Promise<void> {
             cachedCockpitInterior.resourceStats ??
             collectModelResourceStats(cachedCockpitInterior.scene)
         })
-        setActiveInteriorComponent(cachedCockpitInterior)
+        const nextInterior = cachedCockpitInterior
+        void (async () => {
+          const rendererWarm = await warmInteriorRendererResources(
+            nextInterior,
+            'gltf:interior-upgrade:cache-hit'
+          )
+          recordCockpitBenchmarkEvent('cockpit:interior-upgrade:renderer-warm', {
+            loadedLodIndex: nextInterior.loadedLodIndex,
+            rendererWarm
+          })
+          if (shouldUseCockpitInterior && loadedModel.interior !== nextInterior) {
+            setActiveInteriorComponent(nextInterior)
+          }
+        })()
       }
       return
     }
@@ -1052,6 +1233,45 @@ async function init(): Promise<void> {
         })
         recordCockpitBenchmarkEvent('cockpit:interior-upgrade:start')
         await ensureFullCompiledBehaviors()
+        const promotedExteriorInterior = await prepareExteriorViewInteriorForCockpit()
+        if (promotedExteriorInterior != null) {
+          cachedCockpitInterior = promotedExteriorInterior
+          recordCockpitBenchmarkEvent('cockpit:interior-upgrade:exterior-reuse', {
+            loadedLodIndex: promotedExteriorInterior.loadedLodIndex,
+            hadVCockpitBinding: promotedExteriorInterior.vcockpitBinding != null,
+            resourceStats:
+              promotedExteriorInterior.resourceStats ??
+              collectModelResourceStats(promotedExteriorInterior.scene)
+          })
+
+          if (
+            !shouldUseCockpitInterior ||
+            loadedModel.interior === promotedExteriorInterior
+          ) {
+            promotedExteriorInterior.vcockpitBinding?.setActive(
+              loadedModel.interior === promotedExteriorInterior
+            )
+          } else {
+            const rendererWarm = await warmInteriorRendererResources(
+              promotedExteriorInterior,
+              'gltf:interior-upgrade:exterior-reuse'
+            )
+            recordCockpitBenchmarkEvent('cockpit:interior-upgrade:renderer-warm', {
+              loadedLodIndex: promotedExteriorInterior.loadedLodIndex,
+              rendererWarm
+            })
+            setActiveInteriorComponent(promotedExteriorInterior)
+          }
+
+          setGlobalLoadStage({
+            stage: 'gltf:interior-upgrade:ready',
+            aircraftId: aircraft.id
+          })
+          cockpitInteractionPickRegistryCache = null
+          syncCockpitInteractionHitboxHelpers()
+          return
+        }
+
         const nextInterior = await loadAircraftModelComponent(
           aircraftModelLoadContext,
           interiorModel,
@@ -1096,6 +1316,17 @@ async function init(): Promise<void> {
           resourceStats: nextInterior.resourceStats
         })
         markCockpitPerfFrames('interior-component-loaded', 12)
+
+        if (shouldUseCockpitInterior && loadedModel.interior !== nextInterior) {
+          const rendererWarm = await warmInteriorRendererResources(
+            nextInterior,
+            'gltf:interior-upgrade'
+          )
+          recordCockpitBenchmarkEvent('cockpit:interior-upgrade:renderer-warm', {
+            loadedLodIndex: nextInterior.loadedLodIndex,
+            rendererWarm
+          })
+        }
 
         if (shouldUseCockpitInterior && loadedModel.interior !== nextInterior) {
           setActiveInteriorComponent(nextInterior)
@@ -1453,6 +1684,8 @@ async function init(): Promise<void> {
     controls,
     aircraftRoot,
     loadedModel.exterior.scene,
+    () => cockpitCameraClipPlanes,
+    refreshCockpitCameraClipPlanes,
     aircraft,
     () => {
       shouldUseCockpitInterior = true
@@ -1655,6 +1888,18 @@ async function init(): Promise<void> {
   lastRuntimeModelRevision = runtime.getModelRevision()
   ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
   const updateCameraDepthClipController = (): void => {
+    if (cockpitCameraController.isActive()) {
+      if (
+        shouldUpdateCameraClipPlane(camera.near, cockpitCameraClipPlanes.near) ||
+        shouldUpdateCameraClipPlane(camera.far, cockpitCameraClipPlanes.far)
+      ) {
+        camera.near = cockpitCameraClipPlanes.near
+        camera.far = cockpitCameraClipPlanes.far
+        camera.updateProjectionMatrix()
+      }
+      return
+    }
+
     const runtimeModelRevision = runtime.getModelRevision()
     if (runtimeModelRevision !== lastRuntimeModelRevision) {
       lastRuntimeModelRevision = runtimeModelRevision
@@ -9212,6 +9457,11 @@ type CameraDepthClipController = {
   update(): void
 }
 
+type CameraClipPlanes = {
+  readonly near: number
+  readonly far: number
+}
+
 type CameraDepthClipBound = {
   readonly mesh: Mesh
   readonly localBox: Box3
@@ -9230,7 +9480,6 @@ function createCameraDepthClipController(
   const meshBounds: CameraDepthClipBound[] = []
   const lastCameraPosition = new Vector3(Number.NaN, Number.NaN, Number.NaN)
   const lastCameraQuaternion = camera.quaternion.clone()
-  let lastCameraZoom = Number.NaN
   let nextFallbackUpdateMs = 0
   let forceNextUpdate = true
 
@@ -9277,15 +9526,13 @@ function createCameraDepthClipController(
     const cameraChanged =
       forceNextUpdate ||
       camera.position.distanceToSquared(lastCameraPosition) > 1e-6 ||
-      Math.abs(camera.quaternion.dot(lastCameraQuaternion)) < 0.999999 ||
-      Math.abs(camera.zoom - lastCameraZoom) > 1e-4
+      Math.abs(camera.quaternion.dot(lastCameraQuaternion)) < 0.999999
     if (!cameraChanged && nowMs < nextFallbackUpdateMs) {
       return
     }
     if (cameraChanged) {
       lastCameraPosition.copy(camera.position)
       lastCameraQuaternion.copy(camera.quaternion)
-      lastCameraZoom = camera.zoom
     }
     forceNextUpdate = false
     nextFallbackUpdateMs = nowMs + CAMERA_DEPTH_CLIP_FALLBACK_INTERVAL_MS
@@ -9377,6 +9624,10 @@ const MIN_CAMERA_CLIP_RANGE = 0.01
 const MIN_CAMERA_CLIP_PADDING = 0.5
 const CAMERA_CLIP_DEPTH_PADDING_RATIO = 0.08
 const CAMERA_DEPTH_CLIP_FALLBACK_INTERVAL_MS = 1_000
+const COCKPIT_CAMERA_CLIP_NEAR = 0.01
+const COCKPIT_CAMERA_MIN_CLIP_FAR = 25
+const COCKPIT_CAMERA_DEFAULT_CLIP_FAR = 250
+const COCKPIT_CAMERA_CLIP_FAR_PADDING = 10
 
 const cameraDepthClipWorldBoxCorner = new Vector3()
 
@@ -9812,6 +10063,8 @@ function installCockpitCameraShortcut(
   controls: OrbitControls,
   aircraftRoot: Group,
   exteriorScene: Object3D,
+  getCockpitCameraClipPlanes: () => CameraClipPlanes,
+  refreshCockpitCameraClipPlanes: () => void,
   aircraft: ImportedAircraft,
   onEnterCockpit?: () => void,
   onExitCockpit?: () => void,
@@ -9874,7 +10127,7 @@ function installCockpitCameraShortcut(
   let exteriorVisibilityBeforeCockpit = exteriorScene.visible
   const previousTouchAction = domElement.style.touchAction
 
-  const applyCockpitCamera = (): void => {
+  const applyCockpitCamera = (options: { readonly refreshClipPlanes?: boolean } = {}): void => {
     if (!isCockpitViewActive) {
       return
     }
@@ -9897,6 +10150,12 @@ function installCockpitCameraShortcut(
     camera.up.copy(up)
     camera.zoom = cockpitZoom
     camera.lookAt(worldPosition.clone().add(forward))
+    if (options.refreshClipPlanes === true) {
+      refreshCockpitCameraClipPlanes()
+    }
+    const clipPlanes = getCockpitCameraClipPlanes()
+    camera.near = clipPlanes.near
+    camera.far = clipPlanes.far
     camera.updateProjectionMatrix()
   }
 
@@ -9995,7 +10254,7 @@ function installCockpitCameraShortcut(
     domElement.style.touchAction = 'none'
     controls.enabled = false
     exteriorScene.visible = false
-    applyCockpitCamera()
+    applyCockpitCamera({ refreshClipPlanes: true })
     onEnterCockpit?.()
   }
 
@@ -10411,6 +10670,22 @@ function computeApproximateBounds(object: Group): Box3 {
   return bounds
 }
 
+function computeCockpitCameraFarPlane(camera: PerspectiveCamera, interior: Object3D): number {
+  const bounds = computeApproximateBounds(interior as Group)
+  if (bounds.isEmpty()) {
+    return COCKPIT_CAMERA_DEFAULT_CLIP_FAR
+  }
+
+  camera.updateMatrixWorld()
+  const cameraPosition = new Vector3().setFromMatrixPosition(camera.matrixWorld)
+  let farthestDistance = 0
+  forEachBoxCorner(bounds, new Vector3(), corner => {
+    farthestDistance = Math.max(farthestDistance, cameraPosition.distanceTo(corner))
+  })
+
+  return Math.max(COCKPIT_CAMERA_MIN_CLIP_FAR, farthestDistance + COCKPIT_CAMERA_CLIP_FAR_PADDING)
+}
+
 type SceneResourceIndex = {
   readonly geometries: Set<NonNullable<Mesh['geometry']>>
   readonly materials: Set<Material>
@@ -10509,6 +10784,19 @@ function collectMaterialTextures(material: Material, textures: Set<Texture>): vo
   for (const uniform of Object.values(uniforms)) {
     collectValue(uniform?.value)
   }
+}
+
+type RendererCompileAsync = (
+  object: Object3D,
+  camera: PerspectiveCamera,
+  targetScene?: Scene | null
+) => Promise<unknown>
+
+function getRendererCompileAsync(renderer: AppRenderer): RendererCompileAsync | null {
+  const compileAsync = (renderer as { readonly compileAsync?: unknown }).compileAsync
+  return typeof compileAsync === 'function'
+    ? (compileAsync.bind(renderer) as RendererCompileAsync)
+    : null
 }
 
 function createFpsCounter(): FpsCounter {

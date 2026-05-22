@@ -31,7 +31,7 @@ For stock drag/callback interaction checks, prefer `window.__DevApi.drag(target,
 For cockpit pointer gesture checks, `window.__DevApi.input.pointer()` dispatches real viewer pointer events and supports `button: 0` for left mouse and `button: 2` for right mouse. In cockpit view, right-button pointerdown/move/up over an interaction target follows the same generic stock drag path as left-button drag and should not open the browser context menu.
 
 # Dev server URL
-https://msfs-combined-375b8e3b-fresh-local.vanilla-3dtiles.localhost:3000
+https://vanilla-3dtiles.localhost:3000
 
 bun scripts/kill-stale-agent-browsers.mjs --kill-all
 This command kills all agent-browsers, use only if you need too.
