@@ -9585,14 +9585,20 @@ function createCameraDepthClipController(
     }
 
     const depthRange = Math.max(MIN_CAMERA_CLIP_RANGE, farthestDepth - nearestDepth)
-    const clipPadding = Math.max(
+    const farClipPadding = Math.max(
       MIN_CAMERA_CLIP_PADDING,
       depthRange * CAMERA_CLIP_DEPTH_PADDING_RATIO
     )
+    const nearClipPadding = intersectsCamera
+      ? farClipPadding
+      : Math.min(
+          CAMERA_NEAR_CLIP_MAX_PADDING,
+          nearestDepth * CAMERA_NEAR_CLIP_PADDING_RATIO
+        )
     const nextNear = intersectsCamera
       ? MIN_CAMERA_CLIP_NEAR
-      : Math.max(MIN_CAMERA_CLIP_NEAR, nearestDepth - clipPadding)
-    const nextFar = Math.max(nextNear + MIN_CAMERA_CLIP_RANGE, farthestDepth + clipPadding)
+      : Math.max(MIN_CAMERA_CLIP_NEAR, nearestDepth - nearClipPadding)
+    const nextFar = Math.max(nextNear + MIN_CAMERA_CLIP_RANGE, farthestDepth + farClipPadding)
 
     if (!shouldUpdateCameraClipPlane(camera.near, nextNear)) {
       if (!shouldUpdateCameraClipPlane(camera.far, nextFar)) {
@@ -9623,6 +9629,8 @@ const MIN_CAMERA_CLIP_NEAR = 0.01
 const MIN_CAMERA_CLIP_RANGE = 0.01
 const MIN_CAMERA_CLIP_PADDING = 0.5
 const CAMERA_CLIP_DEPTH_PADDING_RATIO = 0.08
+const CAMERA_NEAR_CLIP_MAX_PADDING = 0.05
+const CAMERA_NEAR_CLIP_PADDING_RATIO = 0.25
 const CAMERA_DEPTH_CLIP_FALLBACK_INTERVAL_MS = 1_000
 const COCKPIT_CAMERA_CLIP_NEAR = 0.01
 const COCKPIT_CAMERA_MIN_CLIP_FAR = 25
