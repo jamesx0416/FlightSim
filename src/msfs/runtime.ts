@@ -51,6 +51,14 @@ interface RuntimeAnimationBinding {
   lastDependencyValues: readonly number[] | null
 }
 
+interface RuntimeVisibilityBinding {
+  readonly binding: CompiledVisibilityBinding
+  readonly node: Object3D
+  readonly dependencies: readonly RuntimeExpressionDependency[] | null
+  lastEvaluatedVisible: boolean | null
+  lastDependencyValues: readonly number[] | null
+}
+
 interface RuntimeBoundMaterial {
   readonly material: RuntimeMaterial
   readonly baseEmissiveIntensity: number
@@ -181,7 +189,7 @@ export class AircraftRuntime {
   private activeAnimationBindings: readonly RuntimeAnimationBinding[] = []
   private activeAnimationTriggerBindings: readonly CompiledAnimationTriggerBinding[] = []
   private readonly activeAnimationTriggerBindingsByAnimation = new Map<string, readonly CompiledAnimationTriggerBinding[]>()
-  private readonly activeVisibilityBindings: readonly CompiledVisibilityBinding[]
+  private readonly activeVisibilityBindings: readonly RuntimeVisibilityBinding[]
   private readonly activeMaterialBindings: readonly RuntimeMaterialBinding[]
   private readonly readOnlyExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly updateExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
@@ -236,8 +244,9 @@ export class AircraftRuntime {
     })
 
     sceneRoot.updateWorldMatrix(true, true)
-    this.activeVisibilityBindings = this.compiled.visibilityBindings.filter(binding =>
-      this.nodes.has(binding.target) || this.nodes.has(binding.target.toLowerCase())
+    this.activeVisibilityBindings = buildRuntimeVisibilityBindings(
+      this.compiled.visibilityBindings,
+      this.nodes
     )
     this.activeMaterialBindings = buildRuntimeMaterialBindings(
       this.compiled.materialBindings,
@@ -319,6 +328,15 @@ export class AircraftRuntime {
 
     for (const runtimeBinding of this.activeAnimationBindings) {
       const { binding } = runtimeBinding
+      if (
+        runtimeBinding.lastEvaluatedValue != null &&
+        runtimeBinding.dependencies != null &&
+        runtimeBinding.dependencies.length === 0 &&
+        !binding.delta &&
+        binding.lagFramesPerSecond <= 0
+      ) {
+        continue
+      }
       const dependencyValues =
         runtimeBinding.lastEvaluatedValue == null || runtimeBinding.dependencies == null
           ? null
@@ -344,12 +362,16 @@ export class AircraftRuntime {
                 this.hostServices
               )
       }
+      const hadPreviousValue = this.animationValues.has(binding.target)
       const previousValue = this.animationValues.get(binding.target) ?? 0
       const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
       const value =
         binding.lagFramesPerSecond > 0
           ? moveTowards(previousValue, rawValue, binding.lagFramesPerSecond * dtSeconds)
           : rawValue
+      if (hadPreviousValue && Math.abs(value - previousValue) <= 1e-6) {
+        continue
+      }
       this.animationValues.set(binding.target, value)
       if (Math.abs(value - previousValue) > 1e-6) {
         modelChanged = true
@@ -372,19 +394,47 @@ export class AircraftRuntime {
     this.applyWingFlexBindings()
     wingFlexMs = finishPhase()
 
-    for (const binding of this.activeVisibilityBindings) {
+    for (const runtimeBinding of this.activeVisibilityBindings) {
+      if (
+        runtimeBinding.lastEvaluatedVisible != null &&
+        runtimeBinding.dependencies != null &&
+        runtimeBinding.dependencies.length === 0
+      ) {
+        continue
+      }
+      const { binding, node } = runtimeBinding
+      const dependencyValues =
+        runtimeBinding.lastEvaluatedVisible == null || runtimeBinding.dependencies == null
+          ? null
+          : readRuntimeExpressionDependencyValues(
+            runtimeBinding.dependencies,
+            this.hostServices
+          )
+      const canReuseVisible =
+        runtimeBinding.lastEvaluatedVisible != null &&
+        dependencyValues != null &&
+        runtimeDependencyValuesEqual(runtimeBinding.lastDependencyValues, dependencyValues)
+      if (canReuseVisible) {
+        continue
+      }
       const isVisible =
         evaluateCompiledExpression(binding.expression, this.readOnlyExpressionServices) !== 0
 
-      const previousVisibility = this.nodeVisibilities.get(binding.target)
+      const previousVisibility = runtimeBinding.lastEvaluatedVisible
+      runtimeBinding.lastEvaluatedVisible = isVisible
+      runtimeBinding.lastDependencyValues =
+        runtimeBinding.dependencies == null
+          ? null
+          : dependencyValues ??
+            readRuntimeExpressionDependencyValues(
+              runtimeBinding.dependencies,
+              this.hostServices
+            )
       this.nodeVisibilities.set(binding.target, isVisible)
       if (previousVisibility !== isVisible) {
         modelChanged = true
       }
-      const node =
-        this.nodes.get(binding.target) ??
-        this.nodes.get(binding.target.toLowerCase())
-      if (node != null && node.visible !== isVisible) {
+      if (node.visible !== isVisible) {
         node.visible = isVisible
         modelChanged = true
       }
@@ -936,6 +986,27 @@ function buildRuntimeMaterialBindings(
     })
   }
 
+  return runtimeBindings
+}
+
+function buildRuntimeVisibilityBindings(
+  bindings: readonly CompiledVisibilityBinding[],
+  nodes: ReadonlyMap<string, Object3D>
+): readonly RuntimeVisibilityBinding[] {
+  const runtimeBindings: RuntimeVisibilityBinding[] = []
+  for (const binding of bindings) {
+    const node = nodes.get(binding.target) ?? nodes.get(binding.target.toLowerCase())
+    if (node == null) {
+      continue
+    }
+    runtimeBindings.push({
+      binding,
+      node,
+      dependencies: getRuntimeExpressionDependencies(binding.expression),
+      lastEvaluatedVisible: null,
+      lastDependencyValues: null
+    })
+  }
   return runtimeBindings
 }
 
