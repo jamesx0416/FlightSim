@@ -90,13 +90,6 @@ async function getWebGpuRequiredLimits(): Promise<Record<string, number> | undef
 }
 
 export function createAircraftEnvironment(renderer: AppRenderer): AircraftEnvironmentInfo {
-  if (!(renderer instanceof WebGLRenderer)) {
-    return {
-      texture: createEnvironmentTexture(),
-      usedFallback: true,
-    }
-  }
-
   const pmremGenerator = new PMREMGenerator(renderer as never)
   const toneMapping = renderer.toneMapping
   const toneMappingExposure = renderer.toneMappingExposure
