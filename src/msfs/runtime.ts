@@ -392,6 +392,13 @@ export class AircraftRuntime {
     visibilityMs = finishPhase()
 
     for (const runtimeBinding of this.activeMaterialBindings) {
+      if (
+        runtimeBinding.lastAppliedValue != null &&
+        runtimeBinding.dependencies != null &&
+        runtimeBinding.dependencies.length === 0
+      ) {
+        continue
+      }
       const dependencyValues =
         runtimeBinding.lastAppliedValue == null || runtimeBinding.dependencies == null
           ? null
@@ -409,16 +416,10 @@ export class AircraftRuntime {
           runtimeBinding.binding.expression,
           this.readOnlyExpressionServices
         )
-      this.materialValues.set(runtimeBinding.binding.target, value)
-      if (
-        canReuseValue ||
-        (
-          runtimeBinding.lastAppliedValue != null &&
-          Math.abs(runtimeBinding.lastAppliedValue - value) <= 1e-6
-        )
-      ) {
+      if (canReuseValue) {
         continue
       }
+      const previousAppliedValue = runtimeBinding.lastAppliedValue
       runtimeBinding.lastAppliedValue = value
       runtimeBinding.lastDependencyValues =
         runtimeBinding.dependencies == null
@@ -428,6 +429,13 @@ export class AircraftRuntime {
               runtimeBinding.dependencies,
               this.hostServices
             )
+      this.materialValues.set(runtimeBinding.binding.target, value)
+      if (
+        previousAppliedValue != null &&
+        Math.abs(previousAppliedValue - value) <= 1e-6
+      ) {
+        continue
+      }
       for (const materialState of runtimeBinding.materials) {
         applyRuntimeMaterialBinding(materialState, value, runtimeBinding.binding)
       }
