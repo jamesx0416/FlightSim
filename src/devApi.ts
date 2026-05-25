@@ -11,7 +11,15 @@ import {
 } from 'three'
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-import { AircraftRuntime, SharedMsfsRuntimeHost } from './msfs/runtime'
+import {
+  AircraftRuntime,
+  SharedMsfsRuntimeHost,
+  type RuntimeBridgeEvent,
+  type RuntimeEffectEvent,
+  type RuntimeHtmlEvent,
+  type RuntimeKeyEvent,
+  type RuntimeSoundEvent
+} from './msfs/runtime'
 import type {
   CompiledBehaviorSet,
   ImportedAircraft,
@@ -141,6 +149,8 @@ type StoredBenchRun = {
   readonly data: unknown
 }
 
+type DevApiEventWaitKind = 'key' | 'html' | 'sound' | 'effect' | 'bridge'
+
 type DevApiWaitCondition =
   | string
   | {
@@ -153,7 +163,28 @@ type DevApiWaitCondition =
       readonly below?: number
       readonly minimum?: number
       readonly captured?: boolean
+      readonly eventKind?: DevApiEventWaitKind
+      readonly name?: string
+      readonly phase?: string
+      readonly action?: string
+      readonly direction?: string
+      readonly handledByBinding?: boolean
+      readonly sequenceAbove?: number
+      readonly from?: number
+      readonly epsilon?: number
     }
+
+type DevApiWaitEvaluationState = {
+  varChangedBaseline?: number
+  interactionExecutionBaseline?: number
+}
+
+type DevApiRuntimeEvent =
+  | RuntimeKeyEvent
+  | RuntimeHtmlEvent
+  | RuntimeSoundEvent
+  | RuntimeEffectEvent
+  | RuntimeBridgeEvent
 
 type ViewerDevApi = {
   readonly ready: () => Promise<DevApiResponse>
@@ -1318,6 +1349,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })',
         'await __DevApi.drag("LEVER_THROTTLE", { axis: "y", start: 0, end: 1, endPercent: 1 })',
         'await __DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)',
+        'await __DevApi.waitFor({ kind: "event", eventKind: "html", name: "A320_Neo_CDU_1_BTN_MENU" }, 5000)',
+        'await __DevApi.waitFor({ kind: "varChanged", var: "A:SPOILERS HANDLE POSITION", from: 0 }, 5000)',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         'await __DevApi.inspectWasm("terronnd")',
         '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
@@ -1341,7 +1374,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       clickOptions: ['count', 'delayMs', 'holdMs', 'release', 'mouseEvent', 'inputType', 'relativeX', 'relativeY', 'relativeZ', 'dragPercent'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       dragOptions: ['axis', 'start', 'end', 'startPercent', 'endPercent', 'steps', 'durationMs', 'inputType', 'lock', 'release'],
-      waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors'],
+      waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors', 'event', 'varChanged', 'interactionExecuted'],
+      waitEventKinds: ['key', 'html', 'sound', 'effect', 'bridge'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],
       eventOptions: ['kind', 'limit'],
       checkGaugeOptions: ['screenshot', 'surface', 'source'],
@@ -1670,11 +1704,18 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         })
       }
       const started = performance.now()
+      const state: DevApiWaitEvaluationState = {}
       while (performance.now() - started < timeoutMs) {
-        if (evaluateDevApiWaitCondition(condition, api, context)) return ok('Wait condition satisfied.', { condition, elapsedMs: performance.now() - started })
+        if (evaluateDevApiWaitCondition(condition, api, context, state)) return ok('Wait condition satisfied.', { condition, elapsedMs: performance.now() - started })
         await sleep(50)
       }
-      return fail('Timed out waiting for condition.', { condition, timeoutMs, status: statusData() })
+      return fail('Timed out waiting for condition.', {
+        condition,
+        timeoutMs,
+        elapsedMs: performance.now() - started,
+        lastObserved: getDevApiWaitLastObserved(condition, context),
+        status: statusData()
+      })
     },
     perf: () => ok('Collected performance summary.', {
       fps: context.getFpsSnapshot(),
@@ -2095,7 +2136,8 @@ function dedupeDiagnostics(diagnostics: readonly ImportDiagnostic[]): ImportDiag
 function evaluateDevApiWaitCondition(
   condition: DevApiWaitCondition,
   api: ViewerDevApi,
-  context: ViewerDevApiContext
+  context: ViewerDevApiContext,
+  state: DevApiWaitEvaluationState
 ): boolean {
   const kind = getDevApiWaitConditionKind(condition)
   if (kind === 'viewerReady' || kind === 'ready') {
@@ -2163,7 +2205,123 @@ function evaluateDevApiWaitCondition(
     const status = api.status().data as { readonly diagnostics?: { readonly error?: unknown } }
     return status.diagnostics?.error === 0
   }
+  if (kind === 'event') return evaluateDevApiEventWaitCondition(condition, context)
+  if (kind === 'varChanged') return evaluateDevApiVarChangedCondition(condition, context, state)
+  if (kind === 'interactionExecuted') return evaluateDevApiInteractionExecutedCondition(condition, context, state)
   return false
+}
+
+function evaluateDevApiEventWaitCondition(
+  condition: DevApiWaitCondition,
+  context: ViewerDevApiContext
+): boolean {
+  if (typeof condition === 'string' || !isDevApiEventWaitKind(condition.eventKind)) return false
+  return getDevApiRuntimeEvents(condition.eventKind, context).some(event =>
+    matchesDevApiEventFilter(event, condition)
+  )
+}
+
+function evaluateDevApiVarChangedCondition(
+  condition: DevApiWaitCondition,
+  context: ViewerDevApiContext,
+  state: DevApiWaitEvaluationState
+): boolean {
+  if (typeof condition === 'string' || condition.var == null) return false
+  const current = context.getRuntimeHost().readVariable(condition.var, condition.unit ?? null)
+  const baseline = condition.from ?? state.varChangedBaseline
+  if (baseline == null) {
+    state.varChangedBaseline = current
+    return false
+  }
+  const epsilon = Math.max(0, condition.epsilon ?? 1e-6)
+  return Math.abs(current - baseline) > epsilon
+}
+
+function evaluateDevApiInteractionExecutedCondition(
+  condition: DevApiWaitCondition,
+  context: ViewerDevApiContext,
+  state: DevApiWaitEvaluationState
+): boolean {
+  if (typeof condition === 'string') return false
+  const current = context.getRuntime().getInteractionExecutionCount()
+  const baseline = condition.sequenceAbove ?? state.interactionExecutionBaseline
+  if (baseline == null) {
+    state.interactionExecutionBaseline = current
+    return false
+  }
+  const minimum = Math.max(1, Math.floor(condition.minimum ?? 1))
+  const targetMatches = condition.target == null || context.cockpitInteractionStats.lastTarget === condition.target
+  return targetMatches && current - baseline >= minimum
+}
+
+function getDevApiWaitLastObserved(
+  condition: DevApiWaitCondition,
+  context: ViewerDevApiContext
+): unknown {
+  const kind = getDevApiWaitConditionKind(condition)
+  if (kind === 'event' && typeof condition !== 'string' && isDevApiEventWaitKind(condition.eventKind)) {
+    return {
+      eventKind: condition.eventKind,
+      recent: getDevApiRuntimeEvents(condition.eventKind, context).slice(-5)
+    }
+  }
+  if (kind === 'varChanged' && typeof condition !== 'string' && condition.var != null) {
+    return {
+      var: condition.var,
+      unit: condition.unit ?? null,
+      value: context.getRuntimeHost().readVariable(condition.var, condition.unit ?? null)
+    }
+  }
+  if (kind === 'interactionExecuted') {
+    return {
+      executionCount: context.getRuntime().getInteractionExecutionCount(),
+      interactionStats: { ...context.cockpitInteractionStats }
+    }
+  }
+  return null
+}
+
+function getDevApiRuntimeEvents(
+  eventKind: DevApiEventWaitKind,
+  context: ViewerDevApiContext
+): readonly DevApiRuntimeEvent[] {
+  if (eventKind === 'key') return context.getRuntimeHost().getKeyEvents()
+  if (eventKind === 'html') return context.getRuntimeHost().getHtmlEvents()
+  if (eventKind === 'sound') return context.getRuntimeHost().getSoundEvents()
+  if (eventKind === 'effect') return context.getRuntimeHost().getEffectEvents()
+  return context.getRuntimeHost().getBridgeEvents()
+}
+
+function matchesDevApiEventFilter(
+  event: DevApiRuntimeEvent,
+  condition: Exclude<DevApiWaitCondition, string>
+): boolean {
+  if (condition.sequenceAbove != null && event.sequence <= condition.sequenceAbove) return false
+  if (condition.name != null && !matchesDevApiTextFilter(event.name, condition.name)) return false
+  if (condition.target != null && (!hasStringProperty(event, 'target') || !matchesDevApiTextFilter(event.target, condition.target))) return false
+  if (condition.phase != null && (!hasStringProperty(event, 'phase') || !matchesDevApiTextFilter(event.phase, condition.phase))) return false
+  if (condition.action != null && (!hasStringProperty(event, 'action') || !matchesDevApiTextFilter(event.action, condition.action))) return false
+  if (condition.direction != null && (!hasStringProperty(event, 'direction') || !matchesDevApiTextFilter(event.direction, condition.direction))) return false
+  if (condition.handledByBinding != null && (!hasBooleanProperty(event, 'handledByBinding') || event.handledByBinding !== condition.handledByBinding)) return false
+  return true
+}
+
+function matchesDevApiTextFilter(value: string, filter: string): boolean {
+  return value.trim().toLowerCase() === filter.trim().toLowerCase()
+}
+
+function hasStringProperty<T extends string>(
+  value: DevApiRuntimeEvent,
+  property: T
+): value is DevApiRuntimeEvent & Record<T, string> {
+  return typeof (value as unknown as Record<string, unknown>)[property] === 'string'
+}
+
+function hasBooleanProperty<T extends string>(
+  value: DevApiRuntimeEvent,
+  property: T
+): value is DevApiRuntimeEvent & Record<T, boolean> {
+  return typeof (value as unknown as Record<string, unknown>)[property] === 'boolean'
 }
 
 const DEV_API_WAIT_CONDITION_KINDS = [
@@ -2178,7 +2336,10 @@ const DEV_API_WAIT_CONDITION_KINDS = [
   'varEquals',
   'varAbove',
   'varBelow',
-  'noNewErrors'
+  'noNewErrors',
+  'event',
+  'varChanged',
+  'interactionExecuted'
 ] as const
 
 function getDevApiWaitConditionKind(condition: DevApiWaitCondition): string | undefined {
@@ -2216,4 +2377,8 @@ function canonicalizeDevApiNodeAnimationName(name: string): string | null {
 
 function isKnownDevApiWaitConditionKind(kind: string | undefined): boolean {
   return kind != null && DEV_API_WAIT_CONDITION_KINDS.includes(kind as (typeof DEV_API_WAIT_CONDITION_KINDS)[number])
+}
+
+function isDevApiEventWaitKind(kind: unknown): kind is DevApiEventWaitKind {
+  return kind === 'key' || kind === 'html' || kind === 'sound' || kind === 'effect' || kind === 'bridge'
 }
