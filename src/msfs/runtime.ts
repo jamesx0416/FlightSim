@@ -1854,8 +1854,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:CIRCUIT GENERAL PANEL ON'), powered)
     this.values.set(normalizeRuntimeVariableKey('A:CIRCUIT SWITCH ON:20'), powered)
     this.values.set(normalizeRuntimeVariableKey('A:LIGHT PANEL'), powered)
-    this.values.set(normalizeRuntimeVariableKey('A:LIGHT POTENTIOMETER:86'), powered > 0 ? 100 : 0)
-    this.values.set(normalizeRuntimeVariableKey('A:LIGHT POTENTIOMETER:87'), powered > 0 ? 100 : 0)
 
     for (const bus of [
       'L:A32NX_ELEC_AC_1_BUS_IS_POWERED',
@@ -4583,6 +4581,9 @@ function resolveBrightnessOrPotentiometerFallback(
   unit: string | null,
   electricalPower: boolean
 ): number {
+  if (key.includes('POTENTIOMETER')) {
+    return 0
+  }
   if (isFractionalBrightnessVariableKey(key)) {
     return convertFractionalBrightnessUnit(electricalPower ? 1 : 0, unit)
   }
