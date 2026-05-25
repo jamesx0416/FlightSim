@@ -1463,23 +1463,28 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (!this.values.has(normalizedKey)) {
       const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
 
-      if (
-        !resolved.handled ||
-        (isRuntimeStoredVariableKey(normalizedKey) && !isDynamicRuntimeFallbackKey(normalizedKey))
-      ) {
-        this.values.set(normalizedKey, resolved.value)
-      }
-      if (!resolved.handled && !this.defaultedKeys.has(normalizedKey)) {
-        this.defaultedKeys.add(normalizedKey)
-        this.defaultedVariableCount += 1
-        this.diagnostics.push({
-          code: 'runtime_variable_defaulted',
-          message: `Variable ${normalizedKey} is not provided by the demo host and defaulted to 0.`,
-          severity: 'info'
-        })
-      }
+      if (normalizedKey.startsWith('A:LIGHT POTENTIOMETER:') && resolved.handled) {
+        this.values.set(normalizedKey, 100)
+        value = resolveStoredRuntimeValue(normalizedKey, 100, unit ?? null)
+      } else {
+        if (
+          !resolved.handled ||
+          (isRuntimeStoredVariableKey(normalizedKey) && !isDynamicRuntimeFallbackKey(normalizedKey))
+        ) {
+          this.values.set(normalizedKey, resolved.value)
+        }
+        if (!resolved.handled && !this.defaultedKeys.has(normalizedKey)) {
+          this.defaultedKeys.add(normalizedKey)
+          this.defaultedVariableCount += 1
+          this.diagnostics.push({
+            code: 'runtime_variable_defaulted',
+            message: `Variable ${normalizedKey} is not provided by the demo host and defaulted to 0.`,
+            severity: 'info'
+          })
+        }
 
-      value = resolved.value
+        value = resolved.value
+      }
     } else {
       value = resolveStoredRuntimeValue(
         normalizedKey,
@@ -4592,7 +4597,7 @@ function resolveBrightnessOrPotentiometerFallback(
   electricalPower: boolean
 ): number {
   if (key.includes('POTENTIOMETER')) {
-    return 0
+    return normalizeUnit(unit) === 'percent over 100' ? 1 : 100
   }
   if (isFractionalBrightnessVariableKey(key)) {
     return convertFractionalBrightnessUnit(electricalPower ? 1 : 0, unit)
