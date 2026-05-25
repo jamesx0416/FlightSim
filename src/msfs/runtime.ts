@@ -1374,6 +1374,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
+  seedVariable(key: string, value: number): boolean {
+    const normalizedKey = normalizeRuntimeVariableKey(key)
+    if (this.values.has(normalizedKey)) {
+      return false
+    }
+    this.readCache.clear()
+    this.values.set(normalizedKey, value)
+    return true
+  }
+
   tick(dtSeconds: number): void {
     this.readCache.clear()
     this.elapsedSeconds += dtSeconds
