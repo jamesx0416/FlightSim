@@ -6,29 +6,7 @@ Continue implementation until everything in `stock-support-todo.md` that is in s
 
 Always use `bun` as the package manager for this project unless told otherwise.
 
-All possible things in the viewer should be able to be done by the API. The browser API is `window.__DevApi`; agents should prefer it over synthetic UI gestures when equivalent API functionality exists. When adding a new user-facing viewer capability, add or update the matching `__DevApi` method in the same change so agents can do anything a user can do.
-
-`window.__DevApi.status()`, `window.__DevApi.diagnostics()`, and `window.__DevApi.report()` are available from the initial HTML bootstrap, before the full viewer runtime has loaded. During boot, action methods return structured "still loading" responses; use `await window.__DevApi.ready()` before expecting interaction, camera, gauge, or runtime methods to execute.
-
-For startup verification, use `window.__DevApi.reset({ coldAndDark: true })` to clear runtime variables/events and seed the generic cold-and-dark state. Plain `reset()` only clears transient DevApi diagnostics/highlights.
-
-For cockpit/gauge verification, wait for settled state through DevApi instead of sampling immediately after entering the cockpit. Use `await window.__DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)` when the check depends on loaded and captured VCockpit gauges.
-
-When interpreting loaded gauge status, use `window.__DevApi.status().counts.capturedCapturableGauges` versus `capturableGauges` for visual readiness; backend-only `NO_TEXTURE` hosts are counted separately as `backendOnlyGauges` and are not failed display captures.
-
-For bridge-backed WASM gauge investigation, use `await window.__DevApi.inspectWasm(key)` to fetch and compile the resolved `.wasm` module for imports/exports without instantiating the native MSFS ABI. Normal gauge diagnostics only expose resolved WASM URLs until `inspectWasm()` is called; after inspection, the same per-URL module info is visible in gauge summaries and diagnostics. Gauge keys repeat across VCockpit surfaces, so pass `surface` or `source` from `list({ kind: "gauges" })` when inspecting a specific duplicate key.
-
-Bridge-backed gauge diagnostics distinguish unsupported calls from supported generic host-service shims. `bridgeStats.supportedHostServiceCalls` includes generic local services such as `fsCommBusRegister`, `fsCommBusUnregister`, and `fsCommBusCall`; these are browser-host shims, not native WASM ABI execution.
-
-For behavior-trigger checks, use `window.__DevApi.list({ kind: "animationTriggers" })` to inspect compiled stock `AnimationTriggers` bindings and `window.__DevApi.events({ kind: "effect", limit: 10 })` or `window.__DevApi.events({ kind: "sound", limit: 10 })` to inspect runtime trigger dispatch.
-
-For model-level node animation checks, use `window.__DevApi.list({ kind: "nodeAnimations" })` to inspect parsed model XML `NodeAnimation` blocks and whether their node names matched loaded scene nodes.
-
-For generic mouse-interaction checks, pass stock mouse variables through `window.__DevApi.click(target, options)`: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables. For example, `await window.__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })`.
-
-For stock drag/callback interaction checks, prefer `window.__DevApi.drag(target, options)` over manually sequencing events. It emits `Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, and `Unlock` with configurable `axis`, `start`, `end`, `startPercent`, `endPercent`, `steps`, and `inputType`.
-
-For cockpit pointer gesture checks, `window.__DevApi.input.pointer()` dispatches real viewer pointer events and supports `button: 0` for left mouse and `button: 2` for right mouse. In cockpit view, right-button pointerdown/move/up over an interaction target follows the same generic stock drag path as left-button drag and should not open the browser context menu.
+All viewer capabilities should be available through the browser API, `window.__DevApi`; agents should prefer it over synthetic UI gestures when equivalent API functionality exists. When adding a user-facing viewer capability, add or update the matching `__DevApi` method in the same change. See `docs/devapi-reference.md` for callable methods, examples, wait/chaining patterns, and gauge notes.
 
 # Dev server URL
 https://vanilla-3dtiles.localhost:3000
