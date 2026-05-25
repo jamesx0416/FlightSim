@@ -87,6 +87,65 @@ type AircraftSelectorOption = {
   readonly aircraft: ImportedAircraft
 }
 
+async function seedSyncedGaugeSettings(
+  packageRootUrl: string,
+  layoutEntries: readonly { readonly path: string }[],
+  runtimeHost: SharedMsfsRuntimeHost
+): Promise<void> {
+  const packageRoot = new URL(packageRootUrl, window.location.href)
+  const candidates = layoutEntries
+    .map(entry => entry.path)
+    .filter(path => {
+      const normalizedPath = path.toLowerCase()
+      return (
+        normalizedPath.endsWith('.js') &&
+        (
+          normalizedPath.includes('/efb/') ||
+          normalizedPath.includes('/settings/') ||
+          normalizedPath.endsWith('/settingssync.js')
+        )
+      )
+    })
+
+  await Promise.all(
+    candidates.map(async path => {
+      try {
+        const response = await fetch(new URL(path, packageRoot))
+        if (!response.ok) {
+          return
+        }
+        const source = await response.text()
+        const storagePrefix =
+          /NXDataStore\.aircraftProjectPrefix\s*=\s*"([^"]+)"/u.exec(source)?.[1]?.toUpperCase() ??
+          null
+
+        for (const block of source.split('configKey:').slice(1)) {
+          const setting = block.slice(0, 2500)
+          const configKey = /^\s*"([^"]+)"/u.exec(setting)?.[1]
+          const localVarName = /localVarName:\s*"([^"]+)"/u.exec(setting)?.[1]
+          const defaultValue = /defaultValue:\s*"([^"]*)"/u.exec(setting)?.[1]
+          if (configKey == null || localVarName == null || defaultValue == null) {
+            continue
+          }
+
+          const storageKey = storagePrefix == null ? configKey : `${storagePrefix}_${configKey}`
+          const storedValue = window.localStorage.getItem(storageKey)
+          const rawValue = (storedValue == null || storedValue.length === 0 ? defaultValue : storedValue)
+            .trim()
+            .toLowerCase()
+          const value =
+            rawValue === 'true' ? 1 : rawValue === 'false' ? 0 : Number.parseInt(rawValue, 10)
+          if (Number.isFinite(value)) {
+            runtimeHost.seedVariable(localVarName, value)
+          }
+        }
+      } catch {
+        // Gauge startup still applies these settings; this only prevents a visible first-frame default.
+      }
+    })
+  )
+}
+
 export type LoadedModelComponent = {
   readonly kind: 'exterior' | 'interior'
   readonly modelDefinition: ImportedModelDefinition
@@ -386,6 +445,11 @@ async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
   const runtimeHost = new SharedMsfsRuntimeHost([], aircraft)
   ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
+  const syncedSettingSeedPromise = seedSyncedGaugeSettings(
+    packageData.rootUrl,
+    packageData.layoutEntries,
+    runtimeHost
+  )
   const gltfPromise = loadAircraftGltf(aircraftModelLoadContext, {
     preferredLodIndex: requestedLodIndex,
     loadExteriorInterior: syncExteriorInterior,
@@ -401,7 +465,8 @@ async function init(): Promise<void> {
   })
   const [initialCompiledBehaviors, gltf] = await Promise.all([
     compiledBehaviorsPromise,
-    gltfPromise
+    gltfPromise,
+    syncedSettingSeedPromise
   ])
   let compiledBehaviors = initialCompiledBehaviors
   ;(globalThis as Record<string, unknown>).__lastCompiledBehaviors = compiledBehaviors
