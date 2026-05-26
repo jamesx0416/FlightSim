@@ -1,152 +1,108 @@
 # FlightSim
 
-Browser-based MSFS 2020 built-package viewer and compatibility runtime prototype.
+Browser-based Microsoft Flight Simulator 2020 built-package viewer and compatibility runtime prototype.
 
-The current app imports a built package served from the repo `tmp` folder, parses generic SimObjects aircraft config/model references, compiles a supported subset of MSFS model behavior XML, loads the exterior GLTF, and drives generic animation plus node visibility in the browser.
+It loads built MSFS aircraft packages in a Vite/Three.js app, imports exterior and cockpit glTF models, resolves package/config/model/behavior data, drives supported animations/interactions through a generic runtime host, and exposes viewer automation through `window.__DevApi`.
 
-This slice is intentionally generic:
-- no aircraft-specific overrides or code paths
-- no panel hosting
-- no WASM runtime
-- no sound runtime
+This repo is a generic MSFS loader/runtime project. Do not add aircraft-specific compatibility patches.
 
-## Current Scope
+## Scope
 
-- Package import from a dev-served `tmp` package root
-- `layout.json` and `manifest.json` discovery
-- `aircraft.cfg` parsing, including `base_container` inheritance
-- `model.cfg` and exterior model XML resolution
-- Behavior include loading from package-local `ModelBehaviorDefs`
-- Optional additional package-root mounting for stock/shared behavior and texture lookup
-- Generic compilation of supported `ASOBO_GT_Anim*` and `ASOBO_GT_Visibility*` template outputs
-- Deterministic demo host variables for behavior-driven animation and visibility
-- Diagnostics overlay for missing includes, unsupported templates, and unsupported RPN tokens
+Currently supported:
 
-## Deferred
+- Built package discovery from `aircrafts/`, URL parameters, and Vite env defaults.
+- `layout.json`, `manifest.json`, `aircraft.cfg`, `model.cfg`, behavior XML, `panel.cfg`, sound metadata, and common aircraft CFG imports.
+- MSFS glTF/DDS/material/skinning normalization for browser rendering.
+- Exterior viewing, progressive cockpit/interior loading, VCockpit surface binding, HTML gauge hosting, and bridge-first WASM gauge diagnostics.
+- Runtime state for SimVars, local vars, key events, HTML events, bridge events, interactions, sound/effect records, and cold-and-dark/default demo values.
+- WebGPU with WebGL fallbacks, diagnostics, settings profiles, cockpit performance tools, and DevApi automation.
 
-- `panel.cfg` / `panel.xml`
-- JS instrument hosting
-- WASM
-- sound
-- MSFS 2024 content
-- offline precompilation
+Not currently supported:
+
+- Native MSFS WASM ABI execution.
+- Wwise `.PCK` playback.
+- A full simulator systems model.
+- Full MSFS 2024 compatibility.
+
+Unsupported MSFS contracts should be diagnosed or documented as blocked, not hidden behind aircraft-specific logic.
 
 ## Setup
 
-1. Install dependencies:
-
 ```bash
 bun install
-```
-
-2. Start the dev server:
-
-```bash
 bun dev
 ```
 
-3. Build for production:
+Dev URL:
+
+```text
+https://vanilla-3dtiles.localhost:3000
+```
+
+Checks:
 
 ```bash
-bun run build
+bun run typecheck
+bun run lint
 ```
 
-## Package Root
+`lint` currently runs the same TypeScript no-emit check as `typecheck`.
 
-By default the viewer imports:
+## Package Selection
+
+Default discovery order:
+
+1. `?package=...`
+2. a package found from `?aircraft=...`
+3. `/aircrafts/headwindsim-aircraft-a330-900/`
+4. the first valid package under `aircrafts/`
+5. `VITE_MSFS_PACKAGE_ROOT`
+6. `/tmp/headwindsim-aircraft-a330-900/`
+
+Example:
 
 ```text
-/tmp/headwindsim-aircraft-a330-900/
+https://vanilla-3dtiles.localhost:3000/?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0
 ```
 
-Override that with:
+Additional roots for stock/shared behavior and texture lookup can be supplied with `?deps=...`, `?packages=...`, or `VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS`.
 
-```dotenv
-VITE_MSFS_PACKAGE_ROOT=/tmp/your-built-package/
-```
+The bundled stock behavior root is `/vendor/msfs-stock/`. Disable it with `?stockBehaviors=off` or `VITE_MSFS_STOCK_BEHAVIOR_ROOT=off`.
 
-The package must be a built MSFS 2020 package inside the repo so Vite can serve it.
+Full URL/env reference: [docs/query-parameters.md](docs/query-parameters.md).
 
-Optional additional built-package roots can also be mounted for stock/shared assets:
+## DevApi
 
-```dotenv
-VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS=/tmp/fs-base-aircraft-common/,/tmp/asobo-vcockpits-instruments-airliners/
-```
-
-Those extra roots are searched generically for:
-- simulator-provided `ModelBehaviorDefs/...` includes such as `Asobo/Exterior.xml`
-- shared texture fallback paths discovered through `texture.cfg`
-
-The same additional roots can also be provided at runtime through the URL:
-
-```text
-?deps=/tmp/fs-base-aircraft-common/&deps=/tmp/asobo-vcockpits-instruments-airliners/
-```
-
-or as a single delimited query value:
-
-```text
-?packages=/tmp/fs-base-aircraft-common/;/tmp/asobo-vcockpits-instruments-airliners/
-```
-
-The main package root can also be selected from the URL:
-
-```text
-?package=/tmp/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0
-```
-
-See `docs/query-parameters.md` for the full list of supported query parameters, including cockpit diagnostics and opt-in runtime experiments. Any new URL query parameter added to the viewer must be documented there in the same change.
-
-## Viewer Dev API
-
-The viewer exposes an agent-friendly browser API at `window.__DevApi`. All possible things in the viewer should be able to be done by the API. When adding a new user-facing viewer capability, add or update the matching `__DevApi` method in the same change so agents can do anything a user can do.
-
-Examples:
+Use `window.__DevApi` for browser automation and verification:
 
 ```js
-await __DevApi.ready()
-__DevApi.find('baro')
-await __DevApi.click('PUSH_AP_MASTER', { count: 2 })
-await __DevApi.click('PUSH_STARTER', { holdMs: 1500 })
-await __DevApi.click('LEVER_FLAPS', { mouseEvent: 'WheelUp' })
-await __DevApi.turn('KNOB_HEADING', { direction: 'up', steps: 3 })
-await __DevApi.drag('LEVER_THROTTLE', { axis: 'y', start: 0, end: 1, endPercent: 1 })
-await __DevApi.waitFor({ kind: 'gaugesReady', captured: true }, 45000)
-__DevApi.list({ kind: 'inputEvents', filter: 'ped_ecp' })
-__DevApi.list({ kind: 'animationTriggers', filter: 'flap' })
-__DevApi.list({ kind: 'nodeAnimations', filter: 'WingFlex' })
-__DevApi.events({ kind: 'effect', limit: 10 })
-__DevApi.checkGauge(undefined, { screenshot: true })
-await __DevApi.inspectWasm('terronnd')
-__DevApi.diagnostics({ severity: 'warning', includeGauges: true })
-__DevApi.checkParam(['vspeed', 'altitude', 'pressure', 'location'])
-__DevApi.checkParam(['gear', 'flaps', 'spoilers', 'parkingBrake'])
-__DevApi.setParam('spoilers', 50)
-__DevApi.reset({ coldAndDark: true })
-__DevApi.report()
+await window.__DevApi.ready()
+window.__DevApi.status()
+window.__DevApi.diagnostics({ includeGauges: true })
+window.__DevApi.find('baro')
+await window.__DevApi.camera.enterCockpit()
+await window.__DevApi.click('PUSH_AP_MASTER')
+window.__DevApi.list({ kind: 'gauges' })
+window.__DevApi.report()
 ```
 
-`status().counts` separates loaded gauge runtimes from visual gauge capture readiness: `capturableGauges` and `capturedCapturableGauges` ignore backend-only `NO_TEXTURE` gauge hosts, while `backendOnlyGauges` counts loaded systems/bridge hosts that do not render to a cockpit texture.
+Full reference: [docs/devapi-reference.md](docs/devapi-reference.md).
 
-`inspectWasm(key, { surface, source })` fetches and compiles a resolved bridge-backed WASM module on demand, returning imports and exports without instantiating the native MSFS ABI. Normal startup only reports resolved WASM URLs; after a module is inspected, gauge summaries and diagnostics include the cached import/export inventory for that resolved URL. Use `surface` or `source` from `list({ kind: 'gauges' })` when a key such as `htmlgauge00` appears on multiple VCockpit surfaces.
+When adding a user-facing viewer capability, add or update the matching DevApi method in the same change.
 
-Gauge bridge diagnostics keep supported generic host-service shims separate from unsupported calls. `bridgeStats.supportedHostServiceCalls` records browser-host services such as `fsCommBusRegister`, `fsCommBusUnregister`, and `fsCommBusCall`; this does not mean native WASM ABI execution has run.
+## Useful Files
 
-`__DevApi.status()`, `__DevApi.diagnostics()`, and `__DevApi.report()` are available from the initial HTML bootstrap. Before the full viewer runtime is ready they return structured boot progress with `loadStage` and `elapsedMs`; action methods return structured "still loading" responses instead of being missing or producing `undefined`.
+- [src/main.ts](src/main.ts): viewer bootstrap, package selection, loading, UI, settings, and benchmarks.
+- [src/devApi.ts](src/devApi.ts): browser automation API.
+- [src/msfs/importer.ts](src/msfs/importer.ts): built-package import and config/model discovery.
+- [src/msfs/behavior.ts](src/msfs/behavior.ts): behavior XML/template/RPN compilation.
+- [src/msfs/runtime.ts](src/msfs/runtime.ts): runtime host and binding application.
+- [src/msfs/gltf/](src/msfs/gltf): MSFS glTF, DDS, material, primitive, and skinning normalization.
+- [docs/investigations/loader-todo.md](docs/investigations/loader-todo.md): active loader/runtime/stock-support tracking.
 
-`reset()` clears transient DevApi diagnostics by default. Pass `{ runtime: true }` to reset the runtime host to the package preview state, or `{ coldAndDark: true }` to clear runtime variables/events and seed the generic cold-and-dark state for startup tests.
+## Development Rules
 
-`click()` can also supply stock mouse interaction variables for generic MSFS `MouseRect` / callback code: `mouseEvent` maps to `(M:Event)`, and `inputType`, `relativeX`, `relativeY`, `relativeZ`, and `dragPercent` map to their matching numeric `M:` variables.
-
-`drag()` emits the generic stock drag sequence (`Lock`, `LeftSingle`, repeated `LeftDrag`, `LeftRelease`, `Unlock`) and supplies the same mouse variables for templates that read relative position or drag percent.
-
-For testing the actual cockpit pointer path rather than the direct runtime drag helper, use `input.pointer()` after `camera.enterCockpit()`. It accepts `button: 0` for left mouse and `button: 2` for right mouse; right-button cockpit drags over interaction targets emit the same generic stock drag callbacks and suppress the browser context menu.
-
-## Project Layout
-
-- [`docs/investigations/plan.md`](docs/investigations/plan.md): implementation plan and phase boundaries
-- [`src/msfs/importer.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/importer.ts): generic built-package importer and config/model resolution
-- [`src/msfs/behavior.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/behavior.ts): behavior include loading, template expansion, and output compilation
-- [`src/msfs/rpn.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/rpn.ts): supported calculator/RPN compiler and evaluator
-- [`src/msfs/runtime.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/msfs/runtime.ts): runtime host and animation/visibility application
-- [`src/main.ts`](/Users/4980/.t3/worktrees/FlightSim/msfs-combined-375b8e3b-fresh/src/main.ts): viewer bootstrap, GLTF loading fallback, and diagnostics UI
+- Use `bun`.
+- Keep fixes generic and authoritative.
+- Prefer official MSFS SDK/exporter behavior, then built package evidence, then reverse-engineered importers only as corroboration.
+- Keep query parameter docs and DevApi docs in sync with code changes.
