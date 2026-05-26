@@ -130,9 +130,10 @@ async function seedSyncedGaugeSettings(
 
           const storageKey = storagePrefix == null ? configKey : `${storagePrefix}_${configKey}`
           const storedValue = window.localStorage.getItem(storageKey)
-          const rawValue = (storedValue == null || storedValue.length === 0 ? defaultValue : storedValue)
-            .trim()
-            .toLowerCase()
+          if (storedValue == null || storedValue.length === 0) {
+            continue
+          }
+          const rawValue = storedValue.trim().toLowerCase()
           const value =
             rawValue === 'true' ? 1 : rawValue === 'false' ? 0 : Number.parseInt(rawValue, 10)
           if (Number.isFinite(value)) {
@@ -249,6 +250,7 @@ export type ViewerConfigProfile = {
   readonly cockpitInstanceStatic?: boolean
   readonly cockpitPerf?: boolean
   readonly cockpitInteractionHitboxes?: boolean
+  readonly skipGaugeSettingSeed?: boolean
   readonly rendererPixelRatio?: number | null
   readonly rawQuery?: string
 }
@@ -285,6 +287,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly cockpitInstanceStatic: boolean
   readonly cockpitPerf: boolean
   readonly cockpitInteractionHitboxes: boolean
+  readonly skipGaugeSettingSeed: boolean
   readonly rendererPixelRatio: number
   readonly extraQuery: string
 }
@@ -445,11 +448,9 @@ async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
   const runtimeHost = new SharedMsfsRuntimeHost([], aircraft)
   ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
-  const syncedSettingSeedPromise = seedSyncedGaugeSettings(
-    packageData.rootUrl,
-    packageData.layoutEntries,
-    runtimeHost
-  )
+  const syncedSettingSeedPromise = shouldSkipGaugeSettingSeed(effectiveSearchParams)
+    ? Promise.resolve()
+    : seedSyncedGaugeSettings(packageData.rootUrl, packageData.layoutEntries, runtimeHost)
   const gltfPromise = loadAircraftGltf(aircraftModelLoadContext, {
     preferredLodIndex: requestedLodIndex,
     loadExteriorInterior: syncExteriorInterior,
@@ -2214,6 +2215,8 @@ async function init(): Promise<void> {
     const cockpitPerfChanged = previousSettings.cockpitPerf !== nextSettings.cockpitPerf
     const cockpitInteractionHitboxesChanged =
       previousSettings.cockpitInteractionHitboxes !== nextSettings.cockpitInteractionHitboxes
+    const skipGaugeSettingSeedChanged =
+      previousSettings.skipGaugeSettingSeed !== nextSettings.skipGaugeSettingSeed
     const rendererPixelRatioChanged =
       previousSettings.rendererPixelRatio !== nextSettings.rendererPixelRatio
     const extraQueryChanged = previousSettings.extraQuery !== nextSettings.extraQuery
@@ -2278,6 +2281,10 @@ async function init(): Promise<void> {
 
     if (extraQueryChanged) {
       actions.push('saved extra query for next load')
+    }
+
+    if (skipGaugeSettingSeedChanged) {
+      actions.push('saved gauge setting seed mode for next load')
     }
 
     return actions.length > 0 ? actions.join(', ') : 'Saved settings.'
@@ -3228,6 +3235,10 @@ function getExteriorInteriorMode(searchParams: URLSearchParams): ExteriorInterio
   return 'deferred'
 }
 
+function shouldSkipGaugeSettingSeed(searchParams: URLSearchParams): boolean {
+  return isEnabledFlagSearchParam(searchParams, 'skipGaugeSettingSeed')
+}
+
 function resolveRequestedExteriorInteriorLodIndex(
   searchParams: URLSearchParams
 ): number | null {
@@ -3285,6 +3296,7 @@ const PROFILE_QUERY_KEYS = [
   'cockpitInstanceStatic',
   'cockpitPerf',
   'cockpitInteractionHitboxes',
+  'skipGaugeSettingSeed',
   'rendererPixelRatio'
 ] as const
 
@@ -3366,6 +3378,7 @@ function normalizeViewerConfigProfile(value: unknown): ViewerConfigProfile {
     cockpitInstanceStatic: normalizeOptionalBoolean(record.cockpitInstanceStatic),
     cockpitPerf: normalizeOptionalBoolean(record.cockpitPerf),
     cockpitInteractionHitboxes: normalizeOptionalBoolean(record.cockpitInteractionHitboxes),
+    skipGaugeSettingSeed: normalizeOptionalBoolean(record.skipGaugeSettingSeed),
     rendererPixelRatio: normalizeNullableNumber(record.rendererPixelRatio),
     rawQuery: typeof record.rawQuery === 'string' ? record.rawQuery : undefined
   }
@@ -3481,6 +3494,7 @@ function applyViewerConfigProfileToSearchParams(
     profile.cockpitInteractionHitboxes,
     overwrite
   )
+  setFlagSearchParam(searchParams, 'skipGaugeSettingSeed', profile.skipGaugeSettingSeed, overwrite)
   setNullableNumberSearchParam(
     searchParams,
     'rendererPixelRatio',
@@ -11306,6 +11320,7 @@ function createSettingsProfileEditor(options: {
   const cockpitInstanceSelect = createSettingsSelect('Cockpit Instance Static')
   const cockpitPerfSelect = createSettingsSelect('Cockpit Perf')
   const cockpitInteractionHitboxesSelect = createSettingsSelect('Interaction Hitboxes')
+  const skipGaugeSettingSeedSelect = createSettingsSelect('Seed Nothing')
   const rendererPixelRatioInput = createSettingsInput('Renderer Pixel Ratio', 'number')
   const rawQueryTextarea = createSettingsTextarea('Extra Query')
 
@@ -11347,6 +11362,7 @@ function createSettingsProfileEditor(options: {
     cockpitInstanceSelect,
     cockpitPerfSelect,
     cockpitInteractionHitboxesSelect,
+    skipGaugeSettingSeedSelect,
     vcockpitGaugeUpdateOutsideSelect
   ]) {
     appendGlobalOption(select)
@@ -11431,6 +11447,10 @@ function createSettingsProfileEditor(options: {
       profile.cockpitInteractionHitboxes,
       inheritsFromGlobal
     )
+    skipGaugeSettingSeedSelect.value =
+      profile.skipGaugeSettingSeed === undefined && inheritsFromGlobal
+        ? 'global'
+        : formatSettingsBooleanValue(profile.skipGaugeSettingSeed ?? false, inheritsFromGlobal)
     rendererPixelRatioInput.value =
       profile.rendererPixelRatio == null ? '' : String(profile.rendererPixelRatio)
     rawQueryTextarea.value = profile.rawQuery ?? ''
@@ -11481,6 +11501,10 @@ function createSettingsProfileEditor(options: {
         cockpitInteractionHitboxesSelect.value,
         inheritsFromGlobal
       ),
+      skipGaugeSettingSeed: parseSettingsBooleanValue(
+        skipGaugeSettingSeedSelect.value,
+        inheritsFromGlobal
+      ),
       rendererPixelRatio: parseSettingsNullableNumber(
         rendererPixelRatioInput.value,
         inheritsFromGlobal
@@ -11517,6 +11541,7 @@ function createSettingsProfileEditor(options: {
     createSettingsField('Cockpit Instance Static', cockpitInstanceSelect),
     createSettingsField('Cockpit Perf', cockpitPerfSelect),
     createSettingsField('Interaction Hitboxes', cockpitInteractionHitboxesSelect),
+    createSettingsField('Seed Nothing', skipGaugeSettingSeedSelect),
     createSettingsField('Renderer Pixel Ratio', rendererPixelRatioInput),
     createSettingsField('Extra Query', rawQueryTextarea)
   )
@@ -11555,6 +11580,7 @@ function createViewerConfigProfileFromSearchParams(
     cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
     cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf'),
     cockpitInteractionHitboxes: shouldShowCockpitInteractionHitboxes(searchParams),
+    skipGaugeSettingSeed: shouldSkipGaugeSettingSeed(searchParams),
     rendererPixelRatio: searchParams.has('rendererPixelRatio')
       ? getRendererPixelRatio(searchParams)
       : null
@@ -11583,6 +11609,7 @@ function createViewerRuntimeSettingsSnapshot(
     cockpitInstanceStatic: isEnabledFlagSearchParam(searchParams, 'cockpitInstanceStatic'),
     cockpitPerf: isEnabledFlagSearchParam(searchParams, 'cockpitPerf'),
     cockpitInteractionHitboxes: shouldShowCockpitInteractionHitboxes(searchParams),
+    skipGaugeSettingSeed: shouldSkipGaugeSettingSeed(searchParams),
     rendererPixelRatio: getRendererPixelRatio(searchParams),
     extraQuery: getUnmanagedRawQuery(`?${searchParams.toString()}`)
   }
