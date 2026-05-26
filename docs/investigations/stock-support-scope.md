@@ -4,7 +4,7 @@ Current fixture-driven stock XML coverage is narrower than the full public Asobo
 
 Active checklist:
 - The active stock-support checklist currently lives in [loader-todo.md](loader-todo.md#stock-support-todo).
-- The project instructions mention `stock-support-todo.md`, but that repo-root file is not present in this checkout. Until it is restored or intentionally split out, keep stock-support status updates in `loader-todo.md` and use this file only for scope notes.
+- Keep stock-support status updates in `loader-todo.md` and use this file only for scope notes.
 
 Verified fixture routes:
 - A320:

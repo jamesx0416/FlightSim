@@ -2,6 +2,11 @@
 
 This file tracks the immediate investigation items for the live aircraft viewer.
 
+## Current Notes
+
+- 2026-05-26: Gauge/EFB setting preseed now restores only values already present in browser `localStorage`; aircraft JS `defaultValue` declarations are no longer treated as runtime state. `?skipGaugeSettingSeed` / Settings `Seed Nothing` disables that preseed entirely for lifecycle comparisons.
+- 2026-05-26: Cockpit `range-low` DDS loading now uses full DDS fallback when range loading fails, instead of committing permanent black/placeholder textures for failed range requests.
+
 ## 1. Check Whether The `aircraft` Query Is Being Ignored
 
 - Status: fixed.
@@ -95,7 +100,7 @@ This file tracks the immediate investigation items for the live aircraft viewer.
   - ASOBO primitive index normalization now edits typed index arrays directly and avoids eager bounds recomputation, reducing CPU work and temporary math churn during model load without changing final geometry
   - MSFS texcoord, normal/tangent, and vertex-color conversion passes now read source typed arrays directly instead of calling per-component BufferAttribute accessors in large loops
   - cockpit LOD00 can now opt into `cockpitTextures=range-low`, which reads DDS headers first and then loads only the selected small mip byte range for ordinary compressed DDS textures when HTTP `Range` is supported
-  - the range-low texture path falls back to placeholders instead of full DDS downloads when range requests are unavailable, and decoded normal/transparent DDS sources now decode selected low mip ranges without reintroducing full-buffer CPU decode and RAM spikes
+  - the range-low texture path falls back to full DDS loading when range requests are unavailable, and decoded normal/transparent DDS sources decode selected low mip ranges without reintroducing full-buffer CPU decode and RAM spikes
   - range-low cockpit textures now default to a `1024` max mip dimension, with `cockpitTextureSize=` available for `128` to `2048`, because `256` can erase small text in cockpit label atlases
   - `VCockpit` surface binding now runs by default for cockpit LOD00 and can be disabled with `?vcockpitSurfaces=off`
   - `[VCockpitXX]` panel sections are parsed into typed surface IR with texture targets, dimensions, background color, and gauge entries
