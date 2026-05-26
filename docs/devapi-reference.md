@@ -53,7 +53,7 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 - `camera.enterCockpit()` / `camera.exitCockpit()` switch cockpit view: `await window.__DevApi.camera.enterCockpit()`.
 - `camera.getPose()` / `camera.setPose(pose)` inspect or set camera pose: `window.__DevApi.camera.setPose({ position: [0, 1, 2] })`.
 - `camera.frame(target)` frames a scene target: `window.__DevApi.camera.frame("PUSH_AP_MASTER")`.
-- `settings.get()` / `settings.set(settings)` inspect or update viewer settings: `await window.__DevApi.settings.set({ exteriorInterior: "off" })`.
+- `settings.get()` / `settings.set(settings)` inspect or update viewer settings: `await window.__DevApi.settings.set({ exteriorInterior: "off" })`. Load-time settings such as `skipGaugeSettingSeed` are saved through the settings/profile path and take effect on the next load.
 - `screenshot(options?)` captures viewport/gauge imagery: `window.__DevApi.screenshot({ target: "viewport" })`.
 - `visualCheck(target?)` returns visual inspection data: `window.__DevApi.visualCheck("mcdu")`.
 - `highlight(target, options?)` highlights a scene target: `window.__DevApi.highlight("LEVER_FLAPS", { durationMs: 1000 })`.

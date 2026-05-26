@@ -430,7 +430,7 @@ This section tracks the next authoritative, aircraft-generic loader work.
 This checklist tracks authoritative MSFS stock support work against the mounted public Asobo XML set and mirrored CFG docs.
 
 Active checklist location:
-- In this checkout, this section is the active stock-support checklist referenced by the project instructions. There is no repo-root `stock-support-todo.md` file at the moment, so update this section and [stock-support-scope.md](stock-support-scope.md) until that file is restored or intentionally split out.
+- In this checkout, this section is the active stock-support checklist referenced by the project instructions. Update this section and [stock-support-scope.md](stock-support-scope.md) for stock-support scope/status changes.
 
 Rules:
 - Prefer the official mounted XML/docs over local approximations.
@@ -541,7 +541,7 @@ Rules:
 - [x] Support generic stock handling trim input events.
   - `B:HANDLING_RudderTrim_*`, `B:HANDLING_ElevatorTrim_*`, and `B:HANDLING_AileronsTrim_*` bridge calls now update the corresponding `A:* TRIM PCT` / indicator SimVars instead of only changing bridge-local `B:` state, so stock trim knobs, switches, and drag callbacks have visible runtime state.
 - [x] Bound generic DDS side fetches during model load.
-  - Generic model texture loading now uses the existing range-low DDS path by default, falling back to placeholders when byte ranges or `.FLAGS` probes are unavailable. DDS range requests are bounded to 2 seconds and `.FLAGS` probes to 500 ms so slow or missing texture side requests do not make GLTF LOD parsing wait for browser network timeouts before the runtime and DevApi can come up.
+  - Generic model texture loading now uses the existing range-low DDS path by default, falling back to full DDS loading when byte ranges or `.FLAGS` probes are unavailable. DDS range requests are bounded to 30 seconds and `.FLAGS` probes to 500 ms so slow or missing texture side requests do not make GLTF LOD parsing wait indefinitely before the runtime and DevApi can come up.
   - Follow-up: decoded DDS range fallback now preserves loader path, request headers, and credentials when it delegates unsupported decoded formats back to the compressed DDS range loader, preventing fallback texture requests from drifting to the wrong relative URL during cockpit startup.
   - Follow-up: expected range-low placeholder fallback logs are suppressed during normal startup and can be re-enabled with `?ddsDebug`, keeping DevTools output readable while preserving detailed DDS diagnostics when needed.
   - Follow-up: boot DevApi status now includes generic GLTF loading-manager counts and the oldest active resource URLs while the full viewer is still loading, so stuck `GLTFLoader.parseAsync()` waits can be diagnosed without private browser state.

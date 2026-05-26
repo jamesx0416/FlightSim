@@ -16,6 +16,7 @@ Currently supported:
 - Exterior viewing, progressive cockpit/interior loading, VCockpit surface binding, HTML gauge hosting, and bridge-first WASM gauge diagnostics.
 - Runtime state for SimVars, local vars, key events, HTML events, bridge events, interactions, sound/effect records, and cold-and-dark/default demo values.
 - WebGPU with WebGL fallbacks, diagnostics, settings profiles, cockpit performance tools, and DevApi automation.
+- Optional stored-setting preseed for gauge/EFB settings, with a `Seed Nothing` mode for lifecycle comparisons.
 
 Not currently supported:
 
