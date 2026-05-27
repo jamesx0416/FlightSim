@@ -1018,6 +1018,8 @@ Checked stock XML families in this batch are limited to the families covered by 
 ### 9. Prototype Experimental Native HTML Gauge Texture Path
 
 - [ ] Evaluate Three.js `r184+` `HTMLTexture` / HTML-in-Canvas support against the current WebGPU-first renderer stack.
+  - 2026-05-27 local dependency audit: the repo is currently on `three@0.182.0` / `@types/three@0.182.0`. The installed `three/examples/jsm/interactive/HTMLMesh.js` `HTMLTexture` is not a native browser HTML texture upload path; it extends `CanvasTexture` and rerenders DOM through the example `html2canvas` helper. That does not replace the viewer's dirty-driven compositor.
+  - 2026-05-27 blocker: upgrading blindly to Three `r184+` is not safe in this repo because the current lockfile includes `postprocessing@6.38.3` with peer range `three >=0.157.0 <0.184.0`. A native-path prototype needs a renderer/dependency audit first, then browser feature detection and long-session route validation.
 - [ ] Add a query-gated `?vcockpitGaugeMode=htmlTexture` prototype that is used only when native browser feature detection succeeds.
   - 2026-05-27: the query value is accepted as an experimental request but is not exposed through persisted settings. Effective rendering still falls back to `CanvasTexture`; native use remains blocked until renderer integration passes feature detection and validation.
 - [x] Detect and report native browser support for `drawElementImage`, `texElementImage2D`, and WebGPU `copyElementImageToTexture`.
