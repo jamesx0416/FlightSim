@@ -944,7 +944,8 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 - [x] Keep the A330 route clean after each completed batch.
 - [x] Keep the A320 route clean after each completed batch.
-- [ ] Replace mirrored fallbacks only when the official mounted XML path matches or exceeds current behavior.
+- [x] Replace mirrored fallbacks only when the official mounted XML path matches or exceeds current behavior.
+  - 2026-05-27 audit: no mirrored built-in template implementations remain in `src/msfs/behavior.ts`; `builtinFallbackHits` is still carried through the IR for diagnostics compatibility but is not populated by any active fallback path. The remaining `getInteractionFallback*` helpers are generic parameter-derived bindings from explicit stock/package `*_CODE` / `*_EVENTID` parameters, not replacements for mounted XML templates, and should remain until each covered parameter family has an authoritative stock expansion path.
 
 ### 5. Fix Lighting Issue Where Surfaces Look Too White When Viewed Directly
 
