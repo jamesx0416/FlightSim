@@ -390,6 +390,7 @@ This section tracks the next authoritative, aircraft-generic loader work.
     - `../../../../texture/Interiors` appears in the standard fallback chain but is not implicated by the current missing A320 texture names
     - several missing `*_COMP` files are genuine dangling package-local refs and should not be treated as shared-stock-texture misses
   - Next step is to validate against real dependency packages such as `fs-base-aircraft-common`.
+  - 2026-05-27 blocker: no `fs-base-aircraft-common`, A320, or A330 fixture package roots are present under `/tmp` or this repo, so the remaining shared texture fallback validation is blocked on real dependency package data. The current importer already follows `texture.cfg` `fallback.N` chains generically through resolved package roots and additional `?packages=` / `VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS` roots.
 
 - Improve optimized/skinned mesh compatibility.
   - Keep using authoritative layout evidence from built assets and official exporter expectations.
