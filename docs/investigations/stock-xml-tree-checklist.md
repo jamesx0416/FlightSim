@@ -26044,6 +26044,7 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_ComponentWith_PART_ID">` line 121
         - [ ] `<NODE_ID>` line 122 = `#HIGHLIGHT_NODE_ID#`
     - [ ] `<Template Name="ASOBO_GT_Interaction_Blocker">` line 129
+      - Blocked 2026-05-27: this stock template delegates to `ASOBO_GT_Interaction_NoInteraction`; the compiler expands it with zero diagnostics and no executable bindings, but simulator-equivalent interaction blocking requires disabled-MouseRect hit-test semantics that are not represented in the current behavior IR/runtime.
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 130
         - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_NoInteraction">` line 131
 - [ ] `Asobo/Generic/Complex/PushButton.xml`
@@ -27846,10 +27847,14 @@
     - [ ] `<Include>` line 10
     - [ ] `<Include>` line 11
 - [ ] `Asobo/Generic/Interactions.xml`
-  - Partial verified 2026-05-14: an in-browser synthetic stock XML harness mounted the real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` and exercised left-single event/code, left-single leave/wheel callbacks, multistate switch-position recursion, drag event-set, and wheel/left-drag axis fallback with zero diagnostics. Remaining rows stay unchecked until representative timed, blocker, tooltip/emissive, and all drag gate/sim-gate variants are directly exercised.
+  - Partial verified 2026-05-14: an in-browser synthetic stock XML harness mounted the real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` and exercised left-single event/code, left-single leave/wheel callbacks, multistate switch-position recursion, drag event-set, and wheel/left-drag axis fallback with zero diagnostics. Remaining rows stay unchecked until representative tooltip/display and the rest of the MouseRect metadata surface are directly exercised or blocked.
+  - Partial verified 2026-05-27: stock `Loop` `Then` expansion and selected `MouseRect` `Switch/Case` payload handling now preserve the real `ASOBO_GT_MouseRect` callback payload path. A synthetic harness using the mounted real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` compiled `ASOBO_GT_Interaction_DraggingYAxis_SimGates` into the full gate-aware callback with zero diagnostics; `LeftSingle` initialized gate min/max state, `LeftDrag` emitted the expected set key event, and A330/A320 exterior route smokes stayed at zero diagnostics.
+  - Partial verified 2026-05-27: a full-stock-layout harness exercised tooltip/emissive-adjacent paths with zero diagnostics. `ASOBO_GT_Interaction_Tooltip` plus `EMISSIVE_CODE` compiled a material emissive binding for the component target, and `ASOBO_GT_MouseRect` plus `EMISSIVE_NODE_POTENTIOMETER` compiled the light-potentiometer emissive binding. User-facing tooltip rendering remains unimplemented in the viewer, so tooltip display rows stay unchecked/out of current rendered-runtime coverage.
+  - Blocked 2026-05-27: `ASOBO_GT_Interaction_NoInteraction` expands to `ASOBO_GT_MouseRect` with `CALLBACKCODE=0`, `DISABLE_INTERACTION_LOCK=True`, and `DISABLE_MOUSERECT=True`. A mounted stock harness compiled the no-interaction/blocker path with zero diagnostics and zero executable bindings, which matches the current IR's executable-callback-only surface. Simulator-equivalent blocking would require a new generic disabled-MouseRect hit-test blocker representation before these rows can be checked as rendered-runtime parity.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
     - [ ] `<Template Name="ASOBO_GT_Interaction_NoInteraction">` line 12
+      - Blocked 2026-05-27: no executable binding is expected from `CALLBACKCODE=0`; rendered blocker parity requires disabled-MouseRect hit-test support that the current IR/runtime does not expose.
       - [ ] `<DefaultTemplateParameters>` line 13
         - [ ] `<MOUSEFLAGS>` line 14
         - [ ] `<DISABLE_INTERACTION_LOCK>` line 15
@@ -27967,8 +27972,9 @@
         - [ ] `<Condition Check="WHEEL_UP_CODE">` line 253
           - [ ] `<MOUSEFLAGS>` line 254
           - [ ] `<MOUSE_WHEEL_INPUTS>` line 255
-    - [ ] `<Template Name="ASOBO_GT_Interaction_Left_Timed_Code">` line 267
-      - Partial verified 2026-05-14: the default timed branch compiled from the real mounted stock XML into one callback interaction and one 10 Hz update binding. Short release executed release+short+leave code; holding past `LONG_CLICK_TIME=1` executed long code from the update binding and then only leave code on release. The `TIMED_TYPE=X_EVENTS` branch remains unchecked.
+    - [x] `<Template Name="ASOBO_GT_Interaction_Left_Timed_Code">` line 267
+      - Partial verified 2026-05-14: the default timed branch compiled from the real mounted stock XML into one callback interaction and one 10 Hz update binding. Short release executed release+short+leave code; holding past `LONG_CLICK_TIME=1` executed long code from the update binding and then only leave code on release.
+      - Verified 2026-05-27: the `TIMED_TYPE=X_EVENTS` branch compiled from mounted stock XML with zero diagnostics. Runtime-equivalent evaluation wrote release/short/leave state on short release, wrote the first long action after `LONG_CLICK_TIME_1`, advanced `_Process_Step`, and wrote the second long action after `LONG_CLICK_TIME_2` while clearing `_PressTime`.
       - [ ] `<Parameters Type="Default">` line 268
         - [ ] `<Switch Param="TIMED_TYPE">` line 269
           - [ ] `<Case Value="X_EVENTS">` line 270
@@ -27998,8 +28004,8 @@
             - [ ] `<LEFT_SINGLE_CODE>` line 304 = `(E:SIMULATION TIME, second) (>O:_PressTime) #LEFT_SINGLE_CODE#`
             - [ ] `<LEFT_LEAVE_CODE>` line 308 = `(O:_PressTime) 0 > if{ (E:SIMULATION TIME, second) (O:_PressTime) #LONG_CLICK_TIME# + < if{ #RELEAS...`
       - [ ] `<Switch Param="TIMED_TYPE">` line 318
-        - [ ] `<Case Value="X_EVENTS">` line 319
-          - [ ] `<Update Frequency="10">` line 320
+        - [x] `<Case Value="X_EVENTS">` line 319
+          - [x] `<Update Frequency="10">` line 320
         - [x] `<Default>` line 342
           - [x] `<Update Frequency="10">` line 343
       - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_Leave_Code">` line 362
@@ -28033,12 +28039,14 @@
             - [ ] `<UPDATE_ONCE>` line 403
             - [ ] `<UPDATE_CODE>` line 404 = `(#SWITCH_POSITION_TYPE#:#SWITCH_POSITION_VAR#) 0 == if{ 1 (>#SWITCH_POSITION_TYPE#:#SWITCH_POSITION...`
       - [x] `<UseTemplate Name="ASOBO_GT_Interaction_LeftSingle_ParamSetup">` line 408
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft">` line 419
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft">` line 419
+      - Verified 2026-05-27: a mounted stock harness exercised horizontal and vertical dispatch through the stock subtemplates with zero diagnostics; runtime-equivalent evaluation wrote wheel values and drag state.
       - [ ] `<DefaultTemplateParameters>` line 420
         - [ ] `<SWITCH_DIRECTION>` line 421
         - [ ] `<ALWAYS_USE_ANIM_LAG>` line 422
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_#SWITCH_DIRECTION#">` line 425
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_LeftSingle">` line 438
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_#SWITCH_DIRECTION#">` line 425
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_LeftSingle">` line 438
+      - Verified 2026-05-27: a mounted stock harness compiled this template with zero diagnostics into callback and stock 10 Hz update bindings. Runtime-equivalent evaluation exercised wheel up/down, center push, drag threshold rotation, and release/leave state through generic `L:` and `O:` variables.
       - [ ] `<Parameters Type="Default">` line 439
         - [ ] `<CURSOR_LEFT>` line 440
         - [ ] `<CURSOR_RIGHT>` line 442
@@ -28174,16 +28182,17 @@
         - [ ] `<IM_DRAG_ADDITIONAL_EVENT_HANDLING>` line 603
         - [ ] `<MOUSEFLAGS_DEFAULT_IM>` line 610
         - [ ] `<MOUSEFLAGS_DRAG_IM>` line 611
-      - [ ] `<Update Frequency="#UPDATE_FREQUENCY#">` line 613
+      - [x] `<Update Frequency="#UPDATE_FREQUENCY#">` line 613
       - [ ] `<Condition Valid="NO_PUSH_PULL_LOCK">` line 618
         - [ ] `<False>` line 619
           - [ ] `<Update Frequency="#UPDATE_FREQUENCY#">` line 620
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 636
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 636
         - [ ] `<LEFTARROW>` line 637
         - [ ] `<RIGHTARROW>` line 638
-        - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 639
-        - [ ] `<CALLBACKCODE_DRAG_IM>` line 663
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_PushPull">` line 752
+        - [x] `<CALLBACKCODE_DEFAULT_IM>` line 639
+        - [x] `<CALLBACKCODE_DRAG_IM>` line 663
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_PushPull">` line 752
+      - Verified 2026-05-27: a mounted stock harness compiled this template with zero diagnostics into callback and stock 10 Hz update bindings. Runtime-equivalent evaluation exercised wheel up/down, push, pull, leave, drag threshold rotation, and push/pull lock-reset state through generic `L:` and `O:` variables.
       - [ ] `<Parameters Type="Default">` line 753
         - [ ] `<CURSOR_LEFT>` line 754
         - [ ] `<CURSOR_RIGHT>` line 756
@@ -28294,18 +28303,19 @@
         - [ ] `<IM_DRAG_ADDITIONAL_EVENT_HANDLING>` line 880
         - [ ] `<MOUSEFLAGS_DEFAULT_IM>` line 887
         - [ ] `<MOUSEFLAGS_DRAG_IM>` line 888
-      - [ ] `<Update Frequency="#UPDATE_FREQUENCY#">` line 890
+      - [x] `<Update Frequency="#UPDATE_FREQUENCY#">` line 890
       - [ ] `<Condition Valid="NO_PUSH_PULL_LOCK">` line 894
         - [ ] `<False>` line 895
           - [ ] `<Update Frequency="#UPDATE_FREQUENCY#">` line 896
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 913
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 913
         - [ ] `<LEFTARROW>` line 914
         - [ ] `<RIGHTARROW>` line 915
         - [ ] `<UPARROW>` line 916
         - [ ] `<DOWNARROW>` line 917
-        - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 918
-        - [ ] `<CALLBACKCODE_DRAG_IM>` line 951
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_LeftSingleTimed">` line 1040
+        - [x] `<CALLBACKCODE_DEFAULT_IM>` line 918
+        - [x] `<CALLBACKCODE_DRAG_IM>` line 951
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_LeftSingleTimed">` line 1040
+      - Verified 2026-05-27: a mounted stock harness compiled the timed callback and long-press update with zero diagnostics. Runtime-equivalent evaluation wrote the short path and cleared `O:_PressTime` on short release, and wrote the long path after holding beyond `LONG_CLICK_TIME=1`.
       - [ ] `<Parameters Type="Default">` line 1041
         - [ ] `<LEFT_SINGLE_CODE>` line 1042
         - [ ] `<LEFT_LEAVE_CODE>` line 1043
@@ -28315,8 +28325,8 @@
           - [ ] `<True>` line 1048
             - [ ] `<LONG_CLICK_CODE>` line 1049 = `#LEFT_LEAVE_CODE#`
             - [ ] `<SHORT_CLICK_CODE>` line 1050 = `#LEFT_LEAVE_CODE#`
-      - [ ] `<Update Frequency="10">` line 1054
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_LeftSingle">` line 1065
+      - [x] `<Update Frequency="10">` line 1054
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_LeftSingle">` line 1065
         - [ ] `<Condition Valid="TIMER_EVENTS_HANDLED_EXTERNALLY">` line 1066
           - [ ] `<False>` line 1067
             - [ ] `<LEFT_SINGLE_CODE>` line 1068 = `(E:SIMULATION TIME, second) (>O:_PressTime) #LEFT_SINGLE_CODE#`
@@ -28368,7 +28378,8 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1168
         - [ ] `<MouseFlags>` line 1169
         - [ ] `<CALLBACKCODE>` line 1170 = `(M:Event) 'Lock' scmi 0 == if{ (M:Relative#AXIS#) (>O:_LastPos) #LOCK_CODE# } els{ (M:Event) 'Unloc...`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelLeftSingle_Axis">` line 1199
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelLeftSingle_Axis">` line 1199
+      - Verified 2026-05-27: a mounted stock harness compiled the template with zero diagnostics. Runtime-equivalent evaluation exercised wheel, left-single, lock, and relative drag paths, writing positive/negative axis values through the selected full callback.
       - [ ] `<DefaultTemplateParameters>` line 1200
         - [ ] `<HELPID>` line 1201
         - [ ] `<TOOLTIPID>` line 1202
@@ -28431,11 +28442,11 @@
             - [ ] `<CHECK_IS_DRAG_LOCKED>` line 1283
             - [ ] `<SET_DRAG_LOCK>` line 1284
             - [ ] `<UNSET_DRAG_LOCK>` line 1285
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1289
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1289
         - [ ] `<MOUSEFLAGS_DRAG_IM>` line 1290
-        - [ ] `<CALLBACKCODE_DRAG_IM>` line 1291
+        - [x] `<CALLBACKCODE_DRAG_IM>` line 1291
         - [ ] `<MOUSEFLAGS_DEFAULT_IM>` line 1337
-        - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 1338
+        - [x] `<CALLBACKCODE_DEFAULT_IM>` line 1338
     - [x] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_EventSet">` line 1365
       - [ ] `<DefaultTemplateParameters>` line 1366
         - [ ] `<HELPID>` line 1367
@@ -28462,27 +28473,30 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1405
         - [ ] `<MouseFlags>` line 1406
         - [ ] `<CALLBACKDRAGGING>` line 1407
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_EventsIncDec">` line 1419
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_EventsIncDec">` line 1419
+      - Verified 2026-05-27: a mounted stock harness compiled the template through the real `ASOBO_GT_MouseRect` path with zero diagnostics; the selected full callback emitted `TEST_X_INC` and `TEST_X_DEC` for relative X drags beyond `DRAG_DELTA`.
       - [ ] `<DefaultTemplateParameters>` line 1420
         - [ ] `<HELPID>` line 1421
         - [ ] `<TOOLTIPID>` line 1422
         - [ ] `<DRAG_DELTA>` line 1423
         - [ ] `<DRAG_SCALAR>` line 1424
         - [ ] `<CURSOR>` line 1425
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1428
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1428
         - [ ] `<MouseFlags>` line 1429
-        - [ ] `<X_MOVEMENT>` line 1430
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_EventsIncDec">` line 1442
+        - [x] `<X_MOVEMENT>` line 1430
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_EventsIncDec">` line 1442
+      - Verified 2026-05-27: a mounted stock harness compiled the template through the real `ASOBO_GT_MouseRect` path with zero diagnostics; the selected full callback emitted `TEST_Y_INC` and `TEST_Y_DEC` for relative Y drags, plus the expected wheel up/down events.
       - [ ] `<DefaultTemplateParameters>` line 1443
         - [ ] `<HELPID>` line 1444
         - [ ] `<TOOLTIPID>` line 1445
         - [ ] `<DRAG_DELTA>` line 1446
         - [ ] `<DRAG_SCALAR>` line 1447
         - [ ] `<CURSOR>` line 1448
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1451
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1451
         - [ ] `<MouseFlags>` line 1452
-        - [ ] `<Y_MOVEMENT>` line 1453
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_Gates">` line 1457
+        - [x] `<Y_MOVEMENT>` line 1453
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_Gates">` line 1457
+      - Verified 2026-05-27: a mounted stock harness compiled the full gate-aware callback with zero diagnostics. Runtime-equivalent evaluation of `Lock`, `LeftDrag`, and `Unlock` updated `O:MaxDraggingPosition`, `O:MinDraggingPosition`, `O:IsDragging`, and the target `L:` position while preserving custom `DRAG_CODE`.
       - [ ] `<DefaultTemplateParameters>` line 1458
         - [ ] `<STEPS_NUMBER>` line 1459
         - [ ] `<GATE_TOLERANCE>` line 1460
@@ -28522,7 +28536,8 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1528
         - [ ] `<MOUSEFLAGS>` line 1529
         - [ ] `<CALLBACKCODE>` line 1530 = `(M:Event) 'Lock' scmp 0 == if{ (M:RelativeY) (>O:PrevY, Number) (#POSITION_TYPE#:#POSITION_VAR#) (>...`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates">` line 1617
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates">` line 1617
+      - Verified 2026-05-27: a mounted stock harness compiled the full sim-gate callback with zero diagnostics. Runtime-equivalent evaluation initialized gate min/max state on `LeftSingle`, emitted the configured set key event on `LeftDrag`, and normal runtime target lookup selected the full sim-gate callback over the older simple fallback.
       - [ ] `<DefaultTemplateParameters>` line 1618
         - [ ] `<STEPS_NUMBER>` line 1619
         - [ ] `<GATE_TOLERANCE>` line 1620
@@ -28532,8 +28547,9 @@
         - [ ] `<AXIS>` line 1624
         - [ ] `<SIMVAR_CONVERSION>` line 1630
         - [x] `<EVENTID_CONVERSION>` line 1631
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates_Base">` line 1635
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1648
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates_Base">` line 1635
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1648
+      - Verified 2026-05-27 through `ASOBO_GT_Interaction_DraggingYAxis_Code`: mounted stock XML compiled the base callback with zero diagnostics; runtime-equivalent evaluation exercised wheel up/down, left press/release, drag factor, and position update behavior.
       - [ ] `<DefaultTemplateParameters>` line 1649
         - [ ] `<HELPID>` line 1650
         - [ ] `<TOOLTIPID>` line 1651
@@ -28565,14 +28581,15 @@
         - [ ] `<LEFT_SINGLE_CODE>` line 1688
         - [ ] `<LEFT_RELEASE_CODE>` line 1689
         - [ ] `<ALWAYS_USE_ANIM_LAG>` line 1690
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1693
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 1693
         - [ ] `<MouseFlags>` line 1694
-        - [ ] `<CALLBACKCODE>` line 1695 = `(M:Event) 'WheelUp' scmi 0 == if{ g1 } els{ (M:Event) 'WheelDown' scmi 0 == if{ g2 } els{ (M:Event)...`
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_Code">` line 1732
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1734
+        - [x] `<CALLBACKCODE>` line 1695 = `(M:Event) 'WheelUp' scmi 0 == if{ g1 } els{ (M:Event) 'WheelDown' scmi 0 == if{ g2 } els{ (M:Event)...`
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingXAxis_Code">` line 1732
+      - Verified 2026-05-27: a mounted stock harness compiled this wrapper with zero diagnostics and exercised wheel/drag X-axis position changes through `ASOBO_GT_Interaction_DraggingAxis_Code`.
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1734
         - [ ] `<AXIS>` line 1735
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_Code">` line 1748
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1750
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_Code">` line 1748
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_DraggingAxis_Code">` line 1750
         - [ ] `<AXIS>` line 1751
     - [ ] `<Template Name="ASOBO_GT_MouseRect">` line 1755
       - [ ] `<DefaultTemplateParameters>` line 1756
@@ -29297,7 +29314,8 @@
         - [ ] `<ANIMATION_CODE_SETTER>` line 666
         - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 667
         - [ ] `<CALLBACKCODE_DRAG_IM>` line 687
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Vertical">` line 712
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Vertical">` line 712
+      - Verified 2026-05-27 through the top-level `ASOBO_GT_Interaction_WheelAndContinuousLeft` harness: vertical dispatch compiled with zero diagnostics and produced wheel/drag callback behavior through the shared base template.
       - [ ] `<DefaultTemplateParameters>` line 713
         - [ ] `<Condition>` line 714
           - [ ] `<Test>` line 715
@@ -29325,7 +29343,7 @@
               - [ ] `<False>` line 747
                 - [ ] `<ANTICLOCKWISE_CODE_DEFAULT_IM>` line 748
                 - [ ] `<ANTICLOCKWISE_CODE_DRAG_IM>` line 749
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Base">` line 755
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Base">` line 755
         - [ ] `<UPARROW>` line 756
         - [ ] `<DOWNARROW>` line 757
         - [ ] `<AXIS>` line 758
@@ -29333,12 +29351,14 @@
         - [ ] `<ANTICLOCKWISE_CODE_DEFAULT_IM>` line 761
         - [ ] `<CLOCKWISE_CODE_DRAG_IM>` line 762
         - [ ] `<ANTICLOCKWISE_CODE_DRAG_IM>` line 763
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Horizontal">` line 767
-      - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Base">` line 768
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Horizontal">` line 767
+      - Verified 2026-05-27 through the top-level `ASOBO_GT_Interaction_WheelAndContinuousLeft` harness: horizontal dispatch compiled with zero diagnostics and produced wheel/drag callback behavior through the shared base template.
+      - [x] `<UseTemplate Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Base">` line 768
         - [ ] `<LEFTARROW>` line 769
         - [ ] `<RIGHTARROW>` line 770
         - [ ] `<AXIS>` line 771
-    - [ ] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Base">` line 775
+    - [x] `<Template Name="ASOBO_GT_Interaction_WheelAndContinuousLeft_Base">` line 775
+      - Verified 2026-05-27 through mounted stock horizontal and vertical wheel-continuous harnesses: the base template compiled callback and 10 Hz update bindings with zero diagnostics and executed wheel/drag code paths.
       - [ ] `<DefaultTemplateParameters>` line 776
         - [ ] `<HELPID>` line 777
         - [ ] `<TOOLTIPID>` line 778
@@ -29391,20 +29411,21 @@
           - [ ] `<Arg NotEmpty="CLOCKWISE_CODE_DEFAULT_IM">` line 842
           - [ ] `<Arg NotEmpty="ANTICLOCKWISE_CODE_DEFAULT_IM">` line 843
         - [ ] `<True>` line 845
-          - [ ] `<Update Frequency="#UPDATE_FREQUENCY#">` line 846
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 854
+          - [x] `<Update Frequency="#UPDATE_FREQUENCY#">` line 846
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 854
         - [ ] `<MouseFlags>` line 855
-        - [ ] `<CALLBACKCODE_DEFAULT_IM>` line 856
-        - [ ] `<CALLBACKCODE_DRAG_IM>` line 868
-    - [ ] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates_Base">` line 905
+        - [x] `<CALLBACKCODE_DEFAULT_IM>` line 856
+        - [x] `<CALLBACKCODE_DRAG_IM>` line 868
+    - [x] `<Template Name="ASOBO_GT_Interaction_DraggingYAxis_SimGates_Base">` line 905
+      - Verified 2026-05-27 through the mounted `ASOBO_GT_Interaction_DraggingYAxis_SimGates` harness: base callback expansion compiled with zero diagnostics and executed gate initialization, drag set-event, and wheel set-event paths.
       - [ ] `<DefaultTemplateParameters>` line 906
         - [ ] `<LIMITATIONS_OVERRIDE>` line 907
         - [ ] `<INCREMENT>` line 908
         - [ ] `<Condition Check="IGNORE_GATES">` line 909
           - [ ] `<LIMITATIONS_OVERRIDE>` line 910
-      - [ ] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 917
+      - [x] `<UseTemplate Name="ASOBO_GT_MouseRect">` line 917
         - [ ] `<MOUSEFLAGS>` line 918
-        - [ ] `<CALLBACKCODE>` line 919 = `(A:#SIMVAR#, #SIMVAR_UNITS#) #SIMVAR_CONVERSION# sp0 (M:Event) 'LeftSingle' scmp 0 == if{ (M:Relati...`
+        - [x] `<CALLBACKCODE>` line 919 = `(A:#SIMVAR#, #SIMVAR_UNITS#) #SIMVAR_CONVERSION# sp0 (M:Event) 'LeftSingle' scmp 0 == if{ (M:Relati...`
 - [ ] `Asobo/Generic/Subtemplates/Updates_Subtemplates.xml`
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Template Name="ASOBO_GT_Update_EnsureVariableConsistency_MultiStates_ParamSetup">` line 3
