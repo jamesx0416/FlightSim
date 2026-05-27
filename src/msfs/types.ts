@@ -225,6 +225,12 @@ export interface CompiledInteractionBinding {
   readonly kind: 'leftSingle' | 'callback'
 }
 
+export interface CompiledInteractionBlocker {
+  readonly target: string
+  readonly feedbackTargets: readonly string[]
+  readonly sourcePath: string
+}
+
 export interface CompiledInteractionSoundEvent {
   readonly name: string
   readonly phase: 'press' | 'release'
@@ -242,6 +248,7 @@ export interface CompiledBehaviorSet {
   readonly updateBindings: readonly CompiledUpdateBinding[]
   readonly inputEventBindings: readonly CompiledInputEventBinding[]
   readonly interactionBindings: readonly CompiledInteractionBinding[]
+  readonly interactionBlockers: readonly CompiledInteractionBlocker[]
   readonly variableKeys: readonly string[]
   readonly builtinFallbackHits: readonly string[]
   readonly diagnostics: readonly ImportDiagnostic[]

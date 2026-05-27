@@ -907,9 +907,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   const collectComponents = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
     const needle = filter.trim().toLowerCase()
     const registry = context.getCockpitInteractionPickRegistry()
-    return context.getRuntime().getInteractionBindings()
+    const interactionRows = context.getRuntime().getInteractionBindings()
       .filter(binding => !needle || binding.target.toLowerCase().includes(needle))
-      .slice(0, limit)
       .map(binding => {
         const pickMeshes = [...registry.bindingsByMesh.entries()]
           .filter(([, candidate]) => candidate.target === binding.target)
@@ -935,6 +934,34 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
               }
         }
       })
+    const blockerRows = context.getRuntime().getInteractionBlockers()
+      .filter(blocker => !needle || blocker.target.toLowerCase().includes(needle))
+      .map(blocker => {
+        const blockerMeshes = [...registry.blockersByMesh.entries()]
+          .filter(([, candidate]) => candidate.target === blocker.target)
+          .map(([mesh]) => mesh.name || mesh.type)
+        const hitbox = registry.blockerHitboxes.find(target => target.blocker.target === blocker.target)
+        return {
+          target: blocker.target,
+          kind: 'blocker',
+          sourcePath: blocker.sourcePath,
+          source: null,
+          releaseSource: null,
+          feedbackTargets: blocker.feedbackTargets,
+          feedbackVariableKeys: [],
+          soundEvents: [],
+          hasRelease: false,
+          pickMeshes: blockerMeshes,
+          fallbackHitbox: hitbox == null
+            ? null
+            : {
+                sourceNode: hitbox.sourceNode.name || hitbox.sourceNode.type,
+                center: hitbox.box.getCenter(new Vector3()).toArray(),
+                size: hitbox.box.getSize(new Vector3()).toArray()
+              }
+        }
+      })
+    return [...interactionRows, ...blockerRows].slice(0, limit)
   }
   const collectAnimations = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
     const needle = filter.trim().toLowerCase()

@@ -5,6 +5,7 @@ import type {
   CompiledBehaviorSet,
   CompiledInputEventBinding,
   CompiledInteractionBinding,
+  CompiledInteractionBlocker,
   CompiledInteractionSoundEvent,
   CompiledMaterialBinding,
   CompiledUpdateBinding,
@@ -93,6 +94,7 @@ export async function compileMsfs2020Behaviors(
       updateBindings: [],
       inputEventBindings: [],
       interactionBindings: [],
+      interactionBlockers: [],
       variableKeys: [],
       builtinFallbackHits: [],
       diagnostics: dedupeImportDiagnostics(diagnostics)
@@ -125,6 +127,7 @@ export async function compileMsfs2020Behaviors(
   const updateBindings: CompiledUpdateBinding[] = []
   const inputEventBindings: CompiledInputEventBinding[] = []
   const interactionBindings: CompiledInteractionBinding[] = []
+  const interactionBlockers: CompiledInteractionBlocker[] = []
   const rootParams = new Map<string, string>()
   for (const loadedDocument of loadedDocuments.values()) {
     collectDefinitions(loadedDocument.document, templateMap, parameterFunctionMap, rootParams)
@@ -156,7 +159,8 @@ export async function compileMsfs2020Behaviors(
       materialBindings,
       updateBindings,
       inputEventBindings,
-      interactionBindings
+      interactionBindings,
+      interactionBlockers
     )
   }
 
@@ -202,6 +206,7 @@ export async function compileMsfs2020Behaviors(
     updateBindings,
     inputEventBindings,
     interactionBindings,
+    interactionBlockers,
     variableKeys: [...variableKeys].sort(),
     builtinFallbackHits: [...context.builtinFallbackHits].sort(),
     diagnostics: dedupeImportDiagnostics(diagnostics)
@@ -564,7 +569,8 @@ function traverseElement(
   materialBindings: CompiledMaterialBinding[],
   updateBindings: CompiledUpdateBinding[],
   inputEventBindings: CompiledInputEventBinding[],
-  interactionBindings: CompiledInteractionBinding[]
+  interactionBindings: CompiledInteractionBinding[],
+  interactionBlockers: CompiledInteractionBlocker[]
 ): void {
   const elementTagName = getElementTagName(element)
 
@@ -582,7 +588,7 @@ function traverseElement(
     const branch = selectConditionBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings, interactionBlockers)
       }
     }
     return
@@ -592,7 +598,7 @@ function traverseElement(
     const branch = selectSwitchBranch(element, scopedState.params)
     if (branch != null) {
       for (const child of Array.from(branch.children)) {
-        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
+        traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings, interactionBlockers)
       }
     }
     return
@@ -614,7 +620,7 @@ function traverseElement(
       ) {
         continue
       }
-      traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
+      traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings, interactionBlockers)
     }
     return
   }
@@ -713,6 +719,12 @@ function traverseElement(
   }
 
   if (elementTagName === 'MouseRect') {
+    const blocker = buildInteractionBlocker(scopedState.params, scopedState.currentNode, state.path)
+    if (blocker != null) {
+      pushUniqueInteractionBlocker(interactionBlockers, blocker)
+      return
+    }
+
     const callbackNode =
       getDirectChild(element, 'CallbackCode')
     const callbackSource =
@@ -814,7 +826,8 @@ function traverseElement(
             materialBindings,
             updateBindings,
             inputEventBindings,
-            interactionBindings
+            interactionBindings,
+            interactionBlockers
           )
         }
       }
@@ -833,7 +846,8 @@ function traverseElement(
           materialBindings,
           updateBindings,
           inputEventBindings,
-          interactionBindings
+          interactionBindings,
+          interactionBlockers
         )
       }
     }
@@ -850,7 +864,8 @@ function traverseElement(
       materialBindings,
       updateBindings,
       inputEventBindings,
-      interactionBindings
+      interactionBindings,
+      interactionBlockers
     )
     return
   }
@@ -862,7 +877,33 @@ function traverseElement(
     ) {
       continue
     }
-    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
+    traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings, interactionBlockers)
+  }
+}
+
+function buildInteractionBlocker(
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string
+): CompiledInteractionBlocker | null {
+  if (!parseBoolean(params.get('DISABLE_MOUSERECT') ?? 'False')) {
+    return null
+  }
+
+  const target =
+    params.get('NODE_ID')?.trim() ||
+    currentNode?.trim() ||
+    params.get('ANIM_NAME')?.trim() ||
+    params.get('PART_ID')?.trim() ||
+    ''
+  if (!target) {
+    return null
+  }
+
+  return {
+    target,
+    feedbackTargets: collectInteractionFeedbackTargets(params, currentNode, target),
+    sourcePath
   }
 }
 
@@ -961,7 +1002,8 @@ function expandTemplateUse(
   materialBindings: CompiledMaterialBinding[],
   updateBindings: CompiledUpdateBinding[],
   inputEventBindings: CompiledInputEventBinding[],
-  interactionBindings: CompiledInteractionBinding[]
+  interactionBindings: CompiledInteractionBinding[],
+  interactionBlockers: CompiledInteractionBlocker[]
 ): void {
   const templateName = substituteParameters(
     getAttributeValue(useTemplateNode, 'Name') ?? '',
@@ -1175,7 +1217,7 @@ function expandTemplateUse(
     ) {
       continue
     }
-    traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
+    traverseElement(child, nextState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings, interactionBlockers)
   }
 }
 
@@ -2478,6 +2520,19 @@ function pushUniqueInteractionBinding(
   )
   if (!duplicate) {
     bindings.push(binding)
+  }
+}
+
+function pushUniqueInteractionBlocker(
+  blockers: CompiledInteractionBlocker[],
+  blocker: CompiledInteractionBlocker
+): void {
+  const duplicate = blockers.some(candidate =>
+    candidate.target === blocker.target &&
+    candidate.sourcePath === blocker.sourcePath
+  )
+  if (!duplicate) {
+    blockers.push(blocker)
   }
 }
 

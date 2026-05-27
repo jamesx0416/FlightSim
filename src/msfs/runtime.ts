@@ -8,6 +8,7 @@ import type {
   CompiledExpression,
   CompiledInputEventBinding,
   CompiledInteractionBinding,
+  CompiledInteractionBlocker,
   CompiledInteractionSoundEvent,
   CompiledMaterialBinding,
   CompiledUpdateBinding,
@@ -532,6 +533,10 @@ export class AircraftRuntime {
 
   getInteractionBindings(): readonly CompiledInteractionBinding[] {
     return this.compiled.interactionBindings
+  }
+
+  getInteractionBlockers(): readonly CompiledInteractionBlocker[] {
+    return this.compiled.interactionBlockers
   }
 
   getInteractionExecutionCount(): number {
