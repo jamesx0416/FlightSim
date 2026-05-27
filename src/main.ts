@@ -228,6 +228,7 @@ export type CockpitCameraController = {
 
 type CockpitViewToggleSource = 'keyboard' | 'benchmark'
 type VCockpitGaugeMode = 'texture' | 'overlay' | 'video'
+type VCockpitGaugeModeRequest = VCockpitGaugeMode | 'htmlTexture'
 type ExteriorInteriorMode = 'deferred' | 'sync' | 'off'
 type CockpitTextureMode = 'range-low' | 'full'
 
@@ -277,7 +278,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly exteriorInteriorLod: number | null
   readonly vcockpitSurfaces: boolean
   readonly vcockpitLiveGauges: boolean
-  readonly vcockpitGaugeMode: VCockpitGaugeMode
+  readonly vcockpitGaugeMode: VCockpitGaugeModeRequest
   readonly vcockpitGaugeCaptureFps: number
   readonly vcockpitGaugeRasterScale: number
   readonly vcockpitGaugeUpdateOutside: boolean
@@ -3105,9 +3106,14 @@ function shouldLiveRefreshVCockpitGauges(searchParams: URLSearchParams): boolean
   return searchParams.get('vcockpitLiveGauges') !== 'off'
 }
 
-function getVCockpitGaugeMode(searchParams: URLSearchParams): VCockpitGaugeMode {
+function getVCockpitGaugeMode(searchParams: URLSearchParams): VCockpitGaugeModeRequest {
   const mode = searchParams.get('vcockpitGaugeMode')
-  return mode === 'overlay' || mode === 'video' ? mode : 'texture'
+  return mode === 'overlay' || mode === 'video' || mode === 'htmlTexture' ? mode : 'texture'
+}
+
+function getConfigurableVCockpitGaugeMode(searchParams: URLSearchParams): VCockpitGaugeMode {
+  const mode = getVCockpitGaugeMode(searchParams)
+  return mode === 'htmlTexture' ? 'texture' : mode
 }
 
 function getVCockpitGaugeVideoFps(searchParams: URLSearchParams): number {
@@ -3669,7 +3675,7 @@ async function loadAircraftGltf(
     readonly exteriorInteriorPreferredLodIndex?: number | null
     readonly bindVCockpitSurfaces?: boolean
     readonly liveVCockpitGauges?: boolean
-    readonly vcockpitGaugeMode?: VCockpitGaugeMode
+    readonly vcockpitGaugeMode?: VCockpitGaugeModeRequest
     readonly vcockpitGaugeVideoFps?: number
     readonly vcockpitGaugeCaptureFps?: number
     readonly vcockpitGaugeRasterScale?: number
@@ -3726,7 +3732,7 @@ async function loadAircraftModelComponent(
     readonly mergeStaticMeshes?: boolean
     readonly bindVCockpitSurfaces?: boolean
     readonly liveVCockpitGauges?: boolean
-    readonly vcockpitGaugeMode?: VCockpitGaugeMode
+    readonly vcockpitGaugeMode?: VCockpitGaugeModeRequest
     readonly vcockpitGaugeVideoFps?: number
     readonly vcockpitGaugeCaptureFps?: number
     readonly vcockpitGaugeRasterScale?: number
@@ -4081,10 +4087,31 @@ function waitForVCockpitHtmlGaugeLoadSlot(): Promise<void> {
 }
 
 function resolveEffectiveVCockpitGaugeMode(
-  requestedGaugeMode: VCockpitGaugeMode,
+  requestedGaugeMode: VCockpitGaugeModeRequest,
   liveHtmlGaugeCapture: boolean,
   diagnostics: ImportDiagnostic[]
 ): VCockpitGaugeMode {
+  if (requestedGaugeMode === 'htmlTexture') {
+    const nativeHtmlTextureSupport = detectNativeHtmlGaugeTextureSupport()
+    if (!nativeHtmlTextureSupport.supported) {
+      diagnostics.push({
+        code: 'vcockpit-html-texture-unsupported',
+        severity: 'info',
+        message: 'VCockpit native HTML texture mode is unavailable; falling back to CanvasTexture mode.',
+        details: nativeHtmlTextureSupport.details
+      })
+      return 'texture'
+    }
+
+    diagnostics.push({
+      code: 'vcockpit-html-texture-blocked',
+      severity: 'info',
+      message: 'VCockpit native HTML texture mode is detected but remains disabled pending renderer integration and long-session validation.',
+      details: nativeHtmlTextureSupport.details
+    })
+    return 'texture'
+  }
+
   if (requestedGaugeMode !== 'video') {
     return requestedGaugeMode
   }
@@ -4108,6 +4135,47 @@ function resolveEffectiveVCockpitGaugeMode(
   }
 
   return 'video'
+}
+
+type NativeHtmlGaugeTextureSupport = {
+  readonly drawElementImage: boolean
+  readonly texElementImage2D: boolean
+  readonly copyElementImageToTexture: boolean
+  readonly supported: boolean
+  readonly details: string
+}
+
+function detectNativeHtmlGaugeTextureSupport(): NativeHtmlGaugeTextureSupport {
+  const canvas2dPrototype = globalThis.CanvasRenderingContext2D?.prototype as
+    | (CanvasRenderingContext2D & { readonly drawElementImage?: unknown })
+    | undefined
+  const webgl2Prototype = globalThis.WebGL2RenderingContext?.prototype as
+    | (WebGL2RenderingContext & { readonly texElementImage2D?: unknown })
+    | undefined
+  const gpuQueuePrototype = (
+    globalThis as typeof globalThis & {
+      readonly GPUQueue?: {
+        readonly prototype?: { readonly copyElementImageToTexture?: unknown }
+      }
+    }
+  ).GPUQueue?.prototype
+
+  const drawElementImage = typeof canvas2dPrototype?.drawElementImage === 'function'
+  const texElementImage2D = typeof webgl2Prototype?.texElementImage2D === 'function'
+  const copyElementImageToTexture =
+    typeof gpuQueuePrototype?.copyElementImageToTexture === 'function'
+
+  return {
+    drawElementImage,
+    texElementImage2D,
+    copyElementImageToTexture,
+    supported: drawElementImage || texElementImage2D || copyElementImageToTexture,
+    details: [
+      `drawElementImage=${drawElementImage ? 'yes' : 'no'}`,
+      `texElementImage2D=${texElementImage2D ? 'yes' : 'no'}`,
+      `copyElementImageToTexture=${copyElementImageToTexture ? 'yes' : 'no'}`
+    ].join(', ')
+  }
 }
 
 type VCockpitGaugeDirtyMessage = {
@@ -4250,7 +4318,7 @@ async function bindVCockpitPlaceholderSurfaces(
   aircraft: ImportedAircraft,
   resolvePanelAssetUrl: (source: string) => string | null,
   liveHtmlGaugeCapture: boolean,
-  gaugeMode: VCockpitGaugeMode,
+  gaugeMode: VCockpitGaugeModeRequest,
   videoFps: number,
   captureFps: number,
   rasterScale: number,
@@ -11568,7 +11636,7 @@ function createViewerConfigProfileFromSearchParams(
     exteriorInteriorLod: resolveRequestedExteriorInteriorLodIndex(searchParams),
     vcockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
     vcockpitLiveGauges: shouldLiveRefreshVCockpitGauges(searchParams),
-    vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
+    vcockpitGaugeMode: getConfigurableVCockpitGaugeMode(searchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
     vcockpitGaugeUpdateOutside: shouldUpdateVCockpitGaugesOutside(searchParams),

@@ -764,23 +764,49 @@ function traverseElement(
     }
   }
 
+  if (isMouseRectPayloadElement(element)) {
+    const payloadBinding = buildMouseRectPayloadInteractionBinding(
+      element,
+      scopedState.params,
+      scopedState.currentNode,
+      state.path,
+      context.diagnostics
+    )
+    if (payloadBinding != null) {
+      pushUniqueInteractionBinding(interactionBindings, payloadBinding)
+    }
+  }
+
   if (elementTagName === 'Loop') {
     const doNode = getDirectChild(element, 'Do')
     if (doNode == null) {
       return
     }
+    const thenNode = getDirectChild(element, 'Then')
+    let loopScopedParams = new Map(scopedState.params)
     executeLoop(
       element,
       scopedState.params,
       state.path,
       context.diagnostics,
       iterationParams => {
+        loopScopedParams = applyLoopDoParameterBlocks(
+          doNode,
+          loopScopedParams,
+          iterationParams,
+          state.path,
+          context.diagnostics
+        )
+
         for (const child of Array.from(doNode.children)) {
+          if (getParameterBlockKind(child) != null) {
+            continue
+          }
           traverseElement(
             child,
             {
               ...scopedState,
-              params: iterationParams
+              params: loopScopedParams
             },
             context,
             animationBindings,
@@ -793,6 +819,24 @@ function traverseElement(
         }
       }
     )
+    if (thenNode != null) {
+      for (const child of Array.from(thenNode.children)) {
+        traverseElement(
+          child,
+          {
+            ...scopedState,
+            params: loopScopedParams
+          },
+          context,
+          animationBindings,
+          visibilityBindings,
+          materialBindings,
+          updateBindings,
+          inputEventBindings,
+          interactionBindings
+        )
+      }
+    }
     return
   }
 
@@ -820,6 +864,92 @@ function traverseElement(
     }
     traverseElement(child, scopedState, context, animationBindings, visibilityBindings, materialBindings, updateBindings, inputEventBindings, interactionBindings)
   }
+}
+
+function buildMouseRectPayloadInteractionBinding(
+  element: Element,
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledInteractionBinding | null {
+  const elementTagName = getElementTagName(element)
+  if (elementTagName === 'CallbackCode') {
+    return buildInteractionCodeBinding(
+      buildCallbackCodeSource(element) ?? '',
+      null,
+      params,
+      currentNode,
+      sourcePath,
+      'callback',
+      diagnostics
+    )
+  }
+
+  if (elementTagName === 'CallbackDragging') {
+    return buildInteractionCodeBinding(
+      buildCallbackDraggingSource(element) ?? '',
+      null,
+      params,
+      currentNode,
+      sourcePath,
+      'callback',
+      diagnostics
+    )
+  }
+
+  if (elementTagName === 'CallbackJumpDragging') {
+    return buildInteractionCodeBinding(
+      buildCallbackJumpDraggingSource(element) ?? '',
+      null,
+      params,
+      currentNode,
+      sourcePath,
+      'callback',
+      diagnostics
+    )
+  }
+
+  if (elementTagName === 'EventID') {
+    const eventId = substituteParameters(element.textContent ?? '', params).trim()
+    return eventId
+      ? buildInteractionEventBinding(eventId, params, currentNode, sourcePath, 'callback', diagnostics)
+      : null
+  }
+
+  return null
+}
+
+function isMouseRectPayloadElement(element: Element): boolean {
+  const elementTagName = getElementTagName(element)
+  if (
+    elementTagName !== 'CallbackCode' &&
+    elementTagName !== 'CallbackDragging' &&
+    elementTagName !== 'CallbackJumpDragging' &&
+    elementTagName !== 'EventID'
+  ) {
+    return false
+  }
+
+  const parent = element.parentElement
+  if (parent == null) {
+    return false
+  }
+
+  const parentTagName = getElementTagName(parent)
+  if (parentTagName === 'MouseRect') {
+    return true
+  }
+
+  if (parentTagName !== 'Case') {
+    return false
+  }
+
+  const switchNode = parent.parentElement
+  return switchNode != null &&
+    getElementTagName(switchNode) === 'Switch' &&
+    switchNode.parentElement != null &&
+    getElementTagName(switchNode.parentElement) === 'MouseRect'
 }
 
 function expandTemplateUse(
@@ -2433,6 +2563,39 @@ function collectImmediateParameters(
     true
   )
   return params
+}
+
+function applyLoopDoParameterBlocks(
+  doNode: Element,
+  loopScopedParams: ReadonlyMap<string, string>,
+  iterationParams: ReadonlyMap<string, string>,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): Map<string, string> {
+  const nextParams = new Map<string, string>(loopScopedParams)
+  for (const [key, value] of iterationParams) {
+    nextParams.set(key, value)
+  }
+
+  for (const child of Array.from(doNode.children)) {
+    const kind = getParameterBlockKind(child)
+    if (kind == null) {
+      continue
+    }
+
+    const values = collectParameterBlock(child, nextParams, sourcePath, diagnostics, kind)
+    for (const [key, value] of values) {
+      if (kind === 'default') {
+        if (!nextParams.has(key)) {
+          nextParams.set(key, value)
+        }
+      } else {
+        nextParams.set(key, value)
+      }
+    }
+  }
+
+  return nextParams
 }
 
 function applyScopedParameters(
