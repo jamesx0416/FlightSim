@@ -724,7 +724,9 @@ Scope note:
 ##### AircraftTypes
 
 - [ ] `AircraftTypes/Gliders.xml`
+  - Blocked on fixture coverage as of 2026-05-28. The file defines generic yaw-string/noise animation templates driven by glider/relative-wind SimVars, but it is not included by the current A320/A330 fixture routes. Do not mark checked until a public glider package route exercises the mounted stock XML through the generic compiler/runtime with screenshots and diagnostics.
 - [ ] `AircraftTypes/Rotorcrafts.xml`
+  - Blocked on fixture coverage as of 2026-05-28. The file includes `Gliders.xml` and defines rotor visibility/rotation, swashplate/control-rod/tail-rotor/governor/collective/clutch/rotor-brake templates driven by rotorcraft SimVars and stock engine/handling templates. Some underlying rotor clutch/brake key events are covered by the generic Common input support above, but the mounted rotorcraft XML itself is not exercised by the A320/A330 airliner routes. Do not mark checked until a public rotorcraft package route verifies these templates without aircraft-specific aliases.
 
 ##### Airliner
 
