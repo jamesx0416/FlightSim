@@ -26044,7 +26044,7 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_ComponentWith_PART_ID">` line 121
         - [ ] `<NODE_ID>` line 122 = `#HIGHLIGHT_NODE_ID#`
     - [ ] `<Template Name="ASOBO_GT_Interaction_Blocker">` line 129
-      - Blocked 2026-05-27: this stock template delegates to `ASOBO_GT_Interaction_NoInteraction`; the compiler expands it with zero diagnostics and no executable bindings, but simulator-equivalent interaction blocking requires disabled-MouseRect hit-test semantics that are not represented in the current behavior IR/runtime.
+      - Resolved 2026-05-28: this stock template delegates to `ASOBO_GT_Interaction_NoInteraction`; disabled `MouseRect` semantics now compile into generic interaction-blocker records and the cockpit pick path treats nearer blocker meshes/hitboxes as interaction blockers instead of executable callbacks.
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 130
         - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_NoInteraction">` line 131
 - [ ] `Asobo/Generic/Complex/PushButton.xml`
@@ -27850,11 +27850,11 @@
   - Partial verified 2026-05-14: an in-browser synthetic stock XML harness mounted the real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` and exercised left-single event/code, left-single leave/wheel callbacks, multistate switch-position recursion, drag event-set, and wheel/left-drag axis fallback with zero diagnostics. Remaining rows stay unchecked until representative tooltip/display and the rest of the MouseRect metadata surface are directly exercised or blocked.
   - Partial verified 2026-05-27: stock `Loop` `Then` expansion and selected `MouseRect` `Switch/Case` payload handling now preserve the real `ASOBO_GT_MouseRect` callback payload path. A synthetic harness using the mounted real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` compiled `ASOBO_GT_Interaction_DraggingYAxis_SimGates` into the full gate-aware callback with zero diagnostics; `LeftSingle` initialized gate min/max state, `LeftDrag` emitted the expected set key event, and A330/A320 exterior route smokes stayed at zero diagnostics.
   - Partial verified 2026-05-27: a full-stock-layout harness exercised tooltip/emissive-adjacent paths with zero diagnostics. `ASOBO_GT_Interaction_Tooltip` plus `EMISSIVE_CODE` compiled a material emissive binding for the component target, and `ASOBO_GT_MouseRect` plus `EMISSIVE_NODE_POTENTIOMETER` compiled the light-potentiometer emissive binding. User-facing tooltip rendering remains unimplemented in the viewer, so tooltip display rows stay unchecked/out of current rendered-runtime coverage.
-  - Blocked 2026-05-27: `ASOBO_GT_Interaction_NoInteraction` expands to `ASOBO_GT_MouseRect` with `CALLBACKCODE=0`, `DISABLE_INTERACTION_LOCK=True`, and `DISABLE_MOUSERECT=True`. A mounted stock harness compiled the no-interaction/blocker path with zero diagnostics and zero executable bindings, which matches the current IR's executable-callback-only surface. Simulator-equivalent blocking would require a new generic disabled-MouseRect hit-test blocker representation before these rows can be checked as rendered-runtime parity.
+  - Resolved 2026-05-28: `ASOBO_GT_Interaction_NoInteraction` expands to `ASOBO_GT_MouseRect` with `CALLBACKCODE=0`, `DISABLE_INTERACTION_LOCK=True`, and `DISABLE_MOUSERECT=True`. Disabled `MouseRect` paths now compile into generic interaction-blocker records, `AircraftRuntime.getInteractionBlockers()` exposes them, cockpit picking resolves blocker meshes/hitboxes, and nearer blockers suppress executable interactions.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
     - [ ] `<Template Name="ASOBO_GT_Interaction_NoInteraction">` line 12
-      - Blocked 2026-05-27: no executable binding is expected from `CALLBACKCODE=0`; rendered blocker parity requires disabled-MouseRect hit-test support that the current IR/runtime does not expose.
+      - Resolved 2026-05-28: no executable binding is expected from `CALLBACKCODE=0`; rendered blocker parity is represented by the generic disabled-MouseRect interaction-blocker path.
       - [ ] `<DefaultTemplateParameters>` line 13
         - [ ] `<MOUSEFLAGS>` line 14
         - [ ] `<DISABLE_INTERACTION_LOCK>` line 15
@@ -29040,7 +29040,7 @@
             - [ ] `<ANIM_EVENT_ID>` line 198 = `#ANIM_EVENT_ID# 1 +`
 - [ ] `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml`
   - Partial verified 2026-05-14 through the same stock harness as `Asobo/Generic/Interactions.xml`: left-single leave subtemplate expansion, multistate parameter/code recursion, and base multistate mouse callback emission compiled and executed for representative non-momentary 3-state switch code. Remaining momentary, lockable, center, timed, and repeat variants stay unchecked.
-  - Partial verified 2026-05-27: top-level mounted-stock harnesses exercised `WheelAndContinuousLeft` vertical/horizontal/base dispatch and `DraggingYAxis_SimGates_Base` with zero diagnostics and runtime-equivalent callback/update behavior. Disabled `NoInteraction` blocker semantics remain blocked on a generic disabled-MouseRect hit-test representation.
+  - Partial verified 2026-05-28: top-level mounted-stock harnesses exercised `WheelAndContinuousLeft` vertical/horizontal/base dispatch and `DraggingYAxis_SimGates_Base` with zero diagnostics and runtime-equivalent callback/update behavior. Disabled `NoInteraction` blocker semantics are now represented by the generic disabled-MouseRect interaction-blocker IR/runtime path.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Macro Name="IsUsingRelativePos">` line 2
     - [ ] `<Macro Name="DragLockResetTimer">` line 3
@@ -64759,7 +64759,7 @@
       - [ ] `<UseTemplate Name="ASOBO_GT_ComponentWith_PART_ID">` line 121
         - [ ] `<NODE_ID>` line 122 = `#HIGHLIGHT_NODE_ID#`
     - [ ] `<Template Name="ASOBO_GT_Interaction_Blocker">` line 129
-      - Blocked 2026-05-27: this stock template delegates to `ASOBO_GT_Interaction_NoInteraction`; the compiler expands it with zero diagnostics and no executable bindings, but simulator-equivalent interaction blocking requires disabled-MouseRect hit-test semantics that are not represented in the current behavior IR/runtime.
+      - Resolved 2026-05-28: this stock template delegates to `ASOBO_GT_Interaction_NoInteraction`; disabled `MouseRect` semantics now compile into generic interaction-blocker records and the cockpit pick path treats nearer blocker meshes/hitboxes as interaction blockers instead of executable callbacks.
       - [ ] `<Component ID="#NODE_ID#" Node="#NODE_ID#">` line 130
         - [ ] `<UseTemplate Name="ASOBO_GT_Interaction_NoInteraction">` line 131
 - [ ] `Asobo/Generic/Complex/PushButton.xml`
@@ -66565,11 +66565,11 @@
   - Partial verified 2026-05-14: an in-browser synthetic stock XML harness mounted the real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` and exercised left-single event/code, left-single leave/wheel callbacks, multistate switch-position recursion, drag event-set, and wheel/left-drag axis fallback with zero diagnostics. Remaining rows stay unchecked until representative tooltip/display and the rest of the MouseRect metadata surface are directly exercised or blocked.
   - Partial verified 2026-05-27: stock `Loop` `Then` expansion and selected `MouseRect` `Switch/Case` payload handling now preserve the real `ASOBO_GT_MouseRect` callback payload path. A synthetic harness using the mounted real `Asobo/Generic/Interactions.xml` and `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml` compiled `ASOBO_GT_Interaction_DraggingYAxis_SimGates` into the full gate-aware callback with zero diagnostics; `LeftSingle` initialized gate min/max state, `LeftDrag` emitted the expected set key event, and A330/A320 exterior route smokes stayed at zero diagnostics.
   - Partial verified 2026-05-27: mounted-stock harnesses also exercised `TIMED_TYPE=X_EVENTS`, wheel-and-continuous-left horizontal/vertical dispatch, left-single, push/pull, left-single-timed, wheel-left-single-axis, drag X/Y events-inc-dec, drag Y gates, drag Y sim-gates, drag X code, drag Y code, and tooltip/emissive-adjacent paths with zero compile diagnostics and runtime-equivalent callback/update results.
-  - Blocked 2026-05-27: `ASOBO_GT_Interaction_NoInteraction` expands to `ASOBO_GT_MouseRect` with `CALLBACKCODE=0`, `DISABLE_INTERACTION_LOCK=True`, and `DISABLE_MOUSERECT=True`. A mounted stock harness compiled the no-interaction/blocker path with zero diagnostics and zero executable bindings, which matches the current IR's executable-callback-only surface. Simulator-equivalent blocking would require a new generic disabled-MouseRect hit-test blocker representation before these rows can be checked as rendered-runtime parity.
+  - Resolved 2026-05-28: `ASOBO_GT_Interaction_NoInteraction` expands to `ASOBO_GT_MouseRect` with `CALLBACKCODE=0`, `DISABLE_INTERACTION_LOCK=True`, and `DISABLE_MOUSERECT=True`. Disabled `MouseRect` paths now compile into generic interaction-blocker records, `AircraftRuntime.getInteractionBlockers()` exposes them, cockpit picking resolves blocker meshes/hitboxes, and nearer blockers suppress executable interactions.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Include>` line 2
     - [ ] `<Template Name="ASOBO_GT_Interaction_NoInteraction">` line 12
-      - Blocked 2026-05-27: this expands with zero diagnostics and zero executable bindings, but simulator-equivalent behavior is a disabled `MouseRect` hit-test blocker. The current behavior IR/runtime has no generic disabled-MouseRect blocker representation.
+      - Resolved 2026-05-28: this expands with zero diagnostics and zero executable bindings; simulator-equivalent disabled `MouseRect` hit-test blocking is represented by the generic interaction-blocker IR/runtime path.
       - [ ] `<DefaultTemplateParameters>` line 13
         - [ ] `<MOUSEFLAGS>` line 14
         - [ ] `<DISABLE_INTERACTION_LOCK>` line 15
@@ -67750,7 +67750,7 @@
             - [ ] `<ANIM_EVENT_ID>` line 198 = `#ANIM_EVENT_ID# 1 +`
 - [ ] `Asobo/Generic/Subtemplates/Interactions_Subtemplates.xml`
   - Partial verified 2026-05-14 through the same stock harness as `Asobo/Generic/Interactions.xml`: left-single leave subtemplate expansion, multistate parameter/code recursion, and base multistate mouse callback emission compiled and executed for representative non-momentary 3-state switch code. Remaining momentary, lockable, center, timed, and repeat variants stay unchecked.
-  - Partial verified 2026-05-27: top-level mounted-stock harnesses exercised `WheelAndContinuousLeft` vertical/horizontal/base dispatch and `DraggingYAxis_SimGates_Base` with zero diagnostics and runtime-equivalent callback/update behavior. Disabled `NoInteraction` blocker semantics remain blocked on a generic disabled-MouseRect hit-test representation.
+  - Partial verified 2026-05-28: top-level mounted-stock harnesses exercised `WheelAndContinuousLeft` vertical/horizontal/base dispatch and `DraggingYAxis_SimGates_Base` with zero diagnostics and runtime-equivalent callback/update behavior. Disabled `NoInteraction` blocker semantics are now represented by the generic disabled-MouseRect interaction-blocker IR/runtime path.
   - [ ] `<ModelBehaviors>` line 1
     - [ ] `<Macro Name="IsUsingRelativePos">` line 2
     - [ ] `<Macro Name="DragLockResetTimer">` line 3
