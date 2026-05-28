@@ -28,3 +28,4 @@ Notes:
   - exercised and verified on the fixture routes, or
   - explicitly documented as blocked / out of current runtime scope with a reason.
 - 2026-05-11: Lighting, pressurization, safety, passenger, pilot, electrical subtemplate, fuel subtemplate, and passenger subtemplate items in the active checklist have separate A330/A320 DevApi verification evidence from targeted stock input-event/key-event runtime support, so those items are no longer part of the unchecked remainder. GPS, glass cockpit, generic complex, and misc XML families remain unchecked until their mounted stock contracts are exercised or explicitly scoped out.
+- 2026-05-28: `AircraftTypes/Gliders.xml` and `AircraftTypes/Rotorcrafts.xml` are blocked on public glider/rotorcraft fixture coverage. The current A320/A330 airliner routes do not include those XML files, so airliner route smokes cannot prove their yaw-string, rotor, collective, swashplate, or rotorcraft-specific interaction behavior.
