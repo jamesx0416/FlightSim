@@ -897,7 +897,8 @@ Checked stock XML families in this batch are limited to the families covered by 
 - [x] `Content_Configuration/Models/model_cfg.htm`
   - Reviewed against the mirrored reference on 2026-05-28. The importer resolves `[models].normal` / `[models].exterior` for exterior model behavior XML, optional `[models].interior` for cockpit/interior behavior XML, keeps model paths relative to the `model.cfg` directory, and parses the documented `[model.options]` exterior/interior LOD visibility flags used by the viewer's exterior-interior and cockpit LOD selection. Verified with `tsc --noEmit` and Agent Browser A330/A320 route smokes; both loaded with zero diagnostics and screenshots were captured under `backups/agent-browser/model-cfg-support/`.
 - [ ] `Content_Configuration/SimObjects/Aircraft_SimO/Aircraft.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/aircraft_cfg.htm`
+- [x] `Content_Configuration/SimObjects/Aircraft_SimO/aircraft_cfg.htm`
+  - Reviewed against the mirrored SDK reference on 2026-05-28. The importer discovers `aircraft.cfg` from package `layout.json`, resolves requested aircraft IDs to `[FLTSIM.N]` sections, uses documented `title` / `ui_type` / `ui_variation` / `isUserSelectable` / `isFlyable` metadata for selection and UI, follows documented `[VARIATION] base_container` inheritance, and resolves documented `model`, `panel`, `sound`, and `texture` suffixes into model behavior, panel, sound, and texture directories without aircraft-specific aliases. Verified with `tsc --noEmit` and Agent Browser A330/A320 exterior-only route smokes; both loaded the expected aircraft.cfg-derived aircraft ID/title with zero diagnostics and screenshots were captured under `backups/agent-browser/aircraft-cfg-support/`.
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/cockpit_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/engines_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/flight_model_cfg.htm`
