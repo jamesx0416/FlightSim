@@ -385,6 +385,7 @@ This section tracks the next authoritative, aircraft-generic loader work.
 
 - Tighten stock/shared texture fallback resolution.
   - Generic additional package-root support is now in place for texture fallback lookup as well.
+  - `texture.cfg` fallback parsing now follows the SDK requirement that fallback entries start at `fallback.1` and increment without gaps. Later entries after a missing index are ignored with a warning diagnostic instead of being treated as reachable fallback folders.
   - Current finding on the A320 route:
     - `../../../../texture/Glass` is the relevant shared fallback path for the missing glass maps under investigation
     - `../../../../texture/Interiors` appears in the standard fallback chain but is not implicated by the current missing A320 texture names
@@ -904,7 +905,8 @@ Checked stock XML families in this batch are limited to the families covered by 
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/systems_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/target_performance_cfg.htm`
 - [ ] `Content_Configuration/SimObjects/Living_Things/Living_Things_sim_cfg.htm`
-- [ ] `Content_Configuration/Textures/texture_cfg.htm`
+- [x] `Content_Configuration/Textures/texture_cfg.htm`
+  - Reviewed during the generic texture fallback implementation. The importer resolves `texture.cfg` `[fltsim] fallback.N` folders relative to the `texture.cfg` file, follows only the documented contiguous `fallback.1..N` sequence, recurses through fallback folders with cycle prevention, and emits a warning when a gap makes later entries unreachable. Verified with `tsc --noEmit` and Agent Browser A330/A320 route smokes on 2026-05-28; both loaded with zero diagnostics and screenshots were captured under `backups/agent-browser/texture-cfg-fallback-support/`.
 
 #### Reference Docs Pack
 
