@@ -800,6 +800,8 @@ Scope note: the active A320/A330 fixture routes do not include the public `Asobo
 
 ##### GPS
 
+Scope note: the active A320/A330 routes do not instantiate the public Asobo GPS units as mounted `AS430`, `AS530`, or `AS510/Aera` panels. These files combine generic push/knob input-event handling, NAVCOM helpers, emissive gauge surfaces, and GPS-specific HTML event IDs, so route smokes for airliner MCDUs or NAVCOM/transponder controls are not enough to check them off.
+
 - [ ] `GPS/AS430.xml`
 - [ ] `GPS/AS530.xml`
 - [ ] `GPS/Aera.xml`
@@ -839,7 +841,10 @@ Scope note: the active A320/A330 fixture routes do not include the public `Asobo
 
 ##### GlassCockpit
 
+Scope note: the active A320/A330 routes do not instantiate the public Asobo glass-cockpit suites as mounted AS1000/AS3000/AS3X/AS5/AS580/AS650 units. Existing generic support covers shared input-event, autopilot, emissive, screen, and knob primitives used by parts of these files, but the complete suite-specific softkey/joystick/screen/control-panel contracts are not route-verified.
+
 - [ ] `GlassCockpit/AS1000.xml`
+  - Partial covered only for shared AS1000 autopilot input/key-event behavior noted above; the full AS1000 bezel, joystick, softkey, and screen template surface remains unchecked.
 - [ ] `GlassCockpit/AS3000.xml`
 - [ ] `GlassCockpit/AS307.xml`
 - [ ] `GlassCockpit/AS3X.xml`
