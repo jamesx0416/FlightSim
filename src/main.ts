@@ -5957,6 +5957,12 @@ function createVCockpitGaugeBridgeScript(
     }
     window.requestAnimationFrame(postGaugeDirtyMessage);
   };
+  const markGaugeCanvasChanged = () => {
+    if (pendingDirtyMessage) {
+      return;
+    }
+    markGaugeChanged('canvas');
+  };
   globalThis.__msfsGaugeChangeVersion = gaugeChangeVersion;
   window.setTimeout(postGaugeDirtyMessage, 0);
   const observeGaugeDomChanges = () => {
@@ -5992,7 +5998,7 @@ function createVCockpitGaugeBridgeScript(
       continue;
     }
     CanvasRenderingContext2D.prototype[methodName] = function(...args) {
-      markGaugeChanged('canvas');
+      markGaugeCanvasChanged();
       return original.apply(this, args);
     };
   }
@@ -6563,6 +6569,35 @@ function createVCockpitGaugeBridgeScript(
       return dependencySnapshot.size > 0 &&
         Array.from(dependencySnapshot.entries()).some(hasChangedDependency);
     };
+    const getNextInstrumentUpdateDelayMs = nowMs => {
+      if (!gaugeRuntimeActive) {
+        return 250;
+      }
+
+      if (nowMs < nextUpdateAfterErrorMs) {
+        return nextUpdateAfterErrorMs - nowMs;
+      }
+
+      if (instrumentUpdateMs != null) {
+        if (instrumentUpdateMs <= 0) {
+          return 0;
+        }
+        return Math.max(0, instrumentUpdateMs - (nowMs - lastUpdateMs));
+      }
+
+      if (dependencySnapshot == null) {
+        return 0;
+      }
+
+      return Math.max(0, 100 - (nowMs - lastDependencyProbeMs));
+    };
+    const scheduleInstrumentUpdate = delayMs => {
+      if (delayMs <= 8) {
+        window.requestAnimationFrame(update);
+        return;
+      }
+      window.setTimeout(() => window.requestAnimationFrame(update), delayMs);
+    };
     const runInstrumentUpdate = nowMs => {
       lastUpdateMs = nowMs;
       const nextDependencies = new Map();
@@ -6589,14 +6624,10 @@ function createVCockpitGaugeBridgeScript(
         instrumentRuntimeStats.activeLoopCount = Math.max(0, instrumentRuntimeStats.activeLoopCount - 1);
         return;
       }
-      if (!gaugeRuntimeActive) {
-        window.setTimeout(() => window.requestAnimationFrame(update), 250);
-        return;
-      }
-      if (shouldRunInstrumentUpdate(nowMs)) {
+      if (gaugeRuntimeActive && shouldRunInstrumentUpdate(nowMs)) {
         runInstrumentUpdate(nowMs);
       }
-      window.requestAnimationFrame(update);
+      scheduleInstrumentUpdate(getNextInstrumentUpdateDelayMs(performance.now()));
     };
     window.requestAnimationFrame(update);
   };

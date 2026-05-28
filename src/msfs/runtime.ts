@@ -196,6 +196,7 @@ export class AircraftRuntime {
   private readonly updateExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly runtimeState: RuntimeState
   private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
+  private readonly frameVariableValues = new Map<string, number>()
   private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
   private readonly heldInteractionFeedbackTargets = new Map<
     string,
@@ -224,11 +225,11 @@ export class AircraftRuntime {
     }
     this.hostServices.setInputEventBindings?.(this.compiled.inputEventBindings)
     this.readOnlyExpressionServices = {
-      readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
+      readVariable: (key, unit) => this.readFrameVariable(key, unit)
     }
     this.updateExpressionServices = {
-      readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
-      writeVariable: (key, nextValue, unit) => this.hostServices.writeVariable(key, nextValue, unit),
+      readVariable: (key, unit) => this.readFrameVariable(key, unit),
+      writeVariable: (key, nextValue, unit) => this.writeFrameVariable(key, nextValue, unit),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     }
@@ -316,9 +317,12 @@ export class AircraftRuntime {
       phaseStartMs = nowMs
       return durationMs
     }
+    const readFrameVariable: RuntimeHostServices['readVariable'] = (key, unit) =>
+      this.readFrameVariable(key, unit)
 
     this.interactionFeedbackClockSeconds += dtSeconds
     this.hostServices.tick(dtSeconds)
+    this.frameVariableValues.clear()
     hostTickMs = finishPhase()
     this.runUpdateBindings(dtSeconds)
     updateBindingsMs = finishPhase()
@@ -343,7 +347,7 @@ export class AircraftRuntime {
           ? null
           : readRuntimeExpressionDependencyValues(
             runtimeBinding.dependencies,
-            this.hostServices
+            readFrameVariable
           )
       const canReuseEvaluatedValue =
         runtimeBinding.lastEvaluatedValue != null &&
@@ -360,7 +364,7 @@ export class AircraftRuntime {
             : dependencyValues ??
               readRuntimeExpressionDependencyValues(
                 runtimeBinding.dependencies,
-                this.hostServices
+                readFrameVariable
               )
       }
       const hadPreviousValue = this.animationValues.has(binding.target)
@@ -409,7 +413,7 @@ export class AircraftRuntime {
           ? null
           : readRuntimeExpressionDependencyValues(
             runtimeBinding.dependencies,
-            this.hostServices
+            readFrameVariable
           )
       const canReuseVisible =
         runtimeBinding.lastEvaluatedVisible != null &&
@@ -429,7 +433,7 @@ export class AircraftRuntime {
           : dependencyValues ??
             readRuntimeExpressionDependencyValues(
               runtimeBinding.dependencies,
-              this.hostServices
+              readFrameVariable
             )
       this.nodeVisibilities.set(binding.target, isVisible)
       if (previousVisibility !== isVisible) {
@@ -455,7 +459,7 @@ export class AircraftRuntime {
           ? null
           : readRuntimeExpressionDependencyValues(
             runtimeBinding.dependencies,
-            this.hostServices
+            readFrameVariable
           )
       const canReuseValue =
         runtimeBinding.lastAppliedValue != null &&
@@ -478,7 +482,7 @@ export class AircraftRuntime {
           : dependencyValues ??
             readRuntimeExpressionDependencyValues(
               runtimeBinding.dependencies,
-              this.hostServices
+              readFrameVariable
             )
       this.materialValues.set(runtimeBinding.binding.target, value)
       if (
@@ -664,6 +668,23 @@ export class AircraftRuntime {
       state.ranOnce = true
       this.updateState.set(binding, state)
     }
+  }
+
+  private readFrameVariable(key: string, unit: string | null | undefined): number {
+    const cacheKey = getRuntimeVariableDependencyCacheKey(key, unit)
+    const cachedValue = this.frameVariableValues.get(cacheKey)
+    if (cachedValue != null) {
+      return cachedValue
+    }
+
+    const value = this.hostServices.readVariable(key, unit)
+    this.frameVariableValues.set(cacheKey, value)
+    return value
+  }
+
+  private writeFrameVariable(key: string, value: number, unit: string | null | undefined): void {
+    this.frameVariableValues.delete(getRuntimeVariableDependencyCacheKey(key, unit))
+    this.hostServices.writeVariable(key, value, unit)
   }
 
   private applyWingFlexBindings(): void {
@@ -1032,7 +1053,10 @@ function collectRuntimeExpressionDependencies(
   for (const instruction of instructions) {
     switch (instruction.op) {
       case 'pushVariable': {
-        const cacheKey = `${instruction.key}\u0000${instruction.unit ?? ''}`
+        const cacheKey = getRuntimeVariableDependencyCacheKey(
+          instruction.key,
+          instruction.unit
+        )
         dependencies.set(cacheKey, {
           key: instruction.key,
           unit: instruction.unit
@@ -1058,13 +1082,18 @@ function collectRuntimeExpressionDependencies(
   return true
 }
 
+function getRuntimeVariableDependencyCacheKey(
+  key: string,
+  unit: string | null | undefined
+): string {
+  return `${key}\u0000${unit ?? ''}`
+}
+
 function readRuntimeExpressionDependencyValues(
   dependencies: readonly RuntimeExpressionDependency[],
-  hostServices: RuntimeHostServices
+  readVariable: RuntimeHostServices['readVariable']
 ): readonly number[] {
-  return dependencies.map(dependency =>
-    hostServices.readVariable(dependency.key, dependency.unit)
-  )
+  return dependencies.map(dependency => readVariable(dependency.key, dependency.unit))
 }
 
 function runtimeDependencyValuesEqual(
