@@ -730,11 +730,14 @@ Scope note:
 
 ##### Airliner
 
+Scope note: the active A320/A330 fixture routes do not include the public `Asobo/Airliner/*.xml` family as their full airliner behavior source. Existing coverage is limited to targeted generic runtime work such as stock FMC/MCDU brightness and the documented missing `FBW_AIRBUS_Update_PTU_Template` non-alias decision above. Keep these rows unchecked until each mounted public airliner file is exercised through a stock harness and, where relevant, route-verified without vendor-prefix aliases.
+
 - [ ] `Airliner/AS02A.xml`
 - [ ] `Airliner/Airbus.xml`
 - [ ] `Airliner/AirlinerCommon.xml`
 - [ ] `Airliner/Boeing.xml`
 - [ ] `Airliner/FMC.xml`
+  - Partial verified on 2026-05-14 for `ASOBO_FMC_Push_BRT_DIM_Template` and related MCDU brightness behavior through mounted `Asobo/Airliner/FMC.xml`; broader FMC button/screen/emissive/tooltip/template coverage remains unchecked.
 - [ ] `Airliner/GlassCockpit.xml`
 - [ ] `Airliner/Inputs/Airliner_Inputs.xml`
 
