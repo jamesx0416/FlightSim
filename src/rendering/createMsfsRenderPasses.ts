@@ -123,6 +123,22 @@ export function createMsfsRenderPasses(
         return
       }
 
+      if (!canCopyBlendGBufferSceneDepth(renderer, colorBlendMaterials)) {
+        const originalMaterialState = new Map<MsfsMaterial, MaterialRenderState>()
+        try {
+          hideMaterials(componentOnlyBlendMaterials, originalMaterialState)
+          setMsfsBlendGBufferDepthMaskEnabled(false)
+          renderer.render(scene, camera)
+        } finally {
+          setMsfsBlendGBufferDepthMaskEnabled(true)
+          restoreMaterialRenderState(
+            originalMaterialState.keys(),
+            originalMaterialState
+          )
+        }
+        return
+      }
+
       const originalBackground = scene.background
       const originalAutoClear = renderer.autoClear
       const originalCameraLayerMask = camera.layers.mask
@@ -212,22 +228,11 @@ function copyBlendGBufferSceneDepth(
   renderer: AppRenderer,
   materials: Iterable<Material>
 ): boolean {
-  if (!hasBlendGBufferDepthMaskMaterial(materials)) {
+  if (!canCopyBlendGBufferSceneDepth(renderer, materials)) {
     return false
   }
 
   const depthCopyRenderer = renderer as DepthCopyRenderer
-  if (isWebGpuRenderer(renderer)) {
-    return false
-  }
-
-  if (
-    depthCopyRenderer.copyFramebufferToTexture == null ||
-    depthCopyRenderer.getDrawingBufferSize == null
-  ) {
-    return false
-  }
-
   depthCopyRenderer.getDrawingBufferSize(depthTextureSize)
   const depthTexture = getMsfsBlendGBufferDepthTexture()
   depthTexture.format = DepthFormat
@@ -243,6 +248,22 @@ function copyBlendGBufferSceneDepth(
 
   depthCopyRenderer.copyFramebufferToTexture(depthTexture)
   return true
+}
+
+function canCopyBlendGBufferSceneDepth(
+  renderer: AppRenderer,
+  materials: Iterable<Material>
+): boolean {
+  if (!hasBlendGBufferDepthMaskMaterial(materials)) {
+    return false
+  }
+
+  const depthCopyRenderer = renderer as DepthCopyRenderer
+  return (
+    !isWebGpuRenderer(renderer) &&
+    depthCopyRenderer.copyFramebufferToTexture != null &&
+    depthCopyRenderer.getDrawingBufferSize != null
+  )
 }
 
 function hasBlendGBufferDepthMaskMaterial(materials: Iterable<Material>): boolean {
