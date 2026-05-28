@@ -930,8 +930,10 @@ Checked stock XML families in this batch are limited to the families covered by 
 - [x] `html/Content_Configuration/Models/ModelBehaviors/Input_Event_Definitions.htm`
 - [x] `html/Content_Configuration/Models/ModelBehaviors/TemplateExplorer/Template_Explorer.html`
 - [x] `html/mergedProjects/How_To_Make_An_Aircraft/Contents/Model_Behaviours/Default_Templates.htm`
-- [ ] `html/Asset_Creation/3D_Models/General_Principles.htm`
-- [ ] `html/Asset_Creation/Blender_Plugin/The_Blender_Plugin.htm`
+- [x] `html/Asset_Creation/3D_Models/General_Principles.htm`
+  - Reviewed against the mirrored SDK reference on 2026-05-28. The in-scope runtime guidance is covered by the WebGPU/glTF loader stack: glTF 2.0 loading, DDS texture handling, MSFS DirectX normal-map conversion, packed ORM/detail-map material handling, LOD model selection through model XML, tangent/normal/skinning normalization, primitive winding/base-vertex repair, and static non-skinned mesh batching/instancing. Authoring advice, collision authoring, SDK performance budgeting, and scenery-specific modeling guidance remain reference context rather than runtime contracts.
+- [x] `html/Asset_Creation/Blender_Plugin/The_Blender_Plugin.htm`
+  - Reviewed against the mirrored SDK reference on 2026-05-28. This is Blender exporter installation/migration guidance, not a built-package runtime contract. The viewer consumes compiled MSFS glTF/GLB and material extensions, so importer behavior is tracked by the glTF schema/material reference items rather than Blender add-on UI or blend-file migration steps.
 - [x] `html/Content_Configuration/SimObjects/SimObjects.htm`
   - Reviewed against the mirrored SDK overview on 2026-05-28. The in-scope aircraft portion is covered by package `layout.json` discovery, aircraft `aircraft.cfg`, root aircraft CFG file loading, and documented `model*`, `panel*`, `sound*`, and `texture*` folder/suffix resolution; the overview's non-aircraft `sim.cfg` / `container.cfg` SimObject families remain out of current aircraft-loader scope and are tracked separately by the blocked living-things CFG item. Verified through the A330/A320 route smokes recorded for aircraft, model, cameras, and texture CFG support.
 - [x] `html/Content_Configuration/SimObjects/Aircraft_SimO/flight_model/interactive_points.htm`
