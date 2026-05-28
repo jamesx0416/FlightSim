@@ -919,7 +919,8 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 - [ ] `html/Introduction/Using_The_SDK.htm`
 - [ ] `html/Introduction/Introduction.htm`
-- [ ] `html/Content_Configuration/Models/Models.htm`
+- [x] `html/Content_Configuration/Models/Models.htm`
+  - Reviewed against the mirrored SDK overview on 2026-05-28. This page defines the split between `model.cfg` model selection and model XML behavior definitions; the concrete contracts are covered by the checked `model_cfg.htm`, Model Definitions, Model Animation Definitions, Model Behaviors, General Template Definitions, Input Event Definitions, and Template Explorer entries. Existing importer support resolves model.cfg, model behavior XML, LOD model files, merge/attachment references, behavior includes, and documented NodeAnimation metadata, with A330/A320 route evidence recorded under the model and node-animation support notes.
 - [x] `html/Content_Configuration/Models/Model_Definitions.htm`
 - [x] `html/Content_Configuration/Models/Model_Animation_Definitions.htm`
 - [x] `html/Content_Configuration/Models/ModelBehaviors/Model_Behaviors.htm`
