@@ -825,19 +825,28 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo GPS 
 ##### Generic Complex
 
 - [ ] `Generic/Complex/Index.xml`
+  - Include aggregator for the Generic Complex family; keep unchecked until the Joystick/Knob/Lever/Misc/PushButton/Switch files below are complete or split into checked/blocked subcontracts.
 - [ ] `Generic/Complex/Joystick.xml`
+  - Partial covered through generic `M:RelativeX/Y`, drag, wheel, animation, and `ASOBO_GT_Joystick_Interaction_Knob` consumer paths in GPS/glass templates, but the full joystick pan/knob interaction contract with repeat updates, drag-lock state, pad drag mode, and dual-axis animation/sound triggers is not route-exercised.
 - [ ] `Generic/Complex/Knob.xml`
+  - Partial covered through finite/infinite knob interaction, push, wheel, sound-trigger, and rotary key-event fallback work above. Keep unchecked because the full finite switch/centered/push-pull/timed/dual-hitbox matrix, animation-handled-separately variants, and dummy/force-full animation branches are not completely exercised.
 - [ ] `Generic/Complex/Lever.xml`
+  - Partial verified by mounted-stock lever drag harnesses for dragging-Y events/inc-dec/gates/sim-gates/code/event-set and wheel-left-drag axis paths. Keep unchecked until all lever animation/sound trigger variants and stock consumers are route-exercised as a complete file.
 - [ ] `Generic/Complex/Misc.xml`
+  - Partial covered by generic needle animation, PartID preservation, and disabled interaction blocker support. Keep unchecked because camera-title metadata, alternate PartID branches, and consumer route coverage are not complete.
 - [ ] `Generic/Complex/PushButton.xml`
+  - Partial covered by generic push, held/timed push, airliner push, emissive, cover, visibility, release, repeat, and disabled/inop paths used by the current cockpit routes. Keep unchecked because the full covered-button, dummy/emissive, potentiometer, sequence-light, min-held-duration, and visibility/emissive branch matrix is not fully route-exercised.
 - [ ] `Generic/Complex/Switch.xml`
+  - Partial covered by generic switch code, 2/3-state, multistate, covered switch, toggle-variable, consistency update, and left-single/multistate interaction support. Keep unchecked because the complete 4-7 state, duration/cancellable, accelerated-hold, single-true/false, dummy, and covered-switch branch matrix remains unverified as a whole.
 
 ##### Generic Subtemplates
 
 - [ ] `Generic/Subtemplates/Animations_Subtemplates.xml`
+  - Partial covered by stock `ASOBO_GT_Anim`, `ASOBO_GT_Anim_Code`, inversion/repeat handling, animation triggers, and effect/sound trigger recording. Keep unchecked because the full failure-test, direct `<Animation>` authoring surface, recursive animation-event effect triggers, and stock consumer matrix are not completely route-verified.
 - [ ] `Generic/Subtemplates/Interactions_Subtemplates.xml`
   - Partial verified through the same mounted-stock interaction harnesses: left-single leave subtemplates, multistate setup/code recursion, wheel/continuous-left horizontal/vertical/base dispatch, and dragging-Y sim-gate base expansion compile and execute through the generic path. Keep unchecked until the remaining lockable, center, timed, repeat, tooltip/display, and `MouseRect` metadata variants are either exercised generically or explicitly blocked.
 - [ ] `Generic/Subtemplates/Updates_Subtemplates.xml`
+  - Partial covered by generic `ASOBO_GT_Update`, stock update runtime execution, smooth lever movement, and selected multistate consistency paths. Keep unchecked until the recursive multistate param/code setup variants are fully exercised against mounted stock consumers.
 
 ##### GlassCockpit
 
