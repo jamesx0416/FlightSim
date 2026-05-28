@@ -741,7 +741,7 @@ Scope note: the active A320/A330 fixture routes do not include the public `Asobo
 - [ ] `Airliner/Boeing.xml`
   - Blocked on representative mounted-stock Boeing fixture coverage; no active A320/A330 route instantiates this Boeing-specific stock behavior file.
 - [ ] `Airliner/FMC.xml`
-  - Partial verified on 2026-05-14 for `ASOBO_FMC_Push_BRT_DIM_Template` and related MCDU brightness behavior through mounted `Asobo/Airliner/FMC.xml`; broader FMC button/screen/emissive/tooltip/template coverage remains unchecked.
+  - Partial verified on 2026-05-14 for `ASOBO_FMC_Push_BRT_DIM_Template` and related MCDU brightness behavior through mounted `Asobo/Airliner/FMC.xml`; blocked on broader FMC button/screen/emissive/tooltip/template fixture coverage before this complete file can be checked.
 - [ ] `Airliner/GlassCockpit.xml`
   - Blocked on representative mounted-stock airliner glass-cockpit fixture coverage; shared screen/input primitives are covered elsewhere, but this complete airliner file is not route-exercised.
 - [ ] `Airliner/Inputs/Airliner_Inputs.xml`
@@ -829,7 +829,7 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo GPS 
 - [x] `Generic/Helpers.xml`
 - [x] `Generic/Index.xml`
 - [ ] `Generic/Interactions.xml`
-  - Partial verified through mounted-stock harnesses on 2026-05-14, 2026-05-27, and 2026-05-28: left-single event/code/leave, timed press, wheel/continuous-left, push-pull, drag axis/event/set/gate, disabled interaction blockers, emissive-adjacent interaction paths, and selected `ASOBO_GT_MouseRect` `Switch`/`Loop` callback payloads compile and execute through the generic XML/RPN path with route smokes recorded above. Keep unchecked because user-facing tooltip rendering and the remaining `MouseRect` metadata/display surface are not implemented or fully route-exercised yet.
+  - Partial verified through mounted-stock harnesses on 2026-05-14, 2026-05-27, and 2026-05-28: left-single event/code/leave, timed press, wheel/continuous-left, push-pull, drag axis/event/set/gate, disabled interaction blockers, emissive-adjacent interaction paths, and selected `ASOBO_GT_MouseRect` `Switch`/`Loop` callback payloads compile and execute through the generic XML/RPN path with route smokes recorded above. Blocked on user-facing tooltip rendering plus the remaining `MouseRect` metadata/display surface before this complete file can be checked.
 - [x] `Generic/Updates.xml`
 - [x] `Generic/Visibility.xml`
 
@@ -838,33 +838,33 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo GPS 
 - [ ] `Generic/Complex/Index.xml`
   - Include aggregator for the Generic Complex family; keep unchecked until the Joystick/Knob/Lever/Misc/PushButton/Switch files below are complete or split into checked/blocked subcontracts.
 - [ ] `Generic/Complex/Joystick.xml`
-  - Partial covered through generic `M:RelativeX/Y`, drag, wheel, animation, and `ASOBO_GT_Joystick_Interaction_Knob` consumer paths in GPS/glass templates, but the full joystick pan/knob interaction contract with repeat updates, drag-lock state, pad drag mode, and dual-axis animation/sound triggers is not route-exercised.
+  - Partial covered through generic `M:RelativeX/Y`, drag, wheel, animation, and `ASOBO_GT_Joystick_Interaction_Knob` consumer paths in GPS/glass templates, but blocked on route-exercising the full joystick pan/knob interaction contract with repeat updates, drag-lock state, pad drag mode, and dual-axis animation/sound triggers.
 - [ ] `Generic/Complex/Knob.xml`
-  - Partial covered through finite/infinite knob interaction, push, wheel, sound-trigger, and rotary key-event fallback work above. Keep unchecked because the full finite switch/centered/push-pull/timed/dual-hitbox matrix, animation-handled-separately variants, and dummy/force-full animation branches are not completely exercised.
+  - Partial covered through finite/infinite knob interaction, push, wheel, sound-trigger, and rotary key-event fallback work above. Blocked on route-exercising the full finite switch/centered/push-pull/timed/dual-hitbox matrix, animation-handled-separately variants, and dummy/force-full animation branches.
 - [ ] `Generic/Complex/Lever.xml`
-  - Partial verified by mounted-stock lever drag harnesses for dragging-Y events/inc-dec/gates/sim-gates/code/event-set and wheel-left-drag axis paths. Keep unchecked until all lever animation/sound trigger variants and stock consumers are route-exercised as a complete file.
+  - Partial verified by mounted-stock lever drag harnesses for dragging-Y events/inc-dec/gates/sim-gates/code/event-set and wheel-left-drag axis paths. Blocked on route-exercising all lever animation/sound trigger variants and stock consumers as a complete file.
 - [ ] `Generic/Complex/Misc.xml`
-  - Partial covered by generic needle animation, PartID preservation, and disabled interaction blocker support. Keep unchecked because camera-title metadata, alternate PartID branches, and consumer route coverage are not complete.
+  - Partial covered by generic needle animation, PartID preservation, and disabled interaction blocker support. Blocked on camera-title metadata, alternate PartID branches, and complete consumer route coverage.
 - [ ] `Generic/Complex/PushButton.xml`
-  - Partial covered by generic push, held/timed push, airliner push, emissive, cover, visibility, release, repeat, and disabled/inop paths used by the current cockpit routes. Keep unchecked because the full covered-button, dummy/emissive, potentiometer, sequence-light, min-held-duration, and visibility/emissive branch matrix is not fully route-exercised.
+  - Partial covered by generic push, held/timed push, airliner push, emissive, cover, visibility, release, repeat, and disabled/inop paths used by the current cockpit routes. Blocked on route-exercising the full covered-button, dummy/emissive, potentiometer, sequence-light, min-held-duration, and visibility/emissive branch matrix.
 - [ ] `Generic/Complex/Switch.xml`
-  - Partial covered by generic switch code, 2/3-state, multistate, covered switch, toggle-variable, consistency update, and left-single/multistate interaction support. Keep unchecked because the complete 4-7 state, duration/cancellable, accelerated-hold, single-true/false, dummy, and covered-switch branch matrix remains unverified as a whole.
+  - Partial covered by generic switch code, 2/3-state, multistate, covered switch, toggle-variable, consistency update, and left-single/multistate interaction support. Blocked on route-exercising the complete 4-7 state, duration/cancellable, accelerated-hold, single-true/false, dummy, and covered-switch branch matrix.
 
 ##### Generic Subtemplates
 
 - [ ] `Generic/Subtemplates/Animations_Subtemplates.xml`
-  - Partial covered by stock `ASOBO_GT_Anim`, `ASOBO_GT_Anim_Code`, inversion/repeat handling, animation triggers, and effect/sound trigger recording. Keep unchecked because the full failure-test, direct `<Animation>` authoring surface, recursive animation-event effect triggers, and stock consumer matrix are not completely route-verified.
+  - Partial covered by stock `ASOBO_GT_Anim`, `ASOBO_GT_Anim_Code`, inversion/repeat handling, animation triggers, and effect/sound trigger recording. Blocked on route-verifying the full failure-test, direct `<Animation>` authoring surface, recursive animation-event effect triggers, and stock consumer matrix.
 - [ ] `Generic/Subtemplates/Interactions_Subtemplates.xml`
   - Partial verified through the same mounted-stock interaction harnesses: left-single leave subtemplates, multistate setup/code recursion, wheel/continuous-left horizontal/vertical/base dispatch, and dragging-Y sim-gate base expansion compile and execute through the generic path. Keep unchecked until the remaining lockable, center, timed, repeat, tooltip/display, and `MouseRect` metadata variants are either exercised generically or explicitly blocked.
 - [ ] `Generic/Subtemplates/Updates_Subtemplates.xml`
-  - Partial covered by generic `ASOBO_GT_Update`, stock update runtime execution, smooth lever movement, and selected multistate consistency paths. Keep unchecked until the recursive multistate param/code setup variants are fully exercised against mounted stock consumers.
+  - Partial covered by generic `ASOBO_GT_Update`, stock update runtime execution, smooth lever movement, and selected multistate consistency paths. Blocked on exercising the recursive multistate param/code setup variants against mounted stock consumers.
 
 ##### GlassCockpit
 
 Scope note: the active A320/A330 routes do not instantiate the public Asobo glass-cockpit suites as mounted AS1000/AS3000/AS3X/AS5/AS580/AS650 units. Existing generic support covers shared input-event, autopilot, emissive, screen, and knob primitives used by parts of these files, but the complete suite-specific softkey/joystick/screen/control-panel contracts are not route-verified.
 
 - [ ] `GlassCockpit/AS1000.xml`
-  - Partial covered only for shared AS1000 autopilot input/key-event behavior noted above; the full AS1000 bezel, joystick, softkey, and screen template surface remains unchecked.
+  - Partial covered only for shared AS1000 autopilot input/key-event behavior noted above; blocked on representative AS1000 fixture coverage for the full bezel, joystick, softkey, and screen template surface.
 - [ ] `GlassCockpit/AS3000.xml`
   - Blocked on representative AS3000 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/AS307.xml`
@@ -889,13 +889,13 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo glas
 ##### Inputs
 
 - [ ] `Inputs/Generic.xml`
-  - Partial verified through the Common input-event work above: the compiler/runtime supports `ASOBO_GIE` / `ASOBO_GIE_Base` patterns for explicit `BINDING_*`, static and dynamic binding parameters, `*_EVENT_ID`, `*_EVENT_ID_ONLY`, generated direct `Inc` / `Dec` / `Set` bridge bindings, generated multistate bindings, two-state toggles, `SET_STATE_EXTERNAL` step/set synthesis, and `ON_STATE_CHANGED_EXTERNAL_CODE`. Keep unchecked because the full generic tooltip/watch-var/value metadata surface and every integer/float animation-helper branch in this file have not been route-exercised as a complete stock contract.
+  - Partial verified through the Common input-event work above: the compiler/runtime supports `ASOBO_GIE` / `ASOBO_GIE_Base` patterns for explicit `BINDING_*`, static and dynamic binding parameters, `*_EVENT_ID`, `*_EVENT_ID_ONLY`, generated direct `Inc` / `Dec` / `Set` bridge bindings, generated multistate bindings, two-state toggles, `SET_STATE_EXTERNAL` step/set synthesis, and `ON_STATE_CHANGED_EXTERNAL_CODE`. Blocked on route-exercising the full generic tooltip/watch-var/value metadata surface and every integer/float animation-helper branch as a complete stock contract.
 - [ ] `Inputs/Helpers.xml`
-  - Partial verified as a dependency of the checked Common input families: macro/include resolution is active for `ASOBO\Inputs\Helpers.xml`, and its `Generic.xml` / `Templates.xml` includes are resolved by the mounted stock loader. Keep unchecked until the helper macros and included files are verified as a complete public stock input contract rather than only through covered Common/NAVCOM/Transponder consumers.
+  - Partial verified as a dependency of the checked Common input families: macro/include resolution is active for `ASOBO\Inputs\Helpers.xml`, and its `Generic.xml` / `Templates.xml` includes are resolved by the mounted stock loader. Blocked on verifying the helper macros and included files as a complete public stock input contract rather than only through covered Common/NAVCOM/Transponder consumers.
 - [ ] `Inputs/Index.xml`
   - This file is an include aggregator for the public `Asobo/Inputs` family. Keep unchecked until the included `Generic.xml`, `Helpers.xml`, and `Templates.xml` rows are either complete or explicitly split into checked/blocked subcontracts.
 - [ ] `Inputs/Templates.xml`
-  - Partial verified through mounted-stock interaction/input harnesses: `UseInputEvent` wrappers, `SET_ARG_COUNT` / multi-argument bridge calls, push/pull event bases, BRT/DIM held-button behavior, and generated input-event bindings are supported by the generic compiler/runtime. Keep unchecked because the full `ASOBO_Interaction_Base_Template` matrix for push/switch/knob/lever/joystick, tooltip/display metadata, first-available binding selection, lockable/center/timed/repeat variants, and emissive template dispatch is not fully route-exercised.
+  - Partial verified through mounted-stock interaction/input harnesses: `UseInputEvent` wrappers, `SET_ARG_COUNT` / multi-argument bridge calls, push/pull event bases, BRT/DIM held-button behavior, and generated input-event bindings are supported by the generic compiler/runtime. Blocked on route-exercising the full `ASOBO_Interaction_Base_Template` matrix for push/switch/knob/lever/joystick, tooltip/display metadata, first-available binding selection, lockable/center/timed/repeat variants, and emissive template dispatch.
 
 ##### Misc
 
@@ -914,7 +914,7 @@ Scope note: these public stock files are not part of the active A320/A330 airlin
 - [ ] `Misc/Accelerometer.xml`
   - Blocked on representative accelerometer fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/Clock.xml`
-  - Partial covered only through shared `Common/Inputs/Instrument_Inputs.xml` and generic timed push-button support; the complete clock/OAT screen and control-button template contract remains unchecked.
+  - Partial covered only through shared `Common/Inputs/Instrument_Inputs.xml` and generic timed push-button support; blocked on representative clock/OAT fixture coverage for the complete screen and control-button template contract.
 - [ ] `Misc/GX2.xml`
   - Blocked on representative GX2 fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/GroundVehicles.xml`
@@ -926,7 +926,7 @@ Scope note: these public stock files are not part of the active A320/A330 airlin
 - [ ] `Misc/VoltsAmps.xml`
   - Blocked on representative volts/amps fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/Inputs/Misc_Inputs.xml`
-  - Partial covered only for the generic `ASOBO_GIE_Anim_Handling` wrapper pattern shared with other checked input families. The concrete `AS_Propeller`, `ACCELEROMETER`, `AS_Vigilus`, `AS_Digiflo`, `AS_DigitalFuelMeter_FP5L`, `AS_GX2`, and `AS_EPM` input IDs remain unchecked until their owning Misc instruments are exercised.
+  - Partial covered only for the generic `ASOBO_GIE_Anim_Handling` wrapper pattern shared with other checked input families. Blocked on exercising the concrete `AS_Propeller`, `ACCELEROMETER`, `AS_Vigilus`, `AS_Digiflo`, `AS_DigitalFuelMeter_FP5L`, `AS_GX2`, and `AS_EPM` input IDs with their owning Misc instruments.
 
 ##### NAVCOM
 
