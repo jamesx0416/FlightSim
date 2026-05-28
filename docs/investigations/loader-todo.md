@@ -811,6 +811,7 @@ Scope note:
 - [x] `Generic/Helpers.xml`
 - [x] `Generic/Index.xml`
 - [ ] `Generic/Interactions.xml`
+  - Partial verified through mounted-stock harnesses on 2026-05-14, 2026-05-27, and 2026-05-28: left-single event/code/leave, timed press, wheel/continuous-left, push-pull, drag axis/event/set/gate, disabled interaction blockers, emissive-adjacent interaction paths, and selected `ASOBO_GT_MouseRect` `Switch`/`Loop` callback payloads compile and execute through the generic XML/RPN path with route smokes recorded above. Keep unchecked because user-facing tooltip rendering and the remaining `MouseRect` metadata/display surface are not implemented or fully route-exercised yet.
 - [x] `Generic/Updates.xml`
 - [x] `Generic/Visibility.xml`
 
@@ -828,6 +829,7 @@ Scope note:
 
 - [ ] `Generic/Subtemplates/Animations_Subtemplates.xml`
 - [ ] `Generic/Subtemplates/Interactions_Subtemplates.xml`
+  - Partial verified through the same mounted-stock interaction harnesses: left-single leave subtemplates, multistate setup/code recursion, wheel/continuous-left horizontal/vertical/base dispatch, and dragging-Y sim-gate base expansion compile and execute through the generic path. Keep unchecked until the remaining lockable, center, timed, repeat, tooltip/display, and `MouseRect` metadata variants are either exercised generically or explicitly blocked.
 - [ ] `Generic/Subtemplates/Updates_Subtemplates.xml`
 
 ##### GlassCockpit
