@@ -854,9 +854,13 @@ Scope note: the active A320/A330 fixture routes do not include the public `Asobo
 ##### Inputs
 
 - [ ] `Inputs/Generic.xml`
+  - Partial verified through the Common input-event work above: the compiler/runtime supports `ASOBO_GIE` / `ASOBO_GIE_Base` patterns for explicit `BINDING_*`, static and dynamic binding parameters, `*_EVENT_ID`, `*_EVENT_ID_ONLY`, generated direct `Inc` / `Dec` / `Set` bridge bindings, generated multistate bindings, two-state toggles, `SET_STATE_EXTERNAL` step/set synthesis, and `ON_STATE_CHANGED_EXTERNAL_CODE`. Keep unchecked because the full generic tooltip/watch-var/value metadata surface and every integer/float animation-helper branch in this file have not been route-exercised as a complete stock contract.
 - [ ] `Inputs/Helpers.xml`
+  - Partial verified as a dependency of the checked Common input families: macro/include resolution is active for `ASOBO\Inputs\Helpers.xml`, and its `Generic.xml` / `Templates.xml` includes are resolved by the mounted stock loader. Keep unchecked until the helper macros and included files are verified as a complete public stock input contract rather than only through covered Common/NAVCOM/Transponder consumers.
 - [ ] `Inputs/Index.xml`
+  - This file is an include aggregator for the public `Asobo/Inputs` family. Keep unchecked until the included `Generic.xml`, `Helpers.xml`, and `Templates.xml` rows are either complete or explicitly split into checked/blocked subcontracts.
 - [ ] `Inputs/Templates.xml`
+  - Partial verified through mounted-stock interaction/input harnesses: `UseInputEvent` wrappers, `SET_ARG_COUNT` / multi-argument bridge calls, push/pull event bases, BRT/DIM held-button behavior, and generated input-event bindings are supported by the generic compiler/runtime. Keep unchecked because the full `ASOBO_Interaction_Base_Template` matrix for push/switch/knob/lever/joystick, tooltip/display metadata, first-available binding selection, lockable/center/timed/repeat variants, and emissive template dispatch is not fully route-exercised.
 
 ##### Misc
 
