@@ -1250,13 +1250,11 @@ async function addTextureFallbackDirectories(
     return
   }
 
-  const fallbackDirectories = [...fltsimSection.values.entries()]
-    .filter(([key, value]) => /^fallback\.\d+$/iu.test(key) && value.trim() !== '')
-    .sort((left, right) => {
-      const leftIndex = Number.parseInt(left[0].split('.').at(-1) ?? '0', 10)
-      const rightIndex = Number.parseInt(right[0].split('.').at(-1) ?? '0', 10)
-      return leftIndex - rightIndex
-    })
+  const fallbackDirectories = collectContiguousTextureFallbacks(
+    fltsimSection.values,
+    textureCfgPath,
+    context
+  )
 
   for (const [, fallbackValue] of fallbackDirectories) {
     const fallbackDirectory =
@@ -1277,6 +1275,53 @@ async function addTextureFallbackDirectories(
       visitedDirectories
     )
   }
+}
+
+function collectContiguousTextureFallbacks(
+  values: ReadonlyMap<string, string>,
+  textureCfgPath: string,
+  context: ImportContext
+): readonly [string, string][] {
+  const fallbackEntries = [...values.entries()]
+    .map(([key, value]): [number, string, string] | null => {
+      const match = /^fallback\.(\d+)$/iu.exec(key)
+      if (match == null || value.trim() === '') {
+        return null
+      }
+      return [Number.parseInt(match[1]!, 10), key, value]
+    })
+    .filter((entry): entry is [number, string, string] => entry != null)
+    .sort((left, right) => left[0] - right[0])
+
+  if (fallbackEntries.length === 0) {
+    return []
+  }
+
+  const fallbackValuesByIndex = new Map<number, [string, string]>()
+  for (const [index, key, value] of fallbackEntries) {
+    if (Number.isFinite(index) && index > 0 && !fallbackValuesByIndex.has(index)) {
+      fallbackValuesByIndex.set(index, [key, value])
+    }
+  }
+
+  const contiguousEntries: [string, string][] = []
+  for (let index = 1; ; index += 1) {
+    const entry = fallbackValuesByIndex.get(index)
+    if (entry == null) {
+      if (fallbackValuesByIndex.size > contiguousEntries.length) {
+        context.diagnostics.push({
+          code: 'texture_cfg_fallback_sequence_gap',
+          message: `Texture fallback chain in ${textureCfgPath} stops before fallback.${index}; later fallback entries are ignored.`,
+          severity: 'warning',
+          sourcePath: textureCfgPath
+        })
+      }
+      break
+    }
+    contiguousEntries.push(entry)
+  }
+
+  return contiguousEntries
 }
 
 function getModelBehaviorFile(
