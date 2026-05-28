@@ -3339,6 +3339,11 @@ function getVCockpitGaugeUpdateThrottleMs(searchParams: URLSearchParams): number
     return 0
   }
 
+  const gaugeMode = getVCockpitGaugeMode(searchParams)
+  if (gaugeMode === 'texture' || gaugeMode === 'htmlTexture') {
+    return 1000 / getVCockpitGaugeCaptureFps(searchParams)
+  }
+
   return null
 }
 
