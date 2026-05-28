@@ -6247,19 +6247,29 @@ function createVCockpitGaugeBridgeScript(
   const writeTrackedSimVar = (name, unit, value, source = '') => {
     const runtimeName = normalizeRuntimeBridgeVariableName(name, source);
     const numericValue = Number(value);
-    simVarValues.set(normalizeSimVarKey(runtimeName, unit, source), Number.isFinite(numericValue) ? numericValue : 0);
+    const nextValue = Number.isFinite(numericValue) ? numericValue : 0;
+    const storedKey = normalizeSimVarKey(runtimeName, unit, source);
+    const previousValue = simVarValues.get(storedKey);
+    if (previousValue === nextValue) {
+      if (/^K:/iu.test(runtimeName) && nextValue !== 0) {
+        return triggerRuntimeKeyEvent(runtimeName.slice(2), [nextValue]);
+      }
+      return Promise.resolve(nextValue);
+    }
+
+    simVarValues.set(storedKey, nextValue);
     bridgeStats.storedSimVarCount = simVarValues.size;
     markGaugeChanged('unknown');
     if (/^K:/iu.test(runtimeName)) {
-      return triggerRuntimeKeyEvent(runtimeName.slice(2), [Number(value ?? 0)]);
+      return triggerRuntimeKeyEvent(runtimeName.slice(2), [nextValue]);
     }
     postRuntimeNotification({
       op: 'writeVariable',
       name: runtimeName,
       unit,
-      value: Number.isFinite(numericValue) ? numericValue : 0
+      value: nextValue
     });
-    return Promise.resolve(Number.isFinite(numericValue) ? numericValue : 0);
+    return Promise.resolve(nextValue);
   };
   const triggerRuntimeKeyEvent = (name, args = []) => {
     incrementBridgeCall('KeyEvent:' + String(name ?? ''));
