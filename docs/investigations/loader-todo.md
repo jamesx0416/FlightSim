@@ -917,8 +917,10 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 #### Reference Docs Pack
 
-- [ ] `html/Introduction/Using_The_SDK.htm`
-- [ ] `html/Introduction/Introduction.htm`
+- [x] `html/Introduction/Using_The_SDK.htm`
+  - Reviewed against the mirrored SDK reference on 2026-05-28. The in-scope loader contract from this overview is built-package consumption: `layout.json`, `manifest.json`, VFS-style package-relative paths, aircraft SimObject CFG/XML assets, compiled glTF/GLB, DDS textures, sound.xml metadata, and HTML gauges. The importer loads package layout/manifest data, resolves package-relative files through layout entries and additional package roots, and keeps SDK authoring/editor/scenery/mission workflows out of runtime scope. Covered by the checked package/importer, CFG, model, texture, behavior, sound, and panel/gauge items.
+- [x] `html/Introduction/Introduction.htm`
+  - Reviewed against the mirrored SDK introduction on 2026-05-28. This page is an SDK/manual overview with no separate loader behavior beyond the package/configuration/model/sound/gauge contracts tracked by the concrete reference items below; it remains in the downloaded reference pack for context only and is not used as a runtime behavior source.
 - [x] `html/Content_Configuration/Models/Models.htm`
   - Reviewed against the mirrored SDK overview on 2026-05-28. This page defines the split between `model.cfg` model selection and model XML behavior definitions; the concrete contracts are covered by the checked `model_cfg.htm`, Model Definitions, Model Animation Definitions, Model Behaviors, General Template Definitions, Input Event Definitions, and Template Explorer entries. Existing importer support resolves model.cfg, model behavior XML, LOD model files, merge/attachment references, behavior includes, and documented NodeAnimation metadata, with A330/A320 route evidence recorded under the model and node-animation support notes.
 - [x] `html/Content_Configuration/Models/Model_Definitions.htm`
