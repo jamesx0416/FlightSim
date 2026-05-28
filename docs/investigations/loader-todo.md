@@ -1046,6 +1046,7 @@ Checked stock XML families in this batch are limited to the families covered by 
 ### 7. Revisit The A320 Wing Structure / Transform Issue
 
 - [ ] Revisit the A320 wing structure/transform issue after stock XML and CFG coverage is expanded.
+  - Deferred until the remaining generic stock XML partials above are either completed or fixture-blocked; current authoritative evidence is recorded below.
 - [x] Implement generic model-level `NodeAnimation` runtime support from official docs.
   Documented-first scope:
   - [x] Audit and list all `NodeAnimation` types present in mounted aircraft fixtures and stock docs.
@@ -1072,6 +1073,7 @@ Checked stock XML families in this batch are limited to the families covered by 
   - 2026-05-28 cockpit performance follow-up: WebGPU cannot copy the scene depth texture used by the blend-gbuffer depth-mask path, so the previous fallback paid for a two-pass cockpit render even though the decal depth mask was disabled. The renderer now uses a single forward pass whenever depth copy is unavailable, hides component-only blend-gbuffer materials, and disables depth-mask sampling for that fallback. Verified with `tsc --noEmit` and Agent Browser on the A330 LOD0 cockpit route: after looking down toward the pedestal, the settled sample held about 60 FPS, WebGPU frame calls dropped from 4 to 2, and median render time dropped from about 2.9 ms to about 2.2 ms with zero error diagnostics.
   - The exact `WingFlex` node deformation math remains blocked by missing public documentation; do not re-enable the prior transform approximation unless authoritative math becomes available.
 - [ ] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.
+  - Blocked until a remaining visible A320 wing/structure defect is reproduced after the documented stock-support pass; existing WingFlex deformation remains blocked on missing public math, while the known flap decal issue has generic material/decal fixes recorded below.
 
 ### 8. Finish Selectable Cockpit / Interior LOD Support
 
