@@ -894,7 +894,8 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 - [ ] `Additional_Information/File_Formats/CFG_Files.htm`
 - [ ] `Content_Configuration/Cameras/Cameras_CFG/cameras_cfg.htm`
-- [ ] `Content_Configuration/Models/model_cfg.htm`
+- [x] `Content_Configuration/Models/model_cfg.htm`
+  - Reviewed against the mirrored reference on 2026-05-28. The importer resolves `[models].normal` / `[models].exterior` for exterior model behavior XML, optional `[models].interior` for cockpit/interior behavior XML, keeps model paths relative to the `model.cfg` directory, and parses the documented `[model.options]` exterior/interior LOD visibility flags used by the viewer's exterior-interior and cockpit LOD selection. Verified with `tsc --noEmit` and Agent Browser A330/A320 route smokes; both loaded with zero diagnostics and screenshots were captured under `backups/agent-browser/model-cfg-support/`.
 - [ ] `Content_Configuration/SimObjects/Aircraft_SimO/Aircraft.htm`
 - [ ] `Content_Configuration/SimObjects/Aircraft_SimO/aircraft_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/cockpit_cfg.htm`
