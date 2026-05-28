@@ -869,6 +869,8 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo glas
 
 ##### Misc
 
+Scope note: these public stock files are not part of the active A320/A330 airliner include graph as complete mounted contracts. Most are standalone avionics/instrument packages that depend on `Misc/Inputs/Misc_Inputs.xml`, emissive screen templates, tooltips, and generic interaction bases; `GroundVehicles.xml` and `SimObjects.xml` are non-aircraft/service-object animation helpers. Keep this family unchecked until representative fixtures or harnesses instantiate each unit without aircraft-specific aliases.
+
 - [ ] `Misc/ASDigiflo.xml`
 - [ ] `Misc/ASDigitalFuelMeter_FP5L.xml`
 - [ ] `Misc/ASPropeller.xml`
@@ -876,12 +878,16 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo glas
 - [ ] `Misc/AS_EPM.xml`
 - [ ] `Misc/Accelerometer.xml`
 - [ ] `Misc/Clock.xml`
+  - Partial covered only through shared `Common/Inputs/Instrument_Inputs.xml` and generic timed push-button support; the complete clock/OAT screen and control-button template contract remains unchecked.
 - [ ] `Misc/GX2.xml`
 - [ ] `Misc/GroundVehicles.xml`
+  - Blocked/out of current aircraft-loader verification scope until there is a representative ground-service vehicle fixture path; the active viewer aircraft routes do not instantiate catering trucks, boarding ramps, baggage loaders, pushback vehicles, fuel trucks, or GPU animation templates.
 - [ ] `Misc/Pl463.xml`
 - [ ] `Misc/SimObjects.xml`
+  - Blocked/out of current aircraft-loader verification scope until there is a representative non-aircraft SimObject fixture path; this file covers wind turbines, wind direction, and jetway animation helpers rather than the aircraft SimObject path currently loaded by the viewer.
 - [ ] `Misc/VoltsAmps.xml`
 - [ ] `Misc/Inputs/Misc_Inputs.xml`
+  - Partial covered only for the generic `ASOBO_GIE_Anim_Handling` wrapper pattern shared with other checked input families. The concrete `AS_Propeller`, `ACCELEROMETER`, `AS_Vigilus`, `AS_Digiflo`, `AS_DigitalFuelMeter_FP5L`, `AS_GX2`, and `AS_EPM` input IDs remain unchecked until their owning Misc instruments are exercised.
 
 ##### NAVCOM
 
