@@ -733,13 +733,19 @@ Scope note:
 Scope note: the active A320/A330 fixture routes do not include the public `Asobo/Airliner/*.xml` family as their full airliner behavior source. Existing coverage is limited to targeted generic runtime work such as stock FMC/MCDU brightness and the documented missing `FBW_AIRBUS_Update_PTU_Template` non-alias decision above. Keep these rows unchecked until each mounted public airliner file is exercised through a stock harness and, where relevant, route-verified without vendor-prefix aliases.
 
 - [ ] `Airliner/AS02A.xml`
+  - Blocked on representative mounted-stock airliner fixture coverage; the active A320/A330 routes do not include this file as their behavior source.
 - [ ] `Airliner/Airbus.xml`
+  - Blocked on representative mounted-stock Airbus airliner fixture coverage; the active FBW routes use package/vendor templates and the remaining `FBW_` to `ASOBO_` alias is intentionally not guessed.
 - [ ] `Airliner/AirlinerCommon.xml`
+  - Blocked on representative mounted-stock airliner fixture coverage; shared lower-level runtime primitives are covered elsewhere, but this complete file is not route-exercised.
 - [ ] `Airliner/Boeing.xml`
+  - Blocked on representative mounted-stock Boeing fixture coverage; no active A320/A330 route instantiates this Boeing-specific stock behavior file.
 - [ ] `Airliner/FMC.xml`
   - Partial verified on 2026-05-14 for `ASOBO_FMC_Push_BRT_DIM_Template` and related MCDU brightness behavior through mounted `Asobo/Airliner/FMC.xml`; broader FMC button/screen/emissive/tooltip/template coverage remains unchecked.
 - [ ] `Airliner/GlassCockpit.xml`
+  - Blocked on representative mounted-stock airliner glass-cockpit fixture coverage; shared screen/input primitives are covered elsewhere, but this complete airliner file is not route-exercised.
 - [ ] `Airliner/Inputs/Airliner_Inputs.xml`
+  - Blocked on representative mounted-stock airliner input-event fixture coverage; checked Common/NAVCOM/Transponder input support does not prove the full airliner input file.
 
 ##### Common
 
@@ -803,10 +809,15 @@ Scope note: the active A320/A330 fixture routes do not include the public `Asobo
 Scope note: the active A320/A330 routes do not instantiate the public Asobo GPS units as mounted `AS430`, `AS530`, or `AS510/Aera` panels. These files combine generic push/knob input-event handling, NAVCOM helpers, emissive gauge surfaces, and GPS-specific HTML event IDs, so route smokes for airliner MCDUs or NAVCOM/transponder controls are not enough to check them off.
 
 - [ ] `GPS/AS430.xml`
+  - Blocked on representative AS430 fixture coverage; the active A320/A330 routes do not instantiate this public GPS unit.
 - [ ] `GPS/AS530.xml`
+  - Blocked on representative AS530 fixture coverage; the active A320/A330 routes do not instantiate this public GPS unit.
 - [ ] `GPS/Aera.xml`
+  - Blocked on representative Aera/AS510 fixture coverage; the active A320/A330 routes do not instantiate this public GPS unit.
 - [ ] `GPS/Inputs/AS430_Inputs.xml`
+  - Blocked on representative AS430 input fixture coverage; shared generic input-event support does not prove the GPS-specific input IDs and softkey contract.
 - [ ] `GPS/Inputs/Aera_Inputs.xml`
+  - Blocked on representative Aera input fixture coverage; shared generic input-event support does not prove the GPS-specific input IDs and softkey contract.
 
 ##### Generic
 
@@ -855,15 +866,25 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo glas
 - [ ] `GlassCockpit/AS1000.xml`
   - Partial covered only for shared AS1000 autopilot input/key-event behavior noted above; the full AS1000 bezel, joystick, softkey, and screen template surface remains unchecked.
 - [ ] `GlassCockpit/AS3000.xml`
+  - Blocked on representative AS3000 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/AS307.xml`
+  - Blocked on representative AS307 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/AS3X.xml`
+  - Blocked on representative AS3X fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/AS3X_Touch.xml`
+  - Blocked on representative AS3X Touch fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/AS5.xml`
+  - Blocked on representative AS5 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/AS580.xml`
+  - Blocked on representative AS580 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/AS650.xml`
+  - Blocked on representative AS650 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
 - [ ] `GlassCockpit/Inputs/AS1000_Inputs.xml`
+  - Blocked on representative AS1000 input fixture coverage; shared autopilot/input primitives do not prove the complete suite input contract.
 - [ ] `GlassCockpit/Inputs/AS3X_Inputs.xml`
+  - Blocked on representative AS3X input fixture coverage; shared input primitives do not prove the complete suite input contract.
 - [ ] `GlassCockpit/Inputs/AS5_Inputs.xml`
+  - Blocked on representative AS5 input fixture coverage; shared input primitives do not prove the complete suite input contract.
 
 ##### Inputs
 
@@ -881,20 +902,29 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo glas
 Scope note: these public stock files are not part of the active A320/A330 airliner include graph as complete mounted contracts. Most are standalone avionics/instrument packages that depend on `Misc/Inputs/Misc_Inputs.xml`, emissive screen templates, tooltips, and generic interaction bases; `GroundVehicles.xml` and `SimObjects.xml` are non-aircraft/service-object animation helpers. Keep this family unchecked until representative fixtures or harnesses instantiate each unit without aircraft-specific aliases.
 
 - [ ] `Misc/ASDigiflo.xml`
+  - Blocked on representative AS Digiflo fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/ASDigitalFuelMeter_FP5L.xml`
+  - Blocked on representative FP5L fuel-meter fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/ASPropeller.xml`
+  - Blocked on representative AS Propeller fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/ASVigilus.xml`
+  - Blocked on representative AS Vigilus fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/AS_EPM.xml`
+  - Blocked on representative AS EPM fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/Accelerometer.xml`
+  - Blocked on representative accelerometer fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/Clock.xml`
   - Partial covered only through shared `Common/Inputs/Instrument_Inputs.xml` and generic timed push-button support; the complete clock/OAT screen and control-button template contract remains unchecked.
 - [ ] `Misc/GX2.xml`
+  - Blocked on representative GX2 fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/GroundVehicles.xml`
   - Blocked/out of current aircraft-loader verification scope until there is a representative ground-service vehicle fixture path; the active viewer aircraft routes do not instantiate catering trucks, boarding ramps, baggage loaders, pushback vehicles, fuel trucks, or GPU animation templates.
 - [ ] `Misc/Pl463.xml`
+  - Blocked on representative PL463 fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/SimObjects.xml`
   - Blocked/out of current aircraft-loader verification scope until there is a representative non-aircraft SimObject fixture path; this file covers wind turbines, wind direction, and jetway animation helpers rather than the aircraft SimObject path currently loaded by the viewer.
 - [ ] `Misc/VoltsAmps.xml`
+  - Blocked on representative volts/amps fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
 - [ ] `Misc/Inputs/Misc_Inputs.xml`
   - Partial covered only for the generic `ASOBO_GIE_Anim_Handling` wrapper pattern shared with other checked input families. The concrete `AS_Propeller`, `ACCELEROMETER`, `AS_Vigilus`, `AS_Digiflo`, `AS_DigitalFuelMeter_FP5L`, `AS_GX2`, and `AS_EPM` input IDs remain unchecked until their owning Misc instruments are exercised.
 
