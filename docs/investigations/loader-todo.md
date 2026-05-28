@@ -892,7 +892,8 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 #### CFG Reference Targets
 
-- [ ] `Additional_Information/File_Formats/CFG_Files.htm`
+- [x] `Additional_Information/File_Formats/CFG_Files.htm`
+  - Reviewed against the mirrored SDK reference on 2026-05-28. The shared CFG parser handles documented section headers, case-insensitive keys, `key=value` assignments, quoted strings, semicolon comments outside quotes, BOM-prefixed files, numbered key lists such as `fallback.1`, and numbered section lists such as `[FLTSIM.0]` through generic prefix lookup. More specialized value grammars remain parsed by each CFG consumer where needed, matching the SDK split between CFG file structure and individual file contracts. Verified with `tsc --noEmit` plus the A330/A320 CFG route smokes under `backups/agent-browser/aircraft-cfg-support/`.
 - [ ] `Content_Configuration/Cameras/Cameras_CFG/cameras_cfg.htm`
 - [x] `Content_Configuration/Models/model_cfg.htm`
   - Reviewed against the mirrored reference on 2026-05-28. The importer resolves `[models].normal` / `[models].exterior` for exterior model behavior XML, optional `[models].interior` for cockpit/interior behavior XML, keeps model paths relative to the `model.cfg` directory, and parses the documented `[model.options]` exterior/interior LOD visibility flags used by the viewer's exterior-interior and cockpit LOD selection. Verified with `tsc --noEmit` and Agent Browser A330/A320 route smokes; both loaded with zero diagnostics and screenshots were captured under `backups/agent-browser/model-cfg-support/`.
