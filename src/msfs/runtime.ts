@@ -178,8 +178,6 @@ function createInitialRuntimeCycles(): RuntimeCycles {
   }
 }
 
-const ANIMATION_TRIGGER_SOUND_DEBOUNCE_SECONDS = 0.5
-
 export class AircraftRuntime {
   private readonly mixer: AnimationMixer
   private readonly actions = new Map<string, ReturnType<AnimationMixer['clipAction']>>()
@@ -187,7 +185,6 @@ export class AircraftRuntime {
   private readonly canonicalNodes = new Map<string, Object3D>()
   private readonly animationValues = new Map<string, number>()
   private readonly animationTriggerValues = new Map<string, number>()
-  private readonly lastAnimationTriggerSoundSeconds = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly materialValues = new Map<string, number>()
   private activeAnimationBindings: readonly RuntimeAnimationBinding[] = []
@@ -916,25 +913,6 @@ export class AircraftRuntime {
       }
 
       if (binding.eventKind === 'sound') {
-        const soundSignature = [
-          binding.animation,
-          binding.eventName,
-          direction,
-          binding.normalizedTime ?? '',
-          binding.sourcePath,
-          binding.action
-        ].join('\u0000')
-        const lastSoundSeconds = this.lastAnimationTriggerSoundSeconds.get(soundSignature)
-        if (
-          lastSoundSeconds != null &&
-          this.interactionFeedbackClockSeconds - lastSoundSeconds < ANIMATION_TRIGGER_SOUND_DEBOUNCE_SECONDS
-        ) {
-          continue
-        }
-        this.lastAnimationTriggerSoundSeconds.set(
-          soundSignature,
-          this.interactionFeedbackClockSeconds
-        )
         this.hostServices.invokeSoundEvent?.(binding.eventName, {
           phase: direction === 'forward' ? 'press' : 'release',
           target: binding.animation,
@@ -1272,14 +1250,6 @@ function countSubstring(value: string, needle: string): number {
   }
 }
 
-function isIdempotentRuntimeKeyEventName(name: string): boolean {
-  return (
-    name.endsWith('_SET') ||
-    name.includes('_SETTING_SET') ||
-    name.startsWith('AXIS_')
-  )
-}
-
 export type RuntimeVariableNamespace = 'A' | 'L' | 'O' | 'K' | 'H' | 'B' | 'E' | 'I'
 
 export interface SharedRuntimeHostStats {
@@ -1386,7 +1356,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private readonly recentSoundEvents: RuntimeSoundEvent[] = []
   private readonly recentEffectEvents: RuntimeEffectEvent[] = []
   private readonly recentBridgeEvents: RuntimeBridgeEvent[] = []
-  private readonly lastIdempotentKeyEventArgs = new Map<string, string>()
   private readonly soundStates = new Map<string, boolean>()
   private readonly simVarSounds: readonly ImportedSimVarSound[]
   private readonly initialDiagnosticCount: number
@@ -1428,7 +1397,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.recentSoundEvents.length = 0
     this.recentEffectEvents.length = 0
     this.recentBridgeEvents.length = 0
-    this.lastIdempotentKeyEventArgs.clear()
     this.soundStates.clear()
     this.controlState = createInitialRuntimeControlState()
     this.electricalState = createInitialRuntimeElectricalState()
@@ -1563,74 +1531,46 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   writeVariable(key: string, value: number, unit?: string | null): void {
-    const normalizedKey = normalizeRuntimeVariableKey(key)
-    const numericValue = Number(value)
-    const nextValue = Number.isFinite(numericValue) ? numericValue : 0
-    if (
-      !normalizedKey.startsWith('B:') &&
-      !normalizedKey.startsWith('K:') &&
-      !normalizedKey.startsWith('H:') &&
-      this.values.get(normalizedKey) === nextValue
-    ) {
-      return
-    }
-
     this.variableWriteCount += 1
     this.readCache.clear()
+    const normalizedKey = normalizeRuntimeVariableKey(key)
+    const numericValue = Number(value)
     if (normalizedKey.startsWith('B:')) {
       const handledByBinding = this.invokeInputEventBinding(
         normalizedKey.slice(2),
-        nextValue
+        Number.isFinite(numericValue) ? numericValue : 0
       )
       if (!handledByBinding) {
         const inputEventName = normalizedKey.slice(2)
-        const inputEventValue = nextValue
+        const inputEventValue = Number.isFinite(numericValue) ? numericValue : 0
         this.applyGenericControlEventName(inputEventName, inputEventValue)
         this.applyGenericInputEventStateName(inputEventName, inputEventValue)
       }
       return
     }
     if (normalizedKey.startsWith('K:')) {
-      this.invokeKeyEvent(normalizedKey.slice(2), [nextValue])
+      this.invokeKeyEvent(normalizedKey.slice(2), [Number.isFinite(numericValue) ? numericValue : 0])
       return
     }
-    this.values.set(normalizedKey, nextValue)
+    this.values.set(normalizedKey, Number.isFinite(numericValue) ? numericValue : 0)
     if (normalizedKey.startsWith('H:')) {
-      this.invokeHtmlEvent(normalizedKey.slice(2), [normalizedKey.slice(2), nextValue])
+      this.invokeHtmlEvent(normalizedKey.slice(2), [normalizedKey.slice(2), Number.isFinite(numericValue) ? numericValue : 0])
     }
-    this.applyLocalVariableSideEffects(normalizedKey, nextValue)
-    this.applyElectricalVariableSideEffects(normalizedKey, nextValue, unit ?? null)
-    this.applyVariableSideEffects(normalizedKey, nextValue, unit ?? null)
+    this.applyLocalVariableSideEffects(normalizedKey, numericValue)
+    this.applyElectricalVariableSideEffects(normalizedKey, numericValue, unit ?? null)
+    this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
   }
 
   invokeKeyEvent(name: string, args: readonly number[]): void {
-    const value = args.at(-1) ?? 1
-    const normalizedEventName = normalizeKeyEventName(name)
-    const keyVariable = normalizeRuntimeVariableKey(`K:${normalizedEventName}`)
-    const eventArgs = [...args]
-    const idempotentKeyEventArgs = isIdempotentRuntimeKeyEventName(normalizedEventName)
-      ? eventArgs.map(arg => String(Number(arg) || 0)).join(',')
-      : null
-    if (
-      (value === 0 && this.values.get(keyVariable) === 0) ||
-      (
-        idempotentKeyEventArgs != null &&
-        this.lastIdempotentKeyEventArgs.get(normalizedEventName) === idempotentKeyEventArgs
-      )
-    ) {
-      return
-    }
-
     this.keyEventCount += 1
     this.readCache.clear()
-    if (idempotentKeyEventArgs != null) {
-      this.lastIdempotentKeyEventArgs.set(normalizedEventName, idempotentKeyEventArgs)
-    }
-    this.values.set(keyVariable, value)
+    const value = args.at(-1) ?? 1
+    const normalizedEventName = normalizeKeyEventName(name)
+    this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
     this.applyKeyEvent(normalizedEventName, args)
     const event: RuntimeKeyEvent = {
       name: normalizedEventName,
-      args: eventArgs,
+      args: [...args],
       sequence: this.keyEventCount
     }
     this.recentKeyEvents.push(event)
