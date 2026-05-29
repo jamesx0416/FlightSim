@@ -99,6 +99,7 @@ When adding a user-facing viewer capability, add or update the matching DevApi m
 - [src/msfs/behavior.ts](src/msfs/behavior.ts): behavior XML/template/RPN compilation.
 - [src/msfs/runtime.ts](src/msfs/runtime.ts): runtime host and binding application.
 - [src/msfs/gltf/](src/msfs/gltf): MSFS glTF, DDS, material, primitive, and skinning normalization.
+- [NOTES.md](NOTES.md): durable investigation observations and rejected experiments that should not be treated as active fixes.
 - [docs/investigations/loader-todo.md](docs/investigations/loader-todo.md): active loader/runtime/stock-support tracking.
 
 ## Development Rules
