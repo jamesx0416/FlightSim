@@ -1,0 +1,22 @@
+# Notes
+
+Durable investigation notes that are useful context but are not active implementation instructions.
+
+## Performance Observations
+
+- 2026-05-29: During the pedestal long-session investigation, A330 samples showed high offscreen PFD/ND gauge counters while the camera was framed on the MCDU/pedestal area. That evidence is useful for future generic VCockpit optimization work, but it did not explain the reported bug because the user-visible lag occurred while looking at the pedestal. Do not use those counters as justification for a pedestal fix unless a separate look-away/look-back freshness investigation proves the behavior is safe.
+- 2026-05-29: The VCockpit offscreen-surface suspension experiment was rejected for the pedestal bug because it optimized the look-away case instead of the visible MCDU/pedestal symptom. Future offscreen gauge throttling should be treated as a separate optional optimization and must prove gauge freshness when returning to a surface.
+- 2026-05-29: Repeated `SimVar.GetRegisteredId` calls inside gauge frames were observed during the same investigation. A local fast cache is useful because it reduces visible and offscreen gauge churn without changing gauge active/inactive behavior.
+- 2026-05-29: Generic VCockpit `unknown` dirty events from bridge/runtime notifications should not force a full static DOM/SVG/text recapture. DOM mutations are the authoritative signal for static-layer refresh; canvas writes are the authoritative signal for dynamic canvas redraw.
+
+## Rejected Experiments
+
+- A320 wing transform: the old `X180 * bind * X180` experiment is rejected as heuristic. It helped a narrow subset, but it is not documented by MSFS and broke other left-side skinned parts.
+- Blend-gbuffer decals: the implicit primitive/material-order decal depth-bias experiment for `ASOBO_material_blend_gbuffer` materials without explicit `ASOBO_material_draw_order` was rejected after A320 testing showed worse z-fighting. Keep it reverted.
+
+## Material And Geometry Findings
+
+- The A32NX flap/wing decal issue is not a WingFlex or skin bind-pose bug. The affected `FLAPS_02_*` and `FLAPS_01_*` meshes contain `WINGS` base primitives and `ASOBO_material_blend_gbuffer` decal primitives (`METALFLAPS`, plus `RIBBONS` on `FLAPS_02_*`) inside the same skinned mesh.
+- In bind pose, before runtime animation, `METALFLAPS` vertices already sit about 1.5-1.9 mm median from the covered `WINGS` surface, with p95 offsets about 4.1-5.1 mm.
+- The current A330 flap meshes use ordinary `A339_AIRFRAME_WING_PARTS` / `A339_AIRFRAME_BLACK` primitives and do not have comparable flap-local blend-gbuffer decal primitives.
+- Depth masking fixes visibility/occlusion only. It does not by itself resolve A32NX flap surface alignment because MSFS geometry decals are not equivalent to independent forward transparent meshes; the SDK describes them as a special pass over a covered mesh with per-component blend factors into the background material/G-buffer.
