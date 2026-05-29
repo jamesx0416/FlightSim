@@ -1,7 +1,6 @@
 import {
   AmbientLight,
   Box3,
-  BoxGeometry,
   Box3Helper,
   CanvasTexture,
   Clock,
@@ -12,7 +11,6 @@ import {
   HemisphereLight,
   LinearFilter,
   Material,
-  Matrix4,
   Mesh,
   MeshBasicMaterial,
   Object3D,
@@ -1812,32 +1810,23 @@ async function init(): Promise<void> {
       wireframe: true,
       depthWrite: false
     })
-    const meshProxyGeometry = getCockpitInteractionHitboxProxyGeometry()
     for (const mesh of registry.meshes) {
-      const localBox = getCockpitInteractionMeshLocalBox(mesh)
-      if (localBox == null) {
-        continue
-      }
-      const helper = new Mesh(meshProxyGeometry, meshHelperMaterial)
+      const helper = new Mesh(mesh.geometry, meshHelperMaterial)
       helper.name = `pickable-mesh:${registry.bindingsByMesh.get(mesh)?.target ?? mesh.name}`
       helper.matrixAutoUpdate = false
-      updateCockpitInteractionMeshHitboxHelperMatrix(mesh, helper, localBox)
+      updateCockpitInteractionMeshHitboxHelperMatrix(mesh, helper)
       helper.frustumCulled = false
       group.add(helper)
-      cockpitInteractionMeshHelperPairs.push({ source: mesh, helper, localBox })
+      cockpitInteractionMeshHelperPairs.push({ source: mesh, helper })
     }
     for (const mesh of registry.blockerMeshes) {
-      const localBox = getCockpitInteractionMeshLocalBox(mesh)
-      if (localBox == null) {
-        continue
-      }
-      const helper = new Mesh(meshProxyGeometry, blockerMeshHelperMaterial)
+      const helper = new Mesh(mesh.geometry, blockerMeshHelperMaterial)
       helper.name = `blocker-mesh:${registry.blockersByMesh.get(mesh)?.target ?? mesh.name}`
       helper.matrixAutoUpdate = false
-      updateCockpitInteractionMeshHitboxHelperMatrix(mesh, helper, localBox)
+      updateCockpitInteractionMeshHitboxHelperMatrix(mesh, helper)
       helper.frustumCulled = false
       group.add(helper)
-      cockpitInteractionMeshHelperPairs.push({ source: mesh, helper, localBox })
+      cockpitInteractionMeshHelperPairs.push({ source: mesh, helper })
     }
     for (const target of registry.fallbackHitboxes) {
       const helper = new Box3Helper(target.box, 0xff3333)
@@ -1863,8 +1852,8 @@ async function init(): Promise<void> {
       return
     }
 
-    for (const { source, helper, localBox } of cockpitInteractionMeshHelperPairs) {
-      updateCockpitInteractionMeshHitboxHelperMatrix(source, helper, localBox)
+    for (const { source, helper } of cockpitInteractionMeshHelperPairs) {
+      updateCockpitInteractionMeshHitboxHelperMatrix(source, helper)
     }
   }
 
@@ -2122,53 +2111,14 @@ async function init(): Promise<void> {
     return label
   }
   let cockpitInteractionHitboxHelperGroup: Group | null = null
-  let cockpitInteractionHitboxProxyGeometry: BoxGeometry | null = null
-  const cockpitInteractionHitboxLocalCenter = new Vector3()
-  const cockpitInteractionHitboxLocalSize = new Vector3()
-  const cockpitInteractionHitboxTranslateMatrix = new Matrix4()
-  const cockpitInteractionHitboxScaleMatrix = new Matrix4()
   let cockpitInteractionMeshHelperPairs: {
     readonly source: Mesh
     readonly helper: Mesh
-    readonly localBox: Box3
   }[] = []
 
-  const getCockpitInteractionHitboxProxyGeometry = (): BoxGeometry => {
-    if (cockpitInteractionHitboxProxyGeometry == null) {
-      cockpitInteractionHitboxProxyGeometry = new BoxGeometry(1, 1, 1)
-    }
-    return cockpitInteractionHitboxProxyGeometry
-  }
-
-  const getCockpitInteractionMeshLocalBox = (mesh: Mesh): Box3 | null => {
-    if (mesh.geometry.boundingBox == null) {
-      mesh.geometry.computeBoundingBox()
-    }
-    return mesh.geometry.boundingBox?.clone() ?? null
-  }
-
-  const updateCockpitInteractionMeshHitboxHelperMatrix = (
-    source: Mesh,
-    helper: Mesh,
-    localBox: Box3
-  ): void => {
+  const updateCockpitInteractionMeshHitboxHelperMatrix = (source: Mesh, helper: Mesh): void => {
     source.updateWorldMatrix(true, false)
-    localBox.getCenter(cockpitInteractionHitboxLocalCenter)
-    localBox.getSize(cockpitInteractionHitboxLocalSize)
-    cockpitInteractionHitboxTranslateMatrix.makeTranslation(
-      cockpitInteractionHitboxLocalCenter.x,
-      cockpitInteractionHitboxLocalCenter.y,
-      cockpitInteractionHitboxLocalCenter.z
-    )
-    cockpitInteractionHitboxScaleMatrix.makeScale(
-      cockpitInteractionHitboxLocalSize.x,
-      cockpitInteractionHitboxLocalSize.y,
-      cockpitInteractionHitboxLocalSize.z
-    )
-    helper.matrix
-      .copy(source.matrixWorld)
-      .multiply(cockpitInteractionHitboxTranslateMatrix)
-      .multiply(cockpitInteractionHitboxScaleMatrix)
+    helper.matrix.copy(source.matrixWorld)
     helper.matrixWorldNeedsUpdate = true
   }
   updateOverlay(
