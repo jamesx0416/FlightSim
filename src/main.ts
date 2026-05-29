@@ -8259,7 +8259,7 @@ async function drawHtmlGaugeLiveFrameToContext(
     gaugeRuntime,
     width,
     height,
-    dirtyKind !== 'canvas'
+    dirtyKind === 'dom'
   )
   context.drawImage(staticImage, x, y, width, height)
 
