@@ -4179,8 +4179,6 @@ type VCockpitSurfaceTextureRuntime = {
   readonly debugOverlay: boolean
   nextCaptureMs: number
   isCapturing: boolean
-  active: boolean
-  lastVisibleMs: number
   captureCount: number
   lastCaptureDurationMs: number
   averageCaptureDurationMs: number
@@ -4194,8 +4192,6 @@ const VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ = 8
 const VCOCKPIT_HTML_GAUGE_DEFAULT_RASTER_SCALE = 0.75
 const VCOCKPIT_RUNTIME_READ_MIN_INTERVAL_MS = 1000
 const VCOCKPIT_SURFACE_CAPTURE_CONCURRENCY = 1
-const VCOCKPIT_SURFACE_VISIBILITY_MARGIN_PX = 96
-const VCOCKPIT_SURFACE_VISIBILITY_GRACE_MS = 750
 const CANVAS_ORIGIN_CLEAN_CACHE_MS = 10_000
 
 const accessibleGaugeCssTextByDocument = new WeakMap<
@@ -4912,12 +4908,6 @@ async function bindVCockpitPlaceholderSurfaces(
         return
       }
 
-      updateVCockpitSurfaceRuntimeVisibility(
-        surfaceTextureRuntimes,
-        camera,
-        viewportElement,
-        nowMs
-      )
       updateVCockpitSurfaceTextureRuntimes(surfaceTextureRuntimes, diagnostics, nowMs)
       updateVCockpitHtmlGaugeOverlayRuntimes(
         surfaceTextureRuntimes,
@@ -7293,8 +7283,6 @@ function createVCockpitSurfaceTextureRuntime(
     debugOverlay,
     nextCaptureMs: 0,
     isCapturing: false,
-    active: true,
-    lastVisibleMs: performance.now(),
     captureCount: 0,
     lastCaptureDurationMs: 0,
     averageCaptureDurationMs: 0
@@ -7540,7 +7528,6 @@ function updateVCockpitSurfaceTextureRuntimes(
 
   for (const surfaceRuntime of surfaceTextureRuntimes) {
     if (
-      !surfaceRuntime.active ||
       surfaceRuntime.gaugeMode === 'overlay' ||
       surfaceRuntime.isCapturing ||
       nowMs < surfaceRuntime.nextCaptureMs
@@ -7585,99 +7572,6 @@ function updateVCockpitSurfaceTextureRuntimes(
       })
     return
   }
-}
-
-function updateVCockpitSurfaceRuntimeVisibility(
-  surfaceTextureRuntimes: readonly VCockpitSurfaceTextureRuntime[],
-  camera: PerspectiveCamera,
-  viewportElement: HTMLElement,
-  nowMs: number
-): void {
-  for (const surfaceRuntime of surfaceTextureRuntimes) {
-    if (
-      !hasVCockpitSurfaceCompletedInitialCapture(surfaceRuntime) ||
-      isVCockpitSurfaceVisibleInViewport(surfaceRuntime, camera, viewportElement)
-    ) {
-      surfaceRuntime.lastVisibleMs = nowMs
-      setVCockpitSurfaceTextureRuntimeActive(surfaceRuntime, true)
-      continue
-    }
-
-    if (nowMs - surfaceRuntime.lastVisibleMs >= VCOCKPIT_SURFACE_VISIBILITY_GRACE_MS) {
-      setVCockpitSurfaceTextureRuntimeActive(surfaceRuntime, false)
-    }
-  }
-}
-
-function hasVCockpitSurfaceCompletedInitialCapture(
-  surfaceRuntime: VCockpitSurfaceTextureRuntime
-): boolean {
-  const renderableRuntimes = surfaceRuntime.htmlGaugeRuntimes.filter(
-    isRenderableVCockpitHtmlGaugeRuntime
-  )
-  return (
-    renderableRuntimes.length > 0 &&
-    renderableRuntimes.every(runtime => runtime.captured)
-  )
-}
-
-function setVCockpitSurfaceTextureRuntimeActive(
-  surfaceRuntime: VCockpitSurfaceTextureRuntime,
-  active: boolean
-): void {
-  if (surfaceRuntime.active === active) {
-    return
-  }
-
-  surfaceRuntime.active = active
-  for (const gaugeRuntime of surfaceRuntime.htmlGaugeRuntimes) {
-    setVCockpitHtmlGaugeRuntimeActive(gaugeRuntime, active)
-    if (active && isLoadedVCockpitHtmlGaugeStatus(gaugeRuntime.status)) {
-      gaugeRuntime.needsCapture = true
-      gaugeRuntime.pendingChangeVersion = getHtmlGaugeChangeVersion(gaugeRuntime)
-      gaugeRuntime.pendingDirtyKind = mergeVCockpitGaugeDirtyKind(
-        gaugeRuntime.pendingDirtyKind,
-        'dom'
-      )
-    }
-  }
-
-  if (active) {
-    surfaceRuntime.nextCaptureMs = performance.now()
-  } else {
-    hideVCockpitOverlayGaugeFrames(surfaceRuntime.htmlGaugeRuntimes)
-  }
-}
-
-function isVCockpitSurfaceVisibleInViewport(
-  surfaceRuntime: VCockpitSurfaceTextureRuntime,
-  camera: PerspectiveCamera,
-  viewportElement: HTMLElement
-): boolean {
-  const rect = projectObjectsToViewportRect(
-    surfaceRuntime.overlayObjects,
-    camera,
-    viewportElement
-  )
-  if (rect == null) {
-    return false
-  }
-
-  const viewportRect = viewportElement.getBoundingClientRect()
-  return doViewportRectsOverlap(
-    {
-      left: rect.left,
-      top: rect.top,
-      right: rect.left + rect.width,
-      bottom: rect.top + rect.height
-    },
-    {
-      left: viewportRect.left - VCOCKPIT_SURFACE_VISIBILITY_MARGIN_PX,
-      top: viewportRect.top - VCOCKPIT_SURFACE_VISIBILITY_MARGIN_PX,
-      right: viewportRect.right + VCOCKPIT_SURFACE_VISIBILITY_MARGIN_PX,
-      bottom: viewportRect.bottom + VCOCKPIT_SURFACE_VISIBILITY_MARGIN_PX
-    }
-  )
 }
 
 function getVCockpitSurfaceCaptureIntervalMs(
@@ -7933,28 +7827,6 @@ function getVCockpitGaugePanelRect(
 }
 
 function doPanelRectsOverlap(
-  left: {
-    readonly left: number
-    readonly top: number
-    readonly right: number
-    readonly bottom: number
-  },
-  right: {
-    readonly left: number
-    readonly top: number
-    readonly right: number
-    readonly bottom: number
-  }
-): boolean {
-  return (
-    left.left < right.right &&
-    left.right > right.left &&
-    left.top < right.bottom &&
-    left.bottom > right.top
-  )
-}
-
-function doViewportRectsOverlap(
   left: {
     readonly left: number
     readonly top: number
