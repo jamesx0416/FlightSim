@@ -2,6 +2,7 @@ import {
   AmbientLight,
   Box3,
   Box3Helper,
+  BufferGeometry,
   CanvasTexture,
   Clock,
   Color,
@@ -10,6 +11,8 @@ import {
   Group,
   HemisphereLight,
   LinearFilter,
+  LineBasicMaterial,
+  LineSegments,
   Material,
   Mesh,
   MeshBasicMaterial,
@@ -24,6 +27,7 @@ import {
   Vector2,
   Vector3,
   VideoTexture,
+  WireframeGeometry,
   type AnimationClip
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -1785,6 +1789,7 @@ async function init(): Promise<void> {
       cockpitInteractionHitboxHelperGroup.clear()
       cockpitInteractionHitboxHelperGroup = null
     }
+    disposeCockpitInteractionHitboxWireframeGeometryCache()
     cockpitInteractionMeshHelperPairs = []
 
     if (!shouldShowCockpitInteractionHitboxes(effectiveSearchParams)) {
@@ -1796,22 +1801,23 @@ async function init(): Promise<void> {
     const registry = getCockpitInteractionPickRegistry(root, runtime)
     const group = new Group()
     group.name = 'cockpit-interaction-hitbox-helpers'
-    const meshHelperMaterial = new MeshBasicMaterial({
+    const meshHelperMaterial = new LineBasicMaterial({
       color: 0x2de36f,
       transparent: true,
       opacity: 0.22,
-      wireframe: true,
       depthWrite: false
     })
-    const blockerMeshHelperMaterial = new MeshBasicMaterial({
+    const blockerMeshHelperMaterial = new LineBasicMaterial({
       color: 0xffb020,
       transparent: true,
       opacity: 0.24,
-      wireframe: true,
       depthWrite: false
     })
     for (const mesh of registry.meshes) {
-      const helper = new Mesh(mesh.geometry, meshHelperMaterial)
+      const helper = new LineSegments(
+        getCockpitInteractionHitboxWireframeGeometry(mesh.geometry),
+        meshHelperMaterial
+      )
       helper.name = `pickable-mesh:${registry.bindingsByMesh.get(mesh)?.target ?? mesh.name}`
       helper.matrixAutoUpdate = false
       updateCockpitInteractionMeshHitboxHelperMatrix(mesh, helper)
@@ -1820,7 +1826,10 @@ async function init(): Promise<void> {
       cockpitInteractionMeshHelperPairs.push({ source: mesh, helper })
     }
     for (const mesh of registry.blockerMeshes) {
-      const helper = new Mesh(mesh.geometry, blockerMeshHelperMaterial)
+      const helper = new LineSegments(
+        getCockpitInteractionHitboxWireframeGeometry(mesh.geometry),
+        blockerMeshHelperMaterial
+      )
       helper.name = `blocker-mesh:${registry.blockersByMesh.get(mesh)?.target ?? mesh.name}`
       helper.matrixAutoUpdate = false
       updateCockpitInteractionMeshHitboxHelperMatrix(mesh, helper)
@@ -2111,12 +2120,39 @@ async function init(): Promise<void> {
     return label
   }
   let cockpitInteractionHitboxHelperGroup: Group | null = null
+  const cockpitInteractionHitboxWireframeGeometryCache = new Map<
+    BufferGeometry,
+    WireframeGeometry
+  >()
   let cockpitInteractionMeshHelperPairs: {
     readonly source: Mesh
-    readonly helper: Mesh
+    readonly helper: LineSegments
   }[] = []
 
-  const updateCockpitInteractionMeshHitboxHelperMatrix = (source: Mesh, helper: Mesh): void => {
+  const getCockpitInteractionHitboxWireframeGeometry = (
+    geometry: BufferGeometry
+  ): WireframeGeometry => {
+    const cached = cockpitInteractionHitboxWireframeGeometryCache.get(geometry)
+    if (cached != null) {
+      return cached
+    }
+
+    const wireframeGeometry = new WireframeGeometry(geometry)
+    cockpitInteractionHitboxWireframeGeometryCache.set(geometry, wireframeGeometry)
+    return wireframeGeometry
+  }
+
+  const disposeCockpitInteractionHitboxWireframeGeometryCache = (): void => {
+    for (const geometry of cockpitInteractionHitboxWireframeGeometryCache.values()) {
+      geometry.dispose()
+    }
+    cockpitInteractionHitboxWireframeGeometryCache.clear()
+  }
+
+  const updateCockpitInteractionMeshHitboxHelperMatrix = (
+    source: Mesh,
+    helper: LineSegments
+  ): void => {
     source.updateWorldMatrix(true, false)
     helper.matrix.copy(source.matrixWorld)
     helper.matrixWorldNeedsUpdate = true
