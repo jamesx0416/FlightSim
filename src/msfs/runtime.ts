@@ -1816,6 +1816,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       if (normalizedValue > 0) {
         this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
       }
+      return
+    }
+    if (isApuBleedLocalSwitchKey(key)) {
+      this.values.set(normalizeRuntimeVariableKey('A:BLEED AIR APU'), normalizedValue)
+      this.values.set(normalizeRuntimeVariableKey('A:BLEED AIR SOURCE CONTROL'), normalizedValue)
     }
   }
 
@@ -4956,6 +4961,12 @@ function isApuStartLocalSwitchKey(key: string): boolean {
   return key.includes('APU') &&
     (key.includes('START') || key.includes('STARTER')) &&
     (key.endsWith('_IS_ON') || key.endsWith('_PB_IS_ON'))
+}
+
+function isApuBleedLocalSwitchKey(key: string): boolean {
+  return key.includes('APU') &&
+    key.includes('BLEED') &&
+    (key.endsWith('_IS_ON') || key.endsWith('_PB_IS_ON') || key.endsWith('_ON'))
 }
 
 function normalizeUnit(unit: string | null): string {

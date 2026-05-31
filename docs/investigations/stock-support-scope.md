@@ -8,7 +8,7 @@ Active checklist:
 
 Verified fixture routes:
 - A320:
-  - `https://vanilla-3dtiles.localhost:3000/?package=/tmp/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0`
+  - `https://vanilla-3dtiles.localhost:3000/?package=/aircrafts/flybywire-aircraft-a320-neo/&aircraft=SimObjects/AirPlanes/FlyByWire_A320_NEO%23fltsim.0`
 - A330:
   - `https://vanilla-3dtiles.localhost:3000/`
 
