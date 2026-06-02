@@ -13,6 +13,7 @@ const dryRun = flag("dry-run");
 const force = flag("force");
 const killAll = flag("kill-all");
 const once = flag("once") || killAll;
+const activeOnly = flag("active-only");
 const processTypes = [
   {
     label: "agent-browser",
@@ -31,7 +32,7 @@ while (true) {
     break;
   }
 
-  console.log(`Sleeping ${formatSeconds(waitSeconds)}.`);
+  logIdle(`Sleeping ${formatSeconds(waitSeconds)}.`);
   await Bun.sleep(waitSeconds * 1000);
 }
 
@@ -42,10 +43,12 @@ async function sweep() {
     const type = processTypes.find((type) => type.pattern.test(process.command));
     return type ? [{ ...process, label: type.label }] : [];
   });
-  const targets = killAll ? roots : roots.filter((process) => process.age > maxAge);
+  const rootPids = new Set(roots.map((process) => process.pid));
+  const topLevelRoots = roots.filter((process) => !hasMatchingAncestor(process, rootPids, processesByPid(processes)));
+  const targets = killAll ? topLevelRoots : topLevelRoots.filter((process) => process.age >= maxAge);
 
   if (targets.length === 0) {
-    console.log(
+    logIdle(
       killAll
         ? "No agent-browser or chrome-devtools-mcp instances found."
         : `No agent-browser or chrome-devtools-mcp instances older than ${formatSeconds(maxAge)}.`,
@@ -80,8 +83,32 @@ async function sweep() {
     }
   }
 
-  const freshRoots = roots.filter((process) => !targets.includes(process));
+  const freshRoots = topLevelRoots.filter((process) => !targets.includes(process));
   return freshRoots.length === 0 ? maxAge : Math.max(1, maxAge - Math.max(...freshRoots.map((process) => process.age)));
+}
+
+function processesByPid(processes) {
+  return new Map(processes.map((process) => [process.pid, process]));
+}
+
+function hasMatchingAncestor(process, rootPids, byPid) {
+  let parent = byPid.get(process.ppid);
+
+  while (parent) {
+    if (rootPids.has(parent.pid)) {
+      return true;
+    }
+
+    parent = byPid.get(parent.ppid);
+  }
+
+  return false;
+}
+
+function logIdle(message) {
+  if (!activeOnly) {
+    console.log(message);
+  }
 }
 
 async function readProcesses() {
