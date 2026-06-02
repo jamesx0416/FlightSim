@@ -7,11 +7,37 @@ import { defineConfig, type Plugin } from 'vite'
 const execFileAsync = promisify(execFile)
 
 export default defineConfig({
-  plugins: [aircraftsIndexPlugin(), devMetadataPlugin()],
+  plugins: [aircraftsIndexPlugin(), devMetadataPlugin(), devUrlsPlugin()],
   server: {
+    allowedHosts: ['.ts.net'],
     host: true
   }
 })
+
+function devUrlsPlugin(): Plugin {
+  return {
+    name: 'dev-urls',
+    configureServer(server) {
+      const printUrls = server.printUrls
+
+      server.printUrls = () => {
+        addUrl(server.resolvedUrls?.local, process.env.PORTLESS_URL)
+        addUrl(server.resolvedUrls?.network, process.env.TAILSCALE_URL)
+        printUrls()
+      }
+    }
+  }
+}
+
+function addUrl(urls: string[] | undefined, url: string | undefined): void {
+  if (!urls || !url) return
+
+  const normalizedUrl = url.endsWith('/') ? url : `${url}/`
+
+  if (!urls.includes(normalizedUrl)) {
+    urls.push(normalizedUrl)
+  }
+}
 
 function aircraftsIndexPlugin(): Plugin {
   const route = '/aircrafts/index.json'
