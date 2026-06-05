@@ -37,6 +37,9 @@ type MaterialRenderState = {
 
 type BlendGBufferMesh = Mesh & {
   material: MsfsMaterial
+  userData?: {
+    readonly msfsBlendGBufferProjectedToReceiver?: boolean
+  }
 }
 
 type DepthCopyRenderer = AppRenderer & {
@@ -59,7 +62,8 @@ export function createMsfsRenderPasses(
   root: Object3D
 ): MsfsRenderPasses {
   const blendMeshes: BlendGBufferMesh[] = []
-  const allBlendMaterials = new Set<Material>()
+  const decalBlendMeshes: BlendGBufferMesh[] = []
+  const hiddenBlendMaterials = new Set<Material>()
   const colorBlendMaterials = new Set<Material>()
   const componentOnlyBlendMaterials = new Set<Material>()
   const nonBlendMaterialsOnBlendMeshes = new Set<Material>()
@@ -70,7 +74,8 @@ export function createMsfsRenderPasses(
     restoreMeshDrawables(originalBlendMeshLayerMasks)
     originalBlendMeshLayerMasks.clear()
     blendMeshes.length = 0
-    allBlendMaterials.clear()
+    decalBlendMeshes.length = 0
+    hiddenBlendMaterials.clear()
     colorBlendMaterials.clear()
     componentOnlyBlendMaterials.clear()
     nonBlendMaterialsOnBlendMeshes.clear()
@@ -87,14 +92,31 @@ export function createMsfsRenderPasses(
           ? [object.material]
           : []
       if (materials.some(material => usesBlendGBufferMaterial(material as MsfsMaterial))) {
-        blendMeshes.push(object as BlendGBufferMesh)
+        const blendMesh = object as BlendGBufferMesh
+        blendMeshes.push(blendMesh)
+        const isProjectedDecal =
+          blendMesh.userData?.msfsBlendGBufferProjectedToReceiver === true &&
+          materials.some(material => usesBlendGBufferColorMaterial(material as MsfsMaterial))
+        if (isProjectedDecal) {
+          decalBlendMeshes.push(blendMesh)
+        }
         for (const material of materials) {
           if (usesBlendGBufferMaterial(material as MsfsMaterial)) {
-            allBlendMaterials.add(material)
-            if (usesBlendGBufferColorMaterial(material as MsfsMaterial)) {
+            const isColorBlendMaterial = usesBlendGBufferColorMaterial(material as MsfsMaterial)
+            const isDrawOrderBlendMaterial = usesBlendGBufferDrawOrderMaterial(
+              material as MsfsMaterial
+            )
+            if (isProjectedDecal && isColorBlendMaterial) {
+              hiddenBlendMaterials.add(material)
               colorBlendMaterials.add(material)
-            } else {
+            } else if (!isColorBlendMaterial || isDrawOrderBlendMaterial) {
+              hiddenBlendMaterials.add(material)
               componentOnlyBlendMaterials.add(material)
+            } else {
+              // Receiverless blend-gbuffer color materials without draw-order
+              // metadata are treated as physical/background surfaces in this
+              // forward renderer. They stay visible in the base pass with the
+              // blend depth mask disabled.
             }
           } else {
             nonBlendMaterialsOnBlendMeshes.add(material)
@@ -104,7 +126,7 @@ export function createMsfsRenderPasses(
     })
 
     addMeshDrawablesToLayer(
-      blendMeshes,
+      decalBlendMeshes,
       decalLayerMask,
       originalBlendMeshLayerMasks
     )
@@ -114,7 +136,7 @@ export function createMsfsRenderPasses(
 
   return {
     get hasBlendGBufferDecals() {
-      return blendMeshes.length > 0
+      return decalBlendMeshes.length > 0
     },
     refresh,
     render: () => {
@@ -123,7 +145,7 @@ export function createMsfsRenderPasses(
         return
       }
 
-      if (!canCopyBlendGBufferSceneDepth(renderer, colorBlendMaterials)) {
+      if (!canMaskBlendGBufferSceneDepth(renderer, colorBlendMaterials)) {
         const originalMaterialState = new Map<MsfsMaterial, MaterialRenderState>()
         try {
           hideMaterials(componentOnlyBlendMaterials, originalMaterialState)
@@ -146,13 +168,18 @@ export function createMsfsRenderPasses(
 
       try {
         renderer.autoClear = true
-        hideMaterials(allBlendMaterials, originalMaterialState)
+        setMsfsBlendGBufferDepthMaskEnabled(false)
+        hideMaterials(hiddenBlendMaterials, originalMaterialState)
         renderer.render(scene, camera)
+        // Resolve the mask from the base pass while blend-gbuffer materials are
+        // still hidden, so copy and render-target fallback paths sample the same
+        // receiver depth.
+        const useDepthMask = copyBlendGBufferSceneDepth(renderer, colorBlendMaterials)
+        setMsfsBlendGBufferDepthMaskEnabled(true)
 
         restoreMaterialRenderState(colorBlendMaterials, originalMaterialState)
         hideMaterials(componentOnlyBlendMaterials, originalMaterialState)
         hideMaterials(nonBlendMaterialsOnBlendMeshes, originalMaterialState)
-        const useDepthMask = copyBlendGBufferSceneDepth(renderer, colorBlendMaterials)
         configureBlendGBufferMaterialsForDecalPass(
           colorBlendMaterials,
           originalMaterialState,
@@ -204,6 +231,10 @@ function hideMaterials(
   }
 }
 
+function usesBlendGBufferDrawOrderMaterial(material: MsfsMaterial): boolean {
+  return material.userData?.gltfExtensions?.ASOBO_material_draw_order != null
+}
+
 function configureBlendGBufferMaterialsForDecalPass(
   materials: Iterable<Material>,
   originalMaterialState: Map<MsfsMaterial, MaterialRenderState>,
@@ -250,6 +281,13 @@ function copyBlendGBufferSceneDepth(
   return true
 }
 
+function getConfiguredBlendGBufferDepthTexture() {
+  const depthTexture = getMsfsBlendGBufferDepthTexture()
+  depthTexture.format = DepthFormat
+  depthTexture.type = UnsignedIntType
+  return depthTexture
+}
+
 function canCopyBlendGBufferSceneDepth(
   renderer: AppRenderer,
   materials: Iterable<Material>
@@ -264,6 +302,13 @@ function canCopyBlendGBufferSceneDepth(
     depthCopyRenderer.copyFramebufferToTexture != null &&
     depthCopyRenderer.getDrawingBufferSize != null
   )
+}
+
+function canMaskBlendGBufferSceneDepth(
+  renderer: AppRenderer,
+  materials: Iterable<Material>
+): boolean {
+  return canCopyBlendGBufferSceneDepth(renderer, materials)
 }
 
 function hasBlendGBufferDepthMaskMaterial(materials: Iterable<Material>): boolean {

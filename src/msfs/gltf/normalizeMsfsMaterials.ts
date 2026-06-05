@@ -83,6 +83,7 @@ type MsfsMaterial = Material & {
     msfsBlendGBufferDepthMask?: boolean
     msfsBlendGBufferForwardColor?: boolean
     msfsBlendGBufferProjectionDepthAllowance?: number
+    msfsBlendGBufferProjectedToReceiver?: boolean
   }
 }
 
@@ -426,15 +427,18 @@ function projectBlendGBufferDecals(
   parser: GltfParserLike | undefined
 ): void {
   root.updateWorldMatrix(true, true)
-  projectSameMeshBlendGBufferDecals(root, parser)
+  const projectedMeshes = projectSameMeshBlendGBufferDecals(root, parser)
+  projectSameParentBlendGBufferDecals(root, projectedMeshes)
 }
 
 function projectSameMeshBlendGBufferDecals(
   root: Object3D,
   parser: GltfParserLike | undefined
-): void {
+): Set<MeshWithGeometry> {
+  const projectedMeshes = new Set<MeshWithGeometry>()
+
   if (parser == null) {
-    return
+    return projectedMeshes
   }
 
   const primitivesByParent = new Map<Object3D, Map<number, GltfPrimitiveMesh[]>>()
@@ -493,11 +497,100 @@ function projectSameMeshBlendGBufferDecals(
           decalPrimitive.mesh,
           triangleIndex
         )
+        decalPrimitive.mesh.userData.msfsBlendGBufferProjectedToReceiver = true
+        projectedMeshes.add(decalPrimitive.mesh)
         setMsfsBlendGBufferProjectionDepthAllowance(
           decalPrimitive.material,
           projectionDepthAllowance
         )
       }
+    }
+  }
+
+  return projectedMeshes
+}
+
+function projectSameParentBlendGBufferDecals(
+  root: Object3D,
+  projectedMeshes: ReadonlySet<MeshWithGeometry>
+): void {
+  const primitivesByParent = new Map<
+    Object3D,
+    {
+      readonly basePrimitives: GltfPrimitiveMesh[]
+      readonly decalPrimitives: GltfPrimitiveMesh[]
+    }
+  >()
+
+  root.traverse(object => {
+    if (!(object instanceof Mesh)) {
+      return
+    }
+
+    const mesh = object as MeshWithGeometry
+    const material = getSingleMeshMaterial(mesh.material)
+    if (material == null) {
+      return
+    }
+
+    const parent = mesh.parent
+    if (parent == null || parent === root) {
+      return
+    }
+
+    const group =
+      primitivesByParent.get(parent) ??
+      ({
+        basePrimitives: [],
+        decalPrimitives: []
+      } as {
+        readonly basePrimitives: GltfPrimitiveMesh[]
+        readonly decalPrimitives: GltfPrimitiveMesh[]
+      })
+    const primitive = {
+      mesh,
+      primitiveIndex: parent.children.indexOf(mesh),
+      material: material as MsfsMaterial
+    }
+
+    if (usesBlendGBufferMaterial(material)) {
+      if (
+        shouldProjectBlendGBufferPrimitive(material) &&
+        !projectedMeshes.has(mesh)
+      ) {
+        group.decalPrimitives.push(primitive)
+      }
+    } else if (
+      mesh.visible !== false &&
+      material.visible !== false &&
+      !usesInvisibleMaterial(material)
+    ) {
+      group.basePrimitives.push(primitive)
+    }
+
+    primitivesByParent.set(parent, group)
+  })
+
+  for (const { basePrimitives, decalPrimitives } of primitivesByParent.values()) {
+    if (basePrimitives.length === 0 || decalPrimitives.length === 0) {
+      continue
+    }
+
+    const triangles = buildDecalProjectionTriangles(basePrimitives)
+    const triangleIndex = buildDecalProjectionSpatialIndex(triangles)
+    if (triangleIndex == null) {
+      continue
+    }
+
+    for (const decalPrimitive of decalPrimitives) {
+      const projectionDepthAllowance = projectBlendGBufferPrimitiveToBase(
+        decalPrimitive.mesh,
+        triangleIndex
+      )
+      setMsfsBlendGBufferProjectionDepthAllowance(
+        decalPrimitive.material,
+        projectionDepthAllowance
+      )
     }
   }
 }
@@ -771,10 +864,9 @@ function projectBlendGBufferPrimitiveToBase(
   geometry.computeBoundingBox()
   geometry.computeBoundingSphere()
 
-  return Math.max(
-    maxProjectionDistance,
-    measureProjectedBlendGBufferSurfaceDistance(mesh, triangleIndex)
-  )
+  // After projection, the depth mask only needs the remaining receiver residual.
+  // The original helper-mesh displacement is not a valid screen-space tolerance.
+  return measureProjectedBlendGBufferSurfaceDistance(mesh, triangleIndex)
 }
 
 function setMsfsBlendGBufferProjectionDepthAllowance(
