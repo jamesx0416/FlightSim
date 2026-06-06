@@ -1,6 +1,10 @@
 # Agent Instructions
 
-**Important:** Do not implement, exit, or add anything that is heuristic or aircraft-specific. All bug fixes and changes must be generic MSFS loader fixes that apply broadly and authoritatively, not patches tailored to a specific aircraft.
+**Important:** Do not implement, exit, or add anything that is heuristic or aircraft-specific. All bug fixes and changes must be generic loader/runtime fixes that apply broadly and authoritatively, not patches tailored to a specific aircraft.
+
+Heuristic or aircraft-specific tests are allowed for investigation only; landed fixes must be generic and verified without such patches.
+
+Use `aircrafts/` package data as test fixtures; do not patch it to fix loader/runtime behavior unless explicitly asked.
 
 Continue implementation until everything in `docs/investigations/loader-todo.md#stock-support-todo` that is in scope for this repo is either checked off or explicitly documented as blocked with a reason.
 
@@ -14,5 +18,5 @@ Use `NOTES.md` for durable investigation observations, rejected experiments, and
 https://vanilla-3dtiles.localhost:3000
 
 bun scripts/kill-stale-agent-browsers.mjs --kill-all
-This command kills all agent-browsers, use only if you need too.
-This also runs automaticly, so stale agent-browsers will be removed after 10 mins.
+This command kills all agent-browsers; use it only if needed.
+This also runs automatically, so stale agent-browsers will be removed periodically. If an agent-browser instance stops responding, start another instance.
