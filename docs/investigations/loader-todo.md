@@ -1037,12 +1037,12 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 ### 5. Fix Lighting Issue Where Surfaces Look Too White When Viewed Directly
 
-- [x] Reproduce and fix the direct-view lighting/whitening issue with a generic MSFS-compatible renderer or material change.
+- [ ] Reproduce and fix the direct-view lighting/whitening issue with a generic MSFS-compatible renderer or material change.
   - Fixed generically by unifying the active WebGL path onto `WebGPURenderer({ forceWebGL: true })` and keeping one shared PMREM/environment/material stack before falling back to legacy `WebGLRenderer`.
 
 ### 6. Fix The WebGPU Wing Lighting/Reflection Jitter During Camera Motion
 
-- [x] Reproduce and fix the WebGPU wing lighting/reflection jitter with a generic renderer or material change.
+- [ ] Reproduce and fix the WebGPU wing lighting/reflection jitter with a generic renderer or material change.
   - Fixed generically by routing compressed RG normal maps through the existing WebGPU node-material decode path instead of leaving them on the incorrect plain-material path.
 
 ### 7. Revisit The A320 Wing Structure / Transform Issue
