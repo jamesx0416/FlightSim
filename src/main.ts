@@ -996,8 +996,14 @@ async function init(): Promise<void> {
       interiorModel.lods.length - 1
     )
   }
+  const isPreferredCockpitInterior = (interior: LoadedModelComponent): boolean =>
+    interior.loadedLodIndex === getCockpitInteriorPreferredLodIndex()
   let cachedCockpitInterior: LoadedModelComponent | null =
-    loadedModel.interior?.loadedLodIndex === getCockpitInteriorPreferredLodIndex()
+    loadedModel.interior != null && isPreferredCockpitInterior(loadedModel.interior)
+      ? loadedModel.interior
+      : null
+  let fallbackCockpitInterior: LoadedModelComponent | null =
+    loadedModel.interior != null && !isPreferredCockpitInterior(loadedModel.interior)
       ? loadedModel.interior
       : null
   const rendererWarmedInteriorComponents = new WeakSet<LoadedModelComponent>()
@@ -1308,6 +1314,7 @@ async function init(): Promise<void> {
         const promotedExteriorInterior = await prepareExteriorViewInteriorForCockpit()
         if (promotedExteriorInterior != null) {
           cachedCockpitInterior = promotedExteriorInterior
+          fallbackCockpitInterior = null
           recordCockpitBenchmarkEvent('cockpit:interior-upgrade:exterior-reuse', {
             loadedLodIndex: promotedExteriorInterior.loadedLodIndex,
             hadVCockpitBinding: promotedExteriorInterior.vcockpitBinding != null,
@@ -1378,7 +1385,13 @@ async function init(): Promise<void> {
             waitForTextureLoads: true
           }
         )
-        cachedCockpitInterior = nextInterior
+        if (isPreferredCockpitInterior(nextInterior)) {
+          cachedCockpitInterior = nextInterior
+          fallbackCockpitInterior = null
+        } else {
+          cachedCockpitInterior = null
+          fallbackCockpitInterior = nextInterior
+        }
         if (!shouldUseCockpitInterior || loadedModel.interior === nextInterior) {
           nextInterior.vcockpitBinding?.setActive(loadedModel.interior === nextInterior)
         }
@@ -1425,6 +1438,12 @@ async function init(): Promise<void> {
       }
     })()
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      requestInteriorLodUpgrade()
+    }
+  })
 
   const restoreExteriorInteriorLod = (): void => {
     shouldUseCockpitInterior = false
@@ -2058,6 +2077,8 @@ async function init(): Promise<void> {
       activeInteriorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
       cachedInteriorAvailable: cachedCockpitInterior != null,
       cachedInteriorLod00Available: cachedCockpitInterior?.loadedLodIndex === 0,
+      fallbackInteriorAvailable: fallbackCockpitInterior != null,
+      fallbackInteriorLodIndex: fallbackCockpitInterior?.loadedLodIndex ?? null,
       activeInteriorLoadDiagnostics: loadedModel.interior?.loadDiagnostics ?? null,
       activeInteriorResourceStats: loadedModel.interior?.resourceStats ?? null,
       cachedInteriorLoadDiagnostics: cachedCockpitInterior?.loadDiagnostics ?? null,
@@ -2195,7 +2216,9 @@ async function init(): Promise<void> {
 
   const invalidateCachedCockpitInterior = (): void => {
     const previousCachedCockpitInterior = cachedCockpitInterior
+    const previousFallbackCockpitInterior = fallbackCockpitInterior
     cachedCockpitInterior = null
+    fallbackCockpitInterior = null
     hasRequestedCockpitInterior = false
     if (
       previousCachedCockpitInterior != null &&
@@ -2203,6 +2226,14 @@ async function init(): Promise<void> {
       previousCachedCockpitInterior !== exteriorViewInterior
     ) {
       disposeLoadedModelComponent(previousCachedCockpitInterior)
+    }
+    if (
+      previousFallbackCockpitInterior != null &&
+      previousFallbackCockpitInterior !== previousCachedCockpitInterior &&
+      previousFallbackCockpitInterior !== loadedModel.interior &&
+      previousFallbackCockpitInterior !== exteriorViewInterior
+    ) {
+      disposeLoadedModelComponent(previousFallbackCockpitInterior)
     }
   }
 
@@ -2254,13 +2285,20 @@ async function init(): Promise<void> {
 
   const reloadCockpitInteriorWithActiveSettings = async (): Promise<void> => {
     const previousCockpitInterior = cachedCockpitInterior
+    const previousFallbackCockpitInterior = fallbackCockpitInterior
     const nextCockpitInterior = await loadCockpitInteriorWithActiveSettings()
     if (nextCockpitInterior == null) {
       invalidateCachedCockpitInterior()
       return
     }
 
-    cachedCockpitInterior = nextCockpitInterior
+    if (isPreferredCockpitInterior(nextCockpitInterior)) {
+      cachedCockpitInterior = nextCockpitInterior
+      fallbackCockpitInterior = null
+    } else {
+      cachedCockpitInterior = null
+      fallbackCockpitInterior = nextCockpitInterior
+    }
     hasRequestedCockpitInterior = cockpitCameraController.isActive()
     if (cockpitCameraController.isActive()) {
       shouldUseCockpitInterior = true
@@ -2276,6 +2314,15 @@ async function init(): Promise<void> {
       previousCockpitInterior !== loadedModel.interior
     ) {
       disposeLoadedModelComponent(previousCockpitInterior)
+    }
+    if (
+      previousFallbackCockpitInterior != null &&
+      previousFallbackCockpitInterior !== previousCockpitInterior &&
+      previousFallbackCockpitInterior !== nextCockpitInterior &&
+      previousFallbackCockpitInterior !== exteriorViewInterior &&
+      previousFallbackCockpitInterior !== loadedModel.interior
+    ) {
+      disposeLoadedModelComponent(previousFallbackCockpitInterior)
     }
   }
 
