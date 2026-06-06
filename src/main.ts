@@ -4673,7 +4673,8 @@ async function bindVCockpitPlaceholderSurfaces(
           surface,
           gauge,
           resolvePanelAssetUrl,
-          diagnostics
+          diagnostics,
+          runtimeHost
         )
       })
       .then(runtime => {
@@ -4726,7 +4727,8 @@ async function bindVCockpitPlaceholderSurfaces(
           surface,
           gauge,
           resolvePanelAssetUrl,
-          diagnostics
+          diagnostics,
+          runtimeHost
         )
       })
       .then(runtime => {
@@ -5074,7 +5076,8 @@ async function createVCockpitHtmlGaugeRuntime(
   surface: VCockpitSurface,
   gauge: VCockpitGaugeEntry,
   resolvePanelAssetUrl: (source: string) => string | null,
-  diagnostics: ImportDiagnostic[]
+  diagnostics: ImportDiagnostic[],
+  runtimeHost: SharedMsfsRuntimeHost
 ): Promise<VCockpitHtmlGaugeRuntime> {
   const wasmBacked = isWasmBackedHtmlGauge(gauge)
   const resolvedUrl = resolvePanelAssetUrl(gauge.source)
@@ -5096,6 +5099,7 @@ async function createVCockpitHtmlGaugeRuntime(
         gauge,
         syntheticUrl,
         diagnostics,
+        runtimeHost.getSnapshot(),
         createSyntheticWasmInstrumentHostHtml(
           gauge,
           wasmModuleUrl
@@ -5175,7 +5179,8 @@ async function createVCockpitHtmlGaugeRuntime(
     surface,
     gauge,
     resolvedUrl,
-    diagnostics
+    diagnostics,
+    runtimeHost.getSnapshot()
   )
   if (loadResult.status !== 'loaded') {
     diagnostics.push({
@@ -5312,6 +5317,7 @@ async function createSandboxedHtmlGaugeFrame(
   gauge: VCockpitGaugeEntry,
   resolvedUrl: string,
   diagnostics: ImportDiagnostic[],
+  initialRuntimeValues: Record<string, number>,
   sourceHtmlOverride?: string
 ): Promise<{
   readonly status: 'loaded' | 'iframe-error'
@@ -5353,7 +5359,7 @@ async function createSandboxedHtmlGaugeFrame(
   iframe.sandbox.add('allow-same-origin')
   iframe.loading = 'eager'
   const sourceObjectUrl = URL.createObjectURL(new Blob(
-    [await adaptMsfsHtmlGaugeDocument(gaugeSourceHtml, resolvedUrl, gauge)],
+    [await adaptMsfsHtmlGaugeDocument(gaugeSourceHtml, resolvedUrl, gauge, initialRuntimeValues)],
     { type: 'text/html' }
   ))
   iframe.src = sourceObjectUrl
@@ -5421,7 +5427,8 @@ async function createSandboxedHtmlGaugeFrame(
 async function adaptMsfsHtmlGaugeDocument(
   sourceHtml: string,
   resolvedUrl: string,
-  gauge: VCockpitGaugeEntry
+  gauge: VCockpitGaugeEntry,
+  initialRuntimeValues: Record<string, number>
 ): Promise<string> {
   const htmlUiRootUrl = getHtmlUiRootUrl(resolvedUrl)
   const updateThrottleMs = getVCockpitGaugeUpdateThrottleMs(
@@ -5473,7 +5480,8 @@ async function adaptMsfsHtmlGaugeDocument(
     resolvedUrl,
     updateThrottleMs,
     gauge.kind,
-    isWasmBackedHtmlGauge(gauge)
+    isWasmBackedHtmlGauge(gauge),
+    initialRuntimeValues
   )
   document.head.prepend(bridgeScript)
 
@@ -5634,7 +5642,8 @@ function createVCockpitGaugeBridgeScript(
   resolvedUrl: string,
   updateThrottleMs: number | null,
   gaugeKind: VCockpitGaugeEntry['kind'],
-  wasmBridge: boolean
+  wasmBridge: boolean,
+  initialRuntimeValues: Record<string, number>
 ): string {
   const packageRootUrl = getPackageRootUrlFromHtmlUiRootUrl(htmlUiRootUrl)
   return `
@@ -5646,6 +5655,7 @@ function createVCockpitGaugeBridgeScript(
   const gaugeDocumentUrl = ${JSON.stringify(resolvedUrl)};
   const gaugeKind = ${JSON.stringify(gaugeKind)};
   const wasmBridge = ${JSON.stringify(wasmBridge)};
+  const initialRuntimeValues = ${JSON.stringify(initialRuntimeValues)};
   const gaugeDocumentDirectoryUrl = new URL('.', gaugeDocumentUrl).toString();
   const instrumentUpdateMs = ${JSON.stringify(updateThrottleMs)};
   const runtimeReadMinIntervalMs = ${JSON.stringify(VCOCKPIT_RUNTIME_READ_MIN_INTERVAL_MS)};
@@ -6073,6 +6083,7 @@ function createVCockpitGaugeBridgeScript(
   const registeredSimVarById = [];
   const registeredSimVarFastIds = new Map();
   const simVarValues = new Map();
+  const initialSimVarValues = new Map();
   const runtimeReadRequests = new Map();
   const runtimeReadRequestTimes = new Map();
   const normalizeRuntimeBridgeVariableName = (name, source = '') => {
@@ -6084,15 +6095,30 @@ function createVCockpitGaugeBridgeScript(
   };
   const normalizeSimVarKey = (name, unit = '', source = '') =>
     normalizeRuntimeBridgeVariableName(name, source).toLowerCase() + '|' + String(unit).toLowerCase();
+  const normalizeInitialSimVarKey = name =>
+    normalizeRuntimeBridgeVariableName(name, '').toLowerCase();
+  const readInitialSimVarValue = name =>
+    initialSimVarValues.get(normalizeInitialSimVarKey(name));
+  for (const [name, value] of Object.entries(initialRuntimeValues)) {
+    const numericValue = Number(value);
+    if (Number.isFinite(numericValue)) {
+      initialSimVarValues.set(normalizeInitialSimVarKey(name), numericValue);
+    }
+  }
   const readDemoSimVar = (name, unit) => {
     const normalizedName = String(name ?? '').toLowerCase();
     const normalizedUnit = String(unit ?? '').toLowerCase();
     const hasPower =
       simVarValues.get(normalizeSimVarKey('ELECTRICAL MASTER BATTERY', 'Bool', '')) === 1 ||
+      readInitialSimVarValue('ELECTRICAL MASTER BATTERY') === 1 ||
       simVarValues.get(normalizeSimVarKey('EXTERNAL POWER ON', 'Bool', '')) === 1 ||
+      readInitialSimVarValue('EXTERNAL POWER ON') === 1 ||
       simVarValues.get(normalizeSimVarKey('APU GENERATOR SWITCH:1', 'Bool', '')) === 1 ||
+      readInitialSimVarValue('APU GENERATOR SWITCH:1') === 1 ||
       simVarValues.get(normalizeSimVarKey('GENERAL ENG MASTER ALTERNATOR:1', 'Bool', '')) === 1 ||
-      simVarValues.get(normalizeSimVarKey('GENERAL ENG MASTER ALTERNATOR:2', 'Bool', '')) === 1;
+      readInitialSimVarValue('GENERAL ENG MASTER ALTERNATOR:1') === 1 ||
+      simVarValues.get(normalizeSimVarKey('GENERAL ENG MASTER ALTERNATOR:2', 'Bool', '')) === 1 ||
+      readInitialSimVarValue('GENERAL ENG MASTER ALTERNATOR:2') === 1;
     if (normalizedUnit.includes('bool')) {
       if (normalizedName.includes('healthy') || normalizedName.includes('available') || normalizedName.includes('valid')) {
         return 1;
@@ -6247,10 +6273,13 @@ function createVCockpitGaugeBridgeScript(
     const runtimeName = normalizeRuntimeBridgeVariableName(name, source);
     const storedKey = normalizeSimVarKey(name, unit, source);
     const fallbackKey = normalizeSimVarKey(runtimeName, unit, '');
+    const initialKey = normalizeInitialSimVarKey(runtimeName);
     const value = simVarValues.has(storedKey)
       ? simVarValues.get(storedKey)
-        : simVarValues.has(fallbackKey)
-          ? simVarValues.get(fallbackKey)
+      : simVarValues.has(fallbackKey)
+        ? simVarValues.get(fallbackKey)
+        : initialSimVarValues.has(initialKey)
+          ? initialSimVarValues.get(initialKey)
           : readDemoSimVar(name, unit);
     const nowMs = performance.now();
     const lastRequestMs = runtimeReadRequestTimes.get(storedKey) ?? -Infinity;
