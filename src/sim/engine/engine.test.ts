@@ -501,4 +501,25 @@ test('animates generic moving surfaces toward target state', () => {
       engine.state.readBoolean(EnvironmentStateKeys.pitotHeatEnabled(2))
     ).toBe(true)
   })
+
+  test('dispatches deice commands through environment state', () => {
+    const engine = new SimulatorEngine()
+    engine.registerSubsystem(new EnvironmentSubsystem())
+
+    engine.dispatch({
+      type: EnvironmentCommandTypes.setStructuralDeice,
+      payload: { enabled: true },
+    })
+    engine.dispatch({
+      type: EnvironmentCommandTypes.setEngineAntiIce,
+      payload: { index: 2, enabled: true },
+    })
+
+    expect(
+      engine.state.readBoolean(EnvironmentStateKeys.structuralDeiceEnabled())
+    ).toBe(true)
+    expect(
+      engine.state.readBoolean(EnvironmentStateKeys.engineAntiIceEnabled(2))
+    ).toBe(true)
+  })
 })
