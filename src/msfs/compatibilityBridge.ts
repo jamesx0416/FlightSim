@@ -4,6 +4,7 @@ import {
   ControlStateKeys,
   convertSimUnit,
   ElectricalStateKeys,
+  EnvironmentStateKeys,
   FuelStateKeys,
   LightingStateKeys,
   PropulsionStateKeys,
@@ -16,6 +17,7 @@ import {
   readControlSignedRatio,
   readElectricalBoolean,
   readElectricalNumber,
+  readEnvironmentBoolean,
   readFuelBoolean,
   readFuelNumber,
   readLightingEnabled,
@@ -43,6 +45,7 @@ export interface MsfsStateAlias {
     | 'controlBoolean'
     | 'electricalBoolean'
     | 'electricalNumber'
+    | 'environmentBoolean'
     | 'fuelBoolean'
     | 'fuelNumber'
     | 'propulsionBoolean'
@@ -106,6 +109,10 @@ export class MsfsCompatibilityBridge {
         alias.canonicalUnit,
         normalizeMsfsAliasUnit(unit, alias)
       )
+    }
+
+    if (alias.kind === 'environmentBoolean') {
+      return readEnvironmentBoolean(this.state, alias.stateKey) ? 1 : 0
     }
 
     if (alias.kind === 'fuelBoolean') {
@@ -192,6 +199,7 @@ export class MsfsCompatibilityBridge {
       alias.kind === 'propulsionBoolean' ||
       alias.kind === 'controlBoolean' ||
       alias.kind === 'electricalBoolean' ||
+      alias.kind === 'environmentBoolean' ||
       alias.kind === 'fuelBoolean' ||
       alias.kind === 'autopilotBoolean' ||
       alias.kind === 'avionicsBoolean'
@@ -206,6 +214,7 @@ export class MsfsCompatibilityBridge {
       alias.kind === 'propulsionBoolean' ||
       alias.kind === 'controlBoolean' ||
       alias.kind === 'electricalBoolean' ||
+      alias.kind === 'environmentBoolean' ||
       alias.kind === 'fuelBoolean' ||
       alias.kind === 'autopilotBoolean' ||
       alias.kind === 'avionicsBoolean'
@@ -340,6 +349,11 @@ export function mapMsfsSimVarToCanonicalState(
     return electricalAlias
   }
 
+  const environmentAlias = mapMsfsEnvironmentSimVarToCanonicalState(name)
+  if (environmentAlias != null) {
+    return environmentAlias
+  }
+
   const autopilotAlias = mapMsfsAutopilotSimVarToCanonicalState(name)
   if (autopilotAlias != null) {
     return autopilotAlias
@@ -432,6 +446,26 @@ function mapMsfsElectricalSimVarToCanonicalState(name: string): MsfsStateAlias |
       }
     default:
       return undefined
+  }
+}
+
+function mapMsfsEnvironmentSimVarToCanonicalState(
+  name: string
+): MsfsStateAlias | undefined {
+  const pitotHeatMatch = /^PITOT HEAT(?: SWITCH(?::(\d+))?)?$/u.exec(name)
+  if (pitotHeatMatch == null) {
+    return undefined
+  }
+
+  const index = pitotHeatMatch[1] == null ? 1 : Number(pitotHeatMatch[1])
+  if (!Number.isInteger(index) || index <= 0) {
+    return undefined
+  }
+
+  return {
+    kind: 'environmentBoolean',
+    stateKey: EnvironmentStateKeys.pitotHeatEnabled(index),
+    canonicalUnit: 'boolean',
   }
 }
 

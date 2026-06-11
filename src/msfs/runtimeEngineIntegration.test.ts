@@ -4,6 +4,7 @@ import {
   AvionicsStateKeys,
   ControlStateKeys,
   ElectricalStateKeys,
+  EnvironmentStateKeys,
   FuelStateKeys,
   LightingStateKeys,
   PropulsionCommandTypes,
@@ -62,6 +63,26 @@ test('mirrors ADF frequency key events into canonical avionics state', () => {
     )
   ).toBe(409)
   expect(host.readVariable('A:ADF STANDBY FREQUENCY:1', 'KHz')).toBe(409)
+})
+
+test('mirrors pitot heat key events into canonical environment state', () => {
+  const host = new SharedMsfsRuntimeHost([])
+
+  host.invokeKeyEvent('PITOT_HEAT_ON', [2])
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      EnvironmentStateKeys.pitotHeatEnabled(2)
+    )
+  ).toBe(true)
+  expect(host.readVariable('A:PITOT HEAT SWITCH:2', 'Bool')).toBe(1)
+
+  host.invokeKeyEvent('PITOT_HEAT_OFF', [2])
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      EnvironmentStateKeys.pitotHeatEnabled(2)
+    )
+  ).toBe(false)
+  expect(host.readVariable('A:PITOT HEAT SWITCH:2', 'Bool')).toBe(0)
 })
 
 describe('SharedMsfsRuntimeHost engine integration', () => {

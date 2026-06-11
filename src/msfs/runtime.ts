@@ -8,6 +8,7 @@ import {
   ControlsSubsystem,
   ElectricalStateKeys,
   ElectricalSubsystem,
+  EnvironmentSubsystem,
   FuelSubsystem,
   LightingElectricalSubsystem,
   LightingStateKeys,
@@ -1397,6 +1398,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.simulatorEngine.registerSubsystem(new LightingElectricalSubsystem())
     this.simulatorEngine.registerSubsystem(new ControlsSubsystem())
     this.simulatorEngine.registerSubsystem(new ElectricalSubsystem())
+    this.simulatorEngine.registerSubsystem(new EnvironmentSubsystem())
     this.simulatorEngine.registerSubsystem(new PropulsionSubsystem())
     this.simulatorEngine.registerSubsystem(new FuelSubsystem())
     this.simulatorEngine.registerSubsystem(new AvionicsSubsystem())
@@ -3168,6 +3170,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
           : pitotMatch[1] === 'ON' ? 1 : 0
     this.values.set(key, nextValue)
     this.values.set(normalizeRuntimeVariableKey('A:PITOT HEAT'), nextValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      Number.isFinite(index) ? `A:PITOT HEAT SWITCH:${index}` : 'A:PITOT HEAT',
+      nextValue,
+      'Bool'
+    )
     return true
   }
 

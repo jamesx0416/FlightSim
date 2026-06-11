@@ -2,6 +2,7 @@ import { ControlCommandTypes } from './controls'
 import { AvionicsCommandTypes } from './avionics'
 import { AutopilotCommandTypes } from './autopilot'
 import { ElectricalCommandTypes } from './electrical'
+import { EnvironmentCommandTypes } from './environment'
 import { FuelCommandTypes } from './fuel'
 import { LightingCommandTypes } from './lightingElectrical'
 import { PropulsionCommandTypes } from './propulsion'
@@ -68,6 +69,12 @@ export const SIM_COMMAND_CATALOG: readonly SimCommandCatalogEntry[] = [
     subsystem: 'electrical',
     description: 'Set named electrical bus voltage.',
     payloadExample: { id: 'main', volts: 28 },
+  },
+  {
+    type: EnvironmentCommandTypes.setPitotHeat,
+    subsystem: 'environment',
+    description: 'Set indexed pitot heat switch state.',
+    payloadExample: { index: 1, enabled: true },
   },
   {
     type: AvionicsCommandTypes.setRadioActiveFrequency,
