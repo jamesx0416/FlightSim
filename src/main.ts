@@ -5696,6 +5696,32 @@ function createVCockpitGaugeBridgeScript(
     /url\\((['"]?)(coui:\\/\\/html_ui\\/[^'")]+|\\/(?:JS|Pages|html_ui)\\/[^'")]+)\\1\\)/giu,
     (_match, quote, path) => 'url(' + quote + resolveMsfsResourceUrl(path) + quote + ')'
   );
+  // Some MSFS gauges reuse singleton arrays after passing them through Redux/Immer.
+  const preserveMutableGaugeArrays = objectMethod => function(value) {
+    if (Array.isArray(value)) {
+      return value;
+    }
+
+    return objectMethod.call(Object, value);
+  };
+  Object.freeze = preserveMutableGaugeArrays(Object.freeze);
+  Object.seal = preserveMutableGaugeArrays(Object.seal);
+  Object.preventExtensions = preserveMutableGaugeArrays(Object.preventExtensions);
+  const sanitizeSvgAttributeValue = (element, name, value) => {
+    const normalizedName = String(name).toLowerCase();
+    const text = String(value ?? '');
+    if (typeof SVGElement !== 'undefined' && element instanceof SVGElement) {
+      if ((normalizedName === 'x' || normalizedName === 'y') && /^nan$/iu.test(text.trim())) {
+        return '0';
+      }
+
+      if (normalizedName === 'transform' && /^rotate[xyz]\\(0(?:deg)?\\)$/iu.test(text.trim())) {
+        return 'rotate(0)';
+      }
+    }
+
+    return value;
+  };
   const nativeSetAttribute = Element.prototype.setAttribute;
   Element.prototype.setAttribute = function(name, value) {
     const normalizedName = String(name).toLowerCase();
@@ -5705,7 +5731,7 @@ function createVCockpitGaugeBridgeScript(
     if (normalizedName === 'style') {
       return nativeSetAttribute.call(this, name, rewriteStyleUrls(value));
     }
-    return nativeSetAttribute.call(this, name, value);
+    return nativeSetAttribute.call(this, name, sanitizeSvgAttributeValue(this, name, value));
   };
   const imageSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
   if (imageSrcDescriptor?.set != null && imageSrcDescriptor?.get != null) {
@@ -6106,8 +6132,10 @@ function createVCockpitGaugeBridgeScript(
     }
   }
   const readDemoSimVar = (name, unit) => {
-    const normalizedName = String(name ?? '').toLowerCase();
+    const normalizedRuntimeName = normalizeRuntimeBridgeVariableName(name);
+    const normalizedName = normalizedRuntimeName.toLowerCase();
     const normalizedUnit = String(unit ?? '').toLowerCase();
+    const isLocalScopedVariable = /^[lo]:/iu.test(normalizedRuntimeName);
     const hasPower =
       simVarValues.get(normalizeSimVarKey('ELECTRICAL MASTER BATTERY', 'Bool', '')) === 1 ||
       readInitialSimVarValue('ELECTRICAL MASTER BATTERY') === 1 ||
@@ -6120,6 +6148,10 @@ function createVCockpitGaugeBridgeScript(
       simVarValues.get(normalizeSimVarKey('GENERAL ENG MASTER ALTERNATOR:2', 'Bool', '')) === 1 ||
       readInitialSimVarValue('GENERAL ENG MASTER ALTERNATOR:2') === 1;
     if (normalizedUnit.includes('bool')) {
+      if (isLocalScopedVariable) {
+        return 0;
+      }
+
       if (normalizedName.includes('healthy') || normalizedName.includes('available') || normalizedName.includes('valid')) {
         return 1;
       }
@@ -6133,6 +6165,10 @@ function createVCockpitGaugeBridgeScript(
         : 0;
     }
     if (normalizedName.includes('brightness') || normalizedName.includes('potentiometer')) {
+      if (isLocalScopedVariable) {
+        return 0;
+      }
+
       const poweredValue = hasPower ? 100 : 0;
       return normalizedUnit.includes('percent over 100') ? poweredValue / 100 : poweredValue;
     }
