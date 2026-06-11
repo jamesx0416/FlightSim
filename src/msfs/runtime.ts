@@ -5365,7 +5365,7 @@ function resolveBrightnessOrPotentiometerFallback(
     return 0
   }
   if (isFractionalBrightnessVariableKey(key)) {
-    return convertFractionalBrightnessUnit(electricalPower ? 1 : 0, unit)
+    return convertFractionalBrightnessUnit(0, unit)
   }
   const poweredValue = electricalPower ? 100 : 0
   return normalizeUnit(unit) === 'percent over 100' ? poweredValue / 100 : poweredValue

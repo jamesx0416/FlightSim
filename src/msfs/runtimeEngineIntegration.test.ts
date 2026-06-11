@@ -105,6 +105,18 @@ test('mirrors deice key events into canonical environment state', () => {
   expect(host.readVariable('A:ENG ANTI ICE:2', 'Bool')).toBe(1)
 })
 
+test('keeps missing local display brightness dark until explicitly written', () => {
+  const host = new SharedMsfsRuntimeHost([])
+
+  expect(host.readVariable('L:A32NX_MCDU_L_BRIGHTNESS')).toBe(0)
+  expect(host.readVariable('L:A32NX_MCDU_R_BRIGHTNESS')).toBe(0)
+  expect(host.readVariable('L:A32NX_MCDU_C_BRIGHTNESS')).toBe(0)
+
+  host.writeVariable('L:A32NX_MCDU_L_BRIGHTNESS', 0.5)
+
+  expect(host.readVariable('L:A32NX_MCDU_L_BRIGHTNESS')).toBe(0.5)
+})
+
 describe('SharedMsfsRuntimeHost engine integration', () => {
   test('routes mapped lighting writes through canonical engine state', () => {
     const host = new SharedMsfsRuntimeHost([])
