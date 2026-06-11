@@ -4,6 +4,7 @@ import {
   AvionicsStateKeys,
   ControlStateKeys,
   ElectricalStateKeys,
+  EnvironmentStateKeys,
   FuelStateKeys,
   LightingStateKeys,
   PropulsionStateKeys,
@@ -357,6 +358,19 @@ test('maps MSFS ADF frequency aliases to canonical avionics state', () => {
   expect(state.readNumber(AvionicsStateKeys.adfStandbyFrequencyKhz(2))).toBe(350)
   expect(bridge.readSimVar('A:ADF ACTIVE FREQUENCY:1', 'KHz')).toBe(305)
   expect(bridge.readSimVar('A:ADF STANDBY FREQUENCY:2', 'KHz')).toBe(350)
+})
+
+test('maps MSFS pitot heat aliases to canonical environment state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(bridge.writeSimVar('A:PITOT HEAT SWITCH:2', 1, 'Bool')).toBe(true)
+  expect(state.readBoolean(EnvironmentStateKeys.pitotHeatEnabled(2))).toBe(true)
+  expect(bridge.readSimVar('A:PITOT HEAT SWITCH:2', 'Bool')).toBe(1)
+
+  expect(bridge.writeSimVar('A:PITOT HEAT', 0, 'Bool')).toBe(true)
+  expect(state.readBoolean(EnvironmentStateKeys.pitotHeatEnabled(1))).toBe(false)
+  expect(bridge.readSimVar('A:PITOT HEAT', 'Bool')).toBe(0)
 })
 
 test('exposes explicit alias metadata for compatibility diagnostics', () => {

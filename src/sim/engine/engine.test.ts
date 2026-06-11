@@ -12,6 +12,9 @@ import {
   ElectricalCommandTypes,
   ElectricalStateKeys,
   ElectricalSubsystem,
+  EnvironmentCommandTypes,
+  EnvironmentStateKeys,
+  EnvironmentSubsystem,
   FuelCommandTypes,
   FuelStateKeys,
   FuelSubsystem,
@@ -483,5 +486,19 @@ test('animates generic moving surfaces toward target state', () => {
     expect(
       readAvionicsNumber(engine.state, AvionicsStateKeys.adfStandbyFrequencyKhz(2))
     ).toBe(350)
+  })
+
+  test('dispatches indexed pitot heat commands through environment state', () => {
+    const engine = new SimulatorEngine()
+    engine.registerSubsystem(new EnvironmentSubsystem())
+
+    engine.dispatch({
+      type: EnvironmentCommandTypes.setPitotHeat,
+      payload: { index: 2, enabled: true },
+    })
+
+    expect(
+      engine.state.readBoolean(EnvironmentStateKeys.pitotHeatEnabled(2))
+    ).toBe(true)
   })
 })
