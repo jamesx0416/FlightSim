@@ -135,10 +135,11 @@ describe('MsfsCompatibilityBridge', () => {
     const bridge = new MsfsCompatibilityBridge(state)
 
     expect(bridge.writeSimVar('A:FLAPS HANDLE PERCENT', 50, 'percent')).toBe(true)
-    expect(
-      state.readNumber(ControlStateKeys.flapsHandleRatio(), { unit: 'ratio' })
-    ).toBe(0.5)
-    expect(bridge.readSimVar('A:FLAPS HANDLE PERCENT')).toBe(50)
+  expect(
+    state.readNumber(ControlStateKeys.flapsHandleRatio(), { unit: 'ratio' })
+  ).toBe(0.5)
+  expect(bridge.readSimVar('A:FLAPS HANDLE PERCENT')).toBe(50)
+  expect(bridge.readSimVar('A:FLAPS HANDLE PERCENT', 'Bool')).toBe(1)
 
     expect(bridge.writeSimVar('A:GEAR HANDLE POSITION', 1, 'ratio')).toBe(true)
     expect(
@@ -268,16 +269,18 @@ test('maps MSFS animated surface position SimVars to canonical surface state', (
     const bridge = new MsfsCompatibilityBridge(state)
 
     expect(bridge.writeSimVar('A:TRAILING EDGE FLAPS LEFT PERCENT', 40, 'percent')).toBe(true)
-    expect(
-      state.readNumber(SurfaceStateKeys.positionRatio('flaps'), { unit: 'ratio' })
-    ).toBe(0.4)
-    expect(bridge.readSimVar('A:TRAILING EDGE FLAPS LEFT PERCENT')).toBe(40)
+  expect(
+    state.readNumber(SurfaceStateKeys.positionRatio('flaps'), { unit: 'ratio' })
+  ).toBe(0.4)
+  expect(bridge.readSimVar('A:TRAILING EDGE FLAPS LEFT PERCENT')).toBe(40)
+  expect(bridge.readSimVar('A:TRAILING EDGE FLAPS LEFT PERCENT', 'Bool')).toBe(1)
 
-    expect(bridge.writeSimVar('A:SPOILERS LEFT POSITION', 25, 'percent')).toBe(true)
-    expect(
-      state.readNumber(SurfaceStateKeys.positionRatio('spoilers'), { unit: 'ratio' })
-    ).toBe(0.25)
-  })
+  expect(bridge.writeSimVar('A:SPOILERS LEFT POSITION', 25, 'percent')).toBe(true)
+  expect(
+    state.readNumber(SurfaceStateKeys.positionRatio('spoilers'), { unit: 'ratio' })
+  ).toBe(0.25)
+  expect(bridge.readSimVar('A:SPOILERS LEFT POSITION', 'Bool')).toBe(1)
+})
 
   test('leaves unknown MSFS variables unmapped', () => {
     const state = new SimStateStore()
