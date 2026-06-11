@@ -1,5 +1,9 @@
 # MSFS 2020 SimObjects Parser and Compatibility Runtime Plan
 
+> Historical note: this was the earlier MSFS-loader-first strategy. The current
+> architecture is a simulator-agnostic engine with MSFS as the first adapter.
+> See [Simulation Engine Architecture](../architecture/simulation-engine.md).
+
 **Important:** Do not implement, exit, or add anything that is aircraft-specific or heuristic. All bug fixes and changes must be generic MSFS loader fixes that apply broadly and authoritatively, not patches tailored to a specific aircraft.
 
 ## Summary

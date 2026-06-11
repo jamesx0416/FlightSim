@@ -1,6 +1,27 @@
 import { AnimationMixer, type Material, type Object3D, Vector3 } from 'three'
 
+import {
+  AutopilotSubsystem,
+  AvionicsCommandTypes,
+  AvionicsSubsystem,
+  ControlStateKeys,
+  ControlsSubsystem,
+  ElectricalStateKeys,
+  ElectricalSubsystem,
+  FuelSubsystem,
+  LightingElectricalSubsystem,
+  LightingStateKeys,
+  PropulsionSubsystem,
+  PropulsionStateKeys,
+  SimulatorEngine,
+  SurfaceAnimationSubsystem,
+  SurfaceStateKeys,
+  type CanonicalAircraftDefinition,
+  type CanonicalStateSeed,
+  type SimStateSource,
+} from '../sim/engine'
 import { evaluateCompiledExpression } from './rpn'
+import { MsfsCompatibilityBridge } from './compatibilityBridge'
 import type {
   CompiledAnimationBinding,
   CompiledAnimationTriggerBinding,
@@ -1334,6 +1355,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private readonly values = new Map<string, number>()
   private readonly readCache = new Map<string, number>()
   private readonly defaultedKeys = new Set<string>()
+  readonly simulatorEngine: SimulatorEngine
+  private readonly msfsCompatibilityBridge: MsfsCompatibilityBridge
   private readonly wingFlexProfile: DemoWingFlexProfile
   private engineCycleTarget = 0
   private throttleLeverPosition = 0
@@ -1368,6 +1391,33 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     private readonly aircraft?: ImportedAircraft
   ) {
     this.initialDiagnosticCount = diagnostics.length
+    this.simulatorEngine = new SimulatorEngine(
+      createCanonicalAircraftDefinition(aircraft)
+    )
+    this.simulatorEngine.registerSubsystem(new LightingElectricalSubsystem())
+    this.simulatorEngine.registerSubsystem(new ControlsSubsystem())
+    this.simulatorEngine.registerSubsystem(new ElectricalSubsystem())
+    this.simulatorEngine.registerSubsystem(new PropulsionSubsystem())
+    this.simulatorEngine.registerSubsystem(new FuelSubsystem())
+    this.simulatorEngine.registerSubsystem(new AvionicsSubsystem())
+    this.simulatorEngine.registerSubsystem(new AutopilotSubsystem())
+    this.simulatorEngine.registerSubsystem(
+      new SurfaceAnimationSubsystem({
+        surfaces: [
+          { id: 'flaps', extensionRatePerSecond: 0.85, retractionRatePerSecond: 0.85 },
+          { id: 'spoilers', extensionRatePerSecond: 2.5, retractionRatePerSecond: 2.5 },
+        ],
+      })
+    )
+    this.msfsCompatibilityBridge = new MsfsCompatibilityBridge(
+      this.simulatorEngine.state
+    )
+    this.simulatorEngine.state.subscribe(() => {
+      this.readCache.clear()
+    })
+    this.simulatorEngine.commands.subscribe('*', () => {
+      this.readCache.clear()
+    })
     this.wingFlexProfile = createDemoWingFlexProfile(aircraft)
     this.simVarSounds = aircraft?.soundDefinition?.simVarSounds ?? []
     this.seedColdAndDarkState()
@@ -1379,6 +1429,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.clear()
     this.readCache.clear()
     this.defaultedKeys.clear()
+    this.simulatorEngine.state.clearSourceValues('runtime')
+    this.simulatorEngine.state.clearSourceValues('loaded')
     this.engineCycleTarget = 0
     this.throttleLeverPosition = 0
     this.variableReadCount = 0
@@ -1415,12 +1467,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
     this.readCache.clear()
     this.values.set(normalizedKey, value)
+    this.writeEngineCompatibilityVariable(normalizedKey, value, null, 'loaded')
     return true
   }
 
   tick(dtSeconds: number): void {
     this.readCache.clear()
     this.elapsedSeconds += dtSeconds
+    this.simulatorEngine.tick(dtSeconds)
     this.controlState.gearPosition = moveTowards(
       this.controlState.gearPosition,
       this.controlState.gearTarget,
@@ -1481,6 +1535,22 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
     this.variableReadCacheMissCount += 1
 
+    const engineValue = this.msfsCompatibilityBridge.readSimVar(
+      normalizedKey,
+      unit
+    )
+    if (engineValue != null) {
+      this.readCache.set(cacheKey, engineValue)
+      return engineValue
+    }
+
+    const localEngineValue =
+      this.msfsCompatibilityBridge.readLocalVar(normalizedKey)
+    if (localEngineValue != null) {
+      this.readCache.set(cacheKey, localEngineValue)
+      return localEngineValue
+    }
+
     if (normalizedKey === 'A:TURBINE IGNITION SWITCH') {
       const indexedValue = this.resolveIndexedTurbineIgnitionSwitch()
       if (indexedValue != null) {
@@ -1530,6 +1600,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.readCache.clear()
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
+    this.writeEngineCompatibilityVariable(normalizedKey, numericValue, unit)
     if (normalizedKey.startsWith('B:')) {
       const handledByBinding = this.invokeInputEventBinding(
         normalizedKey.slice(2),
@@ -1563,6 +1634,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedEventName = normalizeKeyEventName(name)
     this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
     this.applyKeyEvent(normalizedEventName, args)
+    this.publishControlVariables()
+    this.publishElectricalVariables()
     const event: RuntimeKeyEvent = {
       name: normalizedEventName,
       args: [...args],
@@ -1789,18 +1862,27 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private applyLocalVariableSideEffects(key: string, value: number): void {
-    if (!key.startsWith('L:')) {
-      return
-    }
-    const normalizedValue = Number.isFinite(value) && value > 0 ? 1 : 0
+ if (!key.startsWith('L:')) {
+ return
+ }
+ this.msfsCompatibilityBridge.writeLocalVar(key, value)
+ const normalizedValue = Number.isFinite(value) && value > 0 ? 1 : 0
     if (isApuMasterLocalSwitchKey(key)) {
       this.values.set(normalizeRuntimeVariableKey('A:APU MASTER SWITCH'), normalizedValue)
       this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), normalizedValue)
+      this.msfsCompatibilityBridge.writeSimVar('A:APU MASTER SWITCH', normalizedValue, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU SWITCH', normalizedValue, 'Bool')
       if (normalizedValue > 0) {
         this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
         this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), Math.max(this.values.get(normalizeRuntimeVariableKey('A:APU PCT RPM')) ?? 0, 5))
+        this.msfsCompatibilityBridge.writeSimVar(
+          'A:APU PCT RPM',
+          Math.max(this.values.get(normalizeRuntimeVariableKey('A:APU PCT RPM')) ?? 0, 5),
+          'percent'
+        )
       } else {
         this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 0)
+        this.msfsCompatibilityBridge.writeSimVar('A:APU PCT RPM', 0, 'percent')
       }
       return
     }
@@ -1808,6 +1890,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.values.set(normalizeRuntimeVariableKey('A:APU STARTER'), normalizedValue)
       this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), normalizedValue)
       this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), normalizedValue > 0 ? 100 : 0)
+      this.msfsCompatibilityBridge.writeSimVar('A:APU STARTER', normalizedValue, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU SWITCH', normalizedValue, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar(
+        'A:APU PCT RPM',
+        normalizedValue > 0 ? 100 : 0,
+        'percent'
+      )
       if (normalizedValue > 0) {
         this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
       }
@@ -1863,7 +1952,60 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private publishControlVariables(): void {
     const gearPct = this.controlState.gearPosition * 100
     const flapsPct = this.controlState.flapsPosition * 100
+    const flapsTargetPct = this.controlState.flapsTarget * 100
     const spoilersPct = this.controlState.spoilersPosition * 100
+    const spoilersTargetPct = this.controlState.spoilersTarget * 100
+
+    this.simulatorEngine.state.set(
+      ControlStateKeys.gearHandleRatio(),
+      this.controlState.gearTarget,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.gearPositionRatio(),
+      this.controlState.gearPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.flapsHandleRatio(),
+      this.controlState.flapsTarget,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.flapsPositionRatio(),
+      this.controlState.flapsPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.spoilersHandleRatio(),
+      this.controlState.spoilersTarget,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.spoilersPositionRatio(),
+      this.controlState.spoilersPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.aileronPositionRatio(),
+      this.controlState.aileronPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.elevatorPositionRatio(),
+      this.controlState.elevatorPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.rudderPositionRatio(),
+      this.controlState.rudderPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      ControlStateKeys.parkingBrakeEnabled(),
+      this.controlState.parkingBrake > 0,
+      { source: 'runtime', unit: 'boolean' }
+    )
     this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION'), gearPct)
     this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:0'), gearPct)
     this.values.set(normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION:1'), gearPct)
@@ -1884,18 +2026,161 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR POSITION'), this.controlState.elevatorPosition)
     this.values.set(normalizeRuntimeVariableKey('A:RUDDER POSITION'), this.controlState.rudderPosition)
     this.values.set(normalizeRuntimeVariableKey('A:BRAKE PARKING POSITION'), this.controlState.parkingBrake)
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:GEAR ANIMATION POSITION'),
+      gearPct,
+      'percent'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:GEAR HANDLE POSITION'),
+      this.controlState.gearTarget,
+      'ratio'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:FLAPS HANDLE PERCENT'),
+      flapsTargetPct,
+      'percent'
+    )
+    this.simulatorEngine.state.set(
+      SurfaceStateKeys.targetRatio('flaps'),
+      this.controlState.flapsTarget,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      SurfaceStateKeys.positionRatio('flaps'),
+      this.controlState.flapsPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:TRAILING EDGE FLAPS LEFT PERCENT'),
+      flapsPct,
+      'percent'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:SPOILERS HANDLE POSITION'),
+      spoilersTargetPct,
+      'percent'
+    )
+    this.simulatorEngine.state.set(
+      SurfaceStateKeys.targetRatio('spoilers'),
+      this.controlState.spoilersTarget,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.simulatorEngine.state.set(
+      SurfaceStateKeys.positionRatio('spoilers'),
+      this.controlState.spoilersPosition,
+      { source: 'runtime', unit: 'ratio' }
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:SPOILERS LEFT POSITION'),
+      spoilersPct,
+      'percent'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:AILERON POSITION'),
+      this.controlState.aileronPosition,
+      'ratio'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:ELEVATOR POSITION'),
+      this.controlState.elevatorPosition,
+      'ratio'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:RUDDER POSITION'),
+      this.controlState.rudderPosition,
+      'ratio'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:BRAKE PARKING POSITION'),
+      this.controlState.parkingBrake,
+      'Bool'
+    )
   }
 
   private publishElectricalVariables(): void {
     const powered = this.hasElectricalPower() ? 1 : 0
+    const busVoltage = powered > 0 ? 28 : 0
+
+    this.simulatorEngine.state.set(
+      ElectricalStateKeys.batteryEnabled(),
+      this.electricalState.batterySwitch > 0,
+      { source: 'runtime', unit: 'boolean' }
+    )
+    this.simulatorEngine.state.set(
+      ElectricalStateKeys.externalPowerAvailable(),
+      this.electricalState.externalPowerAvailable > 0,
+      { source: 'runtime', unit: 'boolean' }
+    )
+    this.simulatorEngine.state.set(
+      ElectricalStateKeys.externalPowerConnected(),
+      this.electricalState.externalPowerSwitch > 0,
+      { source: 'runtime', unit: 'boolean' }
+    )
+    this.simulatorEngine.state.set(
+      ElectricalStateKeys.avionicsMasterEnabled(),
+      this.electricalState.avionicsSwitch > 0,
+      { source: 'runtime', unit: 'boolean' }
+    )
+    this.simulatorEngine.state.set(
+      ElectricalStateKeys.busVoltage('main'),
+      busVoltage,
+      { source: 'runtime', unit: 'number' }
+    )
+    this.simulatorEngine.state.set(
+      ElectricalStateKeys.busVoltage('avionics'),
+      busVoltage,
+      { source: 'runtime', unit: 'number' }
+    )
+
     this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MASTER BATTERY'), this.electricalState.batterySwitch)
     this.values.set(normalizeRuntimeVariableKey('A:MASTER BATTERY SWITCH'), this.electricalState.batterySwitch)
     this.values.set(normalizeRuntimeVariableKey('A:BATTERY SWITCH'), this.electricalState.batterySwitch)
     this.values.set(normalizeRuntimeVariableKey('A:EXTERNAL POWER AVAILABLE'), this.electricalState.externalPowerAvailable)
     this.values.set(normalizeRuntimeVariableKey('A:EXTERNAL POWER ON'), this.electricalState.externalPowerSwitch)
     this.values.set(normalizeRuntimeVariableKey('A:AVIONICS MASTER SWITCH'), this.electricalState.avionicsSwitch)
-    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MAIN BUS VOLTAGE'), powered > 0 ? 28 : 0)
-    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL AVIONICS BUS VOLTAGE'), powered > 0 ? 28 : 0)
+    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MAIN BUS VOLTAGE'), busVoltage)
+    this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL AVIONICS BUS VOLTAGE'), busVoltage)
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:ELECTRICAL MASTER BATTERY'),
+      this.electricalState.batterySwitch,
+      'Bool'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:MASTER BATTERY SWITCH'),
+      this.electricalState.batterySwitch,
+      'Bool'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:BATTERY SWITCH'),
+      this.electricalState.batterySwitch,
+      'Bool'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:EXTERNAL POWER AVAILABLE'),
+      this.electricalState.externalPowerAvailable,
+      'Bool'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:EXTERNAL POWER ON'),
+      this.electricalState.externalPowerSwitch,
+      'Bool'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:AVIONICS MASTER SWITCH'),
+      this.electricalState.avionicsSwitch,
+      'Bool'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:ELECTRICAL MAIN BUS VOLTAGE'),
+      powered > 0 ? 28 : 0,
+      'number'
+    )
+    this.writeEngineCompatibilityVariable(
+      normalizeRuntimeVariableKey('A:ELECTRICAL AVIONICS BUS VOLTAGE'),
+      powered > 0 ? 28 : 0,
+      'number'
+    )
     this.publishGenericPanelPowerVariables(powered)
   }
 
@@ -2015,10 +2300,41 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
   }
 
+  private writeEngineCompatibilityVariable(
+    normalizedKey: string,
+    value: number,
+    unit: string | null | undefined,
+    source: SimStateSource = 'runtime'
+  ): void {
+    if (!Number.isFinite(value)) {
+      return
+    }
+
+    this.msfsCompatibilityBridge.writeSimVar(normalizedKey, value, unit, source)
+  }
+
+  private seedEngineLightPotentiometer(index: number, value: number): void {
+    if (!Number.isFinite(value)) {
+      return
+    }
+
+    const key = LightingStateKeys.potentiometer(index)
+    this.simulatorEngine.state.define({
+      key,
+      unit: 'ratio',
+      valueType: 'number',
+    })
+    this.simulatorEngine.state.set(key, value, {
+      source: 'loaded',
+      unit: 'ratio',
+    })
+  }
+
   private seedLightPotentiometerFlightStateEntry(key: string, value: number): void {
     const potentiometerMatch = /^potentiometer\.(\d+)$/iu.exec(key)
     if (potentiometerMatch != null) {
       this.values.set(normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${potentiometerMatch[1]}`), value)
+      this.seedEngineLightPotentiometer(Number(potentiometerMatch[1]), value)
     }
   }
 
@@ -2094,7 +2410,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       const rawValue = section.values.get(flightStateKey.toLowerCase())
       const parsedValue = rawValue == null ? null : parseFlightStateScalar(rawValue)
       if (parsedValue != null) {
-        this.values.set(normalizeRuntimeVariableKey(simVarKey), parsedValue > 0 ? 1 : 0)
+        const normalizedSimVarKey = normalizeRuntimeVariableKey(simVarKey)
+        const switchValue = parsedValue > 0 ? 1 : 0
+        this.values.set(normalizedSimVarKey, switchValue)
+        this.writeEngineCompatibilityVariable(
+          normalizedSimVarKey,
+          switchValue,
+          null,
+          'loaded'
+        )
       }
     }
   }
@@ -2700,6 +3024,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.values.set(normalizeRuntimeVariableKey('A:APU SWITCH'), 1)
       this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 100)
       this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 1)
+      this.msfsCompatibilityBridge.writeSimVar('A:APU SWITCH', 1, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU STARTER', 1, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU ACTIVE:1', 1, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU PCT RPM', 100, 'percent')
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_ON'), 1)
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_AVAILABLE'), 1)
       return true
@@ -2709,6 +3037,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.values.set(normalizeRuntimeVariableKey('A:APU PCT RPM'), 0)
       this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR ACTIVE:1'), 0)
       this.values.set(normalizeRuntimeVariableKey('A:APU GENERATOR SWITCH:1'), 0)
+      this.msfsCompatibilityBridge.writeSimVar('A:APU SWITCH', 0, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU STARTER', 0, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU ACTIVE:1', 0, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:APU PCT RPM', 0, 'percent')
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_ON'), 0)
       this.values.set(normalizeRuntimeVariableKey('L:A32NX_OVHD_APU_START_PB_IS_AVAILABLE'), 0)
       return true
@@ -2866,8 +3198,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     if (name === 'COM3_RADIO_SET_HZ') {
       const value = Number(args.at(-1) ?? 0)
-      this.values.set(normalizeRuntimeVariableKey('A:COM ACTIVE FREQUENCY:3'), value)
-      this.values.set(normalizeRuntimeVariableKey('A:COM ACTIVE FREQUENCY:3 HZ'), value)
+      this.setRadioFrequency('COM', 3, 'ACTIVE', value / 1_000_000)
       return true
     }
 
@@ -3046,9 +3377,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       const key = normalizeRuntimeVariableKey('A:ELEVATOR TRIM POSITION')
       const currentValue = this.values.get(key) ?? 0
       const direction = name === 'ELEV_TRIM_UP' ? 1 : -1
-      const trim = clamp(currentValue + direction * 0.05, -1, 1)
-      this.values.set(key, trim)
-      this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM INDICATOR'), trim * 100)
+      this.setElevatorTrim(currentValue + direction * 0.05)
       return true
     }
 
@@ -3190,7 +3519,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     if (name === 'AUTOPILOT_DISENGAGE_SET') {
-      this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT DISENGAGED'), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      const nextValue = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT DISENGAGED'), nextValue)
+      this.msfsCompatibilityBridge.writeSimVar('A:AUTOPILOT DISENGAGED', nextValue, 'Bool')
       return true
     }
 
@@ -3211,7 +3542,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     const trimDisabledMatch = /^(RUDDER|AILERON|ELEVATOR)_TRIM_DISABLED_SET$/u.exec(name)
     if (trimDisabledMatch != null) {
-      this.values.set(normalizeRuntimeVariableKey(`A:${trimDisabledMatch[1]} TRIM DISABLED`), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      const nextValue = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      const key = `A:${trimDisabledMatch[1]} TRIM DISABLED`
+      this.values.set(normalizeRuntimeVariableKey(key), nextValue)
+      this.msfsCompatibilityBridge.writeSimVar(key, nextValue, 'Bool')
       return true
     }
 
@@ -3403,6 +3737,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       }
       const variableKey = normalizeRuntimeVariableKey(`A:${simvarName}:${Math.trunc(index)}`)
       this.values.set(variableKey, percent)
+      this.writeEngineCompatibilityVariable(variableKey, percent, 'percent')
     }
     if (simvarName === 'GENERAL ENG THROTTLE LEVER POSITION') {
       this.throttleLeverPosition = percent
@@ -3567,6 +3902,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const engineIndex = Math.trunc(index)
     const starterValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${engineIndex}`), starterValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:GENERAL ENG STARTER:${engineIndex}`,
+      starterValue,
+      'Bool'
+    )
   }
 
   private setMagnetoState(index: number, state: number): void {
@@ -3587,6 +3927,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.toggleAutopilotSimVar('AUTOPILOT MASTER')
       if ((this.values.get(normalizeRuntimeVariableKey('A:AUTOPILOT MASTER')) ?? 0) > 0) {
         this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT DISENGAGED'), 0)
+        this.msfsCompatibilityBridge.writeSimVar('A:AUTOPILOT DISENGAGED', 0, 'Bool')
       }
       return true
     }
@@ -3594,6 +3935,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (name === 'AUTOPILOT_ON') {
       this.setAutopilotSimVar('AUTOPILOT MASTER', 1)
       this.values.set(normalizeRuntimeVariableKey('A:AUTOPILOT DISENGAGED'), 0)
+      this.msfsCompatibilityBridge.writeSimVar('A:AUTOPILOT DISENGAGED', 0, 'Bool')
       return true
     }
 
@@ -3773,6 +4115,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (name === 'XPNDR_IDENT_ON') {
       this.values.set(normalizeRuntimeVariableKey('A:TRANSPONDER IDENT'), 1)
       this.values.set(normalizeRuntimeVariableKey('A:TRANSPONDER IDENT:1'), 1)
+      this.msfsCompatibilityBridge.writeSimVar('A:TRANSPONDER IDENT', 1, 'Bool')
+      this.msfsCompatibilityBridge.writeSimVar('A:TRANSPONDER IDENT:1', 1, 'Bool')
       return true
     }
 
@@ -3780,6 +4124,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       const maybeIndex = Math.trunc(Number(args[0] ?? 1))
       const index = Number.isFinite(maybeIndex) && maybeIndex > 0 ? maybeIndex : 1
       this.setKohlsmanHg(index, 29.92)
+      this.simulatorEngine.dispatch({
+        type: AvionicsCommandTypes.setBarometer,
+        payload: {
+          index,
+          settingHg: 29.92,
+          standardMode: name === 'BAROMETRIC_STD_PRESSURE',
+        },
+      })
       this.values.set(normalizeRuntimeVariableKey(`L:XMLVAR_Baro${index}_Mode`), name === 'BAROMETRIC_STD_PRESSURE' ? 1 : 0)
       return true
     }
@@ -3804,9 +4156,17 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private setKohlsmanHg(index: number, value: number): void {
     const normalizedValue = normalizeKohlsmanHg(value)
     const kohlsmanIndex = Math.max(1, Math.trunc(index))
+    this.simulatorEngine.dispatch({
+      type: AvionicsCommandTypes.setBarometer,
+      payload: {
+        index: kohlsmanIndex,
+        settingHg: normalizedValue,
+      },
+    })
     this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING HG:${kohlsmanIndex}`), normalizedValue)
     this.values.set(normalizeRuntimeVariableKey('A:KOHLSMAN SETTING HG'), normalizedValue)
     this.values.set(normalizeRuntimeVariableKey(`A:KOHLSMAN SETTING MB:${kohlsmanIndex}`), normalizedValue * 33.863_886_666_7)
+    this.values.set(normalizeRuntimeVariableKey('A:KOHLSMAN SETTING MB'), normalizedValue * 33.863_886_666_7)
   }
 
   private adjustRadioStandbyFrequency(family: string, index: number, deltaMhz: number): void {
@@ -3839,6 +4199,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedValue = Math.round(valueMhz * 1000) / 1000
     this.values.set(normalizeRuntimeVariableKey(`A:${normalizedFamily} ${slot} FREQUENCY:${radioIndex}`), normalizedValue)
     this.values.set(normalizeRuntimeVariableKey(`A:${normalizedFamily} ${slot} FREQUENCY:${radioIndex} HZ`), normalizedValue * 1_000_000)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:${normalizedFamily} ${slot} FREQUENCY:${radioIndex}`,
+      normalizedValue,
+      'number'
+    )
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:${normalizedFamily} ${slot} FREQUENCY:${radioIndex} HZ`,
+      normalizedValue * 1_000_000,
+      'number'
+    )
   }
 
   private adjustAdfStandbyFrequency(deltaKhz: number): void {
@@ -3847,6 +4217,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = clamp(currentValue + deltaKhz, 100, 1_799)
     this.values.set(key, nextValue)
     this.values.set(normalizeRuntimeVariableKey('A:ADF STANDBY FREQUENCY'), nextValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      'A:ADF STANDBY FREQUENCY:1',
+      nextValue,
+      'number'
+    )
   }
 
   private setTransponderState(index: number, value: number): void {
@@ -3854,14 +4229,23 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const normalizedValue = Math.max(0, Math.trunc(Number.isFinite(value) ? value : 0))
     this.values.set(normalizeRuntimeVariableKey(`A:TRANSPONDER STATE:${transponderIndex}`), normalizedValue)
     this.values.set(normalizeRuntimeVariableKey('A:TRANSPONDER STATE'), normalizedValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:TRANSPONDER STATE:${transponderIndex}`,
+      normalizedValue,
+      'number'
+    )
+    this.msfsCompatibilityBridge.writeSimVar('A:TRANSPONDER STATE', normalizedValue, 'number')
   }
 
   private setAutopilotSimVar(simVarName: string, value: number, index?: number): void {
     const normalizedValue = Number.isFinite(value) ? value : 0
     const baseKey = normalizeRuntimeVariableKey(`A:${simVarName}`)
     this.values.set(baseKey, normalizedValue)
+    this.msfsCompatibilityBridge.writeSimVar(baseKey, normalizedValue, null)
     if (index != null && Number.isFinite(index)) {
-      this.values.set(normalizeRuntimeVariableKey(`A:${simVarName}:${Math.trunc(index)}`), normalizedValue)
+      const indexedKey = normalizeRuntimeVariableKey(`A:${simVarName}:${Math.trunc(index)}`)
+      this.values.set(indexedKey, normalizedValue)
+      this.msfsCompatibilityBridge.writeSimVar(indexedKey, normalizedValue, null)
     }
   }
 
@@ -3889,12 +4273,25 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const trim = clamp(value, -1, 1)
     this.values.set(normalizeRuntimeVariableKey('A:RUDDER TRIM PCT'), trim)
     this.values.set(normalizeRuntimeVariableKey('A:RUDDER TRIM'), trim * 100)
+    this.msfsCompatibilityBridge.writeSimVar('A:RUDDER TRIM PCT', trim, 'ratio')
+    this.msfsCompatibilityBridge.writeSimVar('A:RUDDER TRIM', trim * 100, 'percent')
   }
 
   private setAileronTrim(value: number): void {
     const trim = clamp(value, -1, 1)
     this.values.set(normalizeRuntimeVariableKey('A:AILERON TRIM PCT'), trim)
     this.values.set(normalizeRuntimeVariableKey('A:AILERON TRIM'), trim * 100)
+    this.msfsCompatibilityBridge.writeSimVar('A:AILERON TRIM PCT', trim, 'ratio')
+    this.msfsCompatibilityBridge.writeSimVar('A:AILERON TRIM', trim * 100, 'percent')
+  }
+
+  private setElevatorTrim(value: number): void {
+    const trim = clamp(value, -1, 1)
+    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM PCT'), trim)
+    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM POSITION'), trim)
+    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM INDICATOR'), trim * 100)
+    this.msfsCompatibilityBridge.writeSimVar('A:ELEVATOR TRIM PCT', trim, 'ratio')
+    this.msfsCompatibilityBridge.writeSimVar('A:ELEVATOR TRIM', trim * 100, 'percent')
   }
 
   private setBrakePosition(side: 'LEFT' | 'RIGHT', percent: number): void {
@@ -3945,6 +4342,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = (this.values.get(normalizedKeys[0] ?? '') ?? 0) > 0 ? 0 : 1
     for (const key of normalizedKeys) {
       this.values.set(key, nextValue)
+      this.writeEngineCompatibilityVariable(key, nextValue, null)
     }
   }
 
@@ -3969,7 +4367,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     const clampedValue = clamp(value, 0, 100)
-    this.values.set(normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${Math.trunc(index)}`), clampedValue)
+    const key = normalizeRuntimeVariableKey(`A:LIGHT POTENTIOMETER:${Math.trunc(index)}`)
+    this.values.set(key, clampedValue)
+    this.writeEngineCompatibilityVariable(key, clampedValue, 'percent')
   }
 
   private stepLightPotentiometer(index: number, delta: number): void {
@@ -3984,20 +4384,25 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private setLightPowerSetting(type: string, index: number, value: number): void {
     const clampedValue = clamp(value, 0, 100)
     const powerSettingType = getLightPowerSettingType(type)
-    this.values.set(normalizeRuntimeVariableKey(`A:LIGHT ${powerSettingType} POWER SETTING`), clampedValue)
+    const unindexedKey = normalizeRuntimeVariableKey(`A:LIGHT ${powerSettingType} POWER SETTING`)
+    this.values.set(unindexedKey, clampedValue)
+    this.writeEngineCompatibilityVariable(unindexedKey, clampedValue, 'percent')
     if (Number.isFinite(index)) {
-      this.values.set(
-        normalizeRuntimeVariableKey(`A:LIGHT ${powerSettingType} POWER SETTING:${Math.trunc(index)}`),
-        clampedValue
-      )
+      const indexedKey = normalizeRuntimeVariableKey(`A:LIGHT ${powerSettingType} POWER SETTING:${Math.trunc(index)}`)
+      this.values.set(indexedKey, clampedValue)
+      this.writeEngineCompatibilityVariable(indexedKey, clampedValue, 'percent')
     }
   }
 
   private setLightSwitch(type: string, value: number, index?: number): void {
     const normalizedValue = value > 0 ? 1 : 0
-    this.values.set(getLightSwitchVariableKey(type), normalizedValue)
+    const unindexedKey = getLightSwitchVariableKey(type)
+    this.values.set(unindexedKey, normalizedValue)
+    this.writeEngineCompatibilityVariable(unindexedKey, normalizedValue, null)
     if (index != null && Number.isFinite(index)) {
-      this.values.set(getLightSwitchVariableKey(type, Math.trunc(index)), normalizedValue)
+      const indexedKey = getLightSwitchVariableKey(type, Math.trunc(index))
+      this.values.set(indexedKey, normalizedValue)
+      this.writeEngineCompatibilityVariable(indexedKey, normalizedValue, null)
     }
   }
 
@@ -4084,10 +4489,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     if (name === 'FUELSYSTEM_JUNCTION_SET') {
       const setting = Number(args[0] ?? Number.NaN)
-      const junctionIndex = Math.trunc(Number(args[1] ?? Number.NaN))
-      if (Number.isFinite(setting) && Number.isFinite(junctionIndex)) {
-        this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM JUNCTION SETTING:${junctionIndex}`), setting)
-      }
+    const junctionIndex = Math.trunc(Number(args[1] ?? Number.NaN))
+    if (Number.isFinite(setting) && Number.isFinite(junctionIndex)) {
+      this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM JUNCTION SETTING:${junctionIndex}`), setting)
+      this.msfsCompatibilityBridge.writeSimVar(
+        `A:FUELSYSTEM JUNCTION SETTING:${junctionIndex}`,
+        setting,
+        'number'
+      )
+    }
       return true
     }
 
@@ -4274,6 +4684,21 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG RPM:${engineIndex}`), rpmValue)
     this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG N1:${engineIndex}`), rpmValue)
     this.values.set(normalizeRuntimeVariableKey(`A:TURB ENG CORRECTED N1:${engineIndex}`), rpmValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:GENERAL ENG COMBUSTION:${engineIndex}`,
+      combustionValue,
+      'Bool'
+    )
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:GENERAL ENG RPM:${engineIndex}`,
+      rpmValue,
+      'number'
+    )
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:TURB ENG N1:${engineIndex}`,
+      rpmValue,
+      'percent'
+    )
     this.setEngineStarter(engineIndex, 0)
   }
 
@@ -4326,6 +4751,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const alternatorIndex = Math.trunc(index)
     const switchValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR:${alternatorIndex}`), switchValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:GENERAL ENG MASTER ALTERNATOR:${alternatorIndex}`,
+      switchValue,
+      'Bool'
+    )
     if (alternatorIndex === 1) {
       this.values.set(normalizeRuntimeVariableKey('A:GENERAL ENG MASTER ALTERNATOR'), switchValue)
     }
@@ -4345,6 +4775,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP SWITCH:${pumpIndex}`), nextValue)
     this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM PUMP ACTIVE:${pumpIndex}`), nextValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:FUELSYSTEM PUMP SWITCH:${pumpIndex}`,
+      nextValue,
+      'Bool'
+    )
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:FUELSYSTEM PUMP ACTIVE:${pumpIndex}`,
+      nextValue,
+      'Bool'
+    )
   }
 
   private setLegacyFuelPumpState(index: number, value: number): void {
@@ -4355,6 +4795,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL PUMP SWITCH EX1:${pumpIndex}`), nextValue)
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL PUMP ACTIVE:${pumpIndex}`), nextValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:GENERAL ENG FUEL PUMP SWITCH EX1:${pumpIndex}`,
+      nextValue,
+      'Bool'
+    )
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:GENERAL ENG FUEL PUMP ACTIVE:${pumpIndex}`,
+      nextValue,
+      'Bool'
+    )
   }
 
   private setEngineFuelValveState(index: number, value: number): void {
@@ -4364,6 +4814,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const engineIndex = Math.trunc(index)
     const nextValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG FUEL VALVE:${engineIndex}`), nextValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:GENERAL ENG FUEL VALVE:${engineIndex}`,
+      nextValue,
+      'Bool'
+    )
     this.values.set(normalizeRuntimeVariableKey(`L:ENG FUEL VALVE:${engineIndex}`), nextValue)
   }
 
@@ -4375,6 +4830,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const nextValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE OPEN:${valveIndex}`), nextValue)
     this.values.set(normalizeRuntimeVariableKey(`A:FUELSYSTEM VALVE SWITCH:${valveIndex}`), nextValue)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:FUELSYSTEM VALVE OPEN:${valveIndex}`,
+      nextValue,
+      'Bool'
+    )
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:FUELSYSTEM VALVE SWITCH:${valveIndex}`,
+      nextValue,
+      'Bool'
+    )
     this.applyTurbineFuelValveSideEffects(valveIndex, nextValue)
   }
 
@@ -4542,10 +5007,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
 
-    const trim = clamp(nextValue, -1, 1)
-    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM PCT'), trim)
-    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM POSITION'), trim)
-    this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR TRIM INDICATOR'), trim * 100)
+    this.setElevatorTrim(nextValue)
   }
 
   private applyGenericInputEventStateName(name: string, value: number): boolean {
@@ -4564,6 +5026,236 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 }
 
 export class DemoRuntimeHost extends SharedMsfsRuntimeHost {}
+
+function createCanonicalAircraftDefinition(
+  aircraft: ImportedAircraft | undefined
+): CanonicalAircraftDefinition | undefined {
+  if (aircraft == null) {
+    return undefined
+  }
+
+  return {
+    identity: {
+      id: aircraft.id,
+      displayName: aircraft.title,
+      variant: aircraft.variationName ?? aircraft.uiType,
+    },
+    initialState: createCanonicalInitialStateSeeds(aircraft.previewFlightState),
+    adapterMetadata: {
+      adapter: 'msfs',
+      sourcePath: aircraft.sourcePath,
+      sourceUrl: aircraft.sourceUrl,
+      sectionName: aircraft.sectionName,
+    },
+  }
+}
+
+function createCanonicalInitialStateSeeds(
+  flightState: ImportedFlightState | null
+): readonly CanonicalStateSeed[] | undefined {
+  if (flightState == null) {
+    return undefined
+  }
+
+  const seeds = new Map<string, CanonicalStateSeed>()
+  const setSeed = (seed: CanonicalStateSeed): void => {
+    seeds.set(seed.key, seed)
+  }
+
+  for (const section of flightState.sections) {
+    const normalizedSectionName = section.name.toLowerCase()
+    if (normalizedSectionName === 'systems.0') {
+      collectCanonicalElectricalSeeds(section, setSeed)
+      collectCanonicalLightPotentiometerSeeds(section, setSeed)
+    }
+    if (normalizedSectionName === 'controls.0') {
+      collectCanonicalControlSeeds(section, setSeed)
+    }
+    if (normalizedSectionName === 'switches.0') {
+      collectCanonicalLightPotentiometerSeeds(section, setSeed)
+    }
+
+    if (parseEngineFlightStateIndex(section.name) != null) {
+      collectCanonicalEngineSeeds(section, setSeed)
+    }
+  }
+
+  return seeds.size > 0 ? [...seeds.values()] : undefined
+}
+
+function collectCanonicalElectricalSeeds(
+  section: ImportedCfgSection,
+  setSeed: (seed: CanonicalStateSeed) => void
+): void {
+  for (const [key, rawValue] of section.values) {
+    const parsedValue = parseFlightStateScalar(rawValue)
+    if (parsedValue == null) {
+      continue
+    }
+
+    const normalizedKey = key.toLowerCase()
+    if (normalizedKey === 'batteryswitch') {
+      setSeed({
+        key: ElectricalStateKeys.batteryEnabled(),
+        value: parsedValue > 0,
+        unit: 'boolean',
+        valueType: 'boolean',
+        source: 'loaded',
+      })
+    } else if (normalizedKey === 'externalpowerswitch') {
+      setSeed({
+        key: ElectricalStateKeys.externalPowerConnected(),
+        value: parsedValue > 0,
+        unit: 'boolean',
+        valueType: 'boolean',
+        source: 'loaded',
+      })
+    } else if (normalizedKey === 'avionicsswitch') {
+      setSeed({
+        key: ElectricalStateKeys.avionicsMasterEnabled(),
+        value: parsedValue > 0,
+        unit: 'boolean',
+        valueType: 'boolean',
+        source: 'loaded',
+      })
+    }
+  }
+}
+
+function collectCanonicalEngineSeeds(
+  section: ImportedCfgSection,
+  setSeed: (seed: CanonicalStateSeed) => void
+): void {
+  const engineIndex = parseEngineFlightStateIndex(section.name)
+  if (engineIndex == null) {
+    return
+  }
+
+  const rpmValue = section.values.get('pct engine rpm')
+  const parsedRpm = rpmValue == null ? null : parseFlightStateScalar(rpmValue)
+  if (parsedRpm != null) {
+    const rpmPercent = toFlightStatePercent(parsedRpm)
+    setSeed({
+      key: PropulsionStateKeys.engineRpm(engineIndex),
+      value: rpmPercent,
+      unit: 'number',
+      valueType: 'number',
+      source: 'loaded',
+    })
+    setSeed({
+      key: PropulsionStateKeys.engineN1Percent(engineIndex),
+      value: rpmPercent,
+      unit: 'percent',
+      valueType: 'number',
+      source: 'loaded',
+    })
+    setSeed({
+      key: PropulsionStateKeys.engineRunning(engineIndex),
+      value: rpmPercent > 0,
+      unit: 'boolean',
+      valueType: 'boolean',
+      source: 'loaded',
+    })
+  }
+
+  const throttleValue = section.values.get('throttleleverpct')
+  const parsedThrottle = throttleValue == null ? null : parseFlightStateScalar(throttleValue)
+  if (parsedThrottle != null) {
+    setSeed({
+      key: PropulsionStateKeys.engineThrottleLeverRatio(engineIndex),
+      value: clamp01(toPercentOver100(parsedThrottle, 'percent')),
+      unit: 'ratio',
+      valueType: 'number',
+      source: 'loaded',
+    })
+  }
+
+  const generatorSwitchValue = section.values.get('generatorswitch')
+  const parsedGeneratorSwitch =
+    generatorSwitchValue == null ? null : parseFlightStateScalar(generatorSwitchValue)
+  if (parsedGeneratorSwitch != null) {
+    setSeed({
+      key: PropulsionStateKeys.engineAlternatorEnabled(engineIndex),
+      value: parsedGeneratorSwitch > 0,
+      unit: 'boolean',
+      valueType: 'boolean',
+      source: 'loaded',
+    })
+  }
+}
+
+function collectCanonicalLightPotentiometerSeeds(
+  section: ImportedCfgSection,
+  setSeed: (seed: CanonicalStateSeed) => void
+): void {
+  for (const [key, rawValue] of section.values) {
+    const parsedValue = parseFlightStateScalar(rawValue)
+    if (parsedValue == null) {
+      continue
+    }
+
+    const potentiometerMatch = /^potentiometer\.(\d+)$/iu.exec(key)
+    if (potentiometerMatch == null) {
+      continue
+    }
+
+    setSeed({
+      key: LightingStateKeys.potentiometer(Number(potentiometerMatch[1])),
+      value: parsedValue,
+      unit: 'ratio',
+      valueType: 'number',
+      source: 'loaded',
+    })
+  }
+}
+
+function collectCanonicalControlSeeds(
+  section: ImportedCfgSection,
+  setSeed: (seed: CanonicalStateSeed) => void
+): void {
+  const gearHandle = parseFlightStateScalar(section.values.get('gearshandle') ?? '')
+  if (gearHandle != null) {
+    const ratio = clamp01(toPercentOver100(gearHandle, 'percent'))
+    setRatioLoadedSeed(ControlStateKeys.gearHandleRatio(), ratio, setSeed)
+    setRatioLoadedSeed(ControlStateKeys.gearPositionRatio(), ratio, setSeed)
+  }
+
+  const flapsHandle = parseFlightStateScalar(
+    section.values.get('flapshandle') ?? ''
+  )
+  if (flapsHandle != null) {
+    const ratio = clamp01(toPercentOver100(flapsHandle, 'percent'))
+    setRatioLoadedSeed(ControlStateKeys.flapsHandleRatio(), ratio, setSeed)
+    setRatioLoadedSeed(ControlStateKeys.flapsPositionRatio(), ratio, setSeed)
+    setRatioLoadedSeed(SurfaceStateKeys.targetRatio('flaps'), ratio, setSeed)
+    setRatioLoadedSeed(SurfaceStateKeys.positionRatio('flaps'), ratio, setSeed)
+  }
+
+  const spoilersHandle = parseFlightStateScalar(
+    section.values.get('spoilershandle') ?? ''
+  )
+  if (spoilersHandle != null) {
+    const ratio = clamp01(toPercentOver100(spoilersHandle, 'percent'))
+    setRatioLoadedSeed(ControlStateKeys.spoilersHandleRatio(), ratio, setSeed)
+    setRatioLoadedSeed(ControlStateKeys.spoilersPositionRatio(), ratio, setSeed)
+    setRatioLoadedSeed(SurfaceStateKeys.targetRatio('spoilers'), ratio, setSeed)
+    setRatioLoadedSeed(SurfaceStateKeys.positionRatio('spoilers'), ratio, setSeed)
+  }
+}
+
+function setRatioLoadedSeed(
+  key: string,
+  value: number,
+  setSeed: (seed: CanonicalStateSeed) => void
+): void {
+  setSeed({
+    key,
+    value,
+    unit: 'ratio',
+    valueType: 'number',
+    source: 'loaded',
+  })
+}
 
 function toRequestedControlUnit(value: number, unit: string | null): number {
   const normalizedUnit = normalizeUnit(unit)
