@@ -85,6 +85,26 @@ test('mirrors pitot heat key events into canonical environment state', () => {
   expect(host.readVariable('A:PITOT HEAT SWITCH:2', 'Bool')).toBe(0)
 })
 
+test('mirrors deice key events into canonical environment state', () => {
+  const host = new SharedMsfsRuntimeHost([])
+
+  host.invokeKeyEvent('STRUCTURAL_DEICE_SET', [1])
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      EnvironmentStateKeys.structuralDeiceEnabled()
+    )
+  ).toBe(true)
+  expect(host.readVariable('A:STRUCTURAL DEICE SWITCH', 'Bool')).toBe(1)
+
+  host.invokeKeyEvent('ANTI_ICE_SET_ENG2', [1])
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      EnvironmentStateKeys.engineAntiIceEnabled(2)
+    )
+  ).toBe(true)
+  expect(host.readVariable('A:ENG ANTI ICE:2', 'Bool')).toBe(1)
+})
+
 describe('SharedMsfsRuntimeHost engine integration', () => {
   test('routes mapped lighting writes through canonical engine state', () => {
     const host = new SharedMsfsRuntimeHost([])

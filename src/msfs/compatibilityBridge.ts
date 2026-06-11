@@ -452,6 +452,29 @@ function mapMsfsElectricalSimVarToCanonicalState(name: string): MsfsStateAlias |
 function mapMsfsEnvironmentSimVarToCanonicalState(
   name: string
 ): MsfsStateAlias | undefined {
+  if (name === 'STRUCTURAL DEICE SWITCH') {
+    return {
+      kind: 'environmentBoolean',
+      stateKey: EnvironmentStateKeys.structuralDeiceEnabled(),
+      canonicalUnit: 'boolean',
+    }
+  }
+
+  const engineAntiIceMatch = /^ENG ANTI ICE(?::(\d+))?$/u.exec(name)
+  if (engineAntiIceMatch != null) {
+    const index =
+      engineAntiIceMatch[1] == null ? 1 : Number(engineAntiIceMatch[1])
+    if (!Number.isInteger(index) || index <= 0) {
+      return undefined
+    }
+
+    return {
+      kind: 'environmentBoolean',
+      stateKey: EnvironmentStateKeys.engineAntiIceEnabled(index),
+      canonicalUnit: 'boolean',
+    }
+  }
+
   const pitotHeatMatch = /^PITOT HEAT(?: SWITCH(?::(\d+))?)?$/u.exec(name)
   if (pitotHeatMatch == null) {
     return undefined

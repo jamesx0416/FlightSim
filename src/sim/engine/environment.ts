@@ -6,13 +6,22 @@ export const ENVIRONMENT_SUBSYSTEM_ID = 'environment'
 
 export const EnvironmentCommandTypes = {
   setPitotHeat: 'environment.pitotHeat.set',
+  setStructuralDeice: 'environment.structuralDeice.set',
+  setEngineAntiIce: 'environment.engineAntiIce.set',
 } as const
 
 export interface EnvironmentSubsystemDefinition {
   readonly pitotHeat?: readonly PitotHeatDefinition[]
+  readonly engineAntiIce?: readonly EngineAntiIceDefinition[]
+  readonly defaultStructuralDeiceEnabled?: boolean
 }
 
 export interface PitotHeatDefinition {
+  readonly index: number
+  readonly defaultEnabled?: boolean
+}
+
+export interface EngineAntiIceDefinition {
   readonly index: number
   readonly defaultEnabled?: boolean
 }
@@ -26,6 +35,12 @@ interface IndexedBooleanPayload {
 export const EnvironmentStateKeys = {
   pitotHeatEnabled(index = 1): string {
     return `environment.pitotHeat.${normalizePositiveIndex(index)}.enabled`
+  },
+  structuralDeiceEnabled(): string {
+    return 'environment.structuralDeice.enabled'
+  },
+  engineAntiIceEnabled(index = 1): string {
+    return `environment.engineAntiIce.${normalizePositiveIndex(index)}.enabled`
   },
 } as const
 
@@ -46,6 +61,22 @@ export class EnvironmentSubsystem implements SimSubsystem {
         pitotHeat.defaultEnabled
       )
     }
+
+    defineBooleanState(
+      context.state,
+      EnvironmentStateKeys.structuralDeiceEnabled(),
+      'Structural deice enabled',
+      this.definition.defaultStructuralDeiceEnabled
+    )
+
+    for (const engineAntiIce of this.definition.engineAntiIce ?? []) {
+      defineBooleanState(
+        context.state,
+        EnvironmentStateKeys.engineAntiIceEnabled(engineAntiIce.index),
+        `Engine anti-ice ${engineAntiIce.index} enabled`,
+        engineAntiIce.defaultEnabled
+      )
+    }
   }
 
   handleCommand(
@@ -58,6 +89,24 @@ export class EnvironmentSubsystem implements SimSubsystem {
         setBoolean(
           context.state,
           EnvironmentStateKeys.pitotHeatEnabled(payload.index ?? 1),
+          payload.enabled ?? payload.value ?? false
+        )
+        return true
+      }
+      case EnvironmentCommandTypes.setStructuralDeice: {
+        const payload = command.payload as IndexedBooleanPayload
+        setBoolean(
+          context.state,
+          EnvironmentStateKeys.structuralDeiceEnabled(),
+          payload.enabled ?? payload.value ?? false
+        )
+        return true
+      }
+      case EnvironmentCommandTypes.setEngineAntiIce: {
+        const payload = command.payload as IndexedBooleanPayload
+        setBoolean(
+          context.state,
+          EnvironmentStateKeys.engineAntiIceEnabled(payload.index ?? 1),
           payload.enabled ?? payload.value ?? false
         )
         return true

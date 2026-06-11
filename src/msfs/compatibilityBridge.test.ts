@@ -373,6 +373,23 @@ test('maps MSFS pitot heat aliases to canonical environment state', () => {
   expect(bridge.readSimVar('A:PITOT HEAT', 'Bool')).toBe(0)
 })
 
+test('maps MSFS deice aliases to canonical environment state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(bridge.writeSimVar('A:STRUCTURAL DEICE SWITCH', 1, 'Bool')).toBe(true)
+  expect(state.readBoolean(EnvironmentStateKeys.structuralDeiceEnabled())).toBe(
+    true
+  )
+  expect(bridge.readSimVar('A:STRUCTURAL DEICE SWITCH', 'Bool')).toBe(1)
+
+  expect(bridge.writeSimVar('A:ENG ANTI ICE:2', 1, 'Bool')).toBe(true)
+  expect(state.readBoolean(EnvironmentStateKeys.engineAntiIceEnabled(2))).toBe(
+    true
+  )
+  expect(bridge.readSimVar('A:ENG ANTI ICE:2', 'Bool')).toBe(1)
+})
+
 test('exposes explicit alias metadata for compatibility diagnostics', () => {
   expect(mapMsfsSimVarToCanonicalState('A:LIGHT PANEL POWER SETTING')).toEqual({
       kind: 'lightPower',

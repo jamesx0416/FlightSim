@@ -3588,11 +3588,22 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       const key = normalizeRuntimeVariableKey('A:STRUCTURAL DEICE SWITCH')
       const nextValue = (this.values.get(key) ?? 0) > 0 ? 0 : 1
       this.values.set(key, nextValue)
+      this.msfsCompatibilityBridge.writeSimVar(
+        'A:STRUCTURAL DEICE SWITCH',
+        nextValue,
+        'Bool'
+      )
       return true
     }
 
     if (name === 'STRUCTURAL_DEICE_SET') {
-      this.values.set(normalizeRuntimeVariableKey('A:STRUCTURAL DEICE SWITCH'), Number(args.at(-1) ?? 0) > 0 ? 1 : 0)
+      const nextValue = Number(args.at(-1) ?? 0) > 0 ? 1 : 0
+      this.values.set(normalizeRuntimeVariableKey('A:STRUCTURAL DEICE SWITCH'), nextValue)
+      this.msfsCompatibilityBridge.writeSimVar(
+        'A:STRUCTURAL DEICE SWITCH',
+        nextValue,
+        'Bool'
+      )
       return true
     }
 
@@ -4274,6 +4285,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`A:ENG ANTI ICE:${engineIndex}`), enabled)
     this.values.set(normalizeRuntimeVariableKey(`A:GENERAL ENG ANTI ICE POSITION:${engineIndex}`), clampedPercent)
     this.values.set(normalizeRuntimeVariableKey(`A:RECIP ENG ALTERNATE AIR POSITION:${engineIndex}`), clampedPercent)
+    this.msfsCompatibilityBridge.writeSimVar(
+      `A:ENG ANTI ICE:${engineIndex}`,
+      enabled,
+      'Bool'
+    )
   }
 
   private setRudderTrim(value: number): void {

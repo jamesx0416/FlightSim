@@ -77,6 +77,18 @@ export const SIM_COMMAND_CATALOG: readonly SimCommandCatalogEntry[] = [
     payloadExample: { index: 1, enabled: true },
   },
   {
+    type: EnvironmentCommandTypes.setStructuralDeice,
+    subsystem: 'environment',
+    description: 'Set structural deice switch state.',
+    payloadExample: { enabled: true },
+  },
+  {
+    type: EnvironmentCommandTypes.setEngineAntiIce,
+    subsystem: 'environment',
+    description: 'Set indexed engine anti-ice switch state.',
+    payloadExample: { index: 1, enabled: true },
+  },
+  {
     type: AvionicsCommandTypes.setRadioActiveFrequency,
     subsystem: 'avionics',
     description: 'Set indexed COM/NAV active radio frequency in MHz.',
