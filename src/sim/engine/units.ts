@@ -54,6 +54,10 @@ export function convertSimUnit(
     return value === 0 ? 0 : 1
   }
 
+  if ((fromUnit === 'ratio' || fromUnit === 'percent') && toUnit === 'boolean') {
+    return value === 0 ? 0 : 1
+  }
+
   if (fromUnit === 'meters' && toUnit === 'feet') {
     return value * 3.280839895013123
   }
