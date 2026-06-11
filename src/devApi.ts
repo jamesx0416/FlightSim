@@ -27,6 +27,7 @@ import type {
   RuntimeState
 } from './msfs/types'
 import type { RendererInfo } from './rendering/createAppRenderer'
+import { listCanonicalEngineCommands, type SimCommand, type SimUnit } from './sim/engine'
 import type {
   CockpitCameraController,
   CockpitInteractionPickRegistry,
@@ -48,6 +49,33 @@ type DevApiResponse<T = unknown> = {
   readonly summary: string
   readonly data: T
   readonly warnings?: readonly string[]
+}
+
+type DevApiStateValue = number | string | boolean
+type DevApiCommandPayload = SimCommand['payload']
+
+const DEV_API_STATE_UNITS = new Set<SimUnit>([
+  'unitless',
+  'number',
+  'ratio',
+  'percent',
+  'boolean',
+  'seconds',
+  'meters',
+  'feet',
+  'metersPerSecond',
+  'knots',
+  'celsius',
+  'kelvin',
+])
+
+function parseDevApiStateUnit(unit: string | null | undefined): SimUnit | undefined {
+  if (unit == null || unit.trim() === '') {
+    return undefined
+  }
+
+  const normalized = unit.trim()
+  return DEV_API_STATE_UNITS.has(normalized as SimUnit) ? (normalized as SimUnit) : undefined
 }
 
 type DevApiWasmModuleImport = {
@@ -82,6 +110,8 @@ type DevApiListKind =
   | 'materials'
   | 'inputEvents'
   | 'variables'
+  | 'state'
+  | 'commands'
   | 'diagnostics'
   | 'events'
   | 'settings'
@@ -214,6 +244,9 @@ type ViewerDevApi = {
   readonly diagnostics: (options?: DevApiDiagnosticsOptions) => DevApiResponse
   readonly readVar: (name: string, unit?: string | null) => DevApiResponse
   readonly writeVar: (name: string, value: number, unit?: string | null) => DevApiResponse
+  readonly readState: (key: string) => DevApiResponse
+  readonly writeState: (key: string, value: DevApiStateValue, unit?: string | null) => DevApiResponse
+  readonly dispatchCommand: (type: string, payload?: DevApiCommandPayload) => DevApiResponse
   readonly keyEvent: (name: string, args?: readonly number[]) => DevApiResponse
   readonly bridgeCall: (name: string, args?: readonly number[]) => DevApiResponse
   readonly events: (options?: { readonly kind?: 'key' | 'html' | 'sound' | 'effect' | 'bridge' | 'interaction'; readonly limit?: number }) => DevApiResponse
@@ -1095,6 +1128,21 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       .slice(0, limit)
       .map(([name, value]) => ({ name, value }))
   }
+  const collectState = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
+    const needle = filter.trim().toLowerCase()
+    const state = context.getRuntimeHost().simulatorEngine.state
+    return state
+      .listDefinitions()
+      .filter(definition => !needle || definition.key.toLowerCase().includes(needle))
+      .slice(0, limit)
+      .map(definition => ({
+        key: definition.key,
+        unit: definition.unit ?? null,
+        valueType: definition.valueType ?? null,
+        description: definition.description ?? null,
+        entry: state.getEntry(definition.key) ?? null,
+      }))
+  }
   const statusData = (): Record<string, unknown> => {
     const loadedModel = context.getLoadedModel()
     const cockpit = context.getCockpitCameraController()
@@ -1350,6 +1398,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       )
     }
     if (kind === 'variables') return ok('Listed runtime variables.', collectVariables(filter, limit))
+    if (kind === 'state') return ok('Listed canonical engine state.', collectState(filter, limit))
+    if (kind === 'commands') return ok('Listed canonical engine commands.', listCanonicalEngineCommands(filter, limit))
     if (kind === 'diagnostics') return api.diagnostics({ filter, limit })
     if (kind === 'events') return api.events()
     if (kind === 'settings') return api.settings.get()
@@ -1378,6 +1428,10 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         'await __DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)',
         'await __DevApi.waitFor({ kind: "event", eventKind: "html", name: "A320_Neo_CDU_1_BTN_MENU" }, 5000)',
         'await __DevApi.waitFor({ kind: "varChanged", var: "A:SPOILERS HANDLE POSITION", from: 0 }, 5000)',
+        '__DevApi.list({ kind: "state", filter: "surfaces" })',
+        '__DevApi.list({ kind: "commands", filter: "apu" })',
+        '__DevApi.writeState("surfaces.flaps.target.ratio", 0.5, "ratio")',
+        '__DevApi.dispatchCommand("surfaces.setTarget", { id: "flaps", ratio: 0.5 })',
         '__DevApi.checkGauge(undefined, { screenshot: true })',
         'await __DevApi.inspectWasm("terronnd")',
         '__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")',
@@ -1397,7 +1451,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }),
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
-      listKinds: ['nodes', 'nodeAnimations', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'materials', 'inputEvents', 'variables', 'diagnostics', 'events', 'settings', 'camera'],
+      listKinds: ['nodes', 'nodeAnimations', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'materials', 'inputEvents', 'variables', 'state', 'commands', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release', 'mouseEvent', 'inputType', 'relativeX', 'relativeY', 'relativeZ', 'dragPercent'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       dragOptions: ['axis', 'start', 'end', 'startPercent', 'endPercent', 'steps', 'durationMs', 'inputType', 'lock', 'release'],
@@ -1409,7 +1463,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       inspectWasmOptions: ['maxBytes', 'surface', 'source'],
       benchMethods: ['startup', 'cockpitLod0', 'all', 'history', 'clearHistory'],
       resetOptions: ['runtime', 'coldAndDark'],
-      runtimeMethods: ['readVar', 'writeVar', 'keyEvent', 'bridgeCall'],
+      runtimeMethods: ['readVar', 'writeVar', 'readState', 'writeState', 'dispatchCommand', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
     }),
     report: () => ok('Collected viewer debug report.', {
@@ -1681,6 +1735,81 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     writeVar: (name, value, unit = null) => {
       context.getRuntimeHost().writeVariable(name, value, unit)
       return ok(`Wrote ${name}.`, { name, unit, value: context.getRuntimeHost().readVariable(name, unit) })
+    },
+    readState: key => {
+      const state = context.getRuntimeHost().simulatorEngine.state
+      return ok(`Read canonical state ${key}.`, {
+        key,
+        entry: state.getEntry(key) ?? null,
+        definition: state.getDefinition(key) ?? null,
+      })
+    },
+    writeState: (key, value, unit = null) => {
+      const state = context.getRuntimeHost().simulatorEngine.state
+      const parsedUnit = parseDevApiStateUnit(unit)
+      const definition = state.getDefinition(key)
+
+      if (unit != null && unit.trim() !== '' && parsedUnit == null) {
+        return fail(`Unknown canonical state unit "${unit}".`, {
+          key,
+          unit,
+          allowedUnits: [...DEV_API_STATE_UNITS],
+        })
+      }
+
+      try {
+        state.set(key, value, {
+          source: 'runtime',
+          unit: parsedUnit ?? definition?.unit,
+        })
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        return fail(`Failed to write canonical state ${key}.`, {
+          key,
+          value,
+          unit,
+          error: message,
+          definition: definition ?? null,
+        })
+      }
+
+      return ok(`Wrote canonical state ${key}.`, {
+        key,
+        value,
+        unit: parsedUnit ?? definition?.unit ?? null,
+        entry: state.getEntry(key) ?? null,
+        definition: state.getDefinition(key) ?? null,
+      })
+    },
+    dispatchCommand: (type, payload = undefined) => {
+      if (type.trim() === '') {
+        return fail('Command type is required.', { type, payload })
+      }
+
+      const knownCommand = listCanonicalEngineCommands().find(
+        (entry) => entry.type === type
+      )
+      if (knownCommand == null) {
+        return fail(`Unknown engine command ${type}.`, {
+          type,
+          payload,
+          knownCommands: listCanonicalEngineCommands().map((entry) => entry.type),
+        })
+      }
+
+      const engine = context.getRuntimeHost().simulatorEngine
+      const command: SimCommand = {
+        type,
+        payload,
+        source: 'devapi',
+      }
+      const dispatch = engine.dispatch(command)
+
+      return ok(`Dispatched engine command ${type}.`, {
+        command,
+        dispatch,
+        diagnosticsCount: engine.diagnostics.length,
+      })
     },
     keyEvent: (name, args = []) => {
       context.getRuntimeHost().invokeKeyEvent(name, args)

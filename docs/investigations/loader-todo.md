@@ -1,5 +1,9 @@
 # Aircraft Loader Master TODO
 
+> Strategy note: this checklist remains active for MSFS adapter, loader, and
+> compatibility gaps. It now serves the simulator-agnostic engine direction
+> documented in [Simulation Engine Architecture](../architecture/simulation-engine.md).
+
 This is the master planning document for the loader/runtime/viewer work in this repo.
 
 It consolidates:

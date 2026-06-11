@@ -15,6 +15,8 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 
 - `find(query, options?)` searches nodes/components/gauges/variables/diagnostics: `window.__DevApi.find("baro")`.
 - `list(options?)` lists structured records: `window.__DevApi.list({ kind: "gauges" })`, `list({ kind: "animationTriggers" })`, `list({ kind: "nodeAnimations" })`.
+- `list({ kind: "state", filter?, limit? })` lists canonical engine state keys, definitions, and current selected entries: `window.__DevApi.list({ kind: "state", filter: "surfaces" })`.
+- `list({ kind: "commands", filter?, limit? })` lists canonical engine command types and payload examples: `window.__DevApi.list({ kind: "commands", filter: "apu" })`.
 - `checkComponent(target)` inspects a component/interaction match: `window.__DevApi.checkComponent("PUSH_AP_MASTER")`.
 - `checkMaterial(target, options?)` inspects scene materials: `window.__DevApi.checkMaterial("PUSH_OVHD_HYD_ENG1PUMP_SEQ1")`.
 - `checkGauge(key?, options?)` inspects a VCockpit gauge and can include a screenshot: `window.__DevApi.checkGauge("mcdu", { screenshot: true })`.
@@ -24,8 +26,15 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 
 ## Runtime State
 
-- `readVar(name, unit?)` reads a runtime variable: `window.__DevApi.readVar("A:SPOILERS HANDLE POSITION")`.
-- `writeVar(name, value, unit?)` writes a runtime variable: `window.__DevApi.writeVar("L:TEST_SWITCH", 1)`.
+- `readVar(name, unit?)` reads a runtime variable. Mapped SimVars and LVars
+  read through canonical engine compatibility aliases first:
+  `window.__DevApi.readVar("A:SPOILERS HANDLE POSITION")`.
+- `writeVar(name, value, unit?)` writes a runtime variable. Mapped SimVars and
+  LVars also update canonical engine state through the compatibility layer:
+  `window.__DevApi.writeVar("L:TEST_SWITCH", 1)`.
+- `readState(key)` reads canonical engine state: `window.__DevApi.readState("propulsion.apu.rpm.percent")`.
+- `writeState(key, value, unit?)` writes canonical engine state with runtime provenance: `window.__DevApi.writeState("surfaces.flaps.target.ratio", 0.5, "ratio")`.
+- `dispatchCommand(type, payload?)` dispatches a listed canonical engine command and returns dispatch metadata. Unknown command types fail: `window.__DevApi.dispatchCommand("surfaces.setTarget", { id: "flaps", ratio: 0.5 })`.
 - `checkParam(names)` checks generic parameter presets: `window.__DevApi.checkParam(["gear", "flaps", "spoilers", "parkingBrake"])`.
 - `setParam(name, value, unit?)` writes a generic parameter preset: `window.__DevApi.setParam("spoilers", 50, "percent")`.
 - `keyEvent(name, args?)` invokes a simulator key event: `window.__DevApi.keyEvent("GEAR_DOWN")`.
