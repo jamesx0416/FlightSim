@@ -236,6 +236,7 @@ export type CockpitCameraController = {
 type CockpitViewToggleSource = 'keyboard' | 'benchmark'
 type VCockpitGaugeMode = 'texture' | 'overlay' | 'video'
 type VCockpitGaugeModeRequest = VCockpitGaugeMode | 'htmlTexture'
+type VCockpitGaugeOverlayProjection = 'bounds' | 'quad'
 type ExteriorInteriorMode = 'deferred' | 'sync' | 'off'
 type CockpitTextureMode = 'range-low' | 'full'
 
@@ -249,6 +250,7 @@ export type ViewerConfigProfile = {
   readonly vcockpitSurfaces?: boolean
   readonly vcockpitLiveGauges?: boolean
   readonly vcockpitGaugeMode?: VCockpitGaugeMode
+  readonly vcockpitGaugeOverlayProjection?: VCockpitGaugeOverlayProjection
   readonly vcockpitGaugeCaptureFps?: number | null
   readonly vcockpitGaugeRasterScale?: number | null
   readonly vcockpitGaugeUpdateOutside?: boolean
@@ -286,6 +288,7 @@ type ViewerRuntimeSettingsSnapshot = {
   readonly vcockpitSurfaces: boolean
   readonly vcockpitLiveGauges: boolean
   readonly vcockpitGaugeMode: VCockpitGaugeModeRequest
+  readonly vcockpitGaugeOverlayProjection: VCockpitGaugeOverlayProjection
   readonly vcockpitGaugeCaptureFps: number
   readonly vcockpitGaugeRasterScale: number
   readonly vcockpitGaugeUpdateOutside: boolean
@@ -3323,6 +3326,14 @@ function getConfigurableVCockpitGaugeMode(searchParams: URLSearchParams): VCockp
   return mode === 'htmlTexture' ? 'texture' : mode
 }
 
+function getVCockpitGaugeOverlayProjection(
+  searchParams: URLSearchParams
+): VCockpitGaugeOverlayProjection {
+  return searchParams.get('vcockpitGaugeOverlayProjection') === 'quad'
+    ? 'quad'
+    : 'bounds'
+}
+
 function getVCockpitGaugeVideoFps(searchParams: URLSearchParams): number {
   const parsed = parsePositiveQueryNumber(searchParams.get('vcockpitGaugeVideoFps'))
   if (parsed == null) {
@@ -3504,6 +3515,7 @@ const PROFILE_QUERY_KEYS = [
   'vcockpitSurfaces',
   'vcockpitLiveGauges',
   'vcockpitGaugeMode',
+  'vcockpitGaugeOverlayProjection',
   'vcockpitGaugeCaptureFps',
   'vcockpitGaugeCaptureHz',
   'vcockpitGaugeRasterScale',
@@ -3584,6 +3596,9 @@ function normalizeViewerConfigProfile(value: unknown): ViewerConfigProfile {
     vcockpitSurfaces: normalizeOptionalBoolean(record.vcockpitSurfaces),
     vcockpitLiveGauges: normalizeOptionalBoolean(record.vcockpitLiveGauges),
     vcockpitGaugeMode: normalizeVCockpitGaugeMode(record.vcockpitGaugeMode),
+    vcockpitGaugeOverlayProjection: normalizeVCockpitGaugeOverlayProjection(
+      record.vcockpitGaugeOverlayProjection
+    ),
     vcockpitGaugeCaptureFps: normalizeNullableNumber(record.vcockpitGaugeCaptureFps),
     vcockpitGaugeRasterScale: normalizeNullableNumber(record.vcockpitGaugeRasterScale),
     vcockpitGaugeUpdateOutside: normalizeOptionalBoolean(record.vcockpitGaugeUpdateOutside),
@@ -3626,6 +3641,12 @@ function normalizeExteriorInteriorMode(value: unknown): ExteriorInteriorMode | u
 
 function normalizeVCockpitGaugeMode(value: unknown): VCockpitGaugeMode | undefined {
   return value === 'texture' || value === 'overlay' || value === 'video' ? value : undefined
+}
+
+function normalizeVCockpitGaugeOverlayProjection(
+  value: unknown
+): VCockpitGaugeOverlayProjection | undefined {
+  return value === 'bounds' || value === 'quad' ? value : undefined
 }
 
 function getViewerAircraftConfigKey(packageRoot: string, aircraftId: string): string {
@@ -3676,6 +3697,12 @@ function applyViewerConfigProfileToSearchParams(
   setBooleanSearchParam(searchParams, 'vcockpitSurfaces', profile.vcockpitSurfaces, overwrite, 'on', 'off')
   setBooleanSearchParam(searchParams, 'vcockpitLiveGauges', profile.vcockpitLiveGauges, overwrite, 'on', 'off')
   setProfileSearchParam(searchParams, 'vcockpitGaugeMode', profile.vcockpitGaugeMode, overwrite)
+  setProfileSearchParam(
+    searchParams,
+    'vcockpitGaugeOverlayProjection',
+    profile.vcockpitGaugeOverlayProjection,
+    overwrite
+  )
   setNullableNumberSearchParam(
     searchParams,
     'vcockpitGaugeCaptureFps',
@@ -7715,6 +7742,9 @@ function updateVCockpitHtmlGaugeOverlayRuntimes(
   camera: PerspectiveCamera,
   viewportElement: HTMLElement
 ): void {
+  const overlayProjection = getVCockpitGaugeOverlayProjection(
+    new URLSearchParams(window.location.search)
+  )
   for (const surfaceRuntime of surfaceTextureRuntimes) {
     if (surfaceRuntime.gaugeMode !== 'overlay') {
       continue
@@ -7746,6 +7776,28 @@ function updateVCockpitHtmlGaugeOverlayRuntimes(
       const gaugeY = Math.round(gauge.y ?? 0)
       const gaugeWidth = Math.max(1, Math.round(gauge.width ?? surfaceWidth))
       const gaugeHeight = Math.max(1, Math.round(gauge.height ?? surfaceHeight))
+      if (
+        overlayProjection === 'quad' &&
+        applyVCockpitOverlayGaugeQuadProjection(
+          iframe,
+          surfaceRuntime.overlayObjects,
+          camera,
+          viewportElement,
+          gaugeX / surfaceWidth,
+          gaugeY / surfaceHeight,
+          (gaugeX + gaugeWidth) / surfaceWidth,
+          (gaugeY + gaugeHeight) / surfaceHeight,
+          gaugeWidth,
+          gaugeHeight
+        )
+      ) {
+        iframe.style.visibility = 'visible'
+        continue
+      }
+
+      iframe.style.transform = ''
+      iframe.style.transformOrigin = ''
+      iframe.style.clipPath = ''
       iframe.style.left = `${surfaceRect.left + (gaugeX / surfaceWidth) * surfaceRect.width}px`
       iframe.style.top = `${surfaceRect.top + (gaugeY / surfaceHeight) * surfaceRect.height}px`
       iframe.style.width = `${(gaugeWidth / surfaceWidth) * surfaceRect.width}px`
@@ -7753,6 +7805,284 @@ function updateVCockpitHtmlGaugeOverlayRuntimes(
       iframe.style.visibility = 'visible'
     }
   }
+}
+
+type VCockpitViewportPoint = readonly [number, number]
+type VCockpitViewportQuad = readonly [
+  VCockpitViewportPoint,
+  VCockpitViewportPoint,
+  VCockpitViewportPoint,
+  VCockpitViewportPoint
+]
+
+function applyVCockpitOverlayGaugeQuadProjection(
+  iframe: HTMLIFrameElement,
+  objects: readonly Object3D[],
+  camera: PerspectiveCamera,
+  viewportElement: HTMLElement,
+  u0: number,
+  v0: number,
+  u1: number,
+  v1: number,
+  width: number,
+  height: number
+): boolean {
+  const surfaceQuad = projectVCockpitSurfaceUvQuadToViewport(objects, camera, viewportElement)
+  if (surfaceQuad == null) return false
+
+  const gaugeQuad: VCockpitViewportQuad = [
+    interpolateVCockpitViewportQuad(surfaceQuad, u0, v0),
+    interpolateVCockpitViewportQuad(surfaceQuad, u1, v0),
+    interpolateVCockpitViewportQuad(surfaceQuad, u1, v1),
+    interpolateVCockpitViewportQuad(surfaceQuad, u0, v1),
+  ]
+  if (!isUsableVCockpitViewportQuad(gaugeQuad, viewportElement)) return false
+  const matrix = createCssProjectiveMatrix3d(width, height, gaugeQuad)
+  if (matrix == null) return false
+
+  iframe.style.left = '0px'
+  iframe.style.top = '0px'
+  iframe.style.width = `${width}px`
+  iframe.style.height = `${height}px`
+  iframe.style.transformOrigin = '0 0'
+  iframe.style.transform = matrix
+  iframe.style.clipPath = 'polygon(0 0, 100% 0, 100% 100%, 0 100%)'
+  return true
+}
+
+function projectVCockpitSurfaceUvQuadToViewport(
+  objects: readonly Object3D[],
+  camera: PerspectiveCamera,
+  viewportElement: HTMLElement
+): VCockpitViewportQuad | null {
+  let bestQuad: VCockpitViewportQuad | null = null
+  let bestArea = 0
+  for (const object of objects) {
+    object.traverse(child => {
+      if (!(child instanceof Mesh)) return
+      const quad = projectMeshUvQuadToViewport(child, camera, viewportElement)
+      if (quad == null) return
+      const area = Math.abs(getViewportQuadSignedArea(quad))
+      if (area > bestArea) {
+        bestArea = area
+        bestQuad = quad
+      }
+    })
+  }
+  return bestArea > 4 ? bestQuad : null
+}
+
+function projectMeshUvQuadToViewport(
+  mesh: Mesh,
+  camera: PerspectiveCamera,
+  viewportElement: HTMLElement
+): VCockpitViewportQuad | null {
+  const geometry = mesh.geometry
+  const position = geometry.getAttribute('position')
+  const uv = geometry.getAttribute('uv')
+  if (position == null || uv == null || position.count <= 0 || uv.count !== position.count) {
+    return null
+  }
+
+  let minU = Infinity
+  let minV = Infinity
+  let maxU = -Infinity
+  let maxV = -Infinity
+  for (let index = 0; index < uv.count; index += 1) {
+    const u = uv.getX(index)
+    const v = uv.getY(index)
+    if (!Number.isFinite(u) || !Number.isFinite(v)) continue
+    minU = Math.min(minU, u)
+    minV = Math.min(minV, v)
+    maxU = Math.max(maxU, u)
+    maxV = Math.max(maxV, v)
+  }
+  if (!Number.isFinite(minU) || !Number.isFinite(minV) || maxU - minU <= 1e-6 || maxV - minV <= 1e-6) {
+    return null
+  }
+
+  const targetUvs: readonly VCockpitViewportPoint[] = [
+    [minU, minV],
+    [maxU, minV],
+    [maxU, maxV],
+    [minU, maxV],
+  ]
+  const viewportQuad = targetUvs.map(targetUv => {
+    const vertexIndex = findNearestUvVertexIndex(uv, targetUv[0], targetUv[1])
+    if (vertexIndex < 0) return null
+    const world = new Vector3()
+      .fromBufferAttribute(position, vertexIndex)
+      .applyMatrix4(mesh.matrixWorld)
+      .project(camera)
+    if (world.z < -1 || world.z > 1) return null
+    return normalizedDevicePointToViewportPoint(world, viewportElement)
+  })
+  return viewportQuad.every((point): point is VCockpitViewportPoint => point != null)
+    ? (viewportQuad as unknown as VCockpitViewportQuad)
+    : null
+}
+
+function findNearestUvVertexIndex(uv: BufferGeometry['attributes'][string], u: number, v: number): number {
+  let bestIndex = -1
+  let bestDistance = Infinity
+  for (let index = 0; index < uv.count; index += 1) {
+    const du = uv.getX(index) - u
+    const dv = uv.getY(index) - v
+    const distance = du * du + dv * dv
+    if (distance < bestDistance) {
+      bestDistance = distance
+      bestIndex = index
+    }
+  }
+  return bestIndex
+}
+
+function normalizedDevicePointToViewportPoint(
+  point: Vector3,
+  viewportElement: HTMLElement
+): VCockpitViewportPoint {
+  const viewportRect = viewportElement.getBoundingClientRect()
+  return [
+    viewportRect.left + ((point.x + 1) * 0.5) * viewportRect.width,
+    viewportRect.top + ((1 - point.y) * 0.5) * viewportRect.height,
+  ]
+}
+
+function interpolateVCockpitViewportQuad(
+  quad: VCockpitViewportQuad,
+  u: number,
+  v: number
+): VCockpitViewportPoint {
+  const top = interpolateViewportPoint(quad[0], quad[1], u)
+  const bottom = interpolateViewportPoint(quad[3], quad[2], u)
+  return interpolateViewportPoint(top, bottom, v)
+}
+
+function interpolateViewportPoint(
+  start: VCockpitViewportPoint,
+  end: VCockpitViewportPoint,
+  ratio: number
+): VCockpitViewportPoint {
+  return [
+    start[0] + (end[0] - start[0]) * ratio,
+    start[1] + (end[1] - start[1]) * ratio,
+  ]
+}
+
+function createCssProjectiveMatrix3d(
+  width: number,
+  height: number,
+  quad: VCockpitViewportQuad
+): string | null {
+  if (width < 1 || height < 1 || Math.abs(getViewportQuadSignedArea(quad)) < 4) return null
+
+  const homography = solveProjectiveHomography(
+    [
+      [0, 0],
+      [width, 0],
+      [width, height],
+      [0, height],
+    ],
+    quad
+  )
+  if (homography == null) return null
+
+  const [a, b, c, d, e, f, g, h] = homography
+  const values = [
+    a, d, 0, g,
+    b, e, 0, h,
+    0, 0, 1, 0,
+    c, f, 0, 1,
+  ].map(value => Number.isFinite(value) ? value.toFixed(8) : '0')
+  return `matrix3d(${values.join(',')})`
+}
+
+function solveProjectiveHomography(
+  source: readonly VCockpitViewportPoint[],
+  target: readonly VCockpitViewportPoint[]
+): readonly number[] | null {
+  const rows: number[][] = []
+  for (let index = 0; index < 4; index += 1) {
+    const [x, y] = source[index]
+    const [u, v] = target[index]
+    rows.push([x, y, 1, 0, 0, 0, -u * x, -u * y, u])
+    rows.push([0, 0, 0, x, y, 1, -v * x, -v * y, v])
+  }
+  return solveLinearSystem(rows)
+}
+
+function solveLinearSystem(rows: number[][]): readonly number[] | null {
+  const size = rows.length
+  for (let column = 0; column < size; column += 1) {
+    let pivot = column
+    for (let row = column + 1; row < size; row += 1) {
+      if (Math.abs(rows[row][column]) > Math.abs(rows[pivot][column])) pivot = row
+    }
+    if (Math.abs(rows[pivot][column]) < 1e-9) return null
+    if (pivot !== column) {
+      const swap = rows[column]
+      rows[column] = rows[pivot]
+      rows[pivot] = swap
+    }
+
+    const divisor = rows[column][column]
+    for (let item = column; item <= size; item += 1) rows[column][item] /= divisor
+    for (let row = 0; row < size; row += 1) {
+      if (row === column) continue
+      const factor = rows[row][column]
+      for (let item = column; item <= size; item += 1) {
+        rows[row][item] -= factor * rows[column][item]
+      }
+    }
+  }
+  return rows.map(row => row[size])
+}
+
+function getViewportQuadSignedArea(quad: VCockpitViewportQuad): number {
+  let area = 0
+  for (let index = 0; index < quad.length; index += 1) {
+    const current = quad[index]
+    const next = quad[(index + 1) % quad.length]
+    area += current[0] * next[1] - next[0] * current[1]
+  }
+  return area * 0.5
+}
+
+function isUsableVCockpitViewportQuad(
+  quad: VCockpitViewportQuad,
+  viewportElement: HTMLElement
+): boolean {
+  const viewportRect = viewportElement.getBoundingClientRect()
+  const viewportWidth = Math.max(1, viewportRect.width)
+  const viewportHeight = Math.max(1, viewportRect.height)
+  let minX = Number.POSITIVE_INFINITY
+  let minY = Number.POSITIVE_INFINITY
+  let maxX = Number.NEGATIVE_INFINITY
+  let maxY = Number.NEGATIVE_INFINITY
+  for (const [x, y] of quad) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false
+    minX = Math.min(minX, x)
+    minY = Math.min(minY, y)
+    maxX = Math.max(maxX, x)
+    maxY = Math.max(maxY, y)
+  }
+
+  const width = maxX - minX
+  const height = maxY - minY
+  if (width <= 1 || height <= 1) return false
+  if (width > viewportWidth * 1.5 || height > viewportHeight * 1.5) return false
+
+  const area = Math.abs(getViewportQuadSignedArea(quad))
+  if (area <= 4 || area > viewportWidth * viewportHeight) return false
+
+  const marginX = viewportWidth * 0.25
+  const marginY = viewportHeight * 0.25
+  return (
+    maxX >= viewportRect.left - marginX &&
+    minX <= viewportRect.right + marginX &&
+    maxY >= viewportRect.top - marginY &&
+    minY <= viewportRect.bottom + marginY
+  )
 }
 
 function hideVCockpitOverlayGaugeFrames(
@@ -11865,6 +12195,7 @@ function createSettingsProfileEditor(options: {
   const vcockpitSurfacesSelect = createSettingsSelect('VCockpit Surfaces')
   const vcockpitLiveSelect = createSettingsSelect('Live Gauges')
   const vcockpitGaugeModeSelect = createSettingsSelect('Gauge Mode')
+  const vcockpitGaugeOverlayProjectionSelect = createSettingsSelect('Overlay Projection')
   const cockpitTexturesSelect = createSettingsSelect('Cockpit Textures')
   const cockpitTextureSizeInput = createSettingsInput('Cockpit Texture Size', 'number')
   const vcockpitCaptureFpsInput = createSettingsInput('Gauge Capture FPS', 'number')
@@ -11905,6 +12236,11 @@ function createSettingsProfileEditor(options: {
     createSettingsOption('texture', 'Texture'),
     createSettingsOption('overlay', 'Overlay'),
     createSettingsOption('video', 'Video')
+  )
+  appendGlobalOption(vcockpitGaugeOverlayProjectionSelect)
+  vcockpitGaugeOverlayProjectionSelect.append(
+    createSettingsOption('bounds', 'Bounds'),
+    createSettingsOption('quad', 'Quad')
   )
   appendGlobalOption(cockpitTexturesSelect)
   cockpitTexturesSelect.append(
@@ -11976,6 +12312,8 @@ function createSettingsProfileEditor(options: {
     )
     vcockpitGaugeModeSelect.value =
       profile.vcockpitGaugeMode ?? (inheritsFromGlobal ? 'global' : 'texture')
+    vcockpitGaugeOverlayProjectionSelect.value =
+      profile.vcockpitGaugeOverlayProjection ?? (inheritsFromGlobal ? 'global' : 'bounds')
     cockpitTexturesSelect.value =
       profile.cockpitTextures ?? (inheritsFromGlobal ? 'global' : 'range-low')
     cockpitTextureSizeInput.value =
@@ -12023,6 +12361,10 @@ function createSettingsProfileEditor(options: {
       vcockpitLiveGauges: parseSettingsBooleanValue(vcockpitLiveSelect.value, inheritsFromGlobal),
       vcockpitGaugeMode: parseSettingsGaugeMode(
         vcockpitGaugeModeSelect.value,
+        inheritsFromGlobal
+      ),
+      vcockpitGaugeOverlayProjection: parseSettingsGaugeOverlayProjection(
+        vcockpitGaugeOverlayProjectionSelect.value,
         inheritsFromGlobal
       ),
       vcockpitGaugeCaptureFps: parseSettingsNullableNumber(
@@ -12086,6 +12428,7 @@ function createSettingsProfileEditor(options: {
     createSettingsField('VCockpit Surfaces', vcockpitSurfacesSelect),
     createSettingsField('Live Gauges', vcockpitLiveSelect),
     createSettingsField('Gauge Mode', vcockpitGaugeModeSelect),
+    createSettingsField('Overlay Projection', vcockpitGaugeOverlayProjectionSelect),
     createSettingsField('Gauge Capture FPS', vcockpitCaptureFpsInput),
     createSettingsField('Gauge Raster Scale', vcockpitRasterScaleInput),
     createSettingsField('Gauge Updates Outside', vcockpitGaugeUpdateOutsideSelect),
@@ -12123,6 +12466,7 @@ function createViewerConfigProfileFromSearchParams(
     vcockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
     vcockpitLiveGauges: shouldLiveRefreshVCockpitGauges(searchParams),
     vcockpitGaugeMode: getConfigurableVCockpitGaugeMode(searchParams),
+    vcockpitGaugeOverlayProjection: getVCockpitGaugeOverlayProjection(searchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
     vcockpitGaugeUpdateOutside: shouldUpdateVCockpitGaugesOutside(searchParams),
@@ -12152,6 +12496,7 @@ function createViewerRuntimeSettingsSnapshot(
     vcockpitSurfaces: shouldBindVCockpitSurfaces(searchParams),
     vcockpitLiveGauges: shouldLiveRefreshVCockpitGauges(searchParams),
     vcockpitGaugeMode: getVCockpitGaugeMode(searchParams),
+    vcockpitGaugeOverlayProjection: getVCockpitGaugeOverlayProjection(searchParams),
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(searchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(searchParams),
     vcockpitGaugeUpdateOutside: shouldUpdateVCockpitGaugesOutside(searchParams),
@@ -12262,6 +12607,16 @@ function parseSettingsGaugeMode(
     return undefined
   }
   return value === 'overlay' || value === 'video' ? value : 'texture'
+}
+
+function parseSettingsGaugeOverlayProjection(
+  value: string,
+  allowGlobal: boolean
+): VCockpitGaugeOverlayProjection | undefined {
+  if (allowGlobal && value === 'global') {
+    return undefined
+  }
+  return value === 'quad' ? 'quad' : 'bounds'
 }
 
 function parseSettingsCockpitTextures(
