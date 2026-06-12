@@ -54,7 +54,8 @@ import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } fro
 import { installViewerBootDevApi, installViewerDevApi } from './devApi'
 import type {
   CompiledBehaviorSet,
-  CompiledInteractionBlocker,
+ CompiledInteractionBlocker,
+ CompiledMaterialBinding,
   ImportedAircraft,
   ImportedCfgSection,
   ImportDiagnostic,
@@ -63,6 +64,7 @@ import type {
 } from './msfs/types'
 import type { CompiledInteractionBinding } from './msfs/types'
 import type { ImportedModelDefinition } from './msfs/types'
+import { evaluateCompiledExpression } from './msfs/rpn'
 import {
   createAircraftEnvironment,
   createAppRenderer,
@@ -1129,11 +1131,12 @@ async function init(): Promise<void> {
           shouldLiveRefreshVCockpitGauges(effectiveSearchParams),
           getVCockpitGaugeMode(effectiveSearchParams),
           getVCockpitGaugeVideoFps(effectiveSearchParams),
-          getVCockpitGaugeCaptureFps(effectiveSearchParams),
-          getVCockpitGaugeRasterScale(effectiveSearchParams),
-          shouldDebugVCockpitGauges(effectiveSearchParams),
-          runtimeHost
-        )
+        getVCockpitGaugeCaptureFps(effectiveSearchParams),
+        getVCockpitGaugeRasterScale(effectiveSearchParams),
+        shouldDebugVCockpitGauges(effectiveSearchParams),
+        compiledBehaviors,
+        runtimeHost
+      )
         vcockpitBinding.setActive(shouldUpdateVCockpitGaugesForCurrentView())
         ;(globalThis as Record<string, unknown>).__lastVCockpitSurfaceBinding =
           vcockpitBinding
@@ -4031,6 +4034,7 @@ async function loadAircraftModelComponent(
       options.vcockpitGaugeCaptureFps ?? VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ,
       options.vcockpitGaugeRasterScale ?? 1,
       options.debugVCockpitGauges === true,
+      options.behaviorSet ?? null,
       options.runtimeHost ?? new SharedMsfsRuntimeHost([], context.aircraft)
     )
     recordPhase('component:bind-vcockpit-surfaces', vcockpitStartMs, {
@@ -4206,6 +4210,7 @@ type VCockpitSurfaceTextureRuntime = {
   captureIntervalMs: number
   readonly rasterScale: number
   readonly htmlGaugeRuntimes: VCockpitHtmlGaugeRuntime[]
+  readonly displayPowerBindings: readonly CompiledMaterialBinding[]
   readonly liveCapture: boolean
   readonly gaugeMode: VCockpitGaugeMode
   readonly overlayObjects: Object3D[]
@@ -4532,6 +4537,7 @@ async function bindVCockpitPlaceholderSurfaces(
   captureFps: number,
   rasterScale: number,
   debugHtmlGaugeOverlay: boolean,
+  behaviorSet: CompiledBehaviorSet | null,
   runtimeHost: SharedMsfsRuntimeHost
 ): Promise<VCockpitSurfaceBindingResult> {
   const parsed = parseVCockpitSurfaces(aircraft)
@@ -4804,18 +4810,23 @@ async function bindVCockpitPlaceholderSurfaces(
       continue
     }
 
-    const surfaceRuntimes: VCockpitHtmlGaugeRuntime[] = []
-    const surfaceTextureRuntime = createVCockpitSurfaceTextureRuntime(
-      surface,
-      surfaceRuntimes,
-      liveHtmlGaugeCapture,
-      effectiveGaugeMode,
-      videoFps,
-      captureFps,
-      effectiveRasterScale,
-      debugHtmlGaugeOverlay,
-      diagnostics
-    )
+      const surfaceRuntimes: VCockpitHtmlGaugeRuntime[] = []
+      const displayPowerBindings = findVCockpitSurfaceDisplayPowerBindings(
+        surface,
+        behaviorSet
+      )
+      const surfaceTextureRuntime = createVCockpitSurfaceTextureRuntime(
+        surface,
+        surfaceRuntimes,
+        liveHtmlGaugeCapture,
+        effectiveGaugeMode,
+        videoFps,
+        captureFps,
+        effectiveRasterScale,
+        debugHtmlGaugeOverlay,
+        displayPowerBindings,
+        diagnostics
+      )
     const overlayObjects = new Set<Object3D>()
     let surfaceBindingCount = 0
 
@@ -4929,8 +4940,9 @@ async function bindVCockpitPlaceholderSurfaces(
       return surfaceTextureRuntimes.map(surfaceRuntime => ({
         sectionName: surfaceRuntime.surface.sectionName,
         textureName: surfaceRuntime.surface.textureName,
-        captureCount: surfaceRuntime.captureCount,
-        lastCaptureDurationMs: surfaceRuntime.lastCaptureDurationMs,
+          captureCount: surfaceRuntime.captureCount,
+          displayPowerBindingCount: surfaceRuntime.displayPowerBindings.length,
+          lastCaptureDurationMs: surfaceRuntime.lastCaptureDurationMs,
         averageCaptureDurationMs: surfaceRuntime.averageCaptureDurationMs,
         currentCaptureIntervalMs: getVCockpitSurfaceCaptureIntervalMs(surfaceRuntime),
         dirtyGaugeCount: surfaceRuntime.htmlGaugeRuntimes.filter(runtime => runtime.needsCapture).length,
@@ -4943,7 +4955,7 @@ async function bindVCockpitPlaceholderSurfaces(
         return
       }
 
-      updateVCockpitSurfaceTextureRuntimes(surfaceTextureRuntimes, diagnostics, nowMs)
+      updateVCockpitSurfaceTextureRuntimes(surfaceTextureRuntimes, diagnostics, nowMs, runtimeHost)
       updateVCockpitHtmlGaugeOverlayRuntimes(
         surfaceTextureRuntimes,
         camera,
@@ -7335,6 +7347,7 @@ function createVCockpitSurfaceTextureRuntime(
   captureFps: number,
   rasterScale: number,
   debugOverlay: boolean,
+  displayPowerBindings: readonly CompiledMaterialBinding[],
   diagnostics: ImportDiagnostic[]
 ): VCockpitSurfaceTextureRuntime {
   const width = scaleVCockpitRasterDimension(surface.pixelSize?.width ?? 1, rasterScale)
@@ -7375,6 +7388,7 @@ function createVCockpitSurfaceTextureRuntime(
     captureIntervalMs: 1000 / captureFps,
     rasterScale,
     htmlGaugeRuntimes,
+    displayPowerBindings,
     liveCapture,
     gaugeMode: videoRuntime == null && gaugeMode === 'video' ? 'texture' : gaugeMode,
     overlayObjects: [],
@@ -7618,7 +7632,8 @@ function getVCockpitGaugeStatusColor(status: VCockpitHtmlGaugeRuntime['status'])
 function updateVCockpitSurfaceTextureRuntimes(
   surfaceTextureRuntimes: readonly VCockpitSurfaceTextureRuntime[],
   diagnostics: ImportDiagnostic[],
-  nowMs: number
+  nowMs: number,
+  runtimeHost: SharedMsfsRuntimeHost
 ): void {
   if (activeVCockpitSurfaceTextureCaptures >= VCOCKPIT_SURFACE_CAPTURE_CONCURRENCY) {
     return
@@ -7641,7 +7656,7 @@ function updateVCockpitSurfaceTextureRuntimes(
     surfaceRuntime.isCapturing = true
     activeVCockpitSurfaceTextureCaptures += 1
     const captureStartMs = performance.now()
-    void captureVCockpitSurfaceTexture(surfaceRuntime, diagnostics, captureCandidates)
+    void captureVCockpitSurfaceTexture(surfaceRuntime, diagnostics, captureCandidates, runtimeHost)
       .catch(error => {
         diagnostics.push({
           code: 'vcockpit-html-capture-error',
@@ -7946,12 +7961,73 @@ function doPanelRectsOverlap(
   )
 }
 
+function findVCockpitSurfaceDisplayPowerBindings(
+  surface: VCockpitSurface,
+  behaviorSet: CompiledBehaviorSet | null
+): readonly CompiledMaterialBinding[] {
+  if (behaviorSet == null) {
+    return []
+  }
+
+  const surfaceName = normalizeSurfaceLookupName(surface.textureName)
+  if (surfaceName === '') {
+    return []
+  }
+
+  return behaviorSet.materialBindings.filter(binding => {
+    if (binding.property !== 'emissive') {
+      return false
+    }
+
+    const target = normalizeSurfaceLookupName(binding.target)
+    if (!target.includes(surfaceName)) {
+      return false
+    }
+
+    return target.startsWith('screen') || target.includes('display')
+  })
+}
+
+function isVCockpitSurfaceDisplayPowered(
+  surfaceRuntime: VCockpitSurfaceTextureRuntime,
+  runtimeHost: SharedMsfsRuntimeHost
+): boolean {
+  if (surfaceRuntime.displayPowerBindings.length === 0) {
+    return true
+  }
+
+  return surfaceRuntime.displayPowerBindings.some(binding => {
+    try {
+      return (
+        evaluateCompiledExpression(binding.expression, {
+          readVariable: (key, unit) => runtimeHost.readVariable(key, unit)
+        }) > 1e-6
+      )
+    } catch {
+      return true
+    }
+  })
+}
+
 async function captureVCockpitSurfaceTexture(
   surfaceRuntime: VCockpitSurfaceTextureRuntime,
   diagnostics: ImportDiagnostic[],
-  htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[]
+  htmlGaugeRuntimes: readonly VCockpitHtmlGaugeRuntime[],
+  runtimeHost: SharedMsfsRuntimeHost
 ): Promise<void> {
   let surfaceDirty = false
+  if (!isVCockpitSurfaceDisplayPowered(surfaceRuntime, runtimeHost)) {
+    surfaceRuntime.context.fillStyle = '#000'
+    surfaceRuntime.context.fillRect(
+      0,
+      0,
+      surfaceRuntime.canvas.width,
+      surfaceRuntime.canvas.height
+    )
+    markVCockpitSurfaceTextureRuntimeUpdated(surfaceRuntime)
+    return
+  }
+
   const surfaceWasCleared = !surfaceRuntime.liveCapture || surfaceRuntime.debugOverlay
   if (surfaceWasCleared) {
     drawVCockpitPlaceholderSurface(
