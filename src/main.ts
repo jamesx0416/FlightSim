@@ -8909,7 +8909,6 @@ function drawGaugeText(
     .filter(element =>
       element.closest('svg') == null &&
       element.querySelector('svg, canvas') == null &&
-      getElementOwnText(element).trim() !== '' &&
       isElementRenderable(element)
     )
 
@@ -8921,7 +8920,12 @@ function drawGaugeText(
 
     const view = element.ownerDocument.defaultView
     const style = view?.getComputedStyle(element)
-    const text = getElementOwnText(element).trim()
+    let text = getElementOwnText(element).trim()
+    if (text === '') {
+      if (hasRenderableOwnTextDescendant(element)) continue
+      if (element.querySelectorAll<HTMLElement>('*').length > 4) continue
+      text = getElementVisibleText(element).trim()
+    }
     if (style == null || text === '') {
       continue
     }
@@ -8954,6 +8958,25 @@ function drawGaugeText(
     })
     context.restore()
   }
+}
+
+function getElementVisibleText(element: HTMLElement): string {
+  return (element.innerText || element.textContent || '').replace(/\s+/gu, ' ')
+}
+
+function hasRenderableOwnTextDescendant(element: HTMLElement): boolean {
+  return [...element.querySelectorAll<HTMLElement>('*')].some(descendant => {
+    if (
+      descendant.closest('svg') != null ||
+      descendant.querySelector('svg, canvas') != null ||
+      getElementOwnText(descendant).trim() === '' ||
+      !isElementRenderable(descendant)
+    ) {
+      return false
+    }
+
+    return isRenderableRect(descendant.getBoundingClientRect())
+  })
 }
 
 function getElementOwnText(element: Element): string {
