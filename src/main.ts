@@ -7035,13 +7035,28 @@ function createVCockpitGaugeBridgeScript(
     dispatchGlobalListener('OnInteractionEvent', eventName, eventArgs);
     dispatchGlobalListener(eventName, ...eventArgs);
     const seen = new Set();
+    const resolveInstrumentEventName = element => {
+      const prefix = element?.constructor?.H_EVENT_PREFIX;
+      return typeof prefix === 'string' && prefix !== '' && eventName.startsWith(prefix)
+        ? eventName.slice(prefix.length)
+        : eventName;
+    };
     const invokeInstrument = element => {
-      if (element == null || seen.has(element) || typeof element.onInteractionEvent !== 'function') {
+      if (element == null || seen.has(element)) {
         return;
       }
       seen.add(element);
+      const hasCustomInteractionHandler =
+        typeof element.onInteractionEvent === 'function' &&
+        element.onInteractionEvent !== CodexBaseInstrument.prototype.onInteractionEvent;
       try {
-        element.onInteractionEvent(eventArgs);
+        if (hasCustomInteractionHandler) {
+          element.onInteractionEvent(eventArgs);
+          return;
+        }
+        if (typeof element.onEvent === 'function') {
+          element.onEvent(resolveInstrumentEventName(element));
+        }
       } catch (error) {
         console.warn('MSFS instrument interaction event failed', eventName, error);
       }

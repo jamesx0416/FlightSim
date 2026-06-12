@@ -41,15 +41,34 @@ describe('MsfsCompatibilityBridge', () => {
     expect(bridge.readSimVar('A:LIGHT POTENTIOMETER:3')).toBe(0.4)
   })
 
-  test('keeps missing MSFS lighting aliases dark', () => {
-    const bridge = new MsfsCompatibilityBridge(new SimStateStore())
+test('keeps missing MSFS lighting aliases dark', () => {
+  const bridge = new MsfsCompatibilityBridge(new SimStateStore())
 
-    expect(bridge.readSimVar('A:LIGHT PANEL POWER SETTING', 'percent')).toBe(0)
+  expect(bridge.readSimVar('A:LIGHT PANEL POWER SETTING', 'percent')).toBe(0)
+})
+
+test('maps MSFS package electrical bus LVars to canonical bus state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(bridge.readLocalVar('L:A32NX_ELEC_AC_1_BUS_IS_POWERED')).toBeUndefined()
+  expect(
+    bridge.writeLocalVar('L:A32NX_ELEC_AC_ESS_SHED_BUS_IS_POWERED', 1)
+  ).toBe(true)
+  expect(
+    state.readBoolean(LightingStateKeys.electricalBusPowered('ac-ess-shed'))
+  ).toBe(true)
+
+  state.set(LightingStateKeys.electricalBusPowered('ac-1'), true, {
+    source: 'runtime',
+    unit: 'boolean',
   })
+  expect(bridge.readLocalVar('L:A32NX_ELEC_AC_1_BUS_IS_POWERED')).toBe(1)
+})
 
-  test('maps MSFS light switch channels to canonical enabled state', () => {
-    const state = new SimStateStore()
-    const bridge = new MsfsCompatibilityBridge(state)
+test('maps MSFS light switch channels to canonical enabled state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
 
     expect(bridge.writeSimVar('A:LIGHT BEACON', 1, 'Bool')).toBe(true)
     expect(state.readBoolean(LightingStateKeys.channelEnabled('beacon'))).toBe(true)

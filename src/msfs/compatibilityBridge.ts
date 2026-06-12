@@ -248,6 +248,12 @@ export class MsfsCompatibilityBridge {
     if (alias.kind === 'propulsionBoolean') {
       return readPropulsionBoolean(this.state, alias.stateKey) ? 1 : 0
     }
+    if (alias.kind === 'electricalBoolean') {
+      if (this.state.getEntry(alias.stateKey) == null) {
+        return undefined
+      }
+      return readElectricalBoolean(this.state, alias.stateKey) ? 1 : 0
+    }
 
     return undefined
   }
@@ -262,7 +268,7 @@ export class MsfsCompatibilityBridge {
       return false
     }
 
-    if (alias.kind === 'propulsionBoolean') {
+    if (alias.kind === 'propulsionBoolean' || alias.kind === 'electricalBoolean') {
       this.state.define({
         key: alias.stateKey,
         unit: 'boolean',
@@ -393,7 +399,33 @@ export function mapMsfsLocalVarToCanonicalState(
     }
   }
 
+  const electricalBusAlias = mapMsfsA32nxElectricalBusLocalVarToCanonicalState(name)
+  if (electricalBusAlias != null) {
+    return electricalBusAlias
+  }
+
   return undefined
+}
+
+function mapMsfsA32nxElectricalBusLocalVarToCanonicalState(
+  name: string
+): MsfsStateAlias | undefined {
+  const busIdByName: Record<string, string> = {
+    A32NX_ELEC_AC_ESS_BUS_IS_POWERED: 'ac-ess',
+    A32NX_ELEC_AC_ESS_SHED_BUS_IS_POWERED: 'ac-ess-shed',
+    A32NX_ELEC_AC_1_BUS_IS_POWERED: 'ac-1',
+    A32NX_ELEC_AC_2_BUS_IS_POWERED: 'ac-2',
+  }
+  const busId = busIdByName[name]
+  if (busId == null) {
+    return undefined
+  }
+
+  return {
+    kind: 'electricalBoolean',
+    stateKey: LightingStateKeys.electricalBusPowered(busId),
+    canonicalUnit: 'boolean',
+  }
 }
 
 function mapMsfsElectricalSimVarToCanonicalState(name: string): MsfsStateAlias | undefined {
