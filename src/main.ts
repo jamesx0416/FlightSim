@@ -5471,11 +5471,6 @@ async function adaptMsfsHtmlGaugeDocument(
       height: 100%;
       min-height: 100%;
     }
-    [id$="_CONTENT"] div {
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
-    }
     svg[class$="-svg"],
     svg[class*="-svg "],
     canvas[class$="-canvas"],
