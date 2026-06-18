@@ -1,5 +1,6 @@
 import { compileRpnExpression, evaluateCompiledExpression } from './rpn'
 import type {
+  BehaviorSourceRoot,
   CompiledAnimationBinding,
   CompiledAnimationTriggerBinding,
   CompiledBehaviorSet,
@@ -20,11 +21,6 @@ interface LoadedDocument {
   readonly path: string
   readonly document: Document
   readonly rootElement: Element
-}
-
-interface BehaviorSourceRoot {
-  readonly rootUrl: string
-  readonly layoutPathIndex: ReadonlyMap<string, string>
 }
 
 const behaviorSourceRootCache = new Map<string, Promise<BehaviorSourceRoot | null>>()

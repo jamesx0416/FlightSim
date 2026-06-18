@@ -1,5 +1,6 @@
 import { getCfgSection, getCfgSectionsByPrefix, parseCfg } from './config'
 import type {
+  BehaviorSourceRoot,
   ImportedCfgFile,
   ImportDiagnostic,
   ImportedAircraft,
@@ -27,15 +28,13 @@ interface ImportContext {
   readonly layoutEntries: readonly PackageLayoutEntry[]
   readonly layoutPaths: ReadonlySet<string>
   readonly layoutPathIndex: ReadonlyMap<string, string>
-  readonly behaviorSourceRoots: readonly BehaviorSourceRoot[]
+  readonly behaviorSourceRoots: readonly ImportBehaviorSourceRoot[]
   readonly diagnostics: ImportDiagnostic[]
   readonly textCache: Map<string, Promise<string>>
 }
 
-interface BehaviorSourceRoot {
-  readonly rootUrl: string
+interface ImportBehaviorSourceRoot extends BehaviorSourceRoot {
   readonly layoutPaths: ReadonlySet<string>
-  readonly layoutPathIndex: ReadonlyMap<string, string>
 }
 
 interface ImportPackageOptions {
@@ -409,8 +408,8 @@ async function loadBehaviorSourceRoots(
   primaryLayoutEntries: readonly PackageLayoutEntry[],
   additionalPackageRoots: readonly string[],
   diagnostics: ImportDiagnostic[]
-): Promise<readonly BehaviorSourceRoot[]> {
-  const roots: BehaviorSourceRoot[] = [
+): Promise<readonly ImportBehaviorSourceRoot[]> {
+  const roots: ImportBehaviorSourceRoot[] = [
     createBehaviorSourceRoot(primaryRootUrl, primaryLayoutEntries)
   ]
 
@@ -436,7 +435,7 @@ async function loadBehaviorSourceRoots(
 function createBehaviorSourceRoot(
   rootUrl: string,
   layoutEntries: readonly PackageLayoutEntry[]
-): BehaviorSourceRoot {
+): ImportBehaviorSourceRoot {
   const normalizedPaths = layoutEntries.map(entry => normalizePath(entry.path))
 
   return {
