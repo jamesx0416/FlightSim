@@ -7776,22 +7776,25 @@ function updateVCockpitHtmlGaugeOverlayRuntimes(
       const gaugeY = Math.round(gauge.y ?? 0)
       const gaugeWidth = Math.max(1, Math.round(gauge.width ?? surfaceWidth))
       const gaugeHeight = Math.max(1, Math.round(gauge.height ?? surfaceHeight))
-      if (
-        overlayProjection === 'quad' &&
-        applyVCockpitOverlayGaugeQuadProjection(
-          iframe,
-          surfaceRuntime.overlayObjects,
-          camera,
-          viewportElement,
-          gaugeX / surfaceWidth,
-          gaugeY / surfaceHeight,
-          (gaugeX + gaugeWidth) / surfaceWidth,
-          (gaugeY + gaugeHeight) / surfaceHeight,
-          gaugeWidth,
-          gaugeHeight
-        )
-      ) {
-        iframe.style.visibility = 'visible'
+      if (overlayProjection === 'quad') {
+        if (
+          applyVCockpitOverlayGaugeQuadProjection(
+            iframe,
+            surfaceRuntime.overlayObjects,
+            camera,
+            viewportElement,
+            gaugeX / surfaceWidth,
+            gaugeY / surfaceHeight,
+            (gaugeX + gaugeWidth) / surfaceWidth,
+            (gaugeY + gaugeHeight) / surfaceHeight,
+            gaugeWidth,
+            gaugeHeight
+          )
+        ) {
+          iframe.style.visibility = 'visible'
+        } else {
+          iframe.style.visibility = 'hidden'
+        }
         continue
       }
 
@@ -7806,7 +7809,6 @@ function updateVCockpitHtmlGaugeOverlayRuntimes(
     }
   }
 }
-
 type VCockpitViewportPoint = readonly [number, number]
 type VCockpitViewportQuad = readonly [
   VCockpitViewportPoint,
@@ -7827,15 +7829,16 @@ function applyVCockpitOverlayGaugeQuadProjection(
   width: number,
   height: number
 ): boolean {
-  const surfaceQuad = projectVCockpitSurfaceUvQuadToViewport(objects, camera, viewportElement)
-  if (surfaceQuad == null) return false
-
-  const gaugeQuad: VCockpitViewportQuad = [
-    interpolateVCockpitViewportQuad(surfaceQuad, u0, v0),
-    interpolateVCockpitViewportQuad(surfaceQuad, u1, v0),
-    interpolateVCockpitViewportQuad(surfaceQuad, u1, v1),
-    interpolateVCockpitViewportQuad(surfaceQuad, u0, v1),
-  ]
+  const gaugeQuad = projectVCockpitSurfaceUvQuadToViewport(
+    objects,
+    camera,
+    viewportElement,
+    u0,
+    v0,
+    u1,
+    v1
+  )
+  if (gaugeQuad == null) return false
   if (!isUsableVCockpitViewportQuad(gaugeQuad, viewportElement)) return false
   const matrix = createCssProjectiveMatrix3d(width, height, gaugeQuad)
   if (matrix == null) return false
@@ -7853,14 +7856,18 @@ function applyVCockpitOverlayGaugeQuadProjection(
 function projectVCockpitSurfaceUvQuadToViewport(
   objects: readonly Object3D[],
   camera: PerspectiveCamera,
-  viewportElement: HTMLElement
+  viewportElement: HTMLElement,
+  u0: number,
+  v0: number,
+  u1: number,
+  v1: number
 ): VCockpitViewportQuad | null {
   let bestQuad: VCockpitViewportQuad | null = null
   let bestArea = 0
   for (const object of objects) {
     object.traverse(child => {
       if (!(child instanceof Mesh)) return
-      const quad = projectMeshUvQuadToViewport(child, camera, viewportElement)
+      const quad = projectMeshUvQuadToViewport(child, camera, viewportElement, u0, v0, u1, v1)
       if (quad == null) return
       const area = Math.abs(getViewportQuadSignedArea(quad))
       if (area > bestArea) {
@@ -7875,7 +7882,11 @@ function projectVCockpitSurfaceUvQuadToViewport(
 function projectMeshUvQuadToViewport(
   mesh: Mesh,
   camera: PerspectiveCamera,
-  viewportElement: HTMLElement
+  viewportElement: HTMLElement,
+  u0: number,
+  v0: number,
+  u1: number,
+  v1: number
 ): VCockpitViewportQuad | null {
   const geometry = mesh.geometry
   const position = geometry.getAttribute('position')
@@ -7902,24 +7913,124 @@ function projectMeshUvQuadToViewport(
   }
 
   const targetUvs: readonly VCockpitViewportPoint[] = [
-    [minU, minV],
-    [maxU, minV],
-    [maxU, maxV],
-    [minU, maxV],
+    [minU + (maxU - minU) * u0, minV + (maxV - minV) * v0],
+    [minU + (maxU - minU) * u1, minV + (maxV - minV) * v0],
+    [minU + (maxU - minU) * u1, minV + (maxV - minV) * v1],
+    [minU + (maxU - minU) * u0, minV + (maxV - minV) * v1],
   ]
-  const viewportQuad = targetUvs.map(targetUv => {
-    const vertexIndex = findNearestUvVertexIndex(uv, targetUv[0], targetUv[1])
-    if (vertexIndex < 0) return null
-    const world = new Vector3()
-      .fromBufferAttribute(position, vertexIndex)
-      .applyMatrix4(mesh.matrixWorld)
-      .project(camera)
-    if (world.z < -1 || world.z > 1) return null
-    return normalizedDevicePointToViewportPoint(world, viewportElement)
-  })
+  const viewportQuad = targetUvs.map(targetUv =>
+    projectMeshUvPointToViewport(mesh, targetUv[0], targetUv[1], camera, viewportElement) ??
+    projectNearestMeshUvVertexToViewport(mesh, targetUv[0], targetUv[1], camera, viewportElement)
+  )
   return viewportQuad.every((point): point is VCockpitViewportPoint => point != null)
     ? (viewportQuad as unknown as VCockpitViewportQuad)
     : null
+}
+
+function projectMeshUvPointToViewport(
+  mesh: Mesh,
+  u: number,
+  v: number,
+  camera: PerspectiveCamera,
+  viewportElement: HTMLElement
+): VCockpitViewportPoint | null {
+  const geometry = mesh.geometry
+  const position = geometry.getAttribute('position')
+  const uv = geometry.getAttribute('uv')
+  if (position == null || uv == null || position.count <= 0 || uv.count !== position.count) {
+    return null
+  }
+
+  const index = geometry.getIndex()
+  const triangleCount = Math.floor((index?.count ?? position.count) / 3)
+  for (let triangleIndex = 0; triangleIndex < triangleCount; triangleIndex += 1) {
+    const indexOffset = triangleIndex * 3
+    const aIndex = index?.getX(indexOffset) ?? indexOffset
+    const bIndex = index?.getX(indexOffset + 1) ?? indexOffset + 1
+    const cIndex = index?.getX(indexOffset + 2) ?? indexOffset + 2
+    if (aIndex >= position.count || bIndex >= position.count || cIndex >= position.count) {
+      continue
+    }
+
+    const barycentric = getUvTriangleBarycentric(
+      u,
+      v,
+      uv.getX(aIndex),
+      uv.getY(aIndex),
+      uv.getX(bIndex),
+      uv.getY(bIndex),
+      uv.getX(cIndex),
+      uv.getY(cIndex)
+    )
+    if (barycentric == null) continue
+
+    const local = new Vector3()
+      .addScaledVector(new Vector3().fromBufferAttribute(position, aIndex), barycentric[0])
+      .addScaledVector(new Vector3().fromBufferAttribute(position, bIndex), barycentric[1])
+      .addScaledVector(new Vector3().fromBufferAttribute(position, cIndex), barycentric[2])
+    return projectLocalMeshPointToViewport(mesh, local, camera, viewportElement)
+  }
+
+  return null
+}
+
+function getUvTriangleBarycentric(
+  u: number,
+  v: number,
+  au: number,
+  av: number,
+  bu: number,
+  bv: number,
+  cu: number,
+  cv: number
+): readonly [number, number, number] | null {
+  const v0u = bu - au
+  const v0v = bv - av
+  const v1u = cu - au
+  const v1v = cv - av
+  const v2u = u - au
+  const v2v = v - av
+  const denominator = v0u * v1v - v1u * v0v
+  if (Math.abs(denominator) <= 1e-10) return null
+
+  const beta = (v2u * v1v - v1u * v2v) / denominator
+  const gamma = (v0u * v2v - v2u * v0v) / denominator
+  const alpha = 1 - beta - gamma
+  const epsilon = 1e-4
+  if (alpha < -epsilon || beta < -epsilon || gamma < -epsilon) return null
+  if (alpha > 1 + epsilon || beta > 1 + epsilon || gamma > 1 + epsilon) return null
+  return [alpha, beta, gamma]
+}
+
+function projectNearestMeshUvVertexToViewport(
+  mesh: Mesh,
+  u: number,
+  v: number,
+  camera: PerspectiveCamera,
+  viewportElement: HTMLElement
+): VCockpitViewportPoint | null {
+  const geometry = mesh.geometry
+  const position = geometry.getAttribute('position')
+  const uv = geometry.getAttribute('uv')
+  if (position == null || uv == null || position.count <= 0 || uv.count !== position.count) {
+    return null
+  }
+
+  const vertexIndex = findNearestUvVertexIndex(uv, u, v)
+  if (vertexIndex < 0) return null
+  const local = new Vector3().fromBufferAttribute(position, vertexIndex)
+  return projectLocalMeshPointToViewport(mesh, local, camera, viewportElement)
+}
+
+function projectLocalMeshPointToViewport(
+  mesh: Mesh,
+  local: Vector3,
+  camera: PerspectiveCamera,
+  viewportElement: HTMLElement
+): VCockpitViewportPoint | null {
+  const world = local.clone().applyMatrix4(mesh.matrixWorld).project(camera)
+  if (world.z < -1 || world.z > 1) return null
+  return normalizedDevicePointToViewportPoint(world, viewportElement)
 }
 
 function findNearestUvVertexIndex(uv: BufferGeometry['attributes'][string], u: number, v: number): number {
