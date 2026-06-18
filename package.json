@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "sh -c 'portless proxy start --port 3000 --https && { bun scripts/kill-stale-agent-browsers.mjs & agent_browser_cleanup_pid=$!; trap \"kill $agent_browser_cleanup_pid 2>/dev/null; portless proxy stop -p 3000\" EXIT INT TERM; portless run vite; }'",
+    "dev": "bun scripts/dev.mjs",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "lint": "tsc --noEmit",
+    "lint": "bun run typecheck",
     "build": "vite build",
     "preview": "vite preview",
     "download:msfs-doc-xmls": "bun scripts/download-msfs-doc-xmls.mjs",
@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "3d-tiles-renderer": "^0.4.21",
-    "bun": "^1.3.12",
     "three": "^0.182.0",
     "workerpool": "^10.0.2"
   },
