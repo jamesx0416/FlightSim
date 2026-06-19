@@ -1,25 +1,24 @@
 import { AnimationMixer, type Material, type Object3D, Vector3 } from 'three'
 
 import {
-  AutopilotSubsystem,
   AvionicsCommandTypes,
-  AvionicsSubsystem,
   ControlStateKeys,
-  ControlsSubsystem,
+  ElectricalCommandTypes,
   ElectricalStateKeys,
-  ElectricalSubsystem,
-  EnvironmentSubsystem,
-  FuelSubsystem,
-  LightingElectricalSubsystem,
+  FuelCommandTypes,
   LightingStateKeys,
-  PropulsionSubsystem,
+  PropulsionCommandTypes,
   PropulsionStateKeys,
-  SimulatorEngine,
-  SurfaceAnimationSubsystem,
   SurfaceStateKeys,
+  createSimulatorEngineForAircraft,
   type CanonicalAircraftDefinition,
+  type CanonicalElectricalSystemConfig,
+  type CanonicalFuelSystemConfig,
+  type CanonicalPropulsionSystemConfig,
   type CanonicalStateSeed,
+  type CanonicalSystemDefinition,
   type SimStateSource,
+  type SimulatorEngine,
 } from '../sim/engine'
 import { evaluateCompiledExpression } from './rpn'
 import { MsfsCompatibilityBridge } from './compatibilityBridge'
@@ -1392,24 +1391,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     private readonly aircraft?: ImportedAircraft
   ) {
     this.initialDiagnosticCount = diagnostics.length
-    this.simulatorEngine = new SimulatorEngine(
-      createCanonicalAircraftDefinition(aircraft)
-    )
-    this.simulatorEngine.registerSubsystem(new LightingElectricalSubsystem())
-    this.simulatorEngine.registerSubsystem(new ControlsSubsystem())
-    this.simulatorEngine.registerSubsystem(new ElectricalSubsystem())
-    this.simulatorEngine.registerSubsystem(new EnvironmentSubsystem())
-    this.simulatorEngine.registerSubsystem(new PropulsionSubsystem())
-    this.simulatorEngine.registerSubsystem(new FuelSubsystem())
-    this.simulatorEngine.registerSubsystem(new AvionicsSubsystem())
-    this.simulatorEngine.registerSubsystem(new AutopilotSubsystem())
-    this.simulatorEngine.registerSubsystem(
-      new SurfaceAnimationSubsystem({
-        surfaces: [
-          { id: 'flaps', extensionRatePerSecond: 0.85, retractionRatePerSecond: 0.85 },
-          { id: 'spoilers', extensionRatePerSecond: 2.5, retractionRatePerSecond: 2.5 },
-        ],
-      })
+    this.simulatorEngine = createSimulatorEngineForAircraft(
+      createCanonicalAircraftDefinition(aircraft) ?? {
+        identity: { id: 'runtime-aircraft' },
+      }
     )
     this.msfsCompatibilityBridge = new MsfsCompatibilityBridge(
       this.simulatorEngine.state
@@ -2125,6 +2110,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       { source: 'runtime', unit: 'boolean' }
     )
     this.simulatorEngine.state.set(
+      ElectricalStateKeys.consumerSwitchEnabled('avionics'),
+      this.electricalState.avionicsSwitch > 0,
+      { source: 'runtime', unit: 'boolean' }
+    )
+    this.simulatorEngine.state.set(
+      ElectricalStateKeys.consumerSwitchEnabled('lights'),
+      true,
+      { source: 'runtime', unit: 'boolean' }
+    )
+    this.simulatorEngine.state.set(
       ElectricalStateKeys.busVoltage('main'),
       busVoltage,
       { source: 'runtime', unit: 'number' }
@@ -2187,6 +2182,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private publishGenericPanelPowerVariables(powered: number): void {
+    this.simulatorEngine.state.set(
+      LightingStateKeys.channelEnabled('panel'),
+      powered > 0,
+      { source: 'runtime', unit: 'boolean' }
+    )
+    this.simulatorEngine.state.set(
+      LightingStateKeys.power('panel'),
+      powered > 0 ? 1 : 0,
+      { source: 'runtime', unit: 'ratio' }
+    )
     this.values.set(normalizeRuntimeVariableKey('A:CIRCUIT GENERAL PANEL ON'), powered)
     this.values.set(normalizeRuntimeVariableKey('A:CIRCUIT SWITCH ON:20'), powered)
     this.values.set(normalizeRuntimeVariableKey('A:LIGHT PANEL'), powered)
@@ -2431,34 +2436,92 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:ELECTRICAL MASTER BATTERY'), switchValue)
     this.values.set(normalizeRuntimeVariableKey('A:MASTER BATTERY SWITCH'), switchValue)
     this.values.set(normalizeRuntimeVariableKey('A:BATTERY SWITCH'), switchValue)
+    this.simulatorEngine.dispatch({
+      type: ElectricalCommandTypes.setBattery,
+      payload: { enabled: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
   }
 
   private setExternalPowerSwitch(value: number): void {
     const switchValue = value > 0 ? 1 : 0
     this.electricalState.externalPowerSwitch = switchValue
     this.values.set(normalizeRuntimeVariableKey('A:EXTERNAL POWER ON'), switchValue)
+    this.simulatorEngine.dispatch({
+      type: ElectricalCommandTypes.setExternalPowerConnected,
+      payload: { enabled: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
+    this.simulatorEngine.dispatch({
+      type: ElectricalCommandTypes.setSourceConnected,
+      payload: { id: 'external', connected: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
   }
 
   private applyElectricalVariableSideEffects(key: string, value: number, unit: string | null): void {
     const normalizedValue = Number.isFinite(value) && value > 0 ? 1 : 0
     if (isBatteryControlKey(key)) {
       this.electricalState.batterySwitch = this.hasStoredBatteryControlPower() ? 1 : normalizedValue
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setBattery,
+        payload: { enabled: this.electricalState.batterySwitch > 0 },
+        source: 'msfs-variable-write',
+      })
       return
     }
     if (isExternalPowerControlKey(key)) {
       this.electricalState.externalPowerSwitch = this.hasStoredExternalPower() ? 1 : normalizedValue
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setExternalPowerConnected,
+        payload: { enabled: this.electricalState.externalPowerSwitch > 0 },
+        source: 'msfs-variable-write',
+      })
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setSourceConnected,
+        payload: {
+          id: 'external',
+          connected: this.electricalState.externalPowerSwitch > 0,
+        },
+        source: 'msfs-variable-write',
+      })
       return
     }
     if (isExternalPowerAvailableKey(key)) {
       this.electricalState.externalPowerAvailable = normalizedValue
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setExternalPowerAvailable,
+        payload: { enabled: normalizedValue > 0 },
+        source: 'msfs-variable-write',
+      })
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setSourceAvailable,
+        payload: { id: 'external', available: normalizedValue > 0 },
+        source: 'msfs-variable-write',
+      })
       return
     }
     if (key === 'A:AVIONICS MASTER SWITCH') {
       this.electricalState.avionicsSwitch = normalizedValue
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setAvionicsMaster,
+        payload: { enabled: normalizedValue > 0 },
+        source: 'msfs-variable-write',
+      })
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setConsumerSwitch,
+        payload: { id: 'avionics', enabled: normalizedValue > 0 },
+        source: 'msfs-variable-write',
+      })
       return
     }
     if (isAvionicsControlKey(key)) {
       this.electricalState.avionicsSwitch = normalizedValue
+      this.simulatorEngine.dispatch({
+        type: ElectricalCommandTypes.setConsumerSwitch,
+        payload: { id: 'avionics', enabled: normalizedValue > 0 },
+        source: 'msfs-variable-write',
+      })
       return
     }
     if (key.includes('THROTTLE LEVER POSITION')) {
@@ -2471,6 +2534,20 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private hasElectricalPower(): boolean {
+    if (
+      this.simulatorEngine.state.readBoolean(ElectricalStateKeys.busPowered('main'), {
+        fallback: false,
+      }) ||
+      this.simulatorEngine.state.readBoolean(ElectricalStateKeys.consumerPowered('avionics'), {
+        fallback: false,
+      }) ||
+      this.simulatorEngine.state.readBoolean(ElectricalStateKeys.consumerPowered('lights'), {
+        fallback: false,
+      })
+    ) {
+      return true
+    }
+
     return (
       this.electricalState.batterySwitch > 0 ||
       this.electricalState.externalPowerSwitch > 0 ||
@@ -3925,6 +4002,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       starterValue,
       'Bool'
     )
+    this.simulatorEngine.dispatch({
+      type: PropulsionCommandTypes.setEngineStarter,
+      payload: { index: engineIndex, enabled: starterValue > 0 },
+      source: 'msfs-key-event',
+    })
   }
 
   private setMagnetoState(index: number, state: number): void {
@@ -4722,6 +4804,21 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       rpmValue,
       'percent'
     )
+    this.simulatorEngine.dispatch({
+      type: PropulsionCommandTypes.setEngineRunning,
+      payload: { index: engineIndex, enabled: running },
+      source: 'msfs-key-event',
+    })
+    this.simulatorEngine.dispatch({
+      type: PropulsionCommandTypes.setEngineN1,
+      payload: { index: engineIndex, value: rpmValue },
+      source: 'msfs-key-event',
+    })
+    this.simulatorEngine.dispatch({
+      type: PropulsionCommandTypes.setEngineRpm,
+      payload: { index: engineIndex, value: rpmValue },
+      source: 'msfs-key-event',
+    })
     this.setEngineStarter(engineIndex, 0)
   }
 
@@ -4734,6 +4831,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey(`A:ELECTRICAL MASTER BATTERY:${batteryIndex}`), switchValue)
     this.values.set(normalizeRuntimeVariableKey(`A:MASTER BATTERY SWITCH:${batteryIndex}`), switchValue)
     this.values.set(normalizeRuntimeVariableKey(`A:BATTERY SWITCH:${batteryIndex}`), switchValue)
+    this.simulatorEngine.dispatch({
+      type: ElectricalCommandTypes.setBattery,
+      payload: { index: batteryIndex, enabled: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
     if (batteryIndex === 0 || batteryIndex === 1) {
       this.setBatterySwitch(switchValue)
     }
@@ -4746,6 +4848,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const externalPowerIndex = Math.trunc(index)
     const switchValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:EXTERNAL POWER ON:${externalPowerIndex}`), switchValue)
+    this.simulatorEngine.dispatch({
+      type: ElectricalCommandTypes.setSourceConnected,
+      payload: { id: 'external', connected: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
     if (externalPowerIndex === 0 || externalPowerIndex === 1) {
       this.setExternalPowerSwitch(switchValue)
     }
@@ -4765,6 +4872,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const generatorIndex = Math.trunc(index)
     const switchValue = value > 0 ? 1 : 0
     this.values.set(normalizeRuntimeVariableKey(`A:APU GENERATOR SWITCH:${generatorIndex}`), switchValue)
+    this.simulatorEngine.dispatch({
+      type: ElectricalCommandTypes.setSourceConnected,
+      payload: { id: 'external', connected: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
   }
 
   private setAlternatorSwitch(index: number, value: number): void {
@@ -4779,6 +4891,19 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       switchValue,
       'Bool'
     )
+    this.simulatorEngine.dispatch({
+      type: PropulsionCommandTypes.setEngineAlternator,
+      payload: { index: alternatorIndex, enabled: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
+    this.simulatorEngine.dispatch({
+      type: ElectricalCommandTypes.setSourceConnected,
+      payload: {
+        id: `engine-${alternatorIndex}-generator`,
+        connected: switchValue > 0,
+      },
+      source: 'msfs-key-event',
+    })
     if (alternatorIndex === 1) {
       this.values.set(normalizeRuntimeVariableKey('A:GENERAL ENG MASTER ALTERNATOR'), switchValue)
     }
@@ -4808,6 +4933,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       nextValue,
       'Bool'
     )
+    this.simulatorEngine.dispatch({
+      type: FuelCommandTypes.setPumpSwitch,
+      payload: { index: pumpIndex, enabled: nextValue > 0 },
+      source: 'msfs-key-event',
+    })
   }
 
   private setLegacyFuelPumpState(index: number, value: number): void {
@@ -4828,6 +4958,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       nextValue,
       'Bool'
     )
+    this.simulatorEngine.dispatch({
+      type: FuelCommandTypes.setPumpSwitch,
+      payload: { index: pumpIndex, enabled: nextValue > 0 },
+      source: 'msfs-key-event',
+    })
   }
 
   private setEngineFuelValveState(index: number, value: number): void {
@@ -4842,6 +4977,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       nextValue,
       'Bool'
     )
+    this.simulatorEngine.dispatch({
+      type: PropulsionCommandTypes.setEngineFuelValve,
+      payload: { index: engineIndex, enabled: nextValue > 0 },
+      source: 'msfs-key-event',
+    })
     this.values.set(normalizeRuntimeVariableKey(`L:ENG FUEL VALVE:${engineIndex}`), nextValue)
   }
 
@@ -4863,6 +5003,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       nextValue,
       'Bool'
     )
+    this.simulatorEngine.dispatch({
+      type: FuelCommandTypes.setValveSwitch,
+      payload: { index: valveIndex, open: nextValue > 0 },
+      source: 'msfs-key-event',
+    })
     this.applyTurbineFuelValveSideEffects(valveIndex, nextValue)
   }
 
@@ -5064,6 +5209,7 @@ function createCanonicalAircraftDefinition(
       variant: aircraft.variationName ?? aircraft.uiType,
     },
     initialState: createCanonicalInitialStateSeeds(aircraft.previewFlightState),
+    systems: createCanonicalSystemDefinitions(aircraft),
     adapterMetadata: {
       adapter: 'msfs',
       sourcePath: aircraft.sourcePath,
@@ -5071,6 +5217,240 @@ function createCanonicalAircraftDefinition(
       sectionName: aircraft.sectionName,
     },
   }
+}
+
+function createCanonicalSystemDefinitions(
+  aircraft: ImportedAircraft
+): readonly CanonicalSystemDefinition[] {
+  const engineCount = resolveCanonicalEngineCount(aircraft)
+  const electrical = createCanonicalElectricalSystemConfig(engineCount, aircraft.cfgFiles)
+  const fuel = createCanonicalFuelSystemConfig(engineCount, aircraft.cfgFiles)
+  const propulsion = createCanonicalPropulsionSystemConfig(engineCount, aircraft.cfgFiles)
+
+  return [
+    { id: 'electrical', kind: 'electrical', config: toCanonicalSystemConfig(electrical) },
+    { id: 'fuel', kind: 'fuel', config: toCanonicalSystemConfig(fuel) },
+    { id: 'propulsion', kind: 'propulsion', config: toCanonicalSystemConfig(propulsion) },
+  ]
+}
+
+function createCanonicalElectricalSystemConfig(
+  engineCount: number,
+  cfgFiles: readonly ImportedCfgFile[]
+): CanonicalElectricalSystemConfig {
+  const nominalVolts = resolveNominalElectricalVolts(cfgFiles)
+  return {
+    buses: [{ id: 'main', nominalVolts }],
+    sources: [
+      {
+        id: 'battery',
+        kind: 'battery',
+        busId: 'main',
+        nominalVolts,
+        defaultAvailable: false,
+        defaultConnected: false,
+      },
+      {
+        id: 'external',
+        kind: 'external',
+        busId: 'main',
+        nominalVolts,
+        defaultAvailable: false,
+        defaultConnected: false,
+      },
+      ...rangeOneBased(engineCount).map(index => ({
+        id: `engine-${index}-generator`,
+        kind: 'engineGenerator' as const,
+        busId: 'main',
+        engineIndex: index,
+        nominalVolts,
+        defaultAvailable: false,
+        defaultConnected: true,
+      })),
+    ],
+    consumers: [
+      ...rangeOneBased(engineCount).flatMap(index => [
+        { id: `fuel-pump-${index}`, busId: 'main' },
+        { id: `starter-${index}`, busId: 'main' },
+        { id: `ignition-${index}`, busId: 'main' },
+      ]),
+      { id: 'avionics', busId: 'main' },
+      { id: 'lights', busId: 'main' },
+    ],
+  }
+}
+
+function createCanonicalFuelSystemConfig(
+  engineCount: number,
+  cfgFiles: readonly ImportedCfgFile[]
+): CanonicalFuelSystemConfig {
+  const defaultQuantityRatio = resolveDefaultFuelQuantityRatio(cfgFiles)
+  return {
+    tanks: [{ id: 'main', defaultQuantityRatio }],
+    pumps: rangeOneBased(engineCount).map(index => ({
+      id: `fuel-pump-${index}`,
+      index,
+      busConsumerId: `fuel-pump-${index}`,
+      tankId: 'main',
+      defaultSwitchEnabled: false,
+    })),
+    valves: rangeOneBased(engineCount).map(index => ({
+      id: `engine-${index}-valve`,
+      index,
+      defaultSwitchOpen: false,
+    })),
+    engineFeeds: rangeOneBased(engineCount).map(index => ({
+      engineIndex: index,
+      tankId: 'main',
+      pumpIds: [`fuel-pump-${index}`],
+      valveIds: [`engine-${index}-valve`],
+    })),
+  }
+}
+
+function createCanonicalPropulsionSystemConfig(
+  engineCount: number,
+  cfgFiles: readonly ImportedCfgFile[]
+): CanonicalPropulsionSystemConfig {
+  const idleN1Percent = resolveEngineIdleN1Percent(cfgFiles)
+  return {
+    engines: rangeOneBased(engineCount).map(index => ({
+      index,
+      starterConsumerId: `starter-${index}`,
+      ignitionConsumerId: `ignition-${index}`,
+      fuelFeedIndex: index,
+      generatorSourceId: `engine-${index}-generator`,
+      idleN1Percent,
+      starterN1Percent: Math.min(20, idleN1Percent),
+      spoolUpPercentPerSecond: 12,
+      spoolDownPercentPerSecond: 18,
+    })),
+    apu: {
+      starterConsumerId: 'starter-1',
+      generatorSourceId: 'external',
+      runningRpmPercent: 100,
+      spoolUpPercentPerSecond: 30,
+      spoolDownPercentPerSecond: 45,
+    },
+  }
+}
+
+function resolveCanonicalEngineCount(aircraft: ImportedAircraft): number {
+  const cfgEngineCount = readFirstCfgNumber(
+    aircraft.cfgFiles,
+    ['GENERALENGINEDATA', 'generalenginedata'],
+    ['number_of_engines', 'engine.0']
+  )
+  if (cfgEngineCount != null && cfgEngineCount > 0) {
+    return Math.max(1, Math.min(16, Math.trunc(cfgEngineCount)))
+  }
+
+  const previewEngineCount = aircraft.previewFlightState?.sections
+    .map(section => parseEngineFlightStateIndex(section.name))
+    .filter((index): index is number => index != null)
+    .reduce((max, index) => Math.max(max, index), 0)
+
+  return Math.max(1, previewEngineCount ?? 0)
+}
+
+function resolveNominalElectricalVolts(cfgFiles: readonly ImportedCfgFile[]): number {
+  return (
+    readFirstCfgNumber(
+      cfgFiles,
+      ['ELECTRICAL', 'electrical'],
+      ['max_battery_voltage', 'battery_voltage', 'bus_voltage']
+    ) ?? 28
+  )
+}
+
+function resolveDefaultFuelQuantityRatio(cfgFiles: readonly ImportedCfgFile[]): number {
+  const totalCapacity = sumCfgNumberKeys(
+    cfgFiles,
+    ['FUEL', 'fuel'],
+    key => key.endsWith('_capacity') || key.includes('fuel_total_capacity')
+  )
+  const defaultQuantity = sumCfgNumberKeys(
+    cfgFiles,
+    ['FUEL', 'fuel'],
+    key => key.endsWith('_quantity') || key.includes('fuel_total_quantity')
+  )
+
+  if (totalCapacity > 0 && defaultQuantity > 0) {
+    return clamp01(defaultQuantity / totalCapacity)
+  }
+
+  return 1
+}
+
+function resolveEngineIdleN1Percent(cfgFiles: readonly ImportedCfgFile[]): number {
+  return (
+    readFirstCfgNumber(
+      cfgFiles,
+      ['TURBINEENGINEDATA', 'turbineenginedata'],
+      ['idle_n1', 'low_idle_n1']
+    ) ?? 25
+  )
+}
+
+function readFirstCfgNumber(
+  cfgFiles: readonly ImportedCfgFile[],
+  sectionNames: readonly string[],
+  keys: readonly string[]
+): number | null {
+  for (const section of findCfgSections(cfgFiles, sectionNames)) {
+    for (const key of keys) {
+      const value = parseCfgScalarNumber(section.values.get(key.toLowerCase()))
+      if (value != null) return value
+    }
+  }
+
+  return null
+}
+
+function sumCfgNumberKeys(
+  cfgFiles: readonly ImportedCfgFile[],
+  sectionNames: readonly string[],
+  predicate: (key: string) => boolean
+): number {
+  let sum = 0
+  for (const section of findCfgSections(cfgFiles, sectionNames)) {
+    for (const [key, rawValue] of section.values) {
+      if (!predicate(key)) continue
+      sum += parseCfgScalarNumber(rawValue) ?? 0
+    }
+  }
+  return sum
+}
+
+function findCfgSections(
+  cfgFiles: readonly ImportedCfgFile[],
+  sectionNames: readonly string[]
+): ImportedCfgSection[] {
+  const wanted = new Set(sectionNames.map(name => name.toLowerCase()))
+  return cfgFiles.flatMap(file =>
+    file.sections.filter(section => wanted.has(section.name.toLowerCase()))
+  )
+}
+
+function parseCfgScalarNumber(value: string | undefined): number | null {
+  if (value == null) return null
+  const match = /-?\d+(?:\.\d+)?/u.exec(value)
+  if (match == null) return null
+  const parsed = Number.parseFloat(match[0])
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function toCanonicalSystemConfig(
+  config:
+    | CanonicalElectricalSystemConfig
+    | CanonicalFuelSystemConfig
+    | CanonicalPropulsionSystemConfig
+): Readonly<Record<string, unknown>> {
+  return config as unknown as Readonly<Record<string, unknown>>
+}
+
+function rangeOneBased(count: number): number[] {
+  return Array.from({ length: Math.max(0, Math.trunc(count)) }, (_, index) => index + 1)
 }
 
 function createCanonicalInitialStateSeeds(

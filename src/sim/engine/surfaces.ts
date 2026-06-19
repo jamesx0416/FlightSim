@@ -1,3 +1,4 @@
+import type { CanonicalSurfaceSystemConfig } from './aircraft'
 import type { SimCommand } from './commands'
 import type { SimStateStore } from './state'
 import type {
@@ -15,13 +16,14 @@ export const SurfaceCommandTypes = {
 
 export interface SurfaceDefinition {
   readonly id: string
+  readonly controlStateKey?: string
   readonly defaultTargetRatio?: number
   readonly defaultPositionRatio?: number
   readonly extensionRatePerSecond?: number
   readonly retractionRatePerSecond?: number
 }
 
-export interface SurfaceAnimationDefinition {
+export interface SurfaceAnimationDefinition extends CanonicalSurfaceSystemConfig {
   readonly surfaces?: readonly SurfaceDefinition[]
 }
 
@@ -56,11 +58,16 @@ export class SurfaceAnimationSubsystem implements SimSubsystem {
 
   tick(context: SimSubsystemTickContext): void {
     for (const surface of this.definition.surfaces ?? []) {
-      defineSurface(context.state, surface)
-      const target = readSurfaceRatio(
+      const target =
+        surface.controlStateKey == null
+          ? readSurfaceRatio(context.state, SurfaceStateKeys.targetRatio(surface.id))
+          : readSurfaceRatio(context.state, surface.controlStateKey)
+      setDerivedSurfaceRatio(
         context.state,
-        SurfaceStateKeys.targetRatio(surface.id)
+        SurfaceStateKeys.targetRatio(surface.id),
+        target
       )
+
       const current = readSurfaceRatio(
         context.state,
         SurfaceStateKeys.positionRatio(surface.id)
@@ -78,37 +85,35 @@ export class SurfaceAnimationSubsystem implements SimSubsystem {
           : surface.retractionRatePerSecond ?? surface.extensionRatePerSecond ?? 1
       const step = Math.max(0, rate) * context.dtSeconds
       const next =
-        step <= 0 || Math.abs(delta) <= step ? target : current + Math.sign(delta) * step
+        Math.abs(delta) <= step ? target : current + Math.sign(delta) * step
 
-      setSurfaceRatio(context.state, SurfaceStateKeys.positionRatio(surface.id), next)
-      setSurfaceBoolean(
+      setDerivedSurfaceRatio(
         context.state,
-        SurfaceStateKeys.moving(surface.id),
-        Math.abs(target - next) >= 1e-6
+        SurfaceStateKeys.positionRatio(surface.id),
+        next
       )
+      setSurfaceBoolean(context.state, SurfaceStateKeys.moving(surface.id), next !== target)
     }
   }
 
   handleCommand(command: SimCommand, context: SimSubsystemContext): boolean {
+    const payload = command.payload as SetSurfaceRatioPayload
+
     switch (command.type) {
-      case SurfaceCommandTypes.setTarget: {
-        const payload = command.payload as SetSurfaceRatioPayload
+      case SurfaceCommandTypes.setTarget:
         setSurfaceRatio(
           context.state,
           SurfaceStateKeys.targetRatio(payload.id),
           payload.ratio
         )
         return true
-      }
-      case SurfaceCommandTypes.setPosition: {
-        const payload = command.payload as SetSurfaceRatioPayload
+      case SurfaceCommandTypes.setPosition:
         setSurfaceRatio(
           context.state,
           SurfaceStateKeys.positionRatio(payload.id),
           payload.ratio
         )
         return true
-      }
       default:
         return false
     }
@@ -155,7 +160,6 @@ function defineRatioState(
   defaultValue?: number
 ): void {
   state.define({ key, unit: 'ratio', valueType: 'number', description })
-
   if (defaultValue != null) {
     state.set(key, clampRatio(defaultValue), { source: 'default', unit: 'ratio' })
   }
@@ -168,27 +172,40 @@ function defineBooleanState(
   defaultValue?: boolean
 ): void {
   state.define({ key, unit: 'boolean', valueType: 'boolean', description })
-
   if (defaultValue != null) {
     state.set(key, defaultValue, { source: 'default', unit: 'boolean' })
   }
 }
 
-function setSurfaceRatio(state: SimStateStore, key: string, ratio: number): void {
+function setSurfaceRatio(
+  state: SimStateStore,
+  key: string,
+  ratio: number
+): void {
   state.define({ key, unit: 'ratio', valueType: 'number' })
   state.set(key, clampRatio(ratio), { source: 'runtime', unit: 'ratio' })
 }
 
-function setSurfaceBoolean(state: SimStateStore, key: string, enabled: boolean): void {
+function setDerivedSurfaceRatio(
+  state: SimStateStore,
+  key: string,
+  ratio: number
+): void {
+  state.define({ key, unit: 'ratio', valueType: 'number' })
+  state.set(key, clampRatio(ratio), { source: 'subsystem', unit: 'ratio' })
+}
+
+function setSurfaceBoolean(
+  state: SimStateStore,
+  key: string,
+  enabled: boolean
+): void {
   state.define({ key, unit: 'boolean', valueType: 'boolean' })
-  state.set(key, enabled, { source: 'runtime', unit: 'boolean' })
+  state.set(key, enabled, { source: 'subsystem', unit: 'boolean' })
 }
 
 function clampRatio(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0
-  }
-
+  if (!Number.isFinite(value)) return 0
   return Math.max(0, Math.min(1, value))
 }
 

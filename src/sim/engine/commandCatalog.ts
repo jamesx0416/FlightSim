@@ -71,6 +71,24 @@ export const SIM_COMMAND_CATALOG: readonly SimCommandCatalogEntry[] = [
     payloadExample: { id: 'main', volts: 28 },
   },
   {
+    type: ElectricalCommandTypes.setSourceAvailable,
+    subsystem: 'electrical',
+    description: 'Set named electrical source availability.',
+    payloadExample: { id: 'battery', available: true },
+  },
+  {
+    type: ElectricalCommandTypes.setSourceConnected,
+    subsystem: 'electrical',
+    description: 'Set named electrical source connection state.',
+    payloadExample: { id: 'battery', connected: true },
+  },
+  {
+    type: ElectricalCommandTypes.setConsumerSwitch,
+    subsystem: 'electrical',
+    description: 'Set named electrical consumer switch state.',
+    payloadExample: { id: 'fuel-pump-1', enabled: true },
+  },
+  {
     type: EnvironmentCommandTypes.setPitotHeat,
     subsystem: 'environment',
     description: 'Set indexed pitot heat switch state.',
@@ -399,6 +417,12 @@ export const SIM_COMMAND_CATALOG: readonly SimCommandCatalogEntry[] = [
     subsystem: 'fuel',
     description: 'Set indexed fuel junction setting.',
     payloadExample: { index: 1, setting: 2 },
+  },
+  {
+    type: FuelCommandTypes.setTankQuantity,
+    subsystem: 'fuel',
+    description: 'Set named fuel tank quantity ratio.',
+    payloadExample: { id: 'main', ratio: 0.75 },
   },
   {
     type: SurfaceCommandTypes.setTarget,

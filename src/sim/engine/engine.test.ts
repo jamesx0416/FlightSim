@@ -27,6 +27,7 @@ import {
   SurfaceAnimationSubsystem,
   SurfaceCommandTypes,
   SurfaceStateKeys,
+  createSimulatorEngineForAircraft,
   listCanonicalEngineCommands,
   readAutopilotBoolean,
   readAutopilotNumber,
@@ -521,5 +522,167 @@ test('animates generic moving surfaces toward target state', () => {
     expect(
       engine.state.readBoolean(EnvironmentStateKeys.engineAntiIceEnabled(2))
     ).toBe(true)
+  })
+
+  test('runs generic cold-start electrical fuel and propulsion flow', () => {
+    const engine = createSimulatorEngineForAircraft({
+      identity: { id: 'cold-start-fixture' },
+      systems: [
+        {
+          id: 'electrical',
+          kind: 'electrical',
+          config: {
+            buses: [{ id: 'main', nominalVolts: 28 }],
+            sources: [
+              {
+                id: 'battery',
+                kind: 'battery',
+                busId: 'main',
+                nominalVolts: 24,
+                defaultAvailable: false,
+                defaultConnected: false,
+              },
+              {
+                id: 'engine-1-generator',
+                kind: 'engineGenerator',
+                busId: 'main',
+                engineIndex: 1,
+                nominalVolts: 28,
+                defaultAvailable: false,
+                defaultConnected: true,
+              },
+            ],
+            consumers: [
+              { id: 'fuel-pump-1', busId: 'main' },
+              { id: 'starter-1', busId: 'main' },
+              { id: 'ignition-1', busId: 'main' },
+            ],
+          },
+        },
+        {
+          id: 'fuel',
+          kind: 'fuel',
+          config: {
+            tanks: [{ id: 'main', defaultQuantityRatio: 1 }],
+            pumps: [
+              {
+                id: 'pump-1',
+                index: 1,
+                busConsumerId: 'fuel-pump-1',
+                tankId: 'main',
+              },
+            ],
+            valves: [{ id: 'engine-1-valve', index: 1 }],
+            engineFeeds: [
+              {
+                engineIndex: 1,
+                tankId: 'main',
+                pumpIds: ['pump-1'],
+                valveIds: ['engine-1-valve'],
+              },
+            ],
+          },
+        },
+        {
+          id: 'propulsion',
+          kind: 'propulsion',
+          config: {
+            engines: [
+              {
+                index: 1,
+                starterConsumerId: 'starter-1',
+                ignitionConsumerId: 'ignition-1',
+                fuelFeedIndex: 1,
+                generatorSourceId: 'engine-1-generator',
+                starterN1Percent: 10,
+                idleN1Percent: 25,
+                spoolUpPercentPerSecond: 25,
+                spoolDownPercentPerSecond: 25,
+              },
+            ],
+          },
+        },
+      ],
+    })
+
+    engine.dispatch({
+      type: ElectricalCommandTypes.setConsumerSwitch,
+      payload: { id: 'fuel-pump-1', enabled: true },
+    })
+    engine.dispatch({
+      type: ElectricalCommandTypes.setConsumerSwitch,
+      payload: { id: 'starter-1', enabled: true },
+    })
+    engine.dispatch({
+      type: ElectricalCommandTypes.setConsumerSwitch,
+      payload: { id: 'ignition-1', enabled: true },
+    })
+    engine.dispatch({
+      type: FuelCommandTypes.setPumpSwitch,
+      payload: { index: 1, enabled: true },
+    })
+    engine.dispatch({
+      type: FuelCommandTypes.setValveSwitch,
+      payload: { index: 1, open: true },
+    })
+    engine.tick(1)
+
+    expect(readElectricalBoolean(engine.state, ElectricalStateKeys.busPowered('main'))).toBe(false)
+    expect(readFuelBoolean(engine.state, FuelStateKeys.pumpActive('pump-1'))).toBe(false)
+
+    engine.dispatch({
+      type: ElectricalCommandTypes.setBattery,
+      payload: { enabled: true },
+    })
+    engine.tick(1)
+
+    expect(readElectricalBoolean(engine.state, ElectricalStateKeys.busPowered('main'))).toBe(true)
+    expect(readElectricalNumber(engine.state, ElectricalStateKeys.busVoltage('main'))).toBe(24)
+    expect(readElectricalBoolean(engine.state, ElectricalStateKeys.consumerPowered('fuel-pump-1'))).toBe(true)
+    expect(readFuelBoolean(engine.state, FuelStateKeys.pumpActive('pump-1'))).toBe(true)
+    expect(readFuelBoolean(engine.state, FuelStateKeys.engineAvailable(1))).toBe(true)
+
+    engine.dispatch({
+      type: PropulsionCommandTypes.setEngineStarter,
+      payload: { index: 1, enabled: true },
+    })
+    engine.tick(1)
+    engine.tick(1)
+
+    expect(readPropulsionBoolean(engine.state, PropulsionStateKeys.engineCombustion(1))).toBe(true)
+    expect(readPropulsionNumber(engine.state, PropulsionStateKeys.engineN1Percent(1))).toBe(25)
+    expect(readPropulsionNumber(engine.state, PropulsionStateKeys.engineRpm(1))).toBe(2500)
+    expect(readPropulsionBoolean(engine.state, PropulsionStateKeys.engineGeneratorAvailable(1))).toBe(true)
+
+    engine.dispatch({
+      type: ElectricalCommandTypes.setBattery,
+      payload: { enabled: false },
+    })
+    engine.tick(1)
+    engine.tick(1)
+
+    expect(readElectricalBoolean(engine.state, ElectricalStateKeys.busPowered('main'))).toBe(true)
+    expect(readElectricalNumber(engine.state, ElectricalStateKeys.busVoltage('main'))).toBe(28)
+  })
+
+  test('surface animation follows canonical control handle state', () => {
+    const engine = createSimulatorEngineForAircraft({
+      identity: { id: 'surface-fixture' },
+    })
+
+    engine.dispatch({
+      type: ControlCommandTypes.setFlapsHandle,
+      payload: { ratio: 0.5 },
+    })
+    engine.tick(0.5)
+
+    expect(readSurfaceRatio(engine.state, SurfaceStateKeys.targetRatio('flaps'))).toBe(0.5)
+    expect(readSurfaceRatio(engine.state, SurfaceStateKeys.positionRatio('flaps'))).toBe(0.425)
+    expect(readSurfaceBoolean(engine.state, SurfaceStateKeys.moving('flaps'))).toBe(true)
+
+    engine.tick(1)
+
+    expect(readSurfaceRatio(engine.state, SurfaceStateKeys.positionRatio('flaps'))).toBe(0.5)
+    expect(readSurfaceBoolean(engine.state, SurfaceStateKeys.moving('flaps'))).toBe(false)
   })
 })
