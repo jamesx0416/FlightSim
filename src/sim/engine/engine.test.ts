@@ -642,6 +642,14 @@ test('animates generic moving surfaces toward target state', () => {
     expect(readFuelBoolean(engine.state, FuelStateKeys.pumpActive('pump-1'))).toBe(true)
     expect(readFuelBoolean(engine.state, FuelStateKeys.engineAvailable(1))).toBe(true)
 
+    engine.state.set(PropulsionStateKeys.engineN1Percent(1), 0, {
+      source: 'loaded',
+      unit: 'percent',
+    })
+    engine.state.set(PropulsionStateKeys.engineRpm(1), 0, {
+      source: 'loaded',
+      unit: 'number',
+    })
     engine.dispatch({
       type: PropulsionCommandTypes.setEngineStarter,
       payload: { index: 1, enabled: true },

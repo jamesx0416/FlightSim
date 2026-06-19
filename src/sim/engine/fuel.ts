@@ -55,7 +55,8 @@ export interface FuelSubsystemDefinition {
 }
 
 interface IndexedBooleanPayload {
-  readonly index: number
+  readonly id?: string
+  readonly index?: number
   readonly enabled?: boolean
   readonly active?: boolean
   readonly open?: boolean
@@ -214,38 +215,46 @@ export class FuelSubsystem implements SimSubsystem {
     switch (command.type) {
       case FuelCommandTypes.setPumpSwitch: {
         const payload = command.payload as IndexedBooleanPayload
-        setBoolean(
-          context.state,
-          FuelStateKeys.pumpSwitchEnabled(payload.index),
-          payload.enabled ?? payload.active ?? false
-        )
+        for (const keyId of this.resolvePumpKeys(payload)) {
+          setBoolean(
+            context.state,
+            FuelStateKeys.pumpSwitchEnabled(keyId),
+            payload.enabled ?? payload.active ?? false
+          )
+        }
         return true
       }
       case FuelCommandTypes.setPumpActive: {
         const payload = command.payload as IndexedBooleanPayload
-        setBoolean(
-          context.state,
-          FuelStateKeys.pumpActive(payload.index),
-          payload.active ?? payload.enabled ?? false
-        )
+        for (const keyId of this.resolvePumpKeys(payload)) {
+          setBoolean(
+            context.state,
+            FuelStateKeys.pumpActive(keyId),
+            payload.active ?? payload.enabled ?? false
+          )
+        }
         return true
       }
       case FuelCommandTypes.setValveSwitch: {
         const payload = command.payload as IndexedBooleanPayload
-        setBoolean(
-          context.state,
-          FuelStateKeys.valveSwitchOpen(payload.index),
-          payload.open ?? payload.enabled ?? false
-        )
+        for (const keyId of this.resolveValveKeys(payload)) {
+          setBoolean(
+            context.state,
+            FuelStateKeys.valveSwitchOpen(keyId),
+            payload.open ?? payload.enabled ?? false
+          )
+        }
         return true
       }
       case FuelCommandTypes.setValveOpen: {
         const payload = command.payload as IndexedBooleanPayload
-        setBoolean(
-          context.state,
-          FuelStateKeys.valveOpen(payload.index),
-          payload.open ?? payload.enabled ?? false
-        )
+        for (const keyId of this.resolveValveKeys(payload)) {
+          setBoolean(
+            context.state,
+            FuelStateKeys.valveOpen(keyId),
+            payload.open ?? payload.enabled ?? false
+          )
+        }
         return true
       }
       case FuelCommandTypes.setJunctionSetting: {
@@ -270,6 +279,14 @@ export class FuelSubsystem implements SimSubsystem {
       default:
         return false
     }
+  }
+
+  private resolvePumpKeys(payload: IndexedBooleanPayload): Array<string | number> {
+    return resolveCommandKeys(this.definition.pumps, payload)
+  }
+
+  private resolveValveKeys(payload: IndexedBooleanPayload): Array<string | number> {
+    return resolveCommandKeys(this.definition.valves, payload)
   }
 }
 
@@ -393,6 +410,24 @@ function collectFuelKeys(
   if (id != null) keys.push(id)
   if (index != null) keys.push(index)
   return keys
+}
+
+function resolveCommandKeys(
+  definitions: ReadonlyArray<{ readonly id?: string; readonly index?: number }> | undefined,
+  payload: IndexedBooleanPayload
+): Array<string | number> {
+  const matches =
+    definitions?.filter(
+      definition =>
+        (payload.index != null && definition.index === payload.index) ||
+        (payload.id != null && definition.id === payload.id)
+    ) ?? []
+
+  if (matches.length > 0) {
+    return matches.flatMap(definition => collectFuelKeys(definition.id, definition.index))
+  }
+
+  return collectFuelKeys(payload.id, payload.index)
 }
 
 function defineBooleanState(

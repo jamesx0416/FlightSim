@@ -438,6 +438,11 @@ export class PropulsionSubsystem implements SimSubsystem {
             context.state,
             FuelStateKeys.engineAvailable(engine.fuelFeedIndex)
           )
+
+    if (starterIntent && starterPowered) {
+      clearLoadedEngineOutputs(context.state, engine.index)
+    }
+
     const currentN1 = readPropulsionNumber(
       context.state,
       PropulsionStateKeys.engineN1Percent(engine.index)
@@ -669,6 +674,13 @@ function setDerivedNumber(
 ): void {
   state.define({ key, unit, valueType: 'number' })
   state.set(key, Number.isFinite(value) ? value : 0, { source: 'subsystem', unit })
+}
+
+function clearLoadedEngineOutputs(state: SimStateStore, index: number): void {
+  state.clearSource(PropulsionStateKeys.engineCombustion(index), 'loaded')
+  state.clearSource(PropulsionStateKeys.engineN1Percent(index), 'loaded')
+  state.clearSource(PropulsionStateKeys.engineRpm(index), 'loaded')
+  state.clearSource(PropulsionStateKeys.engineGeneratorAvailable(index), 'loaded')
 }
 
 function moveTowards(current: number, target: number, step: number): number {
