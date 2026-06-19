@@ -341,6 +341,7 @@ test('publishes key-event control and electrical state without waiting for a tic
     expect(
       host.simulatorEngine.state.readBoolean(ControlStateKeys.parkingBrakeEnabled())
     ).toBe(true)
+    expect(host.readVariable('L:A32NX_PARK_BRAKE_LEVER_POS')).toBe(1)
     expect(
       host.simulatorEngine.state.readNumber(SurfaceStateKeys.targetRatio('flaps'), {
         unit: 'ratio',
