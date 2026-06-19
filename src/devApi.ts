@@ -20,8 +20,13 @@ import {
   type RuntimeKeyEvent,
   type RuntimeSoundEvent
 } from './msfs/runtime'
+import {
+  mapMsfsLocalVarToCanonicalState,
+  mapMsfsSimVarToCanonicalState,
+} from './msfs/compatibilityBridge'
 import type {
   CompiledBehaviorSet,
+  CompiledExpression,
   ImportedAircraft,
   ImportDiagnostic,
   RuntimeState
@@ -1016,20 +1021,33 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       .slice(0, limit)
       .map(binding => ({ ...binding }))
   }
+  const collectCanonicalAliasesForExpression = (
+    expression: CompiledExpression
+  ): readonly Record<string, unknown>[] => {
+    const aliases = new Map<string, Record<string, unknown>>()
+    for (const variableKey of expression.variableKeys) {
+      const normalizedKey = variableKey.split(',')[0]?.trim().toUpperCase() ?? ''
+      if (normalizedKey.length === 0) continue
+      const alias =
+        normalizedKey.startsWith('A:')
+          ? mapMsfsSimVarToCanonicalState(normalizedKey.slice(2))
+          : normalizedKey.startsWith('L:')
+            ? mapMsfsLocalVarToCanonicalState(normalizedKey.slice(2))
+            : undefined
+      if (alias == null) continue
+      aliases.set(`${normalizedKey}:${alias.stateKey}`, {
+        variable: normalizedKey,
+        stateKey: alias.stateKey,
+        canonicalUnit: alias.canonicalUnit,
+      })
+    }
+    return [...aliases.values()]
+  }
+
   const collectCanonicalVisuals = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
     const needle = filter.trim().toLowerCase()
     const runtimeState = context.getRuntimeState()
-    return runtimeState.canonicalVisualBindings
-      .filter(binding =>
-        !needle ||
-        binding.id.toLowerCase().includes(needle) ||
-        binding.kind.toLowerCase().includes(needle) ||
-        binding.channel.toLowerCase().includes(needle) ||
-        binding.target.toLowerCase().includes(needle) ||
-        binding.stateKey.toLowerCase().includes(needle)
-      )
-      .slice(0, limit)
-      .map(binding => {
+    const canonicalRows = runtimeState.canonicalVisualBindings.map(binding => {
         const value =
           binding.channel === 'visibility'
             ? runtimeState.nodeVisibilities.get(binding.target) ?? null
@@ -1037,10 +1055,47 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
               ? runtimeState.materialValues.get(binding.target) ?? null
               : runtimeState.animationValues.get(binding.target) ?? null
         return {
+          source: 'canonical',
           ...binding,
           value,
         }
       })
+    const compiledRows = [
+      ...context.getCompiledBehaviors().animationBindings.map(binding => ({
+        source: 'compiled-msfs',
+        channel: 'animation',
+        target: binding.target,
+        value: runtimeState.animationValues.get(binding.target) ?? null,
+        sourcePath: binding.sourcePath,
+        expression: binding.expression.source,
+        canonicalAliases: collectCanonicalAliasesForExpression(binding.expression),
+      })),
+      ...context.getCompiledBehaviors().visibilityBindings.map(binding => ({
+        source: 'compiled-msfs',
+        channel: 'visibility',
+        target: binding.target,
+        value: runtimeState.nodeVisibilities.get(binding.target) ?? null,
+        sourcePath: binding.sourcePath,
+        expression: binding.expression.source,
+        canonicalAliases: collectCanonicalAliasesForExpression(binding.expression),
+      })),
+      ...context.getCompiledBehaviors().materialBindings.map(binding => ({
+        source: 'compiled-msfs',
+        channel: 'material',
+        target: binding.target,
+        value: runtimeState.materialValues.get(binding.target) ?? null,
+        sourcePath: binding.sourcePath,
+        expression: binding.expression.source,
+        canonicalAliases: collectCanonicalAliasesForExpression(binding.expression),
+      })),
+    ].filter(row => row.canonicalAliases.length > 0)
+
+    return [...canonicalRows, ...compiledRows]
+      .filter(row => {
+        const haystack = JSON.stringify(row).toLowerCase()
+        return !needle || haystack.includes(needle)
+      })
+      .slice(0, limit)
   }
 
   const summarizeMaterial = (material: Material): Record<string, unknown> => {
