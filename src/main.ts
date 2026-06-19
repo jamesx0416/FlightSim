@@ -531,7 +531,14 @@ async function init(): Promise<void> {
       console.warn('Failed to populate aircraft selector options.', error)
     })
 
-  let runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
+  let runtime = new AircraftRuntime(
+    compiledBehaviors,
+    loadedModel.scene,
+    runtimeHost,
+    aircraft,
+    runtimeHost.simulatorEngine.getAircraft(),
+    runtimeHost.simulatorEngine
+  )
   let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
   runtime.bindAnimations(loadedModel.animations)
   let lastRuntimeModelRevision = runtime.getModelRevision()
@@ -848,7 +855,14 @@ async function init(): Promise<void> {
 
   const rebuildRuntimeForLoadedModel = (): void => {
     runtime.dispose()
-    runtime = new AircraftRuntime(compiledBehaviors, loadedModel.scene, runtimeHost, aircraft)
+    runtime = new AircraftRuntime(
+      compiledBehaviors,
+      loadedModel.scene,
+      runtimeHost,
+      aircraft,
+      runtimeHost.simulatorEngine.getAircraft(),
+      runtimeHost.simulatorEngine
+    )
     runtime.bindAnimations(loadedModel.animations)
     ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
     cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
