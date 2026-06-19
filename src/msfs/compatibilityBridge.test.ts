@@ -412,11 +412,91 @@ test('maps MSFS deice aliases to canonical environment state', () => {
   expect(bridge.readSimVar('A:ENG ANTI ICE:2', 'Bool')).toBe(1)
 })
 
-test('exposes explicit alias metadata for compatibility diagnostics', () => {
-  expect(mapMsfsSimVarToCanonicalState('A:LIGHT PANEL POWER SETTING')).toEqual({
+  test('exposes explicit alias metadata for compatibility diagnostics', () => {
+    expect(mapMsfsSimVarToCanonicalState('A:LIGHT PANEL POWER SETTING')).toEqual({
       kind: 'lightPower',
       stateKey: LightingStateKeys.power('PANEL'),
       canonicalUnit: 'ratio',
     })
+  })
+
+  test('maps generic MSFS electrical aliases to canonical sources buses and consumers', () => {
+    const state = new SimStateStore()
+    const bridge = new MsfsCompatibilityBridge(state)
+
+    expect(
+      bridge.writeSimVar('A:ELECTRICAL SOURCE battery AVAILABLE', 1, 'Bool')
+    ).toBe(true)
+    expect(
+      bridge.writeSimVar('A:ELECTRICAL SOURCE battery CONNECTED', 1, 'Bool')
+    ).toBe(true)
+    expect(
+      bridge.writeSimVar('A:ELECTRICAL SOURCE battery VOLTAGE', 24, 'number')
+    ).toBe(true)
+    expect(
+      bridge.writeSimVar('A:ELECTRICAL CONSUMER fuel-pump-1 SWITCH', 1, 'Bool')
+    ).toBe(true)
+
+    state.set(ElectricalStateKeys.busPowered('main'), true, {
+      source: 'subsystem',
+      unit: 'boolean',
+    })
+    state.set(ElectricalStateKeys.busVoltage('main'), 24, {
+      source: 'subsystem',
+      unit: 'number',
+    })
+    state.set(ElectricalStateKeys.consumerPowered('fuel-pump-1'), true, {
+      source: 'subsystem',
+      unit: 'boolean',
+    })
+
+    expect(state.readBoolean(ElectricalStateKeys.sourceAvailable('battery'))).toBe(true)
+    expect(state.readBoolean(ElectricalStateKeys.sourceConnected('battery'))).toBe(true)
+    expect(state.readNumber(ElectricalStateKeys.sourceVoltage('battery'))).toBe(24)
+    expect(bridge.readSimVar('A:ELECTRICAL BUS main POWERED', 'Bool')).toBe(1)
+    expect(bridge.readSimVar('A:ELECTRICAL BUS main VOLTAGE')).toBe(24)
+    expect(bridge.readSimVar('A:ELECTRICAL CONSUMER fuel-pump-1 POWERED', 'Bool')).toBe(1)
+  })
+
+  test('maps generic MSFS fuel aliases to canonical fuel state', () => {
+    const state = new SimStateStore()
+    const bridge = new MsfsCompatibilityBridge(state)
+
+    expect(bridge.writeSimVar('A:FUELSYSTEM TANK main QUANTITY PERCENT', 75, 'percent')).toBe(true)
+    expect(bridge.writeSimVar('A:FUELSYSTEM PUMP pump-1 SWITCH', 1, 'Bool')).toBe(true)
+    expect(bridge.writeSimVar('A:FUELSYSTEM VALVE engine-1-valve OPEN', 1, 'Bool')).toBe(true)
+
+    state.set(FuelStateKeys.pumpActive('pump-1'), true, {
+      source: 'subsystem',
+      unit: 'boolean',
+    })
+    state.set(FuelStateKeys.engineAvailable(1), true, {
+      source: 'subsystem',
+      unit: 'boolean',
+    })
+
+    expect(state.readNumber(FuelStateKeys.tankQuantityRatio('main'))).toBe(0.75)
+    expect(state.readBoolean(FuelStateKeys.pumpSwitchEnabled('pump-1'))).toBe(true)
+    expect(state.readBoolean(FuelStateKeys.valveOpen('engine-1-valve'))).toBe(true)
+    expect(bridge.readSimVar('A:FUELSYSTEM TANK main QUANTITY PERCENT', 'percent')).toBe(75)
+    expect(bridge.readSimVar('A:FUELSYSTEM PUMP pump-1 ACTIVE', 'Bool')).toBe(1)
+    expect(bridge.readSimVar('A:FUELSYSTEM ENGINE 1 FUEL AVAILABLE', 'Bool')).toBe(1)
+  })
+
+  test('maps generic MSFS propulsion generator availability aliases', () => {
+    const state = new SimStateStore()
+    const bridge = new MsfsCompatibilityBridge(state)
+
+    state.set(PropulsionStateKeys.engineGeneratorAvailable(1), true, {
+      source: 'subsystem',
+      unit: 'boolean',
+    })
+    state.set(PropulsionStateKeys.apuGeneratorAvailable(), true, {
+      source: 'subsystem',
+      unit: 'boolean',
+    })
+
+    expect(bridge.readSimVar('A:GENERAL ENG GENERATOR AVAILABLE:1', 'Bool')).toBe(1)
+    expect(bridge.readSimVar('A:APU GENERATOR AVAILABLE', 'Bool')).toBe(1)
   })
 })

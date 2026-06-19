@@ -120,7 +120,11 @@ export class MsfsCompatibilityBridge {
     }
 
     if (alias.kind === 'fuelNumber') {
-      return readFuelNumber(this.state, alias.stateKey)
+      return convertSimUnit(
+        readFuelNumber(this.state, alias.stateKey),
+        alias.canonicalUnit,
+        normalizeMsfsAliasUnit(unit, alias)
+      )
     }
 
     if (alias.kind === 'autopilotBoolean') {
@@ -445,6 +449,55 @@ function mapMsfsElectricalSimVarToCanonicalState(name: string): MsfsStateAlias |
     }
   }
 
+  const sourceMatch = /^ELECTRICAL SOURCE (.+?) (AVAILABLE|CONNECTED|VOLTAGE)$/u.exec(name)
+  if (sourceMatch != null) {
+    const sourceId = sourceMatch[1]
+    switch (sourceMatch[2]) {
+      case 'AVAILABLE':
+        return {
+          kind: 'electricalBoolean',
+          stateKey: ElectricalStateKeys.sourceAvailable(sourceId),
+          canonicalUnit: 'boolean',
+        }
+      case 'CONNECTED':
+        return {
+          kind: 'electricalBoolean',
+          stateKey: ElectricalStateKeys.sourceConnected(sourceId),
+          canonicalUnit: 'boolean',
+        }
+      case 'VOLTAGE':
+        return {
+          kind: 'electricalNumber',
+          stateKey: ElectricalStateKeys.sourceVoltage(sourceId),
+          canonicalUnit: 'number',
+        }
+    }
+  }
+
+  const busMatch = /^ELECTRICAL BUS (.+?) (POWERED|VOLTAGE)$/u.exec(name)
+  if (busMatch != null) {
+    return {
+      kind: busMatch[2] === 'POWERED' ? 'electricalBoolean' : 'electricalNumber',
+      stateKey:
+        busMatch[2] === 'POWERED'
+          ? ElectricalStateKeys.busPowered(busMatch[1])
+          : ElectricalStateKeys.busVoltage(busMatch[1]),
+      canonicalUnit: busMatch[2] === 'POWERED' ? 'boolean' : 'number',
+    }
+  }
+
+  const consumerMatch = /^ELECTRICAL CONSUMER (.+?) (SWITCH|POWERED)$/u.exec(name)
+  if (consumerMatch != null) {
+    return {
+      kind: 'electricalBoolean',
+      stateKey:
+        consumerMatch[2] === 'POWERED'
+          ? ElectricalStateKeys.consumerPowered(consumerMatch[1])
+          : ElectricalStateKeys.consumerSwitchEnabled(consumerMatch[1]),
+      canonicalUnit: 'boolean',
+    }
+  }
+
   switch (name) {
     case 'EXTERNAL POWER AVAILABLE':
       return {
@@ -690,6 +743,52 @@ function mapMsfsAvionicsSimVarToCanonicalState(name: string): MsfsStateAlias | u
 }
 
 function mapMsfsFuelSimVarToCanonicalState(name: string): MsfsStateAlias | undefined {
+  const tankQuantityMatch = /^FUELSYSTEM TANK (.+?) QUANTITY(?: RATIO| PERCENT)?$/u.exec(name)
+  if (tankQuantityMatch != null) {
+    return {
+      kind: 'fuelNumber',
+      stateKey: FuelStateKeys.tankQuantityRatio(tankQuantityMatch[1]),
+      canonicalUnit: 'ratio',
+      defaultUnit: name.endsWith('PERCENT') ? 'percent' : 'ratio',
+    }
+  }
+
+  const engineAvailabilityMatch = /^FUELSYSTEM ENGINE (?:(\d+) )?FUEL AVAILABLE$/u.exec(name)
+  if (engineAvailabilityMatch != null) {
+    const index = engineAvailabilityMatch[1] == null ? 1 : Number(engineAvailabilityMatch[1])
+    if (Number.isInteger(index) && index > 0) {
+      return {
+        kind: 'fuelBoolean',
+        stateKey: FuelStateKeys.engineAvailable(index),
+        canonicalUnit: 'boolean',
+      }
+    }
+  }
+
+  const namedPumpMatch = /^FUELSYSTEM PUMP (.+?) (SWITCH|ACTIVE)$/u.exec(name)
+  if (namedPumpMatch != null && !/^\d+$/u.test(namedPumpMatch[1])) {
+    return {
+      kind: 'fuelBoolean',
+      stateKey:
+        namedPumpMatch[2] === 'ACTIVE'
+          ? FuelStateKeys.pumpActive(namedPumpMatch[1])
+          : FuelStateKeys.pumpSwitchEnabled(namedPumpMatch[1]),
+      canonicalUnit: 'boolean',
+    }
+  }
+
+  const namedValveMatch = /^FUELSYSTEM VALVE (.+?) (SWITCH|OPEN)$/u.exec(name)
+  if (namedValveMatch != null && !/^\d+$/u.test(namedValveMatch[1])) {
+    return {
+      kind: 'fuelBoolean',
+      stateKey:
+        namedValveMatch[2] === 'OPEN'
+          ? FuelStateKeys.valveOpen(namedValveMatch[1])
+          : FuelStateKeys.valveSwitchOpen(namedValveMatch[1]),
+      canonicalUnit: 'boolean',
+    }
+  }
+
   const pumpMatch = /^(FUELSYSTEM PUMP SWITCH|FUELSYSTEM PUMP ACTIVE|GENERAL ENG FUEL PUMP SWITCH EX1|GENERAL ENG FUEL PUMP ACTIVE):(\d+)$/u.exec(
     name
   )
@@ -851,6 +950,14 @@ function fromCanonicalAvionicsNumber(value: number, alias: MsfsStateAlias): numb
 }
 
 function mapMsfsApuSimVarToCanonicalState(name: string): MsfsStateAlias | undefined {
+  if (name === 'APU GENERATOR AVAILABLE') {
+    return {
+      kind: 'propulsionBoolean',
+      stateKey: PropulsionStateKeys.apuGeneratorAvailable(),
+      canonicalUnit: 'boolean',
+    }
+  }
+
   switch (name) {
     case 'APU MASTER SWITCH':
     case 'APU SWITCH':
@@ -884,6 +991,18 @@ function mapMsfsApuSimVarToCanonicalState(name: string): MsfsStateAlias | undefi
 }
 
 function mapMsfsEngineSimVarToCanonicalState(name: string): MsfsStateAlias | undefined {
+  const generatorMatch = /^GENERAL ENG GENERATOR AVAILABLE(?::(\d+))?$/u.exec(name)
+  if (generatorMatch != null) {
+    const index = generatorMatch[1] == null ? 1 : Number(generatorMatch[1])
+    if (Number.isInteger(index) && index > 0) {
+      return {
+        kind: 'propulsionBoolean',
+        stateKey: PropulsionStateKeys.engineGeneratorAvailable(index),
+        canonicalUnit: 'boolean',
+      }
+    }
+  }
+
   const match = /^(GENERAL ENG STARTER|GENERAL ENG COMBUSTION|GENERAL ENG RPM|TURB ENG N1|GENERAL ENG THROTTLE LEVER POSITION|GENERAL ENG PROPELLER LEVER POSITION|GENERAL ENG MIXTURE LEVER POSITION|GENERAL ENG FUEL VALVE|GENERAL ENG MASTER ALTERNATOR)(?::(\d+))?$/u.exec(
     name
   )

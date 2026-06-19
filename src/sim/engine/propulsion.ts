@@ -1,6 +1,19 @@
+import type { CanonicalPropulsionSystemConfig } from './aircraft'
 import type { SimCommand } from './commands'
+import {
+  ElectricalStateKeys,
+  readElectricalBoolean,
+} from './electrical'
+import {
+  FuelStateKeys,
+  readFuelBoolean,
+} from './fuel'
 import type { SimStateStore } from './state'
-import type { SimSubsystem, SimSubsystemContext } from './subsystem'
+import type {
+  SimSubsystem,
+  SimSubsystemContext,
+  SimSubsystemTickContext,
+} from './subsystem'
 
 export const PROPULSION_SUBSYSTEM_ID = 'propulsion'
 
@@ -31,6 +44,14 @@ export interface EngineDefinition {
   readonly defaultMixtureLeverRatio?: number
   readonly defaultFuelValveOpen?: boolean
   readonly defaultAlternatorEnabled?: boolean
+  readonly starterConsumerId?: string
+  readonly ignitionConsumerId?: string
+  readonly fuelFeedIndex?: number
+  readonly generatorSourceId?: string
+  readonly idleN1Percent?: number
+  readonly starterN1Percent?: number
+  readonly spoolUpPercentPerSecond?: number
+  readonly spoolDownPercentPerSecond?: number
 }
 
 export interface ApuDefinition {
@@ -38,27 +59,33 @@ export interface ApuDefinition {
   readonly defaultStarter?: boolean
   readonly defaultRunning?: boolean
   readonly defaultRpmPercent?: number
+  readonly starterConsumerId?: string
+  readonly generatorSourceId?: string
+  readonly runningRpmPercent?: number
+  readonly spoolUpPercentPerSecond?: number
+  readonly spoolDownPercentPerSecond?: number
 }
 
-export interface PropulsionDefinition {
+export interface PropulsionDefinition extends CanonicalPropulsionSystemConfig {
   readonly engines?: readonly EngineDefinition[]
   readonly apu?: ApuDefinition
 }
 
-export interface SetApuBooleanPayload {
+interface SetApuBooleanPayload {
   readonly enabled: boolean
 }
 
-export interface SetApuRpmPayload {
-  readonly percent: number
+interface SetApuNumberPayload {
+  readonly percent?: number
+  readonly value?: number
 }
 
-export interface SetEngineBooleanPayload {
+interface SetEngineBooleanPayload {
   readonly index: number
   readonly enabled: boolean
 }
 
-export interface SetEngineNumberPayload {
+interface SetEngineNumberPayload {
   readonly index: number
   readonly value: number
 }
@@ -76,17 +103,32 @@ export const PropulsionStateKeys = {
   apuRpmPercent(): string {
     return 'propulsion.apu.rpm.percent'
   },
+  apuGeneratorAvailable(): string {
+    return 'propulsion.apu.generator.available'
+  },
   engineStarter(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.starter.enabled`
   },
+  engineIgnitionPowered(index: number): string {
+    return `propulsion.engine.${normalizePositiveIndex(index)}.ignition.powered`
+  },
+  engineFuelAvailable(index: number): string {
+    return `propulsion.engine.${normalizePositiveIndex(index)}.fuel.available`
+  },
   engineRunning(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.running`
+  },
+  engineCombustion(index: number): string {
+    return `propulsion.engine.${normalizePositiveIndex(index)}.combustion`
   },
   engineN1Percent(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.n1.percent`
   },
   engineRpm(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.rpm`
+  },
+  engineGeneratorAvailable(index: number): string {
+    return `propulsion.engine.${normalizePositiveIndex(index)}.generator.available`
   },
   engineThrottleLeverRatio(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.throttle-lever.ratio`
@@ -112,32 +154,36 @@ export class PropulsionSubsystem implements SimSubsystem {
   constructor(private readonly definition: PropulsionDefinition = {}) {}
 
   initialize(context: SimSubsystemContext): void {
-    if (this.definition.apu != null) {
-      defineBooleanState(
-        context.state,
-        PropulsionStateKeys.apuMaster(),
-        'APU master switch state',
-        this.definition.apu.defaultMaster
-      )
-      defineBooleanState(
-        context.state,
-        PropulsionStateKeys.apuStarter(),
-        'APU starter state',
-        this.definition.apu.defaultStarter
-      )
-      defineBooleanState(
-        context.state,
-        PropulsionStateKeys.apuRunning(),
-        'APU running state',
-        this.definition.apu.defaultRunning
-      )
-      definePercentState(
-        context.state,
-        PropulsionStateKeys.apuRpmPercent(),
-        'APU RPM percentage',
-        this.definition.apu.defaultRpmPercent
-      )
-    }
+    defineBooleanState(
+      context.state,
+      PropulsionStateKeys.apuMaster(),
+      'APU master switch state',
+      this.definition.apu?.defaultMaster
+    )
+    defineBooleanState(
+      context.state,
+      PropulsionStateKeys.apuStarter(),
+      'APU starter state',
+      this.definition.apu?.defaultStarter
+    )
+    defineBooleanState(
+      context.state,
+      PropulsionStateKeys.apuRunning(),
+      'APU running state',
+      this.definition.apu?.defaultRunning
+    )
+    definePercentState(
+      context.state,
+      PropulsionStateKeys.apuRpmPercent(),
+      'APU RPM percentage',
+      this.definition.apu?.defaultRpmPercent
+    )
+    defineBooleanState(
+      context.state,
+      PropulsionStateKeys.apuGeneratorAvailable(),
+      'APU generator availability',
+      false
+    )
 
     for (const engine of this.definition.engines ?? []) {
       defineBooleanState(
@@ -148,14 +194,32 @@ export class PropulsionSubsystem implements SimSubsystem {
       )
       defineBooleanState(
         context.state,
+        PropulsionStateKeys.engineIgnitionPowered(engine.index),
+        `Engine ${engine.index} ignition powered state`,
+        false
+      )
+      defineBooleanState(
+        context.state,
+        PropulsionStateKeys.engineFuelAvailable(engine.index),
+        `Engine ${engine.index} fuel availability`,
+        false
+      )
+      defineBooleanState(
+        context.state,
         PropulsionStateKeys.engineRunning(engine.index),
         `Engine ${engine.index} running state`,
+        engine.defaultRunning
+      )
+      defineBooleanState(
+        context.state,
+        PropulsionStateKeys.engineCombustion(engine.index),
+        `Engine ${engine.index} combustion state`,
         engine.defaultRunning
       )
       definePercentState(
         context.state,
         PropulsionStateKeys.engineN1Percent(engine.index),
-        `Engine ${engine.index} N1 percentage`,
+        `Engine ${engine.index} N1 percent`,
         engine.defaultN1Percent
       )
       defineNumberState(
@@ -163,6 +227,12 @@ export class PropulsionSubsystem implements SimSubsystem {
         PropulsionStateKeys.engineRpm(engine.index),
         `Engine ${engine.index} RPM`,
         engine.defaultRpm
+      )
+      defineBooleanState(
+        context.state,
+        PropulsionStateKeys.engineGeneratorAvailable(engine.index),
+        `Engine ${engine.index} generator availability`,
+        false
       )
       defineRatioState(
         context.state,
@@ -197,38 +267,95 @@ export class PropulsionSubsystem implements SimSubsystem {
     }
   }
 
+  tick(context: SimSubsystemTickContext): void {
+    this.tickApu(context)
+
+    for (const engine of this.definition.engines ?? []) {
+      this.tickEngine(engine, context)
+    }
+  }
+
   handleCommand(command: SimCommand, context: SimSubsystemContext): boolean {
     switch (command.type) {
       case PropulsionCommandTypes.setApuMaster:
-        setBoolean(context.state, PropulsionStateKeys.apuMaster(), command.payload as SetApuBooleanPayload)
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.apuMaster(),
+          (command.payload as SetApuBooleanPayload).enabled
+        )
         return true
       case PropulsionCommandTypes.setApuStarter:
-        setBoolean(context.state, PropulsionStateKeys.apuStarter(), command.payload as SetApuBooleanPayload)
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.apuStarter(),
+          (command.payload as SetApuBooleanPayload).enabled
+        )
         return true
       case PropulsionCommandTypes.setApuRunning:
-        setBoolean(context.state, PropulsionStateKeys.apuRunning(), command.payload as SetApuBooleanPayload)
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.apuRunning(),
+          (command.payload as SetApuBooleanPayload).enabled
+        )
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.apuGeneratorAvailable(),
+          (command.payload as SetApuBooleanPayload).enabled
+        )
         return true
       case PropulsionCommandTypes.setApuRpm:
-        setPercent(context.state, PropulsionStateKeys.apuRpmPercent(), command.payload as SetApuRpmPayload)
+        setNumber(
+          context.state,
+          PropulsionStateKeys.apuRpmPercent(),
+          clampPercent(
+            (command.payload as SetApuNumberPayload).percent ??
+              (command.payload as SetApuNumberPayload).value ??
+              0
+          ),
+          'percent'
+        )
         return true
       case PropulsionCommandTypes.setEngineStarter: {
         const payload = command.payload as SetEngineBooleanPayload
-        setBoolean(context.state, PropulsionStateKeys.engineStarter(payload.index), payload)
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.engineStarter(payload.index),
+          payload.enabled
+        )
         return true
       }
       case PropulsionCommandTypes.setEngineRunning: {
         const payload = command.payload as SetEngineBooleanPayload
-        setBoolean(context.state, PropulsionStateKeys.engineRunning(payload.index), payload)
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.engineRunning(payload.index),
+          payload.enabled
+        )
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.engineCombustion(payload.index),
+          payload.enabled
+        )
         return true
       }
       case PropulsionCommandTypes.setEngineN1: {
         const payload = command.payload as SetEngineNumberPayload
-        setNumber(context.state, PropulsionStateKeys.engineN1Percent(payload.index), clampPercent(payload.value), 'percent')
+        setNumber(
+          context.state,
+          PropulsionStateKeys.engineN1Percent(payload.index),
+          clampPercent(payload.value),
+          'percent'
+        )
         return true
       }
       case PropulsionCommandTypes.setEngineRpm: {
         const payload = command.payload as SetEngineNumberPayload
-        setNumber(context.state, PropulsionStateKeys.engineRpm(payload.index), Math.max(0, payload.value), 'number')
+        setNumber(
+          context.state,
+          PropulsionStateKeys.engineRpm(payload.index),
+          Math.max(0, payload.value),
+          'number'
+        )
         return true
       }
       case PropulsionCommandTypes.setEngineThrottle: {
@@ -263,26 +390,174 @@ export class PropulsionSubsystem implements SimSubsystem {
       }
       case PropulsionCommandTypes.setEngineFuelValve: {
         const payload = command.payload as SetEngineBooleanPayload
-        setBoolean(context.state, PropulsionStateKeys.engineFuelValveOpen(payload.index), payload)
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.engineFuelValveOpen(payload.index),
+          payload.enabled
+        )
         return true
       }
       case PropulsionCommandTypes.setEngineAlternator: {
         const payload = command.payload as SetEngineBooleanPayload
-        setBoolean(context.state, PropulsionStateKeys.engineAlternatorEnabled(payload.index), payload)
+        setBoolean(
+          context.state,
+          PropulsionStateKeys.engineAlternatorEnabled(payload.index),
+          payload.enabled
+        )
         return true
       }
       default:
         return false
     }
   }
-}
 
-export function readPropulsionNumber(
-  state: SimStateStore,
-  key: string,
-  fallback = 0
-): number {
-  return state.readNumber(key, { fallback }) ?? fallback
+  private tickEngine(
+    engine: EngineDefinition,
+    context: SimSubsystemTickContext
+  ): void {
+    const starterIntent = readPropulsionBoolean(
+      context.state,
+      PropulsionStateKeys.engineStarter(engine.index)
+    )
+    const starterPowered =
+      engine.starterConsumerId == null ||
+      readElectricalBoolean(
+        context.state,
+        ElectricalStateKeys.consumerPowered(engine.starterConsumerId)
+      )
+    const ignitionPowered =
+      engine.ignitionConsumerId == null ||
+      readElectricalBoolean(
+        context.state,
+        ElectricalStateKeys.consumerPowered(engine.ignitionConsumerId)
+      )
+    const fuelAvailable =
+      engine.fuelFeedIndex == null
+        ? true
+        : readFuelBoolean(
+            context.state,
+            FuelStateKeys.engineAvailable(engine.fuelFeedIndex)
+          )
+    const currentN1 = readPropulsionNumber(
+      context.state,
+      PropulsionStateKeys.engineN1Percent(engine.index)
+    )
+    const starterThreshold = engine.starterN1Percent ?? 20
+    const idleN1 = engine.idleN1Percent ?? 25
+    const combustion =
+      (readPropulsionBoolean(
+        context.state,
+        PropulsionStateKeys.engineCombustion(engine.index)
+      ) ||
+        (starterIntent &&
+          starterPowered &&
+          ignitionPowered &&
+          fuelAvailable &&
+          currentN1 >= starterThreshold)) &&
+      fuelAvailable &&
+      ignitionPowered
+    const starterSpoolTarget = starterIntent && starterPowered ? starterThreshold : 0
+    const targetN1 = combustion ? idleN1 : starterSpoolTarget
+    const rate =
+      targetN1 > currentN1
+        ? engine.spoolUpPercentPerSecond ?? 12
+        : engine.spoolDownPercentPerSecond ?? 18
+    const nextN1 = moveTowards(currentN1, targetN1, rate * context.dtSeconds)
+    const generatorAvailable = combustion && nextN1 >= idleN1
+
+    setDerivedBoolean(
+      context.state,
+      PropulsionStateKeys.engineIgnitionPowered(engine.index),
+      ignitionPowered
+    )
+    setDerivedBoolean(
+      context.state,
+      PropulsionStateKeys.engineFuelAvailable(engine.index),
+      fuelAvailable
+    )
+    setDerivedBoolean(
+      context.state,
+      PropulsionStateKeys.engineCombustion(engine.index),
+      combustion
+    )
+    setDerivedBoolean(
+      context.state,
+      PropulsionStateKeys.engineRunning(engine.index),
+      combustion
+    )
+    setDerivedNumber(
+      context.state,
+      PropulsionStateKeys.engineN1Percent(engine.index),
+      nextN1,
+      'percent'
+    )
+    setDerivedNumber(
+      context.state,
+      PropulsionStateKeys.engineRpm(engine.index),
+      nextN1 * 100,
+      'number'
+    )
+    setDerivedBoolean(
+      context.state,
+      PropulsionStateKeys.engineGeneratorAvailable(engine.index),
+      generatorAvailable
+    )
+
+    if (engine.generatorSourceId != null) {
+      setDerivedBoolean(
+        context.state,
+        ElectricalStateKeys.sourceAvailable(engine.generatorSourceId),
+        generatorAvailable
+      )
+    }
+  }
+
+  private tickApu(context: SimSubsystemTickContext): void {
+    const apu = this.definition.apu
+    if (apu == null) return
+
+    const master = readPropulsionBoolean(context.state, PropulsionStateKeys.apuMaster())
+    const starter = readPropulsionBoolean(context.state, PropulsionStateKeys.apuStarter())
+    const starterPowered =
+      apu.starterConsumerId == null ||
+      readElectricalBoolean(
+        context.state,
+        ElectricalStateKeys.consumerPowered(apu.starterConsumerId)
+      )
+    const currentRpm = readPropulsionNumber(
+      context.state,
+      PropulsionStateKeys.apuRpmPercent()
+    )
+    const runningRpm = apu.runningRpmPercent ?? 100
+    const targetRpm = master && starter && starterPowered ? runningRpm : 0
+    const rate =
+      targetRpm > currentRpm
+        ? apu.spoolUpPercentPerSecond ?? 30
+        : apu.spoolDownPercentPerSecond ?? 45
+    const nextRpm = moveTowards(currentRpm, targetRpm, rate * context.dtSeconds)
+    const running = nextRpm >= runningRpm
+
+    setDerivedNumber(
+      context.state,
+      PropulsionStateKeys.apuRpmPercent(),
+      nextRpm,
+      'percent'
+    )
+    setDerivedBoolean(context.state, PropulsionStateKeys.apuRunning(), running)
+    setDerivedBoolean(
+      context.state,
+      PropulsionStateKeys.apuGeneratorAvailable(),
+      running
+    )
+
+    if (apu.generatorSourceId != null) {
+      setDerivedBoolean(
+        context.state,
+        ElectricalStateKeys.sourceAvailable(apu.generatorSourceId),
+        running
+      )
+    }
+  }
 }
 
 export function readPropulsionBoolean(
@@ -291,6 +566,14 @@ export function readPropulsionBoolean(
   fallback = false
 ): boolean {
   return state.readBoolean(key, { fallback }) ?? fallback
+}
+
+export function readPropulsionNumber(
+  state: SimStateStore,
+  key: string,
+  fallback = 0
+): number {
+  return state.readNumber(key, { fallback }) ?? fallback
 }
 
 function defineBooleanState(
@@ -312,7 +595,13 @@ function definePercentState(
   description: string,
   defaultValue?: number
 ): void {
-  defineNumberState(state, key, description, defaultValue == null ? undefined : clampPercent(defaultValue), 'percent')
+  defineNumberState(
+    state,
+    key,
+    description,
+    defaultValue == null ? undefined : clampPercent(defaultValue),
+    'percent'
+  )
 }
 
 function defineRatioState(
@@ -321,7 +610,13 @@ function defineRatioState(
   description: string,
   defaultValue?: number
 ): void {
-  defineNumberState(state, key, description, defaultValue == null ? undefined : clampRatio(defaultValue), 'ratio')
+  defineNumberState(
+    state,
+    key,
+    description,
+    defaultValue == null ? undefined : clampRatio(defaultValue),
+    'ratio'
+  )
 }
 
 function defineNumberState(
@@ -341,14 +636,10 @@ function defineNumberState(
 function setBoolean(
   state: SimStateStore,
   key: string,
-  payload: SetApuBooleanPayload | SetEngineBooleanPayload
+  enabled: boolean
 ): void {
   state.define({ key, unit: 'boolean', valueType: 'boolean' })
-  state.set(key, payload.enabled, { source: 'runtime', unit: 'boolean' })
-}
-
-function setPercent(state: SimStateStore, key: string, payload: SetApuRpmPayload): void {
-  setNumber(state, key, clampPercent(payload.percent), 'percent')
+  state.set(key, enabled, { source: 'runtime', unit: 'boolean' })
 }
 
 function setNumber(
@@ -358,28 +649,46 @@ function setNumber(
   unit: 'number' | 'percent' | 'ratio'
 ): void {
   state.define({ key, unit, valueType: 'number' })
-  state.set(key, value, { source: 'runtime', unit })
+  state.set(key, Number.isFinite(value) ? value : 0, { source: 'runtime', unit })
+}
+
+function setDerivedBoolean(
+  state: SimStateStore,
+  key: string,
+  enabled: boolean
+): void {
+  state.define({ key, unit: 'boolean', valueType: 'boolean' })
+  state.set(key, enabled, { source: 'subsystem', unit: 'boolean' })
+}
+
+function setDerivedNumber(
+  state: SimStateStore,
+  key: string,
+  value: number,
+  unit: 'number' | 'percent' | 'ratio'
+): void {
+  state.define({ key, unit, valueType: 'number' })
+  state.set(key, Number.isFinite(value) ? value : 0, { source: 'subsystem', unit })
+}
+
+function moveTowards(current: number, target: number, step: number): number {
+  if (Math.abs(target - current) <= step) return target
+  return current + Math.sign(target - current) * step
 }
 
 function clampPercent(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0
-  }
-
+  if (!Number.isFinite(value)) return 0
   return Math.max(0, Math.min(100, value))
 }
 
 function clampRatio(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0
-  }
-
+  if (!Number.isFinite(value)) return 0
   return Math.max(0, Math.min(1, value))
 }
 
 function normalizePositiveIndex(index: number): number {
   if (!Number.isInteger(index) || index <= 0) {
-    throw new RangeError(`Propulsion index must be a positive integer: ${index}`)
+    throw new RangeError(`Engine index must be a positive integer: ${index}`)
   }
 
   return index

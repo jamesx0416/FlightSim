@@ -3,8 +3,10 @@ import {
   AutopilotStateKeys,
   AvionicsStateKeys,
   ControlStateKeys,
+  ElectricalCommandTypes,
   ElectricalStateKeys,
   EnvironmentStateKeys,
+  FuelCommandTypes,
   FuelStateKeys,
   LightingStateKeys,
   PropulsionCommandTypes,
@@ -165,18 +167,18 @@ describe('SharedMsfsRuntimeHost engine integration', () => {
     expect(host.readVariable('A:LIGHT BEACON', 'Bool')).toBe(1)
   })
 
-  test('preserves generic panel power fallback outside light channel aliases', () => {
-    const host = new SharedMsfsRuntimeHost([])
+test('preserves direct generic panel light fallback writes', () => {
+  const host = new SharedMsfsRuntimeHost([])
 
-    host.writeVariable('A:LIGHT PANEL', 1)
+  host.writeVariable('A:LIGHT PANEL', 1)
 
-    expect(host.readVariable('A:LIGHT PANEL', 'Bool')).toBe(1)
-    expect(
-      host.simulatorEngine.state.readBoolean(
-        LightingStateKeys.channelEnabled('panel')
-      )
-    ).toBeUndefined()
-  })
+  expect(host.readVariable('A:LIGHT PANEL', 'Bool')).toBe(1)
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      LightingStateKeys.channelEnabled('panel')
+    )
+  ).toBe(false)
+})
 
   test('mirrors APU key events into canonical propulsion state', () => {
     const host = new SharedMsfsRuntimeHost([])
@@ -741,4 +743,260 @@ test('loads generic FLT state into canonical aircraft initial state', () => {
         seed.source === 'loaded'
     )
   ).toBe(true)
+})
+
+test('loads MSFS cfg files into generic canonical cold-start systems', () => {
+  const host = new SharedMsfsRuntimeHost([], {
+    id: 'cfg-aircraft',
+    title: 'CFG Aircraft',
+    sectionName: 'fltsim.0',
+    sourcePath: '/aircraft.cfg',
+    sourceUrl: '/aircraft.cfg',
+    inheritedFromPaths: [],
+    textureDirectories: [],
+    baseContainer: null,
+    isUserSelectable: true,
+    isFlyable: true,
+    model: null,
+    interiorModel: null,
+    soundDefinition: null,
+    cfgFiles: [
+      {
+        kind: 'engines',
+        path: '/engines.cfg',
+        url: '/engines.cfg',
+        sourceAircraftCfgPath: '/aircraft.cfg',
+        sections: [
+          {
+            name: 'GENERALENGINEDATA',
+            values: new Map([['number_of_engines', '2']]),
+          },
+          {
+            name: 'TURBINEENGINEDATA',
+            values: new Map([['idle_n1', '28']]),
+          },
+        ],
+      },
+      {
+        kind: 'systems',
+        path: '/systems.cfg',
+        url: '/systems.cfg',
+        sourceAircraftCfgPath: '/aircraft.cfg',
+        sections: [
+          {
+            name: 'ELECTRICAL',
+            values: new Map([['max_battery_voltage', '24']]),
+          },
+          {
+            name: 'FUEL',
+            values: new Map([
+              ['leftmain_capacity', '100'],
+              ['rightmain_capacity', '100'],
+              ['leftmain_quantity', '50'],
+              ['rightmain_quantity', '50'],
+            ]),
+          },
+        ],
+      },
+    ],
+    previewFlightState: null,
+  } as unknown as import('./types').ImportedAircraft)
+
+  const aircraft = host.simulatorEngine.getAircraft()
+  if (aircraft == null) {
+    throw new Error('Expected canonical aircraft definition')
+  }
+
+  expect(aircraft.systems?.some(system => system.kind === 'electrical')).toBe(true)
+  expect(aircraft.systems?.some(system => system.kind === 'fuel')).toBe(true)
+  expect(aircraft.systems?.some(system => system.kind === 'propulsion')).toBe(true)
+
+  host.simulatorEngine.dispatch({
+    type: ElectricalCommandTypes.setConsumerSwitch,
+    payload: { id: 'fuel-pump-1', enabled: true },
+  })
+  host.simulatorEngine.dispatch({
+    type: ElectricalCommandTypes.setConsumerSwitch,
+    payload: { id: 'starter-1', enabled: true },
+  })
+  host.simulatorEngine.dispatch({
+    type: ElectricalCommandTypes.setConsumerSwitch,
+    payload: { id: 'ignition-1', enabled: true },
+  })
+  host.simulatorEngine.dispatch({
+    type: FuelCommandTypes.setPumpSwitch,
+    payload: { index: 1, enabled: true },
+  })
+  host.simulatorEngine.dispatch({
+    type: FuelCommandTypes.setValveSwitch,
+    payload: { index: 1, open: true },
+  })
+  host.simulatorEngine.dispatch({
+    type: ElectricalCommandTypes.setBattery,
+    payload: { enabled: true },
+  })
+  host.simulatorEngine.tick(1)
+
+  expect(host.simulatorEngine.state.readBoolean(ElectricalStateKeys.busPowered('main'))).toBe(true)
+  expect(host.simulatorEngine.state.readBoolean(FuelStateKeys.pumpActive('fuel-pump-1'))).toBe(true)
+  expect(host.simulatorEngine.state.readBoolean(FuelStateKeys.engineAvailable(1))).toBe(true)
+
+  host.simulatorEngine.dispatch({
+    type: PropulsionCommandTypes.setEngineStarter,
+    payload: { index: 1, enabled: true },
+  })
+  host.simulatorEngine.tick(1)
+  host.simulatorEngine.tick(1)
+  host.simulatorEngine.tick(1)
+
+  expect(host.simulatorEngine.state.readBoolean(PropulsionStateKeys.engineCombustion(1))).toBe(true)
+  expect(host.simulatorEngine.state.readNumber(PropulsionStateKeys.engineN1Percent(1))).toBe(28)
+  expect(
+    host.readVariable('A:GENERAL ENG GENERATOR AVAILABLE:1', 'Bool')
+  ).toBe(1)
+})
+
+test('routes MSFS key events into canonical cold-start system commands', () => {
+  const host = new SharedMsfsRuntimeHost([], {
+    id: 'key-event-aircraft',
+    title: 'Key Event Aircraft',
+    sectionName: 'fltsim.0',
+    sourcePath: '/aircraft.cfg',
+    sourceUrl: '/aircraft.cfg',
+    inheritedFromPaths: [],
+    textureDirectories: [],
+    baseContainer: null,
+    isUserSelectable: true,
+    isFlyable: true,
+    model: null,
+    interiorModel: null,
+    soundDefinition: null,
+    cfgFiles: [
+      {
+        kind: 'engines',
+        path: '/engines.cfg',
+        url: '/engines.cfg',
+        sourceAircraftCfgPath: '/aircraft.cfg',
+        sections: [
+          {
+            name: 'GENERALENGINEDATA',
+            values: new Map([['number_of_engines', '1']]),
+          },
+          {
+            name: 'TURBINEENGINEDATA',
+            values: new Map([['idle_n1', '25']]),
+          },
+        ],
+      },
+      {
+        kind: 'systems',
+        path: '/systems.cfg',
+        url: '/systems.cfg',
+        sourceAircraftCfgPath: '/aircraft.cfg',
+        sections: [
+          {
+            name: 'ELECTRICAL',
+            values: new Map([['max_battery_voltage', '24']]),
+          },
+          {
+            name: 'FUEL',
+            values: new Map([
+              ['center1_capacity', '100'],
+              ['center1_quantity', '100'],
+            ]),
+          },
+        ],
+      },
+    ],
+    previewFlightState: null,
+  } as unknown as import('./types').ImportedAircraft)
+
+  host.invokeKeyEvent('MASTER_BATTERY_SET', [1])
+  host.simulatorEngine.dispatch({
+    type: ElectricalCommandTypes.setConsumerSwitch,
+    payload: { id: 'fuel-pump-1', enabled: true },
+  })
+  host.simulatorEngine.dispatch({
+    type: ElectricalCommandTypes.setConsumerSwitch,
+    payload: { id: 'starter-1', enabled: true },
+  })
+  host.simulatorEngine.dispatch({
+    type: ElectricalCommandTypes.setConsumerSwitch,
+    payload: { id: 'ignition-1', enabled: true },
+  })
+  host.invokeKeyEvent('FUELSYSTEM_PUMP_ON', [1])
+  host.invokeKeyEvent('FUELSYSTEM_VALVE_OPEN', [1])
+  host.invokeKeyEvent('STARTER1_SET', [1])
+  host.simulatorEngine.tick(1)
+  host.simulatorEngine.tick(1)
+  host.simulatorEngine.tick(1)
+
+  expect(host.simulatorEngine.state.readBoolean(ElectricalStateKeys.batteryEnabled())).toBe(true)
+  expect(host.simulatorEngine.state.readBoolean(FuelStateKeys.pumpSwitchEnabled(1))).toBe(true)
+  expect(host.simulatorEngine.state.readBoolean(FuelStateKeys.valveSwitchOpen(1))).toBe(true)
+  expect(host.simulatorEngine.state.readBoolean(PropulsionStateKeys.engineStarter(1))).toBe(true)
+  expect(host.simulatorEngine.state.readBoolean(PropulsionStateKeys.engineCombustion(1))).toBe(true)
+
+  host.invokeKeyEvent('ALTERNATOR_ON', [1])
+  expect(host.simulatorEngine.state.readBoolean(PropulsionStateKeys.engineAlternatorEnabled(1))).toBe(true)
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      ElectricalStateKeys.sourceConnected('engine-1-generator')
+    )
+  ).toBe(true)
+})
+
+test('routes canonical electrical power into avionics and panel light visibility state', () => {
+  const host = new SharedMsfsRuntimeHost([], {
+    id: 'powered-consumers-aircraft',
+    title: 'Powered Consumers Aircraft',
+    sectionName: 'fltsim.0',
+    sourcePath: '/aircraft.cfg',
+    sourceUrl: '/aircraft.cfg',
+    inheritedFromPaths: [],
+    textureDirectories: [],
+    baseContainer: null,
+    isUserSelectable: true,
+    isFlyable: true,
+    model: null,
+    interiorModel: null,
+    soundDefinition: null,
+    cfgFiles: [
+      {
+        kind: 'systems',
+        path: '/systems.cfg',
+        url: '/systems.cfg',
+        sourceAircraftCfgPath: '/aircraft.cfg',
+        sections: [
+          {
+            name: 'ELECTRICAL',
+            values: new Map([['max_battery_voltage', '24']]),
+          },
+        ],
+      },
+    ],
+    previewFlightState: null,
+  } as unknown as import('./types').ImportedAircraft)
+
+  host.writeVariable('A:ELECTRICAL MASTER BATTERY', 1, 'Bool')
+  host.writeVariable('A:AVIONICS MASTER SWITCH', 1, 'Bool')
+  host.tick(1)
+  host.tick(1)
+
+  expect(host.simulatorEngine.state.readBoolean(ElectricalStateKeys.busPowered('main'))).toBe(true)
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      ElectricalStateKeys.consumerPowered('avionics')
+    )
+  ).toBe(true)
+  expect(
+    host.simulatorEngine.state.readBoolean(
+      ElectricalStateKeys.consumerPowered('lights')
+    )
+  ).toBe(true)
+  expect(
+    host.simulatorEngine.state.readBoolean(LightingStateKeys.channelEnabled('panel'))
+  ).toBe(true)
+  expect(host.simulatorEngine.state.readNumber(LightingStateKeys.power('panel'))).toBe(1)
+  expect(host.readVariable('A:LIGHT PANEL', 'Bool')).toBe(1)
 })

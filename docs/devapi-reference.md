@@ -74,3 +74,35 @@ Use `status().counts.capturedCapturableGauges` versus `capturableGauges` for vis
 Backend-only `NO_TEXTURE` hosts count as `backendOnlyGauges`, not failed captures.
 Gauge keys can repeat across VCockpit surfaces, so pass `surface` or `source` from `list({ kind: "gauges" })` when needed.
 Bridge-backed gauge `supportedHostServiceCalls` are browser-host shims, not native WASM ABI execution.
+
+## Canonical Cold-Start Checks
+
+Use canonical state and command APIs for generic systems checks before synthetic cockpit interaction:
+
+```js
+await window.__DevApi.ready()
+window.__DevApi.list({ kind: "commands", filter: "electrical" })
+window.__DevApi.list({ kind: "state", filter: "propulsion.engine.1" })
+window.__DevApi.dispatchCommand("electrical.battery.set", { enabled: true })
+window.__DevApi.dispatchCommand("electrical.consumer.setSwitch", {
+  id: "fuel-pump-1",
+  enabled: true,
+})
+window.__DevApi.dispatchCommand("fuel.pump.setSwitch", { index: 1, enabled: true })
+window.__DevApi.dispatchCommand("fuel.valve.setSwitch", { index: 1, open: true })
+window.__DevApi.dispatchCommand("propulsion.engine.setStarter", {
+  index: 1,
+  enabled: true,
+})
+window.__DevApi.watch(
+  [
+    "electrical.bus.main.powered",
+    "fuel.pump.pump-1.active",
+    "fuel.engine.1.available",
+    "propulsion.engine.1.combustion",
+    "propulsion.engine.1.n1.percent",
+    "propulsion.engine.1.generator.available",
+  ],
+  { durationMs: 2000 }
+)
+```
