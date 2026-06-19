@@ -149,7 +149,22 @@ test('maps MSFS light switch channels to canonical enabled state', () => {
   ).toBe(60)
 })
 
-  test('maps MSFS control SimVars to canonical controls state', () => {
+test('maps MSFS package engine N1 local variables to canonical propulsion state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(mapMsfsLocalVarToCanonicalState('L:A32NX_ENGINE_N1:2')).toEqual({
+    kind: 'propulsionNumber',
+    stateKey: PropulsionStateKeys.engineN1Percent(2),
+    canonicalUnit: 'percent',
+  })
+
+  expect(bridge.writeLocalVar('L:A32NX_ENGINE_N1:2', 42)).toBe(true)
+  expect(state.readNumber(PropulsionStateKeys.engineN1Percent(2))).toBe(42)
+  expect(bridge.readLocalVar('L:A32NX_ENGINE_N1:2')).toBe(42)
+})
+
+test('maps MSFS control SimVars to canonical controls state', () => {
     const state = new SimStateStore()
     const bridge = new MsfsCompatibilityBridge(state)
 
