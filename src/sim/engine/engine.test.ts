@@ -663,6 +663,15 @@ test('animates generic moving surfaces toward target state', () => {
     expect(readPropulsionBoolean(engine.state, PropulsionStateKeys.engineGeneratorAvailable(1))).toBe(true)
 
     engine.dispatch({
+      type: PropulsionCommandTypes.setEngineThrottle,
+      payload: { index: 1, value: 0.5 },
+    })
+    engine.tick(1)
+    engine.tick(1)
+    expect(readPropulsionNumber(engine.state, PropulsionStateKeys.engineN1Percent(1))).toBe(62.5)
+    expect(readPropulsionNumber(engine.state, PropulsionStateKeys.engineRpm(1))).toBe(6250)
+
+    engine.dispatch({
       type: ElectricalCommandTypes.setBattery,
       payload: { enabled: false },
     })

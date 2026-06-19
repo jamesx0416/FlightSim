@@ -449,6 +449,10 @@ export class PropulsionSubsystem implements SimSubsystem {
     )
     const starterThreshold = engine.starterN1Percent ?? 20
     const idleN1 = engine.idleN1Percent ?? 25
+    const throttleRatio = readPropulsionNumber(
+      context.state,
+      PropulsionStateKeys.engineThrottleLeverRatio(engine.index)
+    )
     const combustion =
       (readPropulsionBoolean(
         context.state,
@@ -462,7 +466,9 @@ export class PropulsionSubsystem implements SimSubsystem {
       fuelAvailable &&
       ignitionPowered
     const starterSpoolTarget = starterIntent && starterPowered ? starterThreshold : 0
-    const targetN1 = combustion ? idleN1 : starterSpoolTarget
+    const targetN1 = combustion
+      ? idleN1 + (100 - idleN1) * clampRatio(throttleRatio)
+      : starterSpoolTarget
     const rate =
       targetN1 > currentN1
         ? engine.spoolUpPercentPerSecond ?? 12
