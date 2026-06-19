@@ -2,6 +2,7 @@ import { AnimationMixer, type Material, type Object3D, Vector3 } from 'three'
 
 import {
   AvionicsCommandTypes,
+  ControlCommandTypes,
   ControlStateKeys,
   ElectricalCommandTypes,
   ElectricalStateKeys,
@@ -2697,6 +2698,21 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     })
   }
 
+  private setSpoilersArmed(value: number): void {
+    const switchValue = value > 0 ? 1 : 0
+    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS ARMED'), switchValue)
+    this.msfsCompatibilityBridge.writeLocalVar(
+      'L:A32NX_SPOILERS_ARMED',
+      switchValue,
+      'runtime'
+    )
+    this.simulatorEngine.dispatch({
+      type: ControlCommandTypes.setSpoilersArmed,
+      payload: { enabled: switchValue > 0 },
+      source: 'msfs-key-event',
+    })
+  }
+
   private applyElectricalVariableSideEffects(key: string, value: number, unit: string | null): void {
     const normalizedValue = Number.isFinite(value) && value > 0 ? 1 : 0
     if (isBatteryControlKey(key)) {
@@ -3012,7 +3028,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applySpoilerObjectPosition(value: number): void {
     const position = Math.max(0, value)
-    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS ARMED'), position === 1 ? 1 : 0)
+    this.setSpoilersArmed(position === 1 ? 1 : 0)
     const deployRatio = position <= 3 ? (position - 1) / 2 : (position - 1) / 200
     this.controlState.spoilersTarget = position <= 1 ? 0 : clamp01(deployRatio)
   }
@@ -3219,7 +3235,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     if (name === 'SPOILERS_ARM_SET') {
-      this.controlState.spoilersTarget = value > 0 ? this.controlState.spoilersTarget : 0
+      this.setSpoilersArmed(value)
       return
     }
     if (name === 'PARKING_BRAKES' || name === 'PARKING_BRAKE_TOGGLE') {
@@ -3785,7 +3801,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
     if (name === 'SPOILERS_ARM_TOGGLE') {
       const key = normalizeRuntimeVariableKey('A:SPOILERS ARMED')
-      this.values.set(key, (this.values.get(key) ?? 0) > 0 ? 0 : 1)
+      this.setSpoilersArmed((this.values.get(key) ?? 0) > 0 ? 0 : 1)
       return true
     }
 
