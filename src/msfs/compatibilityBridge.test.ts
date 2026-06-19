@@ -111,6 +111,16 @@ test('maps MSFS light switch channels to canonical enabled state', () => {
   expect(bridge.writeSimVar('A:TURB ENG N1:2', 72, 'percent')).toBe(true)
   expect(state.readNumber(PropulsionStateKeys.engineN1Percent(2))).toBe(72)
   expect(bridge.readSimVar('A:TURB ENG N1:2', 'percent')).toBe(72)
+  state.set(PropulsionStateKeys.engineCombustion(2), true, {
+    source: 'subsystem',
+    unit: 'boolean',
+  })
+  state.set(PropulsionStateKeys.engineRpm(2), 1960, {
+    source: 'subsystem',
+    unit: 'number',
+  })
+  expect(bridge.readSimVar('A:GENERAL ENG COMBUSTION:2', 'Bool')).toBe(1)
+  expect(bridge.readSimVar('A:GENERAL ENG RPM:2')).toBe(1960)
 
   expect(
     bridge.writeSimVar('A:GENERAL ENG THROTTLE LEVER POSITION:2', 35, 'percent')
