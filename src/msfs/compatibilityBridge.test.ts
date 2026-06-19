@@ -229,6 +229,7 @@ test('maps MSFS control SimVars to canonical controls state', () => {
 
   expect(bridge.writeSimVar('A:BRAKE PARKING POSITION', 1, 'Bool')).toBe(true)
   expect(state.readBoolean(ControlStateKeys.parkingBrakeEnabled())).toBe(true)
+  expect(bridge.readLocalVar('L:A32NX_PARK_BRAKE_LEVER_POS')).toBe(1)
 
   expect(bridge.writeSimVar('A:RUDDER TRIM PCT', -0.25, 'ratio')).toBe(true)
   expect(

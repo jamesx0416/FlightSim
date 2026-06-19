@@ -450,6 +450,14 @@ export function mapMsfsLocalVarToCanonicalState(
     }
   }
 
+  if (name === 'A32NX_PARK_BRAKE_LEVER_POS') {
+    return {
+      kind: 'controlBoolean',
+      stateKey: ControlStateKeys.parkingBrakeEnabled(),
+      canonicalUnit: 'boolean',
+    }
+  }
+
   const electricalBusAlias = mapMsfsA32nxElectricalBusLocalVarToCanonicalState(name)
   if (electricalBusAlias != null) {
     return electricalBusAlias
