@@ -107,6 +107,7 @@ type DevApiListKind =
   | 'gauges'
   | 'animations'
   | 'animationTriggers'
+  | 'canonicalVisuals'
   | 'materials'
   | 'inputEvents'
   | 'variables'
@@ -1015,6 +1016,33 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       .slice(0, limit)
       .map(binding => ({ ...binding }))
   }
+  const collectCanonicalVisuals = (filter = '', limit = 500): readonly Record<string, unknown>[] => {
+    const needle = filter.trim().toLowerCase()
+    const runtimeState = context.getRuntimeState()
+    return runtimeState.canonicalVisualBindings
+      .filter(binding =>
+        !needle ||
+        binding.id.toLowerCase().includes(needle) ||
+        binding.kind.toLowerCase().includes(needle) ||
+        binding.channel.toLowerCase().includes(needle) ||
+        binding.target.toLowerCase().includes(needle) ||
+        binding.stateKey.toLowerCase().includes(needle)
+      )
+      .slice(0, limit)
+      .map(binding => {
+        const value =
+          binding.channel === 'visibility'
+            ? runtimeState.nodeVisibilities.get(binding.target) ?? null
+            : binding.channel === 'material'
+              ? runtimeState.materialValues.get(binding.target) ?? null
+              : runtimeState.animationValues.get(binding.target) ?? null
+        return {
+          ...binding,
+          value,
+        }
+      })
+  }
+
   const summarizeMaterial = (material: Material): Record<string, unknown> => {
     const materialRecord = material as Material & {
       readonly color?: { readonly getHexString?: () => string }
@@ -1386,6 +1414,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     if (kind === 'gauges') return ok('Listed VCockpit gauges.', gauges().map(summarizeGauge).slice(0, limit))
     if (kind === 'animations') return ok('Listed animation bindings.', collectAnimations(filter, limit))
     if (kind === 'animationTriggers') return ok('Listed animation trigger bindings.', collectAnimationTriggers(filter, limit))
+    if (kind === 'canonicalVisuals') return ok('Listed canonical visual bindings.', collectCanonicalVisuals(filter, limit))
     if (kind === 'materials') return ok('Listed scene materials.', collectMaterials(filter, limit))
     if (kind === 'inputEvents') {
       const normalizedFilter = filter.trim().toLowerCase()
@@ -1451,7 +1480,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }),
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
-      listKinds: ['nodes', 'nodeAnimations', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'materials', 'inputEvents', 'variables', 'state', 'commands', 'diagnostics', 'events', 'settings', 'camera'],
+      listKinds: ['nodes', 'nodeAnimations', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'canonicalVisuals', 'materials', 'inputEvents', 'variables', 'state', 'commands', 'diagnostics', 'events', 'settings', 'camera'],
       clickOptions: ['count', 'delayMs', 'holdMs', 'release', 'mouseEvent', 'inputType', 'relativeX', 'relativeY', 'relativeZ', 'dragPercent'],
       turnOptions: ['direction', 'steps', 'delayMs', 'until'],
       dragOptions: ['axis', 'start', 'end', 'startPercent', 'endPercent', 'steps', 'durationMs', 'inputType', 'lock', 'release'],
@@ -1503,6 +1532,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         components: collectComponents(query, limit),
         gauges: gauges().filter(gauge => `${gauge.gaugeKey} ${gauge.source} ${gauge.surface}`.toLowerCase().includes(needle)).slice(0, limit).map(summarizeGauge),
         animations: collectAnimations(query, limit),
+        canonicalVisuals: collectCanonicalVisuals(query, limit),
         variables: collectVariables(query, limit),
         diagnostics: getDiagnostics().filter(diagnostic => `${diagnostic.code} ${diagnostic.message} ${diagnostic.sourcePath ?? ''}`.toLowerCase().includes(needle)).slice(0, limit)
       })

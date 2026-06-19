@@ -15,6 +15,7 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 
 - `find(query, options?)` searches nodes/components/gauges/variables/diagnostics: `window.__DevApi.find("baro")`.
 - `list(options?)` lists structured records: `window.__DevApi.list({ kind: "gauges" })`, `list({ kind: "animationTriggers" })`, `list({ kind: "nodeAnimations" })`.
+- `list({ kind: "canonicalVisuals", filter?, limit? })` lists canonical state-to-animation/visibility/material bindings and current output values.
 - `list({ kind: "state", filter?, limit? })` lists canonical engine state keys, definitions, and current selected entries: `window.__DevApi.list({ kind: "state", filter: "surfaces" })`.
 - `list({ kind: "commands", filter?, limit? })` lists canonical engine command types and payload examples: `window.__DevApi.list({ kind: "commands", filter: "apu" })`.
 - `checkComponent(target)` inspects a component/interaction match: `window.__DevApi.checkComponent("PUSH_AP_MASTER")`.
