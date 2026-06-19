@@ -179,6 +179,23 @@ test('maps MSFS package spoiler handle local variable to canonical controls stat
   expect(bridge.readLocalVar('L:A32NX_SPOILERS_HANDLE_POSITION')).toBe(0.5)
 })
 
+test('maps MSFS package gear position local variables to canonical controls state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(mapMsfsLocalVarToCanonicalState('L:A32NX_GEAR_LEFT_POSITION')).toEqual({
+    kind: 'controlRatio',
+    stateKey: ControlStateKeys.gearPositionRatio(),
+    canonicalUnit: 'ratio',
+    defaultUnit: 'percent',
+  })
+
+  expect(bridge.writeLocalVar('L:A32NX_GEAR_LEFT_POSITION', 75)).toBe(true)
+  expect(state.readNumber(ControlStateKeys.gearPositionRatio(), { unit: 'ratio' })).toBe(0.75)
+  expect(bridge.readLocalVar('L:A32NX_GEAR_LEFT_POSITION')).toBe(75)
+  expect(bridge.readLocalVar('L:A32NX_GEAR_LEFT_POSITION', 'percent over 100')).toBe(0.75)
+})
+
 test('maps MSFS control SimVars to canonical controls state', () => {
     const state = new SimStateStore()
     const bridge = new MsfsCompatibilityBridge(state)

@@ -600,6 +600,10 @@ test('publishes direct canonical state writes through cached MSFS compatibility 
     source: 'runtime',
     unit: 'ratio',
   })
+  host.simulatorEngine.state.set(ControlStateKeys.gearPositionRatio(), 0.75, {
+    source: 'runtime',
+    unit: 'ratio',
+  })
 
   expect(
     Math.abs(host.readVariable('A:LIGHT POTENTIOMETER:8', 'percent') - 55) <
@@ -608,6 +612,8 @@ test('publishes direct canonical state writes through cached MSFS compatibility 
   expect(host.readVariable('A:TRAILING EDGE FLAPS LEFT PERCENT', 'percent')).toBe(
     33
   )
+  expect(host.readVariable('L:A32NX_GEAR_LEFT_POSITION')).toBe(75)
+  expect(host.readVariable('L:A32NX_GEAR_LEFT_POSITION', 'percent over 100')).toBe(0.75)
 })
 
 test('loads generic FLT state into canonical aircraft initial state', () => {
