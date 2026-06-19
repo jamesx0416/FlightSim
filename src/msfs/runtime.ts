@@ -1462,6 +1462,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.readCache.clear()
     this.elapsedSeconds += dtSeconds
     this.simulatorEngine.tick(dtSeconds)
+    this.publishPropulsionVariables()
     this.controlState.gearPosition = moveTowards(
       this.controlState.gearPosition,
       this.controlState.gearTarget,
@@ -2179,6 +2180,81 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       'number'
     )
     this.publishGenericPanelPowerVariables(powered)
+  }
+
+  private publishPropulsionVariables(): void {
+    let engineCycleTarget = 0
+
+    for (let engineIndex = 1; engineIndex <= 4; engineIndex += 1) {
+      const n1Percent =
+        this.simulatorEngine.state.readNumber(
+          PropulsionStateKeys.engineN1Percent(engineIndex),
+          { fallback: 0 }
+        ) ?? 0
+      const rpm =
+        this.simulatorEngine.state.readNumber(
+          PropulsionStateKeys.engineRpm(engineIndex),
+          { fallback: n1Percent * 100 }
+        ) ??
+        n1Percent * 100
+      const combustion = this.simulatorEngine.state.readBoolean(
+        PropulsionStateKeys.engineCombustion(engineIndex),
+        { fallback: false }
+      )
+      const starter = this.simulatorEngine.state.readBoolean(
+        PropulsionStateKeys.engineStarter(engineIndex),
+        { fallback: false }
+      )
+      const combustionValue = combustion ? 1 : 0
+      const starterValue = starter ? 1 : 0
+
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:GENERAL ENG RPM:${engineIndex}`),
+        rpm
+      )
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:TURB ENG N1:${engineIndex}`),
+        n1Percent
+      )
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:TURB ENG CORRECTED N1:${engineIndex}`),
+        n1Percent
+      )
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:TURB ENG N2:${engineIndex}`),
+        n1Percent
+      )
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:GENERAL ENG COMBUSTION:${engineIndex}`),
+        combustionValue
+      )
+      this.values.set(
+        normalizeRuntimeVariableKey(`A:GENERAL ENG STARTER:${engineIndex}`),
+        starterValue
+      )
+
+      if (engineIndex === 1) {
+        this.values.set(normalizeRuntimeVariableKey('A:GENERAL ENG RPM'), rpm)
+        this.values.set(normalizeRuntimeVariableKey('A:TURB ENG N1'), n1Percent)
+        this.values.set(
+          normalizeRuntimeVariableKey('A:TURB ENG CORRECTED N1'),
+          n1Percent
+        )
+        this.values.set(normalizeRuntimeVariableKey('A:TURB ENG N2'), n1Percent)
+        this.values.set(
+          normalizeRuntimeVariableKey('A:GENERAL ENG COMBUSTION'),
+          combustionValue
+        )
+        this.values.set(
+          normalizeRuntimeVariableKey('A:GENERAL ENG STARTER'),
+          starterValue
+        )
+      }
+
+      engineCycleTarget = Math.max(engineCycleTarget, n1Percent)
+    }
+
+    this.engineCycleTarget = engineCycleTarget
   }
 
   private publishGenericPanelPowerVariables(powered: number): void {
