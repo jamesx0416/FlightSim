@@ -264,7 +264,16 @@ export interface RuntimeState {
   readonly animationValues: ReadonlyMap<string, number>
   readonly nodeVisibilities: ReadonlyMap<string, boolean>
   readonly materialValues: ReadonlyMap<string, number>
+  readonly canonicalVisualBindings: readonly RuntimeCanonicalVisualBindingState[]
   readonly diagnostics: readonly ImportDiagnostic[]
+}
+
+export interface RuntimeCanonicalVisualBindingState {
+  readonly id: string
+  readonly kind: string
+  readonly channel: 'animation' | 'visibility' | 'material'
+  readonly target: string
+  readonly stateKey: string
 }
 
 export type Instruction =

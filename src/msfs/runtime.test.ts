@@ -91,6 +91,29 @@ describe('AircraftRuntime canonical visual bindings', () => {
 
     const state = runtime.update(1 / 60)
 
+    expect(state.canonicalVisualBindings).toEqual([
+      {
+        id: 'flap-animation',
+        kind: 'surface',
+        channel: 'animation',
+        target: 'FlapAnimation',
+        stateKey: 'visual.flap.ratio',
+      },
+      {
+        id: 'door-visibility',
+        kind: 'door',
+        channel: 'visibility',
+        target: 'DoorNode',
+        stateKey: 'visual.door.visible',
+      },
+      {
+        id: 'panel-material',
+        kind: 'light',
+        channel: 'material',
+        target: 'PanelLight',
+        stateKey: 'visual.panel.intensity',
+      },
+    ])
     expect(state.animationValues.get('FlapAnimation')).toBe(0.4)
     expect(state.nodeVisibilities.get('DoorNode')).toBe(true)
     expect(visibilityNode.visible).toBe(true)

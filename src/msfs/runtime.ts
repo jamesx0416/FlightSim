@@ -45,6 +45,7 @@ import type {
   Instruction,
   ImportDiagnostic,
   ModelNodeAnimation,
+  RuntimeCanonicalVisualBindingState,
   RuntimeHostServices,
   RuntimeState
 } from './types'
@@ -217,6 +218,7 @@ export class AircraftRuntime {
   private readonly animationTriggerValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly materialValues = new Map<string, number>()
+  private readonly canonicalVisualBindingStates: RuntimeCanonicalVisualBindingState[] = []
   private activeAnimationBindings: readonly RuntimeAnimationBinding[] = []
   private activeAnimationTriggerBindings: readonly CompiledAnimationTriggerBinding[] = []
   private readonly activeAnimationTriggerBindingsByAnimation = new Map<string, readonly CompiledAnimationTriggerBinding[]>()
@@ -254,6 +256,7 @@ export class AircraftRuntime {
       animationValues: this.animationValues,
       nodeVisibilities: this.nodeVisibilities,
       materialValues: this.materialValues,
+      canonicalVisualBindings: this.canonicalVisualBindingStates,
       diagnostics: this.compiled.diagnostics
     }
     this.hostServices.setInputEventBindings?.(this.compiled.inputEventBindings)
@@ -290,6 +293,15 @@ export class AircraftRuntime {
     this.canonicalVisualBindings = buildRuntimeCanonicalVisualBindings(
       canonicalAircraft?.visuals ?? [],
       this.nodes
+    )
+    this.canonicalVisualBindingStates.push(
+      ...this.canonicalVisualBindings.map(binding => ({
+        id: binding.visual.id,
+        kind: binding.visual.kind,
+        channel: binding.channel,
+        target: binding.target,
+        stateKey: binding.visual.stateKey ?? '',
+      }))
     )
     this.wingFlexBindings = buildWingFlexBindings(
       aircraft?.model?.nodeAnimations ?? [],
