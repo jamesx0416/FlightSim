@@ -541,6 +541,13 @@ test('publishes canonical propulsion commands through MSFS compatibility reads',
     host.simulatorEngine.state.readNumber(PropulsionStateKeys.apuRpmPercent())
   ).toBe(72)
   expect(host.readVariable('A:APU PCT RPM', 'percent')).toBe(72)
+
+  host.simulatorEngine.commands.dispatch({
+    type: PropulsionCommandTypes.setEngineN1,
+    payload: { index: 2, value: 48 },
+  })
+
+  expect(host.readVariable('L:A32NX_ENGINE_N1:2')).toBe(48)
 })
 
 test('publishes canonical surface commands through MSFS compatibility reads', () => {

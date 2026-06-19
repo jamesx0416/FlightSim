@@ -98,6 +98,13 @@ export class MsfsCompatibilityBridge {
       )
     }
 
+    if (alias.kind === 'propulsionNumber') {
+      return convertSimUnit(
+        readPropulsionNumber(this.state, alias.stateKey),
+        alias.canonicalUnit,
+        normalizeMsfsAliasUnit(unit, alias)
+      )
+    }
     if (alias.kind === 'electricalBoolean') {
       return readElectricalBoolean(this.state, alias.stateKey) ? 1 : 0
     }
@@ -152,15 +159,6 @@ export class MsfsCompatibilityBridge {
 
     if (alias.kind === 'surfaceRatio') {
       const value = readSurfaceRatio(this.state, alias.stateKey)
-      return convertSimUnit(
-        value,
-        alias.canonicalUnit,
-        normalizeMsfsAliasUnit(unit, alias)
-      )
-    }
-
-    if (alias.kind === 'propulsionNumber') {
-      const value = readPropulsionNumber(this.state, alias.stateKey)
       return convertSimUnit(
         value,
         alias.canonicalUnit,
@@ -252,6 +250,9 @@ export class MsfsCompatibilityBridge {
     if (alias.kind === 'propulsionBoolean') {
       return readPropulsionBoolean(this.state, alias.stateKey) ? 1 : 0
     }
+    if (alias.kind === 'propulsionNumber') {
+      return readPropulsionNumber(this.state, alias.stateKey)
+    }
     if (alias.kind === 'electricalBoolean') {
       if (this.state.getEntry(alias.stateKey) == null) {
         return undefined
@@ -270,6 +271,19 @@ export class MsfsCompatibilityBridge {
     const alias = mapMsfsLocalVarToCanonicalState(name)
     if (alias == null) {
       return false
+    }
+
+    if (alias.kind === 'propulsionNumber') {
+      this.state.define({
+        key: alias.stateKey,
+        unit: alias.canonicalUnit,
+        valueType: 'number',
+      })
+      this.state.set(alias.stateKey, value, {
+        source,
+        unit: alias.canonicalUnit,
+      })
+      return true
     }
 
     if (alias.kind === 'propulsionBoolean' || alias.kind === 'electricalBoolean') {
@@ -408,7 +422,28 @@ export function mapMsfsLocalVarToCanonicalState(
     return electricalBusAlias
   }
 
+  const engineN1Alias = mapMsfsA32nxEngineLocalVarToCanonicalState(name)
+  if (engineN1Alias != null) {
+    return engineN1Alias
+  }
+
   return undefined
+}
+
+function mapMsfsA32nxEngineLocalVarToCanonicalState(
+  name: string
+): MsfsStateAlias | undefined {
+  const n1Match = /^A32NX_ENGINE_N1:(\d+)$/u.exec(name)
+  if (n1Match == null) return undefined
+
+  const index = Number.parseInt(n1Match[1], 10)
+  if (!Number.isFinite(index) || index <= 0) return undefined
+
+  return {
+    kind: 'propulsionNumber',
+    stateKey: PropulsionStateKeys.engineN1Percent(index),
+    canonicalUnit: 'percent',
+  }
 }
 
 function mapMsfsA32nxElectricalBusLocalVarToCanonicalState(
