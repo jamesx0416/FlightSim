@@ -1695,7 +1695,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     }
 
     const localEngineValue =
-      this.msfsCompatibilityBridge.readLocalVar(normalizedKey)
+      this.msfsCompatibilityBridge.readLocalVar(normalizedKey, unit)
     if (localEngineValue != null) {
       this.readCache.set(cacheKey, localEngineValue)
       return localEngineValue

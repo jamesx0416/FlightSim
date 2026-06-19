@@ -241,7 +241,7 @@ export class MsfsCompatibilityBridge {
     return true
   }
 
-  readLocalVar(name: string): number | undefined {
+  readLocalVar(name: string, unit?: string | null): number | undefined {
     const alias = mapMsfsLocalVarToCanonicalState(name)
     if (alias == null) {
       return undefined
@@ -251,7 +251,11 @@ export class MsfsCompatibilityBridge {
       return readPropulsionBoolean(this.state, alias.stateKey) ? 1 : 0
     }
     if (alias.kind === 'propulsionNumber') {
-      return readPropulsionNumber(this.state, alias.stateKey)
+      return convertSimUnit(
+        readPropulsionNumber(this.state, alias.stateKey),
+        alias.canonicalUnit,
+        normalizeMsfsAliasUnit(unit, alias)
+      )
     }
     if (alias.kind === 'electricalBoolean') {
       if (this.state.getEntry(alias.stateKey) == null) {
@@ -265,7 +269,11 @@ export class MsfsCompatibilityBridge {
     }
 
     if (alias.kind === 'controlRatio') {
-      return readControlRatio(this.state, alias.stateKey)
+      return convertSimUnit(
+        readControlRatio(this.state, alias.stateKey),
+        alias.canonicalUnit,
+        normalizeMsfsAliasUnit(unit, alias)
+      )
     }
 
     return undefined
@@ -302,7 +310,7 @@ export class MsfsCompatibilityBridge {
       })
       this.state.set(alias.stateKey, value, {
         source,
-        unit: alias.canonicalUnit,
+        unit: normalizeMsfsAliasUnit(null, alias),
       })
       return true
     }
@@ -457,7 +465,31 @@ export function mapMsfsLocalVarToCanonicalState(
     return spoilerAlias
   }
 
+  const gearAlias = mapMsfsA32nxGearLocalVarToCanonicalState(name)
+  if (gearAlias != null) {
+    return gearAlias
+  }
+
   return undefined
+}
+
+function mapMsfsA32nxGearLocalVarToCanonicalState(
+  name: string
+): MsfsStateAlias | undefined {
+  if (
+    name !== 'A32NX_GEAR_CENTER_POSITION' &&
+    name !== 'A32NX_GEAR_LEFT_POSITION' &&
+    name !== 'A32NX_GEAR_RIGHT_POSITION'
+  ) {
+    return undefined
+  }
+
+  return {
+    kind: 'controlRatio',
+    stateKey: ControlStateKeys.gearPositionRatio(),
+    canonicalUnit: 'ratio',
+    defaultUnit: 'percent',
+  }
 }
 
 function mapMsfsA32nxSpoilerLocalVarToCanonicalState(
