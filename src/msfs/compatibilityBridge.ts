@@ -503,6 +503,14 @@ function mapMsfsA32nxSpoilerLocalVarToCanonicalState(
     }
   }
 
+  if (name === 'A32NX_SPOILERS_ARMED') {
+    return {
+      kind: 'controlBoolean',
+      stateKey: ControlStateKeys.spoilersArmed(),
+      canonicalUnit: 'boolean',
+    }
+  }
+
   return undefined
 }
 

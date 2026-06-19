@@ -179,6 +179,21 @@ test('maps MSFS package spoiler handle local variable to canonical controls stat
   expect(bridge.readLocalVar('L:A32NX_SPOILERS_HANDLE_POSITION')).toBe(0.5)
 })
 
+test('maps MSFS package spoiler armed local variable to canonical controls state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(mapMsfsLocalVarToCanonicalState('L:A32NX_SPOILERS_ARMED')).toEqual({
+    kind: 'controlBoolean',
+    stateKey: ControlStateKeys.spoilersArmed(),
+    canonicalUnit: 'boolean',
+  })
+
+  expect(bridge.writeLocalVar('L:A32NX_SPOILERS_ARMED', 1)).toBe(true)
+  expect(state.readBoolean(ControlStateKeys.spoilersArmed())).toBe(true)
+  expect(bridge.readLocalVar('L:A32NX_SPOILERS_ARMED')).toBe(1)
+})
+
 test('maps MSFS package gear position local variables to canonical controls state', () => {
   const state = new SimStateStore()
   const bridge = new MsfsCompatibilityBridge(state)

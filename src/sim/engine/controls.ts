@@ -11,6 +11,7 @@ export const ControlCommandTypes = {
   setFlapsPosition: 'controls.flaps.setPosition',
   setSpoilersHandle: 'controls.spoilers.setHandle',
   setSpoilersPosition: 'controls.spoilers.setPosition',
+  setSpoilersArmed: 'controls.spoilers.setArmed',
   setAileronPosition: 'controls.aileron.setPosition',
   setElevatorPosition: 'controls.elevator.setPosition',
   setRudderPosition: 'controls.rudder.setPosition',
@@ -72,6 +73,9 @@ export const ControlStateKeys = {
   },
   spoilersPositionRatio(): string {
     return 'controls.spoilers.position.ratio'
+  },
+  spoilersArmed(): string {
+    return 'controls.spoilers.armed.enabled'
   },
   aileronPositionRatio(): string {
     return 'controls.aileron.position.ratio'
@@ -147,6 +151,12 @@ export class ControlsSubsystem implements SimSubsystem {
       ControlStateKeys.spoilersPositionRatio(),
       'Spoilers position ratio',
       this.definition.defaultSpoilersPositionRatio
+    )
+    defineBooleanState(
+      context.state,
+      ControlStateKeys.spoilersArmed(),
+      'Spoilers armed state',
+      false
     )
     defineRatioState(
       context.state,
@@ -229,6 +239,9 @@ export class ControlsSubsystem implements SimSubsystem {
         return true
       case ControlCommandTypes.setSpoilersPosition:
         setRatio(context.state, ControlStateKeys.spoilersPositionRatio(), command.payload as SetControlRatioPayload)
+        return true
+      case ControlCommandTypes.setSpoilersArmed:
+        setBoolean(context.state, ControlStateKeys.spoilersArmed(), command.payload as SetControlBooleanPayload)
         return true
       case ControlCommandTypes.setAileronPosition:
         setRatio(context.state, ControlStateKeys.aileronPositionRatio(), command.payload as SetControlRatioPayload)

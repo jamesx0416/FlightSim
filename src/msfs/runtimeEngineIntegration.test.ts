@@ -317,6 +317,7 @@ test('publishes key-event control and electrical state without waiting for a tic
     host.invokeKeyEvent('GEAR_DOWN', [])
     host.invokeKeyEvent('FLAPS_SET', [8192])
     host.invokeKeyEvent('SPOILERS_SET', [4096])
+    host.invokeKeyEvent('SPOILERS_ARM_SET', [1])
     host.invokeKeyEvent('PARKING_BRAKE_SET', [1])
     host.tick(1)
 
@@ -335,6 +336,8 @@ test('publishes key-event control and electrical state without waiting for a tic
         unit: 'ratio',
       })
     ).toBe(4096 / 16_383)
+    expect(host.simulatorEngine.state.readBoolean(ControlStateKeys.spoilersArmed())).toBe(true)
+    expect(host.readVariable('L:A32NX_SPOILERS_ARMED')).toBe(1)
     expect(
       host.simulatorEngine.state.readBoolean(ControlStateKeys.parkingBrakeEnabled())
     ).toBe(true)
