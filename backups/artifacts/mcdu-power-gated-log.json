@@ -1,0 +1,49 @@
+{
+  "state": {
+    "mcduBrightness": {
+      "L": 0.5,
+      "R": 0.5,
+      "C": 0.5
+    },
+    "buses": {
+      "acEssShed": 0,
+      "ac1": 0,
+      "ac2": 0,
+      "battery": 0,
+      "panel": 0
+    },
+    "mcduDisplayBindings": [
+      {
+        "target": "SCREEN_MCDUL",
+        "source": "(L:A32NX_ELEC_AC_ESS_SHED_BUS_IS_POWERED, Bool) sp0\n                    l0 if{\n                        (L:A32NX_MCDU_L_BRIGHTNESS, number)\n                    } els{\n                        0\n                    } (A:CIRCUIT GENERAL PANEL ON, Bool) *"
+      },
+      {
+        "target": "SCREEN_MCDUR",
+        "source": "(L:A32NX_ELEC_AC_2_BUS_IS_POWERED, Bool) sp0\n                    l0 if{\n                        (L:A32NX_MCDU_R_BRIGHTNESS, number)\n                    } els{\n                        0\n                    } (A:CIRCUIT GENERAL PANEL ON, Bool) *"
+      },
+      {
+        "target": "SCREEN_MCDUC",
+        "source": "(L:A32NX_ELEC_AC_2_BUS_IS_POWERED, Bool) sp0\n                    l0 if{\n                        (L:A32NX_MCDU_C_BRIGHTNESS, number)\n                    } els{\n                        0\n                    } (A:CIRCUIT GENERAL PANEL ON, Bool) *"
+      }
+    ]
+  },
+  "totalEvents": 34,
+  "filteredCount": 3,
+  "filtered": [
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_L_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_R_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_C_BRIGHTNESS. Object"
+    }
+  ]
+}

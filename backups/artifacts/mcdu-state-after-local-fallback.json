@@ -1,0 +1,69 @@
+{
+  "ready": null,
+  "mcduBrightness": {
+    "L": 0.5,
+    "R": 0.5,
+    "C": 0.5
+  },
+  "buses": {
+    "acEssShed": 0,
+    "ac1": 0,
+    "ac2": 0,
+    "battery": 0,
+    "panel": 0
+  },
+  "gauges": 0,
+  "status": {
+    "ok": true,
+    "summary": "Collected viewer status.",
+    "data": {
+      "loadStage": {
+        "stage": "gltf:exterior-interior:deferred:ready",
+        "aircraftId": "SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0",
+        "loadedLodIndex": 1,
+        "timestamp": 1781175481300,
+        "nowMs": 29899.5
+      },
+      "packageRoot": "/aircrafts/headwindsim-aircraft-a330-900/",
+      "packageName": "A339X (Stable)",
+      "aircraftId": "SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0",
+      "aircraftTitle": "Airbus A330-900neo Headwind Simulations",
+      "renderer": {
+        "mode": "webgpu",
+        "pixelRatio": 1,
+        "size": [
+          1280,
+          633
+        ]
+      },
+      "cockpit": {
+        "available": true,
+        "active": false,
+        "activeInteriorLodIndex": 1
+      },
+      "counts": {
+        "interactions": 1472,
+        "materialBindings": 851,
+        "gauges": 0,
+        "loadedGauges": 0,
+        "capturedGauges": 0,
+        "capturableGauges": 0,
+        "capturedCapturableGauges": 0,
+        "backendOnlyGauges": 0,
+        "variables": 1450
+      },
+      "fps": {
+        "fps": 59.93107925894152,
+        "averageFrameMs": 16.685833333308498,
+        "lowFps": 52.63157894736842,
+        "sampleCount": 120
+      },
+      "diagnostics": {
+        "error": 0,
+        "warning": 2,
+        "info": 0,
+        "other": 0
+      }
+    }
+  }
+}

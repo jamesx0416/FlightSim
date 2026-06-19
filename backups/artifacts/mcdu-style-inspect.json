@@ -1,0 +1,72 @@
+{
+  "el": {
+    "selector": ".label s-text",
+    "rect": {
+      "x": 0,
+      "y": 1070.078125,
+      "w": 1024,
+      "h": 1024
+    },
+    "computed": {
+      "height": "1024px",
+      "position": "static",
+      "display": "block",
+      "marginTop": "0px",
+      "top": "auto",
+      "lineHeight": "67.84px",
+      "fontSize": "54.272px"
+    },
+    "inline": null
+  },
+  "span": {
+    "selector": "#label-0-left",
+    "rect": {
+      "x": 46.078125,
+      "y": 1070.078125,
+      "w": 1024,
+      "h": 67.0625
+    },
+    "computed": {
+      "height": "67.0625px",
+      "position": "absolute",
+      "display": "block",
+      "marginTop": "0px",
+      "top": "1070.08px",
+      "lineHeight": "67.84px",
+      "fontSize": "54.272px"
+    },
+    "inline": null
+  },
+  "matching": [
+    {
+      "selector": "[id$=\"_CONTENT\"] div",
+      "height": "100%",
+      "position": "",
+      "marginTop": ""
+    },
+    {
+      "selector": "a339x-mcdu div",
+      "height": "",
+      "position": "",
+      "marginTop": ""
+    },
+    {
+      "selector": ".s-text, text .s-text, div .s-text, span .s-text",
+      "height": "",
+      "position": "",
+      "marginTop": ""
+    },
+    {
+      "selector": ".label",
+      "height": "6.55%",
+      "position": "",
+      "marginTop": "0px"
+    },
+    {
+      "selector": ".label-left",
+      "height": "",
+      "position": "absolute",
+      "marginTop": ""
+    }
+  ]
+}

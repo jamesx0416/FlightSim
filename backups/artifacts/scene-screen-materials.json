@@ -1,0 +1,34 @@
+{
+  "screen": {
+    "nodes": [],
+    "materials": []
+  },
+  "display": {
+    "nodes": [],
+    "materials": []
+  },
+  "fmc": {
+    "nodes": [],
+    "materials": []
+  },
+  "cdu": {
+    "nodes": [],
+    "materials": []
+  },
+  "mcdu": {
+    "nodes": [],
+    "materials": []
+  },
+  "efb": {
+    "nodes": [],
+    "materials": []
+  },
+  "texture": {
+    "nodes": [],
+    "materials": []
+  },
+  "vcockpit": {
+    "nodes": [],
+    "materials": []
+  }
+}

@@ -1,0 +1,5420 @@
+{
+  "totalEvents": 1165,
+  "filteredCount": 904,
+  "filtered": [
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_L_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_R_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_C_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_L_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_R_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.readVar: Read L:A32NX_MCDU_C_BRIGHTNESS. Object"
+    },
+    {
+      "type": "console",
+      "level": "log",
+      "text": "Checklists loaded"
+    },
+    {
+      "type": "console",
+      "level": "error",
+      "text": "Failed to parse /VFS/config/a339x/a330-941/checklists.json5 checklists as JSON5:  TypeError: Cannot add property 0, object is not extensible\n    at Array.push (<anonymous>)\n    at https://vanilla-3dtiles.localhost:3000/aircrafts/headwindsim-aircraft-a330-900/html_ui/Pages/VCockpit/Instruments/A339X/EFB/efb.js:74281:25\n    at Array.forEach (<anonymous>)\n    at _ChecklistProvider.processChecklists (https://vanilla-3dtiles.localhost:3000/aircrafts/headwindsim-aircraft-a330-900/html_ui/Pages/VCockpit/Instruments/A339X/EFB/efb.js:74271:18)\n    at _ChecklistProvider.processChecklistJson (https://vanilla-3dtiles.localhost:3000/aircrafts/headwindsim-aircraft-a330-900/html_ui/Pages/VCockpit/Instruments/A339X/EFB/efb.js:74264:14)\n    at https://vanilla-3dtiles.localhost:3000/aircrafts/headwindsim-aircraft-a330-900/html_ui/Pages/VCockpit/Instruments/A339X/EFB/efb.js:74254:16"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.find: Searched viewer for \"MCDU\". Object"
+    },
+    {
+      "type": "console",
+      "level": "info",
+      "text": "[DevApi] __DevApi.find: Searched viewer for \"PUSH_MCDU\". Object"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/e97d47b3-a85b-4aa8-ae64-7b03e81dfaca"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/edaee108-c6b5-4016-8da1-7a3e2b4be4ef"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "warning",
+      "text": "Failed to decode downloaded font: https://vanilla-3dtiles.localhost:3000/Fonts/A339X/HoneywellMCDU.ttf",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/bf88576d-4fdd-4ccd-a184-e5d97edc5f9a"
+    },
+    {
+      "type": "log",
+      "level": "warning",
+      "text": "Failed to decode downloaded font: https://vanilla-3dtiles.localhost:3000/Fonts/A339X/HoneywellMCDUSmall.ttf",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/bf88576d-4fdd-4ccd-a184-e5d97edc5f9a"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "blob:https://vanilla-3dtiles.localhost:3000/126dd70d-d280-4cfe-8c0b-dfbca23dd991"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <g> attribute transform: Expected '(', \"rotateX(0deg)\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute x: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    },
+    {
+      "type": "log",
+      "level": "error",
+      "text": "Error: <text> attribute y: Expected length, \"NaN\".",
+      "url": "https://vanilla-3dtiles.localhost:3000/src/main.ts?t=1781174679175"
+    }
+  ]
+}

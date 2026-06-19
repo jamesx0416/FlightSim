@@ -1,0 +1,147 @@
+{
+  "count": 16,
+  "mcdu": [
+    {
+      "sectionName": "VCockpit08",
+      "textureName": "MCDU",
+      "captureCount": 0,
+      "displayPowerBindingCount": 3,
+      "lastCaptureDurationMs": 0,
+      "averageCaptureDurationMs": 0,
+      "currentCaptureIntervalMs": 125,
+      "dirtyGaugeCount": 0,
+      "runtimeHost": {
+        "variableReadCount": 395429,
+        "variableReadCacheHitCount": 0,
+        "variableReadCacheMissCount": 395429,
+        "variableWriteCount": 12693,
+        "keyEventCount": 1202,
+        "htmlEventCount": 0,
+        "soundEventCount": 57,
+        "bridgeCallCount": 2,
+        "storedVariableCount": 1450,
+        "defaultedVariableCount": 1061,
+        "controlState": {
+          "gearTarget": 0.0001,
+          "gearPosition": 0.0001,
+          "flapsTarget": 0,
+          "flapsPosition": 0,
+          "spoilersTarget": 0,
+          "spoilersPosition": 0,
+          "aileronTarget": 0,
+          "aileronPosition": 0,
+          "elevatorTarget": 0,
+          "elevatorPosition": 0,
+          "rudderTarget": 0,
+          "rudderPosition": 0,
+          "parkingBrake": 0
+        },
+        "electricalState": {
+          "batterySwitch": 0,
+          "externalPowerSwitch": 0,
+          "externalPowerAvailable": 1,
+          "avionicsSwitch": 0
+        }
+      },
+      "gauges": []
+    }
+  ],
+  "sample": [
+    {
+      "sectionName": "VCockpit01",
+      "textureName": "PFD_L",
+      "displayPowerBindingCount": 1,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit02",
+      "textureName": "ND_L",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit03",
+      "textureName": "ECAM_EWD",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit04",
+      "textureName": "ECAM_SD",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit05",
+      "textureName": "SCREEN_ISIS",
+      "displayPowerBindingCount": 1,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit06",
+      "textureName": "SCREEN_CLOCK",
+      "displayPowerBindingCount": 1,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit07",
+      "textureName": "DCDU",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit08",
+      "textureName": "MCDU",
+      "displayPowerBindingCount": 3,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit09",
+      "textureName": "FCU",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit10",
+      "textureName": "RMP",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit11",
+      "textureName": "XPDR",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit12",
+      "textureName": "RTPI",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit13",
+      "textureName": "BAT",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit14",
+      "textureName": "PFD_R",
+      "displayPowerBindingCount": 1,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit15",
+      "textureName": "ND_R",
+      "displayPowerBindingCount": 0,
+      "captureCount": 0
+    },
+    {
+      "sectionName": "VCockpit16",
+      "textureName": "EFB",
+      "displayPowerBindingCount": 2,
+      "captureCount": 0
+    }
+  ]
+}
