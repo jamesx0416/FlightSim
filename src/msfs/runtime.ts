@@ -17,6 +17,7 @@ import {
   type CanonicalPropulsionSystemConfig,
   type CanonicalStateSeed,
   type CanonicalSystemDefinition,
+  type CanonicalVisualDefinition,
   type SimStateSource,
   type SimulatorEngine,
 } from '../sim/engine'
@@ -64,6 +65,14 @@ interface RuntimeMaterialBinding {
   readonly dependencies: readonly RuntimeExpressionDependency[] | null
   lastAppliedValue: number | null
   lastDependencyValues: readonly number[] | null
+}
+
+interface RuntimeCanonicalVisualBinding {
+  readonly visual: CanonicalVisualDefinition
+  readonly channel: NonNullable<CanonicalVisualDefinition['channel']>
+  readonly target: string
+  readonly node: Object3D | null
+  readonly materials: readonly RuntimeBoundMaterial[]
 }
 
 interface RuntimeAnimationBinding {
@@ -213,6 +222,7 @@ export class AircraftRuntime {
   private readonly activeAnimationTriggerBindingsByAnimation = new Map<string, readonly CompiledAnimationTriggerBinding[]>()
   private readonly activeVisibilityBindings: readonly RuntimeVisibilityBinding[]
   private readonly activeMaterialBindings: readonly RuntimeMaterialBinding[]
+  private readonly canonicalVisualBindings: readonly RuntimeCanonicalVisualBinding[]
   private readonly readOnlyExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly updateExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly runtimeState: RuntimeState
@@ -234,7 +244,9 @@ export class AircraftRuntime {
     private readonly compiled: CompiledBehaviorSet,
     private readonly sceneRoot: Object3D,
     private readonly hostServices: RuntimeHostServices,
-    aircraft?: ImportedAircraft
+    aircraft?: ImportedAircraft,
+    canonicalAircraft?: CanonicalAircraftDefinition,
+    private readonly simulatorEngine?: SimulatorEngine
   ) {
     this.mixer = new AnimationMixer(sceneRoot)
     this.runtimeState = {
@@ -275,6 +287,10 @@ export class AircraftRuntime {
       this.compiled.materialBindings,
       this.nodes
     )
+    this.canonicalVisualBindings = buildRuntimeCanonicalVisualBindings(
+      canonicalAircraft?.visuals ?? [],
+      this.nodes
+    )
     this.wingFlexBindings = buildWingFlexBindings(
       aircraft?.model?.nodeAnimations ?? [],
       aircraft,
@@ -303,6 +319,18 @@ export class AircraftRuntime {
       })
       activeAnimationNames.add(binding.target)
     }
+    for (const binding of this.canonicalVisualBindings) {
+      if (binding.channel !== 'animation' || this.actions.has(binding.target)) {
+        continue
+      }
+      const clip = clips.find(candidate => candidate.name === binding.target)
+      if (clip == null) continue
+      const action = this.mixer.clipAction(clip as never)
+      action.enabled = true
+      action.play()
+      action.paused = true
+      this.actions.set(binding.target, action)
+    }
     this.activeAnimationBindings = activeAnimationBindings
     this.activeAnimationTriggerBindings = this.compiled.animationTriggerBindings.filter(binding =>
       activeAnimationNames.has(binding.animation)
@@ -312,6 +340,61 @@ export class AircraftRuntime {
       const bindings = this.activeAnimationTriggerBindingsByAnimation.get(binding.animation) ?? []
       this.activeAnimationTriggerBindingsByAnimation.set(binding.animation, [...bindings, binding])
     }
+  }
+
+  private applyCanonicalVisualBindings(): boolean {
+    if (this.simulatorEngine == null || this.canonicalVisualBindings.length === 0) {
+      return false
+    }
+
+    let modelChanged = false
+
+    for (const binding of this.canonicalVisualBindings) {
+      if (binding.visual.stateKey == null) continue
+      const value = readCanonicalVisualRatio(
+        this.simulatorEngine,
+        binding.visual.stateKey
+      )
+
+      if (binding.channel === 'animation') {
+        const previousValue = this.animationValues.get(binding.target)
+        this.animationValues.set(binding.target, value)
+        if (previousValue == null || Math.abs(previousValue - value) > 1e-6) {
+          modelChanged = true
+        }
+
+        const action = this.actions.get(binding.target)
+        if (action != null) {
+          const duration = action.getClip().duration || 1
+          action.time = clamp(value, 0, 1) * duration
+        }
+        continue
+      }
+
+      if (binding.channel === 'visibility') {
+        const visible = value > 0
+        const previousValue = this.nodeVisibilities.get(binding.target)
+        this.nodeVisibilities.set(binding.target, visible)
+        if (binding.node != null) {
+          binding.node.visible = visible
+        }
+        if (previousValue == null || previousValue !== visible) {
+          modelChanged = true
+        }
+        continue
+      }
+
+      const previousValue = this.materialValues.get(binding.target)
+      this.materialValues.set(binding.target, value)
+      if (previousValue == null || Math.abs(previousValue - value) > 1e-6) {
+        modelChanged = true
+      }
+      for (const materialState of binding.materials) {
+        applyCanonicalVisualMaterialBinding(materialState, value)
+      }
+    }
+
+    return modelChanged
   }
 
   update(
@@ -517,6 +600,7 @@ export class AircraftRuntime {
       }
     }
     materialMs = finishPhase()
+    modelChanged = this.applyCanonicalVisualBindings() || modelChanged
     if (modelChanged) {
       this.modelRevision += 1
     }
@@ -1036,6 +1120,42 @@ function buildRuntimeMaterialBindings(
   return runtimeBindings
 }
 
+function buildRuntimeCanonicalVisualBindings(
+  visuals: readonly CanonicalVisualDefinition[],
+  nodes: ReadonlyMap<string, Object3D>
+): readonly RuntimeCanonicalVisualBinding[] {
+  const clonedObjects = new WeakSet<Object3D>()
+  const runtimeBindings: RuntimeCanonicalVisualBinding[] = []
+
+  for (const visual of visuals) {
+    if (visual.stateKey == null || visual.target == null) continue
+    const channel = visual.channel ?? 'animation'
+    const object =
+      nodes.get(visual.target) ?? nodes.get(visual.target.toLowerCase())
+    const materials =
+      channel === 'material' && object != null
+        ? ensureRuntimeMaterials(object, clonedObjects).map(material => ({
+            material,
+            baseEmissiveIntensity: getMaterialEmissiveIntensity(material),
+            baseEmissiveColor: getMaterialEmissiveColor(material),
+          }))
+        : []
+
+    if (channel !== 'animation' && object == null) continue
+    if (channel === 'material' && materials.length === 0) continue
+
+    runtimeBindings.push({
+      visual,
+      channel,
+      target: visual.target,
+      node: object ?? null,
+      materials,
+    })
+  }
+
+  return runtimeBindings
+}
+
 function buildRuntimeVisibilityBindings(
   bindings: readonly CompiledVisibilityBinding[],
   nodes: ReadonlyMap<string, Object3D>
@@ -1155,6 +1275,36 @@ function ensureRuntimeMaterials(
     return material.filter((candidate): candidate is RuntimeMaterial => candidate != null)
   }
   return material == null ? [] : [material as RuntimeMaterial]
+}
+
+function readCanonicalVisualRatio(
+  simulatorEngine: SimulatorEngine,
+  stateKey: string
+): number {
+  const rawValue =
+    simulatorEngine.state.readNumber(stateKey, { unit: 'ratio', fallback: 0 }) ??
+    0
+  if (!Number.isFinite(rawValue)) return 0
+  return clamp(rawValue, 0, 1)
+}
+
+function applyCanonicalVisualMaterialBinding(
+  state: RuntimeBoundMaterial,
+  value: number
+): void {
+  const nextIntensity = Math.max(0, value) * state.baseEmissiveIntensity
+  const previousIntensity = getMaterialEmissiveIntensity(state.material)
+  if (Math.abs(previousIntensity - nextIntensity) < 1e-6) return
+
+  if (state.baseEmissiveColor != null && state.material.emissive != null) {
+    state.material.emissive.setRGB(
+      state.baseEmissiveColor[0],
+      state.baseEmissiveColor[1],
+      state.baseEmissiveColor[2]
+    )
+  }
+  state.material.emissiveIntensity = nextIntensity
+  state.material.needsUpdate = true
 }
 
 function applyRuntimeMaterialBinding(
