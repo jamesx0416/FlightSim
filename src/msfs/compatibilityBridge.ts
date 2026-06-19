@@ -1153,7 +1153,7 @@ function mapMsfsEngineSimVarToCanonicalState(name: string): MsfsStateAlias | und
     case 'GENERAL ENG COMBUSTION':
       return {
         kind: 'propulsionBoolean',
-        stateKey: PropulsionStateKeys.engineRunning(index),
+        stateKey: PropulsionStateKeys.engineCombustion(index),
         canonicalUnit: 'boolean',
       }
     case 'GENERAL ENG RPM':
