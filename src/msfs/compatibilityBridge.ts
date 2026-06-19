@@ -260,6 +260,14 @@ export class MsfsCompatibilityBridge {
       return readElectricalBoolean(this.state, alias.stateKey) ? 1 : 0
     }
 
+    if (alias.kind === 'controlBoolean') {
+      return readControlBoolean(this.state, alias.stateKey) ? 1 : 0
+    }
+
+    if (alias.kind === 'controlRatio') {
+      return readControlRatio(this.state, alias.stateKey)
+    }
+
     return undefined
   }
 
@@ -286,7 +294,24 @@ export class MsfsCompatibilityBridge {
       return true
     }
 
-    if (alias.kind === 'propulsionBoolean' || alias.kind === 'electricalBoolean') {
+    if (alias.kind === 'controlRatio') {
+      this.state.define({
+        key: alias.stateKey,
+        unit: alias.canonicalUnit,
+        valueType: 'number',
+      })
+      this.state.set(alias.stateKey, value, {
+        source,
+        unit: alias.canonicalUnit,
+      })
+      return true
+    }
+
+    if (
+      alias.kind === 'propulsionBoolean' ||
+      alias.kind === 'electricalBoolean' ||
+      alias.kind === 'controlBoolean'
+    ) {
       this.state.define({
         key: alias.stateKey,
         unit: 'boolean',
@@ -425,6 +450,25 @@ export function mapMsfsLocalVarToCanonicalState(
   const engineN1Alias = mapMsfsA32nxEngineLocalVarToCanonicalState(name)
   if (engineN1Alias != null) {
     return engineN1Alias
+  }
+
+  const spoilerAlias = mapMsfsA32nxSpoilerLocalVarToCanonicalState(name)
+  if (spoilerAlias != null) {
+    return spoilerAlias
+  }
+
+  return undefined
+}
+
+function mapMsfsA32nxSpoilerLocalVarToCanonicalState(
+  name: string
+): MsfsStateAlias | undefined {
+  if (name === 'A32NX_SPOILERS_HANDLE_POSITION') {
+    return {
+      kind: 'controlRatio',
+      stateKey: ControlStateKeys.spoilersHandleRatio(),
+      canonicalUnit: 'ratio',
+    }
   }
 
   return undefined

@@ -164,6 +164,21 @@ test('maps MSFS package engine N1 local variables to canonical propulsion state'
   expect(bridge.readLocalVar('L:A32NX_ENGINE_N1:2')).toBe(42)
 })
 
+test('maps MSFS package spoiler handle local variable to canonical controls state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(mapMsfsLocalVarToCanonicalState('L:A32NX_SPOILERS_HANDLE_POSITION')).toEqual({
+    kind: 'controlRatio',
+    stateKey: ControlStateKeys.spoilersHandleRatio(),
+    canonicalUnit: 'ratio',
+  })
+
+  expect(bridge.writeLocalVar('L:A32NX_SPOILERS_HANDLE_POSITION', 0.5)).toBe(true)
+  expect(state.readNumber(ControlStateKeys.spoilersHandleRatio(), { unit: 'ratio' })).toBe(0.5)
+  expect(bridge.readLocalVar('L:A32NX_SPOILERS_HANDLE_POSITION')).toBe(0.5)
+})
+
 test('maps MSFS control SimVars to canonical controls state', () => {
     const state = new SimStateStore()
     const bridge = new MsfsCompatibilityBridge(state)

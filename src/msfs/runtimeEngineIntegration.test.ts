@@ -298,14 +298,17 @@ test('publishes key-event control and electrical state without waiting for a tic
         unit: 'ratio',
       })
     ).toBe(8192 / 16_383)
-    expect(
-      host.simulatorEngine.state.readNumber(ControlStateKeys.spoilersHandleRatio(), {
-        unit: 'ratio',
-      })
-    ).toBe(4096 / 16_383)
-    expect(
-      host.simulatorEngine.state.readBoolean(ControlStateKeys.parkingBrakeEnabled())
-    ).toBe(true)
+  expect(
+    host.simulatorEngine.state.readNumber(ControlStateKeys.spoilersHandleRatio(), {
+      unit: 'ratio',
+    })
+  ).toBe(4096 / 16_383)
+  expect(host.readVariable('L:A32NX_SPOILERS_HANDLE_POSITION')).toBe(
+    4096 / 16_383
+  )
+  expect(
+    host.simulatorEngine.state.readBoolean(ControlStateKeys.parkingBrakeEnabled())
+  ).toBe(true)
   })
 
   test('mirrors generic control key events into canonical controls state', () => {
