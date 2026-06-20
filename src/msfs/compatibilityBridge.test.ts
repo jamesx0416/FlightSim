@@ -174,6 +174,24 @@ test('maps MSFS package engine N1 local variables to canonical propulsion state'
   expect(bridge.readLocalVar('L:A32NX_ENGINE_N1:2')).toBe(42)
 })
 
+test('maps MSFS package throttle local variables to canonical propulsion state', () => {
+  const state = new SimStateStore()
+  const bridge = new MsfsCompatibilityBridge(state)
+
+  expect(mapMsfsLocalVarToCanonicalState('L:XMLVAR_Throttle1Position')).toEqual({
+    kind: 'propulsionNumber',
+    stateKey: PropulsionStateKeys.engineThrottleLeverRatio(1),
+    canonicalUnit: 'ratio',
+    defaultUnit: 'percent',
+  })
+
+  expect(bridge.writeLocalVar('L:A32NX_3D_THROTTLE_LEVER_POSITION_1', 50)).toBe(true)
+  expect(
+    state.readNumber(PropulsionStateKeys.engineThrottleLeverRatio(1), { unit: 'ratio' })
+  ).toBe(0.5)
+  expect(bridge.readLocalVar('L:XMLVAR_Throttle1Position')).toBe(50)
+})
+
 test('maps MSFS package spoiler handle local variable to canonical controls state', () => {
   const state = new SimStateStore()
   const bridge = new MsfsCompatibilityBridge(state)

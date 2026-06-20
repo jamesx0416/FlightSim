@@ -297,7 +297,7 @@ export class MsfsCompatibilityBridge {
       })
       this.state.set(alias.stateKey, value, {
         source,
-        unit: alias.canonicalUnit,
+        unit: normalizeMsfsAliasUnit(null, alias),
       })
       return true
     }
@@ -526,15 +526,30 @@ function mapMsfsA32nxEngineLocalVarToCanonicalState(
   name: string
 ): MsfsStateAlias | undefined {
   const n1Match = /^A32NX_ENGINE_N1:(\d+)$/u.exec(name)
-  if (n1Match == null) return undefined
+  if (n1Match != null) {
+    const index = Number.parseInt(n1Match[1], 10)
+    if (!Number.isFinite(index) || index <= 0) return undefined
 
-  const index = Number.parseInt(n1Match[1], 10)
+    return {
+      kind: 'propulsionNumber',
+      stateKey: PropulsionStateKeys.engineN1Percent(index),
+      canonicalUnit: 'percent',
+    }
+  }
+
+  const throttleMatch =
+    /^XMLVAR_THROTTLE(\d+)POSITION$/u.exec(name) ??
+    /^A32NX_3D_THROTTLE_LEVER_POSITION_(\d+)$/u.exec(name)
+  if (throttleMatch == null) return undefined
+
+  const index = Number.parseInt(throttleMatch[1], 10)
   if (!Number.isFinite(index) || index <= 0) return undefined
 
   return {
     kind: 'propulsionNumber',
-    stateKey: PropulsionStateKeys.engineN1Percent(index),
-    canonicalUnit: 'percent',
+    stateKey: PropulsionStateKeys.engineThrottleLeverRatio(index),
+    canonicalUnit: 'ratio',
+    defaultUnit: 'percent',
   }
 }
 
