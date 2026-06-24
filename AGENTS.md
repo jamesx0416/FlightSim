@@ -4,6 +4,8 @@ The strategic direction is a simulator-agnostic flight simulation engine with MS
 
 **Important:** Do not implement, exit, or add anything heuristic or aircraft-specific. Engine, adapter, compatibility, loader, and runtime changes must be generic and authoritative, not patches tailored to one aircraft.
 
+Always use `bun` as the package manager for this project unless told otherwise.
+
 Heuristic or aircraft-specific tests are allowed for investigation only. Landed fixes must be generic and verified without aircraft-specific patches.
 
 Use `aircrafts/` package data as test fixtures. Do not patch fixture package data to fix engine, adapter, loader, or runtime behavior unless explicitly asked.
@@ -14,8 +16,6 @@ Prefer canonical engine concepts in new work:
 - `src/msfs/` owns MSFS loading and compatibility surfaces such as SimVars, LVars, RPN, key events, gauges, and MSFS behavior translation.
 - Do not leak MSFS-shaped APIs into the engine core when a domain API can express the behavior.
 - Use "canonical aircraft definition" for normalized aircraft data in user-facing docs.
-
-Always use `bun` as the package manager for this project unless told otherwise.
 
 All viewer capabilities should be available through the browser API, `window.__DevApi`; agents should prefer it over synthetic UI gestures when equivalent API functionality exists. When adding a user-facing viewer capability, add or update the matching `__DevApi` method in the same change.
 When a requested verification can be run through `window.__DevApi`, run it directly and report the result instead of asking the user to run it, unless local browser/API access is blocked.
@@ -32,3 +32,8 @@ https://vanilla-3dtiles.localhost:3000
 `bun scripts/kill-stale-agent-browsers.mjs --kill-all`
 
 This command kills all agent-browsers; use it only if needed. It also runs automatically, so stale agent-browsers will be removed periodically. If an agent-browser instance stops responding, start another instance.
+
+## Tips
+- For routine checks, use bun typecheck, bun lint, and focused tests instead of bun run build
+- src/main.ts and src/msfs/runtime.ts are repeatedly re-read and large; use targeted symbol/search reads or known line ranges instead of broad sed scans.
+- When testing viewer or behavioural changes, assume dev server is running and test changes with `window.__DevApi`.
