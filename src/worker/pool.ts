@@ -27,5 +27,5 @@ export async function queueTask<T extends Method>(
   params?: MethodParams<T>,
   options?: ExecOptions
 ): Promise<MethodReturnType<T>> {
-  return await createPool().exec(method, params, options)
+  return (await createPool().exec(method, params, options)) as MethodReturnType<T>
 }
