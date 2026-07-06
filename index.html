@@ -104,6 +104,9 @@
         })
         window.__DevApi = bootProxy
         globalThis.__DevApi = window.__DevApi
+        if (globalThis.GPUShaderStage == null) {
+          globalThis.GPUShaderStage = { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
+        }
       })()
     </script>
     <script type="module" src="/src/main.ts"></script>
