@@ -1,11 +1,15 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { connect } from 'node:net'
+import { delimiter, dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const proxyPort = 3000
 const appPort = Number(process.env.VITE_DEV_PORT ?? 3001)
 const appName = process.env.PORTLESS_NAME ?? 'vanilla-3dtiles'
 const localUrl = `https://${appName}.localhost:${proxyPort}`
 const viteUrl = `http://127.0.0.1:${appPort}`
+const localBinPath = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'node_modules', '.bin')
+const devEnv = { ...process.env, PATH: [localBinPath, process.env.PATH].filter(Boolean).join(delimiter) }
 
 let cleanedUp = false
 
@@ -13,6 +17,7 @@ async function run(command, args, options = {}) {
   const { quiet = false, ...spawnOptions } = options
   const child = spawn(command, args, {
     stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit',
+    env: devEnv,
     ...spawnOptions
   })
 
@@ -38,6 +43,7 @@ async function run(command, args, options = {}) {
 function spawnChild(command, args, options = {}) {
   const child = spawn(command, args, {
     stdio: options.stdio ?? 'inherit',
+    env: devEnv,
     ...options
   })
   child.on('error', (error) => {
@@ -66,6 +72,7 @@ function isTcpPortOpen(port) {
 function getTailscaleDnsName() {
   const status = spawnSync('tailscale', ['status', '--json'], {
     encoding: 'utf8',
+    env: devEnv,
     stdio: ['ignore', 'pipe', 'ignore']
   })
 
@@ -116,8 +123,8 @@ function cleanup(childProcesses) {
     }
   }
 
-  spawnSync('portless', ['alias', '--remove', appName], { stdio: 'ignore' })
-  spawnSync('portless', ['proxy', 'stop', '-p', String(proxyPort)], { stdio: 'ignore' })
+  spawnSync('portless', ['alias', '--remove', appName], { env: devEnv, stdio: 'ignore' })
+  spawnSync('portless', ['proxy', 'stop', '-p', String(proxyPort)], { env: devEnv, stdio: 'ignore' })
 }
 
 const tailscaleDnsNamePromise = Promise.resolve().then(getTailscaleDnsName)
