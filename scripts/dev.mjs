@@ -138,7 +138,7 @@ await run('portless', ['alias', appName, String(appPort), '--force'], { quiet: t
 
 const cleanupProcess = spawnChild('bun', ['scripts/kill-stale-agent-browsers.mjs', '--active-only'])
 const tailscaleServe = startTailscaleServe(tailscaleDnsName)
-const viteProcess = spawnChild('bunx', ['vite', '--host', '127.0.0.1', '--port', String(appPort), '--strictPort'], {
+const viteProcess = spawnChild('bunx', ['vite', '--host', '0.0.0.0', '--port', String(appPort), '--strictPort'], {
   env: {
     ...process.env,
     PORT: String(appPort),
