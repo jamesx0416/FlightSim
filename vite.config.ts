@@ -2,17 +2,40 @@ import { execFile } from 'node:child_process'
 import { readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify } from 'node:util'
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 
 const execFileAsync = promisify(execFile)
 
-export default defineConfig({
-  plugins: [aircraftsIndexPlugin(), devMetadataPlugin(), devUrlsPlugin()],
-  server: {
-    allowedHosts: ['.ts.net'],
-    host: true
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [
+      localAircraftCachePlugin(env.FLIGHTSIM_AIRCRAFT_CACHE === '1'),
+      aircraftsIndexPlugin(),
+      devMetadataPlugin(),
+      devUrlsPlugin()
+    ],
+    server: {
+      allowedHosts: ['.ts.net'],
+      host: true
+    }
   }
 })
+
+function localAircraftCachePlugin(enabled: boolean): Plugin {
+  return {
+    name: 'local-aircraft-cache',
+    configureServer(server) {
+      if (!enabled) return
+
+      server.middlewares.use('/aircrafts/', (_request, response, next) => {
+        response.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+        next()
+      })
+    }
+  }
+}
 
 function devUrlsPlugin(): Plugin {
   return {

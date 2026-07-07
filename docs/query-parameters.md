@@ -86,3 +86,4 @@ These are not query parameters, but they provide defaults that the query paramet
 | `VITE_MSFS_PACKAGE_ROOT` | Default main package root when `package` is omitted. |
 | `VITE_MSFS_ADDITIONAL_PACKAGE_ROOTS` | Additional package roots appended after `packages` and `deps`. Uses the same comma, semicolon, or newline delimiters. |
 | `VITE_MSFS_STOCK_BEHAVIOR_ROOT` | Stock behavior package root. Set to `off` to disable it globally. |
+| `FLIGHTSIM_AIRCRAFT_CACHE` | Set to `1` to serve `/aircrafts/**` with long-lived immutable cache headers during local dev. This speeds repeat network-device loads but requires clearing browser cache or changing the URL after replacing aircraft package files. |
