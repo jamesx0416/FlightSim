@@ -12,6 +12,14 @@ import {
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 import {
+  clearAircraftRangeCache,
+  getAircraftAssetCacheSnapshot
+} from './aircraftAssets/rangeCache'
+import {
+  clearMsfsBehaviorDocumentCache,
+  getMsfsBehaviorAssetSnapshot
+} from './msfs/behavior'
+import {
   AircraftRuntime,
   SharedMsfsRuntimeHost,
   type RuntimeBridgeEvent,
@@ -31,6 +39,10 @@ import type {
   ImportDiagnostic,
   RuntimeState
 } from './msfs/types'
+import {
+  getMsfsPackageSourceCacheSnapshot,
+  refreshMsfsPackageSourceVersions
+} from './msfs/packageAssets'
 import type { RendererInfo } from './rendering/createAppRenderer'
 import { listCanonicalEngineCommands, type SimCommand, type SimUnit } from './sim/engine'
 import type {
@@ -262,6 +274,11 @@ type ViewerDevApi = {
   ) => Promise<DevApiResponse>
   readonly waitFor: (condition: DevApiWaitCondition, timeoutMs?: number) => Promise<DevApiResponse>
   readonly perf: () => DevApiResponse
+  readonly assetCache: {
+    readonly snapshot: () => DevApiResponse
+    readonly refreshPackageVersions: () => Promise<DevApiResponse>
+    readonly clearDdsRanges: () => Promise<DevApiResponse>
+  }
   readonly bench: {
     readonly startup: () => DevApiResponse
     readonly cockpitLod0: (options?: DevApiBenchOptions) => Promise<DevApiResponse>
@@ -531,6 +548,66 @@ function storeBenchRun(run: StoredBenchRun): StoredBenchRun {
   return run
 }
 
+function getDevApiAssetCacheSnapshot(): Record<string, unknown> {
+  const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+  const packageResources = resources.filter(entry => {
+    try {
+      const url = new URL(entry.name)
+      return url.searchParams.has('assetVersion') ||
+        url.pathname.startsWith('/aircrafts/') ||
+        url.pathname.startsWith('/vendor/msfs-stock/')
+    } catch {
+      return false
+    }
+  })
+  const xmlResources = packageResources.filter(entry => {
+    try {
+      return new URL(entry.name).pathname.toLowerCase().endsWith('.xml')
+    } catch {
+      return false
+    }
+  })
+  const summarize = (entries: readonly PerformanceResourceTiming[]) => ({
+    count: entries.length,
+    transferBytes: entries.reduce((total, entry) => total + entry.transferSize, 0),
+    encodedBytes: entries.reduce((total, entry) => total + entry.encodedBodySize, 0),
+    durationMs: entries.reduce((total, entry) => total + entry.duration, 0)
+  })
+
+  return {
+    packageSources: getMsfsPackageSourceCacheSnapshot(),
+    behaviorXml: getMsfsBehaviorAssetSnapshot(),
+    ddsRanges: getAircraftAssetCacheSnapshot(),
+    resources: {
+      packageAssets: summarize(packageResources),
+      xml: summarize(xmlResources)
+    }
+  }
+}
+
+async function refreshDevApiPackageVersions(): Promise<{
+  readonly changedRoots: readonly string[]
+  readonly snapshot: Record<string, unknown>
+}> {
+  const before = new Map(
+    getMsfsPackageSourceCacheSnapshot().packages.map(source => [source.rootUrl, source.revision])
+  )
+  const refreshed = await refreshMsfsPackageSourceVersions()
+  const changedRoots = refreshed
+    .filter(source => source.revision == null || before.get(source.rootUrl) !== source.revision)
+    .map(source => source.rootUrl)
+
+  if (changedRoots.length > 0) {
+    clearMsfsBehaviorDocumentCache()
+    await clearAircraftRangeCache()
+  }
+
+  return {
+    changedRoots,
+    snapshot: getDevApiAssetCacheSnapshot()
+  }
+}
+
 export function installViewerBootDevApi(): void {
   const installedAt = performance.now()
   const ok = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
@@ -583,6 +660,7 @@ export function installViewerBootDevApi(): void {
       methods: [
         '__DevApi.status()',
         '__DevApi.diagnostics()',
+        '__DevApi.assetCache.snapshot()',
         '__DevApi.bench.startup()',
         'await __DevApi.bench.all()',
         '__DevApi.bench.history()',
@@ -592,7 +670,7 @@ export function installViewerBootDevApi(): void {
     }),
     schema: () => ok('Returned boot DevApi schema summary.', {
       ready: false,
-      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'inspectWasm', 'bench.startup', 'bench.all', 'bench.history']
+      methods: ['ready', 'status', 'help', 'schema', 'diagnostics', 'report', 'inspectWasm', 'assetCache.snapshot', 'assetCache.refreshPackageVersions', 'assetCache.clearDdsRanges', 'bench.startup', 'bench.all', 'bench.history']
     }),
     diagnostics: () => ok('Returned boot diagnostics.', {
       ...loadingData(),
@@ -605,6 +683,17 @@ export function installViewerBootDevApi(): void {
         fps: null
       }
     }),
+    assetCache: {
+      snapshot: () => ok('Collected package asset cache diagnostics.', getDevApiAssetCacheSnapshot()),
+      refreshPackageVersions: async () => ok(
+        'Refreshed package asset versions.',
+        await refreshDevApiPackageVersions()
+      ),
+      clearDdsRanges: async () => {
+        await clearAircraftRangeCache()
+        return ok('Cleared cached DDS byte ranges.', getDevApiAssetCacheSnapshot())
+      }
+    },
     bench: {
       startup: () => ok('Collected startup benchmark.', getStartupBenchmarkData()),
       cockpitLod0: async () => unavailable('bench.cockpitLod0'),
@@ -1525,6 +1614,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.bridgeCall("A32NX_PED_ECP_ENG_PB_Push")',
         '__DevApi.bridgeCall("InputEvent_Push_Long", [1, 1])',
         '__DevApi.events({ kind: "html", limit: 5 })',
+        '__DevApi.assetCache.snapshot()',
+        'await __DevApi.assetCache.refreshPackageVersions()',
         '__DevApi.bench.startup()',
         'await __DevApi.bench.cockpitLod0()',
         'await __DevApi.bench.all()',
@@ -1546,6 +1637,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       checkGaugeOptions: ['screenshot', 'surface', 'source'],
       inspectWasmOptions: ['maxBytes', 'surface', 'source'],
       benchMethods: ['startup', 'cockpitLod0', 'all', 'history', 'clearHistory'],
+      assetCacheMethods: ['snapshot', 'refreshPackageVersions', 'clearDdsRanges'],
       resetOptions: ['runtime', 'coldAndDark'],
       runtimeMethods: ['readVar', 'writeVar', 'readState', 'writeState', 'dispatchCommand', 'keyEvent', 'bridgeCall'],
       paramPresets: ['vspeed', 'altitude', 'pressure', 'location', 'gear', 'flaps', 'spoilers', 'parkingBrake']
@@ -1966,6 +2058,18 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       activeInterior: context.getCockpitPerfDiagnostics().getActiveInteriorStats(),
       panelSurfaces: context.getCockpitPerfDiagnostics().getPanelSurfaceStats()
     }),
+    assetCache: {
+      snapshot: () => ok('Collected package asset cache diagnostics.', getDevApiAssetCacheSnapshot()),
+      refreshPackageVersions: async () => ok(
+        'Refreshed package asset versions.',
+        await refreshDevApiPackageVersions(),
+        ['Reload the viewer if changedRoots is non-empty so compiled behavior state is rebuilt.']
+      ),
+      clearDdsRanges: async () => {
+        await clearAircraftRangeCache()
+        return ok('Cleared cached DDS byte ranges.', getDevApiAssetCacheSnapshot())
+      }
+    },
     bench: {
       startup: () => ok('Collected startup benchmark.', getStartupBenchmarkData()),
       cockpitLod0: async (options = {}) => {

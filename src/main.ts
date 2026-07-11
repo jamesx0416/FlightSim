@@ -48,6 +48,11 @@ import { normalizeMsfsVertexColors } from './msfs/gltf/normalizeMsfsVertexColors
 import { repairMsfsSkinnedAttributes } from './msfs/gltf/repairMsfsSkinnedAttributes'
 import { sanitizeMsfsGltf } from './msfs/gltf/sanitizeMsfsGltf'
 import { importBuiltMsfs2020Package } from './msfs/importer'
+import {
+  getCachedMsfsPackageSource,
+  loadMsfsPackageSource,
+  type MsfsPackageSource
+} from './msfs/packageAssets'
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
@@ -76,6 +81,7 @@ import {
 } from './rendering/createAppRenderer'
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 import { queueTask } from './worker/pool'
+import { isAircraftImmutableCacheMode } from './aircraftAssets/cachePolicy'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
 const DEFAULT_STOCK_BEHAVIOR_ROOT = '/vendor/msfs-stock/'
@@ -83,10 +89,7 @@ const DEV_DEFAULT_PACKAGE_ROOT = '/aircrafts/headwindsim-aircraft-a330-900/'
 const DEV_DEFAULT_AIRCRAFT_ID = 'SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0'
 const DEFAULT_COCKPIT_RANGE_TEXTURE_SIZE = 1024
 const DEFAULT_BACKGROUND_COCKPIT_RANGE_TEXTURE_SIZE = 512
-type AssetRoot = {
-  readonly rootUrl: string
-  readonly layoutPathIndex: ReadonlyMap<string, string>
-}
+type AssetRoot = MsfsPackageSource
 
 type AircraftSelectorOption = {
   readonly packageRoot: string
@@ -3315,7 +3318,9 @@ function createCockpitTextureLoadOptions(
 }
 
 function getCockpitTextureMode(searchParams: URLSearchParams): CockpitTextureMode {
-  return searchParams.get('cockpitTextures') === 'full' ? 'full' : 'range-low'
+  const mode = searchParams.get('cockpitTextures')
+  if (mode === 'full' || mode === 'range-low') return mode
+  return 'range-low'
 }
 
 function shouldLoadCockpitRangeTextures(searchParams: URLSearchParams): boolean {
@@ -9856,7 +9861,7 @@ async function loadMsfsGltfLod(
   )
   const preparedBuffers = workerPrepared ?? await prepareExternalGltfBuffers(
     sanitizedGltf,
-    baseUrl,
+    url,
     loadContext,
     recordPhase
   )
@@ -10053,7 +10058,7 @@ async function prepareMsfsGltfJsonOnMainThread(
 
 async function prepareExternalGltfBuffers(
   gltfJson: Record<string, unknown>,
-  baseUrl: string,
+  gltfUrl: string,
   loadContext: {
     readonly aircraftId: string
     readonly lodUrl: string
@@ -10083,7 +10088,7 @@ async function prepareExternalGltfBuffers(
   const objectUrls: string[] = []
   try {
     await Promise.all(externalBuffers.map(async ({ buffer, index, uri }) => {
-      const bufferUrl = new URL(uri, baseUrl).toString()
+      const bufferUrl = resolveVersionedGltfDependencyUrl(uri, gltfUrl)
       const bufferStartMs = performance.now()
       if (loadContext != null) {
         setGlobalLoadStage({
@@ -10127,6 +10132,15 @@ async function prepareExternalGltfBuffers(
   return { objectUrls }
 }
 
+function resolveVersionedGltfDependencyUrl(uri: string, gltfUrl: string): string {
+  const resolved = new URL(uri, gltfUrl)
+  const assetVersion = new URL(gltfUrl).searchParams.get('assetVersion')
+  if (assetVersion != null && !resolved.searchParams.has('assetVersion')) {
+    resolved.searchParams.set('assetVersion', assetVersion)
+  }
+  return resolved.toString()
+}
+
 const GLTF_BUFFER_CHUNK_BYTES = 256 * 1024
 const GLTF_BUFFER_CHUNK_TIMEOUT_MS = 60000
 const GLTF_BUFFER_CHUNK_CONCURRENCY = 6
@@ -10140,9 +10154,19 @@ async function fetchExternalGltfBuffer(
     readonly totalChunks: number | null
   }) => void = () => {}
 ): Promise<ArrayBuffer> {
-  const requestUrl = appendGltfBufferCacheBuster(url)
+  if (isAircraftImmutableCacheMode()) {
+    const buffer = await fetchExternalGltfBufferFull(url)
+    onProgress({
+      loadedBytes: buffer.byteLength,
+      totalBytes: buffer.byteLength,
+      loadedChunks: 1,
+      totalChunks: 1
+    })
+    return buffer
+  }
+
   const firstEnd = GLTF_BUFFER_CHUNK_BYTES - 1
-  const firstResponse = await fetchExternalGltfBufferRange(requestUrl, 0, firstEnd)
+  const firstResponse = await fetchExternalGltfBufferRange(url, 0, firstEnd)
   if (firstResponse.status !== 206) {
     if (!firstResponse.ok) {
       throw new Error(`Failed to load ${url}: HTTP ${firstResponse.status}`)
@@ -10186,7 +10210,7 @@ async function fetchExternalGltfBuffer(
       const range = ranges[nextRangeIndex]!
       nextRangeIndex += 1
       const { start, end } = range
-      const response = await fetchExternalGltfBufferRange(requestUrl, start, end)
+      const response = await fetchExternalGltfBufferRange(url, start, end)
       if (response.status !== 206 && !response.ok) {
         throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
       }
@@ -10209,6 +10233,23 @@ async function fetchExternalGltfBuffer(
   return output.buffer
 }
 
+async function fetchExternalGltfBufferFull(url: string): Promise<ArrayBuffer> {
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(
+    () => controller.abort(),
+    GLTF_BUFFER_CHUNK_TIMEOUT_MS
+  )
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    if (!response.ok) {
+      throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
+    }
+    return await response.arrayBuffer()
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
 async function fetchExternalGltfBufferRange(
   url: string,
   start: number,
@@ -10226,7 +10267,6 @@ async function fetchExternalGltfBufferRange(
   )
   try {
     const response = await fetch(url, {
-      cache: 'no-store',
       headers: {
         Range: `bytes=${start}-${end}`
       },
@@ -10242,15 +10282,6 @@ async function fetchExternalGltfBufferRange(
   } finally {
     window.clearTimeout(timeoutId)
   }
-}
-
-function appendGltfBufferCacheBuster(url: string): string {
-  const parsedUrl = new URL(url, window.location.href)
-  parsedUrl.searchParams.set(
-    'msfsBufferLoad',
-    `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
-  )
-  return parsedUrl.toString()
 }
 
 function parseContentRange(header: string | null): {
@@ -10287,6 +10318,7 @@ function createTextureUrlResolver(
   layoutPaths: readonly string[],
   additionalAssetRoots: readonly AssetRoot[]
 ): (url: string) => string {
+  const packageSource = getCachedMsfsPackageSource(packageRootUrl)
   const textureDirectories = aircraft.textureDirectories
   const layoutPathIndex = new Map(
     layoutPaths.map(path => {
@@ -10320,16 +10352,18 @@ function createTextureUrlResolver(
             continue
           }
 
-          return new URL(resolvedAssetPath, assetRoot.rootUrl).toString()
+          return assetRoot.resolveAssetUrl(resolvedAssetPath)
         }
         continue
       }
 
-      return new URL(resolvedPackagePath, packageRootUrl).toString()
+      return packageSource?.resolveAssetUrl(resolvedPackagePath) ??
+        new URL(resolvedPackagePath, packageRootUrl).toString()
     }
 
     if (textureCandidates.length > 0) {
-      return new URL(textureCandidates[0], packageRootUrl).toString()
+      return packageSource?.resolveAssetUrl(textureCandidates[0]!) ??
+        new URL(textureCandidates[0], packageRootUrl).toString()
     }
 
     return parsedUrl.toString()
@@ -10341,6 +10375,7 @@ function createPanelAssetUrlResolver(
   layoutPaths: readonly string[],
   additionalAssetRoots: readonly AssetRoot[]
 ): (source: string) => string | null {
+  const packageSource = getCachedMsfsPackageSource(packageRootUrl)
   const layoutPathIndex = new Map(
     layoutPaths.map(path => {
       const normalizedPath = normalizePath(path)
@@ -10358,13 +10393,14 @@ function createPanelAssetUrlResolver(
       const normalizedCandidatePath = candidatePath.toLowerCase()
       const packagePath = layoutPathIndex.get(normalizedCandidatePath)
       if (packagePath != null) {
-        return new URL(`${packagePath}${parsedSource.query}`, packageRootUrl).toString()
+        return packageSource?.resolveAssetUrl(`${packagePath}${parsedSource.query}`) ??
+          new URL(`${packagePath}${parsedSource.query}`, packageRootUrl).toString()
       }
 
       for (const assetRoot of additionalAssetRoots) {
         const assetPath = assetRoot.layoutPathIndex.get(normalizedCandidatePath)
         if (assetPath != null) {
-          return new URL(`${assetPath}${parsedSource.query}`, assetRoot.rootUrl).toString()
+          return assetRoot.resolveAssetUrl(`${assetPath}${parsedSource.query}`)
         }
       }
     }
@@ -13117,46 +13153,13 @@ function parseConfiguredPackageRoots(value: string | undefined): string[] {
 }
 
 async function loadConfiguredAssetRoots(rootUrls: readonly string[]): Promise<readonly AssetRoot[]> {
-  const assetRoots: AssetRoot[] = []
-
-  for (const rootUrl of rootUrls) {
-    const assetRoot = await tryLoadAssetRoot(rootUrl)
-    if (assetRoot != null) {
-      assetRoots.push(assetRoot)
-    }
-  }
-
-  return assetRoots
+  const roots = await Promise.all(rootUrls.map(tryLoadAssetRoot))
+  return roots.filter((root): root is AssetRoot => root != null)
 }
 
 async function tryLoadAssetRoot(rootUrl: string): Promise<AssetRoot | null> {
   try {
-    const response = await fetch(new URL('layout.json', rootUrl))
-    if (!response.ok) {
-      return null
-    }
-
-    const payload = (await response.json()) as {
-      readonly content?: readonly {
-        readonly path?: string
-      }[]
-    }
-
-    return {
-      rootUrl,
-      layoutPathIndex: new Map(
-        (payload.content ?? [])
-          .map(entry => {
-            if (typeof entry.path !== 'string') {
-              return null
-            }
-
-            const normalizedPath = normalizePath(entry.path)
-            return [normalizedPath.toLowerCase(), normalizedPath] as const
-          })
-          .filter((entry): entry is readonly [string, string] => entry != null)
-      )
-    }
+    return await loadMsfsPackageSource(rootUrl)
   } catch {
     return null
   }

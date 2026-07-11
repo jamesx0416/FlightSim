@@ -25,6 +25,13 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 - `diagnostics(options?)` filters loader/runtime diagnostics: `window.__DevApi.diagnostics({ severity: "warning", includeGauges: true })`.
 - `perf()` returns FPS/renderer/runtime performance data: `window.__DevApi.perf()`.
 
+## Package Asset Cache
+
+- `assetCache.snapshot()` reports package revisions/version checks, behavior XML document counts, DDS range hits and misses, and package/XML resource transfer totals: `window.__DevApi.assetCache.snapshot()`.
+- `assetCache.refreshPackageVersions()` rechecks loaded package roots. If a revision changed, parsed behavior documents and DDS ranges are invalidated; reload the viewer to rebuild compiled behavior state: `await window.__DevApi.assetCache.refreshPackageVersions()`.
+- `assetCache.clearDdsRanges()` clears only the app-managed IndexedDB DDS range cache: `await window.__DevApi.assetCache.clearDdsRanges()`.
+- In immutable mode, a warm reload can still show cached XML `fetch()` entries in DevTools. `transferBytes: 0` in `assetCache.snapshot().data.resources.xml` confirms that they did not revalidate or transfer response bodies.
+
 ## Runtime State
 
 - `readVar(name, unit?)` reads a runtime variable. Mapped SimVars and LVars

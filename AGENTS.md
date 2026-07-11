@@ -28,6 +28,7 @@ Future todo(Do not do this unless user asks): Continue implementation until ever
 # Dev server URL
 
 https://vanilla-3dtiles.localhost:3000
+http://100.68.82.123:3001
 
 `bun scripts/kill-stale-agent-browsers.mjs --kill-all`
 

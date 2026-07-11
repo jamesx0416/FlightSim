@@ -1,4 +1,8 @@
 import { getCfgSection, getCfgSectionsByPrefix, parseCfg } from './config'
+import {
+  loadMsfsPackageSource,
+  type MsfsPackageSource
+} from './packageAssets'
 import type {
   BehaviorSourceRoot,
   ImportedCfgFile,
@@ -35,6 +39,8 @@ interface ImportContext {
 
 interface ImportBehaviorSourceRoot extends BehaviorSourceRoot {
   readonly layoutPaths: ReadonlySet<string>
+  readonly revision: string | null
+  readonly resolveAssetUrl: (path: string) => string
 }
 
 interface ImportPackageOptions {
@@ -66,15 +72,16 @@ export async function importBuiltMsfs2020Package(
   const diagnostics: ImportDiagnostic[] = []
   const textCache = new Map<string, Promise<string>>()
 
-  const manifest = await tryLoadManifest(normalizedRootUrl, diagnostics)
-  const layoutEntries = await loadLayoutEntries(normalizedRootUrl, diagnostics)
+  const primarySource = await tryLoadPackageSource(normalizedRootUrl, diagnostics)
+  const manifest = await tryLoadManifest(normalizedRootUrl, diagnostics, primarySource)
+  const layoutEntries = primarySource?.layoutEntries ?? []
   const layoutPaths = new Set(layoutEntries.map(entry => normalizePath(entry.path)))
   const layoutPathIndex = new Map(
     layoutEntries.map(entry => [normalizePath(entry.path).toLowerCase(), normalizePath(entry.path)])
   )
   const behaviorSourceRoots = await loadBehaviorSourceRoots(
     normalizedRootUrl,
-    layoutEntries,
+    primarySource,
     options.additionalPackageRoots ?? [],
     diagnostics
   )
@@ -114,7 +121,7 @@ export async function importBuiltMsfs2020Package(
 
     const record: AircraftCfgRecord = {
       path: resolvedPath,
-      url: resolvePackageUrl(normalizedRootUrl, resolvedPath),
+      url: resolvePackageAssetUrl(normalizedRootUrl, resolvedPath, context),
       sections: parseCfg(cfgText)
     }
     aircraftCfgRecords.set(resolvedPath, record)
@@ -286,6 +293,16 @@ function resolvePackageUrl(rootUrl: string, relativePath: string): string {
   return new URL(normalizePath(relativePath), rootUrl).toString()
 }
 
+function resolvePackageAssetUrl(
+  rootUrl: string,
+  relativePath: string,
+  context: ImportContext
+): string {
+  return context.behaviorSourceRoots
+    .find(root => root.rootUrl === rootUrl)
+    ?.resolveAssetUrl(normalizePath(relativePath)) ?? resolvePackageUrl(rootUrl, relativePath)
+}
+
 function resolveLayoutPath(path: string, context: ImportContext): string | null {
   return context.layoutPathIndex.get(normalizePath(path).toLowerCase()) ?? null
 }
@@ -328,10 +345,11 @@ function resolveBehaviorLayoutPath(
 
 async function tryLoadManifest(
   rootUrl: string,
-  diagnostics: ImportDiagnostic[]
+  diagnostics: ImportDiagnostic[],
+  source: MsfsPackageSource | null
 ): Promise<PackageManifest | null> {
   try {
-    const response = await fetch(new URL('manifest.json', rootUrl))
+    const response = await fetch(source?.resolveAssetUrl('manifest.json') ?? new URL('manifest.json', rootUrl))
     if (!response.ok) {
       diagnostics.push({
         code: 'manifest_missing',
@@ -360,37 +378,12 @@ async function tryLoadManifest(
   }
 }
 
-async function loadLayoutEntries(
+async function tryLoadPackageSource(
   rootUrl: string,
   diagnostics: ImportDiagnostic[]
-): Promise<PackageLayoutEntry[]> {
+): Promise<MsfsPackageSource | null> {
   try {
-    const response = await fetch(new URL('layout.json', rootUrl))
-    if (!response.ok) {
-      diagnostics.push({
-        code: 'layout_missing',
-        message: `layout.json was not found at ${rootUrl}`,
-        severity: 'error',
-        sourcePath: 'layout.json'
-      })
-      return []
-    }
-
-    const payload = (await response.json()) as {
-      readonly content?: readonly {
-        readonly path?: string
-        readonly size?: number
-        readonly date?: number
-      }[]
-    }
-
-    return (payload.content ?? [])
-      .filter(entry => typeof entry.path === 'string')
-      .map(entry => ({
-        path: normalizePath(entry.path ?? ''),
-        size: entry.size,
-        date: entry.date
-      }))
+    return await loadMsfsPackageSource(rootUrl)
   } catch (error) {
     diagnostics.push({
       code: 'layout_failed',
@@ -399,19 +392,21 @@ async function loadLayoutEntries(
       sourcePath: 'layout.json',
       details: error instanceof Error ? error.message : String(error)
     })
-    return []
+    return null
   }
 }
 
 async function loadBehaviorSourceRoots(
   primaryRootUrl: string,
-  primaryLayoutEntries: readonly PackageLayoutEntry[],
+  primarySource: MsfsPackageSource | null,
   additionalPackageRoots: readonly string[],
   diagnostics: ImportDiagnostic[]
 ): Promise<readonly ImportBehaviorSourceRoot[]> {
-  const roots: ImportBehaviorSourceRoot[] = [
-    createBehaviorSourceRoot(primaryRootUrl, primaryLayoutEntries)
-  ]
+  const roots: ImportBehaviorSourceRoot[] = [createBehaviorSourceRoot(
+    primaryRootUrl,
+    primarySource?.layoutEntries ?? [],
+    primarySource
+  )]
 
   const seenRoots = new Set<string>([primaryRootUrl.toLowerCase()])
   for (const rootCandidate of additionalPackageRoots) {
@@ -421,12 +416,12 @@ async function loadBehaviorSourceRoots(
     }
 
     seenRoots.add(normalizedRoot.toLowerCase())
-    const layoutEntries = await loadLayoutEntries(normalizedRoot, diagnostics)
-    if (layoutEntries.length === 0) {
+    const source = await tryLoadPackageSource(normalizedRoot, diagnostics)
+    if (source == null || source.layoutEntries.length === 0) {
       continue
     }
 
-    roots.push(createBehaviorSourceRoot(normalizedRoot, layoutEntries))
+    roots.push(createBehaviorSourceRoot(normalizedRoot, source.layoutEntries, source))
   }
 
   return roots
@@ -434,12 +429,15 @@ async function loadBehaviorSourceRoots(
 
 function createBehaviorSourceRoot(
   rootUrl: string,
-  layoutEntries: readonly PackageLayoutEntry[]
+  layoutEntries: readonly PackageLayoutEntry[],
+  source: MsfsPackageSource | null
 ): ImportBehaviorSourceRoot {
   const normalizedPaths = layoutEntries.map(entry => normalizePath(entry.path))
 
   return {
     rootUrl,
+    revision: source?.revision ?? null,
+    resolveAssetUrl: source?.resolveAssetUrl ?? (path => resolvePackageUrl(rootUrl, path)),
     layoutPaths: new Set(normalizedPaths),
     layoutPathIndex: new Map(
       normalizedPaths.map(path => [path.toLowerCase(), path])
@@ -471,7 +469,7 @@ async function fetchTextFromRoot(
   }
 
   const pending = (async () => {
-    const response = await fetch(resolvePackageUrl(rootUrl, normalizedPath))
+    const response = await fetch(resolvePackageAssetUrl(rootUrl, normalizedPath, context))
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
     }
@@ -725,9 +723,10 @@ async function importModelDefinition(
       return {
         minSize: Number.parseFloat(lodNode.getAttribute('minSize') ?? '0') || 0,
         path: modelPath,
-        url: resolvePackageUrl(
+        url: resolvePackageAssetUrl(
           context.rootUrl,
-          modelPath
+          modelPath,
+          context
         ),
         modelFileSize: resolveLayoutEntrySize(modelPath, context),
         siblingBufferFileSize: resolveLayoutEntrySize(
@@ -775,9 +774,10 @@ async function importModelDefinition(
         attachToNode,
         modelPath: modelFile ? joinPath(dirname(behaviorPath), modelFile) : undefined,
         modelUrl: modelFile
-          ? resolvePackageUrl(
+          ? resolvePackageAssetUrl(
               context.rootUrl,
-              joinPath(dirname(behaviorPath), modelFile)
+              joinPath(dirname(behaviorPath), modelFile),
+              context
             )
           : undefined
       }
@@ -801,9 +801,10 @@ async function importModelDefinition(
           value: relativeFile,
           resolvedPath:
             resolvedBehaviorPath?.path ?? joinPath(dirname(behaviorPath), relativeFile),
-          resolvedUrl: resolvePackageUrl(
+          resolvedUrl: resolvePackageAssetUrl(
             resolvedBehaviorPath?.rootUrl ?? resolvedBehavior.rootUrl,
-            resolvedBehaviorPath?.path ?? joinPath(dirname(behaviorPath), relativeFile)
+            resolvedBehaviorPath?.path ?? joinPath(dirname(behaviorPath), relativeFile),
+            context
           )
         }
       }
@@ -820,9 +821,10 @@ async function importModelDefinition(
           value: modelBehaviorFile,
           resolvedPath:
             resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', modelBehaviorFile),
-          resolvedUrl: resolvePackageUrl(
+          resolvedUrl: resolvePackageAssetUrl(
             resolvedBehaviorPath?.rootUrl ?? context.rootUrl,
-            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', modelBehaviorFile)
+            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', modelBehaviorFile),
+            context
           )
         }
       }
@@ -836,9 +838,10 @@ async function importModelDefinition(
           value: pathAttribute,
           resolvedPath:
             resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', pathAttribute),
-          resolvedUrl: resolvePackageUrl(
+          resolvedUrl: resolvePackageAssetUrl(
             resolvedBehaviorPath?.rootUrl ?? context.rootUrl,
-            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', pathAttribute)
+            resolvedBehaviorPath?.path ?? joinPath('ModelBehaviorDefs', pathAttribute),
+            context
           )
         }
       }
@@ -864,9 +867,9 @@ async function importModelDefinition(
 
   return {
     cfgPath: modelCfgPath,
-    cfgUrl: resolvePackageUrl(context.rootUrl, modelCfgPath),
+    cfgUrl: resolvePackageAssetUrl(context.rootUrl, modelCfgPath, context),
     behaviorPath,
-    behaviorUrl: resolvePackageUrl(resolvedBehavior.rootUrl, behaviorPath),
+    behaviorUrl: resolvePackageAssetUrl(resolvedBehavior.rootUrl, behaviorPath, context),
     lods,
     behaviorIncludes,
     nodeAnimations,
@@ -991,7 +994,7 @@ async function resolveAdditionalCfgFiles(
     cfgFiles.push({
       kind,
       path: resolvedPath,
-      url: resolvePackageUrl(context.rootUrl, resolvedPath),
+      url: resolvePackageAssetUrl(context.rootUrl, resolvedPath, context),
       sourceAircraftCfgPath: sourceRecord.path,
       sections: parseCfg(cfgText)
     })
@@ -1044,7 +1047,7 @@ async function resolvePreviewFlightState(
     visitedPaths.add(normalizedPath)
     return {
       path: candidatePath,
-      url: resolvePackageUrl(context.rootUrl, candidatePath),
+      url: resolvePackageAssetUrl(context.rootUrl, candidatePath, context),
       sections: parseCfg(flightStateText)
     }
   }
@@ -1120,7 +1123,7 @@ function parseSoundDefinition(
 
   return {
     path: soundPath,
-    url: resolvePackageUrl(context.rootUrl, soundPath),
+    url: resolvePackageAssetUrl(context.rootUrl, soundPath, context),
     wwisePackages,
     simVarSounds
   }
@@ -1146,7 +1149,9 @@ function parseWwisePackage(
     name,
     kind,
     packagePath,
-    packageUrl: packagePath == null ? undefined : resolvePackageUrl(context.rootUrl, packagePath)
+    packageUrl: packagePath == null
+      ? undefined
+      : resolvePackageAssetUrl(context.rootUrl, packagePath, context)
   }
 }
 

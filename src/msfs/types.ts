@@ -39,7 +39,9 @@ export interface ModelBehaviorReference {
 
 export interface BehaviorSourceRoot {
   readonly rootUrl: string
+  readonly revision: string | null
   readonly layoutPathIndex: ReadonlyMap<string, string>
+  readonly resolveAssetUrl: (path: string) => string
 }
 
 export interface ImportedModelDefinition {

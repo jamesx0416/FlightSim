@@ -12,6 +12,7 @@ import {
   type LoadingManager
 } from 'three'
 
+import { readAircraftRangeFromCacheOrFetch } from '../../aircraftAssets/rangeCache'
 import {
   MSFSDDSLoader,
   shouldBypassDdsRangeReduction,
@@ -614,6 +615,21 @@ function resolveTextureUrl(path: string, url: string): string {
 }
 
 async function fetchArrayBufferRange(
+  url: string,
+  start: number,
+  end: number,
+  requestHeader: Record<string, string>
+): Promise<ArrayBuffer | null> {
+  return readAircraftRangeFromCacheOrFetch({
+    url,
+    start,
+    end,
+    requestHeader,
+    fetchRange: fetchArrayBufferRangeNetwork
+  })
+}
+
+async function fetchArrayBufferRangeNetwork(
   url: string,
   start: number,
   end: number,

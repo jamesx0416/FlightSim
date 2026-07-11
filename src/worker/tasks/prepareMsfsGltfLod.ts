@@ -1,3 +1,4 @@
+import { isAircraftImmutableCacheMode } from '../../aircraftAssets/cachePolicy'
 import { sanitizeMsfsGltf } from '../../msfs/gltf/sanitizeMsfsGltf'
 import { Transfer, type TransferResult } from '../transfer'
 
@@ -86,7 +87,6 @@ async function fetchExternalGltfBuffers(
   const buffers = Array.isArray(gltfJson.buffers)
     ? gltfJson.buffers as Array<Record<string, unknown>>
     : []
-  const baseUrl = gltfUrl.slice(0, gltfUrl.lastIndexOf('/') + 1)
   const externalBuffers = buffers
     .map((buffer, index) => ({ buffer, index, uri: buffer.uri }))
     .filter((entry): entry is {
@@ -96,7 +96,7 @@ async function fetchExternalGltfBuffers(
     } => typeof entry.uri === 'string' && !isEmbeddedGltfBufferUri(entry.uri))
 
   return Promise.all(externalBuffers.map(async ({ index, uri }) => {
-    const bufferUrl = new URL(uri, baseUrl).toString()
+    const bufferUrl = resolveVersionedGltfDependencyUrl(uri, gltfUrl)
     const arrayBuffer = await fetchExternalGltfBuffer(bufferUrl)
     return {
       index,
@@ -106,10 +106,22 @@ async function fetchExternalGltfBuffers(
   }))
 }
 
+function resolveVersionedGltfDependencyUrl(uri: string, gltfUrl: string): string {
+  const resolved = new URL(uri, gltfUrl)
+  const assetVersion = new URL(gltfUrl).searchParams.get('assetVersion')
+  if (assetVersion != null && !resolved.searchParams.has('assetVersion')) {
+    resolved.searchParams.set('assetVersion', assetVersion)
+  }
+  return resolved.toString()
+}
+
 async function fetchExternalGltfBuffer(url: string): Promise<ArrayBuffer> {
-  const requestUrl = appendGltfBufferCacheBuster(url)
+  if (isAircraftImmutableCacheMode()) {
+    return fetchExternalGltfBufferFull(url)
+  }
+
   const firstEnd = GLTF_BUFFER_CHUNK_BYTES - 1
-  const firstResponse = await fetchExternalGltfBufferRange(requestUrl, 0, firstEnd)
+  const firstResponse = await fetchExternalGltfBufferRange(url, 0, firstEnd)
   if (firstResponse.status !== 206) {
     if (!firstResponse.ok) {
       throw new Error(`Failed to load ${url}: HTTP ${firstResponse.status}`)
@@ -138,7 +150,7 @@ async function fetchExternalGltfBuffer(url: string): Promise<ArrayBuffer> {
       const range = ranges[nextRangeIndex]!
       nextRangeIndex += 1
       const { start, end } = range
-      const response = await fetchExternalGltfBufferRange(requestUrl, start, end)
+      const response = await fetchExternalGltfBufferRange(url, start, end)
       if (response.status !== 206 && !response.ok) {
         throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
       }
@@ -152,6 +164,23 @@ async function fetchExternalGltfBuffer(url: string): Promise<ArrayBuffer> {
     }, () => loadNextRange())
   )
   return output.buffer
+}
+
+async function fetchExternalGltfBufferFull(url: string): Promise<ArrayBuffer> {
+  const controller = new AbortController()
+  const timeoutId = globalThis.setTimeout(
+    () => controller.abort(),
+    GLTF_BUFFER_CHUNK_TIMEOUT_MS
+  )
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    if (!response.ok) {
+      throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
+    }
+    return await response.arrayBuffer()
+  } finally {
+    globalThis.clearTimeout(timeoutId)
+  }
 }
 
 async function fetchExternalGltfBufferRange(
@@ -171,7 +200,6 @@ async function fetchExternalGltfBufferRange(
   )
   try {
     const response = await fetch(url, {
-      cache: 'no-store',
       headers: {
         Range: `bytes=${start}-${end}`
       },
@@ -187,12 +215,6 @@ async function fetchExternalGltfBufferRange(
   } finally {
     globalThis.clearTimeout(timeoutId)
   }
-}
-
-function appendGltfBufferCacheBuster(url: string): string {
-  const parsedUrl = new URL(url, globalThis.location.href)
-  parsedUrl.searchParams.set('msfsBufferLoad', Math.random().toString(36).slice(2))
-  return parsedUrl.toString()
 }
 
 function parseContentRange(header: string | null): {
