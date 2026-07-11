@@ -1,4 +1,5 @@
 import { compileRpnExpression, evaluateCompiledExpression } from './rpn'
+import { loadMsfsPackageSource, type MsfsPackageSource } from './packageAssets'
 import type {
   BehaviorSourceRoot,
   CompiledAnimationBinding,
@@ -23,8 +24,20 @@ interface LoadedDocument {
   readonly rootElement: Element
 }
 
-const behaviorSourceRootCache = new Map<string, Promise<BehaviorSourceRoot | null>>()
+interface BehaviorDocumentRequest {
+  readonly key: string
+  readonly root: BehaviorSourceRoot
+  readonly path: string
+}
+
+interface BehaviorDocumentGraphNode {
+  readonly document: LoadedDocument | null
+  readonly includeKeys: readonly string[]
+}
+
 const behaviorDocumentCache = new Map<string, Promise<LoadedDocument | null>>()
+let behaviorDocumentCacheHits = 0
+let behaviorDocumentFetches = 0
 
 interface CompileContext {
   readonly pkg: ImportedPackage
@@ -113,9 +126,11 @@ export async function compileMsfs2020Behaviors(
   const aircraftModels = getAircraftModelDefinitions(aircraft, {
     includeInteriorModel: options.includeInteriorModel !== false
   })
-  for (const model of aircraftModels) {
-    await loadBehaviorDocument(model.behaviorPath, context, sourceRoots[0] ?? null)
-  }
+  const rootDocumentKeys = await loadBehaviorDocuments(
+    aircraftModels.map(model => model.behaviorPath),
+    context,
+    sourceRoots[0] ?? null
+  )
 
   const animationBindings: CompiledAnimationBinding[] = []
   const visibilityBindings: CompiledVisibilityBinding[] = []
@@ -131,15 +146,9 @@ export async function compileMsfs2020Behaviors(
 
   activeParameterFunctionMap = parameterFunctionMap
 
-  const rootDocuments = sourceRoots.length > 0
-    ? aircraftModels
-        .map(model =>
-          loadedDocuments.get(
-            `${sourceRoots[0]!.rootUrl}::${normalizePath(model.behaviorPath)}`
-          ) ?? null
-        )
-        .filter((document): document is LoadedDocument => document != null)
-    : []
+  const rootDocuments = rootDocumentKeys
+    .map(documentKey => loadedDocuments.get(documentKey) ?? null)
+    .filter((document): document is LoadedDocument => document != null)
   for (const rootDocument of rootDocuments) {
     traverseElement(
       rootDocument.rootElement,
@@ -244,35 +253,92 @@ function getAircraftModelDefinitions(
     .filter((model): model is NonNullable<typeof model> => model != null)
 }
 
-async function loadBehaviorDocumentShallow(
-  path: string,
+async function loadBehaviorDocuments(
+  paths: readonly string[],
   context: CompileContext,
-  preferredRoot: BehaviorSourceRoot | null = null
-): Promise<void> {
-  const resolvedDocument = resolveBehaviorDocument(path, context, preferredRoot)
-  if (resolvedDocument == null) {
-    return
+  preferredRoot: BehaviorSourceRoot | null = null,
+  loadDocument = loadBehaviorDocumentFromCache
+): Promise<readonly string[]> {
+  const discoveredKeys = new Set<string>()
+  const graph = new Map<string, BehaviorDocumentGraphNode>()
+  const rootRequests = paths
+    .map(path => resolveBehaviorDocumentRequest(path, context, preferredRoot))
+    .filter((request): request is BehaviorDocumentRequest => request != null)
+  let frontier = rootRequests.filter(request => {
+    if (discoveredKeys.has(request.key)) return false
+    discoveredKeys.add(request.key)
+    return true
+  })
+
+  while (frontier.length > 0) {
+    const loadedLevel = await Promise.all(
+      frontier.map(async request => ({
+        request,
+        document: await loadDocument(request.root, request.path)
+      }))
+    )
+    const nextFrontier: BehaviorDocumentRequest[] = []
+
+    for (const { request, document } of loadedLevel) {
+      if (document == null) {
+        context.diagnostics.push({
+          code: 'behavior_document_missing',
+          message: `Behavior document ${request.path} could not be loaded.`,
+          severity: 'warning',
+          sourcePath: request.path
+        })
+        graph.set(request.key, { document: null, includeKeys: [] })
+        continue
+      }
+
+      const includeKeys: string[] = []
+      for (const includeNode of document.rootElement.querySelectorAll('Include')) {
+        const includedPath = resolveIncludePath(request.path, includeNode)
+        if (!includedPath) continue
+        const includedRequest = resolveBehaviorDocumentRequest(
+          includedPath,
+          context,
+          request.root
+        )
+        if (includedRequest == null) continue
+        includeKeys.push(includedRequest.key)
+        if (discoveredKeys.has(includedRequest.key)) continue
+        discoveredKeys.add(includedRequest.key)
+        nextFrontier.push(includedRequest)
+      }
+      graph.set(request.key, { document, includeKeys })
+    }
+
+    frontier = nextFrontier
   }
 
-  const documentKey = `${resolvedDocument.root.rootUrl}::${resolvedDocument.path}`
-  if (context.loadedDocuments.has(documentKey)) {
-    return
+  const insertedKeys = new Set<string>()
+  const insertInDocumentOrder = (documentKey: string): void => {
+    if (insertedKeys.has(documentKey)) return
+    insertedKeys.add(documentKey)
+    const node = graph.get(documentKey)
+    if (node?.document == null) return
+    context.loadedDocuments.set(documentKey, node.document)
+    for (const includeKey of node.includeKeys) {
+      insertInDocumentOrder(includeKey)
+    }
+  }
+  for (const request of rootRequests) {
+    insertInDocumentOrder(request.key)
   }
 
-  const loadedDocument = await loadBehaviorDocumentFromCache(
-    resolvedDocument.root.rootUrl,
-    resolvedDocument.path
-  )
-  if (loadedDocument != null) {
-    context.loadedDocuments.set(documentKey, loadedDocument)
-  }
+  return rootRequests.map(request => request.key)
 }
 
-async function loadBehaviorDocument(
+export const __behaviorTestHooks = {
+  loadBehaviorDocuments
+}
+
+function resolveBehaviorDocumentRequest(
   path: string,
   context: CompileContext,
-  preferredRoot: BehaviorSourceRoot | null = null
-): Promise<void> {
+  preferredRoot: BehaviorSourceRoot | null
+): BehaviorDocumentRequest | null {
   const resolvedDocument = resolveBehaviorDocument(path, context, preferredRoot)
   if (resolvedDocument == null) {
     context.diagnostics.push({
@@ -281,32 +347,13 @@ async function loadBehaviorDocument(
       severity: 'warning',
       sourcePath: path
     })
-    return
+    return null
   }
 
-  const documentKey = `${resolvedDocument.root.rootUrl}::${resolvedDocument.path}`
-  if (context.loadedDocuments.has(documentKey)) return
-
-  const loadedDocument = await loadBehaviorDocumentFromCache(
-    resolvedDocument.root.rootUrl,
-    resolvedDocument.path
-  )
-  if (loadedDocument == null) {
-    context.diagnostics.push({
-      code: 'behavior_document_missing',
-      message: `Behavior document ${resolvedDocument.path} could not be loaded.`,
-      severity: 'warning',
-      sourcePath: resolvedDocument.path
-    })
-    return
-  }
-
-  context.loadedDocuments.set(documentKey, loadedDocument)
-
-  for (const includeNode of loadedDocument.rootElement.querySelectorAll('Include')) {
-    const includedPath = resolveIncludePath(resolvedDocument.path, includeNode)
-    if (!includedPath) continue
-    await loadBehaviorDocument(includedPath, context, resolvedDocument.root)
+  return {
+    key: createBehaviorDocumentKey(resolvedDocument.root, resolvedDocument.path),
+    root: resolvedDocument.root,
+    path: resolvedDocument.path
   }
 }
 
@@ -334,120 +381,61 @@ async function loadBehaviorSourceRoots(
   additionalPackageRoots: readonly string[],
   diagnostics: ImportDiagnostic[]
 ): Promise<readonly BehaviorSourceRoot[]> {
-  const roots: BehaviorSourceRoot[] = [
-    {
-      rootUrl: pkg.rootUrl,
-      layoutPathIndex: new Map(
-        pkg.layoutEntries.map(entry => [normalizePath(entry.path).toLowerCase(), normalizePath(entry.path)])
-      )
-    }
-  ]
-
-  const seenRoots = new Set<string>([pkg.rootUrl.toLowerCase()])
-  for (const rootCandidate of additionalPackageRoots) {
-    const normalizedRoot = toAbsolutePackageRoot(rootCandidate)
-    if (seenRoots.has(normalizedRoot.toLowerCase())) {
-      continue
-    }
-
-    seenRoots.add(normalizedRoot.toLowerCase())
-    const root = await tryLoadBehaviorSourceRoot(normalizedRoot, diagnostics)
-    if (root != null) {
-      roots.push(root)
-    }
-  }
-
-  return roots
-}
-
-async function tryLoadBehaviorSourceRoot(
-  rootUrl: string,
-  diagnostics: ImportDiagnostic[]
-): Promise<BehaviorSourceRoot | null> {
-  const cached = behaviorSourceRootCache.get(rootUrl)
-  if (cached != null) {
-    return cached
-  }
-
-  const pending = tryLoadBehaviorSourceRootUncached(rootUrl, diagnostics)
-  behaviorSourceRootCache.set(rootUrl, pending)
-  return pending
-}
-
-async function tryLoadBehaviorSourceRootUncached(
-  rootUrl: string,
-  diagnostics: ImportDiagnostic[]
-): Promise<BehaviorSourceRoot | null> {
-  try {
-    const response = await fetchWithTimeout(
-      new URL('layout.json', rootUrl).toString(),
-      BEHAVIOR_FETCH_TIMEOUT_MS
-    )
-    if (!response.ok) {
+  const normalizedRoots = [pkg.rootUrl, ...additionalPackageRoots]
+    .map(toAbsolutePackageRoot)
+    .filter((root, index, roots) => roots.findIndex(candidate => candidate.toLowerCase() === root.toLowerCase()) === index)
+  const loaded = await Promise.all(normalizedRoots.map(async (rootUrl, index) => {
+    try {
+      return createBehaviorSourceRoot(await loadMsfsPackageSource(rootUrl))
+    } catch (error) {
+      if (index === 0) {
+        return {
+          rootUrl,
+          revision: null,
+          layoutPathIndex: new Map(
+            pkg.layoutEntries.map(entry => [normalizePath(entry.path).toLowerCase(), normalizePath(entry.path)])
+          ),
+          resolveAssetUrl: (path: string) => new URL(normalizePath(path), rootUrl).toString()
+        }
+      }
       diagnostics.push({
-        code: 'behavior_root_layout_missing',
-        message: `Additional behavior root ${rootUrl} is missing layout.json.`,
+        code: 'behavior_root_layout_failed',
+        message: `Failed to load additional behavior root ${rootUrl}.`,
         severity: 'info',
-        sourcePath: rootUrl
+        sourcePath: rootUrl,
+        details: error instanceof Error ? error.message : String(error)
       })
       return null
     }
-
-    const payload = (await response.json()) as {
-      readonly content?: readonly {
-        readonly path?: string
-      }[]
-    }
-
-    const layoutPathIndex = new Map<string, string>()
-    for (const entry of payload.content ?? []) {
-      if (typeof entry.path !== 'string') {
-        continue
-      }
-
-      const normalizedPath = normalizePath(entry.path)
-      layoutPathIndex.set(normalizedPath.toLowerCase(), normalizedPath)
-    }
-
-    return {
-      rootUrl,
-      layoutPathIndex
-    }
-  } catch (error) {
-    diagnostics.push({
-      code: 'behavior_root_layout_failed',
-      message: `Failed to load additional behavior root ${rootUrl}.`,
-      severity: 'info',
-      sourcePath: rootUrl,
-      details: error instanceof Error ? error.message : String(error)
-    })
-    return null
-  }
+  }))
+  return loaded.filter((root): root is BehaviorSourceRoot => root != null)
 }
 
 async function loadBehaviorDocumentFromCache(
-  rootUrl: string,
+  root: BehaviorSourceRoot,
   path: string
 ): Promise<LoadedDocument | null> {
-  const cacheKey = `${rootUrl}::${path}`
+  const cacheKey = createBehaviorDocumentKey(root, path)
   const cached = behaviorDocumentCache.get(cacheKey)
   if (cached != null) {
+    behaviorDocumentCacheHits += 1
     return cached
   }
 
-  const pending = loadBehaviorDocumentFromCacheUncached(rootUrl, path)
+  const pending = loadBehaviorDocumentFromCacheUncached(root, path)
   behaviorDocumentCache.set(cacheKey, pending)
   return pending
 }
 
 async function loadBehaviorDocumentFromCacheUncached(
-  rootUrl: string,
+  root: BehaviorSourceRoot,
   path: string
 ): Promise<LoadedDocument | null> {
+  behaviorDocumentFetches += 1
   let response: Response
   try {
     response = await fetchWithTimeout(
-      new URL(path, rootUrl).toString(),
+      root.resolveAssetUrl(path),
       BEHAVIOR_FETCH_TIMEOUT_MS
     )
   } catch {
@@ -464,11 +452,42 @@ async function loadBehaviorDocumentFromCacheUncached(
   }
 
   return {
-    rootUrl,
+    rootUrl: root.rootUrl,
     path,
     document: parsedDocument.document,
     rootElement: parsedDocument.rootElement
   }
+}
+
+function createBehaviorSourceRoot(source: MsfsPackageSource): BehaviorSourceRoot {
+  return {
+    rootUrl: source.rootUrl,
+    revision: source.revision,
+    layoutPathIndex: source.layoutPathIndex,
+    resolveAssetUrl: source.resolveAssetUrl
+  }
+}
+
+function createBehaviorDocumentKey(root: BehaviorSourceRoot, path: string): string {
+  return `${root.rootUrl}::${root.revision ?? 'unversioned'}::${path}`
+}
+
+export function getMsfsBehaviorAssetSnapshot(): {
+  readonly cachedDocuments: number
+  readonly documentCacheHits: number
+  readonly documentFetches: number
+} {
+  return {
+    cachedDocuments: behaviorDocumentCache.size,
+    documentCacheHits: behaviorDocumentCacheHits,
+    documentFetches: behaviorDocumentFetches
+  }
+}
+
+export function clearMsfsBehaviorDocumentCache(): void {
+  behaviorDocumentCache.clear()
+  behaviorDocumentCacheHits = 0
+  behaviorDocumentFetches = 0
 }
 
 async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {

@@ -20,6 +20,9 @@ import {
   UnsignedByteType
 } from 'three'
 
+import { readAircraftRangeFromCacheOrFetch } from '../../aircraftAssets/rangeCache'
+import { lookupMsfsPackageAsset } from '../packageAssets'
+
 type DdsParseResult = {
   readonly mipmaps: Array<{
     readonly data: Uint8Array
@@ -830,6 +833,21 @@ async function fetchArrayBufferRange(
   end: number,
   requestHeader: Record<string, string>
 ): Promise<ArrayBuffer | null> {
+  return readAircraftRangeFromCacheOrFetch({
+    url,
+    start,
+    end,
+    requestHeader,
+    fetchRange: fetchArrayBufferRangeNetwork
+  })
+}
+
+async function fetchArrayBufferRangeNetwork(
+  url: string,
+  start: number,
+  end: number,
+  requestHeader: Record<string, string>
+): Promise<ArrayBuffer | null> {
   const headers = new Headers(requestHeader)
   headers.set('Range', `bytes=${start}-${end}`)
   const response = await fetchWithTimeout(url, {
@@ -853,13 +871,16 @@ export async function shouldBypassDdsRangeReduction(
     return false
   }
 
-  const cacheKey = createDdsRangeReductionBypassCacheKey(url, requestHeader)
+  const flagsUrl = await resolveAircraftDdsFlagsUrl(url)
+  if (flagsUrl == null) return false
+
+  const cacheKey = createDdsRangeReductionBypassCacheKey(flagsUrl, requestHeader)
   const cached = ddsRangeReductionBypassCache.get(cacheKey)
   if (cached != null) {
     return cached
   }
 
-  const request = shouldBypassDdsRangeReductionUncached(url, requestHeader).catch(error => {
+  const request = shouldBypassDdsRangeReductionUncached(flagsUrl, requestHeader).catch(error => {
     ddsRangeReductionBypassCache.delete(cacheKey)
     throw error
   })
@@ -867,13 +888,25 @@ export async function shouldBypassDdsRangeReduction(
   return request
 }
 
+async function resolveAircraftDdsFlagsUrl(url: string): Promise<string | null> {
+  const asset = await lookupMsfsPackageAsset(url).catch(() => null)
+  if (asset == null) return `${url}.FLAGS`
+
+  const flagsPath = asset.source.layoutPathIndex.get(`${asset.path}.flags`.toLowerCase())
+  return flagsPath == null ? null : asset.source.resolveAssetUrl(flagsPath)
+}
+
+export const __ddsLoaderTestHooks = {
+  resolveAircraftDdsFlagsUrl
+}
+
 async function shouldBypassDdsRangeReductionUncached(
-  url: string,
+  flagsUrl: string,
   requestHeader: Record<string, string>
 ): Promise<boolean> {
   let response: Response
   try {
-    response = await fetchWithTimeout(`${url}.FLAGS`, {
+    response = await fetchWithTimeout(flagsUrl, {
       headers: requestHeader,
       credentials: 'same-origin'
     }, 500)

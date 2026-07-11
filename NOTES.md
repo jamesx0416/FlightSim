@@ -2,6 +2,13 @@
 
 Durable investigation notes that are useful context but are not active implementation instructions.
 
+## Asset Packaging Observations
+
+- 2026-07-10: Future aircraft asset packaging should prefer generated modular packages over one giant archive split into arbitrary chunks. The useful boundary is not equal-sized files; it is cache/update/load control by dependency group. A likely path is: keep the current versioned loose-file cache as the base layer, generate a canonical asset manifest from simulator-specific package data, label assets by role, then use those labels for prefetching, cache diagnostics, and optional packaging.
+- 2026-07-10: For MSFS, `layout.json` and package conventions make modular grouping practical. Candidate groups are base config/layout/manifest, behavior XML, selected model glTF/bin files, cockpit texture ranges, exterior/livery textures, sound banks, html_ui avionics, effects, and localization. Do not assume groups will be evenly sized; local packages are dominated by `SimObjects`, especially DDS textures, `.bin` model buffers, and `.PCK` sound banks.
+- 2026-07-10: X-Plane and FlightGear should not be assumed to have MSFS-style manifests. They need adapter-generated manifests by parsing their native aircraft definitions and references. Folder-based splitting alone is too fragile for cross-simulator support.
+- 2026-07-10: Compression is optional and should be measured. Small text-heavy assets such as XML, JSON, JS, config, and localization are good candidates for compressed modules. Large DDS/bin/PCK assets should generally remain directly addressable and versioned so the loader can range-load, cache, and skip them. If a texture group becomes too large, consider splitting by cockpit/exterior/livery/resolution or mip/range strategy before wrapping everything in one solid archive.
+
 ## Performance Observations
 
 - 2026-05-29: During the pedestal long-session investigation, A330 samples showed high offscreen PFD/ND gauge counters while the camera was framed on the MCDU/pedestal area. That evidence is useful for future generic VCockpit optimization work, but it did not explain the reported bug because the user-visible lag occurred while looking at the pedestal. Do not use those counters as justification for a pedestal fix unless a separate look-away/look-back freshness investigation proves the behavior is safe.
