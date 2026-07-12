@@ -357,6 +357,39 @@ This section tracks the next authoritative, aircraft-generic loader work.
 
 ### Next Work
 
+### Planned: MSFS-Authoritative Cockpit Interaction Input
+
+Do not implement this work until it is explicitly scheduled. The purpose is to make the browser viewer execute the interaction contract authored by each MSFS package, while retaining a simulator-agnostic input layer for future adapters and hardware.
+
+- Preserve package authority:
+  - Keep importing the aircraft's `MouseRect`, callback, input-event, template, tooltip, and sound metadata.
+  - Do not classify a control from node/mesh names or invent aircraft-specific click rules.
+  - Use the already mounted public stock definitions under `vendor/msfs-stock/ModelBehaviorDefs/Asobo/` and the browser-served mirror under `public/vendor/msfs-stock/ModelBehaviorDefs/Asobo/`; do not add local replacement XML templates for stock interaction behavior.
+- Define a canonical viewer interaction action model independent of mouse hardware: `primary`, `secondary`, `tertiary`, `increase`, `decrease`, `lock`, `unlock`, `hover`, `leave`, and a lifecycle of `press`, `hold`, `release`, and axis/drag deltas.
+  - The MSFS adapter maps that canonical action model to the exact MouseRect event semantics and executes the compiled package expression.
+  - Keep the simulator-specific event vocabulary at the adapter boundary, rather than leaking `LeftSingle` / `WheelUp` into engine controls.
+- Add a device-binding layer with profiles, rather than per-aircraft mappings:
+  - Ship an MSFS-style mouse profile with left = primary, right = secondary, middle = tertiary, and configurable wheel/drag mappings.
+  - Add separately bindable keyboard, gamepad, touch, VR, and HID/flight-sim hardware inputs. Bind an input to a canonical cockpit action, never directly to a mesh name.
+  - Persist global profiles with optional aircraft-category/profile selection. Aircraft package metadata remains the only source of what that canonical action does on a hovered or locked object.
+  - Reserve an explicit advanced binding capability for hardware only where an aircraft exposes a stable, authored interaction target/input-event ID. It must be opt-in, discoverable, scoped to that package, and never replace the normal metadata-driven interaction path.
+- Add a Cockpit Input settings surface:
+  - Select interaction mode: `legacy` direct manipulation or `lock` target acquisition.
+  - Display and edit primary, secondary, tertiary, increase/decrease, lock/unlock, and camera-look bindings.
+  - Make conflicts visible, include reset-to-MSFS-style defaults, and save profiles through the existing viewer configuration store.
+- Extend `window.__DevApi` before wiring UI gestures:
+  - List resolved interactive targets with their authored source path, target ID, available event/lifecycle coverage, tooltip, and input-event bridge names.
+  - Dispatch canonical actions by target or by hit-tested screen coordinate, including press/hold/release and drag deltas.
+  - Expose a deterministic binding/profile inspection and mutation API for test harnesses, plus an event trace showing the canonical action, mapped MSFS event, expression result, state changes, and feedback/sound output.
+- Implement the viewer dispatcher generically:
+  - Route pointer down/move/up, wheel, keyboard, and future HID inputs through one canonical action dispatcher.
+  - Correctly dispatch secondary and tertiary, hover/leave, lock/unlock, wheel increment/decrement, and both left/right drag when authored by the interaction.
+  - Capture and release the target consistently, honour authored held/momentary/timed/gated behavior, and keep camera controls active only when an interaction has not captured the input.
+- Verification contract:
+  - Add parser/runtime tests for all MouseRect event kinds and lifecycle transitions using stock template fixtures.
+  - Add DevApi integration tests for a simple button, momentary control, two-state toggle, multi-state gated switch, finite and infinite knob, pushable/pullable knob, wheel increment/decrement, continuous lever, covered switch, radio standby/swap, barometer/STD, and flap handle versus physical-position behavior.
+  - Verify at least two existing package fixtures without package edits and include a hardware-profile smoke using a synthetic HID binding, ensuring no aircraft-specific behavior enters engine or viewer code.
+
 - Keep broadening authoritative RPN/operator coverage.
   - Recent passes added official MSFS stack/control operators used by model XML: `if/els`, `quit`, `case`, `?`, `d`, `p`, `r`, `sN`, `spN`, `lN`, `pN`, plus a growing set of numeric operators.
   - Next RPN work should continue from official SDK operator semantics, not from aircraft-specific trial-and-error.
