@@ -1488,7 +1488,7 @@ async function init(): Promise<void> {
     | null = null
   const handleCockpitInteractionPress = (
     event: MouseEvent | PointerEvent,
-    options: { readonly holdFeedback: boolean }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
   ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.attemptCount += 1
     cockpitInteractionStats.lastMissReason = null
@@ -1696,16 +1696,26 @@ async function init(): Promise<void> {
     binding: CompiledInteractionBinding,
     hitObject: Object3D,
     hitKind: 'interaction-mesh' | 'fallback-hitbox',
-    options: { readonly holdFeedback: boolean }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
   ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
     cockpitInteractionStats.lastHitKind = hitKind
-    if (runtime.executeInteractionBindingDirect(binding, { holdFeedback: options.holdFeedback })) {
+    const selectedBinding = options.mouseEvent == null
+      ? binding
+      : runtime.getInteractionBindings().find(candidate =>
+          candidate.target === binding.target &&
+          candidate.metadata.routes.some(route => route.msfsEvent === options.mouseEvent)
+        ) ?? binding
+    const route = options.mouseEvent == null
+      ? selectedBinding.metadata.routes.find(candidate => candidate.operation === 'press')
+      : selectedBinding.metadata.routes.find(candidate => candidate.msfsEvent === options.mouseEvent)
+    if (route == null) return null
+    if (runtime.executeInteractionBindingDirect(selectedBinding, { holdFeedback: options.holdFeedback, mouseEvent: route.msfsEvent ?? undefined })) {
       cockpitInteractionStats.executedCount += 1
-      cockpitInteractionStats.lastTarget = binding.target
-      cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? binding.target : null
+      cockpitInteractionStats.lastTarget = selectedBinding.target
+      cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? selectedBinding.target : null
       cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
-      return binding
+      return selectedBinding
     }
 
     return null
@@ -1720,12 +1730,13 @@ async function init(): Promise<void> {
       readonly dragPercent: number
     }
   ): boolean => {
-    if (binding == null || binding.kind !== 'callback' || !binding.expression.source.includes('LeftDrag')) {
+    const dragRoute = binding?.metadata.routes.find(route => route.phase === 'drag')
+    if (binding == null || dragRoute == null) {
       return false
     }
     const dragged = runtime.executeInteractionCallbackEventForBinding(binding, {
       holdFeedback: true,
-      mouseEvent: 'LeftDrag',
+      mouseEvent: dragRoute.msfsEvent ?? undefined,
       inputType: 1,
       relativeX: options.relativeX,
       relativeY: options.relativeY,
@@ -1742,14 +1753,14 @@ async function init(): Promise<void> {
 
   const releaseCockpitInteractionPress = (
     binding: CompiledInteractionBinding | null,
-    options: { readonly unlock: boolean } = { unlock: false }
+    options: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary' } = { unlock: false }
   ): void => {
     if (binding == null) {
       return
     }
     runtime.executeInteractionCallbackEventForBinding(binding, {
       holdFeedback: false,
-      mouseEvent: 'LeftRelease'
+      mouseEvent: options.channel === 'secondary' ? 'RightRelease' : options.channel === 'tertiary' ? 'MiddleRelease' : 'LeftRelease'
     })
     if (options.unlock) {
       runtime.executeInteractionCallbackEventForBinding(binding, {
@@ -1929,7 +1940,8 @@ async function init(): Promise<void> {
     },
     handleCockpitInteractionPress,
     executeCockpitInteractionDrag,
-    releaseCockpitInteractionPress
+    releaseCockpitInteractionPress,
+    handleCockpitInteractionPress
   )
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
     cockpitCameraController
@@ -11203,7 +11215,7 @@ function installCockpitCameraShortcut(
   onToggleCockpitView?: (mode: 'enter' | 'exit', source: CockpitViewToggleSource) => void,
   onCockpitPress?: (
     event: MouseEvent | PointerEvent,
-    options: { readonly holdFeedback: boolean }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
   ) => CompiledInteractionBinding | null,
   onCockpitDrag?: (
     binding: CompiledInteractionBinding | null,
@@ -11216,8 +11228,12 @@ function installCockpitCameraShortcut(
   ) => boolean,
   onCockpitRelease?: (
     binding: CompiledInteractionBinding | null,
-    options?: { readonly unlock: boolean }
-  ) => void
+    options?: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary' }
+  ) => void,
+  onCockpitWheel?: (
+    event: MouseEvent | PointerEvent,
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
+  ) => CompiledInteractionBinding | null
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -11248,6 +11264,7 @@ function installCockpitCameraShortcut(
   let cockpitZoom = camera.zoom
   let activePointerId: number | null = null
   let activePointerIsRightMouse = false
+  let activeInteractionChannel: 'primary' | 'secondary' | 'tertiary' = 'primary'
   let lastPointerX = 0
   let lastPointerY = 0
   let startPointerX = 0
@@ -11310,7 +11327,7 @@ function installCockpitCameraShortcut(
   }
 
   const isSupportedCockpitPointerButton = (event: PointerEvent): boolean =>
-    event.pointerType !== 'mouse' || event.button === 0 || event.button === 2
+    event.pointerType !== 'mouse' || event.button === 0 || event.button === 1 || event.button === 2
 
   const getPointerRelativeValues = (event: PointerEvent): {
     readonly relativeX: number
@@ -11391,6 +11408,13 @@ function installCockpitCameraShortcut(
   }
 
   const onKeyDown = (event: KeyboardEvent): void => {
+    if (event.code === 'Escape' && activeCockpitPressBinding != null) {
+      onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel })
+      activeCockpitPressBinding = null
+      releasePointer()
+      event.preventDefault()
+      return
+    }
     if (event.repeat || event.code !== 'KeyC' || shouldIgnoreKeyboardShortcut(event)) {
       return
     }
@@ -11413,13 +11437,17 @@ function installCockpitCameraShortcut(
 
     activePointerId = event.pointerId
     activePointerIsRightMouse = event.pointerType === 'mouse' && event.button === 2
+    activeInteractionChannel = event.button === 2 ? 'secondary' : event.button === 1 ? 'tertiary' : 'primary'
     lastPointerX = event.clientX
     lastPointerY = event.clientY
     startPointerX = event.clientX
     startPointerY = event.clientY
     activeCockpitPressDragged = false
     activeCockpitDragCallbackEmitted = false
-    activeCockpitPressBinding = onCockpitPress?.(event, { holdFeedback: true }) ?? null
+    activeCockpitPressBinding = onCockpitPress?.(event, {
+      holdFeedback: true,
+      mouseEvent: activeInteractionChannel === 'secondary' ? 'RightSingle' : activeInteractionChannel === 'tertiary' ? 'MiddleSingle' : 'LeftSingle'
+    }) ?? null
     domElement.setPointerCapture(event.pointerId)
     event.preventDefault()
   }
@@ -11438,7 +11466,7 @@ function installCockpitCameraShortcut(
       if (movedFarEnough) {
         activeCockpitPressDragged = true
       }
-      if (activePointerIsRightMouse && activeCockpitPressDragged) {
+      if (activeCockpitPressDragged) {
         activeCockpitDragCallbackEmitted =
           onCockpitDrag?.(activeCockpitPressBinding, getPointerRelativeValues(event)) === true ||
           activeCockpitDragCallbackEmitted
@@ -11462,7 +11490,7 @@ function installCockpitCameraShortcut(
       return
     }
 
-    onCockpitRelease?.(activeCockpitPressBinding, { unlock: activeCockpitDragCallbackEmitted })
+    onCockpitRelease?.(activeCockpitPressBinding, { unlock: activeCockpitDragCallbackEmitted, channel: activeInteractionChannel })
     activeCockpitPressBinding = null
     releasePointer()
     event.preventDefault()
@@ -11475,11 +11503,23 @@ function installCockpitCameraShortcut(
     event.preventDefault()
   }
 
+  const cancelActivePointer = (): void => {
+    onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel })
+    activeCockpitPressBinding = null
+    releasePointer()
+  }
+
   const onWheel = (event: WheelEvent): void => {
     if (!isCockpitViewActive) {
       return
     }
 
+    const wheelDirection = event.deltaY < 0 ? 'WheelUp' : 'WheelDown'
+    const target = onCockpitWheel?.(event, { holdFeedback: false, mouseEvent: wheelDirection }) ?? null
+    if (target != null) {
+      event.preventDefault()
+      return
+    }
     cockpitZoom = Math.min(
       MAX_ZOOM,
       Math.max(MIN_ZOOM, cockpitZoom * Math.exp(-event.deltaY * 0.0015))
@@ -11489,19 +11529,23 @@ function installCockpitCameraShortcut(
   }
 
   window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('blur', cancelActivePointer)
   domElement.addEventListener('pointerdown', onPointerDown)
   domElement.addEventListener('pointermove', onPointerMove)
   domElement.addEventListener('pointerup', onPointerUp)
   domElement.addEventListener('pointercancel', onPointerUp)
+  domElement.addEventListener('lostpointercapture', cancelActivePointer)
   domElement.addEventListener('contextmenu', onContextMenu)
   domElement.addEventListener('wheel', onWheel, { passive: false })
   disposeCockpitCameraShortcut = () => {
     exitCockpitView()
     window.removeEventListener('keydown', onKeyDown)
+    window.removeEventListener('blur', cancelActivePointer)
     domElement.removeEventListener('pointerdown', onPointerDown)
     domElement.removeEventListener('pointermove', onPointerMove)
     domElement.removeEventListener('pointerup', onPointerUp)
     domElement.removeEventListener('pointercancel', onPointerUp)
+    domElement.removeEventListener('lostpointercapture', cancelActivePointer)
     domElement.removeEventListener('contextmenu', onContextMenu)
     domElement.removeEventListener('wheel', onWheel)
   }

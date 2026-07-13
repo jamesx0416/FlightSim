@@ -1,0 +1,116 @@
+export type CockpitInteractionChannel = 'primary' | 'secondary' | 'tertiary'
+export type CockpitInteractionPhase = 'press' | 'double' | 'hold' | 'drag' | 'repeat' | 'release' | 'cancel'
+export type CockpitInteractionMode = 'legacy' | 'lock'
+export type CockpitRelativeDirection = 'increase' | 'decrease' | 'left' | 'right' | 'up' | 'down'
+export type CockpitInteractionSource = 'mouse' | 'keyboard' | 'gamepad' | 'touch' | 'vr' | 'hid' | 'devapi'
+export type CockpitInteractionOperation =
+  | 'press' | 'hold' | 'release' | 'turn' | 'increase' | 'decrease' | 'adjust' | 'set'
+  | 'on' | 'off' | 'toggle' | 'hover' | 'leave' | 'lock' | 'unlock' | 'cancel'
+
+export interface CockpitInteractionInput {
+  readonly source: CockpitInteractionSource
+  readonly channel?: CockpitInteractionChannel
+  readonly phase: CockpitInteractionPhase
+  readonly pointerId?: number
+  readonly axis?: 'x' | 'y' | 'z'
+  readonly axisValue?: number
+  readonly delta?: number
+  readonly dragPercent?: number
+  readonly timestampMs: number
+}
+
+export interface CanonicalCockpitAction extends CockpitInteractionInput {
+  readonly operation: CockpitInteractionOperation
+  readonly steps?: number
+  readonly value?: number | boolean | string
+  readonly unit?: string
+  readonly direction?: CockpitRelativeDirection
+}
+
+export interface CockpitInteractionTarget {
+  readonly id: string
+  readonly lockable: boolean
+  readonly operations: readonly CockpitInteractionOperation[]
+}
+
+export type CockpitInteractionState = 'idle' | 'hovered' | 'pressed' | 'captured' | 'dragging' | 'held' | 'repeating' | 'released' | 'locked' | 'cancelled'
+
+export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
+  private hovered: T | null = null
+  private captured: { target: T; pointerId: number; channel: CockpitInteractionChannel; locked: boolean } | null = null
+  private readonly busy = new Map<string, CockpitInteractionOperation>()
+  private state: CockpitInteractionState = 'idle'
+
+  constructor(
+    private mode: CockpitInteractionMode,
+    private readonly execute: (target: T, action: CanonicalCockpitAction) => boolean
+  ) {}
+
+  get snapshot(): Readonly<{ state: CockpitInteractionState; hovered: string | null; captured: string | null; busy: readonly string[] }> {
+    return { state: this.state, hovered: this.hovered?.id ?? null, captured: this.captured?.target.id ?? null, busy: [...this.busy.keys()] }
+  }
+
+  setMode(mode: CockpitInteractionMode): void { this.cancelAll(); this.mode = mode }
+
+  hover(target: T | null, timestampMs = performance.now()): void {
+    if (this.captured != null) return
+    if (this.hovered != null && this.hovered !== target) this.execute(this.hovered, event('leave', 'cancel', timestampMs))
+    this.hovered = target
+    this.state = target == null ? 'idle' : 'hovered'
+    if (target != null) this.execute(target, event('hover', 'press', timestampMs))
+  }
+
+  pointerDown(target: T | null, pointerId: number, channel: CockpitInteractionChannel, timestampMs: number): boolean {
+    if (target == null) return false
+    if (this.busy.has(target.id)) return true
+    const locked = this.mode === 'lock' && target.lockable && channel === 'primary'
+    this.captured = { target, pointerId, channel, locked }
+    this.state = locked ? 'locked' : 'pressed'
+    this.busy.set(target.id, 'hold')
+    if (locked) this.execute(target, { ...event('lock', 'hold', timestampMs), channel, pointerId })
+    this.execute(target, { ...event('hold', 'hold', timestampMs), channel, pointerId })
+    return true
+  }
+
+  pointerMove(pointerId: number, axis: 'x' | 'y' | 'z', axisValue: number, dragPercent: number, timestampMs: number): boolean {
+    if (this.captured?.pointerId !== pointerId) return false
+    this.state = 'dragging'
+    return this.execute(this.captured.target, { ...event('turn', 'drag', timestampMs), channel: this.captured.channel, pointerId, axis, axisValue, dragPercent })
+  }
+
+  pointerUp(pointerId: number, timestampMs: number): boolean {
+    if (this.captured?.pointerId !== pointerId) return false
+    const capture = this.captured
+    this.execute(capture.target, { ...event('release', 'release', timestampMs), channel: capture.channel, pointerId })
+    if (capture.locked) this.execute(capture.target, { ...event('unlock', 'release', timestampMs), channel: capture.channel, pointerId })
+    this.busy.delete(capture.target.id)
+    this.captured = null
+    this.state = this.hovered == null ? 'idle' : 'hovered'
+    return true
+  }
+
+  dispatch(target: T, action: CanonicalCockpitAction): 'executed' | 'unsupported' | 'busy' {
+    if (!target.operations.includes(action.operation)) return 'unsupported'
+    if (this.busy.has(target.id) && action.operation !== 'release' && action.operation !== 'cancel') return 'busy'
+    return this.execute(target, action) ? 'executed' : 'unsupported'
+  }
+
+  cancel(targetId?: string, timestampMs = performance.now()): boolean {
+    if (targetId != null && this.captured?.target.id !== targetId && !this.busy.has(targetId)) return false
+    if (this.captured != null && (targetId == null || this.captured.target.id === targetId)) {
+      this.execute(this.captured.target, event('cancel', 'cancel', timestampMs))
+      this.execute(this.captured.target, event('unlock', 'cancel', timestampMs))
+      this.busy.delete(this.captured.target.id)
+      this.captured = null
+    }
+    if (targetId == null) this.busy.clear(); else this.busy.delete(targetId)
+    this.state = 'cancelled'
+    return true
+  }
+
+  cancelAll(): void { this.cancel() }
+}
+
+function event(operation: CockpitInteractionOperation, phase: CockpitInteractionPhase, timestampMs: number): CanonicalCockpitAction {
+  return { source: 'mouse', operation, phase, timestampMs }
+}

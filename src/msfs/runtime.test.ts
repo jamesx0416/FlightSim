@@ -1,5 +1,11 @@
 import { describe, expect, test } from 'bun:test'
-import { AnimationClip, Mesh, MeshStandardMaterial, Object3D } from 'three'
+import {
+  AnimationClip,
+  Mesh,
+  MeshStandardMaterial,
+  Object3D,
+  VectorKeyframeTrack,
+} from 'three'
 
 import { createSimulatorEngineForAircraft } from '../sim/engine'
 import { AircraftRuntime } from './runtime'
@@ -28,6 +34,47 @@ const hostServices: RuntimeHostServices = {
 }
 
 describe('AircraftRuntime canonical visual bindings', () => {
+  test('maps normalized values across the authored animation key range', () => {
+    const scene = new Object3D()
+    const lever = new Object3D()
+    lever.name = 'Lever'
+    scene.add(lever)
+    const engine = createSimulatorEngineForAircraft({
+      identity: { id: 'detented-aircraft', displayName: 'Detented Aircraft' },
+      visuals: [{
+        id: 'detented-lever',
+        kind: 'control',
+        channel: 'animation',
+        target: 'detentedlever',
+        stateKey: 'visual.detented.ratio',
+      }],
+    })
+    const runtime = new AircraftRuntime(
+      emptyCompiledBehaviorSet,
+      scene,
+      hostServices,
+      undefined,
+      engine.getAircraft(),
+      engine
+    )
+    runtime.bindAnimations([new AnimationClip('DetentedLever', -1, [
+      new VectorKeyframeTrack(
+        'Lever.position',
+        [1 / 30, 2 / 30, 3 / 30, 4 / 30, 5 / 30],
+        [0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4, 0, 0]
+      ),
+    ])])
+
+    engine.state.set('visual.detented.ratio', 0.25, {
+      source: 'runtime',
+      unit: 'ratio',
+    })
+    runtime.update(1 / 60)
+    runtime.update(1 / 60)
+
+    expect(Math.abs(lever.position.x - 1) < 1e-6).toBe(true)
+  })
+
   test('drives animation visibility and material outputs from canonical state', () => {
     const scene = new Object3D()
     const visibilityNode = new Object3D()
