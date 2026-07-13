@@ -588,6 +588,19 @@ test('publishes canonical surface commands through MSFS compatibility reads', ()
   expect(host.readVariable('A:SPOILERS LEFT POSITION', 'percent')).toBe(25)
 })
 
+test('returns package flap fallbacks in their requested unit', () => {
+  const host = new SharedMsfsRuntimeHost([])
+  host.invokeKeyEvent('FLAPS_SET', [8191.5])
+
+  expect(host.readVariable('L:TEST_FLAPS_HANDLE_PERCENT', 'number')).toBe(0.5)
+  expect(host.readVariable('L:TEST_FLAPS_HANDLE_INDEX', 'number')).toBe(2)
+  expect(host.readVariable('L:TEST_FLAP_POSITION', 'number')).toBe(0)
+
+  host.tick(1)
+  expect(host.readVariable('L:TEST_FLAP_POSITION', 'number')).toBe(0.5)
+  expect(host.readVariable('L:TEST_FLAP_POSITION', 'percent')).toBe(50)
+})
+
 test('publishes direct canonical state writes through cached MSFS compatibility reads', () => {
   const host = new SharedMsfsRuntimeHost([])
 

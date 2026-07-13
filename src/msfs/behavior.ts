@@ -8,6 +8,9 @@ import type {
   CompiledInputEventBinding,
   CompiledInteractionBinding,
   CompiledInteractionBlocker,
+  CompiledInteractionMetadata,
+  CompiledInteractionRoute,
+  CompiledInteractionSourceKind,
   CompiledInteractionSoundEvent,
   CompiledMaterialBinding,
   CompiledUpdateBinding,
@@ -1474,7 +1477,7 @@ function buildInteractionCodeBinding(
   params: ReadonlyMap<string, string>,
   currentNode: string | null,
   sourcePath: string,
-  kind: CompiledInteractionBinding['kind'],
+  kind: 'leftSingle' | 'callback',
   diagnostics: ImportDiagnostic[]
 ): CompiledInteractionBinding | null {
   const target =
@@ -1528,7 +1531,85 @@ function buildInteractionCodeBinding(
     expression,
     releaseExpression,
     sourcePath,
-    kind
+    metadata: buildCompiledInteractionMetadata(params, currentNode, target, sourcePath, source, kind)
+  }
+}
+
+const MSFS_INTERACTION_EVENTS: Readonly<Record<string, Omit<CompiledInteractionRoute, 'inputTypes'>>> = {
+  LeftSingle: { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null },
+  LeftDouble: { channel: 'primary', phase: 'double', operation: 'press', msfsEvent: 'LeftDouble', axis: null },
+  LeftDrag: { channel: 'primary', phase: 'drag', operation: 'turn', msfsEvent: 'LeftDrag', axis: null },
+  LeftRelease: { channel: 'primary', phase: 'release', operation: 'release', msfsEvent: 'LeftRelease', axis: null },
+  RightSingle: { channel: 'secondary', phase: 'press', operation: 'press', msfsEvent: 'RightSingle', axis: null },
+  RightDouble: { channel: 'secondary', phase: 'double', operation: 'press', msfsEvent: 'RightDouble', axis: null },
+  RightDrag: { channel: 'secondary', phase: 'drag', operation: 'turn', msfsEvent: 'RightDrag', axis: null },
+  RightRelease: { channel: 'secondary', phase: 'release', operation: 'release', msfsEvent: 'RightRelease', axis: null },
+  MiddleSingle: { channel: 'tertiary', phase: 'press', operation: 'press', msfsEvent: 'MiddleSingle', axis: null },
+  MiddleDouble: { channel: 'tertiary', phase: 'double', operation: 'press', msfsEvent: 'MiddleDouble', axis: null },
+  MiddleDrag: { channel: 'tertiary', phase: 'drag', operation: 'turn', msfsEvent: 'MiddleDrag', axis: null },
+  MiddleRelease: { channel: 'tertiary', phase: 'release', operation: 'release', msfsEvent: 'MiddleRelease', axis: null },
+  WheelUp: { channel: null, phase: null, operation: 'increase', msfsEvent: 'WheelUp', axis: null },
+  WheelDown: { channel: null, phase: null, operation: 'decrease', msfsEvent: 'WheelDown', axis: null },
+  Move: { channel: null, phase: 'drag', operation: 'turn', msfsEvent: 'Move', axis: null },
+  Leave: { channel: null, phase: null, operation: 'leave', msfsEvent: 'Leave', axis: null },
+  Lock: { channel: null, phase: null, operation: 'lock', msfsEvent: 'Lock', axis: null },
+  Unlock: { channel: null, phase: null, operation: 'unlock', msfsEvent: 'Unlock', axis: null }
+}
+
+function buildCompiledInteractionMetadata(
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  target: string,
+  sourcePath: string,
+  source: string,
+  kind: 'leftSingle' | 'callback'
+): CompiledInteractionMetadata {
+  const declared = [...params]
+    .filter(([key]) => key.includes('MOUSE_FLAGS') || key.includes('MOUSEFLAGS'))
+    .flatMap(([, value]) => value.split(/[,+|\s]+/))
+  const declaredEvents = new Set(declared)
+  if (declaredEvents.has('Wheel')) {
+    declaredEvents.add('WheelUp')
+    declaredEvents.add('WheelDown')
+  }
+  if (source.includes('M:Event') && source.includes('els{')) {
+    if (source.includes('WheelUp')) declaredEvents.add('WheelDown')
+    if (source.includes('WheelDown')) declaredEvents.add('WheelUp')
+  }
+  const routes = Object.entries(MSFS_INTERACTION_EVENTS)
+    .filter(([event]) => kind === 'leftSingle' ? event === 'LeftSingle' : declaredEvents.has(event) || source.includes(event))
+    .map(([, route]) => ({ ...route, inputTypes: [] }))
+  if (routes.length === 0) routes.push({ ...MSFS_INTERACTION_EVENTS.LeftSingle, inputTypes: [] })
+  const axisText = (params.get('DRAG_AXIS') ?? params.get('AXIS') ?? '').trim().toLowerCase()
+  const axis = axisText === 'x' || axisText === 'y' || axisText === 'z' ? axisText : null
+  const authoredId = params.get('ID')?.trim() || params.get('INTERACTION_ID')?.trim() || target || null
+  const sourceKind: CompiledInteractionSourceKind = source.startsWith('(>K:')
+    ? 'eventId'
+    : params.get('INPUT_EVENT_ID_SOURCE')?.trim() ? 'inputEvent' : 'callbackCode'
+  return {
+    authoredId,
+    qualifiedId: `${sourcePath}#${authoredId ?? target}`,
+    nodeId: params.get('NODE_ID')?.trim() || currentNode?.trim() || null,
+    componentId: params.get('COMPONENT_ID')?.trim() || params.get('ID')?.trim() || null,
+    inputEventIds: [params.get('INPUT_EVENT_ID_SOURCE')?.trim() ?? ''].filter(Boolean),
+    routes,
+    sourceKind,
+    sourcePath,
+    sourceTemplate: params.get('TEMPLATE_NAME')?.trim() || null,
+    templateRevision: params.get('TEMPLATE_REVISION')?.trim() || null,
+    lockable: routes.some(route => route.operation === 'lock') || parseBoolean(params.get('LOCKABLE') ?? 'False'),
+    dynamicEventHandling: source.includes('M:Event'),
+    disabled: parseBoolean(params.get('DISABLED') ?? 'False'),
+    disabledInVr: parseBoolean(params.get('DISABLED_IN_VR') ?? 'False'),
+    prioritizeVCockpits: parseBoolean(params.get('PRIORITIZE_VCOCKPITS') ?? 'False'),
+    ignoreZTest: parseBoolean(params.get('IGNORE_Z_TEST') ?? 'False'),
+    highlightNodeId: params.get('HIGHLIGHT_NODE_ID')?.trim() || currentNode?.trim() || null,
+    axis,
+    inverted: parseBoolean(params.get('INVERTED') ?? params.get('INVERT_DRAG') ?? 'False'),
+    cursor: params.get('CURSOR')?.trim() || null,
+    tooltipTitle: params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null,
+    tooltipDescription: params.get('TOOLTIP_DESCRIPTION')?.trim() || null,
+    tooltipValueExpression: null
   }
 }
 
@@ -1569,7 +1650,7 @@ function buildInteractionEventBinding(
   params: ReadonlyMap<string, string>,
   currentNode: string | null,
   sourcePath: string,
-  kind: CompiledInteractionBinding['kind'],
+  kind: 'leftSingle' | 'callback',
   diagnostics: ImportDiagnostic[]
 ): CompiledInteractionBinding | null {
   const normalizedEventId = normalizeKeyEventId(eventId)
@@ -2529,7 +2610,7 @@ function pushUniqueInteractionBinding(
 ): void {
   const duplicate = bindings.some(candidate =>
     candidate.target === binding.target &&
-    candidate.kind === binding.kind &&
+    candidate.metadata.sourceKind === binding.metadata.sourceKind &&
     candidate.expression.source === binding.expression.source &&
     candidate.releaseExpression?.source === binding.releaseExpression?.source
   )

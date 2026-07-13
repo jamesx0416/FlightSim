@@ -52,10 +52,12 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 
 ## Actions
 
-- `click(target, options?)` executes a cockpit interaction; stock mouse variables can be passed with `mouseEvent`, `inputType`, `relativeX/Y/Z`, and `dragPercent`: `await window.__DevApi.click("LEVER_FLAPS", { mouseEvent: "WheelUp" })`.
-- `release(target)` releases a held/callback interaction: `window.__DevApi.release("PUSH_STARTER")`.
-- `turn(target, options)` repeats wheel-style rotary input: `await window.__DevApi.turn("KNOB_HEADING", { direction: "up", steps: 3 })`.
-- `drag(target, options?)` runs stock drag/callback phases (`Lock`, `LeftSingle`, `LeftDrag`, `LeftRelease`, `Unlock`): `await window.__DevApi.drag("LEVER_THROTTLE", { axis: "y", start: 0, end: 1 })`.
+- `interactions.list()` and `interactions.describe(target)` expose authored capabilities and source-qualified provenance.
+- `interactions.press(target, selector?)` performs one authored press/release lifecycle: `await window.__DevApi.interactions.press("PUSH_AP_MASTER")`.
+- `interactions.hold(target, selector?)` and `interactions.release(target)` own a hold by target. Conflicting work fails with `TARGET_BUSY`.
+- `interactions.turn/increase/decrease(target, options)` execute authored detents: `await window.__DevApi.interactions.increase("KNOB_HEADING", { steps: 3 })`.
+- `interactions.adjust/set/on/off/toggle` are capability checked and fail closed when exact authored behavior is unavailable.
+- `interactions.active()`, `history()`, `trace.snapshot()`, `profiles.*`, and `settings.*` expose lifecycle, diagnostics, and the versioned profile store.
 - `input.pointer(event)` sends real viewer pointer input, including right-button cockpit drags with `button: 2`: `window.__DevApi.input.pointer({ type: "down", x: 500, y: 300, button: 2 })`.
 - `input.key(code, options?)` sends keyboard input: `window.__DevApi.input.key("KeyL", { type: "press" })`.
 - `input.wheel(deltaY, options?)` sends wheel input: `window.__DevApi.input.wheel(-120, { x: 500, y: 300 })`.
@@ -63,7 +65,7 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 ## Waiting And Chaining
 
 - `waitFor(condition, timeoutMs?)` waits for observable state instead of using fixed sleeps. Common waits: `await window.__DevApi.waitFor({ kind: "gaugesReady", captured: true }, 45000)`, `waitFor({ kind: "varChanged", var: "A:SPOILERS HANDLE POSITION", from: before }, 5000)`, `waitFor({ kind: "interactionExecuted", sequenceAbove: before }, 5000)`.
-- For event chains, capture the previous event `sequence` and pass `sequenceAbove` so stale events do not match: `const before = window.__DevApi.events({ kind: "html", limit: 1 }).data.html.at(-1)?.sequence ?? 0; await window.__DevApi.click("PUSH_MCDUL_MENU"); await window.__DevApi.waitFor({ kind: "event", eventKind: "html", name: "A320_Neo_CDU_1_BTN_MENU", sequenceAbove: before }, 5000)`.
+- For event chains, capture the previous event `sequence` and pass `sequenceAbove` so stale events do not match: `const before = window.__DevApi.events({ kind: "html", limit: 1 }).data.html.at(-1)?.sequence ?? 0; await window.__DevApi.interactions.press("PUSH_MCDUL_MENU"); await window.__DevApi.waitFor({ kind: "event", eventKind: "html", name: "A320_Neo_CDU_1_BTN_MENU", sequenceAbove: before }, 5000)`.
 
 ## Camera, Settings, And Visuals
 

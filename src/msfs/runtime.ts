@@ -1,4 +1,10 @@
-import { AnimationMixer, type Material, type Object3D, Vector3 } from 'three'
+import {
+  type AnimationClip,
+  AnimationMixer,
+  type Material,
+  type Object3D,
+  Vector3,
+} from 'three'
 
 import {
   AvionicsCommandTypes,
@@ -317,7 +323,7 @@ export class AircraftRuntime {
     const activeAnimationBindings: RuntimeAnimationBinding[] = []
     const activeAnimationNames = new Set<string>()
     for (const binding of this.compiled.animationBindings) {
-      const clip = clips.find(candidate => candidate.name === binding.target)
+      const clip = findAnimationClip(clips, binding.target)
       if (clip == null) continue
       const action = this.mixer.clipAction(clip as never)
       action.enabled = true
@@ -336,7 +342,7 @@ export class AircraftRuntime {
       if (binding.channel !== 'animation' || this.actions.has(binding.target)) {
         continue
       }
-      const clip = clips.find(candidate => candidate.name === binding.target)
+      const clip = findAnimationClip(clips, binding.target)
       if (clip == null) continue
       const action = this.mixer.clipAction(clip as never)
       action.enabled = true
@@ -378,8 +384,7 @@ export class AircraftRuntime {
 
         const action = this.actions.get(binding.target)
         if (action != null) {
-          const duration = action.getClip().duration || 1
-          action.time = clamp(value, 0, 1) * duration
+          action.time = animationTimeAtNormalizedValue(action.getClip(), value)
         }
         continue
       }
@@ -501,12 +506,14 @@ export class AircraftRuntime {
 
       const action = this.actions.get(binding.target)
       if (action != null) {
-        const duration = action.getClip().duration || 1
         const normalizedValue = binding.wrap
           ? positiveModulo(value, binding.length) / binding.length
           : clamp(value / binding.length, 0, 1)
         this.invokeAnimationTriggerBindings(binding.target, normalizedValue)
-        action.time = normalizedValue * duration
+        action.time = animationTimeAtNormalizedValue(
+          action.getClip(),
+          normalizedValue
+        )
       }
     }
     animationMs = finishPhase()
@@ -688,7 +695,7 @@ export class AircraftRuntime {
 
   executeInteractionCallbackEvent(target: string, options: RuntimeInteractionOptions = {}): boolean {
     const binding = this.findInteractionBindingForTarget(target)
-    if (binding == null || binding.kind !== 'callback') {
+    if (binding == null || binding.metadata.sourceKind === 'eventId') {
       return false
     }
     const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
@@ -707,7 +714,7 @@ export class AircraftRuntime {
     binding: CompiledInteractionBinding,
     options: RuntimeInteractionOptions = {}
   ): boolean {
-    if (!this.compiled.interactionBindings.includes(binding) || binding.kind !== 'callback') {
+    if (!this.compiled.interactionBindings.includes(binding) || binding.metadata.sourceKind === 'eventId') {
       return false
     }
     const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
@@ -2961,8 +2968,8 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey.includes('SPOILER_LEFT')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
     if (upperKey.includes('SPOILER_RIGHT')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
     if (upperKey.includes('SPOILER')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
-    if (upperKey.includes('SLAT')) return handled(convertPercentUnit(cycles.flapCycle * 100, unit))
-    if (upperKey.includes('FLAP')) return handled(convertPercentUnit(cycles.flapCycle * 100, unit))
+    if (upperKey.includes('SLAT')) return handled(toRequestedControlUnit(cycles.flapCycle, unit))
+    if (upperKey.includes('FLAP')) return handled(toRequestedControlUnit(cycles.flapCycle, unit))
     if (/^L:LANDING_\d+_RETRACTED$/u.test(upperKey)) return handled(1)
     if (upperKey.endsWith('_NOSE_WHEEL_POSITION')) return handled(0)
     if (upperKey.endsWith('_MODEL_CONES_ENABLED')) return handled(0)
@@ -3041,13 +3048,22 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return convertPercentUnit(this.controlState.gearPosition * 100, unit)
     }
     if ((key.includes('FLAP') || key.includes('SLAT')) && key.includes('INDEX')) {
-      return Math.round(this.controlState.flapsPosition * 4)
+      const ratio = key.includes('HANDLE')
+        ? this.controlState.flapsTarget
+        : this.controlState.flapsPosition
+      return Math.round(ratio * 4)
     }
     if ((key.includes('FLAP') || key.includes('SLAT')) && key.includes('POSITION')) {
-      return convertPercentUnit(this.controlState.flapsPosition * 100, unit)
+      const ratio = key.includes('HANDLE')
+        ? this.controlState.flapsTarget
+        : this.controlState.flapsPosition
+      return toRequestedControlUnit(ratio, unit)
     }
     if ((key.includes('FLAP') || key.includes('SLAT')) && key.includes('PERCENT')) {
-      return convertPercentUnit(this.controlState.flapsPosition * 100, unit)
+      const ratio = key.includes('HANDLE')
+        ? this.controlState.flapsTarget
+        : this.controlState.flapsPosition
+      return toRequestedControlUnit(ratio, unit)
     }
     if (key.includes('SPOILER') && (key.includes('POSITION') || key.includes('DEFLECTION'))) {
       return convertPercentUnit(this.controlState.spoilersPosition * 100, unit)
@@ -6945,6 +6961,36 @@ function readRuntimeMouseVariable(key: string, options: RuntimeInteractionOption
     default:
       return null
   }
+}
+
+function animationTimeAtNormalizedValue(
+  clip: AnimationClip,
+  normalizedValue: number
+): number {
+  let firstKeyTime = Number.POSITIVE_INFINITY
+  let lastKeyTime = Number.NEGATIVE_INFINITY
+  for (const track of clip.tracks) {
+    if (track.times.length === 0) continue
+    firstKeyTime = Math.min(firstKeyTime, track.times[0]!)
+    lastKeyTime = Math.max(lastKeyTime, track.times[track.times.length - 1]!)
+  }
+
+  const value = clamp(normalizedValue, 0, 1)
+  return Number.isFinite(firstKeyTime) && Number.isFinite(lastKeyTime)
+    ? firstKeyTime + value * (lastKeyTime - firstKeyTime)
+    : value * (clip.duration || 1)
+}
+
+function findAnimationClip<T extends { readonly name: string }>(
+  clips: readonly T[],
+  target: string
+): T | undefined {
+  const exact = clips.find(clip => clip.name === target)
+  if (exact != null) return exact
+
+  const canonicalTarget = target.toLocaleLowerCase()
+  const matches = clips.filter(clip => clip.name.toLocaleLowerCase() === canonicalTarget)
+  return matches.length === 1 ? matches[0] : undefined
 }
 
 function clamp(value: number, min: number, max: number): number {

@@ -219,6 +219,50 @@ export interface CompiledInputEventBinding {
   readonly sourcePath: string
 }
 
+export type CockpitInteractionChannel = 'primary' | 'secondary' | 'tertiary'
+export type CockpitInteractionPhase = 'press' | 'double' | 'hold' | 'drag' | 'repeat' | 'release' | 'cancel'
+export type CompiledInteractionSourceKind =
+  | 'callbackCode'
+  | 'callbackDragging'
+  | 'callbackJumpDragging'
+  | 'eventId'
+  | 'inputEvent'
+
+export interface CompiledInteractionRoute {
+  readonly channel: CockpitInteractionChannel | null
+  readonly phase: CockpitInteractionPhase | null
+  readonly operation: 'press' | 'hold' | 'release' | 'turn' | 'increase' | 'decrease' | 'adjust' | 'set' | 'on' | 'off' | 'toggle' | 'hover' | 'leave' | 'lock' | 'unlock'
+  readonly msfsEvent: string | null
+  readonly axis: 'x' | 'y' | 'z' | null
+  readonly inputTypes: readonly number[]
+}
+
+export interface CompiledInteractionMetadata {
+  readonly authoredId: string | null
+  readonly qualifiedId: string
+  readonly nodeId: string | null
+  readonly componentId: string | null
+  readonly inputEventIds: readonly string[]
+  readonly routes: readonly CompiledInteractionRoute[]
+  readonly sourceKind: CompiledInteractionSourceKind
+  readonly sourcePath: string
+  readonly sourceTemplate: string | null
+  readonly templateRevision: string | null
+  readonly lockable: boolean
+  readonly dynamicEventHandling: boolean
+  readonly disabled: boolean
+  readonly disabledInVr: boolean
+  readonly prioritizeVCockpits: boolean
+  readonly ignoreZTest: boolean
+  readonly highlightNodeId: string | null
+  readonly axis: 'x' | 'y' | 'z' | null
+  readonly inverted: boolean
+  readonly cursor: string | null
+  readonly tooltipTitle: string | null
+  readonly tooltipDescription: string | null
+  readonly tooltipValueExpression: CompiledExpression | null
+}
+
 export interface CompiledInteractionBinding {
   readonly target: string
   readonly feedbackTargets: readonly string[]
@@ -229,7 +273,7 @@ export interface CompiledInteractionBinding {
   readonly expression: CompiledExpression
   readonly releaseExpression: CompiledExpression | null
   readonly sourcePath: string
-  readonly kind: 'leftSingle' | 'callback'
+  readonly metadata: CompiledInteractionMetadata
 }
 
 export interface CompiledInteractionBlocker {
