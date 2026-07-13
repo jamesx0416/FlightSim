@@ -34,6 +34,34 @@ const hostServices: RuntimeHostServices = {
 }
 
 describe('AircraftRuntime canonical visual bindings', () => {
+  test('samples and restores an authored animation trajectory', () => {
+    const scene = new Object3D()
+    const lever = new Object3D()
+    lever.name = 'Lever'
+    scene.add(lever)
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      animationBindings: [{
+        target: 'LeverAnimation',
+        expression: { source: '50', instructions: [{ op: 'pushNumber', value: 50 }], variableKeys: [] },
+        length: 100,
+        wrap: false,
+        delta: false,
+        lagFramesPerSecond: 0,
+        sourcePath: 'test.xml'
+      }]
+    }, scene, hostServices)
+    runtime.bindAnimations([new AnimationClip('LeverAnimation', 1, [
+      new VectorKeyframeTrack('Lever.position', [0, 1], [0, 0, 0, 2, 0, 0])
+    ])])
+    runtime.update(1 / 60)
+
+    const trajectory = runtime.sampleAnimationObjectTrajectory('LeverAnimation', lever)
+
+    expect(trajectory.map(point => [point.dragPercent, point.position.x])).toEqual([[0, 0], [1, 2]])
+    expect(lever.position.x).toBe(1)
+  })
+
   test('maps normalized values across the authored animation key range', () => {
     const scene = new Object3D()
     const lever = new Object3D()

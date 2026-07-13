@@ -1606,6 +1606,7 @@ function buildCompiledInteractionMetadata(
     highlightNodeId: params.get('HIGHLIGHT_NODE_ID')?.trim() || currentNode?.trim() || null,
     axis,
     inverted: parseBoolean(params.get('INVERTED') ?? params.get('INVERT_DRAG') ?? 'False'),
+    dragAnimationName: params.get('DRAG_ANIM_NAME')?.trim() || null,
     cursor: params.get('CURSOR')?.trim() || null,
     tooltipTitle: params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null,
     tooltipDescription: params.get('TOOLTIP_DESCRIPTION')?.trim() || null,

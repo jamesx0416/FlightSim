@@ -56,6 +56,7 @@ import {
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
+import { resolveMsfsDragPercent, selectDragRoutes, type MsfsDragTrajectoryPoint } from './msfs/interactionAdapter'
 import { installViewerBootDevApi, installViewerDevApi } from './devApi'
 import type {
   CompiledBehaviorSet,
@@ -1486,6 +1487,10 @@ async function init(): Promise<void> {
         readonly registry: CockpitInteractionPickRegistry
       }
     | null = null
+  const cockpitInteractionDragTrajectories = new WeakMap<
+    CompiledInteractionBinding,
+    { readonly points: readonly MsfsDragTrajectoryPoint[]; readonly offset: number }
+  >()
   const handleCockpitInteractionPress = (
     event: MouseEvent | PointerEvent,
     options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
@@ -1711,6 +1716,29 @@ async function init(): Promise<void> {
       : selectedBinding.metadata.routes.find(candidate => candidate.msfsEvent === options.mouseEvent)
     if (route == null) return null
     if (runtime.executeInteractionBindingDirect(selectedBinding, { holdFeedback: options.holdFeedback, mouseEvent: route.msfsEvent ?? undefined })) {
+      if (options.mouseEvent === 'LeftSingle' && selectedBinding.metadata.dragAnimationName != null) {
+        const trajectory = runtime
+          .sampleAnimationObjectTrajectory(selectedBinding.metadata.dragAnimationName, hitObject)
+          .map(point => {
+            const projected = point.position.clone().project(camera)
+            return {
+              relativeX: (projected.x + 1) / 2,
+              relativeY: (1 - projected.y) / 2,
+              dragPercent: point.dragPercent
+            }
+          })
+          .filter(point => Number.isFinite(point.relativeX) && Number.isFinite(point.relativeY))
+        const currentPercent = runtime.getAnimationNormalizedValue(selectedBinding.metadata.dragAnimationName)
+        if (trajectory.length > 1 && currentPercent != null) {
+          const relativeX = (cockpitInteractionPointer.x + 1) / 2
+          const relativeY = (1 - cockpitInteractionPointer.y) / 2
+          const grabbedPercent = resolveMsfsDragPercent(trajectory, relativeX, relativeY, currentPercent)
+          cockpitInteractionDragTrajectories.set(selectedBinding, {
+            points: trajectory,
+            offset: currentPercent - grabbedPercent
+          })
+        }
+      }
       cockpitInteractionStats.executedCount += 1
       cockpitInteractionStats.lastTarget = selectedBinding.target
       cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? selectedBinding.target : null
@@ -1728,21 +1756,31 @@ async function init(): Promise<void> {
       readonly relativeY: number
       readonly relativeZ: number
       readonly dragPercent: number
+      readonly firstSample: boolean
     }
   ): boolean => {
-    const dragRoute = binding?.metadata.routes.find(route => route.phase === 'drag')
-    if (binding == null || dragRoute == null) {
+    if (binding == null) {
       return false
     }
-    const dragged = runtime.executeInteractionCallbackEventForBinding(binding, {
-      holdFeedback: true,
-      mouseEvent: dragRoute.msfsEvent ?? undefined,
+    const routes = selectDragRoutes(binding.metadata.routes, options.firstSample)
+    if (routes.length === 0) return false
+    const trajectory = cockpitInteractionDragTrajectories.get(binding)
+    const dragPercent = resolveMsfsDragPercent(
+      trajectory?.points ?? [],
+      options.relativeX,
+      options.relativeY,
+      options.dragPercent,
+      trajectory?.offset ?? 0
+    )
+    const dragged = routes.every(route => runtime.executeInteractionCallbackEventForBinding(binding, {
+      holdFeedback: route.phase === 'drag',
+      mouseEvent: route.msfsEvent ?? undefined,
       inputType: 1,
       relativeX: options.relativeX,
       relativeY: options.relativeY,
       relativeZ: options.relativeZ,
-      dragPercent: options.dragPercent
-    })
+      dragPercent
+    }))
     if (dragged) {
       cockpitInteractionStats.executedCount += 1
       cockpitInteractionStats.lastTarget = binding.target
@@ -1758,6 +1796,7 @@ async function init(): Promise<void> {
     if (binding == null) {
       return
     }
+    cockpitInteractionDragTrajectories.delete(binding)
     runtime.executeInteractionCallbackEventForBinding(binding, {
       holdFeedback: false,
       mouseEvent: options.channel === 'secondary' ? 'RightRelease' : options.channel === 'tertiary' ? 'MiddleRelease' : 'LeftRelease'
@@ -11224,6 +11263,7 @@ function installCockpitCameraShortcut(
       readonly relativeY: number
       readonly relativeZ: number
       readonly dragPercent: number
+      readonly firstSample: boolean
     }
   ) => boolean,
   onCockpitRelease?: (
@@ -11468,7 +11508,10 @@ function installCockpitCameraShortcut(
       }
       if (activeCockpitPressDragged) {
         activeCockpitDragCallbackEmitted =
-          onCockpitDrag?.(activeCockpitPressBinding, getPointerRelativeValues(event)) === true ||
+          onCockpitDrag?.(activeCockpitPressBinding, {
+            ...getPointerRelativeValues(event),
+            firstSample: !activeCockpitDragCallbackEmitted
+          }) === true ||
           activeCockpitDragCallbackEmitted
       }
       event.preventDefault()
