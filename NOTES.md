@@ -20,6 +20,7 @@ Durable investigation notes that are useful context but are not active implement
 
 - A320 wing transform: the old `X180 * bind * X180` experiment is rejected as heuristic. It helped a narrow subset, but it is not documented by MSFS and broke other left-side skinned parts.
 - Blend-gbuffer decals: the implicit primitive/material-order decal depth-bias experiment for `ASOBO_material_blend_gbuffer` materials without explicit `ASOBO_material_draw_order` was rejected after A320 testing showed worse z-fighting. Keep it reverted.
+- 2026-07-13: A330 flap index 4 is authoritative but visually appears near 3.8, short of the `FULL` gate. Percent/detent remapping distorted intermediate positions; changing the `LOCK_FLAPS` child bind rotation from `-0.7535°` to `-15°`, smaller values, zero, and `+7.5°` did not add lever travel. `+7.5°` looked closer at `FULL` only by shifting the clip, misaligned index 0, and caused clipping near 2/3. Raw glTF lever keyframes are `20.7535, 10.7535, 0.7535, -10.8465, -19.2465°`, already spanning exactly `40°`; the child `-0.7535°` cancels the center keyframe to level the release clip, so recursively accumulating it is incorrect. The unresolved mismatch is in reproduced hierarchy/pivot/mesh alignment or interpretation, not a missing detent offset or sweep; do not land compensating constants.
 
 ## Material And Geometry Findings
 
