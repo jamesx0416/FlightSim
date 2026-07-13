@@ -1,6 +1,7 @@
 import {
   type AnimationClip,
   AnimationMixer,
+  Box3,
   type Material,
   type Object3D,
   Vector3,
@@ -670,6 +671,45 @@ export class AircraftRuntime {
 
   getInteractionExecutionCount(): number {
     return this.interactionExecutionCount
+  }
+
+  getAnimationNormalizedValue(target: string): number | null {
+    const binding = this.compiled.animationBindings.find(candidate => candidate.target === target)
+    const value = binding == null ? undefined : this.animationValues.get(binding.target)
+    if (binding == null || value == null || binding.length <= 0) return null
+    return binding.wrap
+      ? positiveModulo(value, binding.length) / binding.length
+      : clamp(value / binding.length, 0, 1)
+  }
+
+  sampleAnimationObjectTrajectory(
+    target: string,
+    object: Object3D
+  ): readonly { readonly dragPercent: number; readonly position: Vector3 }[] {
+    const action = this.actions.get(target)
+    if (action == null) return []
+    const clip = action.getClip()
+    const times = [...new Set(clip.tracks.flatMap(track => [...track.times]))].sort((left, right) => left - right)
+    const firstTime = times[0]
+    const lastTime = times.at(-1)
+    if (firstTime == null || lastTime == null || lastTime <= firstTime) return []
+    const previousTime = action.time
+    try {
+      return times.map(time => {
+        action.time = time
+        this.mixer.update(0)
+        this.sceneRoot.updateWorldMatrix(true, true)
+        const bounds = new Box3().setFromObject(object)
+        const position = bounds.isEmpty()
+          ? object.getWorldPosition(new Vector3())
+          : bounds.getCenter(new Vector3())
+        return { dragPercent: (time - firstTime) / (lastTime - firstTime), position }
+      })
+    } finally {
+      action.time = previousTime
+      this.mixer.update(0)
+      this.sceneRoot.updateWorldMatrix(true, true)
+    }
   }
 
   executeInteraction(target: string, options: RuntimeInteractionOptions = {}): boolean {

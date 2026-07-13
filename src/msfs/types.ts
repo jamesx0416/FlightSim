@@ -257,6 +257,7 @@ export interface CompiledInteractionMetadata {
   readonly highlightNodeId: string | null
   readonly axis: 'x' | 'y' | 'z' | null
   readonly inverted: boolean
+  readonly dragAnimationName: string | null
   readonly cursor: string | null
   readonly tooltipTitle: string | null
   readonly tooltipDescription: string | null
