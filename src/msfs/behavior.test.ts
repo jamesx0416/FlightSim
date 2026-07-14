@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import { __behaviorTestHooks } from './behavior'
-import type { BehaviorSourceRoot } from './types'
+import type { BehaviorSourceRoot, ImportDiagnostic } from './types'
 
 function include(relativeFile: string): Element {
   return {
@@ -82,4 +82,67 @@ test('behavior documents fetch by level and retain deterministic depth-first ord
     'https://example.test/package/::test::shared.xml',
     'https://example.test/package/::test::b.xml'
   ])
+})
+
+test('interaction metadata expands authored flags and value reachability', () => {
+  const diagnostics: ImportDiagnostic[] = []
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['ID', 'TEST_KNOB'],
+      ['MOUSEFLAGS', 'LeftAll+RightAll+Wheel+DownRepeat+MoveRepeat+Enter+Exit+Lock+Unlock'],
+      ['DRAG_SIMVAR', 'L:TEST_VALUE'],
+      ['DRAG_SIMVAR_UNITS', 'number'],
+      ['DRAG_MIN_VALUE', '0'],
+      ['DRAG_MAX_VALUE', '10'],
+      ['VALUE_STEP', '0.5'],
+      ['__SOURCE_TEMPLATE', 'ASOBO_TEST_KNOB'],
+      ['PRIORITIZE_VCOCKPITS', 'True'],
+      ['IGNORE_Z_TEST', 'True']
+    ]),
+    'TEST_KNOB',
+    'TEST_KNOB',
+    'test.xml',
+    "(M:Event) 'WheelUp' scmi 0 == if{ 1 (>L:TEST_VALUE) }",
+    'callback',
+    diagnostics
+  )
+
+  expect(metadata.routes.map(route => route.msfsEvent)).toEqual([
+    'LeftSingle', 'LeftDouble', 'LeftDrag', 'LeftRelease',
+    'RightSingle', 'RightDouble', 'RightDrag', 'RightRelease',
+    'WheelUp', 'WheelDown', 'DownRepeat', 'MoveRepeat', 'Enter', 'Exit', 'Lock', 'Unlock'
+  ])
+  expect(metadata.value).toEqual({
+    variableKey: 'L:TEST_VALUE', unit: 'number', minimum: 0, maximum: 10,
+    step: 0.5, cyclic: false, settleTimeSeconds: 0
+  })
+  expect([metadata.prioritizeVCockpits, metadata.ignoreZTest]).toEqual([true, true])
+  expect(metadata.sourceTemplate).toBe('ASOBO_TEST_KNOB')
+
+  const inverted = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['MOUSEFLAGS', 'Wheel'],
+      ['POSITIVE_AXIS_CODE', '(>K:TEST_DECR)'],
+      ['NEGATIVE_AXIS_CODE', '(>K:TEST_INCR)']
+    ]),
+    'TEST',
+    'TEST',
+    'test.xml',
+    "(M:Event) 'WheelUp' scmi 0 == if{ (>K:TEST_DECR) } els{ (>K:TEST_INCR) }",
+    'callback',
+    diagnostics
+  )
+  expect(inverted.inverted).toBe(true)
+  expect(inverted.routes.map(route => [route.msfsEvent, route.operation])).toEqual([
+    ['WheelUp', 'decrease'],
+    ['WheelDown', 'increase']
+  ])
+
+  const dynamicDiagnostics: ImportDiagnostic[] = []
+  const dynamic = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([['ID', 'DYNAMIC']]), 'DYNAMIC', 'DYNAMIC', 'dynamic.xml',
+    '(M:Event) (>L:DYNAMIC_EVENT)', 'callback', dynamicDiagnostics
+  )
+  expect(dynamic.dynamicEventHandling).toBe(true)
+  expect(dynamicDiagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_dynamic_routes_unproven'])
 })

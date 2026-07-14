@@ -52,8 +52,17 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
 
   setMode(mode: CockpitInteractionMode): void { this.cancelAll(); this.mode = mode }
 
+  claim(target: T, operation: CockpitInteractionOperation): boolean {
+    if (this.busy.has(target.id)) return false
+    this.busy.set(target.id, operation)
+    return true
+  }
+
+  finish(targetId: string): void { this.busy.delete(targetId) }
+
   hover(target: T | null, timestampMs = performance.now()): void {
     if (this.captured != null) return
+    if (this.hovered === target) return
     if (this.hovered != null && this.hovered !== target) this.execute(this.hovered, event('leave', 'cancel', timestampMs))
     this.hovered = target
     this.state = target == null ? 'idle' : 'hovered'
@@ -90,9 +99,19 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
   }
 
   dispatch(target: T, action: CanonicalCockpitAction): 'executed' | 'unsupported' | 'busy' {
-    if (!target.operations.includes(action.operation)) return 'unsupported'
+    const supported = target.operations.includes(action.operation) ||
+      (action.operation === 'hold' && target.operations.includes('press'))
+    if (!supported) return 'unsupported'
     if (this.busy.has(target.id) && action.operation !== 'release' && action.operation !== 'cancel') return 'busy'
-    return this.execute(target, action) ? 'executed' : 'unsupported'
+    if (!this.execute(target, action)) return 'unsupported'
+    if (action.operation === 'hold') this.busy.set(target.id, 'hold')
+    if (action.operation === 'release' || action.operation === 'cancel') this.busy.delete(target.id)
+    return 'executed'
+  }
+
+  dispatchCaptured(action: CanonicalCockpitAction): boolean {
+    if (this.captured == null) return false
+    return this.execute(this.captured.target, action)
   }
 
   cancel(targetId?: string, timestampMs = performance.now()): boolean {

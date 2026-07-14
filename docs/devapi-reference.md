@@ -56,8 +56,10 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 - `interactions.press(target, selector?)` performs one authored press/release lifecycle: `await window.__DevApi.interactions.press("PUSH_AP_MASTER")`.
 - `interactions.hold(target, selector?)` and `interactions.release(target)` own a hold by target. Conflicting work fails with `TARGET_BUSY`.
 - `interactions.turn/increase/decrease(target, options)` execute authored detents: `await window.__DevApi.interactions.increase("KNOB_HEADING", { steps: 3 })`.
-- `interactions.adjust/set/on/off/toggle` are capability checked and fail closed when exact authored behavior is unavailable.
+- `interactions.adjust(target, { delta, unit? })` and `interactions.set(target, { value, unit? })` preflight exact reachability before mutation. They prefer an authored Set route, otherwise converge through authoritative detents, settle on the simulator scheduler, and verify the exact observed result. Failures distinguish incompatible units, unknown or unreachable values, no progress, cycles, cancellation, and target loss.
+- `interactions.on/off/toggle` are capability checked. `on` and `off` may use a readable authored toggle route only when the resulting state can be verified.
 - `interactions.active()`, `history()`, `trace.snapshot()`, `profiles.*`, and `settings.*` expose lifecycle, diagnostics, and the versioned profile store.
+- `interactions.settings.get()` and `interactions.settings.set({ interactionMode, showHighlights, showTooltips })` read or update cockpit interaction presentation. Fresh storage defaults to Legacy mode; Lock mode keeps complex authored targets captured while Primary is held.
 - `input.pointer(event)` sends real viewer pointer input, including right-button cockpit drags with `button: 2`: `window.__DevApi.input.pointer({ type: "down", x: 500, y: 300, button: 2 })`.
 - `input.key(code, options?)` sends keyboard input: `window.__DevApi.input.key("KeyL", { type: "press" })`.
 - `input.wheel(deltaY, options?)` sends wheel input: `window.__DevApi.input.wheel(-120, { x: 500, y: 300 })`.

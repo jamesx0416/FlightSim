@@ -237,6 +237,16 @@ export interface CompiledInteractionRoute {
   readonly inputTypes: readonly number[]
 }
 
+export interface CompiledInteractionValueMetadata {
+  readonly variableKey: string | null
+  readonly unit: string | null
+  readonly minimum: number | null
+  readonly maximum: number | null
+  readonly step: number | null
+  readonly cyclic: boolean
+  readonly settleTimeSeconds: number
+}
+
 export interface CompiledInteractionMetadata {
   readonly authoredId: string | null
   readonly qualifiedId: string
@@ -262,6 +272,7 @@ export interface CompiledInteractionMetadata {
   readonly tooltipTitle: string | null
   readonly tooltipDescription: string | null
   readonly tooltipValueExpression: CompiledExpression | null
+  readonly value: CompiledInteractionValueMetadata
 }
 
 export interface CompiledInteractionBinding {
