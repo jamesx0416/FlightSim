@@ -357,9 +357,25 @@ This section tracks the next authoritative, aircraft-generic loader work.
 
 ### Next Work
 
-### Planned: MSFS-Authoritative Cockpit Interaction Input
+### In Progress: MSFS-Authoritative Cockpit Interaction Input
 
-Do not implement this work until it is explicitly scheduled. The purpose is to make the browser viewer execute the interaction contract authored by each MSFS package, while retaining a simulator-agnostic input layer for future adapters and hardware.
+Milestone one was explicitly scheduled on 2026-07-14. The browser viewer now executes compiled package interaction metadata through a simulator-agnostic canonical dispatcher and an MSFS adapter. Keyboard, gamepad, touch, VR, HID, and replay remain future milestones.
+
+Current implemented slice:
+
+- [x] Compile structured MouseRect routes, callback source kinds, authored identity/provenance, axes/inversion, lock, cursor, tooltip, highlight, priority/depth, availability, and exact-value metadata from mounted package and stock templates.
+- [x] Route mouse Primary, Secondary, Tertiary, wheel, drag, release, hover/leave, capture, cancellation, and Legacy/Lock behavior through the canonical dispatcher without camera fallthrough through claimed targets.
+- [x] Replace the old interaction DevApi surface with authored-ID lookup, capability-checked named operations, structured envelopes, active work, profiles/settings, and exact Set/Adjust.
+- [x] Preflight exact reachability, execute scheduler-yielding convergence, and verify success with cancellation, target-loss, no-progress, and settled-state cycle detection.
+- [x] Add package-localized authored tooltips, current values, authored cursors, Lock highlights, and Settings controls for mode/highlight/tooltip visibility.
+- [x] Verify focused tests and the complete repository test suite without editing aircraft fixture data.
+- [ ] Complete the remaining broader milestone-one profile editor, binding-capture/conflict UI, exhaustive mounted-stock matrix, persistent history/tracing acceptance, and multi-control fixture acceptance pass.
+  - Wire profile `bindings` into mouse dispatch and add profile create/duplicate/rename/delete/reset, global/per-aircraft selection, conflict validation, and the corresponding Settings UI.
+  - Dispatch native single/single/double sequencing, authored `DownRepeat`/`MoveRepeat`, and the remaining scheduler-driven repeat/spring lifecycle; metadata exists for these routes but the pointer dispatcher does not yet produce them.
+  - Add the 120 ms wheel-summary window and record mouse, camera, settings, aircraft, cockpit, cancellation, unsupported, and unavailable actions in persistent history. Bound detailed trace by both record count and approximately 16 MB, add overflow markers/export, and feed it low-level adapter/runtime events.
+  - Complete structured typed InputEvent parameter/input-type metadata and authored tooltip value formatting, then run the mounted-stock interaction matrix against those compiled fields.
+  - Finish direct-mouse and DevApi acceptance across the representative A330 control matrix and a second mounted package, without fixture edits or aircraft-specific rules.
+  - Remove stale DevApi documentation for the deleted raw `input.pointer`, `input.key`, and `input.wheel` helpers and document the completed profile/action surface.
 
 - Preserve package authority:
   - Keep importing the aircraft's `MouseRect`, callback, input-event, template, tooltip, and sound metadata.

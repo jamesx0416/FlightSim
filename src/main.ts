@@ -54,9 +54,12 @@ import {
   type MsfsPackageSource
 } from './msfs/packageAssets'
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
+import { loadMsfsLocalization, resolveMsfsLocalizedString, sanitizeMsfsTooltipText, type MsfsLocalization } from './msfs/localization'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
-import { resolveMsfsDragPercent, selectDragRoutes, type MsfsDragTrajectoryPoint } from './msfs/interactionAdapter'
+import { MsfsInteractionAdapter, resolveMsfsDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { CockpitInteractionDispatcher, type CockpitInteractionChannel } from './input/cockpitInteraction'
+import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, updateCockpitInputSettings } from './input/cockpitInputProfiles'
 import { installViewerBootDevApi, installViewerDevApi } from './devApi'
 import type {
   CompiledBehaviorSet,
@@ -345,6 +348,10 @@ async function init(): Promise<void> {
     additionalPackageRoots,
     requestedAircraftId
   })
+  const packageSource = getCachedMsfsPackageSource(packageData.rootUrl)
+  const cockpitLocalizationPromise: Promise<MsfsLocalization> = packageSource == null
+    ? Promise.resolve(new Map())
+    : loadMsfsLocalization(packageSource)
   const aircraft = selectAircraft(
     packageData.aircraft,
     requestedAircraftId
@@ -479,9 +486,10 @@ async function init(): Promise<void> {
     debugVCockpitGauges: shouldDebugVCockpitGauges(effectiveSearchParams),
     runtimeHost
   })
-  const [initialCompiledBehaviors, gltf] = await Promise.all([
+  const [initialCompiledBehaviors, gltf, cockpitLocalization] = await Promise.all([
     compiledBehaviorsPromise,
     gltfPromise,
+    cockpitLocalizationPromise,
     syncedSettingSeedPromise
   ])
   let compiledBehaviors = initialCompiledBehaviors
@@ -858,6 +866,8 @@ async function init(): Promise<void> {
   }
 
   const rebuildRuntimeForLoadedModel = (): void => {
+    cockpitInteractionDispatcher.cancelAll()
+    cockpitInteractionAdapter.cancelAll()
     runtime.dispose()
     runtime = new AircraftRuntime(
       compiledBehaviors,
@@ -1491,6 +1501,23 @@ async function init(): Promise<void> {
     CompiledInteractionBinding,
     { readonly points: readonly MsfsDragTrajectoryPoint[]; readonly offset: number }
   >()
+  const cockpitInteractionAdapter = new MsfsInteractionAdapter(() => runtime)
+  const getCockpitInputProfile = () => {
+    const store = loadCockpitInputStore(window.localStorage)
+    return effectiveCockpitInputProfile(
+      store,
+      store.aircraftProfileSelections[aircraft.id] ?? store.selectedGlobalProfileId
+    )
+  }
+  const cockpitInteractionDispatcher = new CockpitInteractionDispatcher<MsfsInteractionTarget>(
+    getCockpitInputProfile().interactionMode,
+    (target, action) => cockpitInteractionAdapter.execute(target, action)
+  )
+  const syncCockpitInteractionMode = (): void => {
+    cockpitInteractionDispatcher.setMode(getCockpitInputProfile().interactionMode)
+    clearCockpitInteractionFeedback()
+  }
+  window.addEventListener('cockpit-input-settings-changed', syncCockpitInteractionMode)
   const handleCockpitInteractionPress = (
     event: MouseEvent | PointerEvent,
     options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
@@ -1516,7 +1543,13 @@ async function init(): Promise<void> {
 
     const pickRegistry = getCockpitInteractionPickRegistry(root, runtime)
     const blockerHits = getCockpitInteractionBlockerHits(pickRegistry)
-    const meshHits = cockpitInteractionRaycaster.intersectObjects([...pickRegistry.meshes], false)
+    const meshHits = cockpitInteractionRaycaster
+      .intersectObjects([...pickRegistry.meshes], false)
+      .sort((left, right) => {
+        const leftPriority = pickRegistry.bindingsByMesh.get(left.object)?.metadata.prioritizeVCockpits ?? false
+        const rightPriority = pickRegistry.bindingsByMesh.get(right.object)?.metadata.prioritizeVCockpits ?? false
+        return Number(rightPriority) - Number(leftPriority) || left.distance - right.distance
+      })
     if (meshHits.length > 0) {
       cockpitInteractionStats.hitCount += 1
       for (const hit of meshHits) {
@@ -1524,7 +1557,7 @@ async function init(): Promise<void> {
         if (binding == null) {
           continue
         }
-        if (isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
+        if (!binding.metadata.ignoreZTest && isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
           sawOccludedHit = true
           cockpitInteractionStats.lastMissReason = 'occluded'
           continue
@@ -1533,7 +1566,11 @@ async function init(): Promise<void> {
           cockpitInteractionStats.lastMissReason = 'blocked'
           return null
         }
-        const executedTarget = executeCockpitInteractionBinding(binding, hit.object, 'interaction-mesh', options)
+        const executedTarget = executeCockpitInteractionBinding(binding, hit.object, 'interaction-mesh', {
+          ...options,
+          pointerId: 'pointerId' in event ? event.pointerId : 1,
+          timestampMs: event.timeStamp
+        })
         if (executedTarget != null) {
           return executedTarget
         }
@@ -1551,12 +1588,15 @@ async function init(): Promise<void> {
             }
       })
       .filter((hit): hit is { readonly target: CockpitInteractionFallbackHitbox; readonly distance: number } => hit != null)
-      .sort((left, right) => left.distance - right.distance)
+      .sort((left, right) =>
+        Number(right.target.binding.metadata.prioritizeVCockpits) - Number(left.target.binding.metadata.prioritizeVCockpits) ||
+        left.distance - right.distance
+      )
     if (fallbackHits.length > 0) {
       cockpitInteractionStats.hitCount += 1
       for (const hit of fallbackHits) {
         const target = hit.target
-        if (isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
+        if (!target.binding.metadata.ignoreZTest && isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
           sawOccludedHit = true
           cockpitInteractionStats.lastMissReason = 'occluded'
           continue
@@ -1569,7 +1609,11 @@ async function init(): Promise<void> {
           target.binding,
           target.sourceNode,
           'fallback-hitbox',
-          options
+          {
+            ...options,
+            pointerId: 'pointerId' in event ? event.pointerId : 1,
+            timestampMs: event.timeStamp
+          }
         )
         if (executedTarget != null) {
           return executedTarget
@@ -1701,7 +1745,7 @@ async function init(): Promise<void> {
     binding: CompiledInteractionBinding,
     hitObject: Object3D,
     hitKind: 'interaction-mesh' | 'fallback-hitbox',
-    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly pointerId?: number; readonly timestampMs?: number }
   ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
     cockpitInteractionStats.lastHitKind = hitKind
@@ -1714,8 +1758,29 @@ async function init(): Promise<void> {
     const route = options.mouseEvent == null
       ? selectedBinding.metadata.routes.find(candidate => candidate.operation === 'press')
       : selectedBinding.metadata.routes.find(candidate => candidate.msfsEvent === options.mouseEvent)
-    if (route == null) return null
-    if (runtime.executeInteractionBindingDirect(selectedBinding, { holdFeedback: options.holdFeedback, mouseEvent: route.msfsEvent ?? undefined })) {
+    if (route == null) {
+      cockpitInteractionStats.lastMissReason = 'operation-unsupported'
+      cockpitInteractionStats.lastTarget = selectedBinding.target
+      return selectedBinding
+    }
+    const target = cockpitInteractionAdapter.fromBinding(selectedBinding)
+    const channel: CockpitInteractionChannel = route.channel ?? 'primary'
+    const timestampMs = options.timestampMs ?? performance.now()
+    const isWheel = route.operation === 'increase' || route.operation === 'decrease'
+    const executed = isWheel
+      ? cockpitInteractionDispatcher.dispatch(target, {
+          source: 'mouse',
+          operation: route.operation,
+          phase: 'press',
+          timestampMs
+        }) === 'executed'
+      : cockpitInteractionDispatcher.pointerDown(
+          target,
+          options.pointerId ?? 1,
+          channel,
+          timestampMs
+        )
+    if (executed) {
       if (options.mouseEvent === 'LeftSingle' && selectedBinding.metadata.dragAnimationName != null) {
         const trajectory = runtime
           .sampleAnimationObjectTrajectory(selectedBinding.metadata.dragAnimationName, hitObject)
@@ -1745,13 +1810,15 @@ async function init(): Promise<void> {
       cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
       return selectedBinding
     }
-
-    return null
+    cockpitInteractionStats.lastMissReason = 'interaction-unavailable'
+    cockpitInteractionStats.lastTarget = selectedBinding.target
+    return selectedBinding
   }
 
   const executeCockpitInteractionDrag = (
     binding: CompiledInteractionBinding | null,
     options: {
+      readonly pointerId: number
       readonly relativeX: number
       readonly relativeY: number
       readonly relativeZ: number
@@ -1762,8 +1829,7 @@ async function init(): Promise<void> {
     if (binding == null) {
       return false
     }
-    const routes = selectDragRoutes(binding.metadata.routes, options.firstSample)
-    if (routes.length === 0) return false
+    if (!binding.metadata.routes.some(route => route.phase === 'drag')) return false
     const trajectory = cockpitInteractionDragTrajectories.get(binding)
     const dragPercent = resolveMsfsDragPercent(
       trajectory?.points ?? [],
@@ -1772,15 +1838,31 @@ async function init(): Promise<void> {
       options.dragPercent,
       trajectory?.offset ?? 0
     )
-    const dragged = routes.every(route => runtime.executeInteractionCallbackEventForBinding(binding, {
-      holdFeedback: route.phase === 'drag',
-      mouseEvent: route.msfsEvent ?? undefined,
-      inputType: 1,
-      relativeX: options.relativeX,
-      relativeY: options.relativeY,
-      relativeZ: options.relativeZ,
-      dragPercent
-    }))
+    if (
+      options.firstSample &&
+      getCockpitInputProfile().interactionMode === 'legacy' &&
+      binding.metadata.routes.some(route => route.operation === 'lock')
+    ) {
+      cockpitInteractionDispatcher.dispatchCaptured({
+        source: 'mouse',
+        operation: 'lock',
+        phase: 'hold',
+        timestampMs: performance.now()
+      })
+    }
+    const axis = binding.metadata.axis ?? 'y'
+    const axisValue = axis === 'x'
+      ? options.relativeX
+      : axis === 'z'
+        ? options.relativeZ
+        : options.relativeY
+    const dragged = cockpitInteractionDispatcher.pointerMove(
+      options.pointerId,
+      axis,
+      axisValue,
+      dragPercent,
+      performance.now()
+    )
     if (dragged) {
       cockpitInteractionStats.executedCount += 1
       cockpitInteractionStats.lastTarget = binding.target
@@ -1789,27 +1871,187 @@ async function init(): Promise<void> {
     return dragged
   }
 
+  const executeCapturedCockpitAction = (
+    operation: 'press' | 'release' | 'increase' | 'decrease',
+    channel?: CockpitInteractionChannel
+  ): boolean => getCockpitInputProfile().interactionMode === 'lock' &&
+    cockpitInteractionDispatcher.dispatchCaptured({
+      source: 'mouse',
+      operation,
+      phase: operation === 'release' ? 'release' : 'press',
+      channel,
+      timestampMs: performance.now()
+    })
+
   const releaseCockpitInteractionPress = (
     binding: CompiledInteractionBinding | null,
-    options: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary' } = { unlock: false }
+    options: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary'; readonly pointerId?: number; readonly cancelled?: boolean } = { unlock: false }
   ): void => {
     if (binding == null) {
       return
     }
     cockpitInteractionDragTrajectories.delete(binding)
-    runtime.executeInteractionCallbackEventForBinding(binding, {
-      holdFeedback: false,
-      mouseEvent: options.channel === 'secondary' ? 'RightRelease' : options.channel === 'tertiary' ? 'MiddleRelease' : 'LeftRelease'
-    })
-    if (options.unlock) {
-      runtime.executeInteractionCallbackEventForBinding(binding, {
-        holdFeedback: false,
-        mouseEvent: 'Unlock'
-      })
+    const target = cockpitInteractionAdapter.fromBinding(binding)
+    if (cockpitInteractionDispatcher.snapshot.captured !== target.id) return
+    if (options.cancelled) {
+      cockpitInteractionDispatcher.cancel(target.id)
+      cockpitInteractionAdapter.cancel(target)
+    } else {
+      if (options.unlock && getCockpitInputProfile().interactionMode === 'legacy') {
+        cockpitInteractionDispatcher.dispatchCaptured({
+          source: 'mouse',
+          operation: 'unlock',
+          phase: 'release',
+          timestampMs: performance.now()
+        })
+      }
+      cockpitInteractionDispatcher.pointerUp(options.pointerId ?? 1, performance.now())
+      cockpitInteractionAdapter.release(target)
     }
-    runtime.releaseInteractionBinding(binding)
     if (cockpitInteractionStats.activeHeldTarget === binding.target) {
       cockpitInteractionStats.activeHeldTarget = null
+    }
+  }
+
+  const cockpitTooltip = document.createElement('div')
+  cockpitTooltip.hidden = true
+  cockpitTooltip.style.position = 'fixed'
+  cockpitTooltip.style.zIndex = '19'
+  cockpitTooltip.style.pointerEvents = 'none'
+  cockpitTooltip.style.maxWidth = '320px'
+  cockpitTooltip.style.padding = '7px 9px'
+  cockpitTooltip.style.borderRadius = '6px'
+  cockpitTooltip.style.color = '#fff'
+  cockpitTooltip.style.background = 'rgba(8, 20, 36, 0.88)'
+  cockpitTooltip.style.font = '12px/1.35 system-ui, sans-serif'
+  document.body.appendChild(cockpitTooltip)
+  const cockpitValueFormatter = new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 3 })
+  let cockpitHighlight: {
+    readonly mesh: Mesh
+    readonly original: Material | Material[]
+    readonly highlighted: Material[]
+  }[] = []
+  let cockpitHighlightTarget: string | null = null
+
+  const clearCockpitHighlight = (): void => {
+    for (const state of cockpitHighlight) {
+      state.mesh.material = state.original
+      for (const material of state.highlighted) material.dispose()
+    }
+    cockpitHighlight = []
+    cockpitHighlightTarget = null
+  }
+
+  const clearCockpitInteractionFeedback = (): void => {
+    cockpitInteractionDispatcher.hover(null)
+    cockpitTooltip.hidden = true
+    renderer.domElement.style.cursor = ''
+    clearCockpitHighlight()
+  }
+
+  const handleCockpitInteractionHover = (event: PointerEvent | null): void => {
+    if (event == null) {
+      clearCockpitInteractionFeedback()
+      return
+    }
+    const rect = renderer.domElement.getBoundingClientRect()
+    if (rect.width <= 0 || rect.height <= 0) return
+    cockpitInteractionPointer.set(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+    )
+    cockpitInteractionRaycaster.setFromCamera(cockpitInteractionPointer, camera)
+    const registry = getCockpitInteractionPickRegistry(loadedModel.scene, runtime)
+    const blockerHits = getCockpitInteractionBlockerHits(registry)
+    let hit = cockpitInteractionRaycaster
+      .intersectObjects([...registry.meshes], false)
+      .map(candidate => {
+        const binding = registry.bindingsByMesh.get(candidate.object)
+        return binding == null ? null : { object: candidate.object, distance: candidate.distance, binding }
+      })
+      .filter((candidate): candidate is NonNullable<typeof candidate> => candidate != null)
+      .sort((left, right) =>
+        Number(right.binding.metadata.prioritizeVCockpits) - Number(left.binding.metadata.prioritizeVCockpits) ||
+        left.distance - right.distance
+      )
+      .find(({ distance, binding }) =>
+        (binding.metadata.ignoreZTest || !isCockpitInteractionHitOccluded(distance, registry)) &&
+        !isCockpitInteractionHitBlocked(distance, blockerHits, registry)
+      )
+    if (hit == null) {
+      hit = registry.fallbackHitboxes
+        .map(fallback => {
+          const point = cockpitInteractionRaycaster.ray.intersectBox(fallback.box, new Vector3())
+          return point == null ? null : {
+            object: fallback.sourceNode,
+            distance: point.distanceTo(cockpitInteractionRaycaster.ray.origin),
+            binding: fallback.binding
+          }
+        })
+        .filter((candidate): candidate is NonNullable<typeof candidate> => candidate != null)
+        .sort((left, right) =>
+          Number(right.binding.metadata.prioritizeVCockpits) - Number(left.binding.metadata.prioritizeVCockpits) ||
+          left.distance - right.distance
+        )
+        .find(({ distance, binding }) =>
+          (binding.metadata.ignoreZTest || !isCockpitInteractionHitOccluded(distance, registry)) &&
+          !isCockpitInteractionHitBlocked(distance, blockerHits, registry)
+        )
+    }
+    if (hit == null) {
+      clearCockpitInteractionFeedback()
+      return
+    }
+
+    const target = cockpitInteractionAdapter.fromBinding(hit.binding)
+    cockpitInteractionDispatcher.hover(target, event.timeStamp)
+    const settings = getCockpitInputProfile()
+    const localizedTitle = resolveMsfsLocalizedString(
+      hit.binding.metadata.tooltipTitle ?? hit.binding.metadata.tooltipDescription ?? hit.binding.metadata.authoredId,
+      cockpitLocalization
+    ) ?? hit.binding.metadata.authoredId ?? hit.binding.target
+    const title = sanitizeMsfsTooltipText(localizedTitle) ||
+      hit.binding.metadata.authoredId ||
+      hit.binding.target
+    const value = cockpitInteractionAdapter.currentValue(target)
+    const valueText = value == null
+      ? ''
+      : `\n${cockpitValueFormatter.format(value)}${hit.binding.metadata.value.unit ? ` ${hit.binding.metadata.value.unit}` : ''}`
+    const actions = target.operations.filter(operation => operation !== 'hover' && operation !== 'leave')
+    const actionText = hit.binding.metadata.disabled
+      ? 'Unavailable'
+      : actions.join(' · ')
+    cockpitTooltip.textContent = `${title}${valueText}${actionText ? `\n${actionText}` : ''}`
+    cockpitTooltip.style.left = `${Math.min(event.clientX + 14, window.innerWidth - 330)}px`
+    cockpitTooltip.style.top = `${Math.min(event.clientY + 16, window.innerHeight - 100)}px`
+    cockpitTooltip.hidden = !settings.showTooltips
+    renderer.domElement.style.cursor = toCssCockpitCursor(hit.binding.metadata.cursor)
+
+    const highlightId = hit.binding.metadata.highlightNodeId
+    if (cockpitHighlightTarget !== target.id) clearCockpitHighlight()
+    if (cockpitHighlightTarget == null && settings.showHighlights && settings.interactionMode === 'lock' && highlightId !== '__NO_HIGHLIGHT__') {
+      const highlighted = highlightId == null
+        ? hit.object
+        : loadedModel.scene.getObjectByName(highlightId) ?? hit.object
+      highlighted.traverse(object => {
+        if (!(object instanceof Mesh)) return
+        const original = object.material
+        const materials = Array.isArray(original) ? original : [original]
+        const copies = materials.map(material => {
+          const copy = material.clone()
+          if ('emissive' in copy && copy.emissive instanceof Color) {
+            copy.emissive.set('#168cff')
+            if ('emissiveIntensity' in copy && typeof copy.emissiveIntensity === 'number') {
+              copy.emissiveIntensity = Math.max(1, copy.emissiveIntensity)
+            }
+          }
+          copy.needsUpdate = true
+          return copy
+        })
+        cockpitHighlight.push({ mesh: object, original, highlighted: copies })
+        object.material = Array.isArray(original) ? copies : copies[0]!
+      })
+      cockpitHighlightTarget = target.id
     }
   }
 
@@ -1980,7 +2222,9 @@ async function init(): Promise<void> {
     handleCockpitInteractionPress,
     executeCockpitInteractionDrag,
     releaseCockpitInteractionPress,
-    handleCockpitInteractionPress
+    handleCockpitInteractionPress,
+    handleCockpitInteractionHover,
+    executeCapturedCockpitAction
   )
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
     cockpitCameraController
@@ -2592,6 +2836,8 @@ async function init(): Promise<void> {
     cockpitInteractionStats,
     getCockpitInteractionPickRegistry: () =>
       getCockpitInteractionPickRegistry(loadedModel.scene, runtime),
+    getCockpitInteractionAdapter: () => cockpitInteractionAdapter,
+    getCockpitInteractionDispatcher: () => cockpitInteractionDispatcher,
     getCockpitCameraController: () => cockpitCameraController,
     getCockpitBenchmarkState: () =>
       ((globalThis as Record<string, unknown>).__cockpitBenchmark as {
@@ -11240,6 +11486,20 @@ function createCockpitInteractionFallbackBox(node: Object3D): Box3 {
   )
 }
 
+function toCssCockpitCursor(cursor: string | null): string {
+  switch (cursor?.trim().toLowerCase()) {
+    case 'grab':
+      return 'grab'
+    case 'hand':
+    case 'pointer':
+      return 'pointer'
+    case 'move':
+      return 'move'
+    default:
+      return cursor?.trim().toLowerCase() || 'default'
+  }
+}
+
 function installCockpitCameraShortcut(
   domElement: HTMLElement,
   camera: PerspectiveCamera,
@@ -11259,6 +11519,7 @@ function installCockpitCameraShortcut(
   onCockpitDrag?: (
     binding: CompiledInteractionBinding | null,
     options: {
+      readonly pointerId: number
       readonly relativeX: number
       readonly relativeY: number
       readonly relativeZ: number
@@ -11268,12 +11529,17 @@ function installCockpitCameraShortcut(
   ) => boolean,
   onCockpitRelease?: (
     binding: CompiledInteractionBinding | null,
-    options?: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary' }
+    options?: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary'; readonly pointerId?: number; readonly cancelled?: boolean }
   ) => void,
   onCockpitWheel?: (
     event: MouseEvent | PointerEvent,
     options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
-  ) => CompiledInteractionBinding | null
+  ) => CompiledInteractionBinding | null,
+  onCockpitHover?: (event: PointerEvent | null) => void,
+  onCapturedCockpitAction?: (
+    operation: 'press' | 'release' | 'increase' | 'decrease',
+    channel?: CockpitInteractionChannel
+  ) => boolean
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -11305,6 +11571,7 @@ function installCockpitCameraShortcut(
   let activePointerId: number | null = null
   let activePointerIsRightMouse = false
   let activeInteractionChannel: 'primary' | 'secondary' | 'tertiary' = 'primary'
+  let activePointerButton = 0
   let lastPointerX = 0
   let lastPointerY = 0
   let startPointerX = 0
@@ -11404,6 +11671,14 @@ function installCockpitCameraShortcut(
     }
 
     onToggleCockpitView?.('exit', source)
+    onCockpitRelease?.(activeCockpitPressBinding, {
+      unlock: true,
+      channel: activeInteractionChannel,
+      pointerId: activePointerId ?? undefined,
+      cancelled: true
+    })
+    activeCockpitPressBinding = null
+    onCockpitHover?.(null)
     releasePointer()
     isCockpitViewActive = false
     domElement.style.touchAction = previousTouchAction
@@ -11449,7 +11724,7 @@ function installCockpitCameraShortcut(
 
   const onKeyDown = (event: KeyboardEvent): void => {
     if (event.code === 'Escape' && activeCockpitPressBinding != null) {
-      onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel })
+      onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, cancelled: true })
       activeCockpitPressBinding = null
       releasePointer()
       event.preventDefault()
@@ -11475,9 +11750,21 @@ function installCockpitCameraShortcut(
       return
     }
 
+    const channel: CockpitInteractionChannel = event.button === 2
+      ? 'secondary'
+      : event.button === 1
+        ? 'tertiary'
+        : 'primary'
+    if (activeCockpitPressBinding != null && activePointerId === event.pointerId) {
+      onCapturedCockpitAction?.('press', channel)
+      event.preventDefault()
+      return
+    }
+
     activePointerId = event.pointerId
+    activePointerButton = event.button
     activePointerIsRightMouse = event.pointerType === 'mouse' && event.button === 2
-    activeInteractionChannel = event.button === 2 ? 'secondary' : event.button === 1 ? 'tertiary' : 'primary'
+    activeInteractionChannel = channel
     lastPointerX = event.clientX
     lastPointerY = event.clientY
     startPointerX = event.clientX
@@ -11493,9 +11780,14 @@ function installCockpitCameraShortcut(
   }
 
   const onPointerMove = (event: PointerEvent): void => {
-    if (!isCockpitViewActive || activePointerId !== event.pointerId) {
+    if (!isCockpitViewActive) {
       return
     }
+    if (activePointerId == null) {
+      onCockpitHover?.(event)
+      return
+    }
+    if (activePointerId !== event.pointerId) return
 
     const deltaX = event.clientX - lastPointerX
     const deltaY = event.clientY - lastPointerY
@@ -11509,6 +11801,7 @@ function installCockpitCameraShortcut(
       if (activeCockpitPressDragged) {
         activeCockpitDragCallbackEmitted =
           onCockpitDrag?.(activeCockpitPressBinding, {
+            pointerId: event.pointerId,
             ...getPointerRelativeValues(event),
             firstSample: !activeCockpitDragCallbackEmitted
           }) === true ||
@@ -11533,7 +11826,18 @@ function installCockpitCameraShortcut(
       return
     }
 
-    onCockpitRelease?.(activeCockpitPressBinding, { unlock: activeCockpitDragCallbackEmitted, channel: activeInteractionChannel })
+    if (event.button !== activePointerButton && activeCockpitPressBinding != null) {
+      const channel: CockpitInteractionChannel = event.button === 2
+        ? 'secondary'
+        : event.button === 1
+          ? 'tertiary'
+          : 'primary'
+      onCapturedCockpitAction?.('release', channel)
+      event.preventDefault()
+      return
+    }
+
+    onCockpitRelease?.(activeCockpitPressBinding, { unlock: activeCockpitDragCallbackEmitted, channel: activeInteractionChannel, pointerId: event.pointerId })
     activeCockpitPressBinding = null
     releasePointer()
     event.preventDefault()
@@ -11546,8 +11850,10 @@ function installCockpitCameraShortcut(
     event.preventDefault()
   }
 
+  const onPointerLeave = (): void => onCockpitHover?.(null)
+
   const cancelActivePointer = (): void => {
-    onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel })
+    onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, cancelled: true })
     activeCockpitPressBinding = null
     releasePointer()
   }
@@ -11558,6 +11864,13 @@ function installCockpitCameraShortcut(
     }
 
     const wheelDirection = event.deltaY < 0 ? 'WheelUp' : 'WheelDown'
+    if (
+      activeCockpitPressBinding != null &&
+      onCapturedCockpitAction?.(event.deltaY < 0 ? 'increase' : 'decrease') === true
+    ) {
+      event.preventDefault()
+      return
+    }
     const target = onCockpitWheel?.(event, { holdFeedback: false, mouseEvent: wheelDirection }) ?? null
     if (target != null) {
       event.preventDefault()
@@ -11577,6 +11890,7 @@ function installCockpitCameraShortcut(
   domElement.addEventListener('pointermove', onPointerMove)
   domElement.addEventListener('pointerup', onPointerUp)
   domElement.addEventListener('pointercancel', onPointerUp)
+  domElement.addEventListener('pointerleave', onPointerLeave)
   domElement.addEventListener('lostpointercapture', cancelActivePointer)
   domElement.addEventListener('contextmenu', onContextMenu)
   domElement.addEventListener('wheel', onWheel, { passive: false })
@@ -11588,6 +11902,7 @@ function installCockpitCameraShortcut(
     domElement.removeEventListener('pointermove', onPointerMove)
     domElement.removeEventListener('pointerup', onPointerUp)
     domElement.removeEventListener('pointercancel', onPointerUp)
+    domElement.removeEventListener('pointerleave', onPointerLeave)
     domElement.removeEventListener('lostpointercapture', cancelActivePointer)
     domElement.removeEventListener('contextmenu', onContextMenu)
     domElement.removeEventListener('wheel', onWheel)
@@ -12202,6 +12517,7 @@ function createSettingsPanel(options: {
 
   toggleButton.addEventListener('click', () => {
     drawer.hidden = !drawer.hidden
+    if (!drawer.hidden) refreshCockpitInputDraft()
   })
 
   const heading = document.createElement('div')
@@ -12256,8 +12572,47 @@ function createSettingsPanel(options: {
     initialProfile:
       options.configStore.aircraft[
         getViewerAircraftConfigKey(options.packageRoot, options.aircraft.id)
-      ] ?? {}
+    ] ?? {}
   })
+
+  const cockpitInputSection = document.createElement('section')
+  cockpitInputSection.style.marginTop = '14px'
+  cockpitInputSection.style.paddingTop = '12px'
+  cockpitInputSection.style.borderTop = '1px solid rgba(255, 255, 255, 0.12)'
+  const cockpitInputHeading = document.createElement('div')
+  cockpitInputHeading.textContent = 'Cockpit Input'
+  cockpitInputHeading.style.fontWeight = '700'
+  cockpitInputHeading.style.marginBottom = '8px'
+  const interactionModeSelect = createSettingsSelect('Interaction mode')
+  interactionModeSelect.append(
+    createSettingsOption('legacy', 'Legacy'),
+    createSettingsOption('lock', 'Lock')
+  )
+  const highlightSelect = createSettingsSelect('Highlights')
+  highlightSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
+  const tooltipSelect = createSettingsSelect('Tooltips')
+  tooltipSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
+  const refreshCockpitInputDraft = (): void => {
+    const settings = loadCockpitInputStore().globalSettings
+    interactionModeSelect.value = settings.interactionMode
+    highlightSelect.value = settings.showHighlights ? 'on' : 'off'
+    tooltipSelect.value = settings.showTooltips ? 'on' : 'off'
+  }
+  const saveCockpitInputDraft = (): void => {
+    updateCockpitInputSettings({
+      interactionMode: interactionModeSelect.value === 'lock' ? 'lock' : 'legacy',
+      showHighlights: highlightSelect.value === 'on',
+      showTooltips: tooltipSelect.value === 'on'
+    })
+    window.dispatchEvent(new Event('cockpit-input-settings-changed'))
+  }
+  refreshCockpitInputDraft()
+  cockpitInputSection.append(
+    cockpitInputHeading,
+    createSettingsField('Interaction mode', interactionModeSelect),
+    createSettingsField('Highlights', highlightSelect),
+    createSettingsField('Tooltips', tooltipSelect)
+  )
 
   aircraftSelect.addEventListener('change', () => {
     const selectedOption = getSelectedAircraftOption()
@@ -12348,6 +12703,7 @@ function createSettingsPanel(options: {
   aircraftField.style.marginBottom = '12px'
 
   const applyButton = createActionButton('Apply')
+  const cancelButton = createActionButton('Cancel')
   const resetButton = createActionButton('Reset')
   const notifyApplied = async (action: ViewerSettingsApplyEvent['action']): Promise<void> => {
     const selectedOption = getSelectedAircraftOption()
@@ -12374,6 +12730,7 @@ function createSettingsPanel(options: {
           applyAircraftProfile()
           status.textContent = 'Saved aircraft profile.'
         }
+        saveCockpitInputDraft()
         await notifyApplied('apply')
       } finally {
         applyButton.disabled = false
@@ -12393,6 +12750,9 @@ function createSettingsPanel(options: {
           resetAircraftProfile()
           status.textContent = 'Cleared aircraft profile.'
         }
+        updateCockpitInputSettings(DEFAULT_COCKPIT_INPUT_STORE.globalSettings)
+        refreshCockpitInputDraft()
+        window.dispatchEvent(new Event('cockpit-input-settings-changed'))
         await notifyApplied('reset')
       } finally {
         applyButton.disabled = false
@@ -12400,13 +12760,23 @@ function createSettingsPanel(options: {
       }
     })()
   })
+  cancelButton.addEventListener('click', () => {
+    const selectedOption = getSelectedAircraftOption()
+    const store = loadViewerConfigStore()
+    globalEditor.setProfile(store.global)
+    aircraftEditor.setProfile(
+      store.aircraft[getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)] ?? {}
+    )
+    refreshCockpitInputDraft()
+    status.textContent = 'Discarded draft changes.'
+  })
 
   const actions = document.createElement('div')
   actions.style.display = 'grid'
-  actions.style.gridTemplateColumns = 'repeat(2, minmax(0, 1fr))'
+  actions.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))'
   actions.style.gap = '8px'
   actions.style.marginTop = '12px'
-  actions.append(applyButton, resetButton)
+  actions.append(applyButton, cancelButton, resetButton)
 
   drawer.append(
     heading,
@@ -12414,6 +12784,7 @@ function createSettingsPanel(options: {
     tabs,
     globalEditor.root,
     aircraftEditor.root,
+    cockpitInputSection,
     actions,
     status
   )

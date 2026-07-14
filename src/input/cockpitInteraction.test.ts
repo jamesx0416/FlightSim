@@ -21,4 +21,19 @@ describe('CockpitInteractionDispatcher', () => {
     expect(operations).toEqual(['lock', 'hold', 'cancel', 'unlock'])
     expect(dispatcher.snapshot.captured).toBe(null)
   })
+
+  test('consumes busy targets and keeps capture on the initiating pointer', () => {
+    const target: CockpitInteractionTarget = { id: 'control', lockable: false, operations: ['hold', 'turn', 'release'] }
+    const dispatcher = new CockpitInteractionDispatcher('legacy', () => true)
+    expect(dispatcher.claim(target, 'set')).toBe(true)
+    expect(dispatcher.pointerDown(target, 1, 'primary', 1)).toBe(true)
+    expect(dispatcher.snapshot.captured).toBe(null)
+
+    dispatcher.finish(target.id)
+    dispatcher.pointerDown(target, 1, 'primary', 2)
+    expect(dispatcher.pointerMove(2, 'x', 1, 1, 3)).toBe(false)
+    expect(dispatcher.pointerUp(2, 4)).toBe(false)
+    expect(dispatcher.snapshot.captured).toBe(target.id)
+    expect(dispatcher.pointerUp(1, 5)).toBe(true)
+  })
 })

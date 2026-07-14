@@ -66,6 +66,7 @@ interface RuntimeInteractionOptions {
   readonly relativeY?: number
   readonly relativeZ?: number
   readonly dragPercent?: number
+  readonly parameterValues?: readonly number[]
 }
 
 interface RuntimeMaterialBinding {
@@ -726,11 +727,20 @@ export class AircraftRuntime {
     binding: CompiledInteractionBinding,
     options: RuntimeInteractionOptions = {}
   ): boolean {
-    if (!this.compiled.interactionBindings.includes(binding)) {
+    if (!this.compiled.interactionBindings.includes(binding) || binding.metadata.disabled) {
       return false
     }
     this.executeInteractionBinding(binding, options)
     return true
+  }
+
+  readInteractionValue(binding: CompiledInteractionBinding): number | null {
+    const expression = binding.metadata.tooltipValueExpression
+    if (!this.compiled.interactionBindings.includes(binding) || expression == null) return null
+    const value = evaluateCompiledExpression(expression, {
+      readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
+    })
+    return Number.isFinite(value) ? value : null
   }
 
   executeInteractionCallbackEvent(target: string, options: RuntimeInteractionOptions = {}): boolean {
@@ -914,7 +924,8 @@ export class AircraftRuntime {
       readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
-      invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
+      invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args),
+      parameterValues: options.parameterValues
     })
     if (isReleaseEvent) {
       this.invokeInteractionSoundEvents(binding, 'release')

@@ -44,10 +44,10 @@ import {
   refreshMsfsPackageSourceVersions
 } from './msfs/packageAssets'
 import type { RendererInfo } from './rendering/createAppRenderer'
-import { MsfsInteractionAdapter } from './msfs/interactionAdapter'
-import type { CanonicalCockpitAction, CockpitInteractionChannel, CockpitInteractionOperation, CockpitRelativeDirection } from './input/cockpitInteraction'
+import { MsfsInteractionAdapter, type InteractionResolution, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { CockpitInteractionDispatcher, type CanonicalCockpitAction, type CockpitInteractionChannel, type CockpitInteractionOperation, type CockpitRelativeDirection } from './input/cockpitInteraction'
 import { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
-import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, saveCockpitInputStore, type CockpitInputStoreV1 } from './input/cockpitInputProfiles'
+import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, saveCockpitInputStore, updateCockpitInputSettings, type CockpitInputStoreV1 } from './input/cockpitInputProfiles'
 import { listCanonicalEngineCommands, type SimCommand, type SimUnit } from './sim/engine'
 import type {
   CockpitCameraController,
@@ -79,6 +79,27 @@ type DevApiInteractionResult<T = unknown> = {
   readonly data: T
   readonly suggestions: readonly string[]
 }
+
+const interactionResult = <T>(ok: boolean, code: string, message: string, data: T, suggestions: readonly string[] = []): DevApiInteractionResult<T> =>
+  ({ ok, code, message, data, suggestions })
+
+const interactionResolutionFailure = (target: string, result: Extract<InteractionResolution, { ok: false }>) =>
+  interactionResult(false, result.code, result.code === 'TARGET_AMBIGUOUS' ? `Interaction target "${target}" is ambiguous.` : `Interaction target "${target}" was not found.`, { target, candidates: result.candidates }, result.candidates)
+
+function resolveInteractionRequest(
+  targetName: string,
+  resolution: InteractionResolution,
+  busyTargetIds: ReadonlySet<string>,
+  rejectBusy = true
+): { readonly ok: true; readonly target: MsfsInteractionTarget } | { readonly ok: false; readonly result: DevApiInteractionResult } {
+  if (!resolution.ok) return { ok: false, result: interactionResolutionFailure(targetName, resolution) }
+  if (rejectBusy && busyTargetIds.has(resolution.target.id)) {
+    return { ok: false, result: interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: resolution.target.id }) }
+  }
+  return resolution
+}
+
+export const __devApiInteractionTestHooks = { resolveInteractionRequest }
 
 type InteractionSelector = { readonly interaction?: CockpitInteractionChannel; readonly variant?: string }
 type InteractionActionOptions = InteractionSelector & { readonly steps?: number }
@@ -179,45 +200,6 @@ type DevApiListKind =
   | 'events'
   | 'settings'
   | 'camera'
-
-type DevApiClickOptions = {
-  readonly count?: number
-  readonly delayMs?: number
-  readonly holdMs?: number
-  readonly release?: boolean
-  readonly mouseEvent?: string
-  readonly inputType?: number
-  readonly relativeX?: number
-  readonly relativeY?: number
-  readonly relativeZ?: number
-  readonly dragPercent?: number
-}
-
-type DevApiTurnOptions = {
-  readonly direction: 'up' | 'down' | 'left' | 'right' | 'inc' | 'dec' | 'increase' | 'decrease'
-  readonly steps?: number
-  readonly delayMs?: number
-  readonly until?: {
-    readonly var?: string
-    readonly unit?: string | null
-    readonly equals?: number
-    readonly above?: number
-    readonly below?: number
-  }
-}
-
-type DevApiDragOptions = {
-  readonly axis?: 'x' | 'y' | 'z'
-  readonly start?: number
-  readonly end?: number
-  readonly startPercent?: number
-  readonly endPercent?: number
-  readonly steps?: number
-  readonly durationMs?: number
-  readonly inputType?: number
-  readonly lock?: boolean
-  readonly release?: boolean
-}
 
 type DevApiDiagnosticsOptions = {
   readonly severity?: string
@@ -351,6 +333,7 @@ type ViewerDevApiContext = {
   readonly packageRoot: string
   readonly packageData: {
     readonly packageName: string
+    readonly manifest?: { readonly packageVersion?: string } | null
     readonly diagnostics: readonly ImportDiagnostic[]
   }
   readonly aircraft: ImportedAircraft
@@ -370,6 +353,8 @@ type ViewerDevApiContext = {
   readonly getCockpitPerfDiagnostics: () => CockpitPerfDiagnostics
   readonly cockpitInteractionStats: Record<string, unknown>
   readonly getCockpitInteractionPickRegistry: () => CockpitInteractionPickRegistry
+  readonly getCockpitInteractionAdapter: () => MsfsInteractionAdapter
+  readonly getCockpitInteractionDispatcher: () => CockpitInteractionDispatcher<MsfsInteractionTarget>
   readonly getCockpitCameraController: () => CockpitCameraController
   readonly getCockpitBenchmarkState: () => Record<string, unknown>
   readonly runCockpitBenchmark: (options?: {
@@ -1403,62 +1388,153 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       gauge.surface.toLowerCase().includes(needle)
     ) ?? null
   }
-  const interactionAdapter = new MsfsInteractionAdapter(() => context.getRuntime())
+  const interactionAdapter = context.getCockpitInteractionAdapter()
+  const interactionDispatcher = context.getCockpitInteractionDispatcher()
   const interactionHistory = new CockpitInteractionHistory(window.localStorage)
   const interactionTrace = new CockpitInteractionTrace()
   const heldInteractionTargets = new Map<string, ReturnType<MsfsInteractionAdapter['list']>[number]>()
   let cockpitInputStore = loadCockpitInputStore(window.localStorage)
-  const interactionResult = <T>(okValue: boolean, code: string, message: string, data: T, suggestions: readonly string[] = []): DevApiInteractionResult<T> => ({ ok: okValue, code, message, data, suggestions })
-  const interactionResolutionFailure = (target: string, result: { readonly code: 'TARGET_NOT_FOUND' | 'TARGET_AMBIGUOUS'; readonly candidates: readonly string[] }) =>
-    interactionResult(false, result.code, result.code === 'TARGET_AMBIGUOUS' ? `Interaction target "${target}" is ambiguous.` : `Interaction target "${target}" was not found.`, { target, candidates: result.candidates }, result.candidates)
+  window.addEventListener('cockpit-input-settings-changed', () => {
+    cockpitInputStore = loadCockpitInputStore(window.localStorage)
+  })
   const runInteraction = async (
     targetName: string,
     operation: CockpitInteractionOperation,
     options: InteractionSelector & { readonly steps?: number; readonly direction?: CockpitRelativeDirection; readonly value?: number | boolean | string; readonly unit?: string } = {}
   ): Promise<DevApiInteractionResult> => {
     try {
-      const resolved = interactionAdapter.resolve(targetName)
-      if (!resolved.ok) return interactionResolutionFailure(targetName, resolved)
-      const target = resolved.target
-      if (heldInteractionTargets.has(target.id) && operation !== 'release') return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+      const request = resolveInteractionRequest(
+        targetName,
+        interactionAdapter.resolve(targetName),
+        new Set([...heldInteractionTargets.keys(), ...interactionDispatcher.snapshot.busy]),
+        operation !== 'release'
+      )
+      if (!request.ok) return request.result
+      const target = request.target
+      if (operation === 'on' || operation === 'off') {
+        if (!interactionDispatcher.claim(target, operation)) return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        const state = await interactionAdapter
+          .setBooleanState(target, operation === 'on', options.interaction)
+          .finally(() => interactionDispatcher.finish(target.id))
+        return interactionResult(
+          state.ok,
+          state.code,
+          state.ok ? `Set ${targetName} ${operation}.` : `Could not set ${targetName} ${operation}: ${state.code}.`,
+          { target: target.id, operation, ...state }
+        )
+      }
+      if (operation === 'set' && typeof options.value === 'boolean') {
+        if (!interactionDispatcher.claim(target, operation)) return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        const state = await interactionAdapter
+          .setBooleanState(target, options.value, options.interaction)
+          .finally(() => interactionDispatcher.finish(target.id))
+        return interactionResult(state.ok, state.code, state.ok ? `Set ${targetName}.` : `Could not set ${targetName}: ${state.code}.`, { target: target.id, operation, ...state })
+      }
+      if (operation === 'set' && typeof options.value === 'string') {
+        return interactionResult(false, 'VALUE_REACHABILITY_UNKNOWN', `String reachability is not authoritative for ${targetName}.`, { target: target.id, requested: options.value })
+      }
+      if ((operation === 'set' || operation === 'adjust') && typeof options.value === 'number') {
+        if (!interactionDispatcher.claim(target, operation)) return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        const exact = await (operation === 'set'
+          ? interactionAdapter.setExact(target, options.value, options.unit, options.interaction)
+          : interactionAdapter.adjustExact(target, options.value, options.unit, options.interaction)
+        ).finally(() => interactionDispatcher.finish(target.id))
+        const entry = interactionHistory.add({
+          timestampMs: Date.now(),
+          source: 'devapi',
+          target: target.id,
+          action: operation,
+          result: exact.code,
+          detail: { ...exact }
+        })
+        return interactionResult(
+          exact.ok,
+          exact.code,
+          exact.ok ? `Executed exact ${operation} on ${targetName}.` : `Exact ${operation} failed on ${targetName}: ${exact.code}.`,
+          { target: target.id, operation, historyId: entry.id, ...exact }
+        )
+      }
       const steps = options.steps ?? 1
       if (!Number.isInteger(steps) || steps <= 0) return interactionResult(false, 'OPERATION_UNSUPPORTED', 'steps must be a positive integer.', { steps })
       const routeOperation = operation === 'turn'
-        ? options.direction === 'increase' || options.direction === 'right' || options.direction === 'up' ? 'increase' : 'decrease'
-        : operation
-      const route = target.binding.metadata.routes.find(candidate => candidate.operation === routeOperation && (options.interaction == null || candidate.channel === options.interaction))
+        ? interactionAdapter.resolveRelativeOperation(target, options.direction)
+        : operation === 'hold' ? 'press' : operation
+      const routeAction: CanonicalCockpitAction = {
+        source: 'devapi',
+        operation: operation === 'hold' ? 'hold' : routeOperation,
+        phase: operation === 'hold' ? 'hold' : operation === 'release' ? 'release' : 'press',
+        channel: options.interaction,
+        direction: options.direction,
+        value: options.value,
+        unit: options.unit,
+        timestampMs: performance.now()
+      }
+      const route = interactionAdapter.route(target, routeAction)
       if (route == null) return interactionResult(false, 'OPERATION_UNSUPPORTED', `${operation} is not authored for ${targetName}.`, { target: target.id, operations: target.operations })
       for (let index = 0; index < steps; index += 1) {
         const action: CanonicalCockpitAction = {
-          source: 'devapi', operation: routeOperation, phase: operation === 'hold' ? 'hold' : operation === 'release' ? 'release' : 'press',
-          channel: options.interaction, direction: options.direction, value: options.value, unit: options.unit, timestampMs: performance.now()
+          ...routeAction,
+          timestampMs: performance.now()
         }
-        if (!interactionAdapter.execute(target, action)) return interactionResult(false, 'INTERACTION_UNAVAILABLE', `${operation} could not execute.`, { target: target.id })
+        const dispatched = interactionDispatcher.dispatch(target, action)
+        if (dispatched === 'busy') return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        if (dispatched !== 'executed') return interactionResult(false, 'INTERACTION_UNAVAILABLE', `${operation} could not execute.`, { target: target.id })
         interactionTrace.add({ action, route, target: target.binding.metadata })
         await Promise.resolve()
       }
       if (operation === 'hold') heldInteractionTargets.set(target.id, target)
       if (operation === 'release') { interactionAdapter.release(target); heldInteractionTargets.delete(target.id) }
       if (operation === 'press') {
-        const release = target.binding.metadata.routes.find(candidate => candidate.operation === 'release' && (options.interaction == null || candidate.channel === options.interaction))
-        if (release != null) interactionAdapter.execute(target, { source: 'devapi', operation: 'release', phase: 'release', channel: options.interaction, timestampMs: performance.now() })
+        const releaseAction: CanonicalCockpitAction = { source: 'devapi', operation: 'release', phase: 'release', channel: options.interaction, timestampMs: performance.now() }
+        if (interactionAdapter.route(target, releaseAction) != null) interactionDispatcher.dispatch(target, releaseAction)
         interactionAdapter.release(target)
       }
       const entry = interactionHistory.add({ timestampMs: Date.now(), source: 'devapi', target: target.id, action: operation, result: 'executed', detail: { steps, direction: options.direction } })
       return interactionResult(true, 'OK', `Executed ${operation} on ${targetName}.`, { target: target.id, operation, steps, historyId: entry.id })
     } catch (error) {
       console.error('DevApi interaction failed', error)
+      interactionTrace.add({
+        kind: 'error',
+        target: targetName,
+        operation,
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      })
       return interactionResult(false, 'INTERNAL_ERROR', error instanceof Error ? error.message : String(error), { target: targetName, operation })
     }
   }
   const interactionsApi: DevApiInteractions = {
     list: (options = {}) => {
       const needle = options.filter?.toLowerCase() ?? ''
-      const rows = interactionAdapter.list().filter(target => !needle || `${target.binding.metadata.authoredId} ${target.id}`.toLowerCase().includes(needle)).slice(0, options.limit ?? 500).map(target => ({ authoredId: target.binding.metadata.authoredId, qualifiedId: target.id, operations: target.operations, channels: [...new Set(target.binding.metadata.routes.map(route => route.channel).filter(Boolean))], available: !target.binding.metadata.disabled, title: target.binding.metadata.tooltipTitle }))
+      const targets = interactionAdapter.list()
+      const authoredCounts = new Map<string, number>()
+      for (const target of targets) {
+        const authoredId = target.binding.metadata.authoredId
+        if (authoredId != null) authoredCounts.set(authoredId, (authoredCounts.get(authoredId) ?? 0) + 1)
+      }
+      const rows = targets
+        .filter(target => !needle || `${target.binding.metadata.authoredId} ${target.id}`.toLowerCase().includes(needle))
+        .slice(0, options.limit ?? 500)
+        .map(target => {
+          const value = interactionAdapter.currentValue(target)
+          const unit = target.binding.metadata.value.unit
+          return {
+            authoredId: target.binding.metadata.authoredId,
+            qualifiedId: target.id,
+            operations: target.operations,
+            channels: [...new Set(target.binding.metadata.routes.map(route => route.channel).filter(Boolean))],
+            available: !target.binding.metadata.disabled,
+            title: target.binding.metadata.tooltipTitle,
+            value,
+            formattedValue: value == null ? null : `${value}${unit ? ` ${unit}` : ''}`,
+            unit,
+            ambiguous: target.binding.metadata.authoredId == null || (authoredCounts.get(target.binding.metadata.authoredId) ?? 0) > 1
+          }
+        })
       return interactionResult(true, 'OK', 'Listed cockpit interactions.', rows)
     },
-    describe: target => { const result = interactionAdapter.resolve(target); return result.ok ? interactionResult(true, 'OK', `Described ${target}.`, { ...result.target.binding.metadata, expression: result.target.binding.expression, releaseExpression: result.target.binding.releaseExpression }) : interactionResolutionFailure(target, result) },
-    active: () => interactionResult(true, 'OK', 'Listed active interactions.', [...heldInteractionTargets.keys()]),
+    describe: target => { const result = interactionAdapter.resolve(target); return result.ok ? interactionResult(true, 'OK', `Described ${target}.`, { packageId: context.packageData.packageName, packageVersion: context.packageData.manifest?.packageVersion ?? null, ...result.target.binding.metadata, currentValue: interactionAdapter.currentValue(result.target), expression: result.target.binding.expression, releaseExpression: result.target.binding.releaseExpression }) : interactionResolutionFailure(target, result) },
+    active: () => interactionResult(true, 'OK', 'Listed active interactions.', [...new Set([...heldInteractionTargets.keys(), ...interactionAdapter.active()])]),
     history: (options = {}) => interactionResult(true, 'OK', 'Collected interaction history.', interactionHistory.list(options.limit)),
     trace: { snapshot: () => interactionResult(true, 'OK', 'Collected interaction trace.', interactionTrace.snapshot()), enable: (enabled = true) => { interactionTrace.enabled = enabled; return interactionResult(true, 'OK', `Detailed tracing ${enabled ? 'enabled' : 'disabled'}.`, { enabled }) } },
     profiles: {
@@ -1466,9 +1542,19 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       get: profileId => { const profile = cockpitInputStore.profiles.find(candidate => candidate.id === profileId); return profile == null ? interactionResult(false, 'TARGET_NOT_FOUND', `Profile ${profileId} was not found.`, null) : interactionResult(true, 'OK', `Loaded profile ${profileId}.`, profile) },
       effective: (profileId, aircraftId) => interactionResult(true, 'OK', 'Resolved effective input profile.', effectiveCockpitInputProfile(cockpitInputStore, aircraftId == null ? profileId : cockpitInputStore.aircraftProfileSelections[aircraftId] ?? profileId)),
       export: () => interactionResult(true, 'OK', 'Exported input profiles.', cockpitInputStore),
-      import: store => { saveCockpitInputStore(store); cockpitInputStore = loadCockpitInputStore(); return interactionResult(true, 'OK', 'Imported input profiles.', cockpitInputStore) }
+      import: store => {
+        try {
+          saveCockpitInputStore(store)
+          cockpitInputStore = loadCockpitInputStore()
+          window.dispatchEvent(new Event('cockpit-input-settings-changed'))
+          return interactionResult(true, 'OK', 'Imported input profiles.', cockpitInputStore)
+        } catch (error) {
+          console.error('DevApi profile import failed', error)
+          return interactionResult(false, 'INTERNAL_ERROR', error instanceof Error ? error.message : String(error), null)
+        }
+      }
     },
-    settings: { get: () => interactionResult(true, 'OK', 'Loaded cockpit input settings.', cockpitInputStore.globalSettings), set: settings => { cockpitInputStore = { ...cockpitInputStore, globalSettings: { ...cockpitInputStore.globalSettings, ...settings } }; saveCockpitInputStore(cockpitInputStore); return interactionResult(true, 'OK', 'Saved cockpit input settings.', cockpitInputStore.globalSettings) } },
+    settings: { get: () => interactionResult(true, 'OK', 'Loaded cockpit input settings.', cockpitInputStore.globalSettings), set: settings => { cockpitInputStore = { ...cockpitInputStore, globalSettings: updateCockpitInputSettings(settings) }; window.dispatchEvent(new Event('cockpit-input-settings-changed')); return interactionResult(true, 'OK', 'Saved cockpit input settings.', cockpitInputStore.globalSettings) } },
     press: (target, options) => runInteraction(target, 'press', options),
     hold: (target, options) => runInteraction(target, 'hold', options),
     release: (target, options) => runInteraction(target, 'release', options),
@@ -1480,181 +1566,9 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     on: (target, options) => runInteraction(target, 'on', options),
     off: (target, options) => runInteraction(target, 'off', options),
     toggle: (target, options) => runInteraction(target, 'toggle', options),
-    cancel: target => { const resolved = interactionAdapter.resolve(target); if (resolved.ok) { interactionAdapter.release(resolved.target); heldInteractionTargets.delete(resolved.target.id) }; return interactionResult(resolved.ok, resolved.ok ? 'CANCELLED' : resolved.code, resolved.ok ? `Cancelled ${target}.` : `Could not resolve ${target}.`, { target }) },
-    cancelAll: () => { for (const target of heldInteractionTargets.values()) interactionAdapter.release(target); heldInteractionTargets.clear(); return interactionResult(true, 'CANCELLED', 'Cancelled all interactions.', null) },
+    cancel: target => { const resolved = interactionAdapter.resolve(target); if (resolved.ok) { interactionDispatcher.cancel(resolved.target.id); interactionAdapter.cancel(resolved.target); heldInteractionTargets.delete(resolved.target.id) }; return interactionResult(resolved.ok, resolved.ok ? 'CANCELLED' : resolved.code, resolved.ok ? `Cancelled ${target}.` : `Could not resolve ${target}.`, { target }) },
+    cancelAll: () => { interactionDispatcher.cancelAll(); interactionAdapter.cancelAll(); for (const target of heldInteractionTargets.values()) interactionAdapter.release(target); heldInteractionTargets.clear(); return interactionResult(true, 'CANCELLED', 'Cancelled all interactions.', null) },
     dispatch: async (target, action) => runInteraction(target, action.operation, { interaction: action.channel, steps: action.steps, direction: action.direction, value: action.value, unit: action.unit })
-  }
-  const executeClick = async (
-    target: string,
-    options: DevApiClickOptions = {}
-  ): Promise<DevApiResponse> => {
-    const count = Math.max(1, Math.min(500, Math.floor(options.count ?? 1)))
-    const delayMs = Math.max(0, Math.min(10_000, Math.floor(options.delayMs ?? 0)))
-    const holdMs = Math.max(0, Math.min(60_000, Math.floor(options.holdMs ?? 0)))
-    const shouldRelease = options.release !== false
-    const interactionOptions = {
-      holdFeedback: holdMs > 0,
-      mouseEvent: options.mouseEvent,
-      inputType: options.inputType,
-      relativeX: options.relativeX,
-      relativeY: options.relativeY,
-      relativeZ: options.relativeZ,
-      dragPercent: options.dragPercent
-    }
-    const before = context.getRuntime().getInteractionExecutionCount()
-    const presses: Record<string, unknown>[] = []
-    let callbackReleaseCount = 0
-    for (let index = 0; index < count; index += 1) {
-      const pressed = context.getRuntime().executeInteraction(target, interactionOptions)
-      presses.push({ index, pressed })
-      if (pressed && holdMs > 0) {
-        context.cockpitInteractionStats.activeHeldTarget = target
-        await sleep(holdMs)
-      }
-      if (pressed && shouldRelease) {
-        const releaseMouseEvent = holdMs > 0 && (options.mouseEvent == null || options.mouseEvent === 'LeftSingle' || options.mouseEvent === 'Lock')
-          ? 'LeftRelease'
-          : null
-        if (releaseMouseEvent != null) {
-          const callbackReleased = context.getRuntime().executeInteractionCallbackEvent(target, {
-            ...interactionOptions,
-            holdFeedback: false,
-            mouseEvent: releaseMouseEvent
-          })
-          if (callbackReleased) callbackReleaseCount += 1
-        }
-        context.getRuntime().releaseInteraction(target)
-        if (context.cockpitInteractionStats.activeHeldTarget === target) {
-          context.cockpitInteractionStats.activeHeldTarget = null
-        }
-      }
-      if (index < count - 1 && delayMs > 0) await sleep(delayMs)
-    }
-    const executedCount = context.getRuntime().getInteractionExecutionCount() - before
-    return (executedCount > 0 ? ok : fail)(
-      executedCount > 0
-        ? `Executed ${count} requested click(s) for ${target}; ${executedCount} runtime interaction event(s).`
-        : `No interaction executed for ${target}.`,
-      { target, requestedCount: count, executedCount, callbackReleaseCount, held: holdMs > 0 && !shouldRelease, presses, interactionStats: { ...context.cockpitInteractionStats } },
-      executedCount > 0 ? undefined : [`No exact interaction target matched "${target}". Try __DevApi.find("${target}").`]
-    )
-  }
-  const resolveTurnTarget = (target: string, direction: DevApiTurnOptions['direction']): {
-    readonly target: string
-    readonly candidates: readonly string[]
-  } => {
-    const bindings = context.getRuntime().getInteractionBindings()
-    if (bindings.some(binding => binding.target === target)) return { target, candidates: [target] }
-    const targetNeedle = target.toLowerCase()
-    const directionNeedles =
-      direction === 'up' || direction === 'right' || direction === 'inc' || direction === 'increase'
-        ? ['inc', 'increase', 'plus', 'right', 'up', 'clockwise', 'cw']
-        : ['dec', 'decrease', 'minus', 'left', 'down', 'counter', 'ccw']
-    const candidates = bindings
-      .map(binding => binding.target)
-      .filter(candidate => {
-        const normalized = candidate.toLowerCase()
-        return normalized.includes(targetNeedle) && directionNeedles.some(needle => normalized.includes(needle))
-      })
-    return { target: candidates[0] ?? target, candidates }
-  }
-  const untilReached = (until: DevApiTurnOptions['until']): boolean => {
-    if (until?.var == null) return false
-    const value = context.getRuntimeHost().readVariable(until.var, until.unit ?? null)
-    return (
-      (until.equals != null && Math.abs(value - until.equals) < 1e-6) ||
-      (until.above != null && value > until.above) ||
-      (until.below != null && value < until.below)
-    )
-  }
-  const executeDrag = async (
-    target: string,
-    options: DevApiDragOptions = {}
-  ): Promise<DevApiResponse> => {
-    const axis = options.axis ?? 'y'
-    const steps = Math.max(1, Math.min(200, Math.floor(options.steps ?? 8)))
-    const durationMs = Math.max(0, Math.min(60_000, Math.floor(options.durationMs ?? 250)))
-    const stepDelayMs = steps > 1 ? durationMs / (steps - 1) : 0
-    const inputType = options.inputType ?? 1
-    const start = finiteNumberOr(options.start, 0)
-    const end = finiteNumberOr(options.end, 1)
-    const startPercent = clamp01(finiteNumberOr(options.startPercent, start))
-    const endPercent = clamp01(finiteNumberOr(options.endPercent, end))
-    const shouldLock = options.lock !== false
-    const shouldRelease = options.release !== false
-    const phases: Record<string, unknown>[] = []
-    const before = context.getRuntime().getInteractionExecutionCount()
-    const createMouseOptions = (
-      mouseEvent: string,
-      relativeValue: number,
-      dragPercent: number
-    ): DevApiClickOptions => {
-      const base = {
-        count: 1,
-        release: false,
-        mouseEvent,
-        inputType,
-        dragPercent
-      }
-      if (axis === 'x') return { ...base, relativeX: relativeValue }
-      if (axis === 'z') return { ...base, relativeZ: relativeValue }
-      return { ...base, relativeY: relativeValue }
-    }
-    const runPhase = async (
-      phase: string,
-      mouseEvent: string,
-      relativeValue: number,
-      dragPercent: number
-    ): Promise<void> => {
-      const response = await executeClick(target, createMouseOptions(mouseEvent, relativeValue, dragPercent))
-      phases.push({
-        phase,
-        mouseEvent,
-        relativeValue,
-        dragPercent,
-        ok: response.ok,
-        executedCount: (response.data as { readonly executedCount?: unknown }).executedCount
-      })
-    }
-
-    if (shouldLock) await runPhase('lock', 'Lock', start, startPercent)
-    await runPhase('press', 'LeftSingle', start, startPercent)
-    for (let index = 0; index < steps; index += 1) {
-      const ratio = steps === 1 ? 1 : index / (steps - 1)
-      const relativeValue = start + (end - start) * ratio
-      const dragPercent = startPercent + (endPercent - startPercent) * ratio
-      await runPhase('drag', 'LeftDrag', relativeValue, dragPercent)
-      if (index < steps - 1 && stepDelayMs > 0) await sleep(stepDelayMs)
-    }
-    if (shouldRelease) {
-      await runPhase('release', 'LeftRelease', end, endPercent)
-      if (shouldLock) await runPhase('unlock', 'Unlock', end, endPercent)
-      const released = context.getRuntime().releaseInteraction(target)
-      phases.push({ phase: 'runtimeRelease', released })
-      if (context.cockpitInteractionStats.activeHeldTarget === target) {
-        context.cockpitInteractionStats.activeHeldTarget = null
-      }
-    }
-
-    const executedCount = context.getRuntime().getInteractionExecutionCount() - before
-    return (executedCount > 0 ? ok : fail)(
-      executedCount > 0 ? `Dragged ${target} across ${steps} step(s).` : `No drag interaction executed for ${target}.`,
-      {
-        target,
-        axis,
-        inputType,
-        start,
-        end,
-        startPercent,
-        endPercent,
-        steps,
-        durationMs,
-        executedCount,
-        phases,
-        interactionStats: { ...context.cockpitInteractionStats }
-      },
-      executedCount > 0 ? undefined : [`No exact interaction target matched "${target}". Try __DevApi.find("${target}").`]
-    )
   }
   const list = (options: { readonly kind?: DevApiListKind; readonly filter?: string; readonly limit?: number } = {}): DevApiResponse => {
     const kind = options.kind ?? 'components'
