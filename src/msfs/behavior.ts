@@ -337,7 +337,8 @@ async function loadBehaviorDocuments(
 export const __behaviorTestHooks = {
   loadBehaviorDocuments,
   buildCompiledInteractionMetadata,
-  buildMouseEventInteractionCodeSource
+  buildMouseEventInteractionCodeSource,
+  pushUniqueInteractionBinding
 }
 
 function resolveBehaviorDocumentRequest(
@@ -2951,7 +2952,9 @@ function pushUniqueInteractionBinding(
   )
   const sameIdentity = (candidate: CompiledInteractionBinding): boolean =>
     candidate.metadata.qualifiedId === binding.metadata.qualifiedId &&
-    candidate.metadata.sourceKind === binding.metadata.sourceKind
+    candidate.metadata.sourceKind === binding.metadata.sourceKind &&
+    candidate.expression.source === binding.expression.source &&
+    candidate.releaseExpression?.source === binding.releaseExpression?.source
   const supersededIndex = bindings.findIndex(candidate =>
     sameIdentity(candidate) &&
     candidate.metadata.routes.length < binding.metadata.routes.length &&

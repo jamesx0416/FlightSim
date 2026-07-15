@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import { __behaviorTestHooks } from './behavior'
-import type { BehaviorSourceRoot, ImportDiagnostic } from './types'
+import type { BehaviorSourceRoot, CompiledInteractionBinding, CompiledInteractionRoute, ImportDiagnostic } from './types'
 
 function include(relativeFile: string): Element {
   return {
@@ -165,6 +165,29 @@ test('keeps default and drag interaction-model routes separate', () => {
   expect(metadata.routes.filter(route => route.interactionModel === 'default').map(route => route.msfsEvent)).toEqual(['LeftSingle'])
   expect(metadata.routes.some(route => route.interactionModel === 'drag' && route.msfsEvent === 'LeftRelease')).toBe(true)
   expect(metadata.lockable).toBe(false)
+})
+
+test('keeps distinct callbacks for one interaction target', () => {
+  const bindings: CompiledInteractionBinding[] = []
+  const binding = (source: string, routes: readonly CompiledInteractionRoute[]) => ({
+    target: 'TEST',
+    expression: { source },
+    releaseExpression: null,
+    metadata: { qualifiedId: 'test.xml#TEST', sourceKind: 'callbackCode', routes }
+  }) as CompiledInteractionBinding
+  const defaultRoute = {
+    interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press',
+    msfsEvent: 'LeftSingle', axis: null, inputTypes: [0]
+  } as const
+  const dragRoutes = [
+    { ...defaultRoute, interactionModel: 'drag', inputTypes: [1] },
+    { ...defaultRoute, interactionModel: 'drag', phase: 'drag', operation: 'turn', msfsEvent: 'LeftDrag', inputTypes: [1] }
+  ] as const
+
+  __behaviorTestHooks.pushUniqueInteractionBinding(bindings, binding('default callback', [defaultRoute]))
+  __behaviorTestHooks.pushUniqueInteractionBinding(bindings, binding('drag callback', dragRoutes))
+
+  expect(bindings.map(candidate => candidate.expression.source)).toEqual(['default callback', 'drag callback'])
 })
 
 test('uses authored drag lifecycle code instead of a directional click fallback', () => {
