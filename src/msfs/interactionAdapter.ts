@@ -1,9 +1,10 @@
-import type { CanonicalCockpitAction, CockpitInteractionOperation, CockpitInteractionTarget, CockpitRelativeDirection } from '../input/cockpitInteraction'
+import type { CanonicalCockpitAction, CockpitInteractionMode, CockpitInteractionOperation, CockpitInteractionTarget, CockpitRelativeDirection } from '../input/cockpitInteraction'
 import type { AircraftRuntime } from './runtime'
 import type { CompiledInteractionBinding, CompiledInteractionRoute } from './types'
 
 export interface MsfsInteractionTarget extends CockpitInteractionTarget {
   readonly binding: CompiledInteractionBinding
+  readonly bindings: readonly CompiledInteractionBinding[]
 }
 
 export type InteractionResolution =
@@ -71,6 +72,7 @@ export function resolveMsfsDragPercent(
 export class MsfsInteractionAdapter {
   private readonly cancellations = new Map<string, number>()
   private readonly busy = new Set<string>()
+  private mode: CockpitInteractionMode = 'legacy'
 
   constructor(
     private readonly runtimeSource: AircraftRuntime | (() => AircraftRuntime),
@@ -79,22 +81,22 @@ export class MsfsInteractionAdapter {
 
   private get runtime(): AircraftRuntime { return typeof this.runtimeSource === 'function' ? this.runtimeSource() : this.runtimeSource }
 
+  setMode(mode: CockpitInteractionMode): void { this.mode = mode }
+
   list(): readonly MsfsInteractionTarget[] {
-    return this.runtime.getInteractionBindings().map(binding => ({
-      id: binding.metadata.qualifiedId,
-      lockable: binding.metadata.lockable,
-      operations: [...new Set(binding.metadata.routes.map(route => route.operation))],
-      binding
-    }))
+    const bindings = this.runtime.getInteractionBindings()
+    return bindings.filter((binding, index) =>
+      bindings.findIndex(candidate => candidate.metadata.qualifiedId === binding.metadata.qualifiedId) === index
+    ).map(binding => this.toTarget(binding))
   }
 
   resolve(id: string): InteractionResolution {
     const bindings = this.runtime.getInteractionBindings()
-    const qualified = bindings.filter(binding => binding.metadata.qualifiedId === id)
-    if (qualified.length === 1) return { ok: true, target: this.toTarget(qualified[0]!) }
-    const authored = bindings.filter(binding => binding.metadata.authoredId === id)
-    if (authored.length === 1) return { ok: true, target: this.toTarget(authored[0]!) }
-    if (authored.length > 1) return { ok: false, code: 'TARGET_AMBIGUOUS', candidates: authored.map(binding => binding.metadata.qualifiedId) }
+    const qualified = bindings.find(binding => binding.metadata.qualifiedId === id)
+    if (qualified != null) return { ok: true, target: this.toTarget(qualified) }
+    const authored = this.list().filter(target => target.binding.metadata.authoredId === id)
+    if (authored.length === 1) return { ok: true, target: authored[0]! }
+    if (authored.length > 1) return { ok: false, code: 'TARGET_AMBIGUOUS', candidates: authored.map(target => target.id) }
     return { ok: false, code: 'TARGET_NOT_FOUND', candidates: [] }
   }
 
@@ -103,18 +105,20 @@ export class MsfsInteractionAdapter {
   }
 
   execute(target: MsfsInteractionTarget, action: CanonicalCockpitAction): boolean {
-    const route = selectRoute(target.binding.metadata.routes, action)
-    if (route == null) return false
+    const selected = target.bindings
+      .map(binding => ({ binding, route: selectRoute(binding.metadata.routes, action, this.mode, target.lockable) }))
+      .find(value => value.route != null)
+    if (selected?.route == null) return false
     const actionValue = typeof action.value === 'boolean'
       ? Number(action.value)
       : typeof action.value === 'number'
         ? action.value
         : undefined
     const value = action.axisValue ?? action.delta ?? actionValue
-    return this.runtime.executeInteractionBindingDirect(target.binding, {
+    return this.runtime.executeInteractionBindingDirect(selected.binding, {
       holdFeedback: action.phase === 'hold' || action.phase === 'drag',
-      mouseEvent: route.msfsEvent ?? undefined,
-      inputType: route.inputTypes[0],
+      mouseEvent: selected.route.msfsEvent ?? undefined,
+      inputType: selected.route.inputTypes[0],
       relativeX: action.axis === 'x' ? value : undefined,
       relativeY: action.axis === 'y' ? value : undefined,
       relativeZ: action.axis === 'z' ? value : undefined,
@@ -124,13 +128,23 @@ export class MsfsInteractionAdapter {
   }
 
   route(target: MsfsInteractionTarget, action: CanonicalCockpitAction): CompiledInteractionRoute | null {
-    return selectRoute(target.binding.metadata.routes, action)
+    for (const binding of target.bindings) {
+      const route = selectRoute(binding.metadata.routes, action, this.mode, target.lockable)
+      if (route != null) return route
+    }
+    return null
   }
 
-  release(target: MsfsInteractionTarget): boolean { return this.runtime.releaseInteractionBinding(target.binding) }
+  release(target: MsfsInteractionTarget): boolean {
+    return target.bindings.map(binding => this.runtime.releaseInteractionBinding(binding)).some(Boolean)
+  }
 
   currentValue(target: MsfsInteractionTarget): number | null {
-    return this.runtime.readInteractionValue(target.binding)
+    for (const binding of target.bindings) {
+      const value = this.runtime.readInteractionValue(binding)
+      if (value != null) return value
+    }
+    return null
   }
 
   resolveRelativeOperation(
@@ -178,8 +192,8 @@ export class MsfsInteractionAdapter {
     if (previous == null) return exactResult('VALUE_REACHABILITY_UNKNOWN', null, null, requested, target, null, 0)
     if (Boolean(previous) === desired) return exactResult('OK', previous, previous, requested, target, 'direct-set', 0)
     const explicitOperation = desired ? 'on' : 'off'
-    const explicit = selectRoute(target.binding.metadata.routes, canonical(explicitOperation, channel))
-    const toggle = selectRoute(target.binding.metadata.routes, canonical('toggle', channel))
+    const explicit = selectRoute(target.binding.metadata.routes, canonical(explicitOperation, channel), this.mode, target.lockable)
+    const toggle = selectRoute(target.binding.metadata.routes, canonical('toggle', channel), this.mode, target.lockable)
     const operation = explicit != null ? explicitOperation : toggle != null ? 'toggle' : null
     if (operation == null) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
     if (!this.execute(target, canonical(operation, channel))) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
@@ -216,7 +230,7 @@ export class MsfsInteractionAdapter {
     }
 
     const generation = this.cancellations.get(target.id) ?? 0
-    const setRoute = selectRoute(target.binding.metadata.routes, canonical('set', channel, requested))
+    const setRoute = selectRoute(target.binding.metadata.routes, canonical('set', channel, requested), this.mode, target.lockable)
     if (setRoute != null) {
       if (!this.execute(target, canonical('set', channel, requested))) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
       await this.settle(metadata.settleTimeSeconds)
@@ -235,7 +249,7 @@ export class MsfsInteractionAdapter {
     const plan = planExactSteps(previous, requested, step, metadata.minimum, metadata.maximum, metadata.cyclic)
     if (plan == null) return exactResult('VALUE_NOT_REACHABLE', previous, previous, requested, target, null, 0)
     const routeOperation = plan.operation
-    const route = selectRoute(target.binding.metadata.routes, canonical(routeOperation, channel))
+    const route = selectRoute(target.binding.metadata.routes, canonical(routeOperation, channel), this.mode, target.lockable)
     if (route == null) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
 
     const visited = new Set<string>([`${routeOperation}:${previous}`])
@@ -260,7 +274,17 @@ export class MsfsInteractionAdapter {
   }
 
   private toTarget(binding: CompiledInteractionBinding): MsfsInteractionTarget {
-    return { id: binding.metadata.qualifiedId, lockable: binding.metadata.lockable, operations: [...new Set(binding.metadata.routes.map(route => route.operation))], binding }
+    const bindings = this.runtime.getInteractionBindings().filter(candidate =>
+      candidate.metadata.qualifiedId === binding.metadata.qualifiedId && candidate.target === binding.target
+    )
+    if (!bindings.includes(binding)) bindings.unshift(binding)
+    return {
+      id: binding.metadata.qualifiedId,
+      lockable: bindings.some(candidate => candidate.metadata.lockable),
+      operations: [...new Set(bindings.flatMap(candidate => candidate.metadata.routes.map(route => route.operation)))],
+      binding,
+      bindings
+    }
   }
 }
 
@@ -318,9 +342,18 @@ async function settleInteraction(seconds: number): Promise<void> {
   await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
 }
 
-function selectRoute(routes: readonly CompiledInteractionRoute[], action: CanonicalCockpitAction): CompiledInteractionRoute | null {
+function selectRoute(
+  routes: readonly CompiledInteractionRoute[],
+  action: CanonicalCockpitAction,
+  mode: CockpitInteractionMode,
+  lockable: boolean
+): CompiledInteractionRoute | null {
   const operation: CockpitInteractionOperation = action.operation === 'hold' ? 'press' : action.operation
-  const candidates = routes.filter(route => route.operation === operation || (operation === 'turn' && route.phase === 'drag'))
+  const interactionModel = mode === 'lock' && lockable ? 'drag' : 'default'
+  const candidates = routes.filter(route =>
+    (route.interactionModel == null || route.interactionModel === interactionModel) &&
+    (route.operation === operation || (operation === 'turn' && route.phase === 'drag'))
+  )
   if (action.channel != null) return candidates.find(route => route.channel === action.channel) ?? null
   if (candidates.length === 1) return candidates[0] ?? null
   const semanticDefaults = candidates.filter(route => route.channel == null)

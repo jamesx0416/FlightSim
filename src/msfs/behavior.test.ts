@@ -146,3 +146,36 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(dynamic.dynamicEventHandling).toBe(true)
   expect(dynamicDiagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_dynamic_routes_unproven'])
 })
+
+test('keeps default and drag interaction-model routes separate', () => {
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['MOUSEFLAGS_DEFAULT_IM', 'LeftSingle'],
+      ['MOUSEFLAGS_DRAG_IM', 'LeftAll+Wheel+Lock+Unlock'],
+      ['DISABLE_INTERACTION_LOCK', 'True']
+    ]),
+    'TEST', 'TEST', 'test.xml', '(M:Event)', 'callback', []
+  )
+
+  expect(metadata.routes.filter(route => route.interactionModel === 'default').map(route => route.msfsEvent)).toEqual(['LeftSingle'])
+  expect(metadata.routes.some(route => route.interactionModel === 'drag' && route.msfsEvent === 'LeftRelease')).toBe(true)
+  expect(metadata.lockable).toBe(false)
+})
+
+test('uses authored drag lifecycle code instead of a directional click fallback', () => {
+  const params = new Map([
+    ['DRAG_CODE', '(M:DragPercent) (>L:VALUE)'],
+    ['DOWN_CODE', '1 (>O:HELD)'],
+    ['RELEASE_CODE', '0 (>O:HELD)'],
+    ['POSITIVE_AXIS_CODE', '(>K:DECREASE)'],
+    ['NEGATIVE_AXIS_CODE', '(>K:INCREASE)']
+  ])
+  const source = __behaviorTestHooks.buildMouseEventInteractionCodeSource(params)
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    params, 'TEST', 'TEST', 'test.xml', source, 'callback', []
+  )
+
+  expect(source.includes("'LeftSingle' scmi 0 == if{ 1 (>O:HELD) }")).toBe(true)
+  expect(source.includes("'LeftDrag' scmi 0 == if{ (M:DragPercent) (>L:VALUE) }")).toBe(true)
+  expect([metadata.lockable, metadata.routes.some(route => route.operation === 'lock')]).toEqual([true, true])
+})
