@@ -57,7 +57,7 @@ import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import { loadMsfsLocalization, resolveMsfsLocalizedString, sanitizeMsfsTooltipText, type MsfsLocalization } from './msfs/localization'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
-import { MsfsInteractionAdapter, resolveMsfsDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { MsfsInteractionAdapter, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
 import { CockpitInteractionDispatcher, type CockpitInteractionChannel } from './input/cockpitInteraction'
 import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, updateCockpitInputSettings } from './input/cockpitInputProfiles'
 import { installViewerBootDevApi, installViewerDevApi } from './devApi'
@@ -1499,7 +1499,7 @@ async function init(): Promise<void> {
     | null = null
   const cockpitInteractionDragTrajectories = new WeakMap<
     CompiledInteractionBinding,
-    { readonly points: readonly MsfsDragTrajectoryPoint[]; readonly offset: number }
+    { readonly points: readonly MsfsDragTrajectoryPoint[]; readonly offset: number; readonly percent: number; readonly mode: 'default' | 'trajectory' }
   >()
   const cockpitInteractionAdapter = new MsfsInteractionAdapter(() => runtime)
   const getCockpitInputProfile = () => {
@@ -1784,7 +1784,13 @@ async function init(): Promise<void> {
           timestampMs
         )
     if (executed) {
-      const dragBinding = target.bindings.find(candidate => candidate.metadata.dragAnimationName != null)
+      const dragBinding =
+        target.bindings.find(candidate =>
+          candidate.metadata.dragAnimationName != null &&
+          candidate.metadata.dragMode === 'trajectory' &&
+          !candidate.metadata.dragAnimationSynced
+        ) ??
+        target.bindings.find(candidate => candidate.metadata.dragAnimationName != null)
       if (options.mouseEvent === 'LeftSingle' && dragBinding?.metadata.dragAnimationName != null) {
         const dragAnimationName = dragBinding.metadata.dragAnimationName
         const trajectory = runtime
@@ -1799,13 +1805,17 @@ async function init(): Promise<void> {
           })
           .filter(point => Number.isFinite(point.relativeX) && Number.isFinite(point.relativeY))
         const currentPercent = runtime.getAnimationNormalizedValue(dragAnimationName)
-        if (trajectory.length > 1 && currentPercent != null) {
+        if (currentPercent != null) {
           const relativeX = (cockpitInteractionPointer.x + 1) / 2
           const relativeY = (1 - cockpitInteractionPointer.y) / 2
-          const grabbedPercent = resolveMsfsDragPercent(trajectory, relativeX, relativeY, currentPercent)
+          const grabbedPercent = trajectory.length > 1
+            ? resolveMsfsDragPercent(trajectory, relativeX, relativeY, currentPercent)
+            : resolveMsfsAxisPercent(dragBinding.metadata.axis ?? 'y', relativeX, relativeY, 0)
           cockpitInteractionDragTrajectories.set(selectedBinding, {
             points: trajectory,
-            offset: currentPercent - grabbedPercent
+            offset: dragBinding.metadata.dragAnimationSynced ? currentPercent - grabbedPercent : 0,
+            percent: currentPercent,
+            mode: dragBinding.metadata.dragMode
           })
         }
       }
@@ -1828,6 +1838,8 @@ async function init(): Promise<void> {
       readonly relativeY: number
       readonly relativeZ: number
       readonly dragPercent: number
+      readonly deltaX: number
+      readonly deltaY: number
       readonly firstSample: boolean
     }
   ): boolean => {
@@ -1837,13 +1849,28 @@ async function init(): Promise<void> {
     const target = cockpitInteractionAdapter.fromBinding(binding)
     if (!target.bindings.some(candidate => candidate.metadata.routes.some(route => route.phase === 'drag'))) return false
     const trajectory = cockpitInteractionDragTrajectories.get(binding)
-    const dragPercent = resolveMsfsDragPercent(
-      trajectory?.points ?? [],
-      options.relativeX,
-      options.relativeY,
-      options.dragPercent,
-      trajectory?.offset ?? 0
-    )
+    const axis = binding.metadata.axis ?? 'y'
+    const dragPercent = trajectory?.mode === 'trajectory' && trajectory.points.length > 1
+      ? resolveMsfsDragPercent(
+          trajectory?.points ?? [],
+          options.relativeX,
+          options.relativeY,
+          resolveMsfsAxisPercent(axis, options.relativeX, options.relativeY, options.relativeZ),
+          trajectory?.offset ?? 0
+        )
+      : trajectory != null
+        ? resolveMsfsLockDragPercent(
+          trajectory.percent,
+          axis,
+          options.deltaX,
+          options.deltaY,
+          binding.metadata.dragScalar,
+          binding.metadata.inverted
+        )
+        : resolveMsfsAxisPercent(axis, options.relativeX, options.relativeY, options.relativeZ)
+    if (trajectory != null) {
+      cockpitInteractionDragTrajectories.set(binding, { ...trajectory, percent: dragPercent })
+    }
     if (
       options.firstSample &&
       getCockpitInputProfile().interactionMode === 'legacy' &&
@@ -1856,7 +1883,6 @@ async function init(): Promise<void> {
         timestampMs: performance.now()
       })
     }
-    const axis = binding.metadata.axis ?? 'y'
     const axisValue = axis === 'x'
       ? options.relativeX
       : axis === 'z'
@@ -11530,6 +11556,8 @@ function installCockpitCameraShortcut(
       readonly relativeY: number
       readonly relativeZ: number
       readonly dragPercent: number
+      readonly deltaX: number
+      readonly deltaY: number
       readonly firstSample: boolean
     }
   ) => boolean,
@@ -11761,8 +11789,14 @@ function installCockpitCameraShortcut(
       : event.button === 1
         ? 'tertiary'
         : 'primary'
-    if (activeCockpitPressBinding != null && activePointerId === event.pointerId) {
-      onCapturedCockpitAction?.('press', channel)
+    if (activePointerId === event.pointerId) {
+      if (event.button !== activePointerButton && activeCockpitPressBinding != null) {
+        onCapturedCockpitAction?.('press', channel)
+        event.preventDefault()
+        return
+      }
+      cancelActivePointer()
+    } else if (activePointerId != null) {
       event.preventDefault()
       return
     }
@@ -11781,7 +11815,11 @@ function installCockpitCameraShortcut(
       holdFeedback: true,
       mouseEvent: activeInteractionChannel === 'secondary' ? 'RightSingle' : activeInteractionChannel === 'tertiary' ? 'MiddleSingle' : 'LeftSingle'
     }) ?? null
-    domElement.setPointerCapture(event.pointerId)
+    try {
+      domElement.setPointerCapture(event.pointerId)
+    } catch {
+      // Window-level lifecycle listeners still keep the gesture coherent.
+    }
     event.preventDefault()
   }
 
@@ -11790,6 +11828,10 @@ function installCockpitCameraShortcut(
       return
     }
     if (activePointerId == null) {
+      if (event.target !== domElement) {
+        onCockpitHover?.(null)
+        return
+      }
       onCockpitHover?.(event)
       return
     }
@@ -11809,6 +11851,8 @@ function installCockpitCameraShortcut(
           onCockpitDrag?.(activeCockpitPressBinding, {
             pointerId: event.pointerId,
             ...getPointerRelativeValues(event),
+            deltaX,
+            deltaY,
             firstSample: !activeCockpitDragCallbackEmitted
           }) === true ||
           activeCockpitDragCallbackEmitted
@@ -11846,6 +11890,14 @@ function installCockpitCameraShortcut(
     onCockpitRelease?.(activeCockpitPressBinding, { unlock: activeCockpitDragCallbackEmitted, channel: activeInteractionChannel, pointerId: event.pointerId })
     activeCockpitPressBinding = null
     releasePointer()
+    event.preventDefault()
+  }
+
+  const onPointerCancel = (event: PointerEvent): void => {
+    if (activePointerId !== event.pointerId) {
+      return
+    }
+    cancelActivePointer()
     event.preventDefault()
   }
 
@@ -11892,10 +11944,10 @@ function installCockpitCameraShortcut(
 
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('blur', cancelActivePointer)
+  window.addEventListener('pointermove', onPointerMove)
+  window.addEventListener('pointerup', onPointerUp)
+  window.addEventListener('pointercancel', onPointerCancel)
   domElement.addEventListener('pointerdown', onPointerDown)
-  domElement.addEventListener('pointermove', onPointerMove)
-  domElement.addEventListener('pointerup', onPointerUp)
-  domElement.addEventListener('pointercancel', onPointerUp)
   domElement.addEventListener('pointerleave', onPointerLeave)
   domElement.addEventListener('lostpointercapture', cancelActivePointer)
   domElement.addEventListener('contextmenu', onContextMenu)
@@ -11904,10 +11956,10 @@ function installCockpitCameraShortcut(
     exitCockpitView()
     window.removeEventListener('keydown', onKeyDown)
     window.removeEventListener('blur', cancelActivePointer)
+    window.removeEventListener('pointermove', onPointerMove)
+    window.removeEventListener('pointerup', onPointerUp)
+    window.removeEventListener('pointercancel', onPointerCancel)
     domElement.removeEventListener('pointerdown', onPointerDown)
-    domElement.removeEventListener('pointermove', onPointerMove)
-    domElement.removeEventListener('pointerup', onPointerUp)
-    domElement.removeEventListener('pointercancel', onPointerUp)
     domElement.removeEventListener('pointerleave', onPointerLeave)
     domElement.removeEventListener('lostpointercapture', cancelActivePointer)
     domElement.removeEventListener('contextmenu', onContextMenu)

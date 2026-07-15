@@ -1000,6 +1000,11 @@ function collectMouseRectMetadata(
     HIGHLIGHTNODEID: 'HIGHLIGHT_NODE_ID',
     PRIORITIZEVCOCKPITS: 'PRIORITIZE_VCOCKPITS',
     IGNOREZTEST: 'IGNORE_Z_TEST',
+    DRAGANIMNAME: 'DRAG_ANIM_NAME',
+    DRAGANIMSYNCED: 'DRAG_ANIM_SYNCED',
+    DRAGMODE: 'DRAG_MODE',
+    DRAGAXIS: 'DRAG_AXIS',
+    DRAGSCALAR: 'DRAG_SCALAR',
     CURSOR: 'CURSOR',
     TOOLTIPID: 'TOOLTIPID',
     TTTITLE: 'TOOLTIP_TITLE'
@@ -1015,7 +1020,8 @@ function collectMouseRectMetadata(
       continue
     }
     const key = mappings[tag]
-    if (key != null && !result.get(key)?.trim()) result.set(key, value)
+    const current = key == null ? '' : result.get(key)?.trim() ?? ''
+    if (key != null && (!current || current.includes('#'))) result.set(key, value)
   }
   return result
 }
@@ -1033,6 +1039,8 @@ function collectMouseRectPayloadMetadata(
     MINVALUE: 'DRAG_MIN_VALUE',
     MAXVALUE: 'DRAG_MAX_VALUE',
     DRAGANIMNAME: 'DRAG_ANIM_NAME',
+    DRAGANIMSYNCED: 'DRAG_ANIM_SYNCED',
+    DRAGMODE: 'DRAG_MODE',
     DRAGNODEID: 'DRAG_NODE_ID',
     DRAGAXIS: 'DRAG_AXIS',
     DRAGSCALAR: 'DRAG_SCALAR',
@@ -1807,6 +1815,15 @@ function buildCompiledInteractionMetadata(
     axis,
     inverted,
     dragAnimationName: params.get('DRAG_ANIM_NAME')?.trim() || null,
+    dragMode:
+      params.get('DRAG_MODE')?.trim().toLowerCase() === 'trajectory' ||
+      parseBoolean(params.get('USE_TRAJECTORY_DRAG_MODE') ?? 'False')
+        ? 'trajectory'
+        : 'default',
+    dragAnimationSynced: params.has('DONT_SYNC_DRAG_TO_ANIM')
+      ? false
+      : parseBoolean(params.get('DRAG_ANIM_SYNCED') ?? 'True'),
+    dragScalar: parseNumber(params.get('DRAG_SCALAR'), 0.025),
     cursor: params.get('CURSOR')?.trim() || null,
     tooltipTitle: params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null,
     tooltipDescription: params.get('TOOLTIP_DESCRIPTION')?.trim() || null,
@@ -2993,6 +3010,11 @@ function pushUniqueInteractionBinding(
       axis: binding.metadata.axis ?? previous.metadata.axis,
       inverted: previous.metadata.inverted || binding.metadata.inverted,
       dragAnimationName: binding.metadata.dragAnimationName ?? previous.metadata.dragAnimationName,
+      dragMode: previous.metadata.dragMode === 'trajectory' || binding.metadata.dragMode === 'trajectory'
+        ? 'trajectory'
+        : 'default',
+      dragAnimationSynced: previous.metadata.dragAnimationSynced && binding.metadata.dragAnimationSynced,
+      dragScalar: binding.metadata.dragScalar,
       cursor: binding.metadata.cursor ?? previous.metadata.cursor,
       tooltipTitle: binding.metadata.tooltipTitle ?? previous.metadata.tooltipTitle,
       tooltipDescription: binding.metadata.tooltipDescription ?? previous.metadata.tooltipDescription,
