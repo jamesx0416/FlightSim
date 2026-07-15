@@ -39,6 +39,27 @@ export interface MsfsDragTrajectoryPoint {
   readonly dragPercent: number
 }
 
+export function resolveMsfsAxisPercent(
+  axis: 'x' | 'y' | 'z',
+  relativeX: number,
+  relativeY: number,
+  relativeZ: number
+): number {
+  return axis === 'x' ? relativeX : axis === 'z' ? relativeZ : relativeY
+}
+
+export function resolveMsfsLockDragPercent(
+  current: number,
+  axis: 'x' | 'y' | 'z',
+  deltaX: number,
+  deltaY: number,
+  scalar: number,
+  inverted: boolean
+): number {
+  const delta = axis === 'x' ? deltaX : -deltaY
+  return Math.min(1, Math.max(0, current + delta * scalar * (inverted ? -1 : 1)))
+}
+
 export function resolveMsfsDragPercent(
   trajectory: readonly MsfsDragTrajectoryPoint[],
   relativeX: number,
@@ -55,9 +76,12 @@ export function resolveMsfsDragPercent(
     const dy = end.relativeY - start.relativeY
     const lengthSquared = dx * dx + dy * dy
     if (lengthSquared <= Number.EPSILON) continue
-    const ratio = Math.min(1, Math.max(0,
+    const projectedRatio =
       ((relativeX - start.relativeX) * dx + (relativeY - start.relativeY) * dy) / lengthSquared
-    ))
+    const ratio = Math.min(
+      index === trajectory.length - 1 ? Number.POSITIVE_INFINITY : 1,
+      Math.max(index === 1 ? Number.NEGATIVE_INFINITY : 0, projectedRatio)
+    )
     const projectedX = start.relativeX + dx * ratio
     const projectedY = start.relativeY + dy * ratio
     const distanceSquared = (relativeX - projectedX) ** 2 + (relativeY - projectedY) ** 2
@@ -66,7 +90,10 @@ export function resolveMsfsDragPercent(
       bestPercent = start.dragPercent + (end.dragPercent - start.dragPercent) * ratio
     }
   }
-  return Math.min(1, Math.max(0, bestPercent + offset))
+  const result = bestPercent + offset
+  if (result <= Number.EPSILON) return 0
+  if (result >= 1 - Number.EPSILON) return 1
+  return result
 }
 
 export class MsfsInteractionAdapter {

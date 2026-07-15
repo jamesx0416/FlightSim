@@ -95,6 +95,9 @@ test('interaction metadata expands authored flags and value reachability', () =>
       ['DRAG_MIN_VALUE', '0'],
       ['DRAG_MAX_VALUE', '10'],
       ['VALUE_STEP', '0.5'],
+      ['DRAG_SCALAR', '0.05'],
+      ['DRAG_MODE', 'Trajectory'],
+      ['DRAG_ANIM_SYNCED', 'False'],
       ['__SOURCE_TEMPLATE', 'ASOBO_TEST_KNOB'],
       ['PRIORITIZE_VCOCKPITS', 'True'],
       ['IGNORE_Z_TEST', 'True']
@@ -118,6 +121,8 @@ test('interaction metadata expands authored flags and value reachability', () =>
   })
   expect([metadata.prioritizeVCockpits, metadata.ignoreZTest]).toEqual([true, true])
   expect(metadata.sourceTemplate).toBe('ASOBO_TEST_KNOB')
+  expect(metadata.dragScalar).toBe(0.05)
+  expect([metadata.dragMode, metadata.dragAnimationSynced]).toEqual(['trajectory', false])
 
   const inverted = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([

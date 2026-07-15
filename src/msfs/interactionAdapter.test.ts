@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 
-import { MsfsInteractionAdapter, resolveMsfsDragPercent, selectDragRoutes } from './interactionAdapter'
+import { MsfsInteractionAdapter, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
 import type { AircraftRuntime } from './runtime'
 import type { CompiledInteractionBinding, CompiledInteractionRoute } from './types'
 
@@ -21,7 +21,12 @@ test('projects pointer movement onto the authored drag trajectory', () => {
   expect(resolveMsfsDragPercent(trajectory, 0.2, 0.8, 0.5)).toBe(0)
   expect(resolveMsfsDragPercent(trajectory, 0.8, 0.2, 0.5)).toBe(1)
   expect(resolveMsfsDragPercent(trajectory, 0.5, 0.5, 0, 0.25)).toBe(0.75)
+  expect(resolveMsfsDragPercent(trajectory, 0.05, 0.95, 0, 0.25)).toBe(0)
+  expect(resolveMsfsDragPercent(trajectory, 0.95, 0.05, 0, -0.25)).toBe(1)
   expect(resolveMsfsDragPercent([], 0.8, 0.2, 0.25)).toBe(0.25)
+  expect(resolveMsfsDragPercent([], 0.8, 0.3, resolveMsfsAxisPercent('y', 0.8, 0.3, 0), 0.2)).toBe(0.5)
+  expect(resolveMsfsLockDragPercent(0.5, 'y', 0, -20, 0.025, false)).toBe(1)
+  expect(resolveMsfsLockDragPercent(0.5, 'y', 0, 20, 0.025, false)).toBe(0)
 })
 
 test('preflights and verifies exact convergence and detects no progress', async () => {
@@ -184,7 +189,8 @@ function interactionBinding(
       sourceKind: 'callbackCode', sourcePath, sourceTemplate: null, templateRevision: null,
       lockable: false, dynamicEventHandling: false, disabled: false, disabledInVr: false,
       prioritizeVCockpits: false, ignoreZTest: false, highlightNodeId: 'TEST', axis: null,
-      inverted: false, dragAnimationName: null, cursor: null, tooltipTitle: null,
+      inverted: false, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
+      dragScalar: 0.025, cursor: null, tooltipTitle: null,
       tooltipDescription: null, tooltipValueExpression: expression,
       value: {
         variableKey: 'L:TEST', unit: 'number', minimum: 0, maximum: 4, step: 1,
