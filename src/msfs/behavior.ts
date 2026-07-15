@@ -336,7 +336,8 @@ async function loadBehaviorDocuments(
 
 export const __behaviorTestHooks = {
   loadBehaviorDocuments,
-  buildCompiledInteractionMetadata
+  buildCompiledInteractionMetadata,
+  buildMouseEventInteractionCodeSource
 }
 
 function resolveBehaviorDocumentRequest(
@@ -1003,21 +1004,19 @@ function collectMouseRectMetadata(
     TOOLTIPID: 'TOOLTIPID',
     TTTITLE: 'TOOLTIP_TITLE'
   }
-  const mouseFlags: string[] = []
   for (const child of Array.from(element.querySelectorAll('*'))) {
     const tag = getElementTagName(child).toUpperCase()
     const value = substituteParameters(child.textContent ?? '', params).trim()
     if (!value) continue
     if (tag === 'IMDEFAULT' || tag === 'IMDRAG') {
       if (child.parentElement != null && getElementTagName(child.parentElement) === 'IMMouseFlagsInstances') {
-        mouseFlags.push(value)
+        result.set(tag === 'IMDEFAULT' ? 'MOUSEFLAGS_DEFAULT_IM' : 'MOUSEFLAGS_DRAG_IM', value)
       }
       continue
     }
     const key = mappings[tag]
     if (key != null && !result.get(key)?.trim()) result.set(key, value)
   }
-  if (mouseFlags.length > 0) result.set('MOUSEFLAGS', mouseFlags.join('+'))
   return result
 }
 
@@ -1197,8 +1196,7 @@ function expandTemplateUse(
   for (const [key, value] of childParams) {
     templateParams.set(key, value)
   }
-  applyParameterBlocks(templateNode, 'default', templateParams, state.path, context.diagnostics)
-  applyParameterBlocks(templateNode, 'override', templateParams, state.path, context.diagnostics)
+  applyParameterBlocks(templateNode, null, templateParams, state.path, context.diagnostics)
   templateParams.set('__SOURCE_TEMPLATE', templateName)
 
   for (const binding of collectInteractionInputEventBridgeBindings(
@@ -1675,37 +1673,60 @@ function buildCompiledInteractionMetadata(
   diagnostics: ImportDiagnostic[],
   sourceKindOverride?: CompiledInteractionSourceKind
 ): CompiledInteractionMetadata {
-  const declared = [...params]
-    .filter(([key]) => key.includes('MOUSE_FLAGS') || key.includes('MOUSEFLAGS'))
-    .flatMap(([, value]) => value.split(/[,+|\s]+/))
-  const declaredEvents = new Set(declared)
-  const expandFlag = (flag: string, events: readonly string[]): void => {
-    if (!declaredEvents.has(flag)) return
-    for (const event of events) declaredEvents.add(event)
-  }
-  expandFlag('LeftAll', ['LeftSingle', 'LeftDouble', 'LeftDrag', 'LeftRelease'])
-  expandFlag('RightAll', ['RightSingle', 'RightDouble', 'RightDrag', 'RightRelease'])
-  expandFlag('MiddleAll', ['MiddleSingle', 'MiddleDouble', 'MiddleDrag', 'MiddleRelease'])
-  if (declaredEvents.has('Wheel')) {
-    declaredEvents.add('WheelUp')
-    declaredEvents.add('WheelDown')
-  }
-  if (source.includes('M:Event') && source.includes('els{')) {
-    if (source.includes('WheelUp')) declaredEvents.add('WheelDown')
-    if (source.includes('WheelDown')) declaredEvents.add('WheelUp')
+  const flagEntries = [...params].filter(([key]) => key.includes('MOUSE_FLAGS') || key.includes('MOUSEFLAGS'))
+  const hasInteractionModels = flagEntries.some(([key]) => key.includes('DEFAULT_IM') || key.includes('DRAG_IM'))
+  const declaredEventsFor = (interactionModel?: 'default' | 'drag'): Set<string> => {
+    const suffix = interactionModel === 'default' ? 'DEFAULT_IM' : interactionModel === 'drag' ? 'DRAG_IM' : null
+    const declaredEvents = new Set(flagEntries
+      .filter(([key]) => suffix == null
+        ? !key.includes('DEFAULT_IM') && !key.includes('DRAG_IM')
+        : !key.includes('DEFAULT_IM') && !key.includes('DRAG_IM') || key.includes(suffix))
+      .flatMap(([, value]) => value.split(/[,+|\s]+/)))
+    const expandFlag = (flag: string, events: readonly string[]): void => {
+      if (!declaredEvents.has(flag)) return
+      for (const event of events) declaredEvents.add(event)
+    }
+    expandFlag('LeftAll', ['LeftSingle', 'LeftDouble', 'LeftDrag', 'LeftRelease'])
+    expandFlag('RightAll', ['RightSingle', 'RightDouble', 'RightDrag', 'RightRelease'])
+    expandFlag('MiddleAll', ['MiddleSingle', 'MiddleDouble', 'MiddleDrag', 'MiddleRelease'])
+    if (declaredEvents.has('Wheel')) {
+      declaredEvents.add('WheelUp')
+      declaredEvents.add('WheelDown')
+    }
+    return declaredEvents
   }
   const inverted = inferInteractionInversion(params)
-  const routes: CompiledInteractionRoute[] = Object.entries(MSFS_INTERACTION_EVENTS)
-    .filter(([event]) => kind === 'leftSingle' ? event === 'LeftSingle' : declaredEvents.has(event) || source.includes(event))
-    .map(([, route]) => ({
-      ...route,
-      operation: inverted && route.msfsEvent === 'WheelUp'
-        ? 'decrease'
-        : inverted && route.msfsEvent === 'WheelDown'
-          ? 'increase'
-          : route.operation,
-      inputTypes: []
-    }))
+  const interactionModels: readonly ('default' | 'drag' | undefined)[] = hasInteractionModels
+    ? ['default', 'drag']
+    : [undefined]
+  const routes: CompiledInteractionRoute[] = interactionModels.flatMap(interactionModel => {
+    const declaredEvents = declaredEventsFor(interactionModel)
+    return Object.entries(MSFS_INTERACTION_EVENTS)
+      .filter(([event]) => kind === 'leftSingle'
+        ? event === 'LeftSingle'
+        : declaredEvents.has(event) || declaredEvents.size === 0 && source.includes(event))
+      .map(([, route]) => ({
+        ...route,
+        ...(interactionModel == null ? {} : { interactionModel }),
+        operation: inverted && route.msfsEvent === 'WheelUp'
+          ? 'decrease' as const
+          : inverted && route.msfsEvent === 'WheelDown'
+            ? 'increase' as const
+            : route.operation,
+        inputTypes: interactionModel == null ? [] : [interactionModel === 'drag' ? 1 : 0]
+      }))
+  })
+  const interactionLockDisabled = parseBoolean(params.get('DISABLE_INTERACTION_LOCK') ?? 'False')
+  const authoredDragLock = !interactionLockDisabled && (
+    parseBoolean(params.get('DRAG_IM_LOCK_ENABLED') ?? 'False') ||
+    Boolean(params.get('DRAG_CODE')?.trim())
+  )
+  if (authoredDragLock) {
+    for (const eventName of ['Lock', 'Unlock'] as const) {
+      const route = MSFS_INTERACTION_EVENTS[eventName]
+      if (!routes.some(candidate => candidate.msfsEvent === eventName)) routes.push({ ...route, inputTypes: [] })
+    }
+  }
   const addSemanticRoute = (
     operation: CompiledInteractionRoute['operation'],
     parameterNames: readonly string[]
@@ -1756,7 +1777,7 @@ function buildCompiledInteractionMetadata(
   )]
   const hasStaticallyDiscoverableEvent = Object.keys(MSFS_INTERACTION_EVENTS)
     .some(event => source.includes(event))
-  if (source.includes('M:Event') && declaredEvents.size === 0 && !hasStaticallyDiscoverableEvent) {
+  if (source.includes('M:Event') && flagEntries.length === 0 && !hasStaticallyDiscoverableEvent) {
     diagnostics.push({
       code: 'interaction_dynamic_routes_unproven',
       severity: 'warning',
@@ -1775,7 +1796,8 @@ function buildCompiledInteractionMetadata(
     sourcePath,
     sourceTemplate: params.get('__SOURCE_TEMPLATE')?.trim() || null,
     templateRevision: params.get('TEMPLATE_REVISION')?.trim() || null,
-    lockable: routes.some(route => route.operation === 'lock') || parseBoolean(params.get('LOCKABLE') ?? 'False'),
+    lockable: !interactionLockDisabled &&
+      (routes.some(route => route.operation === 'lock') || parseBoolean(params.get('LOCKABLE') ?? 'False')),
     dynamicEventHandling: source.includes('M:Event'),
     disabled: parseBoolean(params.get('MOUSERECT_DISABLED') ?? params.get('DISABLED') ?? 'False'),
     disabledInVr: parseBoolean(params.get('MOUSERECT_DISABLED_IN_VR') ?? params.get('DISABLED_IN_VR') ?? 'False'),
@@ -2012,9 +2034,11 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
 }
 
 function buildMouseEventInteractionCodeSource(params: ReadonlyMap<string, string>): string {
+  const dragSource = params.get('DRAG_CODE')?.trim() ?? ''
   const leftSingleSource =
     params.get('LEFT_SINGLE_CODE')?.trim() ||
     params.get('LEFT_SINGLE_CODE_DEFAULT_IM')?.trim() ||
+    (dragSource ? params.get('DOWN_CODE')?.trim() : '') ||
     ''
   if (!leftSingleSource) {
     return ''
@@ -2027,13 +2051,14 @@ function buildMouseEventInteractionCodeSource(params: ReadonlyMap<string, string
     }
   }
   addEvent('LeftSingle', leftSingleSource)
-  addEvent('Lock', leftSingleSource)
+  addEvent('Lock', dragSource ? params.get('LOCK_CODE')?.trim() ?? '' : leftSingleSource)
   addEvent(
     'LeftRelease',
     params.get('LEFT_RELEASE_CODE')?.trim() ||
     params.get('LEFT_LEAVE_CODE')?.trim() ||
     params.get('LEFT_RELEASE_CODE_DEFAULT_IM')?.trim() ||
     params.get('LEFT_LEAVE_CODE_DEFAULT_IM')?.trim() ||
+    (dragSource ? params.get('RELEASE_CODE')?.trim() : '') ||
     ''
   )
   addEvent(
@@ -2042,10 +2067,12 @@ function buildMouseEventInteractionCodeSource(params: ReadonlyMap<string, string
     params.get('LEFT_RELEASE_CODE')?.trim() ||
     params.get('LEFT_LEAVE_CODE_DEFAULT_IM')?.trim() ||
     params.get('LEFT_RELEASE_CODE_DEFAULT_IM')?.trim() ||
+    (dragSource ? params.get('UNLOCK_CODE')?.trim() : '') ||
     ''
   )
-  addEvent('WheelUp', params.get('WHEEL_UP_CODE')?.trim() ?? '')
-  addEvent('WheelDown', params.get('WHEEL_DOWN_CODE')?.trim() ?? '')
+  addEvent('LeftDrag', dragSource)
+  addEvent('WheelUp', params.get('WHEEL_UP_CODE')?.trim() || (dragSource ? params.get('POSITIVE_AXIS_CODE')?.trim() : '') || '')
+  addEvent('WheelDown', params.get('WHEEL_DOWN_CODE')?.trim() || (dragSource ? params.get('NEGATIVE_AXIS_CODE')?.trim() : '') || '')
   return entries.length > 2 ? entries.join(' els{ ') + ' }'.repeat(entries.length - 1) : ''
 }
 
@@ -2902,7 +2929,8 @@ function pushUniqueInteractionBinding(
     value.operation === route.operation &&
     value.channel === route.channel &&
     value.phase === route.phase &&
-    value.msfsEvent === route.msfsEvent
+    value.msfsEvent === route.msfsEvent &&
+    value.interactionModel === route.interactionModel
   )
   const sameIdentity = (candidate: CompiledInteractionBinding): boolean =>
     candidate.metadata.qualifiedId === binding.metadata.qualifiedId &&
@@ -2938,7 +2966,8 @@ function pushUniqueInteractionBinding(
       candidate.operation === route.operation &&
       candidate.channel === route.channel &&
       candidate.phase === route.phase &&
-      candidate.msfsEvent === route.msfsEvent
+      candidate.msfsEvent === route.msfsEvent &&
+      candidate.interactionModel === route.interactionModel
     )) routes.push(route)
   }
   const previousValueScore = Object.values(previous.metadata.value).filter(value => value != null && value !== false && value !== 0).length
@@ -3273,19 +3302,20 @@ function createTemplateTraceKey(
 
 function applyParameterBlocks(
   templateNode: Element,
-  kind: ParameterBlockKind,
+  kind: ParameterBlockKind | null,
   targetParams: Map<string, string>,
   sourcePath: string,
   diagnostics: ImportDiagnostic[]
 ): void {
   for (const block of Array.from(templateNode.children)) {
-    if (getParameterBlockKind(block) !== kind) {
+    const blockKind = getParameterBlockKind(block)
+    if (blockKind == null || kind != null && blockKind !== kind) {
       continue
     }
 
-    const values = collectParameterBlock(block, targetParams, sourcePath, diagnostics, kind)
+    const values = collectParameterBlock(block, targetParams, sourcePath, diagnostics, blockKind)
     for (const [key, value] of values) {
-      if (kind === 'default') {
+      if (blockKind === 'default') {
         if (!targetParams.has(key)) {
           targetParams.set(key, value)
         }

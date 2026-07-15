@@ -119,6 +119,45 @@ test('resolves duplicate authored IDs strictly and requires an unambiguous chann
   expect(adapter.route(qualified.target, { source: 'devapi', operation: 'press', phase: 'press', channel: 'secondary', timestampMs: 0 })?.msfsEvent).toBe('RightSingle')
 })
 
+test('selects release callbacks from the active authored interaction model', () => {
+  const routes: CompiledInteractionRoute[] = [
+    { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] },
+    { interactionModel: 'drag', channel: 'primary', phase: 'release', operation: 'release', msfsEvent: 'LeftRelease', axis: null, inputTypes: [1] }
+  ]
+  const simpleBinding = interactionBinding({}, routes)
+  const complexBinding = { ...simpleBinding, metadata: { ...simpleBinding.metadata, lockable: true } }
+  const adapter = new MsfsInteractionAdapter({ getInteractionBindings: () => [] } as unknown as AircraftRuntime)
+  const release = { source: 'mouse', operation: 'release', phase: 'release', channel: 'primary', timestampMs: 0 } as const
+
+  expect(adapter.route(adapter.fromBinding(simpleBinding), release)).toBe(null)
+  adapter.setMode('lock')
+  expect(adapter.route(adapter.fromBinding(simpleBinding), release)).toBe(null)
+  expect(adapter.route(adapter.fromBinding(complexBinding), release)?.msfsEvent).toBe('LeftRelease')
+})
+
+test('routes one captured target across its authored click and drag bindings', () => {
+  const click = interactionBinding({}, [
+    { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] }
+  ])
+  const drag = interactionBinding({}, [
+    { channel: 'primary', phase: 'drag', operation: 'turn', msfsEvent: 'LeftDrag', axis: 'y', inputTypes: [] }
+  ])
+  const executed: CompiledInteractionBinding[] = []
+  const runtime = {
+    getInteractionBindings: () => [click, drag],
+    executeInteractionBindingDirect: (binding: CompiledInteractionBinding) => { executed.push(binding); return true },
+    releaseInteractionBinding: () => true,
+    readInteractionValue: () => null
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+  const target = adapter.fromBinding(click)
+
+  expect(adapter.list().length).toBe(1)
+  expect(adapter.execute(target, { source: 'mouse', operation: 'press', phase: 'press', channel: 'primary', timestampMs: 0 })).toBe(true)
+  expect(adapter.execute(target, { source: 'mouse', operation: 'turn', phase: 'drag', channel: 'primary', axis: 'y', axisValue: 1, timestampMs: 1 })).toBe(true)
+  expect(executed).toEqual([click, drag])
+})
+
 function interactionBinding(
   valueOverrides: Partial<CompiledInteractionBinding['metadata']['value']> = {},
   routes: readonly CompiledInteractionRoute[] = [
