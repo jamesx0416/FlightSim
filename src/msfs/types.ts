@@ -280,6 +280,11 @@ export interface CompiledInteractionMetadata {
   readonly cursor: string | null
   readonly tooltipTitle: string | null
   readonly tooltipDescription: string | null
+  readonly tooltipStateLabels: readonly {
+    readonly value: number
+    readonly label: string
+  }[]
+  readonly tooltipUnavailable: string | null
   readonly tooltipValueExpression: CompiledExpression | null
   readonly value: CompiledInteractionValueMetadata
 }

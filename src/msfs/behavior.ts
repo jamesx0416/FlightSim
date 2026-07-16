@@ -1852,10 +1852,36 @@ function buildCompiledInteractionMetadata(
     wheelPrimaryToggle: parseBoolean(params.get('__WHEEL_PRIMARY_TOGGLE') ?? 'False'),
     cursor: params.get('CURSOR')?.trim() || null,
     tooltipTitle: params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null,
-    tooltipDescription: params.get('TOOLTIP_DESCRIPTION')?.trim() || null,
+    tooltipDescription: params.get('TOOLTIP_DESCRIPTION')?.trim() || params.get('TT_DESCRIPTION_ID')?.trim() || null,
+    tooltipStateLabels: collectInteractionTooltipStateLabels(params),
+    tooltipUnavailable: getInteractionUnavailableTooltip(params),
     tooltipValueExpression,
     value
   }
+}
+
+function collectInteractionTooltipStateLabels(
+  params: ReadonlyMap<string, string>
+): readonly { readonly value: number; readonly label: string }[] {
+  const labels = new Map<number, string>()
+  for (const [key, rawLabel] of params) {
+    const match = /^TT_VALUE_(OFF|ON|\d+)$/u.exec(key)
+    if (match == null || parseBoolean(params.get(`${key}_IS_DYNAMIC`) ?? 'False')) continue
+    const value = match[1] === 'OFF' ? 0 : match[1] === 'ON' ? 1 : Number(match[1])
+    const label = rawLabel.trim().replace(/^'(.*)'$/u, '$1').trim()
+    if (label) labels.set(value, label)
+  }
+  return [...labels].map(([value, label]) => ({ value, label }))
+}
+
+function getInteractionUnavailableTooltip(params: ReadonlyMap<string, string>): string | null {
+  const explicit = params.get('TOOLTIP_UNAVAILABLE')?.trim() || params.get('TT_UNAVAILABLE')?.trim()
+  if (explicit) return explicit
+  for (const value of [params.get('TOOLTIP_TITLE'), params.get('TOOLTIPID')]) {
+    const match = value?.match(/TT:[A-Z0-9_.:-]*UNAVAILABLE[A-Z0-9_.:-]*/iu)
+    if (match != null) return match[0]
+  }
+  return null
 }
 
 function inferInteractionInversion(params: ReadonlyMap<string, string>): boolean {
