@@ -5,6 +5,7 @@ import {
   type SimCommandDispatchResult,
 } from './commands'
 import { SimStateStore } from './state'
+import { SimScheduler } from './scheduler'
 import type {
   SimDiagnostic,
   SimSchedulerPhase,
@@ -23,6 +24,7 @@ const SCHEDULER_PHASES: readonly SimSchedulerPhase[] = [
 export class SimulatorEngine {
   readonly state = new SimStateStore()
   readonly commands = new SimCommandBus()
+  readonly scheduler = new SimScheduler()
   readonly diagnostics: SimDiagnostic[] = []
 
   private readonly subsystems: SimSubsystem[] = []
@@ -93,6 +95,7 @@ export class SimulatorEngine {
     }
 
     this.elapsedSeconds += dtSeconds
+    this.scheduler.tick(dtSeconds)
   }
 
   dispose(): void {
