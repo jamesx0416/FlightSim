@@ -10,6 +10,7 @@ export interface MsfsInteractionLifecycleDiagnostic {
 }
 
 interface ActiveInteraction {
+  readonly target: MsfsInteractionTarget
   readonly scope: string
   downRepeat: SimScheduledTaskId | null
   moveRepeat: SimScheduledTaskId | null
@@ -31,6 +32,7 @@ export class MsfsInteractionLifecycle {
   press(target: MsfsInteractionTarget, action: CanonicalCockpitAction, clickCount = 1): boolean {
     this.cancelTasks(target.id)
     const active: ActiveInteraction = {
+      target,
       scope: `${this.scopePrefix}:${target.id}`,
       downRepeat: null,
       moveRepeat: null,
@@ -79,7 +81,7 @@ export class MsfsInteractionLifecycle {
   }
 
   cancelAll(): void {
-    for (const targetId of [...this.active.keys()]) this.cancelTasks(targetId)
+    for (const { target } of [...this.active.values()]) this.cancel(target)
     this.adapter.cancelAll()
   }
 

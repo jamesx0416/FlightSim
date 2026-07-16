@@ -261,7 +261,7 @@ export class MsfsInteractionAdapter {
 
   cancelAll(): void {
     for (const target of this.list()) {
-      this.cancel(target)
+      this.signalCancellation(target.id)
     }
   }
 
