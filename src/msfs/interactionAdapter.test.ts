@@ -479,7 +479,8 @@ function interactionBinding(
       prioritizeVCockpits: false, ignoreZTest: false, highlightNodeId: 'TEST', axis: null,
       inverted: false, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
       dragScalar: 0.025, discreteGate: null, wheelPrimaryToggle: false, cursor: null, tooltipTitle: null,
-      tooltipDescription: null, tooltipValueExpression: expression,
+      tooltipDescription: null, tooltipStateLabels: [], tooltipUnavailable: null,
+      tooltipValueExpression: expression,
       value: {
         variableKey: 'L:TEST', unit: 'number', minimum: 0, maximum: 4, step: 1,
         cyclic: false, settleTimeSeconds: 0, ...valueOverrides

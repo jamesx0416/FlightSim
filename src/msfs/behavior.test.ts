@@ -100,7 +100,12 @@ test('interaction metadata expands authored flags and value reachability', () =>
       ['DRAG_ANIM_SYNCED', 'False'],
       ['__SOURCE_TEMPLATE', 'ASOBO_TEST_KNOB'],
       ['PRIORITIZE_VCOCKPITS', 'True'],
-      ['IGNORE_Z_TEST', 'True']
+      ['IGNORE_Z_TEST', 'True'],
+      ['TOOLTIP_TITLE', 'TT:TEST.TITLE'],
+      ['TT_DESCRIPTION_ID', 'TT:TEST.DESCRIPTION'],
+      ['TT_VALUE_OFF', "'TT:TEST.OFF'"],
+      ['TT_VALUE_ON', "'TT:TEST.ON'"],
+      ['TOOLTIP_UNAVAILABLE', 'TT:TEST.UNAVAILABLE']
     ]),
     'TEST_KNOB',
     'TEST_KNOB',
@@ -123,6 +128,13 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(metadata.sourceTemplate).toBe('ASOBO_TEST_KNOB')
   expect(metadata.dragScalar).toBe(0.05)
   expect([metadata.dragMode, metadata.dragAnimationSynced]).toEqual(['trajectory', false])
+  expect([metadata.tooltipTitle, metadata.tooltipDescription, metadata.tooltipUnavailable]).toEqual([
+    'TT:TEST.TITLE', 'TT:TEST.DESCRIPTION', 'TT:TEST.UNAVAILABLE'
+  ])
+  expect(metadata.tooltipStateLabels).toEqual([
+    { value: 0, label: 'TT:TEST.OFF' },
+    { value: 1, label: 'TT:TEST.ON' }
+  ])
 
   const inverted = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([
