@@ -63,6 +63,8 @@ import {
   DEFAULT_COCKPIT_INPUT_PROFILE_ID,
   DEFAULT_COCKPIT_INPUT_STORE,
   cockpitAircraftProfileKey,
+  cockpitPhysicalInputForPointerButton,
+  cockpitPhysicalInputForWheel,
   createCockpitInputProfile,
   deleteCockpitInputProfile,
   duplicateCockpitInputProfile,
@@ -70,6 +72,7 @@ import {
   loadCockpitInputStore,
   renameCockpitInputProfile,
   resetCockpitInputProfile,
+  resolveCockpitInputBindings,
   saveCockpitInputStore,
   selectAircraftCockpitInputProfile,
   selectGlobalCockpitInputProfile,
@@ -78,7 +81,8 @@ import {
   type CockpitInputBindingAction,
   type CockpitInputBindingContext,
   type CockpitInputStoreV2,
-  type CockpitPhysicalInput
+  type CockpitPhysicalInput,
+  type EffectiveCockpitInputProfile
 } from './input/cockpitInputProfiles'
 import { installViewerBootDevApi, installViewerDevApi } from './devApi'
 import type {
@@ -1526,7 +1530,7 @@ async function init(): Promise<void> {
     const store = loadCockpitInputStore(window.localStorage)
     return effectiveCockpitInputProfile(
       store,
-      store.aircraftProfileSelections[aircraft.id] ?? store.selectedGlobalProfileId
+      selectedCockpitInputProfileId(store, packageRoot, aircraft.id)
     )
   }
   const cockpitInteractionDispatcher = new CockpitInteractionDispatcher<MsfsInteractionTarget>(
@@ -1534,6 +1538,8 @@ async function init(): Promise<void> {
     (target, action) => cockpitInteractionAdapter.execute(target, action)
   )
   const syncCockpitInteractionMode = (): void => {
+    cockpitInteractionDispatcher.cancelAll()
+    cockpitInteractionAdapter.cancelAll()
     const mode = getCockpitInputProfile().interactionMode
     cockpitInteractionDispatcher.setMode(mode)
     cockpitInteractionAdapter.setMode(mode)
@@ -1543,7 +1549,7 @@ async function init(): Promise<void> {
   window.addEventListener('cockpit-input-settings-changed', syncCockpitInteractionMode)
   const handleCockpitInteractionPress = (
     event: MouseEvent | PointerEvent,
-    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean }
   ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.attemptCount += 1
     cockpitInteractionStats.lastMissReason = null
@@ -1768,7 +1774,7 @@ async function init(): Promise<void> {
     binding: CompiledInteractionBinding,
     hitObject: Object3D,
     hitKind: 'interaction-mesh' | 'fallback-hitbox',
-    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly pointerId?: number; readonly timestampMs?: number }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean; readonly pointerId?: number; readonly timestampMs?: number }
   ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
     cockpitInteractionStats.lastHitKind = hitKind
@@ -1786,6 +1792,11 @@ async function init(): Promise<void> {
             wheelOperation != null && route.msfsEvent == null && route.operation === wheelOperation
           ) || wheelOperation != null && candidate.metadata.wheelPrimaryToggle)
         ) ?? binding
+    if (options.execute === false) {
+      cockpitInteractionStats.lastMissReason = 'input-unbound'
+      cockpitInteractionStats.lastTarget = selectedBinding.target
+      return selectedBinding
+    }
     const route = options.mouseEvent == null
       ? selectedBinding.metadata.routes.find(candidate => candidate.operation === 'press')
       : selectedBinding.metadata.routes.find(candidate => candidate.msfsEvent === options.mouseEvent) ??
@@ -2275,6 +2286,7 @@ async function init(): Promise<void> {
     () => cockpitCameraClipPlanes,
     refreshCockpitCameraClipPlanes,
     aircraft,
+    getCockpitInputProfile,
     () => {
       shouldUseCockpitInterior = true
       hasRequestedCockpitInterior = true
@@ -11575,12 +11587,13 @@ function installCockpitCameraShortcut(
   getCockpitCameraClipPlanes: () => CameraClipPlanes,
   refreshCockpitCameraClipPlanes: () => void,
   aircraft: ImportedAircraft,
+  getCockpitInputProfile: () => EffectiveCockpitInputProfile,
   onEnterCockpit?: () => void,
   onExitCockpit?: () => void,
   onToggleCockpitView?: (mode: 'enter' | 'exit', source: CockpitViewToggleSource) => void,
   onCockpitPress?: (
     event: MouseEvent | PointerEvent,
-    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean }
   ) => CompiledInteractionBinding | null,
   onCockpitDrag?: (
     binding: CompiledInteractionBinding | null,
@@ -11601,7 +11614,7 @@ function installCockpitCameraShortcut(
   ) => void,
   onCockpitWheel?: (
     event: MouseEvent | PointerEvent,
-    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean }
   ) => CompiledInteractionBinding | null,
   onCockpitHover?: (event: PointerEvent | null) => void,
   onCapturedCockpitAction?: (
@@ -11637,7 +11650,6 @@ function installCockpitCameraShortcut(
   let pitchOffsetRadians = 0
   let cockpitZoom = camera.zoom
   let activePointerId: number | null = null
-  let activePointerIsRightMouse = false
   let activeInteractionChannel: 'primary' | 'secondary' | 'tertiary' = 'primary'
   let activePointerButton = 0
   let lastPointerX = 0
@@ -11696,13 +11708,12 @@ function installCockpitCameraShortcut(
       }
     }
     activePointerId = null
-    activePointerIsRightMouse = false
     activeCockpitPressDragged = false
     activeCockpitDragCallbackEmitted = false
   }
 
   const isSupportedCockpitPointerButton = (event: PointerEvent): boolean =>
-    event.pointerType !== 'mouse' || event.button === 0 || event.button === 1 || event.button === 2
+    event.pointerType !== 'mouse' || cockpitPhysicalInputForPointerButton(event.button) != null
 
   const getPointerRelativeValues = (event: PointerEvent): {
     readonly relativeX: number
@@ -11818,14 +11829,17 @@ function installCockpitCameraShortcut(
       return
     }
 
-    const channel: CockpitInteractionChannel = event.button === 2
-      ? 'secondary'
-      : event.button === 1
-        ? 'tertiary'
-        : 'primary'
+    const physicalInput = cockpitPhysicalInputForPointerButton(event.button)
+    if (physicalInput == null) return
+    const route = resolveCockpitInputBindings(getCockpitInputProfile(), physicalInput)
+    const channel: CockpitInteractionChannel | null = route.interaction === 'primary'
+      || route.interaction === 'secondary'
+      || route.interaction === 'tertiary'
+      ? route.interaction
+      : null
     if (activePointerId === event.pointerId) {
       if (event.button !== activePointerButton && activeCockpitPressBinding != null) {
-        onCapturedCockpitAction?.('press', channel)
+        if (channel != null) onCapturedCockpitAction?.('press', channel)
         event.preventDefault()
         return
       }
@@ -11835,20 +11849,37 @@ function installCockpitCameraShortcut(
       return
     }
 
+    const mouseEvent = channel === 'secondary'
+      ? 'RightSingle'
+      : channel === 'tertiary'
+        ? 'MiddleSingle'
+        : channel === 'primary'
+          ? 'LeftSingle'
+          : undefined
+    const binding = onCockpitPress?.(event, {
+      holdFeedback: true,
+      mouseEvent,
+      execute: channel != null
+    }) ?? null
+    if (binding != null && channel == null) {
+      event.preventDefault()
+      return
+    }
+    if (binding == null && route.emptyCockpit !== 'cameraPan') {
+      event.preventDefault()
+      return
+    }
+
     activePointerId = event.pointerId
     activePointerButton = event.button
-    activePointerIsRightMouse = event.pointerType === 'mouse' && event.button === 2
-    activeInteractionChannel = channel
+    activeInteractionChannel = channel ?? 'primary'
     lastPointerX = event.clientX
     lastPointerY = event.clientY
     startPointerX = event.clientX
     startPointerY = event.clientY
     activeCockpitPressDragged = false
     activeCockpitDragCallbackEmitted = false
-    activeCockpitPressBinding = onCockpitPress?.(event, {
-      holdFeedback: true,
-      mouseEvent: activeInteractionChannel === 'secondary' ? 'RightSingle' : activeInteractionChannel === 'tertiary' ? 'MiddleSingle' : 'LeftSingle'
-    }) ?? null
+    activeCockpitPressBinding = binding
     try {
       domElement.setPointerCapture(event.pointerId)
     } catch {
@@ -11911,12 +11942,13 @@ function installCockpitCameraShortcut(
     }
 
     if (event.button !== activePointerButton && activeCockpitPressBinding != null) {
-      const channel: CockpitInteractionChannel = event.button === 2
-        ? 'secondary'
-        : event.button === 1
-          ? 'tertiary'
-          : 'primary'
-      onCapturedCockpitAction?.('release', channel)
+      const physicalInput = cockpitPhysicalInputForPointerButton(event.button)
+      const action = physicalInput == null
+        ? null
+        : resolveCockpitInputBindings(getCockpitInputProfile(), physicalInput).interaction
+      if (action === 'primary' || action === 'secondary' || action === 'tertiary') {
+        onCapturedCockpitAction?.('release', action)
+      }
       event.preventDefault()
       return
     }
@@ -11955,24 +11987,39 @@ function installCockpitCameraShortcut(
       return
     }
 
-    const wheelDirection = event.deltaY < 0 ? 'WheelUp' : 'WheelDown'
+    const physicalInput = cockpitPhysicalInputForWheel(event.deltaY)
+    if (physicalInput == null) return
+    const route = resolveCockpitInputBindings(getCockpitInputProfile(), physicalInput)
+    const operation = route.interaction === 'increase' || route.interaction === 'decrease'
+      ? route.interaction
+      : null
     if (
       activeCockpitPressBinding != null &&
-      onCapturedCockpitAction?.(event.deltaY < 0 ? 'increase' : 'decrease') === true
+      operation != null &&
+      onCapturedCockpitAction?.(operation) === true
     ) {
       event.preventDefault()
       return
     }
-    const target = onCockpitWheel?.(event, { holdFeedback: false, mouseEvent: wheelDirection }) ?? null
+    const target = onCockpitWheel?.(event, {
+      holdFeedback: false,
+      mouseEvent: operation === 'increase' ? 'WheelUp' : operation === 'decrease' ? 'WheelDown' : undefined,
+      execute: operation != null
+    }) ?? null
     if (target != null) {
       event.preventDefault()
       return
     }
-    cockpitZoom = Math.min(
-      MAX_ZOOM,
-      Math.max(MIN_ZOOM, cockpitZoom * Math.exp(-event.deltaY * 0.0015))
-    )
-    applyCockpitCamera()
+    if (activeCockpitPressBinding == null && (route.emptyCockpit === 'cameraZoomIn' || route.emptyCockpit === 'cameraZoomOut')) {
+      const zoomDelta = route.emptyCockpit === 'cameraZoomIn'
+        ? -Math.abs(event.deltaY)
+        : Math.abs(event.deltaY)
+      cockpitZoom = Math.min(
+        MAX_ZOOM,
+        Math.max(MIN_ZOOM, cockpitZoom * Math.exp(-zoomDelta * 0.0015))
+      )
+      applyCockpitCamera()
+    }
     event.preventDefault()
   }
 
@@ -11981,6 +12028,7 @@ function installCockpitCameraShortcut(
   window.addEventListener('pointermove', onPointerMove)
   window.addEventListener('pointerup', onPointerUp)
   window.addEventListener('pointercancel', onPointerCancel)
+  window.addEventListener('cockpit-input-settings-changed', cancelActivePointer)
   domElement.addEventListener('pointerdown', onPointerDown)
   domElement.addEventListener('pointerleave', onPointerLeave)
   domElement.addEventListener('lostpointercapture', cancelActivePointer)
@@ -11993,6 +12041,7 @@ function installCockpitCameraShortcut(
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerup', onPointerUp)
     window.removeEventListener('pointercancel', onPointerCancel)
+    window.removeEventListener('cockpit-input-settings-changed', cancelActivePointer)
     domElement.removeEventListener('pointerdown', onPointerDown)
     domElement.removeEventListener('pointerleave', onPointerLeave)
     domElement.removeEventListener('lostpointercapture', cancelActivePointer)
@@ -13203,7 +13252,8 @@ function createCockpitInputSettingsEditor(options: {
           null
         )
         draft = change.store
-        renderScope(scope, `${descriptor.label} is unbound in the draft.`)
+        renderScopes()
+        editor.status.textContent = `${descriptor.label} is unbound in the draft.`
       })
       controls.append(value, capture, clear)
       row.append(label, controls)
@@ -13243,7 +13293,8 @@ function createCockpitInputSettingsEditor(options: {
       }
       draft = change.store
       cancelCapture()
-      renderScope(capture.scope, `${input} captured for ${formatCockpitBindingAction(capture.action)}.`)
+      renderScopes()
+      editor.status.textContent = `${input} captured for ${formatCockpitBindingAction(capture.action)}.`
     } catch (error) {
       editor.status.textContent = settingsErrorMessage(error)
     }

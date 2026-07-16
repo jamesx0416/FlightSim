@@ -260,6 +260,27 @@ export function effectiveCockpitInputProfile(
   }
 }
 
+export function cockpitPhysicalInputForPointerButton(button: number): CockpitPhysicalInput | null {
+  return button === 0 ? 'Mouse0' : button === 1 ? 'Mouse1' : button === 2 ? 'Mouse2' : null
+}
+
+export function cockpitPhysicalInputForWheel(deltaY: number): CockpitPhysicalInput | null {
+  return deltaY < 0 ? 'WheelUp' : deltaY > 0 ? 'WheelDown' : null
+}
+
+export function resolveCockpitInputBindings(
+  profile: EffectiveCockpitInputProfile,
+  input: CockpitPhysicalInput
+): {
+  readonly interaction: CockpitInteractionBindingAction | null
+  readonly emptyCockpit: EmptyCockpitBindingAction | null
+} {
+  return {
+    interaction: profile.bindings.interaction[input],
+    emptyCockpit: profile.bindings.emptyCockpit[input]
+  }
+}
+
 export interface CockpitInputProfileChange {
   readonly store: CockpitInputStoreV2
   readonly profile: CockpitInputProfile
