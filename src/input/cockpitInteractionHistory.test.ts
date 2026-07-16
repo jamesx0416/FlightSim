@@ -30,6 +30,7 @@ test('history persists a bounded versioned logical-action store', () => {
 test('history safely migrates the existing raw array', () => {
   const { storage, values } = memoryStorage(JSON.stringify([
     { id: 7, timestampMs: 1, source: 'mouse', target: 'BARO', action: 'primary', result: 'executed', detail: { route: 'LeftSingle' } },
+    { id: 8, timestampMs: 9e15, source: 'mouse', target: 'INVALID_DATE', action: 'primary', result: 'executed' },
     { id: 8, source: 'invalid' }
   ]))
   const history = new CockpitInteractionHistory(storage, 'test')
@@ -42,6 +43,15 @@ test('history safely migrates the existing raw array', () => {
   })
   const stored = JSON.parse(values.get('test')!)
   expect({ version: stored.version, nextId: stored.nextId, ids: stored.entries.map((entry: { id: number }) => entry.id) }).toEqual({ version: 1, nextId: 8, ids: [7] })
+})
+
+test('history honors a zero capacity when loading stored entries', () => {
+  const { storage } = memoryStorage(JSON.stringify([
+    { id: 1, timestampMs: 1, source: 'mouse', target: 'BARO', action: 'primary', result: 'executed' }
+  ]))
+  const history = new CockpitInteractionHistory(storage, 'test', 0)
+  history.add({ timestampMs: 2, source: 'mouse', target: 'BARO', action: 'primary', result: 'executed' })
+  expect(history.list()).toEqual([])
 })
 
 test('history formatting is stable and always one line', () => {

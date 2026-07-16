@@ -44,7 +44,8 @@ function formatDetailValue(value: unknown): string {
 }
 
 export function formatCockpitInteractionHistoryEntry(entry: Omit<CockpitInteractionHistoryEntry, 'formatted'>): string {
-  const time = new Date(entry.timestampMs).toISOString().slice(11, 23)
+  const date = new Date(entry.timestampMs)
+  const time = Number.isFinite(date.getTime()) ? date.toISOString().slice(11, 23) : 'invalid-time'
   const detail = Object.entries(entry.detail ?? {})
     .filter(([, value]) => value !== undefined)
     .sort(([left], [right]) => left.localeCompare(right))
@@ -64,6 +65,7 @@ function normalizeEntries(value: unknown): CockpitInteractionHistoryEntry[] {
   for (const candidate of value) {
     if (!isRecord(candidate)
       || !Number.isFinite(candidate.timestampMs)
+      || !Number.isFinite(new Date(Number(candidate.timestampMs)).getTime())
       || typeof candidate.source !== 'string'
       || typeof candidate.target !== 'string'
       || typeof candidate.action !== 'string'
@@ -88,7 +90,8 @@ export class CockpitInteractionHistory {
     let parsed: unknown
     try { parsed = JSON.parse(storage?.getItem(key) ?? 'null') } catch { parsed = null }
     const storedEntries = Array.isArray(parsed) ? parsed : isRecord(parsed) && parsed.version === COCKPIT_INTERACTION_HISTORY_VERSION ? parsed.entries : []
-    this.entries = normalizeEntries(storedEntries).slice(-this.capacity)
+    const normalizedEntries = normalizeEntries(storedEntries)
+    this.entries = this.capacity === 0 ? [] : normalizedEntries.slice(-this.capacity)
     const storedNextId = isRecord(parsed) && Number.isInteger(parsed.nextId) ? Number(parsed.nextId) : 1
     this.nextId = Math.max(storedNextId, (this.entries.at(-1)?.id ?? 0) + 1)
     if (Array.isArray(parsed)) this.persist()
