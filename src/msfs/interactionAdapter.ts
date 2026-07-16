@@ -443,12 +443,18 @@ function selectRoute(
   const operation: CockpitInteractionOperation = action.operation === 'hold' ? 'press' : action.operation
   const interactionModel = mode === 'lock' && lockable ? 'drag' : 'default'
   const isWheelOperation = operation === 'increase' || operation === 'decrease'
+  const matchesAction = (route: CompiledInteractionRoute): boolean =>
+    (route.operation === operation || (operation === 'turn' && route.phase === 'drag')) &&
+    (operation !== 'press' || (action.phase === 'double' ? route.phase === 'double' : route.phase !== 'double')) &&
+    (action.channel == null || route.channel === action.channel)
   let candidates = routes.filter(route =>
     (isWheelOperation || route.interactionModel == null || route.interactionModel === interactionModel) &&
-    (route.operation === operation || (operation === 'turn' && route.phase === 'drag'))
+    matchesAction(route)
   )
-  if (action.channel != null) {
-    candidates = candidates.filter(route => route.channel === action.channel)
+  if (candidates.length === 0 && interactionModel === 'drag' && operation === 'press') {
+    candidates = routes.filter(route =>
+      (route.interactionModel == null || route.interactionModel === 'default') && matchesAction(route)
+    )
   }
   const modelSpecificCandidates = candidates.filter(
     route => route.interactionModel === interactionModel
