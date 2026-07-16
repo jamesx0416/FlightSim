@@ -169,6 +169,7 @@ function recoverInvalidStore(
 ): CockpitInputStoreLoadResult {
   const recoveryKey = `${sourceKey}.recovery.${Date.now()}`
   storage.setItem(recoveryKey, raw)
+  storage.setItem(COCKPIT_INPUT_STORE_KEY, JSON.stringify(DEFAULT_COCKPIT_INPUT_STORE))
   console.warn('Recovered invalid cockpit input storage.', error)
   return {
     store: structuredClone(DEFAULT_COCKPIT_INPUT_STORE),
