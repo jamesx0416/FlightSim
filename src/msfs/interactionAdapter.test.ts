@@ -136,6 +136,32 @@ test('uses an authored drag-model wheel route in Legacy when no default wheel ro
   expect([route?.msfsEvent, route?.inputTypes[0]]).toEqual(['WheelUp', 1])
 })
 
+test('separates single from double press routes', () => {
+  const binding = interactionBinding({}, [
+    { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] },
+    { interactionModel: 'default', channel: 'primary', phase: 'double', operation: 'press', msfsEvent: 'LeftDouble', axis: null, inputTypes: [0] }
+  ])
+  const adapter = new MsfsInteractionAdapter({ getInteractionBindings: () => [binding] } as unknown as AircraftRuntime)
+  const target = adapter.fromBinding(binding)
+
+  expect(adapter.route(target, { source: 'mouse', operation: 'press', phase: 'press', channel: 'primary', timestampMs: 0 })?.msfsEvent).toBe('LeftSingle')
+  expect(adapter.route(target, { source: 'mouse', operation: 'press', phase: 'double', channel: 'primary', timestampMs: 0 })?.msfsEvent).toBe('LeftDouble')
+})
+
+test('uses a default-model tap in Lock when no drag-model press is authored', () => {
+  const base = interactionBinding({}, [
+    { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] },
+    { interactionModel: 'drag', channel: null, phase: null, operation: 'lock', msfsEvent: 'Lock', axis: null, inputTypes: [1] }
+  ])
+  const binding = { ...base, metadata: { ...base.metadata, lockable: true } }
+  const adapter = new MsfsInteractionAdapter({ getInteractionBindings: () => [binding] } as unknown as AircraftRuntime)
+  adapter.setMode('lock')
+
+  expect(adapter.route(adapter.fromBinding(binding), {
+    source: 'mouse', operation: 'hold', phase: 'hold', channel: 'primary', timestampMs: 0
+  })?.msfsEvent).toBe('LeftSingle')
+})
+
 test('keeps a specifically selected same-target wheel binding first', () => {
   const click = interactionBinding({}, [
     { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] }
