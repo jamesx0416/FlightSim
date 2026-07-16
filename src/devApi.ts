@@ -47,7 +47,24 @@ import type { RendererInfo } from './rendering/createAppRenderer'
 import { MsfsInteractionAdapter, type InteractionResolution, type MsfsInteractionTarget } from './msfs/interactionAdapter'
 import { CockpitInteractionDispatcher, type CanonicalCockpitAction, type CockpitInteractionChannel, type CockpitInteractionOperation, type CockpitRelativeDirection } from './input/cockpitInteraction'
 import { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
-import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, saveCockpitInputStore, updateCockpitInputSettings, type CockpitInputStoreV2 } from './input/cockpitInputProfiles'
+import {
+  DEFAULT_COCKPIT_INPUT_PROFILE_ID,
+  DEFAULT_COCKPIT_INPUT_STORE,
+  createCockpitInputProfile,
+  deleteCockpitInputProfile,
+  duplicateCockpitInputProfile,
+  effectiveCockpitInputProfile,
+  isCockpitInputStoreV2,
+  loadCockpitInputStore,
+  renameCockpitInputProfile,
+  resetCockpitInputProfile,
+  saveCockpitInputStore,
+  selectAircraftCockpitInputProfile,
+  selectGlobalCockpitInputProfile,
+  selectedCockpitInputProfileId,
+  updateCockpitInputSettings,
+  type CockpitInputStoreV2
+} from './input/cockpitInputProfiles'
 import { listCanonicalEngineCommands, type SimCommand, type SimUnit } from './sim/engine'
 import type {
   CockpitCameraController,
@@ -99,8 +116,6 @@ function resolveInteractionRequest(
   return resolution
 }
 
-export const __devApiInteractionTestHooks = { resolveInteractionRequest }
-
 type InteractionSelector = { readonly interaction?: CockpitInteractionChannel; readonly variant?: string }
 type InteractionActionOptions = InteractionSelector & { readonly steps?: number }
 
@@ -113,9 +128,16 @@ type DevApiInteractions = {
   readonly profiles: {
     readonly list: () => DevApiInteractionResult
     readonly get: (profileId: string) => DevApiInteractionResult
-    readonly effective: (profileId?: string, aircraftId?: string) => DevApiInteractionResult
+    readonly effective: (profileId?: string, packageRoot?: string, aircraftId?: string) => DevApiInteractionResult
+    readonly create: (name: string) => DevApiInteractionResult
+    readonly duplicate: (profileId: string, name?: string) => DevApiInteractionResult
+    readonly rename: (profileId: string, name: string) => DevApiInteractionResult
+    readonly delete: (profileId: string) => DevApiInteractionResult
+    readonly reset: (profileId: string) => DevApiInteractionResult
+    readonly selectGlobal: (profileId: string) => DevApiInteractionResult
+    readonly selectAircraft: (packageRoot: string, aircraftId: string, profileId: string | null) => DevApiInteractionResult
     readonly export: () => DevApiInteractionResult
-    readonly import: (store: CockpitInputStoreV2) => DevApiInteractionResult
+    readonly import: (store: unknown) => DevApiInteractionResult
   }
   readonly settings: { readonly get: () => DevApiInteractionResult; readonly set: (settings: Partial<CockpitInputStoreV2['globalSettings']>) => DevApiInteractionResult }
   readonly press: (target: string, options?: InteractionSelector) => Promise<DevApiInteractionResult>
@@ -132,6 +154,179 @@ type DevApiInteractions = {
   readonly cancel: (target: string) => DevApiInteractionResult
   readonly cancelAll: () => DevApiInteractionResult
   readonly dispatch: (target: string, action: CanonicalCockpitAction) => Promise<DevApiInteractionResult>
+}
+
+type CockpitInputProfilesApiContext = {
+  readonly getStore: () => CockpitInputStoreV2
+  readonly commit: (store: CockpitInputStoreV2) => void
+  readonly packageRoot: string
+  readonly aircraftId: string
+}
+
+function createCockpitInputProfilesApi(
+  context: CockpitInputProfilesApiContext
+): DevApiInteractions['profiles'] {
+  const profileIds = (): readonly string[] => context.getStore().profiles.map(profile => profile.id)
+  const missing = (profileId: string): DevApiInteractionResult => interactionResult(
+    false,
+    'PROFILE_NOT_FOUND',
+    `Input profile "${profileId}" was not found.`,
+    { profileId },
+    profileIds()
+  )
+  const invalidName = (): DevApiInteractionResult => interactionResult(
+    false,
+    'INVALID_ARGUMENT',
+    'Profile name is required.',
+    null
+  )
+  const protectedProfile = (profileId: string): DevApiInteractionResult => interactionResult(
+    false,
+    'PROFILE_PROTECTED',
+    `Input profile "${profileId}" is protected.`,
+    { profileId }
+  )
+  const findProfile = (profileId: string) =>
+    context.getStore().profiles.find(profile => profile.id === profileId) ?? null
+  const apply = <T>(store: CockpitInputStoreV2, message: string, data: T): DevApiInteractionResult<T> => {
+    context.commit(store)
+    return interactionResult(true, 'OK', message, data)
+  }
+  const attempt = (run: () => DevApiInteractionResult): DevApiInteractionResult => {
+    try {
+      return run()
+    } catch (error) {
+      return interactionResult(
+        false,
+        'INTERNAL_ERROR',
+        error instanceof Error ? error.message : String(error),
+        null
+      )
+    }
+  }
+  return {
+    list: () => interactionResult(true, 'OK', 'Listed input profiles.', context.getStore().profiles),
+    get: profileId => {
+      const profile = findProfile(profileId)
+      return profile == null
+        ? missing(profileId)
+        : interactionResult(true, 'OK', `Loaded input profile "${profileId}".`, profile)
+    },
+    effective: (profileId, packageRoot, aircraftId) => {
+      const store = context.getStore()
+      if (profileId != null && findProfile(profileId) == null) return missing(profileId)
+      if ((packageRoot == null) !== (aircraftId == null)) {
+        return interactionResult(
+          false,
+          'INVALID_ARGUMENT',
+          'packageRoot and aircraftId must be supplied together.',
+          { packageRoot: packageRoot ?? null, aircraftId: aircraftId ?? null }
+        )
+      }
+      const scopedPackageRoot = packageRoot ?? context.packageRoot
+      const scopedAircraftId = aircraftId ?? context.aircraftId
+      if (scopedPackageRoot.trim() === '' || scopedAircraftId.trim() === '') {
+        return interactionResult(false, 'INVALID_ARGUMENT', 'packageRoot and aircraftId are required.', null)
+      }
+      const effectiveProfileId = profileId
+        ?? selectedCockpitInputProfileId(store, scopedPackageRoot, scopedAircraftId)
+      return interactionResult(
+        true,
+        'OK',
+        'Resolved effective input profile.',
+        effectiveCockpitInputProfile(store, effectiveProfileId)
+      )
+    },
+    create: name => {
+      if (typeof name !== 'string' || name.trim() === '') return invalidName()
+      return attempt(() => {
+        const change = createCockpitInputProfile(context.getStore(), name)
+        return apply(change.store, `Created input profile "${change.profile.name}".`, change.profile)
+      })
+    },
+    duplicate: (profileId, name) => {
+      if (findProfile(profileId) == null) return missing(profileId)
+      if (name != null && (typeof name !== 'string' || name.trim() === '')) return invalidName()
+      return attempt(() => {
+        const change = duplicateCockpitInputProfile(context.getStore(), profileId, name)
+        return apply(change.store, `Duplicated input profile "${profileId}".`, change.profile)
+      })
+    },
+    rename: (profileId, name) => {
+      if (findProfile(profileId) == null) return missing(profileId)
+      if (profileId === DEFAULT_COCKPIT_INPUT_PROFILE_ID) return protectedProfile(profileId)
+      if (typeof name !== 'string' || name.trim() === '') return invalidName()
+      return attempt(() => {
+        const store = renameCockpitInputProfile(context.getStore(), profileId, name)
+        return apply(
+          store,
+          `Renamed input profile "${profileId}".`,
+          store.profiles.find(profile => profile.id === profileId)!
+        )
+      })
+    },
+    delete: profileId => {
+      if (findProfile(profileId) == null) return missing(profileId)
+      if (profileId === DEFAULT_COCKPIT_INPUT_PROFILE_ID) return protectedProfile(profileId)
+      return attempt(() => apply(
+        deleteCockpitInputProfile(context.getStore(), profileId),
+        `Deleted input profile "${profileId}".`,
+        { profileId }
+      ))
+    },
+    reset: profileId => {
+      if (findProfile(profileId) == null) return missing(profileId)
+      return attempt(() => {
+        const store = resetCockpitInputProfile(context.getStore(), profileId)
+        return apply(
+          store,
+          `Reset input profile "${profileId}".`,
+          store.profiles.find(profile => profile.id === profileId)!
+        )
+      })
+    },
+    selectGlobal: profileId => {
+      if (findProfile(profileId) == null) return missing(profileId)
+      return attempt(() => apply(
+        selectGlobalCockpitInputProfile(context.getStore(), profileId),
+        `Selected global input profile "${profileId}".`,
+        { profileId }
+      ))
+    },
+    selectAircraft: (packageRoot, aircraftId, profileId) => {
+      if (typeof packageRoot !== 'string' || packageRoot.trim() === '' || typeof aircraftId !== 'string' || aircraftId.trim() === '') {
+        return interactionResult(false, 'INVALID_ARGUMENT', 'packageRoot and aircraftId are required.', null)
+      }
+      if (profileId != null && findProfile(profileId) == null) return missing(profileId)
+      return attempt(() => apply(
+        selectAircraftCockpitInputProfile(context.getStore(), packageRoot, aircraftId, profileId),
+        profileId == null
+          ? `Selected the global input profile for "${aircraftId}".`
+          : `Selected input profile "${profileId}" for "${aircraftId}".`,
+        { packageRoot, aircraftId, profileId }
+      ))
+    },
+    export: () => interactionResult(
+      true,
+      'OK',
+      'Exported input profiles.',
+      structuredClone(context.getStore())
+    ),
+    import: value => {
+      if (!isCockpitInputStoreV2(value)) {
+        return interactionResult(false, 'INVALID_STORE', 'Input profile store is not a valid version 2 payload.', null)
+      }
+      return attempt(() => {
+        const store = structuredClone(value)
+        return apply(store, 'Imported input profiles.', store)
+      })
+    }
+  }
+}
+
+export const __devApiInteractionTestHooks = {
+  resolveInteractionRequest,
+  createCockpitInputProfilesApi
 }
 
 type DevApiStateValue = number | string | boolean
@@ -1397,6 +1592,16 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   window.addEventListener('cockpit-input-settings-changed', () => {
     cockpitInputStore = loadCockpitInputStore(window.localStorage)
   })
+  const cockpitInputProfilesApi = createCockpitInputProfilesApi({
+    getStore: () => cockpitInputStore,
+    commit: store => {
+      saveCockpitInputStore(store, window.localStorage)
+      cockpitInputStore = store
+      window.dispatchEvent(new Event('cockpit-input-settings-changed'))
+    },
+    packageRoot: context.packageRoot,
+    aircraftId: context.aircraft.id
+  })
   const runInteraction = async (
     targetName: string,
     operation: CockpitInteractionOperation,
@@ -1537,23 +1742,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     active: () => interactionResult(true, 'OK', 'Listed active interactions.', [...new Set([...heldInteractionTargets.keys(), ...interactionAdapter.active()])]),
     history: (options = {}) => interactionResult(true, 'OK', 'Collected interaction history.', interactionHistory.list(options.limit)),
     trace: { snapshot: () => interactionResult(true, 'OK', 'Collected interaction trace.', interactionTrace.snapshot()), enable: (enabled = true) => { interactionTrace.enabled = enabled; return interactionResult(true, 'OK', `Detailed tracing ${enabled ? 'enabled' : 'disabled'}.`, { enabled }) } },
-    profiles: {
-      list: () => interactionResult(true, 'OK', 'Listed input profiles.', cockpitInputStore.profiles),
-      get: profileId => { const profile = cockpitInputStore.profiles.find(candidate => candidate.id === profileId); return profile == null ? interactionResult(false, 'TARGET_NOT_FOUND', `Profile ${profileId} was not found.`, null) : interactionResult(true, 'OK', `Loaded profile ${profileId}.`, profile) },
-      effective: (profileId, aircraftId) => interactionResult(true, 'OK', 'Resolved effective input profile.', effectiveCockpitInputProfile(cockpitInputStore, aircraftId == null ? profileId : cockpitInputStore.aircraftProfileSelections[aircraftId] ?? profileId)),
-      export: () => interactionResult(true, 'OK', 'Exported input profiles.', cockpitInputStore),
-      import: store => {
-        try {
-          saveCockpitInputStore(store)
-          cockpitInputStore = loadCockpitInputStore()
-          window.dispatchEvent(new Event('cockpit-input-settings-changed'))
-          return interactionResult(true, 'OK', 'Imported input profiles.', cockpitInputStore)
-        } catch (error) {
-          console.error('DevApi profile import failed', error)
-          return interactionResult(false, 'INTERNAL_ERROR', error instanceof Error ? error.message : String(error), null)
-        }
-      }
-    },
+    profiles: cockpitInputProfilesApi,
     settings: { get: () => interactionResult(true, 'OK', 'Loaded cockpit input settings.', cockpitInputStore.globalSettings), set: settings => { cockpitInputStore = { ...cockpitInputStore, globalSettings: updateCockpitInputSettings(settings) }; window.dispatchEvent(new Event('cockpit-input-settings-changed')); return interactionResult(true, 'OK', 'Saved cockpit input settings.', cockpitInputStore.globalSettings) } },
     press: (target, options) => runInteraction(target, 'press', options),
     hold: (target, options) => runInteraction(target, 'hold', options),
