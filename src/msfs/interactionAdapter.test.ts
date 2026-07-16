@@ -327,6 +327,20 @@ test('fails repeat closed when authored routes do not prove timing', () => {
   expect(diagnostics).toEqual(['interaction_repeat_timing_unproven'])
 })
 
+test('bulk cancellation does not release inactive controls', () => {
+  const binding = interactionBinding()
+  let releases = 0
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    releaseInteractionBinding: () => { releases += 1; return true },
+    readInteractionValue: () => null
+  } as unknown as AircraftRuntime
+
+  new MsfsInteractionAdapter(runtime).cancelAll()
+
+  expect(releases).toBe(0)
+})
+
 test('settles exact Set after a watched value change and two completed simulator ticks', async () => {
   const base = interactionBinding({}, [
     { channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }
