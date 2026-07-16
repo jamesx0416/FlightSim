@@ -284,6 +284,11 @@ export interface CompiledInteractionMetadata {
     readonly value: number
     readonly label: string
   }[]
+  readonly tooltipValueLabel: string | null
+  readonly tooltipActionHints: readonly {
+    readonly label: string
+    readonly cursor: string | null
+  }[]
   readonly tooltipUnavailable: string | null
   readonly tooltipValueExpression: CompiledExpression | null
   readonly value: CompiledInteractionValueMetadata

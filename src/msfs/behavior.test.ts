@@ -105,6 +105,9 @@ test('interaction metadata expands authored flags and value reachability', () =>
       ['TT_DESCRIPTION_ID', 'TT:TEST.DESCRIPTION'],
       ['TT_VALUE_OFF', "'TT:TEST.OFF'"],
       ['TT_VALUE_ON', "'TT:TEST.ON'"],
+      ['TT_VALUE', "'TT:TEST.VALUE'"],
+      ['ANIMTIP_0', 'TT:TEST.INCREASE'],
+      ['ANIMTIP_0_ON_CURSOR', 'TurnRight'],
       ['TOOLTIP_UNAVAILABLE', 'TT:TEST.UNAVAILABLE']
     ]),
     'TEST_KNOB',
@@ -135,6 +138,10 @@ test('interaction metadata expands authored flags and value reachability', () =>
     { value: 0, label: 'TT:TEST.OFF' },
     { value: 1, label: 'TT:TEST.ON' }
   ])
+  expect(metadata.tooltipValueLabel).toBe('TT:TEST.VALUE')
+  expect(metadata.tooltipActionHints).toEqual([
+    { label: 'TT:TEST.INCREASE', cursor: 'TurnRight' }
+  ])
 
   const inverted = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([
@@ -162,6 +169,38 @@ test('interaction metadata expands authored flags and value reachability', () =>
   )
   expect(dynamic.dynamicEventHandling).toBe(true)
   expect(dynamicDiagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_dynamic_routes_unproven'])
+})
+
+test('fails unsupported dynamic and rich tooltip IR closed with diagnostics', () => {
+  const diagnostics: ImportDiagnostic[] = []
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['ID', 'DYNAMIC_TOOLTIP'],
+      ['TOOLTIPID', '%((L:AVAILABLE, Bool))%{if}TT:TEST.READY%{else}TT:TEST.UNAVAILABLE%{end}'],
+      ['TT_DESCRIPTION', 'TT:TEST.ACTION'],
+      ['TT_VALUE', "(L:VALUE, number) '%.1f' (F:Format)"],
+      ['TT_VALUE_IS_DYNAMIC', 'True'],
+      ['ANIMTIP_0', '%((L:VALUE, number))%!d!'],
+      ['TOOLTIP_ENTRY_1', 'opaque rich entry']
+    ]),
+    'DYNAMIC_TOOLTIP',
+    'DYNAMIC_TOOLTIP',
+    'test.xml',
+    '1 (>L:TEST)',
+    'callback',
+    diagnostics
+  )
+
+  expect(metadata.tooltipTitle).toBe(null)
+  expect(metadata.tooltipDescription).toBe('TT:TEST.ACTION')
+  expect(metadata.tooltipValueLabel).toBe(null)
+  expect(metadata.tooltipUnavailable).toBe(null)
+  expect(diagnostics.map(diagnostic => diagnostic.code)).toEqual([
+    'interaction_tooltip_title_ir_unsupported',
+    'interaction_tooltip_value_ir_unsupported',
+    'interaction_tooltip_action_hint_ir_unsupported',
+    'interaction_tooltip_rich_entry_ir_unsupported'
+  ])
 })
 
 test('compiles only authored repeat timing and diagnoses missing cadence', () => {
