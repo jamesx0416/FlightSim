@@ -47,7 +47,7 @@ import type { RendererInfo } from './rendering/createAppRenderer'
 import { MsfsInteractionAdapter, type InteractionResolution, type MsfsInteractionTarget } from './msfs/interactionAdapter'
 import { CockpitInteractionDispatcher, type CanonicalCockpitAction, type CockpitInteractionChannel, type CockpitInteractionOperation, type CockpitRelativeDirection } from './input/cockpitInteraction'
 import { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
-import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, saveCockpitInputStore, updateCockpitInputSettings, type CockpitInputStoreV1 } from './input/cockpitInputProfiles'
+import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, saveCockpitInputStore, updateCockpitInputSettings, type CockpitInputStoreV2 } from './input/cockpitInputProfiles'
 import { listCanonicalEngineCommands, type SimCommand, type SimUnit } from './sim/engine'
 import type {
   CockpitCameraController,
@@ -115,9 +115,9 @@ type DevApiInteractions = {
     readonly get: (profileId: string) => DevApiInteractionResult
     readonly effective: (profileId?: string, aircraftId?: string) => DevApiInteractionResult
     readonly export: () => DevApiInteractionResult
-    readonly import: (store: CockpitInputStoreV1) => DevApiInteractionResult
+    readonly import: (store: CockpitInputStoreV2) => DevApiInteractionResult
   }
-  readonly settings: { readonly get: () => DevApiInteractionResult; readonly set: (settings: Partial<CockpitInputStoreV1['globalSettings']>) => DevApiInteractionResult }
+  readonly settings: { readonly get: () => DevApiInteractionResult; readonly set: (settings: Partial<CockpitInputStoreV2['globalSettings']>) => DevApiInteractionResult }
   readonly press: (target: string, options?: InteractionSelector) => Promise<DevApiInteractionResult>
   readonly hold: (target: string, options?: InteractionSelector) => Promise<DevApiInteractionResult>
   readonly release: (target: string, options?: InteractionSelector) => Promise<DevApiInteractionResult>
