@@ -18,6 +18,7 @@ import {
   PropulsionCommandTypes,
   PropulsionStateKeys,
   SurfaceStateKeys,
+  SimScheduler,
   createSimulatorEngineForAircraft,
   type CanonicalAircraftDefinition,
   type CanonicalElectricalSystemConfig,
@@ -27,6 +28,7 @@ import {
   type CanonicalSystemDefinition,
   type CanonicalVisualDefinition,
   type SimStateSource,
+  type SimScheduledTaskId,
   type SimulatorEngine,
 } from '../sim/engine'
 import { evaluateCompiledExpression } from './rpn'
@@ -55,6 +57,7 @@ import type {
   ModelNodeAnimation,
   RuntimeCanonicalVisualBindingState,
   RuntimeHostServices,
+  RuntimeVariableChangeListener,
   RuntimeState
 } from './types'
 
@@ -110,6 +113,14 @@ interface RuntimeExpressionDependency {
   readonly key: string
   readonly unit: string | null
 }
+
+export interface RuntimeInteractionValueWatch {
+  readonly authoritative: boolean
+  didChange(): boolean
+  dispose(): void
+}
+
+let nextInteractionSchedulerScope = 1
 
 type RuntimeMaterial = Material & {
   emissive?: {
@@ -245,8 +256,9 @@ export class AircraftRuntime {
     { count: number; startedAtSeconds: number }
   >()
   private readonly wingFlexBindings: readonly RuntimeWingFlexBinding[]
-  private readonly delayedInteractionReleases: RuntimeDelayedInteractionRelease[] = []
-  private interactionFeedbackClockSeconds = 0
+  private readonly delayedInteractionReleases = new Map<CompiledInteractionBinding, SimScheduledTaskId>()
+  private readonly interactionScheduler: SimScheduler
+  private readonly interactionSchedulerScope = `msfs-interactions:${nextInteractionSchedulerScope++}`
   private interactionExecutionCount = 0
   private modelRevision = 0
   private lastUpdateProfile: RuntimeUpdateProfile | null = null
@@ -259,6 +271,7 @@ export class AircraftRuntime {
     canonicalAircraft?: CanonicalAircraftDefinition,
     private readonly simulatorEngine?: SimulatorEngine
   ) {
+    this.interactionScheduler = simulatorEngine?.scheduler ?? new SimScheduler()
     this.mixer = new AnimationMixer(sceneRoot)
     this.runtimeState = {
       irVersion: 'msfs-runtime/v1',
@@ -444,14 +457,13 @@ export class AircraftRuntime {
     const readFrameVariable: RuntimeHostServices['readVariable'] = (key, unit) =>
       this.readFrameVariable(key, unit)
 
-    this.interactionFeedbackClockSeconds += dtSeconds
     this.hostServices.tick(dtSeconds)
+    if (this.simulatorEngine == null) this.interactionScheduler.tick(dtSeconds)
     this.frameVariableValues.clear()
     hostTickMs = finishPhase()
     this.runUpdateBindings(dtSeconds)
     updateBindingsMs = finishPhase()
-    this.publishDelayedInteractionReleases()
-    this.publishInteractionFeedback(dtSeconds)
+    this.publishInteractionFeedback()
     interactionFeedbackMs = finishPhase()
     let modelChanged = false
 
@@ -657,6 +669,10 @@ export class AircraftRuntime {
   }
 
   dispose(): void {
+    this.interactionScheduler.cancelScope(this.interactionSchedulerScope)
+    this.interactionFeedbackTimers.clear()
+    this.delayedInteractionReleases.clear()
+    this.heldInteractionFeedbackTargets.clear()
     this.mixer.stopAllAction()
     this.actions.clear()
     this.mixer.uncacheRoot(this.sceneRoot)
@@ -743,6 +759,42 @@ export class AircraftRuntime {
     return Number.isFinite(value) ? value : null
   }
 
+  watchInteractionValue(binding: CompiledInteractionBinding): RuntimeInteractionValueWatch {
+    let value = this.readInteractionValue(binding)
+    let changed = false
+    const check = (): void => {
+      const next = this.readInteractionValue(binding)
+      if (!Object.is(value, next)) changed = true
+      value = next
+    }
+    const unsubscribers: (() => void)[] = []
+    if (this.hostServices.subscribeVariable != null) {
+      unsubscribers.push(this.hostServices.subscribeVariable(check))
+    }
+    if (this.simulatorEngine != null) {
+      unsubscribers.push(this.simulatorEngine.state.subscribe(check))
+    }
+    return {
+      authoritative: value != null && unsubscribers.length > 0,
+      didChange: () => changed,
+      dispose: () => { for (const unsubscribe of unsubscribers) unsubscribe() }
+    }
+  }
+
+  async waitForInteractionSettle(seconds: number): Promise<void> {
+    if (!Number.isFinite(seconds) || seconds < 0) {
+      throw new RangeError('seconds must be a non-negative finite number')
+    }
+    if (seconds > 0) {
+      await new Promise<void>(resolve => {
+        this.interactionScheduler.schedule(seconds, resolve, {
+          scope: this.interactionSchedulerScope
+        })
+      })
+    }
+    await this.interactionScheduler.waitForCompletedTicks(2)
+  }
+
   executeInteractionCallbackEvent(target: string, options: RuntimeInteractionOptions = {}): boolean {
     const binding = this.findInteractionBindingForTarget(target)
     if (binding == null || binding.metadata.sourceKind === 'eventId') {
@@ -815,6 +867,27 @@ export class AircraftRuntime {
     }
 
     this.releaseInteractionFeedback(binding)
+    return true
+  }
+
+  cancelInteractionBinding(binding: CompiledInteractionBinding): boolean {
+    if (!this.compiled.interactionBindings.includes(binding)) return false
+    const delayedRelease = this.delayedInteractionReleases.get(binding)
+    if (delayedRelease != null) this.interactionScheduler.cancel(delayedRelease)
+    this.delayedInteractionReleases.delete(binding)
+    for (const target of binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]) {
+      const trimmedTarget = target.trim()
+      if (!trimmedTarget) continue
+      this.heldInteractionFeedbackTargets.delete(trimmedTarget)
+      const timer = this.interactionFeedbackTimers.get(trimmedTarget)
+      if (timer != null) this.interactionScheduler.cancel(timer.taskId)
+      this.interactionFeedbackTimers.delete(trimmedTarget)
+      this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 0)
+    }
+    for (const variableKey of binding.feedbackVariableKeys) {
+      this.hostServices.writeVariable(variableKey, 0)
+    }
+    this.executeInteractionReleaseBinding(binding)
     return true
   }
 
@@ -934,6 +1007,9 @@ export class AircraftRuntime {
   }
 
   private triggerInteractionFeedback(binding: CompiledInteractionBinding, mode: 'hold' | 'pulse'): void {
+    const delayedRelease = this.delayedInteractionReleases.get(binding)
+    if (delayedRelease != null) this.interactionScheduler.cancel(delayedRelease)
+    this.delayedInteractionReleases.delete(binding)
     const targets = binding.feedbackTargets.length > 0 ? binding.feedbackTargets : [binding.target]
     for (const variableKey of binding.feedbackVariableKeys) {
       this.hostServices.writeVariable(variableKey, 1)
@@ -947,7 +1023,7 @@ export class AircraftRuntime {
         const previousState = this.heldInteractionFeedbackTargets.get(trimmedTarget)
         this.heldInteractionFeedbackTargets.set(trimmedTarget, {
           count: (previousState?.count ?? 0) + 1,
-          startedAtSeconds: previousState?.startedAtSeconds ?? this.interactionFeedbackClockSeconds
+          startedAtSeconds: previousState?.startedAtSeconds ?? this.interactionScheduler.nowSeconds
         })
         this.hostServices.writeVariable(`O:${trimmedTarget}:_ButtonAnimVar`, 1)
       } else if (binding.minHeldDurationSeconds > 0) {
@@ -981,14 +1057,14 @@ export class AircraftRuntime {
       if (nextHoldCount > 0) {
         this.heldInteractionFeedbackTargets.set(trimmedTarget, {
           count: nextHoldCount,
-          startedAtSeconds: previousState?.startedAtSeconds ?? this.interactionFeedbackClockSeconds
+          startedAtSeconds: previousState?.startedAtSeconds ?? this.interactionScheduler.nowSeconds
         })
       } else {
         this.heldInteractionFeedbackTargets.delete(trimmedTarget)
         const elapsedSeconds =
           previousState == null
             ? 0
-            : this.interactionFeedbackClockSeconds - previousState.startedAtSeconds
+            : this.interactionScheduler.nowSeconds - previousState.startedAtSeconds
         const remainingMinimumHoldSeconds = Math.max(binding.minHeldDurationSeconds - elapsedSeconds, 0)
         if (remainingMinimumHoldSeconds > 0) {
           maxRemainingMinimumHoldSeconds = Math.max(maxRemainingMinimumHoldSeconds, remainingMinimumHoldSeconds)
@@ -1024,10 +1100,14 @@ export class AircraftRuntime {
     if (shouldRunReleaseExpression) {
       this.executeInteractionReleaseBinding(binding)
     } else if (binding.releaseExpression != null) {
-      this.delayedInteractionReleases.push({
-        binding,
-        releaseAtSeconds: this.interactionFeedbackClockSeconds + maxRemainingMinimumHoldSeconds
+      const taskId = this.interactionScheduler.schedule(maxRemainingMinimumHoldSeconds, () => {
+        if (this.delayedInteractionReleases.get(binding) !== taskId) return
+        this.delayedInteractionReleases.delete(binding)
+        this.executeInteractionReleaseBinding(binding)
+      }, {
+        scope: this.interactionSchedulerScope
       })
+      this.delayedInteractionReleases.set(binding, taskId)
     }
   }
 
@@ -1108,51 +1188,42 @@ export class AircraftRuntime {
     }
   }
 
-  private publishDelayedInteractionReleases(): void {
-    for (let index = this.delayedInteractionReleases.length - 1; index >= 0; index -= 1) {
-      const delayedRelease = this.delayedInteractionReleases[index]
-      if (delayedRelease == null || delayedRelease.releaseAtSeconds > this.interactionFeedbackClockSeconds) {
-        continue
-      }
-      this.executeInteractionReleaseBinding(delayedRelease.binding)
-      this.delayedInteractionReleases.splice(index, 1)
-    }
-  }
-
   private setInteractionFeedbackTimer(
     target: string,
     remainingSeconds: number,
     resetOnExpire: boolean
   ): void {
     const previousTimer = this.interactionFeedbackTimers.get(target)
-    this.interactionFeedbackTimers.set(target, {
-      remainingSeconds: Math.max(previousTimer?.remainingSeconds ?? 0, remainingSeconds),
-      resetOnExpire: (previousTimer?.resetOnExpire ?? false) || resetOnExpire
-    })
-  }
-
-  private publishInteractionFeedback(dtSeconds: number): void {
-    for (const target of this.heldInteractionFeedbackTargets.keys()) {
-      this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
+    const dueAtSeconds = Math.max(
+      previousTimer?.dueAtSeconds ?? 0,
+      this.interactionScheduler.nowSeconds + remainingSeconds
+    )
+    const nextResetOnExpire = (previousTimer?.resetOnExpire ?? false) || resetOnExpire
+    if (previousTimer != null && previousTimer.dueAtSeconds === dueAtSeconds &&
+        previousTimer.resetOnExpire === nextResetOnExpire) return
+    if (previousTimer != null) this.interactionScheduler.cancel(previousTimer.taskId)
+    const timer: RuntimeInteractionFeedbackTimer = {
+      taskId: 0,
+      dueAtSeconds,
+      resetOnExpire: nextResetOnExpire
     }
-
-    for (const [target, timer] of [...this.interactionFeedbackTimers.entries()]) {
-      if (timer.remainingSeconds > 0) {
-        this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
-      }
-
-      const nextSecondsRemaining = timer.remainingSeconds - dtSeconds
-      if (nextSecondsRemaining > 0) {
-        this.interactionFeedbackTimers.set(target, {
-          ...timer,
-          remainingSeconds: nextSecondsRemaining
-        })
-      } else {
+    timer.taskId = this.interactionScheduler.schedule(
+      Math.max(dueAtSeconds - this.interactionScheduler.nowSeconds, 0),
+      () => {
+        if (this.interactionFeedbackTimers.get(target) !== timer) return
         this.interactionFeedbackTimers.delete(target)
         if (!this.heldInteractionFeedbackTargets.has(target) && timer.resetOnExpire) {
           this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 0)
         }
-      }
+      },
+      { scope: this.interactionSchedulerScope }
+    )
+    this.interactionFeedbackTimers.set(target, timer)
+  }
+
+  private publishInteractionFeedback(): void {
+    for (const target of this.heldInteractionFeedbackTargets.keys()) {
+      this.hostServices.writeVariable(`O:${target}:_ButtonAnimVar`, 1)
     }
   }
 }
@@ -1597,6 +1668,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private readonly htmlEventListeners = new Set<RuntimeHtmlEventListener>()
   private readonly recentKeyEvents: RuntimeKeyEvent[] = []
   private readonly keyEventListeners = new Set<RuntimeKeyEventListener>()
+  private readonly variableChangeListeners = new Set<RuntimeVariableChangeListener>()
   private readonly recentSoundEvents: RuntimeSoundEvent[] = []
   private readonly recentEffectEvents: RuntimeEffectEvent[] = []
   private readonly recentBridgeEvents: RuntimeBridgeEvent[] = []
@@ -1676,6 +1748,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.readCache.clear()
     this.values.set(normalizedKey, value)
     this.writeEngineCompatibilityVariable(normalizedKey, value, null, 'loaded')
+    this.emitVariableChange(normalizedKey)
     return true
   }
 
@@ -1821,6 +1894,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         this.applyGenericControlEventName(inputEventName, inputEventValue)
         this.applyGenericInputEventStateName(inputEventName, inputEventValue)
       }
+      this.emitVariableChange(normalizedKey)
       return
     }
     if (normalizedKey.startsWith('K:')) {
@@ -1834,6 +1908,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.applyLocalVariableSideEffects(normalizedKey, numericValue)
     this.applyElectricalVariableSideEffects(normalizedKey, numericValue, unit ?? null)
     this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
+    this.emitVariableChange(normalizedKey)
   }
 
   invokeKeyEvent(name: string, args: readonly number[]): void {
@@ -1861,6 +1936,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         console.warn('MSFS runtime key-event listener failed.', error)
       }
     }
+    this.emitVariableChange(normalizeRuntimeVariableKey(`K:${normalizedEventName}`))
   }
 
   invokeHtmlEvent(name: string, args: readonly (number | string)[]): void {
@@ -1888,6 +1964,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         console.warn('MSFS runtime HTML-event listener failed.', error)
       }
     }
+    this.emitVariableChange(normalizeRuntimeVariableKey(`H:${eventName}`))
   }
 
   addHtmlEventListener(listener: RuntimeHtmlEventListener): () => void {
@@ -1901,6 +1978,23 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.keyEventListeners.add(listener)
     return () => {
       this.keyEventListeners.delete(listener)
+    }
+  }
+
+  subscribeVariable(listener: RuntimeVariableChangeListener): () => void {
+    this.variableChangeListeners.add(listener)
+    return () => {
+      this.variableChangeListeners.delete(listener)
+    }
+  }
+
+  private emitVariableChange(key: string): void {
+    for (const listener of this.variableChangeListeners) {
+      try {
+        listener({ key })
+      } catch (error) {
+        console.warn('MSFS runtime variable listener failed.', error)
+      }
     }
   }
 
@@ -6685,13 +6779,9 @@ interface RuntimeWingFlexNode {
 }
 
 interface RuntimeInteractionFeedbackTimer {
-  readonly remainingSeconds: number
+  taskId: SimScheduledTaskId
+  readonly dueAtSeconds: number
   readonly resetOnExpire: boolean
-}
-
-interface RuntimeDelayedInteractionRelease {
-  readonly binding: CompiledInteractionBinding
-  readonly releaseAtSeconds: number
 }
 
 interface RuntimeWingFlexBinding {

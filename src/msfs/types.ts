@@ -291,11 +291,18 @@ export interface CompiledInteractionBinding {
   readonly soundEvents: readonly CompiledInteractionSoundEvent[]
   readonly minHeldDurationSeconds: number
   readonly animationDurationSeconds: number | null
+  readonly repeatFrequencyHz: number | null
   readonly expression: CompiledExpression
   readonly releaseExpression: CompiledExpression | null
   readonly sourcePath: string
   readonly metadata: CompiledInteractionMetadata
 }
+
+export interface RuntimeVariableChangeEvent {
+  readonly key: string
+}
+
+export type RuntimeVariableChangeListener = (event: RuntimeVariableChangeEvent) => void
 
 export interface CompiledInteractionBlocker {
   readonly target: string
@@ -377,6 +384,7 @@ export interface RuntimeHostServices {
   tick(dtSeconds: number): void
   readVariable(key: string, unit?: string | null): number
   writeVariable(key: string, value: number, unit?: string | null): void
+  subscribeVariable?(listener: RuntimeVariableChangeListener): () => void
   setInputEventBindings?(bindings: readonly CompiledInputEventBinding[]): void
   invokeKeyEvent?(name: string, args: readonly number[]): void
   invokeHtmlEvent?(name: string, args: readonly (number | string)[]): void
