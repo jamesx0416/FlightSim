@@ -5,6 +5,8 @@ import {
   DEFAULT_COCKPIT_INPUT_STORE,
   LEGACY_COCKPIT_INPUT_STORE_KEY,
   cockpitAircraftProfileKey,
+  cockpitPhysicalInputForPointerButton,
+  cockpitPhysicalInputForWheel,
   createCockpitInputProfile,
   deleteCockpitInputProfile,
   duplicateCockpitInputProfile,
@@ -14,6 +16,7 @@ import {
   loadCockpitInputStoreWithDiagnostics,
   renameCockpitInputProfile,
   resetCockpitInputProfile,
+  resolveCockpitInputBindings,
   selectAircraftCockpitInputProfile,
   selectGlobalCockpitInputProfile,
   selectedCockpitInputProfileId,
@@ -170,6 +173,68 @@ test('binding capture blocks a same-context claim but permits the same input acr
   const interaction = effectiveCockpitInputProfile(rebound.store, created.profile.id).bindings.interaction
   expect([interaction.Mouse0, interaction.Mouse1]).toEqual([null, 'primary'])
   expect(effectiveCockpitInputProfile(rebound.store, created.profile.id).bindings.emptyCockpit.Mouse1).toBe('cameraPan')
+})
+
+test('physical routing resolves all mouse buttons and both wheel directions from the effective profile', () => {
+  const store = {
+    ...structuredClone(DEFAULT_COCKPIT_INPUT_STORE),
+    selectedGlobalProfileId: 'remapped',
+    profiles: [
+      ...DEFAULT_COCKPIT_INPUT_STORE.profiles,
+      {
+        id: 'remapped',
+        name: 'Remapped',
+        bindings: {
+          interaction: {
+            Mouse0: 'secondary' as const,
+            Mouse1: 'primary' as const,
+            Mouse2: 'tertiary' as const,
+            WheelUp: 'decrease' as const,
+            WheelDown: 'increase' as const
+          },
+          emptyCockpit: {
+            Mouse0: 'cameraPan' as const,
+            Mouse1: 'cameraPan' as const,
+            Mouse2: 'cameraPan' as const,
+            WheelUp: 'cameraZoomOut' as const,
+            WheelDown: 'cameraZoomIn' as const
+          }
+        }
+      }
+    ]
+  }
+  const profile = effectiveCockpitInputProfile(store)
+  expect([0, 1, 2, 3].map(cockpitPhysicalInputForPointerButton)).toEqual([
+    'Mouse0',
+    'Mouse1',
+    'Mouse2',
+    null
+  ])
+  expect([-1, 0, 1].map(cockpitPhysicalInputForWheel)).toEqual(['WheelUp', null, 'WheelDown'])
+  expect([
+    resolveCockpitInputBindings(profile, 'Mouse0'),
+    resolveCockpitInputBindings(profile, 'Mouse1'),
+    resolveCockpitInputBindings(profile, 'Mouse2'),
+    resolveCockpitInputBindings(profile, 'WheelUp'),
+    resolveCockpitInputBindings(profile, 'WheelDown')
+  ]).toEqual([
+    { interaction: 'secondary', emptyCockpit: 'cameraPan' },
+    { interaction: 'primary', emptyCockpit: 'cameraPan' },
+    { interaction: 'tertiary', emptyCockpit: 'cameraPan' },
+    { interaction: 'decrease', emptyCockpit: 'cameraZoomOut' },
+    { interaction: 'increase', emptyCockpit: 'cameraZoomIn' }
+  ])
+
+  const unboundTargetAttempt = effectiveCockpitInputProfile({
+    ...store,
+    profiles: store.profiles.map(profile => profile.id === 'remapped'
+      ? { ...profile, bindings: { ...profile.bindings, interaction: { ...profile.bindings?.interaction, Mouse0: null } } }
+      : profile)
+  })
+  expect(resolveCockpitInputBindings(unboundTargetAttempt, 'Mouse0')).toEqual({
+    interaction: null,
+    emptyCockpit: 'cameraPan'
+  })
 })
 
 test('profile CRUD protects the default and repairs selections when deleting a user profile', () => {
