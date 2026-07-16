@@ -494,6 +494,7 @@ function interactionBinding(
       inverted: false, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
       dragScalar: 0.025, discreteGate: null, wheelPrimaryToggle: false, cursor: null, tooltipTitle: null,
       tooltipDescription: null, tooltipStateLabels: [], tooltipUnavailable: null,
+      tooltipValueLabel: null, tooltipActionHints: [],
       tooltipValueExpression: expression,
       value: {
         variableKey: 'L:TEST', unit: 'number', minimum: 0, maximum: 4, step: 1,

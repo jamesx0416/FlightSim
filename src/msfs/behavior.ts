@@ -1810,6 +1810,12 @@ function buildCompiledInteractionMetadata(
       message: `Dynamic M:Event handling for ${authoredId ?? target} has no authoritative MouseFlags declaration.`
     })
   }
+  const tooltip = compileInteractionTooltipMetadata(
+    params,
+    sourcePath,
+    authoredId ?? target,
+    diagnostics
+  )
   return {
     authoredId,
     qualifiedId: `${sourcePath}#${authoredId ?? target}`,
@@ -1851,37 +1857,152 @@ function buildCompiledInteractionMetadata(
     })(),
     wheelPrimaryToggle: parseBoolean(params.get('__WHEEL_PRIMARY_TOGGLE') ?? 'False'),
     cursor: params.get('CURSOR')?.trim() || null,
-    tooltipTitle: params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null,
-    tooltipDescription: params.get('TOOLTIP_DESCRIPTION')?.trim() || params.get('TT_DESCRIPTION_ID')?.trim() || null,
-    tooltipStateLabels: collectInteractionTooltipStateLabels(params),
-    tooltipUnavailable: getInteractionUnavailableTooltip(params),
+    tooltipTitle: tooltip.title,
+    tooltipDescription: tooltip.description,
+    tooltipStateLabels: tooltip.stateLabels,
+    tooltipValueLabel: tooltip.valueLabel,
+    tooltipActionHints: tooltip.actionHints,
+    tooltipUnavailable: tooltip.unavailable,
     tooltipValueExpression,
     value
   }
 }
 
-function collectInteractionTooltipStateLabels(
-  params: ReadonlyMap<string, string>
-): readonly { readonly value: number; readonly label: string }[] {
+function compileInteractionTooltipMetadata(
+  params: ReadonlyMap<string, string>,
+  sourcePath: string,
+  target: string,
+  diagnostics: ImportDiagnostic[]
+): {
+  readonly title: string | null
+  readonly description: string | null
+  readonly stateLabels: readonly { readonly value: number; readonly label: string }[]
+  readonly valueLabel: string | null
+  readonly actionHints: readonly { readonly label: string; readonly cursor: string | null }[]
+  readonly unavailable: string | null
+} {
+  const rawTitle = params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null
+  const dynamicTitle = rawTitle?.includes('%((') === true
+  if (dynamicTitle) pushUnsupportedTooltipDiagnostic(
+    diagnostics,
+    'interaction_tooltip_title_ir_unsupported',
+    sourcePath,
+    target,
+    'dynamic title'
+  )
+  const rawDescription = params.get('TOOLTIP_DESCRIPTION')?.trim() ||
+    params.get('TT_DESCRIPTION_ID')?.trim() ||
+    params.get('TT_DESCRIPTION')?.trim() ||
+    null
+  const dynamicDescription = rawDescription?.includes('%((') === true
+  if (dynamicDescription) pushUnsupportedTooltipDiagnostic(
+    diagnostics,
+    'interaction_tooltip_description_ir_unsupported',
+    sourcePath,
+    target,
+    'dynamic action description'
+  )
+
   const labels = new Map<number, string>()
+  let hasUnsupportedValue = false
   for (const [key, rawLabel] of params) {
     const match = /^TT_VALUE_(OFF|ON|\d+)$/u.exec(key)
-    if (match == null || parseBoolean(params.get(`${key}_IS_DYNAMIC`) ?? 'False')) continue
+    if (match == null || !rawLabel.trim()) continue
+    const label = parseStaticTooltipValue(rawLabel, parseBoolean(params.get(`${key}_IS_DYNAMIC`) ?? 'False'))
+    if (label == null) {
+      hasUnsupportedValue = true
+      continue
+    }
     const value = match[1] === 'OFF' ? 0 : match[1] === 'ON' ? 1 : Number(match[1])
-    const label = rawLabel.trim().replace(/^'(.*)'$/u, '$1').trim()
-    if (label) labels.set(value, label)
+    labels.set(value, label)
   }
-  return [...labels].map(([value, label]) => ({ value, label }))
+  const rawValue = params.get('TT_VALUE')?.trim() || params.get('TOOLTIP_VALUE')?.trim() || null
+  const valueLabel = rawValue == null
+    ? null
+    : parseStaticTooltipValue(rawValue, parseBoolean(params.get('TT_VALUE_IS_DYNAMIC') ?? 'False'))
+  if (rawValue != null && valueLabel == null) hasUnsupportedValue = true
+  if (hasUnsupportedValue) pushUnsupportedTooltipDiagnostic(
+    diagnostics,
+    'interaction_tooltip_value_ir_unsupported',
+    sourcePath,
+    target,
+    'dynamic value formatting'
+  )
+
+  const actionHints: { label: string; cursor: string | null }[] = []
+  let hasDynamicActionHint = false
+  for (const [key, rawLabel] of params) {
+    const match = /^ANIMTIP_(\d+)$/u.exec(key)
+    const label = rawLabel.trim()
+    if (match == null || !label) continue
+    if (label.includes('%((')) {
+      hasDynamicActionHint = true
+      continue
+    }
+    actionHints.push({
+      label,
+      cursor: params.get(`ANIMTIP_${match[1]}_ON_CURSOR`)?.trim() || null
+    })
+  }
+  if (hasDynamicActionHint) pushUnsupportedTooltipDiagnostic(
+    diagnostics,
+    'interaction_tooltip_action_hint_ir_unsupported',
+    sourcePath,
+    target,
+    'dynamic action hint'
+  )
+
+  if ([...params].some(([key, value]) => /^TOOLTIP_ENTRY_\d+$/u.test(key) && value.trim())) {
+    pushUnsupportedTooltipDiagnostic(
+      diagnostics,
+      'interaction_tooltip_rich_entry_ir_unsupported',
+      sourcePath,
+      target,
+      'rich tooltip entries'
+    )
+  }
+
+  const unavailable = params.get('TOOLTIP_UNAVAILABLE')?.trim() || params.get('TT_UNAVAILABLE')?.trim() || null
+  const dynamicUnavailable = unavailable?.includes('%((') === true
+  if (dynamicUnavailable) pushUnsupportedTooltipDiagnostic(
+    diagnostics,
+    'interaction_tooltip_unavailable_ir_unsupported',
+    sourcePath,
+    target,
+    'dynamic unavailable feedback'
+  )
+
+  return {
+    title: dynamicTitle ? null : rawTitle,
+    description: dynamicDescription ? null : rawDescription,
+    stateLabels: [...labels].map(([value, label]) => ({ value, label })),
+    valueLabel,
+    actionHints,
+    unavailable: dynamicUnavailable ? null : unavailable
+  }
 }
 
-function getInteractionUnavailableTooltip(params: ReadonlyMap<string, string>): string | null {
-  const explicit = params.get('TOOLTIP_UNAVAILABLE')?.trim() || params.get('TT_UNAVAILABLE')?.trim()
-  if (explicit) return explicit
-  for (const value of [params.get('TOOLTIP_TITLE'), params.get('TOOLTIPID')]) {
-    const match = value?.match(/TT:[A-Z0-9_.:-]*UNAVAILABLE[A-Z0-9_.:-]*/iu)
-    if (match != null) return match[0]
-  }
-  return null
+function parseStaticTooltipValue(value: string, dynamic: boolean): string | null {
+  if (dynamic) return null
+  const trimmed = value.trim()
+  const quoted = /^'([^']*)'$/u.exec(trimmed)
+  if (quoted != null) return quoted[1]?.trim() || null
+  return /^(?:TT:|@TT_Package\.)[A-Z0-9_.:-]+$/iu.test(trimmed) ? trimmed : null
+}
+
+function pushUnsupportedTooltipDiagnostic(
+  diagnostics: ImportDiagnostic[],
+  code: string,
+  sourcePath: string,
+  target: string,
+  feature: string
+): void {
+  diagnostics.push({
+    code,
+    severity: 'info',
+    sourcePath,
+    message: `Interaction ${target} declares ${feature} that the current interaction IR cannot evaluate authoritatively.`
+  })
 }
 
 function inferInteractionInversion(params: ReadonlyMap<string, string>): boolean {

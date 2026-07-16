@@ -60,6 +60,10 @@ export interface MsfsInteractionPresentation {
     readonly operation: CockpitInteractionOperation
     readonly label: string
   }[]
+  readonly actionHints: readonly {
+    readonly label: string
+    readonly cursor: string | null
+  }[]
   readonly unavailableMessage: string
 }
 
@@ -69,6 +73,8 @@ export interface MsfsInteractionPresentationSource {
   readonly tooltipTitle: string | null
   readonly tooltipDescription: string | null
   readonly tooltipStateLabels: readonly { readonly value: number; readonly label: string }[]
+  readonly tooltipValueLabel: string | null
+  readonly tooltipActionHints: readonly { readonly label: string; readonly cursor: string | null }[]
   readonly tooltipUnavailable: string | null
   readonly routes: readonly { readonly operation: CockpitInteractionOperation }[]
   readonly value: { readonly unit: string | null }
@@ -89,7 +95,10 @@ export function resolveMsfsInteractionPresentation(
   const stateLabel = options.value == null
     ? null
     : metadata.tooltipStateLabels.find(candidate => Object.is(candidate.value, options.value))?.label ?? null
-  const localizedStateLabel = resolveMsfsLocalizedString(stateLabel, localization)
+  const localizedStateLabel = resolveMsfsLocalizedString(
+    stateLabel ?? metadata.tooltipValueLabel,
+    localization
+  )
   const value = localizedStateLabel ?? formatInteractionNumber(options.value, metadata.value.unit, options.locale)
   const operations = [...new Set(metadata.routes.map(route => route.operation))]
   const unavailable = resolveMsfsLocalizedString(metadata.tooltipUnavailable, localization)
@@ -98,6 +107,10 @@ export function resolveMsfsInteractionPresentation(
     description: localizedDescription == null ? null : sanitizeMsfsTooltipText(localizedDescription) || null,
     value,
     actions: operations.map(operation => ({ operation, label: formatInteractionOperation(operation) })),
+    actionHints: metadata.tooltipActionHints.map(hint => ({
+      label: sanitizeMsfsTooltipText(resolveMsfsLocalizedString(hint.label, localization) ?? hint.label),
+      cursor: hint.cursor
+    })),
     unavailableMessage: unavailable == null ? 'Unavailable' : sanitizeMsfsTooltipText(unavailable) || 'Unavailable'
   }
 }

@@ -15,6 +15,8 @@ test('builds shared localized interaction presentation from authored metadata', 
     ['TEST.TITLE', 'Altitude increment'],
     ['TEST.DESCRIPTION', 'Select the increment'],
     ['TEST.ON', 'One thousand'],
+    ['TEST.VALUE', 'Selected increment'],
+    ['TEST.INCREASE', 'Turn clockwise'],
     ['TEST.UNAVAILABLE', 'Not available while managed']
   ])
   const metadata = {
@@ -26,6 +28,8 @@ test('builds shared localized interaction presentation from authored metadata', 
       { value: 0, label: 'One hundred' },
       { value: 1, label: 'TT:TEST.ON' }
     ],
+    tooltipValueLabel: 'TT:TEST.VALUE',
+    tooltipActionHints: [{ label: 'TT:TEST.INCREASE', cursor: 'TurnRight' }],
     tooltipUnavailable: 'TT:TEST.UNAVAILABLE',
     routes: [
       { operation: 'press' },
@@ -43,8 +47,10 @@ test('builds shared localized interaction presentation from authored metadata', 
       { operation: 'press', label: 'Press' },
       { operation: 'increase', label: 'Increase' }
     ],
+    actionHints: [{ label: 'Turn clockwise', cursor: 'TurnRight' }],
     unavailableMessage: 'Not available while managed'
   })
+  expect(resolveMsfsInteractionPresentation(metadata, strings, { value: 2 }).value).toBe('Selected increment')
 })
 
 test('uses concise viewer fallbacks when authored presentation is absent', () => {
@@ -54,6 +60,8 @@ test('uses concise viewer fallbacks when authored presentation is absent', () =>
     tooltipTitle: null,
     tooltipDescription: null,
     tooltipStateLabels: [],
+    tooltipValueLabel: null,
+    tooltipActionHints: [],
     tooltipUnavailable: null,
     routes: [],
     value: { unit: 'feet' }
@@ -64,6 +72,7 @@ test('uses concise viewer fallbacks when authored presentation is absent', () =>
     description: null,
     value: '1,250 feet',
     actions: [],
+    actionHints: [],
     unavailableMessage: 'Unavailable'
   })
 })
