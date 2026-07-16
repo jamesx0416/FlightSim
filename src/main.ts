@@ -59,7 +59,27 @@ import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
 import { MsfsInteractionAdapter, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
 import { CockpitInteractionDispatcher, type CockpitInteractionChannel } from './input/cockpitInteraction'
-import { DEFAULT_COCKPIT_INPUT_STORE, effectiveCockpitInputProfile, loadCockpitInputStore, updateCockpitInputSettings } from './input/cockpitInputProfiles'
+import {
+  DEFAULT_COCKPIT_INPUT_PROFILE_ID,
+  DEFAULT_COCKPIT_INPUT_STORE,
+  cockpitAircraftProfileKey,
+  createCockpitInputProfile,
+  deleteCockpitInputProfile,
+  duplicateCockpitInputProfile,
+  effectiveCockpitInputProfile,
+  loadCockpitInputStore,
+  renameCockpitInputProfile,
+  resetCockpitInputProfile,
+  saveCockpitInputStore,
+  selectAircraftCockpitInputProfile,
+  selectGlobalCockpitInputProfile,
+  selectedCockpitInputProfileId,
+  setCockpitInputBinding,
+  type CockpitInputBindingAction,
+  type CockpitInputBindingContext,
+  type CockpitInputStoreV2,
+  type CockpitPhysicalInput
+} from './input/cockpitInputProfiles'
 import { installViewerBootDevApi, installViewerDevApi } from './devApi'
 import type {
   CompiledBehaviorSet,
@@ -12776,6 +12796,34 @@ function ensureSettingsStyles(): void {
     textarea.viewer-settings-control { text-align: left; resize: vertical; }
     .viewer-settings-aircraft-field { margin-bottom: 18px; }
     .viewer-settings-general-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+    .viewer-settings-input-profile { margin-bottom: 18px; }
+    .viewer-settings-input-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 22px;
+      border-bottom: 1px solid rgba(173, 220, 237, 0.13);
+      background: rgba(10, 24, 36, 0.58);
+    }
+    .viewer-settings-binding-controls {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) auto auto;
+      align-items: center;
+      gap: 8px;
+    }
+    .viewer-settings-binding-value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      color: rgba(224, 242, 250, 0.82);
+      font: 600 11px/1.4 ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+    .viewer-settings-input-status {
+      min-height: 18px;
+      padding: 9px 22px;
+      color: #aeeeff;
+      background: rgba(3, 18, 28, 0.42);
+      font-size: 12px;
+    }
     .viewer-settings-footer {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -12801,6 +12849,8 @@ function ensureSettingsStyles(): void {
       text-transform: uppercase;
     }
     .viewer-settings-action { min-width: 108px; padding: 11px 16px; }
+    .viewer-settings-action-compact { min-width: 0; padding: 9px 11px; }
+    .viewer-settings-action:disabled { cursor: not-allowed; opacity: 0.42; }
     .viewer-settings-action:hover { border-color: rgba(24, 200, 244, 0.65); background: rgba(27, 57, 73, 0.9); }
     .viewer-settings-action-primary { border-color: rgba(24, 200, 244, 0.7); background: linear-gradient(135deg, #0a91ba, #0fc5ed); color: #03131b; }
     .viewer-settings-action-primary:hover { background: linear-gradient(135deg, #11a8d5, #2bd4f7); }
@@ -12825,6 +12875,7 @@ function ensureSettingsStyles(): void {
       .viewer-settings-panel-intro { grid-template-columns: 1fr; gap: 10px; }
       .viewer-settings-scope-badge { justify-self: start; }
       .viewer-settings-field { grid-template-columns: 1fr; gap: 7px; padding: 12px 14px; }
+      .viewer-settings-binding-controls { grid-template-columns: 1fr auto auto; }
       .viewer-settings-footer { grid-template-columns: 1fr; padding-right: 164px; }
       .viewer-settings-actions { overflow-x: auto; }
       .viewer-settings-action { min-width: 88px; }
@@ -12838,6 +12889,447 @@ function ensureSettingsStyles(): void {
     }
   `
   document.head.appendChild(style)
+}
+
+type CockpitInputSettingsEditor = {
+  readonly generalRoot: HTMLElement
+  readonly globalRoot: HTMLElement
+  readonly aircraftRoot: HTMLElement
+  readonly apply: () => boolean
+  readonly discard: () => void
+  readonly reset: (scope: 'general' | ViewerSettingsPanelScope) => string
+  readonly selectedAircraftChanged: () => void
+}
+
+const COCKPIT_BINDING_ROWS: readonly {
+  readonly context: CockpitInputBindingContext
+  readonly action: CockpitInputBindingAction
+  readonly label: string
+}[] = [
+  { context: 'interaction', action: 'primary', label: 'Interaction: Primary' },
+  { context: 'interaction', action: 'secondary', label: 'Interaction: Secondary' },
+  { context: 'interaction', action: 'tertiary', label: 'Interaction: Tertiary' },
+  { context: 'interaction', action: 'increase', label: 'Interaction: Increase' },
+  { context: 'interaction', action: 'decrease', label: 'Interaction: Decrease' },
+  { context: 'emptyCockpit', action: 'cameraPan', label: 'Empty cockpit: Camera pan' },
+  { context: 'emptyCockpit', action: 'cameraZoomIn', label: 'Empty cockpit: Zoom in' },
+  { context: 'emptyCockpit', action: 'cameraZoomOut', label: 'Empty cockpit: Zoom out' }
+]
+
+function createCockpitInputSettingsEditor(options: {
+  readonly overlay: HTMLElement
+  readonly getSelectedAircraftOption: () => AircraftSelectorOption
+}): CockpitInputSettingsEditor {
+  type ProfileScope = ViewerSettingsPanelScope
+  type ScopeEditor = {
+    readonly root: HTMLElement
+    readonly profileSelect: HTMLSelectElement
+    readonly mappingForm: HTMLElement
+    readonly status: HTMLElement
+    readonly duplicateButton: HTMLButtonElement
+    readonly renameButton: HTMLButtonElement
+    readonly deleteButton: HTMLButtonElement
+    readonly resetButton: HTMLButtonElement
+  }
+
+  let draft: CockpitInputStoreV2 = loadCockpitInputStore()
+  let pendingCapture: {
+    readonly scope: ProfileScope
+    readonly context: CockpitInputBindingContext
+    readonly action: CockpitInputBindingAction
+    readonly button: HTMLButtonElement
+  } | null = null
+
+  const generalRoot = document.createElement('section')
+  generalRoot.className = 'viewer-settings-card'
+  generalRoot.append(createSettingsSectionHeader(
+    'Interaction',
+    'Cockpit input',
+    'Choose how cockpit controls respond and how interaction feedback appears.'
+  ))
+  const interactionModeSelect = createSettingsSelect('Interaction mode')
+  interactionModeSelect.append(
+    createSettingsOption('legacy', 'Legacy'),
+    createSettingsOption('lock', 'Lock')
+  )
+  const highlightSelect = createSettingsSelect('Highlights')
+  highlightSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
+  const tooltipSelect = createSettingsSelect('Tooltips')
+  tooltipSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
+  const generalForm = document.createElement('div')
+  generalForm.className = 'viewer-settings-form'
+  generalForm.append(
+    createSettingsField('Interaction mode', interactionModeSelect),
+    createSettingsField('Highlights', highlightSelect),
+    createSettingsField('Tooltips', tooltipSelect)
+  )
+  generalRoot.append(generalForm)
+
+  const updateGeneralDraft = (): void => {
+    draft = {
+      ...draft,
+      globalSettings: {
+        interactionMode: interactionModeSelect.value === 'lock' ? 'lock' : 'legacy',
+        showHighlights: highlightSelect.value === 'on',
+        showTooltips: tooltipSelect.value === 'on'
+      }
+    }
+  }
+  interactionModeSelect.addEventListener('change', updateGeneralDraft)
+  highlightSelect.addEventListener('change', updateGeneralDraft)
+  tooltipSelect.addEventListener('change', updateGeneralDraft)
+
+  const createScopeEditor = (scope: ProfileScope): ScopeEditor => {
+    const root = document.createElement('section')
+    root.className = 'viewer-settings-card viewer-settings-input-profile'
+    root.append(createSettingsSectionHeader(
+      'Input profile',
+      scope === 'global' ? 'Global mouse profile' : 'Aircraft mouse profile',
+      scope === 'global'
+        ? 'Select the default physical mouse mapping used by every aircraft.'
+        : 'Choose a package-scoped override or inherit the global mouse profile.'
+    ))
+    const profileSelect = createSettingsSelect(`${scope} input profile`)
+    const profileForm = document.createElement('div')
+    profileForm.className = 'viewer-settings-form'
+    profileForm.append(createSettingsField('Profile', profileSelect))
+    const profileActions = document.createElement('div')
+    profileActions.className = 'viewer-settings-input-actions'
+    const createButton = createCompactSettingsButton('Create')
+    const duplicateButton = createCompactSettingsButton('Duplicate')
+    const renameButton = createCompactSettingsButton('Rename')
+    const deleteButton = createCompactSettingsButton('Delete')
+    const resetButton = createCompactSettingsButton('Reset profile')
+    profileActions.append(createButton, duplicateButton, renameButton, deleteButton, resetButton)
+    const mappingHeader = createSettingsSectionHeader(
+      'Physical remapping',
+      'Mouse bindings',
+      'Capture a mouse button or wheel direction. Escape remains the fixed cancel and unlock input.'
+    )
+    const mappingForm = document.createElement('div')
+    mappingForm.className = 'viewer-settings-form'
+    const status = document.createElement('div')
+    status.className = 'viewer-settings-input-status'
+    status.setAttribute('role', 'alert')
+    status.setAttribute('aria-live', 'assertive')
+    root.append(profileForm, profileActions, mappingHeader, mappingForm, status)
+
+    profileSelect.addEventListener('change', () => {
+      try {
+        if (scope === 'global') {
+          draft = selectGlobalCockpitInputProfile(draft, profileSelect.value)
+        } else {
+          const selected = options.getSelectedAircraftOption()
+          draft = selectAircraftCockpitInputProfile(
+            draft,
+            selected.packageRoot,
+            selected.aircraft.id,
+            profileSelect.value === '' ? null : profileSelect.value
+          )
+        }
+        cancelCapture()
+        renderScopes()
+      } catch (error) {
+        status.textContent = settingsErrorMessage(error)
+      }
+    })
+
+    createButton.addEventListener('click', () => {
+      const name = window.prompt('New input profile name', 'New profile')
+      if (name == null) return
+      try {
+        const change = createCockpitInputProfile(draft, name)
+        draft = selectProfileForScope(change.store, scope, change.profile.id)
+        renderScopes()
+      } catch (error) {
+        status.textContent = settingsErrorMessage(error)
+      }
+    })
+    duplicateButton.addEventListener('click', () => {
+      const source = selectedProfileId(scope) ?? draft.selectedGlobalProfileId
+      const sourceProfile = draft.profiles.find(profile => profile.id === source)
+      const name = window.prompt('Duplicate input profile as', `${sourceProfile?.name ?? 'Profile'} Copy`)
+      if (name == null) return
+      try {
+        const change = duplicateCockpitInputProfile(draft, source, name)
+        draft = selectProfileForScope(change.store, scope, change.profile.id)
+        renderScopes()
+      } catch (error) {
+        status.textContent = settingsErrorMessage(error)
+      }
+    })
+    renameButton.addEventListener('click', () => {
+      const profileId = selectedProfileId(scope)
+      const profile = draft.profiles.find(candidate => candidate.id === profileId)
+      if (profile == null) return
+      const name = window.prompt('Rename input profile', profile.name)
+      if (name == null) return
+      try {
+        draft = renameCockpitInputProfile(draft, profile.id, name)
+        renderScopes()
+      } catch (error) {
+        status.textContent = settingsErrorMessage(error)
+      }
+    })
+    deleteButton.addEventListener('click', () => {
+      const profileId = selectedProfileId(scope)
+      const profile = draft.profiles.find(candidate => candidate.id === profileId)
+      if (profile == null || !window.confirm(`Delete input profile "${profile.name}"?`)) return
+      try {
+        draft = deleteCockpitInputProfile(draft, profile.id)
+        renderScopes()
+      } catch (error) {
+        status.textContent = settingsErrorMessage(error)
+      }
+    })
+    resetButton.addEventListener('click', () => {
+      const profileId = selectedProfileId(scope)
+      if (profileId == null) return
+      try {
+        draft = resetCockpitInputProfile(draft, profileId)
+        status.textContent = 'Profile reset in the draft. Choose Apply to save it.'
+        renderScopes(status.textContent)
+      } catch (error) {
+        status.textContent = settingsErrorMessage(error)
+      }
+    })
+    return { root, profileSelect, mappingForm, status, duplicateButton, renameButton, deleteButton, resetButton }
+  }
+
+  const globalEditor = createScopeEditor('global')
+  const aircraftEditor = createScopeEditor('aircraft')
+  const scopeEditors: Record<ProfileScope, ScopeEditor> = {
+    global: globalEditor,
+    aircraft: aircraftEditor
+  }
+
+  function selectedProfileId(scope: ProfileScope): string | null {
+    if (scope === 'global') return draft.selectedGlobalProfileId
+    const selected = options.getSelectedAircraftOption()
+    const exact = draft.aircraftProfileSelections[
+      cockpitAircraftProfileKey(selected.packageRoot, selected.aircraft.id)
+    ]
+    if (exact != null) return exact
+    const fallback = selectedCockpitInputProfileId(draft, selected.packageRoot, selected.aircraft.id)
+    return fallback === draft.selectedGlobalProfileId ? null : fallback
+  }
+
+  function selectProfileForScope(
+    store: CockpitInputStoreV2,
+    scope: ProfileScope,
+    profileId: string
+  ): CockpitInputStoreV2 {
+    if (scope === 'global') return selectGlobalCockpitInputProfile(store, profileId)
+    const selected = options.getSelectedAircraftOption()
+    return selectAircraftCockpitInputProfile(
+      store,
+      selected.packageRoot,
+      selected.aircraft.id,
+      profileId
+    )
+  }
+
+  function renderGeneral(): void {
+    interactionModeSelect.value = draft.globalSettings.interactionMode
+    highlightSelect.value = draft.globalSettings.showHighlights ? 'on' : 'off'
+    tooltipSelect.value = draft.globalSettings.showTooltips ? 'on' : 'off'
+  }
+
+  function renderScopes(message = ''): void {
+    renderScope('global', message)
+    renderScope('aircraft', message)
+  }
+
+  function renderScope(scope: ProfileScope, message: string): void {
+    const editor = scopeEditors[scope]
+    const selectedId = selectedProfileId(scope)
+    editor.profileSelect.replaceChildren()
+    if (scope === 'aircraft') {
+      editor.profileSelect.append(createSettingsOption('', 'Use global profile'))
+    }
+    for (const profile of draft.profiles) {
+      editor.profileSelect.append(createSettingsOption(profile.id, profile.name))
+    }
+    editor.profileSelect.value = selectedId ?? ''
+    const editableProfileId = selectedId
+    const protectedProfile = editableProfileId === DEFAULT_COCKPIT_INPUT_PROFILE_ID
+    editor.renameButton.disabled = editableProfileId == null || protectedProfile
+    editor.deleteButton.disabled = editableProfileId == null || protectedProfile
+    editor.resetButton.disabled = editableProfileId == null
+    editor.duplicateButton.disabled = draft.profiles.length === 0
+    editor.status.textContent = message
+    editor.mappingForm.replaceChildren()
+
+    const effectiveId = editableProfileId ?? draft.selectedGlobalProfileId
+    const effective = effectiveCockpitInputProfile(draft, effectiveId)
+    for (const descriptor of COCKPIT_BINDING_ROWS) {
+      const row = document.createElement('div')
+      row.className = 'viewer-settings-field viewer-settings-binding-row'
+      const label = document.createElement('span')
+      label.className = 'viewer-settings-field-label'
+      label.textContent = descriptor.label
+      const controls = document.createElement('div')
+      controls.className = 'viewer-settings-binding-controls'
+      const value = document.createElement('output')
+      value.className = 'viewer-settings-binding-value'
+      const bindings = effective.bindings[descriptor.context] as Readonly<
+        Record<CockpitPhysicalInput, CockpitInputBindingAction | null>
+      >
+      const inputs = Object.entries(bindings)
+        .filter(([, action]) => action === descriptor.action)
+        .map(([input]) => input)
+      value.textContent = inputs.length === 0 ? 'Unbound' : inputs.join(', ')
+      const capture = createCompactSettingsButton('Capture')
+      capture.disabled = editableProfileId == null
+      capture.setAttribute('aria-label', `Capture ${descriptor.label} binding`)
+      capture.setAttribute('aria-pressed', 'false')
+      capture.addEventListener('click', () => {
+        cancelCapture()
+        pendingCapture = { scope, context: descriptor.context, action: descriptor.action, button: capture }
+        capture.textContent = 'Listening...'
+        capture.setAttribute('aria-pressed', 'true')
+        editor.status.textContent = `Press a mouse button or scroll for ${descriptor.label}. Escape cancels.`
+      })
+      const clear = createCompactSettingsButton('Clear')
+      clear.disabled = editableProfileId == null || inputs.length === 0
+      clear.setAttribute('aria-label', `Clear ${descriptor.label} binding`)
+      clear.addEventListener('click', () => {
+        if (editableProfileId == null) return
+        const change = setCockpitInputBinding(
+          draft,
+          editableProfileId,
+          descriptor.context,
+          descriptor.action,
+          null
+        )
+        draft = change.store
+        renderScope(scope, `${descriptor.label} is unbound in the draft.`)
+      })
+      controls.append(value, capture, clear)
+      row.append(label, controls)
+      editor.mappingForm.append(row)
+    }
+  }
+
+  function cancelCapture(): void {
+    if (pendingCapture == null) return
+    pendingCapture.button.textContent = 'Capture'
+    pendingCapture.button.setAttribute('aria-pressed', 'false')
+    pendingCapture = null
+  }
+
+  function captureInput(input: CockpitPhysicalInput): void {
+    if (pendingCapture == null) return
+    const capture = pendingCapture
+    const editor = scopeEditors[capture.scope]
+    const profileId = selectedProfileId(capture.scope)
+    if (profileId == null) {
+      cancelCapture()
+      editor.status.textContent = 'Choose an aircraft profile before remapping.'
+      return
+    }
+    try {
+      const change = setCockpitInputBinding(
+        draft,
+        profileId,
+        capture.context,
+        capture.action,
+        input
+      )
+      if (!change.ok) {
+        cancelCapture()
+        editor.status.textContent = `${input} is already assigned to ${formatCockpitBindingAction(change.conflictingAction)} in this context. Clear it first.`
+        return
+      }
+      draft = change.store
+      cancelCapture()
+      renderScope(capture.scope, `${input} captured for ${formatCockpitBindingAction(capture.action)}.`)
+    } catch (error) {
+      editor.status.textContent = settingsErrorMessage(error)
+    }
+  }
+
+  options.overlay.addEventListener('pointerdown', event => {
+    if (pendingCapture == null) return
+    event.preventDefault()
+    event.stopPropagation()
+    if (event.pointerType !== 'mouse') {
+      scopeEditors[pendingCapture.scope].status.textContent = 'Only mouse buttons can be captured.'
+      return
+    }
+    const input = event.button === 0 ? 'Mouse0' : event.button === 1 ? 'Mouse1' : event.button === 2 ? 'Mouse2' : null
+    if (input == null) {
+      scopeEditors[pendingCapture.scope].status.textContent = 'That mouse button is not supported.'
+      return
+    }
+    captureInput(input)
+  }, true)
+  options.overlay.addEventListener('wheel', event => {
+    if (pendingCapture == null || event.deltaY === 0) return
+    event.preventDefault()
+    event.stopPropagation()
+    captureInput(event.deltaY < 0 ? 'WheelUp' : 'WheelDown')
+  }, { capture: true, passive: false })
+  options.overlay.addEventListener('keydown', event => {
+    if (event.key === 'Escape') cancelCapture()
+  }, true)
+
+  const discard = (): void => {
+    cancelCapture()
+    draft = loadCockpitInputStore()
+    renderGeneral()
+    renderScopes()
+  }
+  discard()
+  return {
+    generalRoot,
+    globalRoot: globalEditor.root,
+    aircraftRoot: aircraftEditor.root,
+    apply: () => {
+      updateGeneralDraft()
+      const changed = JSON.stringify(draft) !== JSON.stringify(loadCockpitInputStore())
+      if (changed) saveCockpitInputStore(draft)
+      return changed
+    },
+    discard,
+    reset: scope => {
+      cancelCapture()
+      if (scope === 'general') {
+        draft = { ...draft, globalSettings: structuredClone(DEFAULT_COCKPIT_INPUT_STORE.globalSettings) }
+        renderGeneral()
+        return 'Restored interaction defaults in the draft.'
+      }
+      if (scope === 'global') {
+        draft = resetCockpitInputProfile(draft, draft.selectedGlobalProfileId)
+        renderScopes()
+        return 'Reset the selected global input profile in the draft.'
+      }
+      const selected = options.getSelectedAircraftOption()
+      draft = selectAircraftCockpitInputProfile(draft, selected.packageRoot, selected.aircraft.id, null)
+      renderScope('aircraft', '')
+      return 'Set this aircraft to use the global input profile in the draft.'
+    },
+    selectedAircraftChanged: () => {
+      cancelCapture()
+      renderScope('aircraft', '')
+    }
+  }
+}
+
+function createCompactSettingsButton(label: string): HTMLButtonElement {
+  const button = createActionButton(label)
+  button.classList.add('viewer-settings-action-compact')
+  button.style.width = 'auto'
+  return button
+}
+
+function formatCockpitBindingAction(action: CockpitInputBindingAction | undefined): string {
+  if (action == null) return 'another action'
+  return action.replace(/([A-Z])/g, ' $1').toLowerCase()
+}
+
+function settingsErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
 }
 
 function createSettingsPanel(options: {
@@ -12943,45 +13435,10 @@ function createSettingsPanel(options: {
     ] ?? {}
   })
 
-  const cockpitInputSection = document.createElement('section')
-  cockpitInputSection.className = 'viewer-settings-card'
-  const cockpitInputHeading = createSettingsSectionHeader(
-    'Interaction',
-    'Cockpit input',
-    'Choose how cockpit controls respond and how interaction feedback appears.'
-  )
-  const interactionModeSelect = createSettingsSelect('Interaction mode')
-  interactionModeSelect.append(
-    createSettingsOption('legacy', 'Legacy'),
-    createSettingsOption('lock', 'Lock')
-  )
-  const highlightSelect = createSettingsSelect('Highlights')
-  highlightSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
-  const tooltipSelect = createSettingsSelect('Tooltips')
-  tooltipSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
-  const refreshCockpitInputDraft = (): void => {
-    const settings = loadCockpitInputStore().globalSettings
-    interactionModeSelect.value = settings.interactionMode
-    highlightSelect.value = settings.showHighlights ? 'on' : 'off'
-    tooltipSelect.value = settings.showTooltips ? 'on' : 'off'
-  }
-  const saveCockpitInputDraft = (): void => {
-    updateCockpitInputSettings({
-      interactionMode: interactionModeSelect.value === 'lock' ? 'lock' : 'legacy',
-      showHighlights: highlightSelect.value === 'on',
-      showTooltips: tooltipSelect.value === 'on'
-    })
-    window.dispatchEvent(new Event('cockpit-input-settings-changed'))
-  }
-  refreshCockpitInputDraft()
-  const cockpitInputForm = document.createElement('div')
-  cockpitInputForm.className = 'viewer-settings-form'
-  cockpitInputForm.append(
-    createSettingsField('Interaction mode', interactionModeSelect),
-    createSettingsField('Highlights', highlightSelect),
-    createSettingsField('Tooltips', tooltipSelect)
-  )
-  cockpitInputSection.append(cockpitInputHeading, cockpitInputForm)
+  const cockpitInputEditor = createCockpitInputSettingsEditor({
+    overlay,
+    getSelectedAircraftOption
+  })
 
   aircraftSelect.addEventListener('change', () => {
     const selectedOption = getSelectedAircraftOption()
@@ -12991,6 +13448,7 @@ function createSettingsPanel(options: {
         getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)
       ] ?? {}
     )
+    cockpitInputEditor.selectedAircraftChanged()
   })
 
   const status = document.createElement('div')
@@ -13020,26 +13478,23 @@ function createSettingsPanel(options: {
   }
 
   const resetGlobalProfile = (): void => {
-    const nextStore = loadViewerConfigStore()
-    saveViewerConfigStore({
-      ...nextStore,
-      global: {}
-    })
     globalEditor.setProfile({})
   }
 
   const resetAircraftProfile = (): void => {
-    const selectedOption = getSelectedAircraftOption()
-    const nextStore = loadViewerConfigStore()
-    const aircraftProfiles = { ...nextStore.aircraft }
-    delete aircraftProfiles[
-      getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)
-    ]
-    saveViewerConfigStore({
-      ...nextStore,
-      aircraft: aircraftProfiles
-    })
     aircraftEditor.setProfile({})
+  }
+
+  const discardDrafts = (): void => {
+    cockpitInputEditor.discard()
+    const selectedOption = getSelectedAircraftOption()
+    const store = loadViewerConfigStore()
+    globalEditor.setProfile(store.global)
+    aircraftEditor.setProfile(
+      store.aircraft[
+        getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)
+      ] ?? {}
+    )
   }
 
   const aircraftField = createSettingsField('Aircraft', aircraftSelect)
@@ -13085,7 +13540,7 @@ function createSettingsPanel(options: {
       'Viewer-wide interaction preferences. Physical remapping belongs in the scoped controls tabs.',
       'Viewer defaults'
     ),
-    cockpitInputSection
+    cockpitInputEditor.generalRoot
   )
   globalPanel.append(
     createSettingsPanelIntro(
@@ -13093,6 +13548,7 @@ function createSettingsPanel(options: {
       'Defaults applied across every aircraft unless an aircraft-specific override is set.',
       'All aircraft'
     ),
+    cockpitInputEditor.globalRoot,
     globalEditor.root
   )
   const aircraftContext = document.createElement('div')
@@ -13105,6 +13561,7 @@ function createSettingsPanel(options: {
       'Package scoped'
     ),
     aircraftContext,
+    cockpitInputEditor.aircraftRoot,
     aircraftEditor.root
   )
   frame.append(generalPanel, globalPanel, aircraftPanel)
@@ -13168,8 +13625,8 @@ function createSettingsPanel(options: {
       applyButton.disabled = true
       resetButton.disabled = true
       try {
+        const cockpitInputChanged = cockpitInputEditor.apply()
         if (activePanel === 'general') {
-          saveCockpitInputDraft()
           status.textContent = 'Saved general interaction settings.'
         } else if (activePanel === 'global') {
           applyGlobalProfile()
@@ -13177,6 +13634,9 @@ function createSettingsPanel(options: {
         } else {
           applyAircraftProfile()
           status.textContent = 'Saved aircraft profile.'
+        }
+        if (cockpitInputChanged) {
+          window.dispatchEvent(new Event('cockpit-input-settings-changed'))
         }
         if (activePanel !== 'general') await notifyApplied('apply')
       } catch (error) {
@@ -13192,19 +13652,16 @@ function createSettingsPanel(options: {
       applyButton.disabled = true
       resetButton.disabled = true
       try {
+        const inputMessage = cockpitInputEditor.reset(activePanel)
         if (activePanel === 'general') {
-          updateCockpitInputSettings(DEFAULT_COCKPIT_INPUT_STORE.globalSettings)
-          refreshCockpitInputDraft()
-          window.dispatchEvent(new Event('cockpit-input-settings-changed'))
-          status.textContent = 'Restored interaction defaults.'
+          status.textContent = inputMessage
         } else if (activePanel === 'global') {
           resetGlobalProfile()
-          status.textContent = 'Cleared global defaults.'
+          status.textContent = `${inputMessage} Cleared viewer defaults in the draft.`
         } else {
           resetAircraftProfile()
-          status.textContent = 'Cleared aircraft profile.'
+          status.textContent = `${inputMessage} Cleared aircraft viewer overrides in the draft.`
         }
-        if (activePanel !== 'general') await notifyApplied('reset')
       } catch (error) {
         status.textContent = `Could not reset settings: ${error instanceof Error ? error.message : String(error)}`
       } finally {
@@ -13214,17 +13671,7 @@ function createSettingsPanel(options: {
     })()
   })
   cancelButton.addEventListener('click', () => {
-    const selectedOption = getSelectedAircraftOption()
-    const store = loadViewerConfigStore()
-    if (activePanel === 'general') {
-      refreshCockpitInputDraft()
-    } else if (activePanel === 'global') {
-      globalEditor.setProfile(store.global)
-    } else {
-      aircraftEditor.setProfile(
-        store.aircraft[getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)] ?? {}
-      )
-    }
+    discardDrafts()
     status.textContent = 'Discarded draft changes.'
   })
 
@@ -13244,10 +13691,11 @@ function createSettingsPanel(options: {
     toggleButton.textContent = open ? 'Resume' : 'Settings'
     toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false')
     if (open) {
-      refreshCockpitInputDraft()
+      discardDrafts()
       status.textContent = ''
       tabEntries.find(entry => entry.id === activePanel)?.button.focus()
     } else {
+      discardDrafts()
       toggleButton.focus()
     }
   }
