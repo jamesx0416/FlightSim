@@ -1,5 +1,5 @@
 import type { CanonicalCockpitAction, CockpitInteractionMode, CockpitInteractionOperation, CockpitInteractionTarget, CockpitRelativeDirection } from '../input/cockpitInteraction'
-import type { AircraftRuntime } from './runtime'
+import type { AircraftRuntime, RuntimeInteractionValueWatch } from './runtime'
 import type { CompiledInteractionBinding, CompiledInteractionRoute } from './types'
 
 export interface MsfsInteractionTarget extends CockpitInteractionTarget {
@@ -98,12 +98,13 @@ export function resolveMsfsDragPercent(
 
 export class MsfsInteractionAdapter {
   private readonly cancellations = new Map<string, number>()
+  private readonly cancellationWaiters = new Map<string, Set<() => void>>()
   private readonly busy = new Set<string>()
   private mode: CockpitInteractionMode = 'legacy'
 
   constructor(
     private readonly runtimeSource: AircraftRuntime | (() => AircraftRuntime),
-    private readonly settle: (seconds: number) => Promise<void> = settleInteraction
+    private readonly settleOverride?: (seconds: number) => Promise<void>
   ) {}
 
   private get runtime(): AircraftRuntime { return typeof this.runtimeSource === 'function' ? this.runtimeSource() : this.runtimeSource }
@@ -247,13 +248,20 @@ export class MsfsInteractionAdapter {
   active(): readonly string[] { return [...this.busy] }
 
   cancel(target: MsfsInteractionTarget): void {
-    this.cancellations.set(target.id, (this.cancellations.get(target.id) ?? 0) + 1)
-    this.release(target)
+    this.signalCancellation(target.id)
+    const runtime = this.runtime as AircraftRuntime & {
+      cancelInteractionBinding?: (binding: CompiledInteractionBinding) => boolean
+    }
+    if (typeof runtime.cancelInteractionBinding === 'function') {
+      for (const binding of target.bindings) runtime.cancelInteractionBinding(binding)
+    } else {
+      this.release(target)
+    }
   }
 
   cancelAll(): void {
     for (const target of this.list()) {
-      this.cancellations.set(target.id, (this.cancellations.get(target.id) ?? 0) + 1)
+      this.cancel(target)
     }
   }
 
@@ -273,6 +281,9 @@ export class MsfsInteractionAdapter {
     desired: boolean,
     channel?: CanonicalCockpitAction['channel']
   ): Promise<ExactInteractionResult> {
+    if (this.busy.has(target.id)) return exactResult('TARGET_BUSY', null, this.currentValue(target), Number(desired), target, null, 0)
+    this.busy.add(target.id)
+    try {
     const previous = this.currentValue(target)
     const requested = Number(desired)
     const generation = this.cancellations.get(target.id) ?? 0
@@ -283,16 +294,31 @@ export class MsfsInteractionAdapter {
     const toggle = selectRoute(target.binding.metadata.routes, canonical('toggle', channel), this.mode, target.lockable)
     const operation = explicit != null ? explicitOperation : toggle != null ? 'toggle' : null
     if (operation == null) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
-    if (!this.execute(target, canonical(operation, channel))) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
-    await this.settle(target.binding.metadata.value.settleTimeSeconds)
-    if ((this.cancellations.get(target.id) ?? 0) !== generation) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, 'direct-set', 1)
+    const watch = this.beginValueWatch(target.binding)
+    if (!this.isAuthoritativeWatch(watch)) {
+      watch?.dispose()
+      return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
+    }
+    if (!this.execute(target, canonical(operation, channel))) {
+      watch?.dispose()
+      return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
+    }
+    const settled = await this.waitForSettle(target, target.binding, generation)
+    const notified = watch?.didChange() ?? true
+    watch?.dispose()
+    if (!settled) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, 'direct-set', 1)
     const actual = this.currentValue(target)
-    const code = actual != null && Boolean(actual) === desired
+    const code = !Object.is(actual, previous) && !notified
+      ? 'VALUE_REACHABILITY_UNKNOWN'
+      : actual != null && Boolean(actual) === desired
       ? 'OK'
       : Object.is(actual, previous)
         ? 'NO_PROGRESS'
         : 'VALUE_NOT_REACHABLE'
     return exactResult(code, previous, actual, requested, target, 'direct-set', 1)
+    } finally {
+      this.busy.delete(target.id)
+    }
   }
 
   async setExact(
@@ -319,11 +345,23 @@ export class MsfsInteractionAdapter {
     const generation = this.cancellations.get(target.id) ?? 0
     const setRoute = selectRoute(target.binding.metadata.routes, canonical('set', channel, requested), this.mode, target.lockable)
     if (setRoute != null) {
-      if (!this.execute(target, canonical('set', channel, requested))) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
-      await this.settle(metadata.settleTimeSeconds)
-      if ((this.cancellations.get(target.id) ?? 0) !== generation) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, 'direct-set', 1)
+      const watch = this.beginValueWatch(target.binding)
+      if (!this.isAuthoritativeWatch(watch)) {
+        watch?.dispose()
+        return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
+      }
+      if (!this.execute(target, canonical('set', channel, requested))) {
+        watch?.dispose()
+        return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
+      }
+      const settled = await this.waitForSettle(target, target.binding, generation)
+      const notified = watch?.didChange() ?? true
+      watch?.dispose()
+      if (!settled) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, 'direct-set', 1)
       const actual = this.currentValue(target)
-      const code = Object.is(actual, requested)
+      const code = !Object.is(actual, previous) && !notified
+        ? 'VALUE_REACHABILITY_UNKNOWN'
+        : Object.is(actual, requested)
         ? 'OK'
         : Object.is(actual, previous)
           ? 'NO_PROGRESS'
@@ -343,11 +381,23 @@ export class MsfsInteractionAdapter {
     let actual = previous
     for (let index = 0; index < plan.steps; index += 1) {
       if ((this.cancellations.get(target.id) ?? 0) !== generation) return exactResult('CANCELLED', previous, actual, requested, target, routeOperation, index)
-      if (!this.execute(target, canonical(routeOperation, channel))) return exactResult('TARGET_LOST', previous, actual, requested, target, routeOperation, index)
-      await this.settle(metadata.settleTimeSeconds)
+      const watch = this.beginValueWatch(target.binding)
+      if (!this.isAuthoritativeWatch(watch)) {
+        watch?.dispose()
+        return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, actual, requested, target, null, index)
+      }
+      if (!this.execute(target, canonical(routeOperation, channel))) {
+        watch?.dispose()
+        return exactResult('TARGET_LOST', previous, actual, requested, target, routeOperation, index)
+      }
+      const settled = await this.waitForSettle(target, target.binding, generation)
+      const notified = watch?.didChange() ?? true
+      watch?.dispose()
+      if (!settled) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, routeOperation, index + 1)
       const next = this.currentValue(target)
       if (next == null) return exactResult('TARGET_LOST', previous, null, requested, target, routeOperation, index + 1)
       if (Object.is(next, actual)) return exactResult('NO_PROGRESS', previous, next, requested, target, routeOperation, index + 1)
+      if (!notified) return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, next, requested, target, routeOperation, index + 1)
       actual = next
       if (Object.is(actual, requested)) return exactResult('OK', previous, actual, requested, target, routeOperation, index + 1)
       const key = `${routeOperation}:${actual}`
@@ -358,6 +408,49 @@ export class MsfsInteractionAdapter {
     } finally {
       this.busy.delete(target.id)
     }
+  }
+
+  private beginValueWatch(binding: CompiledInteractionBinding): RuntimeInteractionValueWatch | null {
+    const runtime = this.runtime as AircraftRuntime & {
+      watchInteractionValue?: (binding: CompiledInteractionBinding) => RuntimeInteractionValueWatch
+    }
+    return typeof runtime.watchInteractionValue === 'function'
+      ? runtime.watchInteractionValue(binding)
+      : null
+  }
+
+  private isAuthoritativeWatch(watch: RuntimeInteractionValueWatch | null): boolean {
+    return this.settleOverride != null || watch?.authoritative === true
+  }
+
+  private async waitForSettle(
+    target: MsfsInteractionTarget,
+    binding: CompiledInteractionBinding,
+    generation: number
+  ): Promise<boolean> {
+    const runtime = this.runtime as AircraftRuntime & {
+      waitForInteractionSettle?: (seconds: number) => Promise<void>
+    }
+    const settle = this.settleOverride != null
+      ? this.settleOverride(binding.metadata.value.settleTimeSeconds)
+      : runtime.waitForInteractionSettle?.(binding.metadata.value.settleTimeSeconds)
+    if (settle == null) return false
+    let cancel = (): void => {}
+    const cancelled = new Promise<false>(resolve => { cancel = () => resolve(false) })
+    const waiters = this.cancellationWaiters.get(target.id) ?? new Set<() => void>()
+    waiters.add(cancel)
+    this.cancellationWaiters.set(target.id, waiters)
+    if ((this.cancellations.get(target.id) ?? 0) !== generation) cancel()
+    const completed = await Promise.race([settle.then(() => true as const), cancelled])
+    waiters.delete(cancel)
+    if (waiters.size === 0) this.cancellationWaiters.delete(target.id)
+    return completed && (this.cancellations.get(target.id) ?? 0) === generation
+  }
+
+  private signalCancellation(targetId: string): void {
+    this.cancellations.set(targetId, (this.cancellations.get(targetId) ?? 0) + 1)
+    for (const cancel of this.cancellationWaiters.get(targetId) ?? []) cancel()
+    this.cancellationWaiters.delete(targetId)
   }
 
   private toTarget(binding: CompiledInteractionBinding): MsfsInteractionTarget {
@@ -423,29 +516,24 @@ function planExactSteps(
     : { operation: 'decrease', steps: decrease }
 }
 
-async function settleInteraction(seconds: number): Promise<void> {
-  if (seconds > 0) await new Promise(resolve => setTimeout(resolve, seconds * 1000))
-  if (typeof requestAnimationFrame !== 'function') {
-    await Promise.resolve()
-    await Promise.resolve()
-    return
-  }
-  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
-  await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
-}
-
 function selectRoute(
   routes: readonly CompiledInteractionRoute[],
   action: CanonicalCockpitAction,
   mode: CockpitInteractionMode,
   lockable: boolean
 ): CompiledInteractionRoute | null {
-  const operation: CockpitInteractionOperation = action.operation === 'hold' ? 'press' : action.operation
+  const operation: CockpitInteractionOperation = action.operation === 'hold' && action.phase !== 'repeat'
+    ? 'press'
+    : action.operation
   const interactionModel = mode === 'lock' && lockable ? 'drag' : 'default'
   const isWheelOperation = operation === 'increase' || operation === 'decrease'
   const matchesAction = (route: CompiledInteractionRoute): boolean =>
     (route.operation === operation || (operation === 'turn' && route.phase === 'drag')) &&
-    (operation !== 'press' || (action.phase === 'double' ? route.phase === 'double' : route.phase !== 'double')) &&
+    (action.phase === 'double'
+      ? route.phase === 'double'
+      : action.phase === 'repeat'
+        ? route.phase === 'repeat'
+        : route.phase !== 'double' && route.phase !== 'repeat') &&
     (action.channel == null || route.channel === action.channel)
   let candidates = routes.filter(route =>
     (isWheelOperation || route.interactionModel == null || route.interactionModel === interactionModel) &&

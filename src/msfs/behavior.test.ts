@@ -152,6 +152,42 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(dynamicDiagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_dynamic_routes_unproven'])
 })
 
+test('compiles only authored repeat timing and diagnoses missing cadence', () => {
+  const source = "(M:Event) 'DownRepeat' scmi 0 == if{ 1 (>L:COUNT) }"
+  const timedDiagnostics: ImportDiagnostic[] = []
+  const timed = __behaviorTestHooks.buildInteractionCodeBinding(
+    source,
+    null,
+    new Map([
+      ['NODE_ID', 'REPEATER'],
+      ['MOUSEFLAGS', 'LeftSingle+DownRepeat'],
+      ['MOMENTARY_REPEAT_FREQUENCY', '5']
+    ]),
+    'REPEATER',
+    'test.xml',
+    'callback',
+    timedDiagnostics
+  )
+  expect(timed?.repeatFrequencyHz).toBe(5)
+  expect(timedDiagnostics).toEqual([])
+
+  const diagnostics: ImportDiagnostic[] = []
+  const unproven = __behaviorTestHooks.buildInteractionCodeBinding(
+    source,
+    null,
+    new Map([
+      ['NODE_ID', 'REPEATER'],
+      ['MOUSEFLAGS', 'LeftSingle+DownRepeat']
+    ]),
+    'REPEATER',
+    'test.xml',
+    'callback',
+    diagnostics
+  )
+  expect(unproven?.repeatFrequencyHz).toBe(null)
+  expect(diagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_repeat_timing_unproven'])
+})
+
 test('keeps default and drag interaction-model routes separate', () => {
   const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([

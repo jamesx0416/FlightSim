@@ -25,6 +25,10 @@ export class SimScheduler {
   private nextTaskId = 1
   private elapsedSeconds = 0
 
+  get nowSeconds(): number {
+    return this.elapsedSeconds
+  }
+
   schedule(
     delaySeconds: number,
     callback: () => void,

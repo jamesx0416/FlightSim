@@ -336,6 +336,7 @@ async function loadBehaviorDocuments(
 
 export const __behaviorTestHooks = {
   loadBehaviorDocuments,
+  buildInteractionCodeBinding,
   buildCompiledInteractionMetadata,
   buildMouseEventInteractionCodeSource,
   pushUniqueInteractionBinding
@@ -1627,6 +1628,26 @@ function buildInteractionCodeBinding(
     return null
   }
 
+  const metadata = buildCompiledInteractionMetadata(
+    params,
+    currentNode,
+    target,
+    sourcePath,
+    source,
+    kind,
+    diagnostics,
+    sourceKindOverride
+  )
+  const repeatFrequencyHz = parseOptionalPositiveNumber(params.get('MOMENTARY_REPEAT_FREQUENCY'))
+  if (metadata.routes.some(route => route.phase === 'repeat') && repeatFrequencyHz == null) {
+    diagnostics.push({
+      code: 'interaction_repeat_timing_unproven',
+      severity: 'warning',
+      sourcePath,
+      message: `Repeat timing for ${metadata.authoredId ?? target} is not authoritatively declared.`
+    })
+  }
+
   return {
     target,
     feedbackTargets: collectInteractionFeedbackTargets(params, currentNode, target),
@@ -1634,19 +1655,11 @@ function buildInteractionCodeBinding(
     soundEvents: collectInteractionSoundEvents(params),
     minHeldDurationSeconds: Math.max(parseNumber(params.get('MIN_HELD_DURATION'), 0), 0),
     animationDurationSeconds: parseOptionalPositiveNumber(params.get('ANIM_DURATION')),
+    repeatFrequencyHz,
     expression,
     releaseExpression,
     sourcePath,
-    metadata: buildCompiledInteractionMetadata(
-      params,
-      currentNode,
-      target,
-      sourcePath,
-      source,
-      kind,
-      diagnostics,
-      sourceKindOverride
-    )
+    metadata
   }
 }
 

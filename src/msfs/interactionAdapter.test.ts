@@ -1,8 +1,11 @@
 import { expect, test } from 'bun:test'
+import { Object3D } from 'three'
 
+import { SimScheduler } from '../sim/engine'
 import { MsfsInteractionAdapter, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
-import type { AircraftRuntime } from './runtime'
-import type { CompiledInteractionBinding, CompiledInteractionRoute } from './types'
+import { MsfsInteractionLifecycle } from './interactionLifecycle'
+import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
+import type { CompiledBehaviorSet, CompiledInteractionBinding, CompiledInteractionRoute } from './types'
 
 test('starts each authored drag lifecycle with its lock route', () => {
   const lock = { operation: 'lock', phase: null } as CompiledInteractionRoute
@@ -248,6 +251,205 @@ test('routes one captured target across its authored click and drag bindings', (
   expect(executed).toEqual([click, drag])
 })
 
+test('runs authored single, double, repeat, drag, release, and cancellation lifecycle in simulator time', () => {
+  const binding = {
+    ...interactionBinding({}, [
+      { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] },
+      { channel: 'primary', phase: 'double', operation: 'press', msfsEvent: 'LeftDouble', axis: null, inputTypes: [] },
+      { channel: 'primary', phase: 'drag', operation: 'turn', msfsEvent: 'LeftDrag', axis: 'y', inputTypes: [] },
+      { channel: 'primary', phase: 'release', operation: 'release', msfsEvent: 'LeftRelease', axis: null, inputTypes: [] },
+      { channel: 'primary', phase: 'repeat', operation: 'hold', msfsEvent: 'DownRepeat', axis: null, inputTypes: [] },
+      { channel: null, phase: 'repeat', operation: 'turn', msfsEvent: 'MoveRepeat', axis: null, inputTypes: [] }
+    ]),
+    minHeldDurationSeconds: 1,
+    repeatFrequencyHz: 2
+  }
+  const events: string[] = []
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { mouseEvent?: string }) => {
+      events.push(options.mouseEvent ?? '')
+      return true
+    },
+    releaseInteractionBinding: () => { events.push('release-feedback'); return true },
+    readInteractionValue: () => null
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+  const scheduler = new SimScheduler()
+  const lifecycle = new MsfsInteractionLifecycle(adapter, scheduler)
+  const target = adapter.fromBinding(binding)
+  const base = { source: 'mouse', operation: 'press', phase: 'press', channel: 'primary', timestampMs: 0 } as const
+
+  expect(lifecycle.press(target, base, 1)).toBe(true)
+  scheduler.tick(0.5)
+  expect(events).toEqual(['LeftSingle'])
+  scheduler.tick(0.5)
+  expect(events).toEqual(['LeftSingle', 'DownRepeat'])
+  expect(lifecycle.move(target, { ...base, operation: 'turn', phase: 'drag', axis: 'y', axisValue: 0.4 })).toBe(true)
+  scheduler.tick(0.5)
+  expect(events.slice(-2)).toEqual(['DownRepeat', 'MoveRepeat'])
+  expect(lifecycle.release(target, base)).toBe(true)
+  scheduler.tick(1)
+  expect(events.slice(-2)).toEqual(['LeftRelease', 'release-feedback'])
+
+  lifecycle.press(target, base, 2)
+  expect(events.slice(-2)).toEqual(['LeftSingle', 'LeftDouble'])
+  lifecycle.cancel(target)
+  scheduler.tick(2)
+  expect(events.at(-1)).toBe('release-feedback')
+})
+
+test('fails repeat closed when authored routes do not prove timing', () => {
+  const binding = interactionBinding({}, [
+    { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] },
+    { channel: 'primary', phase: 'repeat', operation: 'hold', msfsEvent: 'DownRepeat', axis: null, inputTypes: [] }
+  ])
+  const events: string[] = []
+  const diagnostics: string[] = []
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { mouseEvent?: string }) => {
+      events.push(options.mouseEvent ?? '')
+      return true
+    },
+    readInteractionValue: () => null
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+  const scheduler = new SimScheduler()
+  const lifecycle = new MsfsInteractionLifecycle(adapter, scheduler, diagnostic => diagnostics.push(diagnostic.code))
+
+  lifecycle.press(adapter.fromBinding(binding), {
+    source: 'mouse', operation: 'press', phase: 'press', channel: 'primary', timestampMs: 0
+  })
+  scheduler.tick(10)
+
+  expect(events).toEqual(['LeftSingle'])
+  expect(diagnostics).toEqual(['interaction_repeat_timing_unproven'])
+})
+
+test('settles exact Set after a watched value change and two completed simulator ticks', async () => {
+  const base = interactionBinding({}, [
+    { channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }
+  ])
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: '(M:Param:0) (>L:TEST)',
+      instructions: [
+        { op: 'pushParameter', index: 0 },
+        { op: 'writeVariable', key: 'L:TEST', unit: 'number' }
+      ],
+      variableKeys: ['L:TEST']
+    },
+    metadata: {
+      ...base.metadata,
+      tooltipValueExpression: {
+        source: '(L:TEST, number)',
+        instructions: [{ op: 'pushVariable', key: 'L:TEST', unit: 'number' }],
+        variableKeys: ['L:TEST']
+      }
+    }
+  }
+  const { runtime, host } = interactionRuntime(binding)
+  const adapter = new MsfsInteractionAdapter(runtime)
+  let completed = false
+  const pending = adapter.setExact(adapter.fromBinding(binding), 3).then(result => {
+    completed = true
+    return result
+  })
+
+  runtime.update(0.1)
+  await Promise.resolve()
+  expect(completed).toBe(false)
+  runtime.update(0.1)
+
+  const result = await pending
+  expect([result.code, result.actual, host.readVariable('L:TEST')]).toEqual(['OK', 3, 3])
+})
+
+test('waits authored settle time before counting two completed simulator ticks', async () => {
+  const base = interactionBinding({ settleTimeSeconds: 0.5 }, [
+    { channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }
+  ])
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: '(M:Param:0) (>L:TEST)',
+      instructions: [
+        { op: 'pushParameter', index: 0 },
+        { op: 'writeVariable', key: 'L:TEST', unit: 'number' }
+      ],
+      variableKeys: ['L:TEST']
+    },
+    metadata: {
+      ...base.metadata,
+      tooltipValueExpression: {
+        source: '(L:TEST, number)',
+        instructions: [{ op: 'pushVariable', key: 'L:TEST', unit: 'number' }],
+        variableKeys: ['L:TEST']
+      }
+    }
+  }
+  const { runtime } = interactionRuntime(binding)
+  const adapter = new MsfsInteractionAdapter(runtime)
+  let completed = false
+  const pending = adapter.setExact(adapter.fromBinding(binding), 2).then(result => {
+    completed = true
+    return result
+  })
+
+  runtime.update(0.25)
+  runtime.update(0.25)
+  await Promise.resolve()
+  runtime.update(0.1)
+  await Promise.resolve()
+  expect(completed).toBe(false)
+  runtime.update(0.1)
+
+  expect((await pending).code).toBe('OK')
+})
+
+test('schedules minimum hold and spring release in simulator time and cancels it explicitly', () => {
+  const base = interactionBinding()
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    minHeldDurationSeconds: 1,
+    expression: {
+      source: '1 (>L:PRESSED)',
+      instructions: [
+        { op: 'pushNumber', value: 1 },
+        { op: 'writeVariable', key: 'L:PRESSED', unit: 'number' }
+      ],
+      variableKeys: ['L:PRESSED']
+    },
+    releaseExpression: {
+      source: '0 (>L:PRESSED)',
+      instructions: [
+        { op: 'pushNumber', value: 0 },
+        { op: 'writeVariable', key: 'L:PRESSED', unit: 'number' }
+      ],
+      variableKeys: ['L:PRESSED']
+    }
+  }
+  const { runtime, host } = interactionRuntime(binding)
+
+  runtime.executeInteractionBindingDirect(binding, { holdFeedback: true })
+  runtime.releaseInteractionBinding(binding)
+  runtime.update(0.5)
+  expect(host.readVariable('L:PRESSED')).toBe(1)
+  expect(host.readVariable('O:TEST:_ButtonAnimVar')).toBe(1)
+  runtime.update(0.5)
+  expect(host.readVariable('L:PRESSED')).toBe(0)
+  expect(host.readVariable('O:TEST:_ButtonAnimVar')).toBe(0)
+
+  runtime.executeInteractionBindingDirect(binding, { holdFeedback: true })
+  runtime.releaseInteractionBinding(binding)
+  runtime.update(0.25)
+  runtime.cancelInteractionBinding(binding)
+  runtime.update(1)
+  expect(host.readVariable('L:PRESSED')).toBe(0)
+})
+
 function interactionBinding(
   valueOverrides: Partial<CompiledInteractionBinding['metadata']['value']> = {},
   routes: readonly CompiledInteractionRoute[] = [
@@ -264,6 +466,7 @@ function interactionBinding(
     soundEvents: [],
     minHeldDurationSeconds: 0,
     animationDurationSeconds: null,
+    repeatFrequencyHz: null,
     expression,
     releaseExpression: null,
     sourcePath,
@@ -282,5 +485,38 @@ function interactionBinding(
         cyclic: false, settleTimeSeconds: 0, ...valueOverrides
       }
     }
+  }
+}
+
+function interactionRuntime(binding: CompiledInteractionBinding): {
+  readonly runtime: AircraftRuntime
+  readonly host: SharedMsfsRuntimeHost
+} {
+  const compiled: CompiledBehaviorSet = {
+    irVersion: 'msfs-behavior/v1',
+    aircraftId: 'test',
+    animationBindings: [],
+    animationTriggerBindings: [],
+    visibilityBindings: [],
+    materialBindings: [],
+    updateBindings: [],
+    inputEventBindings: [],
+    interactionBindings: [binding],
+    interactionBlockers: [],
+    variableKeys: [],
+    builtinFallbackHits: [],
+    diagnostics: []
+  }
+  const host = new SharedMsfsRuntimeHost([])
+  return {
+    host,
+    runtime: new AircraftRuntime(
+      compiled,
+      new Object3D(),
+      host,
+      undefined,
+      host.simulatorEngine.getAircraft(),
+      host.simulatorEngine
+    )
   }
 }
