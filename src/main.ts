@@ -12551,6 +12551,297 @@ type SettingsProfileEditor = {
   readonly setProfile: (profile: ViewerConfigProfile) => void
 }
 
+function ensureSettingsStyles(): void {
+  if (document.getElementById('viewer-settings-styles') != null) return
+  const style = document.createElement('style')
+  style.id = 'viewer-settings-styles'
+  style.textContent = `
+    .viewer-settings-root {
+      --settings-accent: #18c8f4;
+      --settings-accent-soft: rgba(24, 200, 244, 0.18);
+      --settings-ink: #eef8ff;
+      --settings-muted: rgba(222, 238, 248, 0.64);
+      --settings-panel: rgba(18, 31, 44, 0.68);
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      pointer-events: none;
+      color: var(--settings-ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .viewer-settings-overlay {
+      position: fixed;
+      inset: 0;
+      height: 100dvh;
+      overflow: hidden;
+      pointer-events: auto;
+      background:
+        radial-gradient(circle at 78% 18%, rgba(26, 158, 205, 0.18), transparent 36%),
+        linear-gradient(120deg, rgba(5, 12, 20, 0.86), rgba(12, 25, 38, 0.72));
+      backdrop-filter: blur(24px) saturate(0.72);
+      -webkit-backdrop-filter: blur(24px) saturate(0.72);
+    }
+    .viewer-settings-overlay[hidden] { display: none; }
+    .viewer-settings-overlay::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.16;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(130, 222, 247, 0.16) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(130, 222, 247, 0.12) 1px, transparent 1px);
+      background-size: 72px 72px;
+      mask-image: linear-gradient(to bottom, black, transparent 74%);
+    }
+    .viewer-settings-overlay::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 9%;
+      width: 1px;
+      height: 100%;
+      background: linear-gradient(transparent, rgba(45, 215, 255, 0.62), transparent);
+      box-shadow: 0 0 24px rgba(45, 215, 255, 0.28);
+      pointer-events: none;
+    }
+    .viewer-settings-shell {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+      width: 100%;
+      height: 100%;
+    }
+    .viewer-settings-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      padding: clamp(24px, 4vh, 42px) clamp(24px, 5vw, 72px) 20px;
+    }
+    .viewer-settings-kicker,
+    .viewer-settings-section-kicker {
+      color: var(--settings-accent);
+      font: 700 11px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .viewer-settings-title {
+      margin: 6px 0 0;
+      font-size: clamp(30px, 4vw, 52px);
+      font-weight: 350;
+      line-height: 1;
+      letter-spacing: -0.035em;
+    }
+    .viewer-settings-brand {
+      color: var(--settings-muted);
+      font: 600 10px/1.2 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      letter-spacing: 0.16em;
+      text-align: right;
+      text-transform: uppercase;
+    }
+    .viewer-settings-tabs {
+      display: flex;
+      gap: clamp(18px, 3vw, 44px);
+      padding: 0 clamp(24px, 5vw, 72px);
+      overflow-x: auto;
+      border-bottom: 1px solid rgba(168, 215, 234, 0.18);
+      scrollbar-width: none;
+    }
+    .viewer-settings-tabs::-webkit-scrollbar { display: none; }
+    .viewer-settings-tab {
+      position: relative;
+      flex: 0 0 auto;
+      min-width: 0;
+      padding: 14px 2px 16px;
+      border: 0;
+      background: transparent;
+      color: rgba(224, 239, 248, 0.55);
+      cursor: pointer;
+      font: 650 12px/1 ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .viewer-settings-tab::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 2px;
+      background: var(--settings-accent);
+      box-shadow: 0 0 16px rgba(24, 200, 244, 0.8);
+      transform: scaleX(0);
+      transition: transform 160ms ease;
+    }
+    .viewer-settings-tab[aria-selected="true"] { color: var(--settings-ink); }
+    .viewer-settings-tab[aria-selected="true"]::after { transform: scaleX(1); }
+    .viewer-settings-tab:focus-visible,
+    .viewer-settings-close:focus-visible,
+    .viewer-settings-toggle:focus-visible,
+    .viewer-settings-action:focus-visible,
+    .viewer-settings-control:focus-visible {
+      outline: 2px solid var(--settings-accent);
+      outline-offset: 3px;
+    }
+    .viewer-settings-body {
+      min-height: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+      padding: 28px clamp(24px, 5vw, 72px) 48px;
+    }
+    .viewer-settings-frame { width: min(1380px, 100%); margin: 0 auto; }
+    .viewer-settings-panel[hidden] { display: none; }
+    .viewer-settings-panel-intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 18px;
+      padding: 0 2px;
+    }
+    .viewer-settings-panel-intro h2,
+    .viewer-settings-section-header h2 {
+      margin: 5px 0 0;
+      color: var(--settings-ink);
+      font-size: clamp(19px, 2vw, 26px);
+      font-weight: 440;
+      letter-spacing: -0.02em;
+    }
+    .viewer-settings-panel-intro p,
+    .viewer-settings-section-header p {
+      max-width: 620px;
+      margin: 7px 0 0;
+      color: var(--settings-muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .viewer-settings-scope-badge {
+      padding: 7px 10px;
+      border: 1px solid rgba(38, 203, 244, 0.28);
+      color: rgba(220, 246, 255, 0.78);
+      background: rgba(11, 79, 102, 0.18);
+      font: 600 10px/1 ui-monospace, "SFMono-Regular", Consolas, monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .viewer-settings-card {
+      overflow: hidden;
+      border: 1px solid rgba(167, 218, 237, 0.17);
+      border-radius: 4px;
+      background: linear-gradient(135deg, rgba(31, 46, 61, 0.72), rgba(15, 27, 40, 0.56));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.23), inset 3px 0 0 rgba(24, 200, 244, 0.42);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .viewer-settings-section-header { padding: 22px 24px 18px; border-bottom: 1px solid rgba(173, 220, 237, 0.13); }
+    .viewer-settings-form { display: grid; gap: 1px; background: rgba(168, 215, 234, 0.07); }
+    .viewer-settings-field {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.9fr) minmax(260px, 1.1fr);
+      align-items: center;
+      min-height: 48px;
+      gap: 22px;
+      margin: 0;
+      padding: 7px 12px 7px 24px;
+      background: rgba(20, 32, 45, 0.78);
+      transition: background 140ms ease, box-shadow 140ms ease;
+    }
+    .viewer-settings-field:nth-child(even) { background: rgba(30, 43, 57, 0.72); }
+    .viewer-settings-field:hover { background: rgba(43, 62, 78, 0.82); box-shadow: inset 3px 0 0 var(--settings-accent); }
+    .viewer-settings-field-label {
+      color: rgba(235, 246, 252, 0.88);
+      font-size: 12px;
+      font-weight: 590;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+    .viewer-settings-control {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      min-height: 34px;
+      padding: 7px 11px;
+      border: 1px solid rgba(150, 205, 226, 0.17);
+      border-radius: 2px;
+      background: rgba(4, 13, 22, 0.58);
+      color: var(--settings-ink);
+      font: 550 12px/1.2 ui-sans-serif, system-ui, sans-serif;
+      text-align: center;
+      color-scheme: dark;
+    }
+    .viewer-settings-control:hover { border-color: rgba(24, 200, 244, 0.5); }
+    textarea.viewer-settings-control { text-align: left; resize: vertical; }
+    .viewer-settings-aircraft-field { margin-bottom: 18px; }
+    .viewer-settings-general-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+    .viewer-settings-footer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 24px;
+      padding: 14px max(190px, 5vw) 14px clamp(24px, 5vw, 72px);
+      border-top: 1px solid rgba(168, 215, 234, 0.16);
+      background: rgba(7, 17, 27, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .viewer-settings-status { min-height: 18px; color: var(--settings-muted); font-size: 12px; }
+    .viewer-settings-actions { display: flex; gap: 8px; }
+    .viewer-settings-action,
+    .viewer-settings-toggle,
+    .viewer-settings-close {
+      border: 1px solid rgba(157, 211, 231, 0.22);
+      border-radius: 2px;
+      background: rgba(18, 34, 48, 0.9);
+      color: var(--settings-ink);
+      cursor: pointer;
+      font: 650 11px/1 ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .viewer-settings-action { min-width: 108px; padding: 11px 16px; }
+    .viewer-settings-action:hover,
+    .viewer-settings-close:hover { border-color: rgba(24, 200, 244, 0.65); background: rgba(27, 57, 73, 0.9); }
+    .viewer-settings-action-primary { border-color: rgba(24, 200, 244, 0.7); background: linear-gradient(135deg, #0a91ba, #0fc5ed); color: #03131b; }
+    .viewer-settings-action-primary:hover { background: linear-gradient(135deg, #11a8d5, #2bd4f7); }
+    .viewer-settings-close { padding: 10px 14px; }
+    .viewer-settings-toggle {
+      position: fixed;
+      right: 22px;
+      bottom: 18px;
+      z-index: 3;
+      min-width: 128px;
+      padding: 12px 18px;
+      pointer-events: auto;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3), inset 3px 0 0 var(--settings-accent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .viewer-settings-toggle:hover { border-color: var(--settings-accent); background: rgba(21, 55, 72, 0.94); }
+    @media (max-width: 760px) {
+      .viewer-settings-header { align-items: start; padding-bottom: 14px; }
+      .viewer-settings-brand { display: none; }
+      .viewer-settings-tabs { gap: 22px; }
+      .viewer-settings-body { padding-top: 20px; }
+      .viewer-settings-panel-intro { grid-template-columns: 1fr; gap: 10px; }
+      .viewer-settings-scope-badge { justify-self: start; }
+      .viewer-settings-field { grid-template-columns: 1fr; gap: 7px; padding: 12px 14px; }
+      .viewer-settings-footer { grid-template-columns: 1fr; padding-right: 164px; }
+      .viewer-settings-actions { overflow-x: auto; }
+      .viewer-settings-action { min-width: 88px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .viewer-settings-tab::after, .viewer-settings-field { transition: none; }
+    }
+    @supports not (backdrop-filter: blur(1px)) {
+      .viewer-settings-overlay { background: rgba(5, 14, 23, 0.96); }
+      .viewer-settings-card, .viewer-settings-footer { background: rgba(15, 29, 42, 0.97); }
+    }
+  `
+  document.head.appendChild(style)
+}
+
 function createSettingsPanel(options: {
   readonly selectorOptions: readonly AircraftSelectorOption[]
   readonly packageRoot: string
@@ -12561,42 +12852,53 @@ function createSettingsPanel(options: {
     event: ViewerSettingsApplyEvent
   ) => Promise<string | null> | string | null
 }): HTMLDivElement {
+  ensureSettingsStyles()
   const root = document.createElement('div')
-  root.style.position = 'fixed'
-  root.style.right = '16px'
-  root.style.bottom = '16px'
-  root.style.zIndex = '20'
-  root.style.font = '12px/1.35 "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace'
-  root.style.color = '#f3f7fb'
-  root.style.pointerEvents = 'auto'
+  root.className = 'viewer-settings-root'
 
   const toggleButton = document.createElement('button')
   toggleButton.type = 'button'
   toggleButton.textContent = 'Settings'
-  stylePanelButton(toggleButton)
+  toggleButton.className = 'viewer-settings-toggle'
+  toggleButton.setAttribute('aria-expanded', 'false')
+  toggleButton.setAttribute('aria-controls', 'viewer-settings-overlay')
 
-  const drawer = document.createElement('div')
-  drawer.hidden = true
-  drawer.style.width = 'min(560px, calc(100vw - 32px))'
-  drawer.style.maxHeight = 'calc(100vh - 88px)'
-  drawer.style.overflow = 'auto'
-  drawer.style.marginBottom = '10px'
-  drawer.style.padding = '14px'
-  drawer.style.borderRadius = '12px'
-  drawer.style.background = 'rgba(15, 23, 32, 0.92)'
-  drawer.style.backdropFilter = 'blur(12px)'
-  drawer.style.boxShadow = '0 18px 48px rgba(0, 0, 0, 0.28)'
+  const overlay = document.createElement('div')
+  overlay.id = 'viewer-settings-overlay'
+  overlay.className = 'viewer-settings-overlay'
+  overlay.hidden = true
+  overlay.tabIndex = -1
+  overlay.setAttribute('role', 'dialog')
+  overlay.setAttribute('aria-modal', 'true')
+  overlay.setAttribute('aria-labelledby', 'viewer-settings-title')
 
-  toggleButton.addEventListener('click', () => {
-    drawer.hidden = !drawer.hidden
-    if (!drawer.hidden) refreshCockpitInputDraft()
-  })
+  const shell = document.createElement('div')
+  shell.className = 'viewer-settings-shell'
 
-  const heading = document.createElement('div')
-  heading.textContent = 'Viewer Settings'
-  heading.style.fontWeight = '700'
-  heading.style.fontSize = '13px'
-  heading.style.marginBottom = '10px'
+  const header = document.createElement('header')
+  header.className = 'viewer-settings-header'
+  const headerCopy = document.createElement('div')
+  const kicker = document.createElement('div')
+  kicker.className = 'viewer-settings-kicker'
+  kicker.textContent = 'Simulation paused'
+  const heading = document.createElement('h1')
+  heading.id = 'viewer-settings-title'
+  heading.className = 'viewer-settings-title'
+  heading.textContent = 'Settings'
+  headerCopy.append(kicker, heading)
+  const headerTools = document.createElement('div')
+  const brand = document.createElement('div')
+  brand.className = 'viewer-settings-brand'
+  brand.textContent = 'AeroView // Configuration deck'
+  const closeButton = document.createElement('button')
+  closeButton.type = 'button'
+  closeButton.className = 'viewer-settings-close'
+  closeButton.textContent = 'Close  ×'
+  headerTools.append(brand, closeButton)
+  headerTools.style.display = 'flex'
+  headerTools.style.alignItems = 'center'
+  headerTools.style.gap = '18px'
+  header.append(headerCopy, headerTools)
 
   const selectedValue = createAircraftSelectorValue(options.packageRoot, options.aircraft.id)
   const sortedOptions = [...options.selectorOptions].sort((left, right) =>
@@ -12648,13 +12950,12 @@ function createSettingsPanel(options: {
   })
 
   const cockpitInputSection = document.createElement('section')
-  cockpitInputSection.style.marginTop = '14px'
-  cockpitInputSection.style.paddingTop = '12px'
-  cockpitInputSection.style.borderTop = '1px solid rgba(255, 255, 255, 0.12)'
-  const cockpitInputHeading = document.createElement('div')
-  cockpitInputHeading.textContent = 'Cockpit Input'
-  cockpitInputHeading.style.fontWeight = '700'
-  cockpitInputHeading.style.marginBottom = '8px'
+  cockpitInputSection.className = 'viewer-settings-card'
+  const cockpitInputHeading = createSettingsSectionHeader(
+    'Interaction',
+    'Cockpit input',
+    'Choose how cockpit controls respond and how interaction feedback appears.'
+  )
   const interactionModeSelect = createSettingsSelect('Interaction mode')
   interactionModeSelect.append(
     createSettingsOption('legacy', 'Legacy'),
@@ -12679,12 +12980,14 @@ function createSettingsPanel(options: {
     window.dispatchEvent(new Event('cockpit-input-settings-changed'))
   }
   refreshCockpitInputDraft()
-  cockpitInputSection.append(
-    cockpitInputHeading,
+  const cockpitInputForm = document.createElement('div')
+  cockpitInputForm.className = 'viewer-settings-form'
+  cockpitInputForm.append(
     createSettingsField('Interaction mode', interactionModeSelect),
     createSettingsField('Highlights', highlightSelect),
     createSettingsField('Tooltips', tooltipSelect)
   )
+  cockpitInputSection.append(cockpitInputHeading, cockpitInputForm)
 
   aircraftSelect.addEventListener('change', () => {
     const selectedOption = getSelectedAircraftOption()
@@ -12697,9 +13000,9 @@ function createSettingsPanel(options: {
   })
 
   const status = document.createElement('div')
-  status.style.minHeight = '16px'
-  status.style.marginTop = '10px'
-  status.style.color = 'rgba(243, 247, 251, 0.72)'
+  status.className = 'viewer-settings-status'
+  status.setAttribute('role', 'status')
+  status.setAttribute('aria-live', 'polite')
 
   const applyGlobalProfile = (): void => {
     const nextStore = loadViewerConfigStore()
@@ -12745,39 +13048,115 @@ function createSettingsPanel(options: {
     aircraftEditor.setProfile({})
   }
 
-  const tabs = document.createElement('div')
-  tabs.style.display = 'flex'
-  tabs.style.alignItems = 'end'
-  tabs.style.gap = '8px'
-  tabs.style.marginBottom = '12px'
+  const aircraftField = createSettingsField('Aircraft', aircraftSelect)
+  aircraftField.classList.add('viewer-settings-aircraft-field')
 
-  const globalTab = createSettingsTabButton('Global')
-  const aircraftTab = createSettingsTabButton('Aircraft')
-  tabs.append(globalTab, aircraftTab)
+  const tabs = document.createElement('nav')
+  tabs.className = 'viewer-settings-tabs'
+  tabs.setAttribute('role', 'tablist')
+  tabs.setAttribute('aria-label', 'Settings categories')
+  const generalTab = createSettingsTabButton('General')
+  const globalTab = createSettingsTabButton('Global controls')
+  const aircraftTab = createSettingsTabButton('Aircraft controls')
+  tabs.append(generalTab, globalTab, aircraftTab)
 
-  let activePanel: 'global' | 'aircraft' = 'global'
-  const setActivePanel = (nextActivePanel: 'global' | 'aircraft'): void => {
+  const body = document.createElement('div')
+  body.className = 'viewer-settings-body'
+  const frame = document.createElement('div')
+  frame.className = 'viewer-settings-frame'
+
+  const generalPanel = document.createElement('section')
+  generalPanel.id = 'viewer-settings-general'
+  generalPanel.className = 'viewer-settings-panel viewer-settings-general-grid'
+  generalPanel.setAttribute('role', 'tabpanel')
+  const globalPanel = document.createElement('section')
+  globalPanel.id = 'viewer-settings-global'
+  globalPanel.className = 'viewer-settings-panel'
+  globalPanel.setAttribute('role', 'tabpanel')
+  const aircraftPanel = document.createElement('section')
+  aircraftPanel.id = 'viewer-settings-aircraft'
+  aircraftPanel.className = 'viewer-settings-panel'
+  aircraftPanel.setAttribute('role', 'tabpanel')
+
+  generalTab.setAttribute('aria-controls', generalPanel.id)
+  globalTab.setAttribute('aria-controls', globalPanel.id)
+  aircraftTab.setAttribute('aria-controls', aircraftPanel.id)
+  generalPanel.setAttribute('aria-labelledby', generalTab.id)
+  globalPanel.setAttribute('aria-labelledby', globalTab.id)
+  aircraftPanel.setAttribute('aria-labelledby', aircraftTab.id)
+
+  generalPanel.append(
+    createSettingsPanelIntro(
+      'General',
+      'Viewer-wide interaction preferences. Physical remapping belongs in the scoped controls tabs.',
+      'Viewer defaults'
+    ),
+    cockpitInputSection
+  )
+  globalPanel.append(
+    createSettingsPanelIntro(
+      'Global controls',
+      'Defaults applied across every aircraft unless an aircraft-specific override is set.',
+      'All aircraft'
+    ),
+    globalEditor.root
+  )
+  const aircraftContext = document.createElement('div')
+  aircraftContext.className = 'viewer-settings-card viewer-settings-aircraft-field'
+  aircraftContext.append(aircraftField)
+  aircraftPanel.append(
+    createSettingsPanelIntro(
+      'Aircraft controls',
+      'Overrides scoped to the selected package and aircraft variation.',
+      'Package scoped'
+    ),
+    aircraftContext,
+    aircraftEditor.root
+  )
+  frame.append(generalPanel, globalPanel, aircraftPanel)
+  body.append(frame)
+
+  type ActiveSettingsPanel = 'general' | ViewerSettingsPanelScope
+  let activePanel: ActiveSettingsPanel = 'general'
+  const tabEntries = [
+    { id: 'general' as const, button: generalTab, panel: generalPanel },
+    { id: 'global' as const, button: globalTab, panel: globalPanel },
+    { id: 'aircraft' as const, button: aircraftTab, panel: aircraftPanel }
+  ]
+  const setActivePanel = (nextActivePanel: ActiveSettingsPanel): void => {
     activePanel = nextActivePanel
-    const activeGlobal = nextActivePanel === 'global'
-    globalEditor.root.hidden = !activeGlobal
-    aircraftEditor.root.hidden = activeGlobal
-    globalTab.setAttribute('aria-selected', activeGlobal ? 'true' : 'false')
-    aircraftTab.setAttribute('aria-selected', activeGlobal ? 'false' : 'true')
-    styleSettingsTabButton(globalTab, activeGlobal)
-    styleSettingsTabButton(aircraftTab, !activeGlobal)
+    for (const entry of tabEntries) {
+      const active = entry.id === nextActivePanel
+      entry.panel.hidden = !active
+      styleSettingsTabButton(entry.button, active)
+    }
+    body.scrollTop = 0
   }
 
+  tabs.addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+    const currentIndex = tabEntries.findIndex(entry => entry.button === document.activeElement)
+    const nextIndex = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? tabEntries.length - 1
+        : (Math.max(0, currentIndex) + (event.key === 'ArrowRight' ? 1 : -1) + tabEntries.length) % tabEntries.length
+    event.preventDefault()
+    tabEntries[nextIndex]?.button.click()
+    tabEntries[nextIndex]?.button.focus()
+  })
+
+  generalTab.addEventListener('click', () => setActivePanel('general'))
   globalTab.addEventListener('click', () => setActivePanel('global'))
   aircraftTab.addEventListener('click', () => setActivePanel('aircraft'))
-  setActivePanel('global')
-
-  const aircraftField = createSettingsField('Aircraft', aircraftSelect)
-  aircraftField.style.marginBottom = '12px'
+  setActivePanel('general')
 
   const applyButton = createActionButton('Apply')
   const cancelButton = createActionButton('Cancel')
   const resetButton = createActionButton('Reset')
+  applyButton.classList.add('viewer-settings-action-primary')
   const notifyApplied = async (action: ViewerSettingsApplyEvent['action']): Promise<void> => {
+    if (activePanel === 'general') return
     const selectedOption = getSelectedAircraftOption()
     const message = await options.onApply?.({
       scope: activePanel,
@@ -12795,15 +13174,19 @@ function createSettingsPanel(options: {
       applyButton.disabled = true
       resetButton.disabled = true
       try {
-        if (activePanel === 'global') {
+        if (activePanel === 'general') {
+          saveCockpitInputDraft()
+          status.textContent = 'Saved general interaction settings.'
+        } else if (activePanel === 'global') {
           applyGlobalProfile()
           status.textContent = 'Saved global defaults.'
         } else {
           applyAircraftProfile()
           status.textContent = 'Saved aircraft profile.'
         }
-        saveCockpitInputDraft()
-        await notifyApplied('apply')
+        if (activePanel !== 'general') await notifyApplied('apply')
+      } catch (error) {
+        status.textContent = `Could not apply settings: ${error instanceof Error ? error.message : String(error)}`
       } finally {
         applyButton.disabled = false
         resetButton.disabled = false
@@ -12815,17 +13198,21 @@ function createSettingsPanel(options: {
       applyButton.disabled = true
       resetButton.disabled = true
       try {
-        if (activePanel === 'global') {
+        if (activePanel === 'general') {
+          updateCockpitInputSettings(DEFAULT_COCKPIT_INPUT_STORE.globalSettings)
+          refreshCockpitInputDraft()
+          window.dispatchEvent(new Event('cockpit-input-settings-changed'))
+          status.textContent = 'Restored interaction defaults.'
+        } else if (activePanel === 'global') {
           resetGlobalProfile()
           status.textContent = 'Cleared global defaults.'
         } else {
           resetAircraftProfile()
           status.textContent = 'Cleared aircraft profile.'
         }
-        updateCockpitInputSettings(DEFAULT_COCKPIT_INPUT_STORE.globalSettings)
-        refreshCockpitInputDraft()
-        window.dispatchEvent(new Event('cockpit-input-settings-changed'))
-        await notifyApplied('reset')
+        if (activePanel !== 'general') await notifyApplied('reset')
+      } catch (error) {
+        status.textContent = `Could not reset settings: ${error instanceof Error ? error.message : String(error)}`
       } finally {
         applyButton.disabled = false
         resetButton.disabled = false
@@ -12835,33 +13222,91 @@ function createSettingsPanel(options: {
   cancelButton.addEventListener('click', () => {
     const selectedOption = getSelectedAircraftOption()
     const store = loadViewerConfigStore()
-    globalEditor.setProfile(store.global)
-    aircraftEditor.setProfile(
-      store.aircraft[getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)] ?? {}
-    )
-    refreshCockpitInputDraft()
+    if (activePanel === 'general') {
+      refreshCockpitInputDraft()
+    } else if (activePanel === 'global') {
+      globalEditor.setProfile(store.global)
+    } else {
+      aircraftEditor.setProfile(
+        store.aircraft[getViewerAircraftConfigKey(selectedOption.packageRoot, selectedOption.aircraft.id)] ?? {}
+      )
+    }
     status.textContent = 'Discarded draft changes.'
   })
 
   const actions = document.createElement('div')
-  actions.style.display = 'grid'
-  actions.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))'
-  actions.style.gap = '8px'
-  actions.style.marginTop = '12px'
-  actions.append(applyButton, cancelButton, resetButton)
+  actions.className = 'viewer-settings-actions'
+  actions.append(resetButton, cancelButton, applyButton)
+  const footer = document.createElement('footer')
+  footer.className = 'viewer-settings-footer'
+  footer.append(status, actions)
 
-  drawer.append(
-    heading,
-    aircraftField,
-    tabs,
-    globalEditor.root,
-    aircraftEditor.root,
-    cockpitInputSection,
-    actions,
-    status
-  )
-  root.append(drawer, toggleButton)
+  shell.append(header, tabs, body, footer)
+  overlay.append(shell)
+  root.append(overlay, toggleButton)
+
+  const setOpen = (open: boolean): void => {
+    overlay.hidden = !open
+    toggleButton.textContent = open ? 'Resume' : 'Settings'
+    toggleButton.setAttribute('aria-expanded', open ? 'true' : 'false')
+    if (open) {
+      refreshCockpitInputDraft()
+      status.textContent = ''
+      tabEntries.find(entry => entry.id === activePanel)?.button.focus()
+    } else {
+      toggleButton.focus()
+    }
+  }
+  toggleButton.addEventListener('click', () => setOpen(overlay.hidden === true))
+  closeButton.addEventListener('click', () => setOpen(false))
+  overlay.addEventListener('keydown', event => {
+    event.stopPropagation()
+    if (event.key !== 'Escape') return
+    event.preventDefault()
+    setOpen(false)
+  })
   return root
+}
+
+function createSettingsSectionHeader(
+  kickerText: string,
+  titleText: string,
+  description: string
+): HTMLDivElement {
+  const header = document.createElement('div')
+  header.className = 'viewer-settings-section-header'
+  const kicker = document.createElement('div')
+  kicker.className = 'viewer-settings-section-kicker'
+  kicker.textContent = kickerText
+  const title = document.createElement('h2')
+  title.textContent = titleText
+  const copy = document.createElement('p')
+  copy.textContent = description
+  header.append(kicker, title, copy)
+  return header
+}
+
+function createSettingsPanelIntro(
+  titleText: string,
+  description: string,
+  badgeText: string
+): HTMLDivElement {
+  const intro = document.createElement('div')
+  intro.className = 'viewer-settings-panel-intro'
+  const copy = document.createElement('div')
+  const kicker = document.createElement('div')
+  kicker.className = 'viewer-settings-section-kicker'
+  kicker.textContent = 'Configuration deck'
+  const title = document.createElement('h2')
+  title.textContent = titleText
+  const detail = document.createElement('p')
+  detail.textContent = description
+  copy.append(kicker, title, detail)
+  const badge = document.createElement('div')
+  badge.className = 'viewer-settings-scope-badge'
+  badge.textContent = badgeText
+  intro.append(copy, badge)
+  return intro
 }
 
 function createSettingsProfileEditor(options: {
@@ -12871,12 +13316,12 @@ function createSettingsProfileEditor(options: {
   readonly initialProfile: ViewerConfigProfile
 }): SettingsProfileEditor {
   const root = document.createElement('div')
-  root.style.minWidth = '0'
-  root.style.paddingTop = '2px'
+  root.className = 'viewer-settings-card'
   root.setAttribute('aria-label', `${options.title} settings`)
   const inheritsFromGlobal = options.scope === 'aircraft'
 
   const form = document.createElement('form')
+  form.className = 'viewer-settings-form'
   form.addEventListener('submit', event => event.preventDefault())
 
   const exteriorLodSelect = createSettingsSelect('Exterior LOD')
@@ -13134,7 +13579,16 @@ function createSettingsProfileEditor(options: {
     createSettingsField('Extra Query', rawQueryTextarea)
   )
 
-  root.append(form)
+  root.append(
+    createSettingsSectionHeader(
+      options.scope === 'global' ? 'Viewer profile' : 'Aircraft override',
+      options.scope === 'global' ? 'Global viewer defaults' : 'Aircraft-specific settings',
+      options.scope === 'global'
+        ? 'Rendering, cockpit, gauge, and diagnostic defaults shared by the viewer.'
+        : 'Sparse overrides inherit Global wherever a field is left unchanged.'
+    ),
+    form
+  )
   setProfile(options.initialProfile)
   return {
     root,
@@ -13322,15 +13776,11 @@ function parseSettingsCockpitTextures(
 
 function createSettingsField(labelText: string, control: HTMLElement): HTMLLabelElement {
   const label = document.createElement('label')
-  label.style.display = 'grid'
-  label.style.gridTemplateColumns = '160px minmax(0, 1fr)'
-  label.style.alignItems = 'center'
-  label.style.gap = '8px'
-  label.style.marginBottom = '8px'
+  label.className = 'viewer-settings-field'
 
   const span = document.createElement('span')
   span.textContent = labelText
-  span.style.color = 'rgba(243, 247, 251, 0.82)'
+  span.className = 'viewer-settings-field-label'
   label.append(span, control)
   return label
 }
@@ -13355,7 +13805,6 @@ function createSettingsTextarea(_label: string): HTMLTextAreaElement {
   textarea.rows = 4
   textarea.placeholder = 'key=value'
   styleSettingsControl(textarea)
-  textarea.style.resize = 'vertical'
   return textarea
 }
 
@@ -13370,24 +13819,16 @@ function createSettingsTabButton(label: string): HTMLButtonElement {
   const button = document.createElement('button')
   button.type = 'button'
   button.textContent = label
+  button.id = `viewer-settings-tab-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+  button.className = 'viewer-settings-tab'
   button.setAttribute('role', 'tab')
-  button.style.minWidth = '104px'
-  button.style.padding = '8px 14px'
-  button.style.borderRadius = '8px 8px 0 0'
-  button.style.border = '1px solid rgba(255, 255, 255, 0.16)'
-  button.style.borderBottom = '0'
-  button.style.font = 'inherit'
-  button.style.cursor = 'pointer'
   styleSettingsTabButton(button, false)
   return button
 }
 
 function styleSettingsTabButton(button: HTMLButtonElement, active: boolean): void {
-  button.style.background = active
-    ? 'rgba(42, 58, 75, 0.98)'
-    : 'rgba(15, 24, 34, 0.82)'
-  button.style.color = active ? '#f7fbff' : 'rgba(243, 247, 251, 0.72)'
-  button.style.fontWeight = active ? '700' : '500'
+  button.setAttribute('aria-selected', active ? 'true' : 'false')
+  button.tabIndex = active ? 0 : -1
 }
 
 function createActionButton(label: string): HTMLButtonElement {
@@ -13400,25 +13841,11 @@ function createActionButton(label: string): HTMLButtonElement {
 }
 
 function styleSettingsControl(control: HTMLElement): void {
-  control.style.width = '100%'
-  control.style.minWidth = '0'
-  control.style.boxSizing = 'border-box'
-  control.style.padding = '6px 8px'
-  control.style.border = '1px solid rgba(255, 255, 255, 0.14)'
-  control.style.borderRadius = '8px'
-  control.style.background = 'rgba(9, 14, 20, 0.9)'
-  control.style.color = '#f3f7fb'
-  control.style.font = 'inherit'
+  control.classList.add('viewer-settings-control')
 }
 
 function stylePanelButton(button: HTMLButtonElement): void {
-  button.style.padding = '7px 10px'
-  button.style.border = '1px solid rgba(255, 255, 255, 0.16)'
-  button.style.borderRadius = '8px'
-  button.style.background = 'rgba(23, 35, 48, 0.94)'
-  button.style.color = '#f3f7fb'
-  button.style.font = 'inherit'
-  button.style.cursor = 'pointer'
+  button.classList.add('viewer-settings-action')
 }
 
 function createAircraftSelectorValue(packageRoot: string, aircraftId: string): string {
