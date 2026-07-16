@@ -272,6 +272,11 @@ export interface CompiledInteractionMetadata {
   readonly dragMode: 'default' | 'trajectory'
   readonly dragAnimationSynced: boolean
   readonly dragScalar: number
+  readonly discreteGate: {
+    readonly steps: number
+    readonly dragSpeed: number
+  } | null
+  readonly wheelPrimaryToggle: boolean
   readonly cursor: string | null
   readonly tooltipTitle: string | null
   readonly tooltipDescription: string | null

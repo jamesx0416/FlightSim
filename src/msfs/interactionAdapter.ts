@@ -135,7 +135,17 @@ export class MsfsInteractionAdapter {
     const selected = target.bindings
       .map(binding => ({ binding, route: selectRoute(binding.metadata.routes, action, this.mode, target.lockable) }))
       .find(value => value.route != null)
-    if (selected?.route == null) return false
+    if (selected?.route != null &&
+        (action.operation === 'increase' || action.operation === 'decrease') &&
+        selected.binding.metadata.discreteGate != null) {
+      return this.executeGateStep(selected.binding, action.operation)
+    }
+    if (selected?.route == null) {
+      const toggle = target.bindings.find(binding => binding.metadata.wheelPrimaryToggle)
+      return toggle == null || (action.operation !== 'increase' && action.operation !== 'decrease')
+        ? false
+        : this.executePrimaryToggleDirection(toggle, action.operation)
+    }
     const actionValue = typeof action.value === 'boolean'
       ? Number(action.value)
       : typeof action.value === 'number'
@@ -159,7 +169,57 @@ export class MsfsInteractionAdapter {
       const route = selectRoute(binding.metadata.routes, action, this.mode, target.lockable)
       if (route != null) return route
     }
+    if ((action.operation === 'increase' || action.operation === 'decrease') &&
+        target.bindings.some(binding => binding.metadata.wheelPrimaryToggle)) {
+      return compatibleWheelRoute(action.operation)
+    }
     return null
+  }
+
+  private executeGateStep(
+    binding: CompiledInteractionBinding,
+    operation: 'increase' | 'decrease'
+  ): boolean {
+    const gate = binding.metadata.discreteGate
+    const current = this.runtime.readInteractionValue(binding)
+    if (gate == null || current == null) return false
+    const next = Math.min(gate.steps, Math.max(0, Math.round(current) + (operation === 'increase' ? 1 : -1)))
+    if (next === Math.round(current)) return true
+    const inputType = this.mode === 'lock' ? 1 : 0
+    const common = { inputType, holdFeedback: false }
+    const locked = this.runtime.executeInteractionBindingDirect(binding, {
+      ...common,
+      mouseEvent: 'Lock',
+      relativeY: 0,
+      dragPercent: current / gate.steps
+    })
+    const dragged = this.runtime.executeInteractionBindingDirect(binding, {
+      ...common,
+      mouseEvent: 'LeftDrag',
+      relativeY: -(next - current) / gate.dragSpeed,
+      dragPercent: next / gate.steps
+    })
+    this.runtime.executeInteractionBindingDirect(binding, { ...common, mouseEvent: 'Unlock' })
+    return locked && dragged
+  }
+
+  private executePrimaryToggleDirection(
+    binding: CompiledInteractionBinding,
+    operation: 'increase' | 'decrease'
+  ): boolean {
+    const current = this.runtime.readInteractionValue(binding)
+    if (current == null) return false
+    const desired = operation === 'increase'
+    if ((current !== 0) === desired) return true
+    const route = binding.metadata.routes.find(candidate =>
+      candidate.operation === 'press' &&
+      (candidate.msfsEvent === 'LeftSingle' || candidate.interactionModel === 'default')
+    )
+    return route != null && this.runtime.executeInteractionBindingDirect(binding, {
+      holdFeedback: false,
+      mouseEvent: route.msfsEvent ?? undefined,
+      inputType: route.inputTypes[0]
+    })
   }
 
   release(target: MsfsInteractionTarget): boolean {
@@ -301,14 +361,19 @@ export class MsfsInteractionAdapter {
   }
 
   private toTarget(binding: CompiledInteractionBinding): MsfsInteractionTarget {
-    const bindings = this.runtime.getInteractionBindings().filter(candidate =>
+    const bindings = [binding, ...this.runtime.getInteractionBindings().filter(candidate =>
+      candidate !== binding &&
       candidate.metadata.qualifiedId === binding.metadata.qualifiedId && candidate.target === binding.target
-    )
-    if (!bindings.includes(binding)) bindings.unshift(binding)
+    )]
     return {
       id: binding.metadata.qualifiedId,
       lockable: bindings.some(candidate => candidate.metadata.lockable),
-      operations: [...new Set(bindings.flatMap(candidate => candidate.metadata.routes.map(route => route.operation)))],
+      operations: [...new Set([
+        ...bindings.flatMap(candidate => candidate.metadata.routes.map(route => route.operation)),
+        ...(bindings.some(candidate => candidate.metadata.wheelPrimaryToggle)
+          ? ['increase' as const, 'decrease' as const]
+          : [])
+      ])],
       binding,
       bindings
     }
@@ -377,12 +442,34 @@ function selectRoute(
 ): CompiledInteractionRoute | null {
   const operation: CockpitInteractionOperation = action.operation === 'hold' ? 'press' : action.operation
   const interactionModel = mode === 'lock' && lockable ? 'drag' : 'default'
-  const candidates = routes.filter(route =>
-    (route.interactionModel == null || route.interactionModel === interactionModel) &&
+  const isWheelOperation = operation === 'increase' || operation === 'decrease'
+  let candidates = routes.filter(route =>
+    (isWheelOperation || route.interactionModel == null || route.interactionModel === interactionModel) &&
     (route.operation === operation || (operation === 'turn' && route.phase === 'drag'))
   )
-  if (action.channel != null) return candidates.find(route => route.channel === action.channel) ?? null
+  if (action.channel != null) {
+    candidates = candidates.filter(route => route.channel === action.channel)
+  }
+  const modelSpecificCandidates = candidates.filter(
+    route => route.interactionModel === interactionModel
+  )
+  if (modelSpecificCandidates.length > 0) candidates = modelSpecificCandidates
   if (candidates.length === 1) return candidates[0] ?? null
+  const authoredEvents = candidates.filter(route => route.msfsEvent != null)
+  if (authoredEvents.length === 1) return authoredEvents[0] ?? null
   const semanticDefaults = candidates.filter(route => route.channel == null)
   return semanticDefaults.length === 1 ? semanticDefaults[0] ?? null : null
+}
+
+function compatibleWheelRoute(
+  operation: 'increase' | 'decrease'
+): CompiledInteractionRoute {
+  return {
+    channel: null,
+    phase: null,
+    operation,
+    msfsEvent: operation === 'increase' ? 'WheelUp' : 'WheelDown',
+    axis: null,
+    inputTypes: []
+  }
 }

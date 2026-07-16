@@ -1207,6 +1207,9 @@ function expandTemplateUse(
   }
   applyParameterBlocks(templateNode, null, templateParams, state.path, context.diagnostics)
   templateParams.set('__SOURCE_TEMPLATE', templateName)
+  if (normalizedTemplateName === 'ASOBO_GT_SWITCH_CODE') {
+    templateParams.set('__WHEEL_PRIMARY_TOGGLE', 'True')
+  }
 
   for (const binding of collectInteractionInputEventBridgeBindings(
     templateParams,
@@ -1825,6 +1828,15 @@ function buildCompiledInteractionMetadata(
       ? false
       : parseBoolean(params.get('DRAG_ANIM_SYNCED') ?? 'True'),
     dragScalar: parseNumber(params.get('DRAG_SCALAR'), 0.025),
+    discreteGate: (() => {
+      if (!params.has('GATE_TOLERANCE') || !params.get('POSITION_VAR')?.trim()) return null
+      const steps = parseOptionalFiniteNumber(params.get('STEPS_NUMBER'))
+      const dragSpeed = parseOptionalFiniteNumber(params.get('DRAG_SPEED'))
+      return steps != null && steps > 0 && dragSpeed != null && dragSpeed !== 0
+        ? { steps, dragSpeed }
+        : null
+    })(),
+    wheelPrimaryToggle: parseBoolean(params.get('__WHEEL_PRIMARY_TOGGLE') ?? 'False'),
     cursor: params.get('CURSOR')?.trim() || null,
     tooltipTitle: params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null,
     tooltipDescription: params.get('TOOLTIP_DESCRIPTION')?.trim() || null,
@@ -1876,6 +1888,9 @@ function buildCompiledInteractionValueMetadata(
   params: ReadonlyMap<string, string>
 ): CompiledInteractionMetadata['value'] {
   const variableKey = getCompiledInteractionValueVariableKey(params)
+  const gateSteps = params.has('GATE_TOLERANCE')
+    ? parseOptionalFiniteNumber(params.get('STEPS_NUMBER'))
+    : null
   const maximumHandleIndex = parseOptionalFiniteNumber(params.get('MAX_HANDLE_INDEX'))
   const explicitMinimum = parseOptionalFiniteNumber(
     params.get('DRAG_MIN_VALUE') ?? params.get('MIN_VALUE')
@@ -1895,9 +1910,9 @@ function buildCompiledInteractionValueMetadata(
   return {
     variableKey,
     unit,
-    minimum: explicitMinimum ?? (maximumHandleIndex != null ? 0 : null),
-    maximum: explicitMaximum ?? (maximumHandleIndex != null ? 1 : null),
-    step: explicitStep ?? (maximumHandleIndex != null && maximumHandleIndex > 0
+    minimum: gateSteps != null ? 0 : explicitMinimum ?? (maximumHandleIndex != null ? 0 : null),
+    maximum: gateSteps ?? explicitMaximum ?? (maximumHandleIndex != null ? 1 : null),
+    step: gateSteps != null ? 1 : explicitStep ?? (maximumHandleIndex != null && maximumHandleIndex > 0
       ? 1 / maximumHandleIndex
       : null),
     cyclic: parseBoolean(params.get('WRAPS') ?? params.get('CYCLIC') ?? 'False'),
