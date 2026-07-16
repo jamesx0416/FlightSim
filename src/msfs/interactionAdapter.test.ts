@@ -124,6 +124,65 @@ test('resolves duplicate authored IDs strictly and requires an unambiguous chann
   expect(adapter.route(qualified.target, { source: 'devapi', operation: 'press', phase: 'press', channel: 'secondary', timestampMs: 0 })?.msfsEvent).toBe('RightSingle')
 })
 
+test('uses an authored drag-model wheel route in Legacy when no default wheel route exists', () => {
+  const binding = interactionBinding({}, [
+    { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] },
+    { interactionModel: 'drag', channel: null, phase: null, operation: 'increase', msfsEvent: 'WheelUp', axis: null, inputTypes: [1] }
+  ])
+  const adapter = new MsfsInteractionAdapter({ getInteractionBindings: () => [binding] } as unknown as AircraftRuntime)
+  const route = adapter.route(adapter.fromBinding(binding), {
+    source: 'mouse', operation: 'increase', phase: 'press', timestampMs: 0
+  })
+  expect([route?.msfsEvent, route?.inputTypes[0]]).toEqual(['WheelUp', 1])
+})
+
+test('keeps a specifically selected same-target wheel binding first', () => {
+  const click = interactionBinding({}, [
+    { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] }
+  ])
+  const wheel = interactionBinding({}, [
+    { channel: null, phase: null, operation: 'increase', msfsEvent: 'WheelUp', axis: null, inputTypes: [] }
+  ])
+  const executed: CompiledInteractionBinding[] = []
+  const runtime = {
+    getInteractionBindings: () => [click, wheel],
+    executeInteractionBindingDirect: (binding: CompiledInteractionBinding) => { executed.push(binding); return true },
+    readInteractionValue: () => null
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+
+  expect(adapter.execute(adapter.fromBinding(wheel), {
+    source: 'mouse', operation: 'increase', phase: 'press', timestampMs: 0
+  })).toBe(true)
+  expect(executed).toEqual([wheel])
+})
+
+test('uses Primary as a directional wheel fallback only for compiled two-state switches', () => {
+  let value = 0
+  const base = interactionBinding({}, [
+    { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] }
+  ])
+  const binding = { ...base, metadata: { ...base.metadata, wheelPrimaryToggle: true } }
+  const events: string[] = []
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => value,
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { mouseEvent?: string }) => {
+      events.push(options.mouseEvent ?? '')
+      value = value === 0 ? 1 : 0
+      return true
+    }
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+  const target = adapter.fromBinding(binding)
+
+  expect([target.operations.includes('increase'), target.operations.includes('decrease')]).toEqual([true, true])
+  expect(adapter.execute(target, { source: 'mouse', operation: 'increase', phase: 'press', timestampMs: 0 })).toBe(true)
+  expect(adapter.execute(target, { source: 'mouse', operation: 'increase', phase: 'press', timestampMs: 1 })).toBe(true)
+  expect(adapter.execute(target, { source: 'mouse', operation: 'decrease', phase: 'press', timestampMs: 2 })).toBe(true)
+  expect(events).toEqual(['LeftSingle', 'LeftSingle'])
+})
+
 test('selects release callbacks from the active authored interaction model', () => {
   const routes: CompiledInteractionRoute[] = [
     { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] },
@@ -190,7 +249,7 @@ function interactionBinding(
       lockable: false, dynamicEventHandling: false, disabled: false, disabledInVr: false,
       prioritizeVCockpits: false, ignoreZTest: false, highlightNodeId: 'TEST', axis: null,
       inverted: false, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
-      dragScalar: 0.025, cursor: null, tooltipTitle: null,
+      dragScalar: 0.025, discreteGate: null, wheelPrimaryToggle: false, cursor: null, tooltipTitle: null,
       tooltipDescription: null, tooltipValueExpression: expression,
       value: {
         variableKey: 'L:TEST', unit: 'number', minimum: 0, maximum: 4, step: 1,

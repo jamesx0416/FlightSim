@@ -11,6 +11,7 @@ import {
 } from 'three'
 
 import type { CompiledBehaviorSet } from '../types'
+import { collectProtectedNodeNames } from './collectProtectedNodeNames'
 
 type InstancingCandidate = {
   readonly mesh: Mesh
@@ -134,23 +135,6 @@ export function instanceStaticMsfsMeshes(
     skippedUnsupportedMeshCount,
     disposedGeometryCount
   }
-}
-
-function collectProtectedNodeNames(behaviorSet: CompiledBehaviorSet): ReadonlySet<string> {
-  const protectedNames = new Set<string>()
-  for (const binding of behaviorSet.animationBindings) {
-    protectedNames.add(binding.target)
-    protectedNames.add(binding.target.toLowerCase())
-  }
-  for (const binding of behaviorSet.visibilityBindings) {
-    protectedNames.add(binding.target)
-    protectedNames.add(binding.target.toLowerCase())
-  }
-  for (const binding of behaviorSet.materialBindings) {
-    protectedNames.add(binding.target)
-    protectedNames.add(binding.target.toLowerCase())
-  }
-  return protectedNames
 }
 
 function isProtectedByOwnName(

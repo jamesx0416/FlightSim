@@ -1752,15 +1752,29 @@ async function init(): Promise<void> {
   ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
     cockpitInteractionStats.lastHitKind = hitKind
+    const wheelOperation = options.mouseEvent === 'WheelUp'
+      ? 'increase'
+      : options.mouseEvent === 'WheelDown'
+        ? 'decrease'
+        : null
     const selectedBinding = options.mouseEvent == null
       ? binding
       : runtime.getInteractionBindings().find(candidate =>
           candidate.target === binding.target &&
-          candidate.metadata.routes.some(route => route.msfsEvent === options.mouseEvent)
+          (candidate.metadata.routes.some(route =>
+            route.msfsEvent === options.mouseEvent ||
+            wheelOperation != null && route.msfsEvent == null && route.operation === wheelOperation
+          ) || wheelOperation != null && candidate.metadata.wheelPrimaryToggle)
         ) ?? binding
     const route = options.mouseEvent == null
       ? selectedBinding.metadata.routes.find(candidate => candidate.operation === 'press')
-      : selectedBinding.metadata.routes.find(candidate => candidate.msfsEvent === options.mouseEvent)
+      : selectedBinding.metadata.routes.find(candidate => candidate.msfsEvent === options.mouseEvent) ??
+        selectedBinding.metadata.routes.find(candidate =>
+          wheelOperation != null && candidate.msfsEvent == null && candidate.operation === wheelOperation
+        ) ??
+        (wheelOperation != null && selectedBinding.metadata.wheelPrimaryToggle
+          ? { operation: wheelOperation, channel: null }
+          : undefined)
     if (route == null) {
       cockpitInteractionStats.lastMissReason = 'operation-unsupported'
       cockpitInteractionStats.lastTarget = selectedBinding.target

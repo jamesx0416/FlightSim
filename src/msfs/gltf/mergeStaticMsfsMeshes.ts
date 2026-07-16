@@ -12,6 +12,7 @@ import {
 import { deinterleaveGeometry, mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import type { CompiledBehaviorSet } from '../types'
+import { collectProtectedNodeNames } from './collectProtectedNodeNames'
 import { usesBlendGBufferMaterial } from './normalizeMsfsMaterials'
 
 type MergeAttribute = BufferAttribute | InterleavedBufferAttribute
@@ -153,23 +154,6 @@ export function mergeStaticMsfsMeshes(
     skippedUnsupportedMeshCount,
     disposedGeometryCount
   }
-}
-
-function collectProtectedNodeNames(behaviorSet: CompiledBehaviorSet): ReadonlySet<string> {
-  const protectedNames = new Set<string>()
-  for (const binding of behaviorSet.animationBindings) {
-    protectedNames.add(binding.target)
-    protectedNames.add(binding.target.toLowerCase())
-  }
-  for (const binding of behaviorSet.visibilityBindings) {
-    protectedNames.add(binding.target)
-    protectedNames.add(binding.target.toLowerCase())
-  }
-  for (const binding of behaviorSet.materialBindings) {
-    protectedNames.add(binding.target)
-    protectedNames.add(binding.target.toLowerCase())
-  }
-  return protectedNames
 }
 
 function isProtectedByOwnName(
