@@ -12576,34 +12576,23 @@ function ensureSettingsStyles(): void {
       overflow: hidden;
       pointer-events: auto;
       background:
-        radial-gradient(circle at 78% 18%, rgba(26, 158, 205, 0.18), transparent 36%),
-        linear-gradient(120deg, rgba(5, 12, 20, 0.86), rgba(12, 25, 38, 0.72));
-      backdrop-filter: blur(24px) saturate(0.72);
-      -webkit-backdrop-filter: blur(24px) saturate(0.72);
+        radial-gradient(circle at 76% 14%, rgba(19, 139, 180, 0.16), transparent 38%),
+        linear-gradient(118deg, rgba(4, 11, 19, 0.64), rgba(11, 25, 37, 0.52));
+      backdrop-filter: blur(18px) brightness(0.55) saturate(0.72);
+      -webkit-backdrop-filter: blur(18px) brightness(0.55) saturate(0.72);
     }
     .viewer-settings-overlay[hidden] { display: none; }
     .viewer-settings-overlay::before {
       content: "";
       position: absolute;
       inset: 0;
-      opacity: 0.16;
+      opacity: 0.1;
       pointer-events: none;
       background-image:
         linear-gradient(rgba(130, 222, 247, 0.16) 1px, transparent 1px),
         linear-gradient(90deg, rgba(130, 222, 247, 0.12) 1px, transparent 1px);
       background-size: 72px 72px;
       mask-image: linear-gradient(to bottom, black, transparent 74%);
-    }
-    .viewer-settings-overlay::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 9%;
-      width: 1px;
-      height: 100%;
-      background: linear-gradient(transparent, rgba(45, 215, 255, 0.62), transparent);
-      box-shadow: 0 0 24px rgba(45, 215, 255, 0.28);
-      pointer-events: none;
     }
     .viewer-settings-shell {
       position: relative;
@@ -12618,7 +12607,7 @@ function ensureSettingsStyles(): void {
       align-items: end;
       justify-content: space-between;
       gap: 24px;
-      padding: clamp(24px, 4vh, 42px) clamp(24px, 5vw, 72px) 20px;
+      padding: clamp(20px, 3vh, 30px) clamp(24px, 5vw, 72px) 14px;
     }
     .viewer-settings-kicker,
     .viewer-settings-section-kicker {
@@ -12629,8 +12618,8 @@ function ensureSettingsStyles(): void {
     }
     .viewer-settings-title {
       margin: 6px 0 0;
-      font-size: clamp(30px, 4vw, 52px);
-      font-weight: 350;
+      font-size: clamp(30px, 3.4vw, 44px);
+      font-weight: 390;
       line-height: 1;
       letter-spacing: -0.035em;
     }
@@ -12654,7 +12643,7 @@ function ensureSettingsStyles(): void {
       position: relative;
       flex: 0 0 auto;
       min-width: 0;
-      padding: 14px 2px 16px;
+      padding: 12px 2px 14px;
       border: 0;
       background: transparent;
       color: rgba(224, 239, 248, 0.55);
@@ -12678,7 +12667,6 @@ function ensureSettingsStyles(): void {
     .viewer-settings-tab[aria-selected="true"] { color: var(--settings-ink); }
     .viewer-settings-tab[aria-selected="true"]::after { transform: scaleX(1); }
     .viewer-settings-tab:focus-visible,
-    .viewer-settings-close:focus-visible,
     .viewer-settings-toggle:focus-visible,
     .viewer-settings-action:focus-visible,
     .viewer-settings-control:focus-visible {
@@ -12689,7 +12677,7 @@ function ensureSettingsStyles(): void {
       min-height: 0;
       overflow: auto;
       overscroll-behavior: contain;
-      padding: 28px clamp(24px, 5vw, 72px) 48px;
+      padding: 20px clamp(24px, 5vw, 72px) 30px;
     }
     .viewer-settings-frame { width: min(1380px, 100%); margin: 0 auto; }
     .viewer-settings-panel[hidden] { display: none; }
@@ -12698,21 +12686,21 @@ function ensureSettingsStyles(): void {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: end;
       gap: 24px;
-      margin-bottom: 18px;
+      margin-bottom: 12px;
       padding: 0 2px;
     }
     .viewer-settings-panel-intro h2,
     .viewer-settings-section-header h2 {
       margin: 5px 0 0;
       color: var(--settings-ink);
-      font-size: clamp(19px, 2vw, 26px);
+      font-size: clamp(18px, 1.8vw, 23px);
       font-weight: 440;
       letter-spacing: -0.02em;
     }
     .viewer-settings-panel-intro p,
     .viewer-settings-section-header p {
       max-width: 620px;
-      margin: 7px 0 0;
+      margin: 4px 0 0;
       color: var(--settings-muted);
       font-size: 13px;
       line-height: 1.55;
@@ -12729,22 +12717,22 @@ function ensureSettingsStyles(): void {
     .viewer-settings-card {
       overflow: hidden;
       border: 1px solid rgba(167, 218, 237, 0.17);
-      border-radius: 4px;
+      border-radius: 2px;
       background: linear-gradient(135deg, rgba(31, 46, 61, 0.72), rgba(15, 27, 40, 0.56));
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.23), inset 3px 0 0 rgba(24, 200, 244, 0.42);
+      box-shadow: 0 18px 52px rgba(0, 0, 0, 0.25), inset 3px 0 0 rgba(24, 200, 244, 0.48);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
     }
-    .viewer-settings-section-header { padding: 22px 24px 18px; border-bottom: 1px solid rgba(173, 220, 237, 0.13); }
+    .viewer-settings-section-header { padding: 15px 22px 13px; border-bottom: 1px solid rgba(173, 220, 237, 0.13); }
     .viewer-settings-form { display: grid; gap: 1px; background: rgba(168, 215, 234, 0.07); }
     .viewer-settings-field {
       display: grid;
       grid-template-columns: minmax(220px, 0.9fr) minmax(260px, 1.1fr);
       align-items: center;
-      min-height: 48px;
+      min-height: 42px;
       gap: 22px;
       margin: 0;
-      padding: 7px 12px 7px 24px;
+      padding: 5px 12px 5px 22px;
       background: rgba(20, 32, 45, 0.78);
       transition: background 140ms ease, box-shadow 140ms ease;
     }
@@ -12761,8 +12749,8 @@ function ensureSettingsStyles(): void {
       width: 100%;
       min-width: 0;
       box-sizing: border-box;
-      min-height: 34px;
-      padding: 7px 11px;
+      min-height: 32px;
+      padding: 6px 11px;
       border: 1px solid rgba(150, 205, 226, 0.17);
       border-radius: 2px;
       background: rgba(4, 13, 22, 0.58);
@@ -12772,6 +12760,19 @@ function ensureSettingsStyles(): void {
       color-scheme: dark;
     }
     .viewer-settings-control:hover { border-color: rgba(24, 200, 244, 0.5); }
+    select.viewer-settings-control {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 34px;
+      background:
+        linear-gradient(45deg, transparent 50%, rgba(164, 233, 250, 0.9) 50%) calc(100% - 14px) 50% / 5px 5px no-repeat,
+        linear-gradient(135deg, rgba(164, 233, 250, 0.9) 50%, transparent 50%) calc(100% - 9px) 50% / 5px 5px no-repeat,
+        linear-gradient(90deg, rgba(24, 200, 244, 0.72), rgba(24, 200, 244, 0.72)) 0 0 / 3px 100% no-repeat,
+        rgba(4, 13, 22, 0.58);
+    }
+    select.viewer-settings-control:hover {
+      background-color: rgba(10, 31, 43, 0.74);
+    }
     textarea.viewer-settings-control { text-align: left; resize: vertical; }
     .viewer-settings-aircraft-field { margin-bottom: 18px; }
     .viewer-settings-general-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
@@ -12780,7 +12781,7 @@ function ensureSettingsStyles(): void {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       gap: 24px;
-      padding: 14px max(190px, 5vw) 14px clamp(24px, 5vw, 72px);
+      padding: 11px max(190px, 5vw) 11px clamp(24px, 5vw, 72px);
       border-top: 1px solid rgba(168, 215, 234, 0.16);
       background: rgba(7, 17, 27, 0.72);
       backdrop-filter: blur(18px);
@@ -12789,8 +12790,7 @@ function ensureSettingsStyles(): void {
     .viewer-settings-status { min-height: 18px; color: var(--settings-muted); font-size: 12px; }
     .viewer-settings-actions { display: flex; gap: 8px; }
     .viewer-settings-action,
-    .viewer-settings-toggle,
-    .viewer-settings-close {
+    .viewer-settings-toggle {
       border: 1px solid rgba(157, 211, 231, 0.22);
       border-radius: 2px;
       background: rgba(18, 34, 48, 0.9);
@@ -12801,11 +12801,9 @@ function ensureSettingsStyles(): void {
       text-transform: uppercase;
     }
     .viewer-settings-action { min-width: 108px; padding: 11px 16px; }
-    .viewer-settings-action:hover,
-    .viewer-settings-close:hover { border-color: rgba(24, 200, 244, 0.65); background: rgba(27, 57, 73, 0.9); }
+    .viewer-settings-action:hover { border-color: rgba(24, 200, 244, 0.65); background: rgba(27, 57, 73, 0.9); }
     .viewer-settings-action-primary { border-color: rgba(24, 200, 244, 0.7); background: linear-gradient(135deg, #0a91ba, #0fc5ed); color: #03131b; }
     .viewer-settings-action-primary:hover { background: linear-gradient(135deg, #11a8d5, #2bd4f7); }
-    .viewer-settings-close { padding: 10px 14px; }
     .viewer-settings-toggle {
       position: fixed;
       right: 22px;
@@ -12820,7 +12818,7 @@ function ensureSettingsStyles(): void {
     }
     .viewer-settings-toggle:hover { border-color: var(--settings-accent); background: rgba(21, 55, 72, 0.94); }
     @media (max-width: 760px) {
-      .viewer-settings-header { align-items: start; padding-bottom: 14px; }
+      .viewer-settings-header { align-items: start; padding-bottom: 10px; }
       .viewer-settings-brand { display: none; }
       .viewer-settings-tabs { gap: 22px; }
       .viewer-settings-body { padding-top: 20px; }
@@ -12890,11 +12888,7 @@ function createSettingsPanel(options: {
   const brand = document.createElement('div')
   brand.className = 'viewer-settings-brand'
   brand.textContent = 'AeroView // Configuration deck'
-  const closeButton = document.createElement('button')
-  closeButton.type = 'button'
-  closeButton.className = 'viewer-settings-close'
-  closeButton.textContent = 'Close  ×'
-  headerTools.append(brand, closeButton)
+  headerTools.append(brand)
   headerTools.style.display = 'flex'
   headerTools.style.alignItems = 'center'
   headerTools.style.gap = '18px'
@@ -13258,7 +13252,6 @@ function createSettingsPanel(options: {
     }
   }
   toggleButton.addEventListener('click', () => setOpen(overlay.hidden === true))
-  closeButton.addEventListener('click', () => setOpen(false))
   overlay.addEventListener('keydown', event => {
     event.stopPropagation()
     if (event.key !== 'Escape') return
