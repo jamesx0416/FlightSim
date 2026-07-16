@@ -111,6 +111,10 @@ test('corrupt current storage is preserved and returns a structured recovery dia
   ])
   expect(result.diagnostics[0]?.recoveryKey?.includes(`${COCKPIT_INPUT_STORE_KEY}.recovery.`)).toBe(true)
   expect(values.get(result.diagnostics[0]!.recoveryKey!)).toBe('{bad')
+  expect(loadCockpitInputStoreWithDiagnostics(storage)).toEqual({
+    store: DEFAULT_COCKPIT_INPUT_STORE,
+    diagnostics: []
+  })
 })
 
 test('sparse profile overrides inherit defaults and explicit null unbinds them', () => {
