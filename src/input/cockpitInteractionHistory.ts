@@ -144,10 +144,139 @@ export class CockpitInteractionHistory {
   }
 }
 
+export const COCKPIT_INTERACTION_TRACE_VERSION = 1 as const
+export const COCKPIT_INTERACTION_TRACE_MAX_RECORDS = 10_000
+export const COCKPIT_INTERACTION_TRACE_MAX_BYTES = 16 * 1024 * 1024
+
+export interface CockpitInteractionTraceOverflow {
+  readonly kind: 'trace-overflow'
+  readonly timestampMs: number
+  readonly droppedRecords: number
+  readonly droppedBytes: number
+}
+
+export interface CockpitInteractionTraceOptions {
+  readonly maxRecords?: number
+  readonly maxBytes?: number
+  readonly now?: () => number
+}
+
+export interface CockpitInteractionTraceExportMetadata {
+  readonly version: typeof COCKPIT_INTERACTION_TRACE_VERSION
+  readonly exportedAt: string
+  readonly recordCount: number
+  readonly retainedBytes: number
+  readonly droppedRecords: number
+  readonly droppedBytes: number
+  readonly maxRecords: number
+  readonly maxBytes: number
+}
+
+export interface CockpitInteractionTraceExport {
+  readonly filename: string
+  readonly mimeType: 'application/json'
+  readonly metadata: CockpitInteractionTraceExportMetadata
+  readonly text: string
+}
+
+const textEncoder = new TextEncoder()
+
+function jsonBytes(value: unknown): number {
+  return textEncoder.encode(JSON.stringify(value)).byteLength
+}
+
 export class CockpitInteractionTrace {
-  private records: unknown[] = []
+  private records: Array<{ readonly json: string; readonly bytes: number }> = []
+  private retainedBytes = 0
+  private droppedRecords = 0
+  private droppedBytes = 0
+  private overflowTimestampMs = 0
+  private readonly maxRecords: number
+  private readonly maxBytes: number
+  private readonly now: () => number
   enabled = false
-  add(record: unknown): void { if (this.enabled) this.records = [...this.records, record].slice(-10_000) }
-  snapshot(): readonly unknown[] { return this.records }
-  clear(): void { this.records = [] }
+
+  constructor(options: CockpitInteractionTraceOptions = {}) {
+    this.maxRecords = Math.max(1, Math.floor(options.maxRecords ?? COCKPIT_INTERACTION_TRACE_MAX_RECORDS))
+    this.maxBytes = Math.max(1, Math.floor(options.maxBytes ?? COCKPIT_INTERACTION_TRACE_MAX_BYTES))
+    this.now = options.now ?? Date.now
+  }
+
+  add(record: unknown | (() => unknown)): boolean {
+    if (!this.enabled) return false
+    let json: string | undefined
+    try {
+      const value = typeof record === 'function' ? record() : record
+      json = JSON.stringify(value)
+    } catch {
+      return false
+    }
+    if (json == null) return false
+    const bytes = textEncoder.encode(json).byteLength
+    this.records.push({ json, bytes })
+    this.retainedBytes += bytes
+    this.enforceLimits()
+    return true
+  }
+
+  snapshot(): readonly unknown[] {
+    const records = this.records.map(record => JSON.parse(record.json) as unknown)
+    const marker = this.overflowMarker()
+    return marker == null ? records : [marker, ...records]
+  }
+
+  clear(): void {
+    this.records = []
+    this.retainedBytes = 0
+    this.droppedRecords = 0
+    this.droppedBytes = 0
+    this.overflowTimestampMs = 0
+  }
+
+  export(timestampMs = this.now()): CockpitInteractionTraceExport {
+    const date = new Date(timestampMs)
+    const exportedAt = Number.isFinite(date.getTime()) ? date.toISOString() : new Date(0).toISOString()
+    const snapshot = this.snapshot()
+    const marker = this.overflowMarker()
+    const metadata: CockpitInteractionTraceExportMetadata = {
+      version: COCKPIT_INTERACTION_TRACE_VERSION,
+      exportedAt,
+      recordCount: snapshot.length,
+      retainedBytes: this.retainedBytes + (marker == null ? 0 : jsonBytes(marker)),
+      droppedRecords: this.droppedRecords,
+      droppedBytes: this.droppedBytes,
+      maxRecords: this.maxRecords,
+      maxBytes: this.maxBytes
+    }
+    return {
+      filename: `flight-sim-interaction-trace-${exportedAt.replace(/[:.]/g, '-')}.json`,
+      mimeType: 'application/json',
+      metadata,
+      text: JSON.stringify({ metadata, records: snapshot }, null, 2)
+    }
+  }
+
+  private overflowMarker(): CockpitInteractionTraceOverflow | undefined {
+    return this.droppedRecords === 0 ? undefined : {
+      kind: 'trace-overflow',
+      timestampMs: this.overflowTimestampMs,
+      droppedRecords: this.droppedRecords,
+      droppedBytes: this.droppedBytes
+    }
+  }
+
+  private enforceLimits(): void {
+    while (true) {
+      const marker = this.overflowMarker()
+      const recordCount = this.records.length + (marker == null ? 0 : 1)
+      const bytes = this.retainedBytes + (marker == null ? 0 : jsonBytes(marker))
+      if (recordCount <= this.maxRecords && bytes <= this.maxBytes) return
+      const dropped = this.records.shift()
+      if (dropped == null) return
+      this.retainedBytes -= dropped.bytes
+      this.droppedRecords += 1
+      this.droppedBytes += dropped.bytes
+      this.overflowTimestampMs = this.now()
+    }
+  }
 }
