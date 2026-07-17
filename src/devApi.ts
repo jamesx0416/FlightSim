@@ -35,10 +35,13 @@ import {
 import type {
   CompiledBehaviorSet,
   CompiledExpression,
+  CompiledInteractionBlocker,
+  CompiledInteractionRoute,
   ImportedAircraft,
   ImportDiagnostic,
   RuntimeState
 } from './msfs/types'
+import { resolveMsfsInteractionPresentation, type MsfsLocalization } from './msfs/localization'
 import {
   getMsfsPackageSourceCacheSnapshot,
   refreshMsfsPackageSourceVersions
@@ -124,7 +127,11 @@ type DevApiInteractions = {
   readonly describe: (target: string) => DevApiInteractionResult
   readonly active: () => DevApiInteractionResult
   readonly history: (options?: { readonly limit?: number }) => DevApiInteractionResult
-  readonly trace: { readonly snapshot: () => DevApiInteractionResult; readonly enable: (enabled?: boolean) => DevApiInteractionResult }
+  readonly trace: {
+    readonly snapshot: () => DevApiInteractionResult
+    readonly enable: (enabled?: boolean) => DevApiInteractionResult
+    readonly export: () => DevApiInteractionResult
+  }
   readonly profiles: {
     readonly list: () => DevApiInteractionResult
     readonly get: (profileId: string) => DevApiInteractionResult
@@ -324,9 +331,284 @@ function createCockpitInputProfilesApi(
   }
 }
 
+const unprovenInteractionDiagnostic = (code: string, message: string): ImportDiagnostic => ({
+  code,
+  message,
+  severity: 'warning'
+})
+
+const CONTROL_KIND_UNPROVEN = unprovenInteractionDiagnostic(
+  'interaction_control_kind_unproven',
+  'The compiler did not prove an authoritative control kind.'
+)
+
+function summarizeInteractionTarget(
+  target: MsfsInteractionTarget,
+  authoredCount: number,
+  value: number | null,
+  localization: MsfsLocalization,
+  localizationAvailable = true
+): Record<string, unknown> {
+  const presentation = resolveMsfsInteractionPresentation({
+    ...target.binding.metadata,
+    routes: target.bindings.flatMap(binding => binding.metadata.routes)
+  }, localization, { value })
+  return {
+    authoredId: target.binding.metadata.authoredId,
+    qualifiedId: target.id,
+    controlKind: 'unknown',
+    operations: target.operations,
+    channels: [...new Set(target.bindings.flatMap(binding =>
+      binding.metadata.routes.map(route => route.channel).filter(channel => channel != null)
+    ))],
+    available: target.bindings.some(binding => !binding.metadata.disabled),
+    title: presentation.title,
+    value,
+    formattedValue: presentation.value,
+    unit: target.binding.metadata.value.unit,
+    ambiguous: target.binding.metadata.authoredId == null || authoredCount > 1,
+    diagnostics: [
+      CONTROL_KIND_UNPROVEN,
+      ...(localizationAvailable ? [] : [unprovenInteractionDiagnostic(
+        'interaction_localization_catalog_unavailable',
+        'The package localization catalog is not available to DevApi.'
+      )])
+    ]
+  }
+}
+
+function describeInteractionTarget(
+  target: MsfsInteractionTarget,
+  options: {
+    readonly packageId: string
+    readonly packageVersion: string | null
+    readonly currentValue: number | null
+    readonly localization: MsfsLocalization
+    readonly localizationAvailable: boolean
+    readonly blockers: readonly CompiledInteractionBlocker[]
+    readonly diagnostics: readonly ImportDiagnostic[]
+  }
+): Record<string, unknown> {
+  const sourcePaths = new Set(target.bindings.map(binding => binding.metadata.sourcePath))
+  const diagnostics = [
+    { ...CONTROL_KIND_UNPROVEN, scope: 'contract' },
+    { ...unprovenInteractionDiagnostic(
+      'interaction_declaration_occurrence_unproven',
+      'The compiler did not preserve a declaration occurrence.'
+    ), scope: 'contract' },
+    { ...unprovenInteractionDiagnostic(
+      'interaction_typed_parameters_unproven',
+      'The compiler did not preserve an authoritative typed parameter schema.'
+    ), scope: 'contract' },
+    { ...unprovenInteractionDiagnostic(
+      'interaction_variants_unproven',
+      'The compiler did not preserve authored semantic variant identifiers.'
+    ), scope: 'contract' },
+    { ...unprovenInteractionDiagnostic(
+      'interaction_covers_unproven',
+      'The compiler did not preserve authored covers relationships.'
+    ), scope: 'contract' },
+    ...(options.localizationAvailable ? [] : [{
+      ...unprovenInteractionDiagnostic(
+        'interaction_localization_catalog_unavailable',
+        'The package localization catalog is not available to DevApi.'
+      ),
+      scope: 'contract'
+    }]),
+    ...options.diagnostics.filter(diagnostic =>
+      diagnostic.sourcePath != null && sourcePaths.has(diagnostic.sourcePath)
+    ).map(diagnostic => ({ ...diagnostic, scope: 'source' }))
+  ]
+  return {
+    packageId: options.packageId,
+    packageVersion: options.packageVersion,
+    authoredId: target.binding.metadata.authoredId,
+    qualifiedId: target.id,
+    controlKind: 'unknown',
+    operations: target.operations,
+    currentValue: options.currentValue,
+    valueMetadata: target.binding.metadata.value,
+    provenance: target.bindings.map(binding => ({
+      sourceKind: binding.metadata.sourceKind,
+      sourcePath: binding.metadata.sourcePath,
+      sourceTemplate: binding.metadata.sourceTemplate,
+      templateRevision: binding.metadata.templateRevision
+    })),
+    declarationOccurrence: null,
+    typedParameters: [],
+    variants: [],
+    covers: [],
+    blockers: options.blockers.filter(blocker => blocker.target === target.binding.target),
+    diagnostics,
+    localizationCatalogAvailable: options.localizationAvailable,
+    localization: resolveMsfsInteractionPresentation(
+      {
+        ...target.binding.metadata,
+        routes: target.bindings.flatMap(binding => binding.metadata.routes)
+      },
+      options.localization,
+      { value: options.currentValue }
+    ),
+    timing: target.bindings.map(binding => ({
+      sourcePath: binding.metadata.sourcePath,
+      minHeldDurationSeconds: binding.minHeldDurationSeconds,
+      animationDurationSeconds: binding.animationDurationSeconds,
+      repeatFrequencyHz: binding.repeatFrequencyHz,
+      settleTimeSeconds: binding.metadata.value.settleTimeSeconds
+    })),
+    routes: target.bindings.flatMap(binding => binding.metadata.routes)
+  }
+}
+
+function rejectUnauthoredVariant(
+  targetName: string,
+  variant: string | undefined
+): DevApiInteractionResult | null {
+  if (variant == null) return null
+  if (variant.trim() === '') {
+    return interactionResult(false, 'INVALID_ARGUMENT', 'variant must not be empty.', {
+      target: targetName,
+      requestedVariant: variant,
+      variants: []
+    })
+  }
+  return interactionResult(
+    false,
+    'VARIANT_NOT_AUTHORED',
+    `No authored semantic variant identifiers are available for "${targetName}".`,
+    { target: targetName, requestedVariant: variant, variants: [] }
+  )
+}
+
+type CanonicalDispatchDependencies = {
+  readonly resolve: (targetName: string) => InteractionResolution
+  readonly busyTargetIds: () => ReadonlySet<string>
+  readonly route: (target: MsfsInteractionTarget, action: CanonicalCockpitAction) => CompiledInteractionRoute | null
+  readonly dispatch: (
+    target: MsfsInteractionTarget,
+    action: CanonicalCockpitAction
+  ) => 'executed' | 'unsupported' | 'busy'
+  readonly onExecuted?: (
+    target: MsfsInteractionTarget,
+    action: CanonicalCockpitAction,
+    route: CompiledInteractionRoute
+  ) => void
+}
+
+function startCanonicalInteractionDispatch(
+  targetName: string,
+  action: CanonicalCockpitAction,
+  dependencies: CanonicalDispatchDependencies
+): Promise<DevApiInteractionResult> {
+  if (action == null || typeof action !== 'object'
+    || typeof action.source !== 'string'
+    || typeof action.operation !== 'string'
+    || typeof action.phase !== 'string'
+    || !Number.isFinite(action.timestampMs)) {
+    return Promise.resolve(interactionResult(false, 'INVALID_ACTION', 'A canonical action is required.', null))
+  }
+  try {
+    const request = resolveInteractionRequest(
+      targetName,
+      dependencies.resolve(targetName),
+      dependencies.busyTargetIds(),
+      action.operation !== 'release' && action.operation !== 'cancel'
+    )
+    if (!request.ok) return Promise.resolve(request.result)
+    const route = dependencies.route(request.target, action)
+    if (route == null) {
+      return Promise.resolve(interactionResult(
+        false,
+        'OPERATION_UNSUPPORTED',
+        `${action.operation} is not authored for ${targetName}.`,
+        { target: request.target.id, action }
+      ))
+    }
+    const dispatched = dependencies.dispatch(request.target, action)
+    if (dispatched !== 'executed') {
+      return Promise.resolve(interactionResult(
+        false,
+        dispatched === 'busy' ? 'TARGET_BUSY' : 'INTERACTION_UNAVAILABLE',
+        dispatched === 'busy' ? `${targetName} is busy.` : `${action.operation} could not execute.`,
+        { target: request.target.id, action }
+      ))
+    }
+    dependencies.onExecuted?.(request.target, action, route)
+    return Promise.resolve(interactionResult(
+      true,
+      'OK',
+      `Dispatched ${action.operation} on ${targetName}.`,
+      { target: request.target.id, action, route }
+    ))
+  } catch (error) {
+    return Promise.resolve(interactionResult(
+      false,
+      'INTERNAL_ERROR',
+      error instanceof Error ? error.message : String(error),
+      { target: targetName, action }
+    ))
+  }
+}
+
+type ActiveDevApiInteraction = {
+  readonly target: MsfsInteractionTarget
+  readonly operation: CockpitInteractionOperation
+  readonly source: CanonicalCockpitAction['source']
+  readonly lifecycle: 'running' | 'held'
+  readonly startedAtMs: number
+  readonly cancellationStatus: 'active' | 'requested'
+}
+
+function resolveInteractionWithHeldFallback(
+  targetName: string,
+  operation: CockpitInteractionOperation,
+  resolution: InteractionResolution,
+  active: ReadonlyMap<string, ActiveDevApiInteraction>
+): InteractionResolution {
+  if (resolution.ok || operation !== 'release') return resolution
+  const held = [...active.values()].filter(state =>
+    state.lifecycle === 'held' &&
+    (state.target.id === targetName || state.target.binding.metadata.authoredId === targetName)
+  )
+  return held.length === 1 ? { ok: true, target: held[0]!.target } : resolution
+}
+
+function listActiveInteractionStates(
+  active: ReadonlyMap<string, ActiveDevApiInteraction>,
+  adapterTargetIds: readonly string[],
+  dispatcherTargetIds: readonly string[]
+): readonly Record<string, unknown>[] {
+  const rows: Array<Record<string, unknown>> = [...active.values()].map(state => ({
+    target: state.target.id,
+    operation: state.operation,
+    source: state.source,
+    lifecycle: state.lifecycle,
+    startedAtMs: state.startedAtMs,
+    cancellationStatus: state.cancellationStatus
+  }))
+  const known = new Set(rows.map(row => row.target))
+  for (const target of adapterTargetIds) {
+    if (known.has(target)) continue
+    known.add(target)
+    rows.push({ target, operation: 'unknown', source: 'unknown', lifecycle: 'adapter-active', startedAtMs: null, cancellationStatus: 'active' })
+  }
+  for (const target of dispatcherTargetIds) {
+    if (known.has(target)) continue
+    known.add(target)
+    rows.push({ target, operation: 'unknown', source: 'unknown', lifecycle: 'dispatcher-active', startedAtMs: null, cancellationStatus: 'active' })
+  }
+  return rows
+}
+
 export const __devApiInteractionTestHooks = {
   resolveInteractionRequest,
-  createCockpitInputProfilesApi
+  createCockpitInputProfilesApi,
+  summarizeInteractionTarget,
+  describeInteractionTarget,
+  rejectUnauthoredVariant,
+  startCanonicalInteractionDispatch,
+  resolveInteractionWithHeldFallback,
+  listActiveInteractionStates
 }
 
 type DevApiStateValue = number | string | boolean
@@ -550,6 +832,7 @@ type ViewerDevApiContext = {
   readonly getCockpitInteractionPickRegistry: () => CockpitInteractionPickRegistry
   readonly getCockpitInteractionAdapter: () => MsfsInteractionAdapter
   readonly getCockpitInteractionDispatcher: () => CockpitInteractionDispatcher<MsfsInteractionTarget>
+  readonly getCockpitLocalization?: () => MsfsLocalization
   readonly getCockpitCameraController: () => CockpitCameraController
   readonly getCockpitBenchmarkState: () => Record<string, unknown>
   readonly runCockpitBenchmark: (options?: {
@@ -1587,7 +1870,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   const interactionDispatcher = context.getCockpitInteractionDispatcher()
   const interactionHistory = new CockpitInteractionHistory(window.localStorage)
   const interactionTrace = new CockpitInteractionTrace()
-  const heldInteractionTargets = new Map<string, ReturnType<MsfsInteractionAdapter['list']>[number]>()
+  const activeInteractionStates = new Map<string, ActiveDevApiInteraction>()
   let cockpitInputStore = loadCockpitInputStore(window.localStorage)
   window.addEventListener('cockpit-input-settings-changed', () => {
     cockpitInputStore = loadCockpitInputStore(window.localStorage)
@@ -1607,17 +1890,41 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     operation: CockpitInteractionOperation,
     options: InteractionSelector & { readonly steps?: number; readonly direction?: CockpitRelativeDirection; readonly value?: number | boolean | string; readonly unit?: string } = {}
   ): Promise<DevApiInteractionResult> => {
+    let runningTargetId: string | null = null
+    let retainActiveState = false
     try {
+      const resolution = resolveInteractionWithHeldFallback(
+        targetName,
+        operation,
+        interactionAdapter.resolve(targetName),
+        activeInteractionStates
+      )
+      if (!resolution.ok) return interactionResolutionFailure(targetName, resolution)
+      const variantFailure = rejectUnauthoredVariant(targetName, options.variant)
+      if (variantFailure != null) return variantFailure
       const request = resolveInteractionRequest(
         targetName,
-        interactionAdapter.resolve(targetName),
-        new Set([...heldInteractionTargets.keys(), ...interactionDispatcher.snapshot.busy]),
+        resolution,
+        new Set([...activeInteractionStates.keys(), ...interactionDispatcher.snapshot.busy]),
         operation !== 'release'
       )
       if (!request.ok) return request.result
       const target = request.target
+      const heldState = activeInteractionStates.get(target.id)
+      const trackRunning = (): void => {
+        runningTargetId = target.id
+        activeInteractionStates.set(target.id, {
+          target,
+          operation,
+          source: 'devapi',
+          lifecycle: 'running',
+          startedAtMs: Date.now(),
+          cancellationStatus: 'active'
+        })
+      }
       if (operation === 'on' || operation === 'off') {
         if (!interactionDispatcher.claim(target, operation)) return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        trackRunning()
         const state = await interactionAdapter
           .setBooleanState(target, operation === 'on', options.interaction)
           .finally(() => interactionDispatcher.finish(target.id))
@@ -1630,6 +1937,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       }
       if (operation === 'set' && typeof options.value === 'boolean') {
         if (!interactionDispatcher.claim(target, operation)) return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        trackRunning()
         const state = await interactionAdapter
           .setBooleanState(target, options.value, options.interaction)
           .finally(() => interactionDispatcher.finish(target.id))
@@ -1640,6 +1948,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       }
       if ((operation === 'set' || operation === 'adjust') && typeof options.value === 'number') {
         if (!interactionDispatcher.claim(target, operation)) return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        trackRunning()
         const exact = await (operation === 'set'
           ? interactionAdapter.setExact(target, options.value, options.unit, options.interaction)
           : interactionAdapter.adjustExact(target, options.value, options.unit, options.interaction)
@@ -1675,7 +1984,29 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         timestampMs: performance.now()
       }
       const route = interactionAdapter.route(target, routeAction)
-      if (route == null) return interactionResult(false, 'OPERATION_UNSUPPORTED', `${operation} is not authored for ${targetName}.`, { target: target.id, operations: target.operations })
+      if (route == null) {
+        if (operation === 'release' && heldState?.lifecycle === 'held') {
+          interactionDispatcher.finish(target.id)
+          interactionAdapter.release(target)
+          activeInteractionStates.delete(target.id)
+          const entry = interactionHistory.add({
+            timestampMs: Date.now(),
+            source: 'devapi',
+            target: target.id,
+            action: operation,
+            result: 'released',
+            detail: { authoredRoute: false }
+          })
+          return interactionResult(true, 'OK', `Released held interaction ${targetName}.`, {
+            target: target.id,
+            operation,
+            authoredRoute: false,
+            historyId: entry.id
+          })
+        }
+        return interactionResult(false, 'OPERATION_UNSUPPORTED', `${operation} is not authored for ${targetName}.`, { target: target.id, operations: target.operations })
+      }
+      if (operation !== 'release') trackRunning()
       for (let index = 0; index < steps; index += 1) {
         const action: CanonicalCockpitAction = {
           ...routeAction,
@@ -1683,12 +2014,30 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         }
         const dispatched = interactionDispatcher.dispatch(target, action)
         if (dispatched === 'busy') return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
-        if (dispatched !== 'executed') return interactionResult(false, 'INTERACTION_UNAVAILABLE', `${operation} could not execute.`, { target: target.id })
-        interactionTrace.add({ action, route, target: target.binding.metadata })
+        if (dispatched !== 'executed') {
+          if (operation === 'release' && heldState?.lifecycle === 'held') {
+            interactionDispatcher.finish(target.id)
+            interactionAdapter.release(target)
+            activeInteractionStates.delete(target.id)
+          }
+          return interactionResult(false, 'INTERACTION_UNAVAILABLE', `${operation} could not execute.`, {
+            target: target.id,
+            heldStateReleased: operation === 'release' && heldState?.lifecycle === 'held'
+          })
+        }
+        interactionTrace.add(() => ({ action, route, target: target.binding.metadata }))
         await Promise.resolve()
       }
-      if (operation === 'hold') heldInteractionTargets.set(target.id, target)
-      if (operation === 'release') { interactionAdapter.release(target); heldInteractionTargets.delete(target.id) }
+      if (operation === 'hold') {
+        const state = activeInteractionStates.get(target.id)
+        if (state != null) activeInteractionStates.set(target.id, { ...state, lifecycle: 'held' })
+        retainActiveState = true
+      }
+      if (operation === 'release') {
+        interactionAdapter.release(target)
+        activeInteractionStates.delete(target.id)
+        runningTargetId = null
+      }
       if (operation === 'press') {
         const releaseAction: CanonicalCockpitAction = { source: 'devapi', operation: 'release', phase: 'release', channel: options.interaction, timestampMs: performance.now() }
         if (interactionAdapter.route(target, releaseAction) != null) interactionDispatcher.dispatch(target, releaseAction)
@@ -1698,20 +2047,23 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       return interactionResult(true, 'OK', `Executed ${operation} on ${targetName}.`, { target: target.id, operation, steps, historyId: entry.id })
     } catch (error) {
       console.error('DevApi interaction failed', error)
-      interactionTrace.add({
+      interactionTrace.add(() => ({
         kind: 'error',
         target: targetName,
         operation,
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
-      })
+      }))
       return interactionResult(false, 'INTERNAL_ERROR', error instanceof Error ? error.message : String(error), { target: targetName, operation })
+    } finally {
+      if (runningTargetId != null && !retainActiveState) activeInteractionStates.delete(runningTargetId)
     }
   }
   const interactionsApi: DevApiInteractions = {
     list: (options = {}) => {
       const needle = options.filter?.toLowerCase() ?? ''
       const targets = interactionAdapter.list()
+      const localization = context.getCockpitLocalization?.() ?? new Map<string, string>()
       const authoredCounts = new Map<string, number>()
       for (const target of targets) {
         const authoredId = target.binding.metadata.authoredId
@@ -1720,28 +2072,42 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       const rows = targets
         .filter(target => !needle || `${target.binding.metadata.authoredId} ${target.id}`.toLowerCase().includes(needle))
         .slice(0, options.limit ?? 500)
-        .map(target => {
-          const value = interactionAdapter.currentValue(target)
-          const unit = target.binding.metadata.value.unit
-          return {
-            authoredId: target.binding.metadata.authoredId,
-            qualifiedId: target.id,
-            operations: target.operations,
-            channels: [...new Set(target.binding.metadata.routes.map(route => route.channel).filter(Boolean))],
-            available: !target.binding.metadata.disabled,
-            title: target.binding.metadata.tooltipTitle,
-            value,
-            formattedValue: value == null ? null : `${value}${unit ? ` ${unit}` : ''}`,
-            unit,
-            ambiguous: target.binding.metadata.authoredId == null || (authoredCounts.get(target.binding.metadata.authoredId) ?? 0) > 1
-          }
-        })
+        .map(target => summarizeInteractionTarget(
+          target,
+          target.binding.metadata.authoredId == null
+            ? 0
+            : authoredCounts.get(target.binding.metadata.authoredId) ?? 0,
+          interactionAdapter.currentValue(target),
+          localization,
+          context.getCockpitLocalization != null
+        ))
       return interactionResult(true, 'OK', 'Listed cockpit interactions.', rows)
     },
-    describe: target => { const result = interactionAdapter.resolve(target); return result.ok ? interactionResult(true, 'OK', `Described ${target}.`, { packageId: context.packageData.packageName, packageVersion: context.packageData.manifest?.packageVersion ?? null, ...result.target.binding.metadata, dragMode: result.target.bindings.some(binding => binding.metadata.dragMode === 'trajectory') ? 'trajectory' : 'default', dragAnimationSynced: result.target.bindings.every(binding => binding.metadata.dragAnimationSynced), bindingVariants: result.target.bindings.map(binding => ({ sourceKind: binding.metadata.sourceKind, sourceTemplate: binding.metadata.sourceTemplate, dragMode: binding.metadata.dragMode, dragAnimationSynced: binding.metadata.dragAnimationSynced, dragAnimationName: binding.metadata.dragAnimationName, routes: binding.metadata.routes })), currentValue: interactionAdapter.currentValue(result.target), expression: result.target.binding.expression, releaseExpression: result.target.binding.releaseExpression }) : interactionResolutionFailure(target, result) },
-    active: () => interactionResult(true, 'OK', 'Listed active interactions.', [...new Set([...heldInteractionTargets.keys(), ...interactionAdapter.active()])]),
+    describe: target => {
+      const result = interactionAdapter.resolve(target)
+      return result.ok
+        ? interactionResult(true, 'OK', `Described ${target}.`, describeInteractionTarget(result.target, {
+            packageId: context.packageData.packageName,
+            packageVersion: context.packageData.manifest?.packageVersion ?? null,
+            currentValue: interactionAdapter.currentValue(result.target),
+            localization: context.getCockpitLocalization?.() ?? new Map<string, string>(),
+            localizationAvailable: context.getCockpitLocalization != null,
+            blockers: context.getCompiledBehaviors().interactionBlockers,
+            diagnostics: getDiagnostics()
+          }))
+        : interactionResolutionFailure(target, result)
+    },
+    active: () => interactionResult(true, 'OK', 'Listed active interactions.', listActiveInteractionStates(
+      activeInteractionStates,
+      interactionAdapter.active(),
+      interactionDispatcher.snapshot.busy
+    )),
     history: (options = {}) => interactionResult(true, 'OK', 'Collected interaction history.', interactionHistory.list(options.limit)),
-    trace: { snapshot: () => interactionResult(true, 'OK', 'Collected interaction trace.', interactionTrace.snapshot()), enable: (enabled = true) => { interactionTrace.enabled = enabled; return interactionResult(true, 'OK', `Detailed tracing ${enabled ? 'enabled' : 'disabled'}.`, { enabled }) } },
+    trace: {
+      snapshot: () => interactionResult(true, 'OK', 'Collected interaction trace.', interactionTrace.snapshot()),
+      enable: (enabled = true) => { interactionTrace.enabled = enabled; return interactionResult(true, 'OK', `Detailed tracing ${enabled ? 'enabled' : 'disabled'}.`, { enabled }) },
+      export: () => interactionResult(true, 'OK', 'Exported interaction trace.', interactionTrace.export())
+    },
     profiles: cockpitInputProfilesApi,
     settings: { get: () => interactionResult(true, 'OK', 'Loaded cockpit input settings.', cockpitInputStore.globalSettings), set: settings => { cockpitInputStore = { ...cockpitInputStore, globalSettings: updateCockpitInputSettings(settings) }; window.dispatchEvent(new Event('cockpit-input-settings-changed')); return interactionResult(true, 'OK', 'Saved cockpit input settings.', cockpitInputStore.globalSettings) } },
     press: (target, options) => runInteraction(target, 'press', options),
@@ -1755,9 +2121,74 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     on: (target, options) => runInteraction(target, 'on', options),
     off: (target, options) => runInteraction(target, 'off', options),
     toggle: (target, options) => runInteraction(target, 'toggle', options),
-    cancel: target => { const resolved = interactionAdapter.resolve(target); if (resolved.ok) { interactionDispatcher.cancel(resolved.target.id); interactionAdapter.cancel(resolved.target); heldInteractionTargets.delete(resolved.target.id) }; return interactionResult(resolved.ok, resolved.ok ? 'CANCELLED' : resolved.code, resolved.ok ? `Cancelled ${target}.` : `Could not resolve ${target}.`, { target }) },
-    cancelAll: () => { interactionDispatcher.cancelAll(); interactionAdapter.cancelAll(); for (const target of heldInteractionTargets.values()) interactionAdapter.release(target); heldInteractionTargets.clear(); return interactionResult(true, 'CANCELLED', 'Cancelled all interactions.', null) },
-    dispatch: async (target, action) => runInteraction(target, action.operation, { interaction: action.channel, steps: action.steps, direction: action.direction, value: action.value, unit: action.unit })
+    cancel: target => {
+      const resolved = interactionAdapter.resolve(target)
+      if (!resolved.ok) return interactionResolutionFailure(target, resolved)
+      const state = activeInteractionStates.get(resolved.target.id)
+      if (state != null) {
+        activeInteractionStates.set(resolved.target.id, { ...state, cancellationStatus: 'requested' })
+      }
+      interactionDispatcher.cancel(resolved.target.id)
+      interactionAdapter.cancel(resolved.target)
+      if (state?.lifecycle === 'held') activeInteractionStates.delete(resolved.target.id)
+      return interactionResult(true, 'CANCELLED', `Cancelled ${target}.`, {
+        target: resolved.target.id,
+        cancellationStatus: 'requested'
+      })
+    },
+    cancelAll: () => {
+      const states = [...activeInteractionStates.values()]
+      for (const state of states) {
+        activeInteractionStates.set(state.target.id, { ...state, cancellationStatus: 'requested' })
+      }
+      interactionDispatcher.cancelAll()
+      interactionAdapter.cancelAll()
+      for (const state of states) {
+        if (state.lifecycle !== 'held') continue
+        interactionAdapter.release(state.target)
+        activeInteractionStates.delete(state.target.id)
+      }
+      return interactionResult(true, 'CANCELLED', 'Cancelled all interactions.', {
+        targets: states.map(state => state.target.id),
+        cancellationStatus: 'requested'
+      })
+    },
+    dispatch: (target, action) => startCanonicalInteractionDispatch(target, action, {
+      resolve: name => resolveInteractionWithHeldFallback(
+        name,
+        action.operation,
+        interactionAdapter.resolve(name),
+        activeInteractionStates
+      ),
+      busyTargetIds: () => new Set([...activeInteractionStates.keys(), ...interactionDispatcher.snapshot.busy]),
+      route: (resolved, canonicalAction) => interactionAdapter.route(resolved, canonicalAction),
+      dispatch: (resolved, canonicalAction) => interactionDispatcher.dispatch(resolved, canonicalAction),
+      onExecuted: (resolved, canonicalAction, route) => {
+        interactionTrace.add(() => ({ action: canonicalAction, route, target: resolved.binding.metadata }))
+        interactionHistory.add({
+          timestampMs: Date.now(),
+          source: canonicalAction.source,
+          target: resolved.id,
+          action: canonicalAction.operation,
+          result: 'executed',
+          detail: { phase: canonicalAction.phase }
+        })
+        if (canonicalAction.operation === 'hold') {
+          activeInteractionStates.set(resolved.id, {
+            target: resolved,
+            operation: canonicalAction.operation,
+            source: canonicalAction.source,
+            lifecycle: 'held',
+            startedAtMs: Date.now(),
+            cancellationStatus: 'active'
+          })
+        }
+        if (canonicalAction.operation === 'release') {
+          interactionAdapter.release(resolved)
+          activeInteractionStates.delete(resolved.id)
+        }
+      }
+    })
   }
   const list = (options: { readonly kind?: DevApiListKind; readonly filter?: string; readonly limit?: number } = {}): DevApiResponse => {
     const kind = options.kind ?? 'components'
