@@ -12,6 +12,7 @@ export interface CockpitInteractionInput {
   readonly channel?: CockpitInteractionChannel
   readonly phase: CockpitInteractionPhase
   readonly pointerId?: number
+  readonly clickCount?: number
   readonly axis?: 'x' | 'y' | 'z'
   readonly axisValue?: number
   readonly delta?: number
@@ -69,7 +70,13 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     if (target != null) this.execute(target, event('hover', 'press', timestampMs))
   }
 
-  pointerDown(target: T | null, pointerId: number, channel: CockpitInteractionChannel, timestampMs: number): boolean {
+  pointerDown(
+    target: T | null,
+    pointerId: number,
+    channel: CockpitInteractionChannel,
+    timestampMs: number,
+    clickCount = 1
+  ): boolean {
     if (target == null) return false
     if (this.busy.has(target.id)) return true
     const locked = this.mode === 'lock' && target.lockable && channel === 'primary'
@@ -77,7 +84,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     this.state = locked ? 'locked' : 'pressed'
     this.busy.set(target.id, 'hold')
     if (locked) this.execute(target, { ...event('lock', 'hold', timestampMs), channel, pointerId })
-    this.execute(target, { ...event('hold', 'hold', timestampMs), channel, pointerId })
+    this.execute(target, { ...event('hold', 'hold', timestampMs), channel, pointerId, clickCount })
     return true
   }
 

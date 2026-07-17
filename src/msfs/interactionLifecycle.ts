@@ -29,6 +29,25 @@ export class MsfsInteractionLifecycle {
     private readonly diagnose: (diagnostic: MsfsInteractionLifecycleDiagnostic) => void = () => {}
   ) {}
 
+  execute(target: MsfsInteractionTarget, action: CanonicalCockpitAction): boolean {
+    if (action.source === 'mouse' && action.pointerId != null) {
+      if (action.operation === 'hold' && action.phase === 'hold') {
+        return this.press(target, action, action.clickCount)
+      }
+      if (action.operation === 'turn' && action.phase === 'drag') {
+        return this.move(target, action)
+      }
+      if (action.operation === 'release' && action.phase === 'release') {
+        return this.release(target, action)
+      }
+    }
+    if (action.source === 'mouse' && action.operation === 'cancel' && action.phase === 'cancel') {
+      this.cancel(target)
+      return true
+    }
+    return this.adapter.execute(target, action)
+  }
+
   press(target: MsfsInteractionTarget, action: CanonicalCockpitAction, clickCount = 1): boolean {
     this.cancelTasks(target.id)
     const active: ActiveInteraction = {
