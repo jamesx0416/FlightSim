@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import { Object3D } from 'three'
 
 import { SimScheduler } from '../sim/engine'
-import { MsfsInteractionAdapter, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
+import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
 import { MsfsInteractionLifecycle } from './interactionLifecycle'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
 import type { CompiledBehaviorSet, CompiledInteractionBinding, CompiledInteractionRoute } from './types'
@@ -13,6 +13,20 @@ test('starts each authored drag lifecycle with its lock route', () => {
 
   expect(selectDragRoutes([drag, lock], true)).toEqual([lock, drag])
   expect(selectDragRoutes([drag, lock], false)).toEqual([drag])
+})
+
+test('groups sibling bindings by authoritative interaction identity', () => {
+  const click = interactionBinding()
+  const drag = { ...click, metadata: { ...click.metadata } }
+  const otherTarget = { ...drag, target: 'OTHER' }
+  const otherQualifiedId = {
+    ...drag,
+    metadata: { ...drag.metadata, qualifiedId: 'other.xml#TEST' }
+  }
+
+  expect(isSameMsfsInteractionTarget(click, drag)).toBe(true)
+  expect(isSameMsfsInteractionTarget(click, otherTarget)).toBe(false)
+  expect(isSameMsfsInteractionTarget(click, otherQualifiedId)).toBe(false)
 })
 
 test('projects pointer movement onto the authored drag trajectory', () => {
@@ -297,6 +311,49 @@ test('runs authored single, double, repeat, drag, release, and cancellation life
   lifecycle.cancel(target)
   scheduler.tick(2)
   expect(events.at(-1)).toBe('release-feedback')
+})
+
+test('bridges captured pointer actions and keeps repeated cancellation idempotent', () => {
+  const binding = interactionBinding({}, [
+    { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] },
+    { channel: 'primary', phase: 'double', operation: 'press', msfsEvent: 'LeftDouble', axis: null, inputTypes: [] },
+    { channel: 'primary', phase: 'drag', operation: 'turn', msfsEvent: 'LeftDrag', axis: 'y', inputTypes: [] },
+    { channel: 'secondary', phase: 'release', operation: 'release', msfsEvent: 'RightRelease', axis: null, inputTypes: [] }
+  ])
+  const events: string[] = []
+  let cancellations = 0
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { mouseEvent?: string }) => {
+      events.push(options.mouseEvent ?? '')
+      return true
+    },
+    cancelInteractionBinding: () => {
+      cancellations += 1
+      return true
+    },
+    readInteractionValue: () => null
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+  const lifecycle = new MsfsInteractionLifecycle(adapter, new SimScheduler())
+  const target = adapter.fromBinding(binding)
+
+  expect(lifecycle.execute(target, {
+    source: 'mouse', operation: 'hold', phase: 'hold', channel: 'primary', pointerId: 1, clickCount: 2, timestampMs: 0
+  })).toBe(true)
+  expect(lifecycle.execute(target, {
+    source: 'mouse', operation: 'release', phase: 'release', channel: 'secondary', timestampMs: 1
+  })).toBe(true)
+  expect(lifecycle.execute(target, {
+    source: 'mouse', operation: 'turn', phase: 'drag', channel: 'primary', pointerId: 1, axis: 'y', axisValue: 0.5, timestampMs: 2
+  })).toBe(true)
+  lifecycle.execute(target, {
+    source: 'mouse', operation: 'cancel', phase: 'cancel', timestampMs: 3
+  })
+  adapter.cancel(target)
+
+  expect(events).toEqual(['LeftSingle', 'LeftDouble', 'RightRelease', 'LeftDrag'])
+  expect(cancellations).toBe(1)
 })
 
 test('fails repeat closed when authored routes do not prove timing', () => {

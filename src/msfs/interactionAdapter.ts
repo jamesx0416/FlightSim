@@ -39,6 +39,14 @@ export interface MsfsDragTrajectoryPoint {
   readonly dragPercent: number
 }
 
+export function isSameMsfsInteractionTarget(
+  left: CompiledInteractionBinding,
+  right: CompiledInteractionBinding
+): boolean {
+  return left.target === right.target &&
+    left.metadata.qualifiedId === right.metadata.qualifiedId
+}
+
 export function resolveMsfsAxisPercent(
   axis: 'x' | 'y' | 'z',
   relativeX: number,
@@ -100,6 +108,7 @@ export class MsfsInteractionAdapter {
   private readonly cancellations = new Map<string, number>()
   private readonly cancellationWaiters = new Map<string, Set<() => void>>()
   private readonly busy = new Set<string>()
+  private readonly held = new Set<string>()
   private mode: CockpitInteractionMode = 'legacy'
 
   constructor(
@@ -153,7 +162,7 @@ export class MsfsInteractionAdapter {
         ? action.value
         : undefined
     const value = action.axisValue ?? action.delta ?? actionValue
-    return this.runtime.executeInteractionBindingDirect(selected.binding, {
+    const executed = this.runtime.executeInteractionBindingDirect(selected.binding, {
       holdFeedback: action.phase === 'hold' || action.phase === 'drag',
       mouseEvent: selected.route.msfsEvent ?? undefined,
       inputType: selected.route.inputTypes[0],
@@ -163,6 +172,10 @@ export class MsfsInteractionAdapter {
       dragPercent: action.dragPercent,
       parameterValues: actionValue == null ? undefined : [actionValue]
     })
+    if (executed && action.operation === 'hold' && action.phase === 'hold') {
+      this.held.add(target.id)
+    }
+    return executed
   }
 
   route(target: MsfsInteractionTarget, action: CanonicalCockpitAction): CompiledInteractionRoute | null {
@@ -224,6 +237,7 @@ export class MsfsInteractionAdapter {
   }
 
   release(target: MsfsInteractionTarget): boolean {
+    this.held.delete(target.id)
     return target.bindings.map(binding => this.runtime.releaseInteractionBinding(binding)).some(Boolean)
   }
 
@@ -249,6 +263,7 @@ export class MsfsInteractionAdapter {
 
   cancel(target: MsfsInteractionTarget): void {
     this.signalCancellation(target.id)
+    if (!this.held.delete(target.id)) return
     const runtime = this.runtime as AircraftRuntime & {
       cancelInteractionBinding?: (binding: CompiledInteractionBinding) => boolean
     }
@@ -456,7 +471,7 @@ export class MsfsInteractionAdapter {
   private toTarget(binding: CompiledInteractionBinding): MsfsInteractionTarget {
     const bindings = [binding, ...this.runtime.getInteractionBindings().filter(candidate =>
       candidate !== binding &&
-      candidate.metadata.qualifiedId === binding.metadata.qualifiedId && candidate.target === binding.target
+      isSameMsfsInteractionTarget(candidate, binding)
     )]
     return {
       id: binding.metadata.qualifiedId,

@@ -6,10 +6,11 @@ describe('CockpitInteractionDispatcher', () => {
     const actions: CanonicalCockpitAction[] = []
     const target: CockpitInteractionTarget = { id: 'control', lockable: false, operations: ['press', 'hold', 'turn', 'release'] }
     const dispatcher = new CockpitInteractionDispatcher('legacy', (_target, action) => { actions.push(action); return true })
-    expect(dispatcher.pointerDown(target, 1, 'tertiary', 1)).toBe(true)
+    expect(dispatcher.pointerDown(target, 1, 'tertiary', 1, 2)).toBe(true)
     expect(dispatcher.pointerMove(1, 'y', 0.5, 0.2, 2)).toBe(true)
     expect(dispatcher.pointerUp(1, 3)).toBe(true)
     expect(actions.map(action => [action.operation, action.channel])).toEqual([['hold', 'tertiary'], ['turn', 'tertiary'], ['release', 'tertiary']])
+    expect(actions[0]?.clickCount).toBe(2)
   })
 
   test('lock mode locks authored complex controls and cancels safely', () => {

@@ -57,7 +57,8 @@ import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import { loadMsfsLocalization, resolveMsfsLocalizedString, sanitizeMsfsTooltipText, type MsfsLocalization } from './msfs/localization'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
-import { MsfsInteractionAdapter, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { MsfsInteractionLifecycle } from './msfs/interactionLifecycle'
 import { CockpitInteractionDispatcher, type CockpitInteractionChannel } from './input/cockpitInteraction'
 import {
   DEFAULT_COCKPIT_INPUT_PROFILE_ID,
@@ -260,6 +261,7 @@ export type CockpitCameraController = {
   readonly dispose: () => void
   readonly isActive: () => boolean
   readonly update: () => void
+  readonly cancelInteraction: () => void
   readonly enter: (source?: CockpitViewToggleSource) => void
   readonly exit: (source?: CockpitViewToggleSource) => void
 }
@@ -578,6 +580,7 @@ async function init(): Promise<void> {
   let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
   runtime.bindAnimations(loadedModel.animations)
   let lastRuntimeModelRevision = runtime.getModelRevision()
+  let cancelCockpitPointerInteraction = (): void => {}
   ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
   const cockpitInteractionStats = {
     attemptCount: 0,
@@ -890,8 +893,9 @@ async function init(): Promise<void> {
   }
 
   const rebuildRuntimeForLoadedModel = (): void => {
+    cancelCockpitPointerInteraction()
     cockpitInteractionDispatcher.cancelAll()
-    cockpitInteractionAdapter.cancelAll()
+    cockpitInteractionLifecycle.cancelAll()
     runtime.dispose()
     runtime = new AircraftRuntime(
       compiledBehaviors,
@@ -1526,6 +1530,10 @@ async function init(): Promise<void> {
     { readonly points: readonly MsfsDragTrajectoryPoint[]; readonly offset: number; readonly percent: number; readonly mode: 'default' | 'trajectory' }
   >()
   const cockpitInteractionAdapter = new MsfsInteractionAdapter(() => runtime)
+  const cockpitInteractionLifecycle = new MsfsInteractionLifecycle(
+    cockpitInteractionAdapter,
+    runtimeHost.simulatorEngine.scheduler
+  )
   const getCockpitInputProfile = () => {
     const store = loadCockpitInputStore(window.localStorage)
     return effectiveCockpitInputProfile(
@@ -1535,13 +1543,13 @@ async function init(): Promise<void> {
   }
   const cockpitInteractionDispatcher = new CockpitInteractionDispatcher<MsfsInteractionTarget>(
     getCockpitInputProfile().interactionMode,
-    (target, action) => cockpitInteractionAdapter.execute(target, action)
+    (target, action) => cockpitInteractionLifecycle.execute(target, action)
   )
   const syncCockpitInteractionMode = (): void => {
-    cockpitInteractionDispatcher.cancelAll()
-    cockpitInteractionAdapter.cancelAll()
+    cancelCockpitPointerInteraction()
     const mode = getCockpitInputProfile().interactionMode
     cockpitInteractionDispatcher.setMode(mode)
+    cockpitInteractionLifecycle.cancelAll()
     cockpitInteractionAdapter.setMode(mode)
     clearCockpitInteractionFeedback()
   }
@@ -1598,6 +1606,7 @@ async function init(): Promise<void> {
         const executedTarget = executeCockpitInteractionBinding(binding, hit.object, 'interaction-mesh', {
           ...options,
           pointerId: 'pointerId' in event ? event.pointerId : 1,
+          clickCount: event.detail === 2 ? 2 : 1,
           timestampMs: event.timeStamp
         })
         if (executedTarget != null) {
@@ -1641,6 +1650,7 @@ async function init(): Promise<void> {
           {
             ...options,
             pointerId: 'pointerId' in event ? event.pointerId : 1,
+            clickCount: event.detail === 2 ? 2 : 1,
             timestampMs: event.timeStamp
           }
         )
@@ -1774,7 +1784,7 @@ async function init(): Promise<void> {
     binding: CompiledInteractionBinding,
     hitObject: Object3D,
     hitKind: 'interaction-mesh' | 'fallback-hitbox',
-    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean; readonly pointerId?: number; readonly timestampMs?: number }
+    options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean; readonly pointerId?: number; readonly clickCount?: number; readonly timestampMs?: number }
   ): CompiledInteractionBinding | null => {
     cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
     cockpitInteractionStats.lastHitKind = hitKind
@@ -1826,7 +1836,8 @@ async function init(): Promise<void> {
           target,
           options.pointerId ?? 1,
           channel,
-          timestampMs
+          timestampMs,
+          options.clickCount
         )
     if (executed) {
       const dragBinding =
@@ -1972,7 +1983,6 @@ async function init(): Promise<void> {
     if (cockpitInteractionDispatcher.snapshot.captured !== target.id) return
     if (options.cancelled) {
       cockpitInteractionDispatcher.cancel(target.id)
-      cockpitInteractionAdapter.cancel(target)
     } else {
       if (options.unlock && getCockpitInputProfile().interactionMode === 'legacy') {
         cockpitInteractionDispatcher.dispatchCaptured({
@@ -1983,7 +1993,6 @@ async function init(): Promise<void> {
         })
       }
       cockpitInteractionDispatcher.pointerUp(options.pointerId ?? 1, performance.now())
-      cockpitInteractionAdapter.release(target)
     }
     if (cockpitInteractionStats.activeHeldTarget === binding.target) {
       cockpitInteractionStats.activeHeldTarget = null
@@ -2194,6 +2203,28 @@ async function init(): Promise<void> {
     return registry
   }
 
+  const isCockpitInteractionBindingPresent = (
+    binding: CompiledInteractionBinding
+  ): boolean => {
+    const root = loadedModel.scene
+    const registry = getCockpitInteractionPickRegistry(root, runtime)
+    const isPresent = (node: Object3D): boolean => {
+      let current: Object3D | null = node
+      while (current != null) {
+        if (!current.visible) return false
+        if (current === root) return true
+        current = current.parent
+      }
+      return false
+    }
+    for (const [mesh, candidate] of registry.bindingsByMesh) {
+      if (isSameMsfsInteractionTarget(candidate, binding) && isRenderableMesh(mesh) && isPresent(mesh)) return true
+    }
+    return registry.fallbackHitboxes.some(
+      candidate => isSameMsfsInteractionTarget(candidate.binding, binding) && isPresent(candidate.sourceNode)
+    )
+  }
+
   const syncCockpitInteractionHitboxHelpers = (): void => {
     if (cockpitInteractionHitboxHelperGroup != null) {
       scene.remove(cockpitInteractionHitboxHelperGroup)
@@ -2302,8 +2333,10 @@ async function init(): Promise<void> {
     releaseCockpitInteractionPress,
     handleCockpitInteractionPress,
     handleCockpitInteractionHover,
-    executeCapturedCockpitAction
+    executeCapturedCockpitAction,
+    isCockpitInteractionBindingPresent
   )
+  cancelCockpitPointerInteraction = cockpitCameraController.cancelInteraction
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
     cockpitCameraController
   loadedModel.interior?.vcockpitBinding?.setActive(shouldUpdateVCockpitGaugesForCurrentView())
@@ -11620,7 +11653,8 @@ function installCockpitCameraShortcut(
   onCapturedCockpitAction?: (
     operation: 'press' | 'release' | 'increase' | 'decrease',
     channel?: CockpitInteractionChannel
-  ) => boolean
+  ) => boolean,
+  isCockpitInteractionTargetPresent?: (binding: CompiledInteractionBinding) => boolean
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -11632,6 +11666,7 @@ function installCockpitCameraShortcut(
       dispose: () => {},
       isActive: () => false,
       update: () => {},
+      cancelInteraction: () => {},
       enter: () => {},
       exit: () => {}
     }
@@ -12056,7 +12091,16 @@ function installCockpitCameraShortcut(
       disposeCockpitCameraShortcut = null
     },
     isActive: () => isCockpitViewActive,
-    update: applyCockpitCamera,
+    update: () => {
+      if (
+        activeCockpitPressBinding != null &&
+        isCockpitInteractionTargetPresent?.(activeCockpitPressBinding) === false
+      ) {
+        cancelActivePointer()
+      }
+      applyCockpitCamera()
+    },
+    cancelInteraction: cancelActivePointer,
     enter: source => enterCockpitView(source ?? 'benchmark'),
     exit: source => exitCockpitView(source ?? 'benchmark')
   }
