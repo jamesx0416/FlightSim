@@ -422,6 +422,21 @@ function describeInteractionTarget(
   return {
     packageId: options.packageId,
     packageVersion: options.packageVersion,
+    ...target.binding.metadata,
+    dragMode: target.bindings.some(binding => binding.metadata.dragMode === 'trajectory')
+      ? 'trajectory'
+      : 'default',
+    dragAnimationSynced: target.bindings.every(binding => binding.metadata.dragAnimationSynced),
+    bindingVariants: target.bindings.map(binding => ({
+      sourceKind: binding.metadata.sourceKind,
+      sourceTemplate: binding.metadata.sourceTemplate,
+      dragMode: binding.metadata.dragMode,
+      dragAnimationSynced: binding.metadata.dragAnimationSynced,
+      dragAnimationName: binding.metadata.dragAnimationName,
+      routes: binding.metadata.routes
+    })),
+    expression: target.binding.expression,
+    releaseExpression: target.binding.releaseExpression,
     authoredId: target.binding.metadata.authoredId,
     qualifiedId: target.id,
     controlKind: 'unknown',

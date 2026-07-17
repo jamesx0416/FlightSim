@@ -245,6 +245,14 @@ test('interaction summaries expose stable unknown metadata and proven presentati
     ]
   })
   expect({
+    cursor: description.cursor,
+    sourceKind: description.sourceKind,
+    value: description.value,
+    dragMode: description.dragMode,
+    dragAnimationSynced: description.dragAnimationSynced,
+    bindingVariants: description.bindingVariants,
+    expression: description.expression,
+    releaseExpression: description.releaseExpression,
     controlKind: description.controlKind,
     declarationOccurrence: description.declarationOccurrence,
     typedParameters: description.typedParameters,
@@ -255,6 +263,21 @@ test('interaction summaries expose stable unknown metadata and proven presentati
     localization: description.localization,
     timing: description.timing
   }).toEqual({
+    cursor: 'pointer',
+    sourceKind: 'callbackCode',
+    value: { variableKey: 'L:CONTROL', unit: 'number', minimum: 0, maximum: 1, step: 1, cyclic: false, settleTimeSeconds: 0.1 },
+    dragMode: 'default',
+    dragAnimationSynced: false,
+    bindingVariants: [{
+      sourceKind: 'callbackCode',
+      sourceTemplate: 'ASOBO_GT_Interaction_LeftSingle_Code',
+      dragMode: 'default',
+      dragAnimationSynced: false,
+      dragAnimationName: null,
+      routes: [target.binding.metadata.routes[0]]
+    }],
+    expression: target.binding.expression,
+    releaseExpression: null,
     controlKind: 'unknown',
     declarationOccurrence: null,
     typedParameters: [],
