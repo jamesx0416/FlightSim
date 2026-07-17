@@ -99,6 +99,14 @@ test('preflights and verifies exact convergence and detects no progress', async 
 
   const success = await adapter.setExact(target, 4)
   expect([success.ok, success.previous, success.actual, success.steps]).toEqual([true, 1, 4, 3])
+  expect(await adapter.adjustExact(target, -2)).toMatchObject({
+    ok: true,
+    code: 'OK',
+    previous: 4,
+    requested: 2,
+    actual: 2,
+    steps: 2
+  })
   expect((await adapter.setExact(target, 4.5)).code).toBe('VALUE_NOT_REACHABLE')
   value = 2
   move = false
