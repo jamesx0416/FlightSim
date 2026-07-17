@@ -99,10 +99,21 @@ test('uses authored Set, rejects incompatible units, and observes cancellation',
   let value = 0
   let wait = false
   let resume = (): void => {}
-  const binding = interactionBinding(
+  const base = interactionBinding(
     { unit: 'degree' },
     [{ channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }]
   )
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: 'p0 (>L:TEST, degree)',
+      instructions: [
+        { op: 'pushParameter', index: 0 },
+        { op: 'writeVariable', key: 'L:TEST', unit: 'degree' }
+      ],
+      variableKeys: ['L:TEST, degree']
+    }
+  }
   const runtime = {
     getInteractionBindings: () => [binding],
     readInteractionValue: () => value,
@@ -124,6 +135,85 @@ test('uses authored Set, rejects incompatible units, and observes cancellation',
   adapter.cancel(target)
   resume()
   expect((await pending).code).toBe('CANCELLED')
+})
+
+test('does not mutate through an unproven Set route', async () => {
+  let executions = 0
+  const binding = interactionBinding(
+    { step: null, increaseStep: null, decreaseStep: null },
+    [{ channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }]
+  )
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => 0,
+    executeInteractionBindingDirect: () => { executions += 1; return true },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+
+  expect((await adapter.setExact(adapter.fromBinding(binding), 1)).code).toBe('VALUE_REACHABILITY_UNKNOWN')
+  expect(executions).toBe(0)
+})
+
+test('reads independent authored state and executes a static state setter', async () => {
+  const stateExpression = {
+    source: '(L:TEST_STATE, number)',
+    instructions: [{ op: 'pushVariable' as const, key: 'L:TEST_STATE', unit: 'number' }],
+    variableKeys: ['L:TEST_STATE, number']
+  }
+  const binding = interactionBinding({
+    stateExpression,
+    setStates: [{
+      value: 2,
+      label: 'Two',
+      expression: {
+        source: '2 (>L:TEST_STATE, number)',
+        instructions: [
+          { op: 'pushNumber' as const, value: 2 },
+          { op: 'writeVariable' as const, key: 'L:TEST_STATE', unit: 'number' }
+        ],
+        variableKeys: ['L:TEST_STATE, number']
+      }
+    }]
+  }, [])
+  const { runtime, host } = interactionRuntime(binding)
+  host.writeVariable('L:TEST_STATE', 0, 'number')
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+  const result = await adapter.setExact(adapter.fromBinding(binding), 2)
+
+  expect([result.code, result.executionPath, result.actual]).toEqual(['OK', 'direct-set', 2])
+  expect(runtime.readInteractionValue(binding)).toBe(2)
+})
+
+test('preflights asymmetric directional steps and chooses the shorter cyclic path', async () => {
+  let value = 0
+  const events: string[] = []
+  const binding = interactionBinding({
+    maximum: 4,
+    cyclic: true,
+    step: null,
+    increaseStep: 2,
+    decreaseStep: 1
+  })
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => value,
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { mouseEvent?: string }) => {
+      events.push(options.mouseEvent ?? '')
+      value = options.mouseEvent === 'WheelUp'
+        ? (value + 2) % 4
+        : (value + 3) % 4
+      return true
+    },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+
+  expect((await adapter.setExact(adapter.fromBinding(binding), 2)).code).toBe('OK')
+  expect(events).toEqual(['WheelUp'])
+  events.length = 0
+  expect((await adapter.setExact(adapter.fromBinding(binding), 1)).code).toBe('OK')
+  expect(events).toEqual(['WheelDown'])
 })
 
 test('resolves duplicate authored IDs strictly and requires an unambiguous channel', () => {

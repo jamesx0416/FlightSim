@@ -125,7 +125,13 @@ test('interaction metadata expands authored flags and value reachability', () =>
   ])
   expect(metadata.value).toEqual({
     variableKey: 'L:TEST_VALUE', unit: 'number', minimum: 0, maximum: 10,
-    step: 0.5, cyclic: false, settleTimeSeconds: 0
+    step: 0.5, increaseStep: 0.5, decreaseStep: 0.5,
+    cyclic: false, settleTimeSeconds: 0, setStates: [],
+    stateExpression: {
+      source: '(L:TEST_VALUE, number)',
+      instructions: [{ op: 'pushVariable', key: 'L:TEST_VALUE', unit: 'number' }],
+      variableKeys: ['L:TEST_VALUE, number']
+    }
   })
   expect([metadata.prioritizeVCockpits, metadata.ignoreZTest]).toEqual([true, true])
   expect(metadata.sourceTemplate).toBe('ASOBO_TEST_KNOB')
@@ -142,6 +148,42 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(metadata.tooltipActionHints).toEqual([
     { label: 'TT:TEST.INCREASE', cursor: 'TurnRight' }
   ])
+
+  const authoredState = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['ID', 'TEST_STATE'],
+      ['GET_STATE_EXTERNAL', '(L:TEST_STATE, number) sp0'],
+      ['STR_STATE_OFF', 'Off'],
+      ['SET_STATE_OFF', '0 (>L:TEST_STATE, number)'],
+      ['STR_STATE_ON', 'On'],
+      ['SET_STATE_ON', '1 (>L:TEST_STATE, number)'],
+      ['INCREMENT', '2'],
+      ['DECREMENT', '1']
+    ]),
+    'TEST_STATE',
+    'TEST_STATE',
+    'test.xml',
+    "(M:Event) 'WheelUp' scmi 0 == if{ 1 (>L:TEST_STATE) }",
+    'callback',
+    diagnostics
+  )
+  expect(authoredState.value.stateExpression?.source).toBe('(L:TEST_STATE, number) sp0 l0')
+  expect(authoredState.value.setStates?.map(state => [state.value, state.label])).toEqual([
+    [0, 'Off'], [1, 'On']
+  ])
+  expect([authoredState.value.increaseStep, authoredState.value.decreaseStep]).toEqual([2, 1])
+
+  const incrementDiagnostics: ImportDiagnostic[] = []
+  __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([['INCREMENT', 'p0 2 *']]),
+    'TEST_DYNAMIC',
+    'TEST_DYNAMIC',
+    'test.xml',
+    "(M:Event) 'WheelUp' scmi 0 == if{ 1 (>L:TEST_STATE) }",
+    'callback',
+    incrementDiagnostics
+  )
+  expect(incrementDiagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_increment_unproven')).toBe(true)
 
   const inverted = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([
