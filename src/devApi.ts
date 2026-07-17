@@ -847,7 +847,7 @@ type ViewerDevApiContext = {
   readonly getCockpitInteractionPickRegistry: () => CockpitInteractionPickRegistry
   readonly getCockpitInteractionAdapter: () => MsfsInteractionAdapter
   readonly getCockpitInteractionDispatcher: () => CockpitInteractionDispatcher<MsfsInteractionTarget>
-  readonly getCockpitLocalization?: () => MsfsLocalization
+  readonly getCockpitLocalization: () => MsfsLocalization
   readonly getCockpitCameraController: () => CockpitCameraController
   readonly getCockpitBenchmarkState: () => Record<string, unknown>
   readonly runCockpitBenchmark: (options?: {
@@ -2078,7 +2078,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     list: (options = {}) => {
       const needle = options.filter?.toLowerCase() ?? ''
       const targets = interactionAdapter.list()
-      const localization = context.getCockpitLocalization?.() ?? new Map<string, string>()
+      const localization = context.getCockpitLocalization()
       const authoredCounts = new Map<string, number>()
       for (const target of targets) {
         const authoredId = target.binding.metadata.authoredId
@@ -2093,8 +2093,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             ? 0
             : authoredCounts.get(target.binding.metadata.authoredId) ?? 0,
           interactionAdapter.currentValue(target),
-          localization,
-          context.getCockpitLocalization != null
+          localization
         ))
       return interactionResult(true, 'OK', 'Listed cockpit interactions.', rows)
     },
@@ -2105,8 +2104,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             packageId: context.packageData.packageName,
             packageVersion: context.packageData.manifest?.packageVersion ?? null,
             currentValue: interactionAdapter.currentValue(result.target),
-            localization: context.getCockpitLocalization?.() ?? new Map<string, string>(),
-            localizationAvailable: context.getCockpitLocalization != null,
+            localization: context.getCockpitLocalization(),
+            localizationAvailable: true,
             blockers: context.getCompiledBehaviors().interactionBlockers,
             diagnostics: getDiagnostics()
           }))

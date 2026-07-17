@@ -54,7 +54,7 @@ import {
   type MsfsPackageSource
 } from './msfs/packageAssets'
 import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
-import { loadMsfsLocalization, resolveMsfsLocalizedString, sanitizeMsfsTooltipText, type MsfsLocalization } from './msfs/localization'
+import { loadMsfsLocalization, resolveMsfsInteractionPresentation, type MsfsLocalization } from './msfs/localization'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
 import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
@@ -2011,7 +2011,6 @@ async function init(): Promise<void> {
   cockpitTooltip.style.background = 'rgba(8, 20, 36, 0.88)'
   cockpitTooltip.style.font = '12px/1.35 system-ui, sans-serif'
   document.body.appendChild(cockpitTooltip)
-  const cockpitValueFormatter = new Intl.NumberFormat(navigator.language, { maximumFractionDigits: 3 })
   let cockpitHighlight: {
     readonly mesh: Mesh
     readonly original: Material | Material[]
@@ -2092,22 +2091,25 @@ async function init(): Promise<void> {
     const target = cockpitInteractionAdapter.fromBinding(hit.binding)
     cockpitInteractionDispatcher.hover(target, event.timeStamp)
     const settings = getCockpitInputProfile()
-    const localizedTitle = resolveMsfsLocalizedString(
-      hit.binding.metadata.tooltipTitle ?? hit.binding.metadata.tooltipDescription ?? hit.binding.metadata.authoredId,
-      cockpitLocalization
-    ) ?? hit.binding.metadata.authoredId ?? hit.binding.target
-    const title = sanitizeMsfsTooltipText(localizedTitle) ||
-      hit.binding.metadata.authoredId ||
-      hit.binding.target
     const value = cockpitInteractionAdapter.currentValue(target)
-    const valueText = value == null
-      ? ''
-      : `\n${cockpitValueFormatter.format(value)}${hit.binding.metadata.value.unit ? ` ${hit.binding.metadata.value.unit}` : ''}`
-    const actions = target.operations.filter(operation => operation !== 'hover' && operation !== 'leave')
+    const presentation = resolveMsfsInteractionPresentation({
+      ...hit.binding.metadata,
+      routes: target.bindings.flatMap(binding => binding.metadata.routes)
+    }, cockpitLocalization, { value, locale: navigator.language })
     const actionText = hit.binding.metadata.disabled
-      ? 'Unavailable'
-      : actions.join(' · ')
-    cockpitTooltip.textContent = `${title}${valueText}${actionText ? `\n${actionText}` : ''}`
+      ? presentation.unavailableMessage
+      : [...new Set([
+          ...presentation.actions
+            .filter(action => action.operation !== 'hover' && action.operation !== 'leave')
+            .map(action => action.label),
+          ...presentation.actionHints.map(hint => hint.label)
+        ].filter(label => label !== ''))].join(' · ')
+    cockpitTooltip.textContent = [
+      presentation.title,
+      presentation.description,
+      presentation.value,
+      actionText || null
+    ].filter((line): line is string => line != null && line !== '').join('\n')
     cockpitTooltip.style.left = `${Math.min(event.clientX + 14, window.innerWidth - 330)}px`
     cockpitTooltip.style.top = `${Math.min(event.clientY + 16, window.innerHeight - 100)}px`
     cockpitTooltip.hidden = !settings.showTooltips
@@ -2949,6 +2951,7 @@ async function init(): Promise<void> {
       getCockpitInteractionPickRegistry(loadedModel.scene, runtime),
     getCockpitInteractionAdapter: () => cockpitInteractionAdapter,
     getCockpitInteractionDispatcher: () => cockpitInteractionDispatcher,
+    getCockpitLocalization: () => cockpitLocalization,
     getCockpitCameraController: () => cockpitCameraController,
     getCockpitBenchmarkState: () =>
       ((globalThis as Record<string, unknown>).__cockpitBenchmark as {
