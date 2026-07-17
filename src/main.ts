@@ -113,6 +113,7 @@ import {
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 import { queueTask } from './worker/pool'
 import { isAircraftImmutableCacheMode } from './aircraftAssets/cachePolicy'
+import { handleViewerSettingsKeyDown } from './viewerSettingsKeyboard'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
 const DEFAULT_STOCK_BEHAVIOR_ROOT = '/vendor/msfs-stock/'
@@ -13274,6 +13275,7 @@ type CockpitInputSettingsEditor = {
   readonly globalRoot: HTMLElement
   readonly aircraftRoot: HTMLElement
   readonly apply: () => boolean
+  readonly cancelCapture: () => boolean
   readonly discard: () => void
   readonly reset: (scope: 'general' | ViewerSettingsPanelScope) => string
   readonly selectedAircraftChanged: () => void
@@ -13590,11 +13592,12 @@ function createCockpitInputSettingsEditor(options: {
     }
   }
 
-  function cancelCapture(): void {
-    if (pendingCapture == null) return
+  function cancelCapture(): boolean {
+    if (pendingCapture == null) return false
     pendingCapture.button.textContent = 'Capture'
     pendingCapture.button.setAttribute('aria-pressed', 'false')
     pendingCapture = null
+    return true
   }
 
   function captureInput(input: CockpitPhysicalInput): void {
@@ -13650,10 +13653,6 @@ function createCockpitInputSettingsEditor(options: {
     event.stopPropagation()
     captureInput(event.deltaY < 0 ? 'WheelUp' : 'WheelDown')
   }, { capture: true, passive: false })
-  options.overlay.addEventListener('keydown', event => {
-    if (event.key === 'Escape') cancelCapture()
-  }, true)
-
   const discard = (): void => {
     cancelCapture()
     draft = loadCockpitInputStore()
@@ -13665,6 +13664,7 @@ function createCockpitInputSettingsEditor(options: {
     generalRoot,
     globalRoot: globalEditor.root,
     aircraftRoot: aircraftEditor.root,
+    cancelCapture,
     apply: () => {
       updateGeneralDraft()
       const changed = JSON.stringify(draft) !== JSON.stringify(loadCockpitInputStore())
@@ -13711,6 +13711,8 @@ function formatCockpitBindingAction(action: CockpitInputBindingAction | undefine
 function settingsErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
+
+let disposeViewerSettingsKeyDown: (() => void) | null = null
 
 function createSettingsPanel(options: {
   readonly selectorOptions: readonly AircraftSelectorOption[]
@@ -14080,12 +14082,19 @@ function createSettingsPanel(options: {
     }
   }
   toggleButton.addEventListener('click', () => setOpen(overlay.hidden === true))
-  overlay.addEventListener('keydown', event => {
-    event.stopPropagation()
-    if (event.key !== 'Escape') return
-    event.preventDefault()
-    setOpen(false)
-  })
+  const onKeyDown = (event: KeyboardEvent): void => {
+    if (overlay.hidden) return
+    const handled = handleViewerSettingsKeyDown(
+      event,
+      true,
+      cockpitInputEditor.cancelCapture,
+      () => setOpen(false)
+    )
+    if (!handled) event.stopPropagation()
+  }
+  disposeViewerSettingsKeyDown?.()
+  document.addEventListener('keydown', onKeyDown)
+  disposeViewerSettingsKeyDown = () => document.removeEventListener('keydown', onKeyDown)
   return root
 }
 
