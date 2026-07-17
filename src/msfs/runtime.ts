@@ -751,12 +751,28 @@ export class AircraftRuntime {
   }
 
   readInteractionValue(binding: CompiledInteractionBinding): number | null {
-    const expression = binding.metadata.tooltipValueExpression
+    const expression = binding.metadata.value.stateExpression ?? binding.metadata.tooltipValueExpression
     if (!this.compiled.interactionBindings.includes(binding) || expression == null) return null
     const value = evaluateCompiledExpression(expression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
     })
     return Number.isFinite(value) ? value : null
+  }
+
+  executeInteractionSetState(binding: CompiledInteractionBinding, value: number): boolean {
+    if (!this.compiled.interactionBindings.includes(binding) || binding.metadata.disabled) return false
+    const state = binding.metadata.value.setStates?.find(candidate => Object.is(candidate.value, value))
+    if (state == null) return false
+    this.triggerInteractionFeedback(binding, 'pulse')
+    this.invokeInteractionSoundEvents(binding, 'press')
+    evaluateCompiledExpression(state.expression, {
+      readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
+      writeVariable: (key, next, unit) => this.hostServices.writeVariable(key, next, unit),
+      invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
+      invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
+    })
+    this.interactionExecutionCount += 1
+    return true
   }
 
   watchInteractionValue(binding: CompiledInteractionBinding): RuntimeInteractionValueWatch {

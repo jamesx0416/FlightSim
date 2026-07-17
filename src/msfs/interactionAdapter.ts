@@ -1,6 +1,6 @@
 import type { CanonicalCockpitAction, CockpitInteractionMode, CockpitInteractionOperation, CockpitInteractionTarget, CockpitRelativeDirection } from '../input/cockpitInteraction'
 import type { AircraftRuntime, RuntimeInteractionValueWatch } from './runtime'
-import type { CompiledInteractionBinding, CompiledInteractionRoute } from './types'
+import type { CompiledInteractionBinding, CompiledInteractionRoute, Instruction } from './types'
 
 export interface MsfsInteractionTarget extends CockpitInteractionTarget {
   readonly binding: CompiledInteractionBinding
@@ -346,7 +346,8 @@ export class MsfsInteractionAdapter {
     if (this.busy.has(target.id)) return exactResult('TARGET_BUSY', null, this.currentValue(target), requested, target, null, 0)
     this.busy.add(target.id)
     try {
-    const metadata = target.binding.metadata.value
+    const valueBinding = this.valueBinding(target)
+    const metadata = valueBinding.metadata.value
     if (unit != null && metadata.unit != null && unit.toLowerCase() !== metadata.unit.toLowerCase()) {
       return exactResult('UNIT_INCOMPATIBLE', null, null, requested, target, null, 0)
     }
@@ -358,18 +359,23 @@ export class MsfsInteractionAdapter {
     }
 
     const generation = this.cancellations.get(target.id) ?? 0
-    const setRoute = selectRoute(target.binding.metadata.routes, canonical('set', channel, requested), this.mode, target.lockable)
-    if (setRoute != null) {
-      const watch = this.beginValueWatch(target.binding)
+    const stateBinding = target.bindings.find(binding =>
+      binding.metadata.value.setStates?.some(state => Object.is(state.value, requested))
+    )
+    if (stateBinding != null) {
+      const watch = this.beginValueWatch(valueBinding)
       if (!this.isAuthoritativeWatch(watch)) {
         watch?.dispose()
         return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
       }
-      if (!this.execute(target, canonical('set', channel, requested))) {
+      const runtime = this.runtime as AircraftRuntime & {
+        executeInteractionSetState?: (binding: CompiledInteractionBinding, value: number) => boolean
+      }
+      if (runtime.executeInteractionSetState?.(stateBinding, requested) !== true) {
         watch?.dispose()
         return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
       }
-      const settled = await this.waitForSettle(target, target.binding, generation)
+      const settled = await this.waitForSettle(target, stateBinding, generation)
       const notified = watch?.didChange() ?? true
       watch?.dispose()
       if (!settled) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, 'direct-set', 1)
@@ -384,19 +390,72 @@ export class MsfsInteractionAdapter {
       return exactResult(code, previous, actual, requested, target, 'direct-set', 1)
     }
 
-    const step = metadata.step
-    if (step == null || step <= 0) return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
-    const plan = planExactSteps(previous, requested, step, metadata.minimum, metadata.maximum, metadata.cyclic)
+    const setAction = canonical('set', channel, requested)
+    const setSelection = target.bindings
+      .map(binding => ({ binding, route: selectRoute(binding.metadata.routes, setAction, this.mode, target.lockable) }))
+      .find(selection => selection.route != null && compiledInstructionsReadParameter(selection.binding.expression.instructions, 0))
+    if (setSelection?.route != null) {
+      const watch = this.beginValueWatch(valueBinding)
+      if (!this.isAuthoritativeWatch(watch)) {
+        watch?.dispose()
+        return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
+      }
+      const executed = this.runtime.executeInteractionBindingDirect(setSelection.binding, {
+        holdFeedback: false,
+        mouseEvent: setSelection.route.msfsEvent ?? undefined,
+        inputType: setSelection.route.inputTypes[0],
+        parameterValues: [requested]
+      })
+      if (!executed) {
+        watch?.dispose()
+        return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
+      }
+      const settled = await this.waitForSettle(target, setSelection.binding, generation)
+      const notified = watch?.didChange() ?? true
+      watch?.dispose()
+      if (!settled) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, 'direct-set', 1)
+      const actual = this.currentValue(target)
+      const code = !Object.is(actual, previous) && !notified
+        ? 'VALUE_REACHABILITY_UNKNOWN'
+        : Object.is(actual, requested)
+          ? 'OK'
+          : Object.is(actual, previous)
+            ? 'NO_PROGRESS'
+            : 'VALUE_NOT_REACHABLE'
+      return exactResult(code, previous, actual, requested, target, 'direct-set', 1)
+    }
+
+    const increaseStep = metadata.increaseStep ?? metadata.step
+    const decreaseStep = metadata.decreaseStep ?? metadata.step
+    if (increaseStep == null || increaseStep <= 0 || decreaseStep == null || decreaseStep <= 0) {
+      return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
+    }
+    const plan = planExactSteps(
+      previous,
+      requested,
+      increaseStep,
+      decreaseStep,
+      metadata.minimum,
+      metadata.maximum,
+      metadata.cyclic
+    )
     if (plan == null) return exactResult('VALUE_NOT_REACHABLE', previous, previous, requested, target, null, 0)
     const routeOperation = plan.operation
-    const route = selectRoute(target.binding.metadata.routes, canonical(routeOperation, channel), this.mode, target.lockable)
-    if (route == null) return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
+    const routeSelection = target.bindings
+      .map(binding => ({
+        binding,
+        route: selectRoute(binding.metadata.routes, canonical(routeOperation, channel), this.mode, target.lockable)
+      }))
+      .find(selection => selection.route != null)
+    if (routeSelection?.route == null) {
+      return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
+    }
 
     const visited = new Set<string>([`${routeOperation}:${previous}`])
     let actual = previous
     for (let index = 0; index < plan.steps; index += 1) {
       if ((this.cancellations.get(target.id) ?? 0) !== generation) return exactResult('CANCELLED', previous, actual, requested, target, routeOperation, index)
-      const watch = this.beginValueWatch(target.binding)
+      const watch = this.beginValueWatch(valueBinding)
       if (!this.isAuthoritativeWatch(watch)) {
         watch?.dispose()
         return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, actual, requested, target, null, index)
@@ -405,7 +464,7 @@ export class MsfsInteractionAdapter {
         watch?.dispose()
         return exactResult('TARGET_LOST', previous, actual, requested, target, routeOperation, index)
       }
-      const settled = await this.waitForSettle(target, target.binding, generation)
+      const settled = await this.waitForSettle(target, routeSelection.binding, generation)
       const notified = watch?.didChange() ?? true
       watch?.dispose()
       if (!settled) return exactResult('CANCELLED', previous, this.currentValue(target), requested, target, routeOperation, index + 1)
@@ -432,6 +491,12 @@ export class MsfsInteractionAdapter {
     return typeof runtime.watchInteractionValue === 'function'
       ? runtime.watchInteractionValue(binding)
       : null
+  }
+
+  private valueBinding(target: MsfsInteractionTarget): CompiledInteractionBinding {
+    return target.bindings.find(binding => binding.metadata.value.stateExpression != null) ??
+      target.bindings.find(binding => binding.metadata.tooltipValueExpression != null) ??
+      target.binding
   }
 
   private isAuthoritativeWatch(watch: RuntimeInteractionValueWatch | null): boolean {
@@ -511,24 +576,43 @@ function exactResult(
 function planExactSteps(
   current: number,
   requested: number,
-  step: number,
+  increaseStep: number,
+  decreaseStep: number,
   minimum: number | null,
   maximum: number | null,
   cyclic: boolean
 ): { readonly operation: 'increase' | 'decrease'; readonly steps: number } | null {
-  const direct = (requested - current) / step
   if (!cyclic) {
-    if (!Number.isInteger(direct)) return null
-    return { operation: direct >= 0 ? 'increase' : 'decrease', steps: Math.abs(direct) }
+    const operation = requested >= current ? 'increase' : 'decrease'
+    const steps = Math.abs(requested - current) /
+      (operation === 'increase' ? increaseStep : decreaseStep)
+    return Number.isInteger(steps) ? { operation, steps } : null
   }
   if (minimum == null || maximum == null || maximum <= minimum) return null
-  const cycleSteps = (maximum - minimum) / step
-  if (!Number.isInteger(cycleSteps) || !Number.isInteger(direct)) return null
-  const increase = ((direct % cycleSteps) + cycleSteps) % cycleSteps
-  const decrease = (cycleSteps - increase) % cycleSteps
-  return increase <= decrease
-    ? { operation: 'increase', steps: increase }
-    : { operation: 'decrease', steps: decrease }
+  const range = maximum - minimum
+  const normalize = (value: number): number => ((value % range) + range) % range
+  const increase = normalize(requested - current) / increaseStep
+  const decrease = normalize(current - requested) / decreaseStep
+  const increaseReachable = Number.isInteger(increase)
+  const decreaseReachable = Number.isInteger(decrease)
+  if (!increaseReachable && !decreaseReachable) return null
+  if (!decreaseReachable || increaseReachable && increase <= decrease) {
+    return { operation: 'increase', steps: increase }
+  }
+  return { operation: 'decrease', steps: decrease }
+}
+
+function compiledInstructionsReadParameter(
+  instructions: readonly Instruction[],
+  parameterIndex: number
+): boolean {
+  return instructions.some(instruction =>
+    instruction.op === 'pushParameter' && instruction.index === parameterIndex ||
+    instruction.op === 'if' && (
+      compiledInstructionsReadParameter(instruction.thenInstructions, parameterIndex) ||
+      compiledInstructionsReadParameter(instruction.elseInstructions, parameterIndex)
+    )
+  )
 }
 
 function selectRoute(

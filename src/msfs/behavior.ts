@@ -5,6 +5,7 @@ import type {
   CompiledAnimationBinding,
   CompiledAnimationTriggerBinding,
   CompiledBehaviorSet,
+  CompiledExpression,
   CompiledInputEventBinding,
   CompiledInteractionBinding,
   CompiledInteractionBlocker,
@@ -1781,7 +1782,17 @@ function buildCompiledInteractionMetadata(
       : source.startsWith('(>K:')
     ? 'eventId'
     : params.get('INPUT_EVENT_ID_SOURCE')?.trim() ? 'inputEvent' : 'callbackCode')
-  const value = buildCompiledInteractionValueMetadata(params)
+  const baseValue = buildCompiledInteractionValueMetadata(params)
+  const valueAuthority = compileInteractionValueAuthority(
+    params,
+    currentNode,
+    target,
+    sourcePath,
+    source,
+    baseValue,
+    diagnostics
+  )
+  const value = { ...baseValue, ...valueAuthority }
   const valueSource = getCompiledInteractionValueSource(params, value.variableKey, value.unit)
   const tooltipValueExpression = valueSource == null
     ? null
@@ -2081,6 +2092,129 @@ function buildCompiledInteractionValueMetadata(
       0
     )
   }
+}
+
+function compileInteractionValueAuthority(
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  target: string,
+  sourcePath: string,
+  interactionSource: string,
+  baseValue: CompiledInteractionMetadata['value'],
+  diagnostics: ImportDiagnostic[]
+): Pick<
+  CompiledInteractionMetadata['value'],
+  'stateExpression' | 'setStates' | 'increaseStep' | 'decreaseStep' | 'step'
+> {
+  const scope = resolveLocalVariableScope(params, currentNode, target)
+  const authoredStateSource = getFirstUsableInteractionParameter(params, [
+    'GET_STATE_EXTERNAL',
+    'GET_STATE'
+  ])
+  const directStateSource = baseValue.variableKey == null
+    ? ''
+    : `(${baseValue.variableKey}${baseValue.unit ? `, ${baseValue.unit}` : ''})`
+  const rawStateSource = authoredStateSource || directStateSource
+  const stateSource = rawStateSource && rpnSourcePopsToRegister(rawStateSource, 0)
+    ? `${rawStateSource} l0`
+    : rawStateSource
+  let stateExpression = stateSource
+    ? compileRpnExpression(stateSource, {
+        sourcePath,
+        sourceExpression: stateSource,
+        diagnostics,
+        localVariableScope: scope
+      })
+    : null
+  if (stateExpression != null && compiledExpressionHasSideEffects(stateExpression)) {
+    diagnostics.push({
+      code: 'interaction_state_read_ir_unproven',
+      severity: 'warning',
+      sourcePath,
+      message: `Interaction ${target} declares state code with side effects, so exact state reads are unavailable.`
+    })
+    stateExpression = null
+  }
+
+  const setStates = new Map<number, NonNullable<CompiledInteractionMetadata['value']['setStates']>[number]>()
+  for (const [key, rawLabel] of params) {
+    const match = /^STR_STATE_(OFF|ON|\d+)$/iu.exec(key.trim())
+    if (match == null || !rawLabel.trim()) continue
+    const suffix = match[1]!.toUpperCase()
+    const value = suffix === 'OFF' ? 0 : suffix === 'ON' ? 1 : Number(suffix)
+    const setSource = params.get(`SET_STATE_${suffix}`)?.trim() ?? ''
+    if (!Number.isFinite(value) || isNoopInteractionParameter(setSource)) continue
+    const stateChangedSource = getGeneratedInputEventStateChangedSource(params)
+    const expressionSource = [setSource, stateChangedSource].filter(Boolean).join(' ')
+    const expression = compileRpnExpression(expressionSource, {
+      sourcePath,
+      sourceExpression: expressionSource,
+      diagnostics,
+      localVariableScope: scope
+    })
+    if (expression != null && !setStates.has(value)) {
+      setStates.set(value, { value, label: rawLabel.trim(), expression })
+    }
+  }
+
+  const increaseRaw = getFirstUsableInteractionParameter(params, [
+    'VALUE_STEP',
+    'STEP_SIZE',
+    'INCREMENT'
+  ])
+  const decreaseRaw = getFirstUsableInteractionParameter(params, [
+    'DECREMENT',
+    'VALUE_STEP',
+    'STEP_SIZE',
+    'INCREMENT'
+  ])
+  const increaseStep = parseOptionalPositiveNumber(increaseRaw)
+  const decreaseStep = parseOptionalPositiveNumber(decreaseRaw)
+  if ((increaseRaw && increaseStep == null) || (decreaseRaw && decreaseStep == null)) {
+    diagnostics.push({
+      code: 'interaction_dynamic_increment_unproven',
+      severity: 'info',
+      sourcePath,
+      message: `Interaction ${target} declares a dynamic increment that cannot be preflighted authoritatively.`
+    })
+  }
+
+  const directSetSource = getFirstUsableInteractionParameter(params, [
+    'SET_STATE_EXTERNAL',
+    'SET_CODE',
+    'DRAG_EVENTID_SET'
+  ])
+  if (directSetSource &&
+      !rpnSourceReadsParameter(directSetSource, 0) &&
+      !rpnSourceReadsParameter(interactionSource, 0) &&
+      setStates.size === 0) {
+    diagnostics.push({
+      code: 'interaction_direct_set_parameter_unproven',
+      severity: 'info',
+      sourcePath,
+      message: `Interaction ${target} declares Set code without an authoritative numeric parameter path.`
+    })
+  }
+
+  return {
+    stateExpression,
+    setStates: [...setStates.values()],
+    increaseStep,
+    decreaseStep,
+    step: increaseStep != null && increaseStep === decreaseStep ? increaseStep : baseValue.step
+  }
+}
+
+function compiledExpressionHasSideEffects(expression: CompiledExpression): boolean {
+  const visit = (instructions: readonly Instruction[]): boolean => instructions.some(instruction =>
+    instruction.op === 'writeVariable' ||
+    instruction.op === 'invokeKeyEvent' ||
+    instruction.op === 'invokeHtmlEvent' ||
+    instruction.op === 'if' && (
+      visit(instruction.thenInstructions) || visit(instruction.elseInstructions)
+    )
+  )
+  return visit(expression.instructions)
 }
 
 function getCompiledInteractionValueVariableKey(

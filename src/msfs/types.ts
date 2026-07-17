@@ -244,8 +244,16 @@ export interface CompiledInteractionValueMetadata {
   readonly minimum: number | null
   readonly maximum: number | null
   readonly step: number | null
+  readonly increaseStep?: number | null
+  readonly decreaseStep?: number | null
   readonly cyclic: boolean
   readonly settleTimeSeconds: number
+  readonly stateExpression?: CompiledExpression | null
+  readonly setStates?: readonly {
+    readonly value: number
+    readonly label: string | null
+    readonly expression: CompiledExpression
+  }[]
 }
 
 export interface CompiledInteractionMetadata {
