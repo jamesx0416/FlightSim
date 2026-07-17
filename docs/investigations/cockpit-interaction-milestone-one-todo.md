@@ -1,98 +1,110 @@
-# Cockpit Interaction Milestone One — Remaining Work
+# Cockpit Interaction Milestone One - Status
 
-This is the authoritative remaining-work checklist for milestone one. Items stay here until implemented and verified against mounted stock templates and the local A330 fixture.
+This is the authoritative implementation and remaining-work checklist for milestone one. Checked items are implemented and covered by focused automated tests. Browser-only claims remain unchecked until exercised against a mounted package.
+
+Final automated verification on 2026-07-17: 178 tests passed with 782 expectations; typecheck, lint, and `git diff --check` passed.
 
 ## Profiles, remapping, and Settings
 
-- Resolve physical mouse inputs through the selected profile instead of hardcoded browser button and wheel mappings.
-- Add binding capture and same-context conflict validation while allowing intentional context-exclusive sharing.
-- Add profile create, duplicate, rename, delete, reset, global selection, and per-aircraft selection.
-- Complete version migration, corrupt-store recovery diagnostics, DevApi import/export, and atomic draft Apply/Save/Cancel/Reset behavior.
-- Expose the complete profile and remapping workflow in Settings.
+- [x] Resolve physical mouse inputs through the selected effective profile instead of hardcoded browser button and wheel mappings.
+- [x] Capture all three mouse buttons and both wheel directions, reject same-context conflicts, and allow intentional interaction-versus-empty-cockpit sharing.
+- [x] Support profile create, duplicate, rename, delete, reset, global selection, package-plus-aircraft selection, and removal of an aircraft override.
+- [x] Migrate version 1, preserve corrupt stores under recovery keys, validate DevApi import/export, and use one atomic Settings draft.
+- [x] Apply saves once; Cancel and Resume discard; Escape cancels an active capture or otherwise closes and discards; Reset remains a draft until Apply.
+- [x] Expose the complete workflow through Settings and `window.__DevApi.interactions.profiles`.
+
+Browser evidence on 2026-07-17 covered Mouse0/Mouse1/Mouse2/WheelUp/WheelDown capture, same-context conflict text, cross-context sharing, draft isolation, Resume discard, Apply persistence, deletion, and restoration to the protected `MSFS Mouse` profile. The post-fix Escape rerun is listed under acceptance because browser authorization became unavailable after the regression was fixed.
 
 ## Mouse and scheduler lifecycle
 
-- Emit native single, second-single, and matching double actions without delaying either single action.
-- Dispatch authored `DownRepeat` and `MoveRepeat` routes.
-- Honor authored long press, repeat timing, minimum-held duration, delayed release, and spring return through the simulator scheduler.
-- Complete and verify cancellation on lost capture, blur, cockpit exit, aircraft/LOD replacement, profile replacement, target loss, and Escape.
+- [x] Emit the first single, second single, and matching double without delaying either single.
+- [x] Dispatch authored `DownRepeat` and `MoveRepeat` routes.
+- [x] Honor authored repeat timing, long press, minimum hold, delayed release, and spring return through the simulator-time scheduler.
+- [x] Wire cancellation for lost capture, pointer cancellation, blur, Escape, cockpit exit, aircraft/runtime/LOD replacement, profile replacement, target loss, and explicit cancellation.
+- [ ] Complete live browser cancellation acceptance for actual pointer-capture loss, LOD replacement, and target disappearance. Deterministic lifecycle tests cover the implementation, but these DOM/package paths have not all been exercised live.
 
 ## Complete history and detailed tracing
 
-- Add the 120 ms wheel-burst aggregation window.
-- Record logical mouse, cockpit drag, camera pan/zoom, settings/profile, aircraft/cockpit/app-version, cancellation, unsupported, and unavailable actions.
-- Coalesce each logical gesture and exact Set/Adjust operation into one compact history entry.
-- Bound detailed tracing by both 10,000 records and approximately 16 MB, dropping oldest records with an overflow marker.
-- Feed detailed tracing canonical/MSFS events, movement samples, hit tests, blockers, InputEvent/RPN routes, variable access, events, feedback, animation, sound, cancellation, and scheduler timing.
-- Add explicit detailed-trace export without persistent low-level recording.
+- [x] Aggregate wheel bursts within 120 ms.
+- [x] Record logical mouse, cockpit drag, camera pan/zoom, settings/profile, aircraft/cockpit/app-version, cancellation, unsupported, unavailable, and claimed gauge-surface actions.
+- [x] Coalesce each logical click, drag, camera gesture, wheel burst, and exact Set/Adjust operation into one compact history entry.
+- [x] Persist a versioned latest-300 history, migrate the legacy raw array, and include structured detail plus stable one-line formatting.
+- [x] Bound memory-only detailed tracing by 10,000 records and approximately 16 MB, dropping the oldest records into one coalesced overflow marker.
+- [x] Trace canonical and selected MSFS routes, movement, hit tests, blockers, variable reads/writes, InputEvent/RPN, key/HTML/bridge events, feedback-driven animation state, effects, sound, scheduler timing, cancellation, and provenance.
+- [x] Keep detailed tracing disabled and lazy by default and export timestamped JSON explicitly through DevApi.
 
 ## DevApi contract completion
 
-- Resolve and capability-check semantic `variant` selectors; reject ambiguous defaults with valid suggestions.
-- Preserve every canonical field through `dispatch()`, including phase, pointer, axis, delta, drag percentage, and device-independent values.
-- Add control kind to `list()` and complete `describe()` provenance, declaration occurrence, typed parameters, covers/blockers, and diagnostics.
-- Complete `active()` fire-and-forget status, release-by-held-target behavior, trace export, and profile management operations.
-- Verify all named methods, selectors, state helpers, synchronous reads, immediately-started Promises, cancellation, and structured failure envelopes.
+- [x] Resolve only authored semantic `variant` selectors and reject missing or ambiguous variants with structured diagnostics and suggestions.
+- [x] Preserve every canonical field through `dispatch()`, including phase, source, pointer, channel, axis, axis value, delta, drag percentage, steps, direction, value, unit, and timestamp.
+- [x] Return an authoritative control kind or `unknown` with diagnostics from `list()`, and expose provenance, declaration occurrence, typed parameters, variants, covers/blockers, localization, timing, and diagnostics from `describe()`.
+- [x] Return structured active lifecycle state, release a held target by stored identity, expose shared history/trace, export trace JSON, and provide complete profile management.
+- [x] Keep reads synchronous, start action Promises immediately, preserve structured failure envelopes, and remove the deleted raw pointer/key/wheel helpers from documentation.
 
 ## Exact Set/Adjust authority
 
-- Replace blind timeout/animation-frame settling with watched authoritative value notifications, authored settle timing, and two simulator ticks.
-- Read authoritative state independently of tooltip expressions where package metadata provides it.
-- Compile authoritative transition graphs, bounds, dynamic increments, typed parameters, and unit relationships needed to prove exact reachability before mutation.
-- Verify direct Set, converged Set, Adjust, shortest cyclic routing, cancellation, target loss, no progress, value cycles, and exact result payloads.
+- [x] Replace blind timeout/animation-frame settling with watched authoritative value changes, authored settle timing, and two complete simulator ticks.
+- [x] Read exact state independently of tooltip expressions and reject tooltip-only state as non-authoritative.
+- [x] Compile and preflight static setters, transition graphs, bounds, static/asymmetric increments, inclusive cyclic bounds, and directly proven unit relationships.
+- [x] Cover direct Set, converged Set, Adjust, shortest cyclic routing with Increase winning ties, cancellation, target loss, no progress, state cycles, and fail-closed result codes in focused tests.
+- [ ] Compile dynamic increment/acceleration expressions, typed `BINDING_INC`/`BINDING_DEC`/`BINDING_SET` relationships, and cross-unit conversions. They currently produce explicit unproven diagnostics instead of executing.
+- [ ] Complete mounted-package exact Set/Adjust browser acceptance. The A339X scan found 23 increment/decrement candidates, but only three also had current value, bounds, unit, and static step metadata; each correctly returned `VALUE_REACHABILITY_UNKNOWN` with zero steps and no mutation because an authoritative state read was unavailable. No mounted target exposed both two or more `setStates` and readable current state.
 
 ## Feedback and localization completion
 
-- Localize authored action labels, descriptions, enum/state values, and unavailable feedback.
-- Apply authored value formatting rather than generic numeric formatting where metadata provides it.
-- Complete rich Legacy cursor/tooltip presentation and Lock highlight, current-value, and available-action presentation.
+- [x] Resolve package-authored static titles, descriptions, enum/state labels, action hints, and unavailable feedback through one shared viewer/DevApi presentation resolver.
+- [x] Render the proven Legacy cursor/tooltip and Lock highlight, current value, and available-action presentation with explicit diagnostics for unknown metadata.
+- [ ] Compile authored dynamic/rich value formatting instead of falling back to `Intl.NumberFormat` when the format cannot be proven.
+- [ ] Compile rich and animated tooltip entries and model-specific directional/center cursors.
+- [ ] Complete mounted A330 browser verification for the Legacy and Lock presentation matrix.
 
 ## Hit testing and camera arbitration
 
-- Ensure blockers, covers, and claimed VCockpit/gauge surfaces always consume input and never start camera movement.
-- Verify package priority, depth, `PrioritizeVCockpits`, `IgnoreZTest`, disabled/unavailable controls, and compound-control separation.
-- Verify pointer capture and wheel arbitration across interaction meshes, fallback hitboxes, gauges, blockers, LOD replacement, and target disappearance.
+- [x] Use an explicit `active`/`consumed`/`miss` result so claimed, unbound, unsupported, busy, unavailable, blocker, cover, and gauge-surface hits cannot start camera pan or zoom.
+- [x] Expose deduplicated bound VCockpit surface meshes as input claims while retaining them as occluders, so a gauge screen consumes input and still hides controls behind it.
+- [x] Preserve package priority, depth, `PrioritizeVCockpits`, `IgnoreZTest`, fallback hitboxes, pointer capture, LOD/target cancellation, and true-miss camera routing in the generic viewer path.
+- [ ] Add focused geometric arbitration coverage for priority/depth, blocker/cover occlusion, fallback hitboxes, `PrioritizeVCockpits`, and `IgnoreZTest`.
+- [ ] Complete direct browser acceptance for interaction meshes, fallback hitboxes, gauges, blockers/covers, LOD replacement, and target disappearance.
 
 ## Acceptance and documentation
 
-- Run direct-mouse and DevApi acceptance across the complete representative A330 control matrix in Legacy and Lock.
-- Run the same generic acceptance against a second mounted aircraft package.
-- Complete the documented compiler/control matrix for all channels, phases, callback kinds, EventID/InputEvent routes, compound controls, timing modes, precedence, and unsupported 2024 diagnostics.
-- Confirm zero aircraft-specific runtime rules and zero fixture edits.
-- Remove stale documentation for deleted raw input helpers and document the completed interactions, profiles, history, and trace APIs.
+- [ ] Run direct-mouse and DevApi acceptance across the complete representative A330 control matrix in both Legacy and Lock. Profile/DevApi behavior and one representative EFB button passed; the full direct-hit, lifecycle, presentation, and exact-control matrix remains incomplete.
+- [ ] Rerun Settings Escape and claimed-hit camera arbitration in Agent Browser after the local browser-command authorization service recovers. Focused regression tests pass, but the post-fix live rerun was denied by a 503 from the approval service.
+- [ ] Run the same generic acceptance against a second mounted aircraft package. The selector currently exposes only three liveries from the same Headwind A339X package.
+- [ ] Complete the compiler/control matrix for every channel, phase, callback kind, EventID/InputEvent route, compound control, timing mode, precedence rule, and unsupported MSFS 2024 diagnostic.
+- [x] Confirm the milestone diff adds no aircraft-specific runtime rules and changes no `aircrafts/` fixture data.
+- [x] Document the completed interactions, profiles, shared history, and trace APIs and remove stale raw-input documentation.
 
 ## Structured metadata still required
 
-- Preserve model-specific cursors, including directional/center cursor fields and center radius.
-- Compile rich and animated tooltip entries rather than flattening them to one title/description.
-- Compile and honor `LockFlagsTemporary`.
-- Compile and honor `DragFlagsLockable`.
-- Compile and honor `DragUseAnimLag`.
-- Compile CallbackDragging `XScale`, `YScale`, and `ZScale` independently.
-- Preserve interaction `GroupID` for authored grouping and arbitration.
-- Diagnose any unknown future interaction-model instance instead of silently ignoring it. Mounted MSFS 2020 stock currently uses only `IMDefault` and `IMDrag`.
+- [ ] Preserve model-specific cursors, including directional/center cursor fields and center radius.
+- [ ] Compile rich and animated tooltip entries rather than flattening them to one title/description.
+- [ ] Compile and honor `LockFlagsTemporary`.
+- [ ] Compile and honor `DragFlagsLockable`.
+- [ ] Compile and honor `DragUseAnimLag`.
+- [ ] Compile CallbackDragging `XScale`, `YScale`, and `ZScale` independently.
+- [ ] Preserve interaction `GroupID` for authored grouping and compound arbitration.
+- [ ] Diagnose any unknown future interaction-model instance instead of silently ignoring it. Mounted MSFS 2020 stock currently uses only `IMDefault` and `IMDrag`.
 
 ## Fail-closed compiler behavior
 
-- Remove the fallback that invents `LeftSingle` when no route can be discovered.
-- Record a structured diagnostic when an interaction candidate is dropped because its target, callback, template, or route cannot be compiled.
-- Distinguish unsupported-template, unsupported-event, dynamic-route-unproven, and invalid-expression failures.
-- Add compiler totals for candidates, compiled bindings, rejected bindings, and rejection reasons.
+- [ ] Remove the compiler fallback that invents `LeftSingle` when no route can be discovered.
+- [ ] Record a structured diagnostic whenever an interaction candidate is dropped because its target, callback, template, or route cannot be compiled.
+- [ ] Distinguish unsupported-template, unsupported-event, dynamic-route-unproven, and invalid-expression failures.
+- [ ] Add compiler totals for candidates, compiled bindings, rejected bindings, and rejection reasons.
 
 ## Runtime observability
 
-- Add cumulative dispatcher miss counters by reason, including `raycast-miss`, `operation-unsupported`, `interaction-unavailable`, `target-busy`, blocker/cover rejection, and target loss.
-- Keep the latest miss details, but do not overwrite the only evidence of earlier failures.
-- Add unsupported and unavailable mouse attempts to compact interaction history.
-- Add pre-dispatch rejection records to detailed tracing.
-- Expose compiler and dispatcher rejection totals through `__DevApi.report()` and interaction diagnostics.
+- [x] Keep cumulative dispatcher miss counters for `raycast`, `unsupported`, `unavailable`, `busy`, blocker, cover, and target loss, plus the latest structured detail.
+- [x] Add unsupported, unavailable, busy, and claimed-gauge mouse attempts to compact history; keep blockers in cumulative counters and detailed trace.
+- [x] Add pre-dispatch rejection and detailed hit records to trace.
+- [x] Expose compiler/runtime diagnostics and cumulative dispatcher totals through `__DevApi.report()` and the interaction APIs.
 
-The current report exposes aggregate attempts/executions and only the latest miss reason, so it cannot provide a trustworthy historical rejection total. A clean session with zero mouse attempts proves only that no runtime action was attempted. Until cumulative counters exist, route audits must be reported as read-only potential failures rather than observed user failures.
+## Verification still required
 
-## Verification
-
-- Scan every mounted stock MouseRect interaction-model instance and MouseFlags token.
-- Verify that every advertised operation resolves in Legacy and Lock or has an explicit diagnostic.
-- Verify model-specific cursor, tooltip, timing, scale, and lock metadata on focused stock fixtures.
-- Load the local A330 and report compiler candidates, compiled bindings, rejected bindings, runtime attempts, executions, and cumulative misses.
-- Confirm unsupported behavior consumes a real interaction target without falling through to the camera.
+- [ ] Scan every mounted stock MouseRect interaction-model instance and MouseFlags token.
+- [ ] Verify every advertised operation in Legacy and Lock or retain an explicit unsupported diagnostic.
+- [ ] Verify model-specific cursor, tooltip, timing, scale, and lock metadata on focused stock fixtures.
+- [x] Load the local A339X and record its 1,619 compiled interactions, zero runtime errors during acceptance, DevApi/profile results, exact preflight blockers, history, and trace export.
+- [x] Verify with focused tests that claimed interaction and gauge outcomes consume input while only a true miss can select camera behavior.
+- [ ] Repeat the claimed-hit camera check with real browser coordinates after browser authorization recovers.
