@@ -52,17 +52,20 @@ The browser API is `window.__DevApi`. Prefer DevApi calls over synthetic UI gest
 
 ## Actions
 
-- `interactions.list()` and `interactions.describe(target)` expose authored capabilities and source-qualified provenance.
+- `interactions.list({ filter?, limit? })` returns source-qualified targets, proven operations and channels, availability, localized presentation, current value, unit, and explicit diagnostics for metadata the compiler could not prove.
+- `interactions.describe(target)` returns the complete compiled interaction metadata, binding variants, routes, timing, source provenance, localized presentation, blockers, current value, and source/contract diagnostics. Use the qualified ID when an authored ID is ambiguous.
 - `interactions.press(target, selector?)` performs one authored press/release lifecycle: `await window.__DevApi.interactions.press("PUSH_AP_MASTER")`.
 - `interactions.hold(target, selector?)` and `interactions.release(target)` own a hold by target. Conflicting work fails with `TARGET_BUSY`.
 - `interactions.turn/increase/decrease(target, options)` execute authored detents: `await window.__DevApi.interactions.increase("KNOB_HEADING", { steps: 3 })`.
 - `interactions.adjust(target, { delta, unit? })` and `interactions.set(target, { value, unit? })` preflight exact reachability before mutation. They prefer an authored Set route, otherwise converge through authoritative detents, settle on the simulator scheduler, and verify the exact observed result. Failures distinguish incompatible units, unknown or unreachable values, no progress, cycles, cancellation, and target loss.
 - `interactions.on/off/toggle` are capability checked. `on` and `off` may use a readable authored toggle route only when the resulting state can be verified.
-- `interactions.active()`, `history()`, `trace.snapshot()`, `profiles.*`, and `settings.*` expose lifecycle, diagnostics, and the versioned profile store.
+- `interactions.dispatch(target, action)` preserves the supplied canonical action fields, including source, phase, pointer ID, channel, axis, axis value, delta, drag percentage, steps, direction, value, unit, and timestamp. It rejects unauthored semantic variants instead of guessing.
+- `interactions.active()` returns each running or held target with operation, source, lifecycle, start time, and cancellation status. `cancel(target)` and `cancelAll()` request cancellation through the same lifecycle.
+- `interactions.history({ limit? })` returns the bounded persistent logical-action history. `interactions.trace.enable()`, `snapshot()`, and `export()` control the disabled-by-default detailed in-memory trace. Export returns a timestamped JSON filename, metadata, and text without opening a file picker.
+- `interactions.profiles.list/get/effective` inspect the version 2 profile store. `create`, `duplicate`, `rename`, `delete`, and `reset` manage profiles; `selectGlobal` and `selectAircraft(packageRoot, aircraftId, profileIdOrNull)` select them; `export` and validated `import` round-trip the complete store.
 - `interactions.settings.get()` and `interactions.settings.set({ interactionMode, showHighlights, showTooltips })` read or update cockpit interaction presentation. Fresh storage defaults to Legacy mode; Lock mode keeps complex authored targets captured while Primary is held.
-- `input.pointer(event)` sends real viewer pointer input, including right-button cockpit drags with `button: 2`: `window.__DevApi.input.pointer({ type: "down", x: 500, y: 300, button: 2 })`.
-- `input.key(code, options?)` sends keyboard input: `window.__DevApi.input.key("KeyL", { type: "press" })`.
-- `input.wheel(deltaY, options?)` sends wheel input: `window.__DevApi.input.wheel(-120, { x: 500, y: 300 })`.
+
+Use the profile and interaction APIs for deterministic automation. Use real browser gestures only when validating physical input routing, pointer capture, camera arbitration, or the Settings capture workflow.
 
 ## Waiting And Chaining
 
