@@ -59,7 +59,8 @@ import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
 import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
 import { MsfsInteractionLifecycle } from './msfs/interactionLifecycle'
-import { CockpitInteractionDispatcher, type CockpitInteractionChannel } from './input/cockpitInteraction'
+import { CockpitInteractionDispatcher, type CockpitInteractionChannel, type CockpitInteractionMissReason } from './input/cockpitInteraction'
+import { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
 import {
   DEFAULT_COCKPIT_INPUT_PROFILE_ID,
   DEFAULT_COCKPIT_INPUT_STORE,
@@ -85,7 +86,8 @@ import {
   type CockpitPhysicalInput,
   type EffectiveCockpitInputProfile
 } from './input/cockpitInputProfiles'
-import { installViewerBootDevApi, installViewerDevApi } from './devApi'
+import { installViewerBootDevApi, installViewerDevApi, VIEWER_INTERACTION_CANCEL_EVENT } from './devApi'
+import packageMetadata from '../package.json'
 import type {
   CompiledBehaviorSet,
  CompiledInteractionBlocker,
@@ -351,6 +353,16 @@ type FpsCounter = {
 async function init(): Promise<void> {
   setGlobalLoadStage({ stage: 'init:start' })
   installViewerBootDevApi()
+  const cockpitInteractionHistory = new CockpitInteractionHistory(window.localStorage)
+  const cockpitInteractionTrace = new CockpitInteractionTrace()
+  cockpitInteractionHistory.add({
+    timestampMs: Date.now(),
+    source: 'viewer',
+    target: 'app',
+    action: 'start',
+    result: 'started',
+    detail: { version: packageMetadata.version }
+  })
   const backgroundColor = new Color('#405264')
   const searchParams = new URLSearchParams(window.location.search)
   const configStore = loadViewerConfigStore()
@@ -401,6 +413,14 @@ async function init(): Promise<void> {
 
     throw new Error('No importable aircraft model was found in the configured package.')
   }
+  cockpitInteractionHistory.add({
+    timestampMs: Date.now(),
+    source: 'viewer',
+    target: aircraft.id,
+    action: 'aircraft-selected',
+    result: 'selected',
+    detail: { packageRoot, packageName: packageData.packageName }
+  })
 
   const aircraftConfigProfile =
     configStore.aircraft[getViewerAircraftConfigKey(packageRoot, aircraft.id)] ?? null
@@ -581,6 +601,9 @@ async function init(): Promise<void> {
   runtime.bindAnimations(loadedModel.animations)
   let lastRuntimeModelRevision = runtime.getModelRevision()
   let cancelCockpitPointerInteraction = (): void => {}
+  let cancelAllCockpitInteractionWork = (_reason: string): void => {
+    cancelCockpitPointerInteraction()
+  }
   ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
   const cockpitInteractionStats = {
     attemptCount: 0,
@@ -893,9 +916,7 @@ async function init(): Promise<void> {
   }
 
   const rebuildRuntimeForLoadedModel = (): void => {
-    cancelCockpitPointerInteraction()
-    cockpitInteractionDispatcher.cancelAll()
-    cockpitInteractionLifecycle.cancelAll()
+    cancelAllCockpitInteractionWork('runtime-rebuild')
     runtime.dispose()
     runtime = new AircraftRuntime(
       compiledBehaviors,
@@ -1545,13 +1566,103 @@ async function init(): Promise<void> {
     getCockpitInputProfile().interactionMode,
     (target, action) => cockpitInteractionLifecycle.execute(target, action)
   )
-  const syncCockpitInteractionMode = (): void => {
+  const recordCockpitInteractionMiss = (
+    reason: CockpitInteractionMissReason,
+    detail: Readonly<Record<string, unknown>>
+  ): void => {
+    cockpitInteractionDispatcher.recordMiss(reason, detail)
+  }
+  let activeMouseHistory: {
+    readonly target: string
+    readonly pointerId: number
+    readonly startedAtMs: number
+    deltaX: number
+    deltaY: number
+    dragged: boolean
+  } | null = null
+  let activeCameraPanHistory: {
+    readonly pointerId: number
+    readonly startedAtMs: number
+    deltaX: number
+    deltaY: number
+  } | null = null
+  const recordCockpitCameraAction = (
+    action: 'pan' | 'zoom',
+    phase: 'start' | 'sample' | 'end' | 'cancel',
+    detail: { readonly pointerId?: number; readonly deltaX?: number; readonly deltaY?: number; readonly delta?: number }
+  ): void => {
+    if (action === 'zoom') {
+      cockpitInteractionHistory.add({
+        timestampMs: Date.now(),
+        source: 'mouse',
+        target: 'cockpit-camera',
+        action: 'camera-zoom',
+        result: 'executed',
+        detail: { delta: detail.delta ?? 0, steps: 1 }
+      }, {
+        coalesce: { key: 'camera:zoom', withinMs: 120, accumulateDetail: ['delta', 'steps'] }
+      })
+      return
+    }
+    if (phase === 'start' && detail.pointerId != null) {
+      activeCameraPanHistory = {
+        pointerId: detail.pointerId,
+        startedAtMs: performance.now(),
+        deltaX: 0,
+        deltaY: 0
+      }
+      return
+    }
+    if (phase === 'sample' && activeCameraPanHistory != null) {
+      activeCameraPanHistory.deltaX += detail.deltaX ?? 0
+      activeCameraPanHistory.deltaY += detail.deltaY ?? 0
+      return
+    }
+    if ((phase === 'end' || phase === 'cancel') && activeCameraPanHistory != null) {
+      const gesture = activeCameraPanHistory
+      activeCameraPanHistory = null
+      cockpitInteractionHistory.add({
+        timestampMs: Date.now(),
+        source: 'mouse',
+        target: 'cockpit-camera',
+        action: 'camera-pan',
+        result: phase === 'cancel' ? 'cancelled' : 'executed',
+        detail: {
+          durationMs: Math.max(0, performance.now() - gesture.startedAtMs),
+          deltaX: gesture.deltaX,
+          deltaY: gesture.deltaY
+        }
+      })
+    }
+  }
+  cancelAllCockpitInteractionWork = (reason: string): void => {
+    const snapshot = cockpitInteractionDispatcher.snapshot
+    const targets = [...new Set([
+      ...snapshot.busy,
+      ...(snapshot.captured == null ? [] : [snapshot.captured])
+    ])]
     cancelCockpitPointerInteraction()
+    cockpitInteractionDispatcher.cancelAll()
+    cockpitInteractionLifecycle.cancelAll()
+    cockpitInteractionAdapter.cancelAll()
+    clearCockpitInteractionFeedback()
+    window.dispatchEvent(new CustomEvent(VIEWER_INTERACTION_CANCEL_EVENT, {
+      detail: { reason, targets }
+    }))
+  }
+  const syncCockpitInteractionMode = (): void => {
+    cancelAllCockpitInteractionWork('input-profile-replaced')
     const mode = getCockpitInputProfile().interactionMode
     cockpitInteractionDispatcher.setMode(mode)
-    cockpitInteractionLifecycle.cancelAll()
     cockpitInteractionAdapter.setMode(mode)
-    clearCockpitInteractionFeedback()
+    cockpitInteractionHistory.add({
+      timestampMs: Date.now(),
+      source: 'settings',
+      target: selectedCockpitInputProfileId(loadCockpitInputStore(window.localStorage), packageRoot, aircraft.id),
+      action: 'profile-applied',
+      result: 'applied',
+      detail: { interactionMode: mode }
+    })
   }
   cockpitInteractionAdapter.setMode(getCockpitInputProfile().interactionMode)
   window.addEventListener('cockpit-input-settings-changed', syncCockpitInteractionMode)
@@ -1568,6 +1679,7 @@ async function init(): Promise<void> {
     const rect = renderer.domElement.getBoundingClientRect()
     if (rect.width <= 0 || rect.height <= 0) {
       cockpitInteractionStats.lastMissReason = 'empty-renderer-rect'
+      recordCockpitInteractionMiss('raycast', { reason: 'empty-renderer-rect' })
       return null
     }
 
@@ -1601,6 +1713,7 @@ async function init(): Promise<void> {
         }
         if (isCockpitInteractionHitBlocked(hit.distance, blockerHits, pickRegistry)) {
           cockpitInteractionStats.lastMissReason = 'blocked'
+          recordCockpitInteractionMiss('blocker', { reason: 'mesh-blocked', target: binding.target })
           return null
         }
         const executedTarget = executeCockpitInteractionBinding(binding, hit.object, 'interaction-mesh', {
@@ -1641,6 +1754,7 @@ async function init(): Promise<void> {
         }
         if (isCockpitInteractionHitBlocked(hit.distance, blockerHits, pickRegistry)) {
           cockpitInteractionStats.lastMissReason = 'blocked'
+          recordCockpitInteractionMiss('blocker', { reason: 'hitbox-blocked', target: target.binding.target })
           return null
         }
         const executedTarget = executeCockpitInteractionBinding(
@@ -1667,26 +1781,31 @@ async function init(): Promise<void> {
       pickRegistry.blockerHitboxes.length === 0
     ) {
       cockpitInteractionStats.lastMissReason = 'empty-interaction-registry'
+      recordCockpitInteractionMiss('raycast', { reason: 'empty-interaction-registry' })
       return null
     }
 
     if (sawOccludedHit) {
       cockpitInteractionStats.lastMissReason = 'occluded'
+      recordCockpitInteractionMiss('raycast', { reason: 'occluded' })
       return null
     }
 
     if (blockerHits.length > 0) {
       cockpitInteractionStats.hitCount += 1
       cockpitInteractionStats.lastMissReason = 'blocked'
+      recordCockpitInteractionMiss('blocker', { reason: 'blocker-hit' })
       return null
     }
 
     if (meshHits.length === 0 && fallbackHits.length === 0) {
       cockpitInteractionStats.lastMissReason = 'raycast-miss'
+      recordCockpitInteractionMiss('raycast', { reason: 'raycast-miss' })
       return null
     }
 
     cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
+    recordCockpitInteractionMiss('raycast', { reason: 'no-bound-interaction' })
     return null
   }
 
@@ -1805,6 +1924,14 @@ async function init(): Promise<void> {
     if (options.execute === false) {
       cockpitInteractionStats.lastMissReason = 'input-unbound'
       cockpitInteractionStats.lastTarget = selectedBinding.target
+      recordCockpitInteractionMiss('unsupported', { target: selectedBinding.target, reason: 'input-unbound' })
+      cockpitInteractionHistory.add({
+        timestampMs: Date.now(),
+        source: 'mouse',
+        target: selectedBinding.target,
+        action: wheelOperation ?? 'press',
+        result: 'input-unbound'
+      })
       return selectedBinding
     }
     const route = options.mouseEvent == null
@@ -1819,12 +1946,21 @@ async function init(): Promise<void> {
     if (route == null) {
       cockpitInteractionStats.lastMissReason = 'operation-unsupported'
       cockpitInteractionStats.lastTarget = selectedBinding.target
+      recordCockpitInteractionMiss('unsupported', { target: selectedBinding.target, mouseEvent: options.mouseEvent })
+      cockpitInteractionHistory.add({
+        timestampMs: Date.now(),
+        source: 'mouse',
+        target: selectedBinding.target,
+        action: wheelOperation ?? 'press',
+        result: 'operation-unsupported'
+      })
       return selectedBinding
     }
     const target = cockpitInteractionAdapter.fromBinding(selectedBinding)
     const channel: CockpitInteractionChannel = route.channel ?? 'primary'
     const timestampMs = options.timestampMs ?? performance.now()
     const isWheel = route.operation === 'increase' || route.operation === 'decrease'
+    const wasBusy = cockpitInteractionDispatcher.snapshot.busy.includes(target.id)
     const executed = isWheel
       ? cockpitInteractionDispatcher.dispatch(target, {
           source: 'mouse',
@@ -1840,6 +1976,18 @@ async function init(): Promise<void> {
           options.clickCount
         )
     if (executed) {
+      if (wasBusy) {
+        cockpitInteractionStats.lastMissReason = 'target-busy'
+        cockpitInteractionStats.lastTarget = selectedBinding.target
+        cockpitInteractionHistory.add({
+          timestampMs: Date.now(),
+          source: 'mouse',
+          target: selectedBinding.target,
+          action: route.operation,
+          result: 'target-busy'
+        })
+        return selectedBinding
+      }
       const dragBinding =
         target.bindings.find(candidate =>
           candidate.metadata.dragAnimationName != null &&
@@ -1879,10 +2027,42 @@ async function init(): Promise<void> {
       cockpitInteractionStats.lastTarget = selectedBinding.target
       cockpitInteractionStats.activeHeldTarget = options.holdFeedback ? selectedBinding.target : null
       cockpitInteractionStats.interactionTargetCount = runtime.getInteractionBindings().length
+      if (isWheel) {
+        cockpitInteractionHistory.add({
+          timestampMs: Date.now(),
+          source: 'mouse',
+          target: selectedBinding.target,
+          action: route.operation,
+          result: 'executed',
+          detail: { steps: 1, delta: route.operation === 'increase' ? 1 : -1 }
+        }, {
+          coalesce: {
+            key: `wheel:${selectedBinding.metadata.qualifiedId}:${route.operation}`,
+            withinMs: 120,
+            accumulateDetail: ['steps', 'delta']
+          }
+        })
+      } else {
+        activeMouseHistory = {
+          target: selectedBinding.target,
+          pointerId: options.pointerId ?? 1,
+          startedAtMs: timestampMs,
+          deltaX: 0,
+          deltaY: 0,
+          dragged: false
+        }
+      }
       return selectedBinding
     }
     cockpitInteractionStats.lastMissReason = 'interaction-unavailable'
     cockpitInteractionStats.lastTarget = selectedBinding.target
+    cockpitInteractionHistory.add({
+      timestampMs: Date.now(),
+      source: 'mouse',
+      target: selectedBinding.target,
+      action: route.operation,
+      result: 'interaction-unavailable'
+    })
     return selectedBinding
   }
 
@@ -1955,6 +2135,11 @@ async function init(): Promise<void> {
       cockpitInteractionStats.executedCount += 1
       cockpitInteractionStats.lastTarget = binding.target
       cockpitInteractionStats.activeHeldTarget = binding.target
+      if (activeMouseHistory?.pointerId === options.pointerId) {
+        activeMouseHistory.deltaX += options.deltaX
+        activeMouseHistory.deltaY += options.deltaY
+        activeMouseHistory.dragged = true
+      }
     }
     return dragged
   }
@@ -1978,9 +2163,24 @@ async function init(): Promise<void> {
     if (binding == null) {
       return
     }
+    const mouseHistory = activeMouseHistory
+    activeMouseHistory = null
     cockpitInteractionDragTrajectories.delete(binding)
     const target = cockpitInteractionAdapter.fromBinding(binding)
-    if (cockpitInteractionDispatcher.snapshot.captured !== target.id) return
+    if (cockpitInteractionDispatcher.snapshot.captured !== target.id) {
+      if (mouseHistory != null) {
+        cockpitInteractionHistory.add({
+          timestampMs: Date.now(),
+          source: 'mouse',
+          target: mouseHistory.target,
+          action: mouseHistory.dragged ? 'drag' : 'click',
+          result: 'target-lost',
+          detail: { durationMs: Math.max(0, performance.now() - mouseHistory.startedAtMs) }
+        })
+        recordCockpitInteractionMiss('target-loss', { target: mouseHistory.target })
+      }
+      return
+    }
     if (options.cancelled) {
       cockpitInteractionDispatcher.cancel(target.id)
     } else {
@@ -1996,6 +2196,20 @@ async function init(): Promise<void> {
     }
     if (cockpitInteractionStats.activeHeldTarget === binding.target) {
       cockpitInteractionStats.activeHeldTarget = null
+    }
+    if (mouseHistory != null) {
+      cockpitInteractionHistory.add({
+        timestampMs: Date.now(),
+        source: 'mouse',
+        target: mouseHistory.target,
+        action: mouseHistory.dragged ? 'drag' : 'click',
+        result: options.cancelled ? 'cancelled' : 'executed',
+        detail: {
+          durationMs: Math.max(0, performance.now() - mouseHistory.startedAtMs),
+          deltaX: mouseHistory.deltaX,
+          deltaY: mouseHistory.deltaY
+        }
+      })
     }
   }
 
@@ -2328,7 +2542,15 @@ async function init(): Promise<void> {
     },
     restoreExteriorInteriorLod,
     (mode, source) => {
+      if (mode === 'exit') cancelAllCockpitInteractionWork('cockpit-exit')
       recordCockpitBenchmarkEvent(`cockpit:toggle:${mode}`, { source })
+      cockpitInteractionHistory.add({
+        timestampMs: Date.now(),
+        source,
+        target: aircraft.id,
+        action: `cockpit-${mode}`,
+        result: mode === 'enter' ? 'entered' : 'exited'
+      })
     },
     handleCockpitInteractionPress,
     executeCockpitInteractionDrag,
@@ -2336,9 +2558,11 @@ async function init(): Promise<void> {
     handleCockpitInteractionPress,
     handleCockpitInteractionHover,
     executeCapturedCockpitAction,
-    isCockpitInteractionBindingPresent
+    isCockpitInteractionBindingPresent,
+    recordCockpitCameraAction
   )
   cancelCockpitPointerInteraction = cockpitCameraController.cancelInteraction
+  window.addEventListener('pagehide', () => cancelAllCockpitInteractionWork('pagehide'), { once: true })
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
     cockpitCameraController
   loadedModel.interior?.vcockpitBinding?.setActive(shouldUpdateVCockpitGaugesForCurrentView())
@@ -2923,7 +3147,16 @@ async function init(): Promise<void> {
       actions.push('saved gauge setting seed mode for next load')
     }
 
-    return actions.length > 0 ? actions.join(', ') : 'Saved settings.'
+    const result = actions.length > 0 ? actions.join(', ') : 'Saved settings.'
+    cockpitInteractionHistory.add({
+      timestampMs: Date.now(),
+      source: 'settings',
+      target: event.scope,
+      action: 'viewer-settings-applied',
+      result,
+      detail: { aircraftId: event.selectedAircraftId, packageRoot: event.selectedPackageRoot }
+    })
+    return result
   }
 
   handleViewerSettingsApplied = applyViewerSettingsToLoadedAircraft
@@ -2947,6 +3180,8 @@ async function init(): Promise<void> {
     getSettingsSnapshot: () => createViewerRuntimeSettingsSnapshot(effectiveSearchParams),
     getCockpitPerfDiagnostics: () => cockpitPerfDiagnostics,
     cockpitInteractionStats,
+    cockpitInteractionHistory,
+    cockpitInteractionTrace,
     getCockpitInteractionPickRegistry: () =>
       getCockpitInteractionPickRegistry(loadedModel.scene, runtime),
     getCockpitInteractionAdapter: () => cockpitInteractionAdapter,
@@ -11657,7 +11892,12 @@ function installCockpitCameraShortcut(
     operation: 'press' | 'release' | 'increase' | 'decrease',
     channel?: CockpitInteractionChannel
   ) => boolean,
-  isCockpitInteractionTargetPresent?: (binding: CompiledInteractionBinding) => boolean
+  isCockpitInteractionTargetPresent?: (binding: CompiledInteractionBinding) => boolean,
+  onCameraAction?: (
+    action: 'pan' | 'zoom',
+    phase: 'start' | 'sample' | 'end' | 'cancel',
+    detail: { readonly pointerId?: number; readonly deltaX?: number; readonly deltaY?: number; readonly delta?: number }
+  ) => void
 ): CockpitCameraController {
   disposeCockpitCameraShortcut?.()
   disposeCockpitCameraShortcut = null
@@ -11908,6 +12148,7 @@ function installCockpitCameraShortcut(
       return
     }
 
+    if (binding == null) onCameraAction?.('pan', 'start', { pointerId: event.pointerId })
     activePointerId = event.pointerId
     activePointerButton = event.button
     activeInteractionChannel = channel ?? 'primary'
@@ -11971,6 +12212,7 @@ function installCockpitCameraShortcut(
       Math.max(MIN_PITCH_RADIANS, nextPitchRadians)
     ) - basePitchRadians
     applyCockpitCamera()
+    onCameraAction?.('pan', 'sample', { pointerId: event.pointerId, deltaX, deltaY })
     event.preventDefault()
   }
 
@@ -11991,6 +12233,7 @@ function installCockpitCameraShortcut(
       return
     }
 
+    if (activeCockpitPressBinding == null) onCameraAction?.('pan', 'end', { pointerId: event.pointerId })
     onCockpitRelease?.(activeCockpitPressBinding, { unlock: activeCockpitDragCallbackEmitted, channel: activeInteractionChannel, pointerId: event.pointerId })
     activeCockpitPressBinding = null
     releasePointer()
@@ -12015,6 +12258,9 @@ function installCockpitCameraShortcut(
   const onPointerLeave = (): void => onCockpitHover?.(null)
 
   const cancelActivePointer = (): void => {
+    if (activePointerId != null && activeCockpitPressBinding == null) {
+      onCameraAction?.('pan', 'cancel', { pointerId: activePointerId })
+    }
     onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, cancelled: true })
     activeCockpitPressBinding = null
     releasePointer()
@@ -12057,6 +12303,7 @@ function installCockpitCameraShortcut(
         Math.max(MIN_ZOOM, cockpitZoom * Math.exp(-zoomDelta * 0.0015))
       )
       applyCockpitCamera()
+      onCameraAction?.('zoom', 'sample', { delta: zoomDelta })
     }
     event.preventDefault()
   }

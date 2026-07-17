@@ -34,12 +34,37 @@ export interface CockpitInteractionTarget {
   readonly operations: readonly CockpitInteractionOperation[]
 }
 
+export type CockpitInteractionMissReason =
+  | 'raycast'
+  | 'unsupported'
+  | 'unavailable'
+  | 'busy'
+  | 'blocker'
+  | 'cover'
+  | 'target-loss'
+
+export interface CockpitInteractionMiss {
+  readonly reason: CockpitInteractionMissReason
+  readonly timestampMs: number
+  readonly detail?: Readonly<Record<string, unknown>>
+}
+
 export type CockpitInteractionState = 'idle' | 'hovered' | 'pressed' | 'captured' | 'dragging' | 'held' | 'repeating' | 'released' | 'locked' | 'cancelled'
 
 export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
   private hovered: T | null = null
   private captured: { target: T; pointerId: number; channel: CockpitInteractionChannel; locked: boolean } | null = null
   private readonly busy = new Map<string, CockpitInteractionOperation>()
+  private readonly missCounts: Record<CockpitInteractionMissReason, number> = {
+    raycast: 0,
+    unsupported: 0,
+    unavailable: 0,
+    busy: 0,
+    blocker: 0,
+    cover: 0,
+    'target-loss': 0
+  }
+  private latestMiss: CockpitInteractionMiss | null = null
   private state: CockpitInteractionState = 'idle'
 
   constructor(
@@ -47,14 +72,38 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     private readonly execute: (target: T, action: CanonicalCockpitAction) => boolean
   ) {}
 
-  get snapshot(): Readonly<{ state: CockpitInteractionState; hovered: string | null; captured: string | null; busy: readonly string[] }> {
-    return { state: this.state, hovered: this.hovered?.id ?? null, captured: this.captured?.target.id ?? null, busy: [...this.busy.keys()] }
+  get snapshot(): Readonly<{
+    state: CockpitInteractionState
+    hovered: string | null
+    captured: string | null
+    busy: readonly string[]
+    misses: { readonly counts: Readonly<Record<CockpitInteractionMissReason, number>>; readonly latest: CockpitInteractionMiss | null }
+  }> {
+    return {
+      state: this.state,
+      hovered: this.hovered?.id ?? null,
+      captured: this.captured?.target.id ?? null,
+      busy: [...this.busy.keys()],
+      misses: { counts: { ...this.missCounts }, latest: this.latestMiss }
+    }
+  }
+
+  recordMiss(
+    reason: CockpitInteractionMissReason,
+    detail?: Readonly<Record<string, unknown>>,
+    timestampMs = performance.now()
+  ): void {
+    this.missCounts[reason] += 1
+    this.latestMiss = { reason, timestampMs, detail }
   }
 
   setMode(mode: CockpitInteractionMode): void { this.cancelAll(); this.mode = mode }
 
   claim(target: T, operation: CockpitInteractionOperation): boolean {
-    if (this.busy.has(target.id)) return false
+    if (this.busy.has(target.id)) {
+      this.recordMiss('busy', { target: target.id, operation })
+      return false
+    }
     this.busy.set(target.id, operation)
     return true
   }
@@ -78,7 +127,10 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     clickCount = 1
   ): boolean {
     if (target == null) return false
-    if (this.busy.has(target.id)) return true
+    if (this.busy.has(target.id)) {
+      this.recordMiss('busy', { target: target.id, operation: 'hold' }, timestampMs)
+      return true
+    }
     const locked = this.mode === 'lock' && target.lockable && channel === 'primary'
     this.captured = { target, pointerId, channel, locked }
     this.state = locked ? 'locked' : 'pressed'
@@ -91,7 +143,9 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
   pointerMove(pointerId: number, axis: 'x' | 'y' | 'z', axisValue: number, dragPercent: number, timestampMs: number): boolean {
     if (this.captured?.pointerId !== pointerId) return false
     this.state = 'dragging'
-    return this.execute(this.captured.target, { ...event('turn', 'drag', timestampMs), channel: this.captured.channel, pointerId, axis, axisValue, dragPercent })
+    const executed = this.execute(this.captured.target, { ...event('turn', 'drag', timestampMs), channel: this.captured.channel, pointerId, axis, axisValue, dragPercent })
+    if (!executed) this.recordMiss('unavailable', { target: this.captured.target.id, operation: 'turn' }, timestampMs)
+    return executed
   }
 
   pointerUp(pointerId: number, timestampMs: number): boolean {
@@ -108,9 +162,18 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
   dispatch(target: T, action: CanonicalCockpitAction): 'executed' | 'unsupported' | 'busy' {
     const supported = target.operations.includes(action.operation) ||
       (action.operation === 'hold' && target.operations.includes('press'))
-    if (!supported) return 'unsupported'
-    if (this.busy.has(target.id) && action.operation !== 'release' && action.operation !== 'cancel') return 'busy'
-    if (!this.execute(target, action)) return 'unsupported'
+    if (!supported) {
+      this.recordMiss('unsupported', { target: target.id, operation: action.operation }, action.timestampMs)
+      return 'unsupported'
+    }
+    if (this.busy.has(target.id) && action.operation !== 'release' && action.operation !== 'cancel') {
+      this.recordMiss('busy', { target: target.id, operation: action.operation }, action.timestampMs)
+      return 'busy'
+    }
+    if (!this.execute(target, action)) {
+      this.recordMiss('unavailable', { target: target.id, operation: action.operation }, action.timestampMs)
+      return 'unsupported'
+    }
     if (action.operation === 'hold') this.busy.set(target.id, 'hold')
     if (action.operation === 'release' || action.operation === 'cancel') this.busy.delete(target.id)
     return 'executed'
@@ -118,7 +181,9 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
 
   dispatchCaptured(action: CanonicalCockpitAction): boolean {
     if (this.captured == null) return false
-    return this.execute(this.captured.target, action)
+    const executed = this.execute(this.captured.target, action)
+    if (!executed) this.recordMiss('unavailable', { target: this.captured.target.id, operation: action.operation }, action.timestampMs)
+    return executed
   }
 
   cancel(targetId?: string, timestampMs = performance.now()): boolean {

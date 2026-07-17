@@ -37,4 +37,27 @@ describe('CockpitInteractionDispatcher', () => {
     expect(dispatcher.snapshot.captured).toBe(target.id)
     expect(dispatcher.pointerUp(1, 5)).toBe(true)
   })
+
+  test('keeps cumulative miss counts and the latest structured detail', () => {
+    const target: CockpitInteractionTarget = { id: 'control', lockable: false, operations: ['press'] }
+    const dispatcher = new CockpitInteractionDispatcher('legacy', () => false)
+
+    expect(dispatcher.dispatch(target, { source: 'devapi', operation: 'turn', phase: 'press', timestampMs: 1 })).toBe('unsupported')
+    expect(dispatcher.dispatch(target, { source: 'devapi', operation: 'press', phase: 'press', timestampMs: 2 })).toBe('unsupported')
+    dispatcher.recordMiss('raycast', { reason: 'empty' }, 3)
+    dispatcher.recordMiss('raycast', { reason: 'occluded' }, 4)
+
+    expect(dispatcher.snapshot.misses).toEqual({
+      counts: {
+        raycast: 2,
+        unsupported: 1,
+        unavailable: 1,
+        busy: 0,
+        blocker: 0,
+        cover: 0,
+        'target-loss': 0
+      },
+      latest: { reason: 'raycast', timestampMs: 4, detail: { reason: 'occluded' } }
+    })
+  })
 })
