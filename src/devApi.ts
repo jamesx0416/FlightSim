@@ -2084,7 +2084,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             heldStateReleased: operation === 'release' && heldState?.lifecycle === 'held'
           }), target.id)
         }
-        interactionTrace.add(() => ({ action, route, target: target.binding.metadata }))
+        interactionTrace.add(() => ({ kind: 'canonical-action', action, route, target: target.binding.metadata }))
         await Promise.resolve()
       }
       if (operation === 'hold') {
@@ -2251,7 +2251,12 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       route: (resolved, canonicalAction) => interactionAdapter.route(resolved, canonicalAction),
       dispatch: (resolved, canonicalAction) => interactionDispatcher.dispatch(resolved, canonicalAction),
       onExecuted: (resolved, canonicalAction, route) => {
-        interactionTrace.add(() => ({ action: canonicalAction, route, target: resolved.binding.metadata }))
+        interactionTrace.add(() => ({
+          kind: 'canonical-action',
+          action: canonicalAction,
+          route,
+          target: resolved.binding.metadata
+        }))
         interactionHistory.add({
           timestampMs: Date.now(),
           source: canonicalAction.source,
