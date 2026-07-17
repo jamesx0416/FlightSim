@@ -2062,12 +2062,21 @@ function buildCompiledInteractionValueMetadata(
   const gateSteps = params.has('GATE_TOLERANCE')
     ? parseOptionalFiniteNumber(params.get('STEPS_NUMBER'))
     : null
+  const numberOfStates = parseOptionalFiniteNumber(params.get('NUM_STATES'))
+  const maximumPosition = parseOptionalFiniteNumber(params.get('MAX_POSITION'))
   const maximumHandleIndex = parseOptionalFiniteNumber(params.get('MAX_HANDLE_INDEX'))
   const explicitMinimum = parseOptionalFiniteNumber(
-    params.get('DRAG_MIN_VALUE') ?? params.get('MIN_VALUE')
+    params.get('DRAG_MIN_VALUE') ??
+    params.get('MIN_VALUE') ??
+    params.get('LOWER_LIMIT') ??
+    params.get('ANIM_SIMVAR_MIN') ??
+    params.get('MIN_POSITION')
   )
   const explicitMaximum = parseOptionalFiniteNumber(
-    params.get('DRAG_MAX_VALUE') ?? params.get('MAX_VALUE')
+    params.get('DRAG_MAX_VALUE') ??
+    params.get('MAX_VALUE') ??
+    params.get('UPPER_LIMIT') ??
+    params.get('ANIM_SIMVAR_MAX')
   )
   const explicitStep = parseOptionalPositiveNumber(
     getFirstUsableInteractionParameter(params, ['VALUE_STEP', 'STEP_SIZE', 'INCREMENT'])
@@ -2076,17 +2085,36 @@ function buildCompiledInteractionValueMetadata(
     'DRAG_SIMVAR_UNITS',
     'SWITCH_POSITION_UNITS',
     'POSITION_UNITS',
+    'VALUE_UNITS',
+    'VALUE_UNIT',
+    'SIMVAR_UNITS',
+    'ANIM_SIMVAR_UNITS',
     'UNITS'
   ]) || null
+  const minimum = gateSteps != null || numberOfStates != null || maximumPosition != null
+    ? 0
+    : explicitMinimum ?? (maximumHandleIndex != null ? 0 : null)
+  const maximum = gateSteps ??
+    (numberOfStates != null && Number.isInteger(numberOfStates) && numberOfStates > 0
+      ? numberOfStates - 1
+      : null) ??
+    maximumPosition ??
+    explicitMaximum ??
+    (maximumHandleIndex != null ? 1 : null)
+  const cyclic = parseBoolean(params.get('WRAPS') ?? params.get('CYCLIC') ?? 'False')
   return {
     variableKey,
     unit,
-    minimum: gateSteps != null ? 0 : explicitMinimum ?? (maximumHandleIndex != null ? 0 : null),
-    maximum: gateSteps ?? explicitMaximum ?? (maximumHandleIndex != null ? 1 : null),
+    minimum,
+    maximum,
     step: gateSteps != null ? 1 : explicitStep ?? (maximumHandleIndex != null && maximumHandleIndex > 0
       ? 1 / maximumHandleIndex
       : null),
-    cyclic: parseBoolean(params.get('WRAPS') ?? params.get('CYCLIC') ?? 'False'),
+    cyclic,
+    cyclicUpperInclusive: cyclic &&
+      (gateSteps != null || numberOfStates != null || maximumPosition != null)
+      ? true
+      : null,
     settleTimeSeconds: Math.max(
       parseNumber(params.get('ANIM_DURATION') ?? params.get('MIN_HELD_DURATION'), 0),
       0
@@ -2152,17 +2180,28 @@ function compileInteractionValueAuthority(
       diagnostics,
       localVariableScope: scope
     })
+    if (expression != null && !compiledExpressionHasSideEffects(expression)) {
+      diagnostics.push({
+        code: 'interaction_static_setter_ir_unproven',
+        severity: 'warning',
+        sourcePath,
+        message: `Interaction ${target} declares static state ${value} without a compiled mutation or event.`
+      })
+      continue
+    }
     if (expression != null && !setStates.has(value)) {
       setStates.set(value, { value, label: rawLabel.trim(), expression })
     }
   }
 
   const increaseRaw = getFirstUsableInteractionParameter(params, [
+    'WHEEL_INCREMENT',
     'VALUE_STEP',
     'STEP_SIZE',
     'INCREMENT'
   ])
   const decreaseRaw = getFirstUsableInteractionParameter(params, [
+    'WHEEL_DECREMENT',
     'DECREMENT',
     'VALUE_STEP',
     'STEP_SIZE',

@@ -126,7 +126,7 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(metadata.value).toEqual({
     variableKey: 'L:TEST_VALUE', unit: 'number', minimum: 0, maximum: 10,
     step: 0.5, increaseStep: 0.5, decreaseStep: 0.5,
-    cyclic: false, settleTimeSeconds: 0, setStates: [],
+    cyclic: false, cyclicUpperInclusive: null, settleTimeSeconds: 0, setStates: [],
     stateExpression: {
       source: '(L:TEST_VALUE, number)',
       instructions: [{ op: 'pushVariable', key: 'L:TEST_VALUE', unit: 'number' }],
@@ -184,6 +184,41 @@ test('interaction metadata expands authored flags and value reachability', () =>
     incrementDiagnostics
   )
   expect(incrementDiagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_increment_unproven')).toBe(true)
+
+  const pureSetterDiagnostics: ImportDiagnostic[] = []
+  const pureSetter = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['STR_STATE_0', 'Zero'],
+      ['SET_STATE_0', '1 2 +']
+    ]),
+    'TEST_PURE_SETTER',
+    'TEST_PURE_SETTER',
+    'test.xml',
+    "(M:Event) 'LeftSingle' scmi 0 == if{ 1 }",
+    'callback',
+    pureSetterDiagnostics
+  )
+  expect(pureSetter.value.setStates).toEqual([])
+  expect(pureSetterDiagnostics.some(diagnostic => diagnostic.code === 'interaction_static_setter_ir_unproven')).toBe(true)
+
+  const bounded = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['NUM_STATES', '5'],
+      ['VALUE_UNITS', 'Enum'],
+      ['WRAPS', 'True'],
+      ['WHEEL_INCREMENT', 's0 2 0.1 l0 0 == ?'],
+      ['INCREMENT', '1']
+    ]),
+    'TEST_BOUNDED',
+    'TEST_BOUNDED',
+    'test.xml',
+    "(M:Event) 'WheelUp' scmi 0 == if{ 1 }",
+    'callback',
+    incrementDiagnostics
+  )
+  expect([bounded.value.minimum, bounded.value.maximum, bounded.value.unit]).toEqual([0, 4, 'Enum'])
+  expect(bounded.value.cyclicUpperInclusive).toBe(true)
+  expect(bounded.value.increaseStep).toBe(null)
 
   const inverted = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([
