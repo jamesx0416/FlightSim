@@ -369,13 +369,18 @@ Current implemented slice:
 - [x] Preflight exact reachability, execute scheduler-yielding convergence, and verify success with cancellation, target-loss, no-progress, and settled-state cycle detection.
 - [x] Add package-localized authored tooltips, current values, authored cursors, Lock highlights, and Settings controls for mode/highlight/tooltip visibility.
 - [x] Verify focused tests and the complete repository test suite without editing aircraft fixture data.
-- [ ] Complete the remaining broader milestone-one profile editor, binding-capture/conflict UI, exhaustive mounted-stock matrix, persistent history/tracing acceptance, and multi-control fixture acceptance pass.
-  - Wire profile `bindings` into mouse dispatch and add profile create/duplicate/rename/delete/reset, global/per-aircraft selection, conflict validation, and the corresponding Settings UI.
-  - Dispatch native single/single/double sequencing, authored `DownRepeat`/`MoveRepeat`, and the remaining scheduler-driven repeat/spring lifecycle; metadata exists for these routes but the pointer dispatcher does not yet produce them.
-  - Add the 120 ms wheel-summary window and record mouse, camera, settings, aircraft, cockpit, cancellation, unsupported, and unavailable actions in persistent history. Bound detailed trace by both record count and approximately 16 MB, add overflow markers/export, and feed it low-level adapter/runtime events.
-  - Complete structured typed InputEvent parameter/input-type metadata and authored tooltip value formatting, then run the mounted-stock interaction matrix against those compiled fields.
-  - Finish direct-mouse and DevApi acceptance across the representative A330 control matrix and a second mounted package, without fixture edits or aircraft-specific rules.
-  - Remove stale DevApi documentation for the deleted raw `input.pointer`, `input.key`, and `input.wheel` helpers and document the completed profile/action surface.
+- [x] Complete profile storage/remapping, binding capture and conflicts, Settings CRUD/global/package-plus-aircraft selection, physical mouse routing, and matching DevApi profile operations.
+- [x] Dispatch native single/single/double sequencing, authored `DownRepeat`/`MoveRepeat`, and scheduler-driven repeat, long-press, minimum-hold, delayed-release, spring-return, and cancellation lifecycle.
+- [x] Persist and coalesce compact history, including the 120 ms wheel window, and provide shared lazy detailed trace with 10,000-record/approximately-16-MB caps, overflow accounting, low-level runtime events, and DevApi export.
+- [x] Complete the documented canonical dispatch, active lifecycle, semantic variant, profile, history, and trace DevApi surface and remove stale raw `input.pointer`, `input.key`, and `input.wheel` documentation.
+- [x] Prevent claimed, unbound, unsupported, busy, unavailable, blocker/cover, and bound VCockpit gauge-surface input from falling through to camera pan/zoom; only a true miss may use the empty-cockpit mapping.
+- [ ] Complete the remaining broader milestone-one compiler metadata and mounted-package acceptance work tracked in `cockpit-interaction-milestone-one-todo.md`.
+  - Compile dynamic increment/typed parameter/cross-unit exact relationships, authored rich value formatting and tooltips, directional/center cursors, temporary/lockable/lag drag flags, independent drag scales, and `GroupID`.
+  - Remove the invented `LeftSingle` compiler fallback and add structured dropped-candidate diagnostics plus candidate/compiled/rejected totals.
+  - Run focused geometric hit/arbitration coverage and the complete A330 direct-mouse, lifecycle, presentation, exact Set/Adjust, and Legacy/Lock matrix.
+  - Run the same generic matrix against a second mounted package. Only three liveries from the same Headwind A339X package were available on 2026-07-17.
+  - Rerun post-fix Settings Escape and camera-arbitration browser checks after the local browser-command authorization service recovers from its 503 failure.
+  - The current A339X has no fully provable browser exact target: three otherwise eligible percentage controls lack authoritative state reads, and no mounted target exposes both multiple static states and readable current state. Keep exact mutation fail closed.
 
 - Preserve package authority:
   - Keep importing the aircraft's `MouseRect`, callback, input-event, template, tooltip, and sound metadata.
