@@ -355,6 +355,11 @@ async function init(): Promise<void> {
   installViewerBootDevApi()
   const cockpitInteractionHistory = new CockpitInteractionHistory(window.localStorage)
   const cockpitInteractionTrace = new CockpitInteractionTrace()
+  const traceCockpitInteraction = (
+    record: () => Readonly<Record<string, unknown>>
+  ): void => {
+    cockpitInteractionTrace.add(record)
+  }
   cockpitInteractionHistory.add({
     timestampMs: Date.now(),
     source: 'viewer',
@@ -515,6 +520,7 @@ async function init(): Promise<void> {
   )
   setGlobalLoadStage({ stage: 'gltf:load', aircraftId: aircraft.id })
   const runtimeHost = new SharedMsfsRuntimeHost([], aircraft)
+  runtimeHost.setTraceSink(traceCockpitInteraction)
   ;(globalThis as Record<string, unknown>).__lastRuntimeHost = runtimeHost
   const syncedSettingSeedPromise = shouldSkipGaugeSettingSeed(effectiveSearchParams)
     ? Promise.resolve()
@@ -1550,10 +1556,16 @@ async function init(): Promise<void> {
     CompiledInteractionBinding,
     { readonly points: readonly MsfsDragTrajectoryPoint[]; readonly offset: number; readonly percent: number; readonly mode: 'default' | 'trajectory' }
   >()
-  const cockpitInteractionAdapter = new MsfsInteractionAdapter(() => runtime)
+  const cockpitInteractionAdapter = new MsfsInteractionAdapter(
+    () => runtime,
+    undefined,
+    traceCockpitInteraction
+  )
   const cockpitInteractionLifecycle = new MsfsInteractionLifecycle(
     cockpitInteractionAdapter,
-    runtimeHost.simulatorEngine.scheduler
+    runtimeHost.simulatorEngine.scheduler,
+    undefined,
+    traceCockpitInteraction
   )
   const getCockpitInputProfile = () => {
     const store = loadCockpitInputStore(window.localStorage)
@@ -1571,6 +1583,7 @@ async function init(): Promise<void> {
     detail: Readonly<Record<string, unknown>>
   ): void => {
     cockpitInteractionDispatcher.recordMiss(reason, detail)
+    traceCockpitInteraction(() => ({ kind: 'pre-dispatch-rejection', reason, detail }))
   }
   let activeMouseHistory: {
     readonly target: string
@@ -1591,6 +1604,7 @@ async function init(): Promise<void> {
     phase: 'start' | 'sample' | 'end' | 'cancel',
     detail: { readonly pointerId?: number; readonly deltaX?: number; readonly deltaY?: number; readonly delta?: number }
   ): void => {
+    traceCockpitInteraction(() => ({ kind: 'camera-input', action, phase, detail }))
     if (action === 'zoom') {
       cockpitInteractionHistory.add({
         timestampMs: Date.now(),
@@ -1646,6 +1660,7 @@ async function init(): Promise<void> {
     cockpitInteractionLifecycle.cancelAll()
     cockpitInteractionAdapter.cancelAll()
     clearCockpitInteractionFeedback()
+    traceCockpitInteraction(() => ({ kind: 'interaction-cancel', reason, targets }))
     window.dispatchEvent(new CustomEvent(VIEWER_INTERACTION_CANCEL_EVENT, {
       detail: { reason, targets }
     }))
@@ -1905,6 +1920,14 @@ async function init(): Promise<void> {
     hitKind: 'interaction-mesh' | 'fallback-hitbox',
     options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean; readonly pointerId?: number; readonly clickCount?: number; readonly timestampMs?: number }
   ): CompiledInteractionBinding | null => {
+    traceCockpitInteraction(() => ({
+      kind: 'hit-test',
+      result: hitKind,
+      target: binding.metadata.qualifiedId,
+      object: hitObject.name || hitObject.type,
+      pointer: { x: cockpitInteractionPointer.x, y: cockpitInteractionPointer.y },
+      provenance: { sourcePath: binding.sourcePath, sourceKind: binding.metadata.sourceKind }
+    }))
     cockpitInteractionStats.lastHitObject = hitObject.name || hitObject.type
     cockpitInteractionStats.lastHitKind = hitKind
     const wheelOperation = options.mouseEvent === 'WheelUp'
@@ -2083,6 +2106,18 @@ async function init(): Promise<void> {
       return false
     }
     const target = cockpitInteractionAdapter.fromBinding(binding)
+    traceCockpitInteraction(() => ({
+      kind: 'movement-sample',
+      target: target.id,
+      pointerId: options.pointerId,
+      relativeX: options.relativeX,
+      relativeY: options.relativeY,
+      relativeZ: options.relativeZ,
+      dragPercent: options.dragPercent,
+      deltaX: options.deltaX,
+      deltaY: options.deltaY,
+      firstSample: options.firstSample
+    }))
     if (!target.bindings.some(candidate => candidate.metadata.routes.some(route => route.phase === 'drag'))) return false
     const trajectory = cockpitInteractionDragTrajectories.get(binding)
     const axis = binding.metadata.axis ?? 'y'

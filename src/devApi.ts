@@ -2163,7 +2163,21 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     history: (options = {}) => interactionResult(true, 'OK', 'Collected interaction history.', interactionHistory.list(options.limit)),
     trace: {
       snapshot: () => interactionResult(true, 'OK', 'Collected interaction trace.', interactionTrace.snapshot()),
-      enable: (enabled = true) => { interactionTrace.enabled = enabled; return interactionResult(true, 'OK', `Detailed tracing ${enabled ? 'enabled' : 'disabled'}.`, { enabled }) },
+      enable: (enabled = true) => {
+        interactionTrace.enabled = enabled
+        if (enabled) {
+          interactionTrace.add({
+            kind: 'trace-coverage',
+            implemented: [
+              'canonical-action', 'selected-route', 'hit-test', 'blocker', 'movement',
+              'variable-read', 'variable-write', 'input-event-rpn', 'key-event', 'html-event',
+              'sound-event', 'effect-event', 'feedback', 'scheduler', 'cancellation', 'provenance'
+            ],
+            unavailable: ['native simulator internals outside the viewer host']
+          })
+        }
+        return interactionResult(true, 'OK', `Detailed tracing ${enabled ? 'enabled' : 'disabled'}.`, { enabled })
+      },
       export: () => interactionResult(true, 'OK', 'Exported interaction trace.', interactionTrace.export())
     },
     profiles: cockpitInputProfilesApi,

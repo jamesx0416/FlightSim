@@ -15,6 +15,39 @@ test('starts each authored drag lifecycle with its lock route', () => {
   expect(selectDragRoutes([drag, lock], false)).toEqual([drag])
 })
 
+test('traces canonical actions with selected routes and cancellation provenance', () => {
+  const binding = interactionBinding()
+  const records: Readonly<Record<string, unknown>>[] = []
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => 0,
+    executeInteractionBindingDirect: () => true,
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(
+    runtime,
+    undefined,
+    factory => records.push(factory())
+  )
+  const target = adapter.fromBinding(binding)
+
+  expect(adapter.execute(target, {
+    source: 'devapi', operation: 'increase', phase: 'press', timestampMs: 1
+  })).toBe(true)
+  adapter.cancel(target)
+
+  expect(records.map(record => record.kind)).toEqual(['canonical-action', 'interaction-cancel'])
+  expect(records[0]).toEqual({
+    kind: 'canonical-action',
+    action: { source: 'devapi', operation: 'increase', phase: 'press', timestampMs: 1 },
+    target: 'test.xml#TEST',
+    executed: true,
+    path: 'route',
+    route: binding.metadata.routes[0],
+    provenance: { sourcePath: 'test.xml', sourceKind: 'callbackCode', sourceTemplate: null }
+  })
+})
+
 test('groups sibling bindings by authoritative interaction identity', () => {
   const click = interactionBinding()
   const drag = { ...click, metadata: { ...click.metadata } }
@@ -477,7 +510,13 @@ test('runs authored single, double, repeat, drag, release, and cancellation life
   } as unknown as AircraftRuntime
   const adapter = new MsfsInteractionAdapter(runtime)
   const scheduler = new SimScheduler()
-  const lifecycle = new MsfsInteractionLifecycle(adapter, scheduler)
+  const trace: Readonly<Record<string, unknown>>[] = []
+  const lifecycle = new MsfsInteractionLifecycle(
+    adapter,
+    scheduler,
+    undefined,
+    factory => trace.push(factory())
+  )
   const target = adapter.fromBinding(binding)
   const base = { source: 'mouse', operation: 'press', phase: 'press', channel: 'primary', timestampMs: 0 } as const
 
@@ -498,6 +537,9 @@ test('runs authored single, double, repeat, drag, release, and cancellation life
   lifecycle.cancel(target)
   scheduler.tick(2)
   expect(events.at(-1)).toBe('release-feedback')
+  expect(trace.some(record => record.phase === 'repeat-scheduled')).toBe(true)
+  expect(trace.some(record => record.phase === 'repeat-fired')).toBe(true)
+  expect(trace.some(record => record.phase === 'scope-cancelled')).toBe(true)
 })
 
 test('bridges captured pointer actions and keeps repeated cancellation idempotent', () => {
