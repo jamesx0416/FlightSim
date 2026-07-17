@@ -26,7 +26,8 @@ export class MsfsInteractionLifecycle {
   constructor(
     private readonly adapter: MsfsInteractionAdapter,
     private readonly scheduler: SimScheduler,
-    private readonly diagnose: (diagnostic: MsfsInteractionLifecycleDiagnostic) => void = () => {}
+    private readonly diagnose: (diagnostic: MsfsInteractionLifecycleDiagnostic) => void = () => {},
+    private readonly trace?: (record: () => Readonly<Record<string, unknown>>) => void
   ) {}
 
   execute(target: MsfsInteractionTarget, action: CanonicalCockpitAction): boolean {
@@ -126,11 +127,36 @@ export class MsfsInteractionLifecycle {
     const delaySeconds = initialAction.operation === 'hold' && binding.minHeldDurationSeconds > 0
       ? binding.minHeldDurationSeconds
       : intervalSeconds
+    this.trace?.(() => ({
+      kind: 'scheduler',
+      phase: 'repeat-scheduled',
+      target: target.id,
+      action: initialAction,
+      delaySeconds,
+      intervalSeconds,
+      scope: active.scope,
+      provenance: { sourcePath: binding.sourcePath, route }
+    }))
     let taskId = 0
     taskId = this.scheduler.schedule(delaySeconds, () => {
       const action = currentAction()
+      this.trace?.(() => ({
+        kind: 'scheduler',
+        phase: 'repeat-fired',
+        target: target.id,
+        action,
+        taskId,
+        scope: active.scope
+      }))
       if (action == null || !this.adapter.execute(target, action)) {
         this.scheduler.cancel(taskId)
+        this.trace?.(() => ({
+          kind: 'scheduler',
+          phase: 'repeat-cancelled',
+          target: target.id,
+          taskId,
+          scope: active.scope
+        }))
       }
     }, {
       repeatSeconds: intervalSeconds,
@@ -142,6 +168,7 @@ export class MsfsInteractionLifecycle {
   private cancelTasks(targetId: string): void {
     const active = this.active.get(targetId)
     if (active == null) return
+    this.trace?.(() => ({ kind: 'scheduler', phase: 'scope-cancelled', target: targetId, scope: active.scope }))
     this.scheduler.cancelScope(active.scope)
     this.active.delete(targetId)
   }

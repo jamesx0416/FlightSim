@@ -113,7 +113,8 @@ export class MsfsInteractionAdapter {
 
   constructor(
     private readonly runtimeSource: AircraftRuntime | (() => AircraftRuntime),
-    private readonly settleOverride?: (seconds: number) => Promise<void>
+    private readonly settleOverride?: (seconds: number) => Promise<void>,
+    private readonly traceSink?: (record: () => Readonly<Record<string, unknown>>) => void
   ) {}
 
   private get runtime(): AircraftRuntime { return typeof this.runtimeSource === 'function' ? this.runtimeSource() : this.runtimeSource }
@@ -148,13 +149,17 @@ export class MsfsInteractionAdapter {
     if (selected?.route != null &&
         (action.operation === 'increase' || action.operation === 'decrease') &&
         selected.binding.metadata.discreteGate != null) {
-      return this.executeGateStep(selected.binding, action.operation)
+      const executed = this.executeGateStep(selected.binding, action.operation)
+      this.traceExecution(target, action, selected.binding, selected.route, executed, 'gate')
+      return executed
     }
     if (selected?.route == null) {
       const toggle = target.bindings.find(binding => binding.metadata.wheelPrimaryToggle)
-      return toggle == null || (action.operation !== 'increase' && action.operation !== 'decrease')
+      const executed = toggle == null || (action.operation !== 'increase' && action.operation !== 'decrease')
         ? false
         : this.executePrimaryToggleDirection(toggle, action.operation)
+      this.traceExecution(target, action, toggle ?? target.binding, null, executed, 'fallback')
+      return executed
     }
     const actionValue = typeof action.value === 'boolean'
       ? Number(action.value)
@@ -175,6 +180,7 @@ export class MsfsInteractionAdapter {
     if (executed && action.operation === 'hold' && action.phase === 'hold') {
       this.held.add(target.id)
     }
+    this.traceExecution(target, action, selected.binding, selected.route, executed, 'route')
     return executed
   }
 
@@ -262,6 +268,7 @@ export class MsfsInteractionAdapter {
   active(): readonly string[] { return [...this.busy] }
 
   cancel(target: MsfsInteractionTarget): void {
+    this.traceSink?.(() => ({ kind: 'interaction-cancel', target: target.id }))
     this.signalCancellation(target.id)
     if (!this.held.delete(target.id)) return
     const runtime = this.runtime as AircraftRuntime & {
@@ -378,7 +385,9 @@ export class MsfsInteractionAdapter {
       const runtime = this.runtime as AircraftRuntime & {
         executeInteractionSetState?: (binding: CompiledInteractionBinding, value: number) => boolean
       }
-      if (runtime.executeInteractionSetState?.(stateBinding, requested) !== true) {
+      const executed = runtime.executeInteractionSetState?.(stateBinding, requested) === true
+      this.traceExecution(target, canonical('set', channel, requested), stateBinding, null, executed, 'static-state')
+      if (!executed) {
         watch?.dispose()
         return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
       }
@@ -419,6 +428,7 @@ export class MsfsInteractionAdapter {
         inputType: setSelection.route.inputTypes[0],
         parameterValues: [requested]
       })
+      this.traceExecution(target, setAction, setSelection.binding, setSelection.route, executed, 'direct-set')
       if (!executed) {
         watch?.dispose()
         return exactResult('OPERATION_UNSUPPORTED', previous, previous, requested, target, null, 0)
@@ -506,6 +516,14 @@ export class MsfsInteractionAdapter {
             mouseEvent: selectedRoute.route.msfsEvent ?? undefined,
             inputType: selectedRoute.route.inputTypes[0]
           })
+      this.traceExecution(
+        target,
+        canonical(routeOperation, channel),
+        selectedRoute.binding,
+        selectedRoute.route,
+        executed,
+        'exact-step'
+      )
       if (!executed) {
         watch?.dispose()
         return exactResult('TARGET_LOST', previous, actual, requested, target, routeOperation, index)
@@ -537,6 +555,29 @@ export class MsfsInteractionAdapter {
     return typeof runtime.watchInteractionValue === 'function'
       ? runtime.watchInteractionValue(binding)
       : null
+  }
+
+  private traceExecution(
+    target: MsfsInteractionTarget,
+    action: CanonicalCockpitAction,
+    binding: CompiledInteractionBinding,
+    route: CompiledInteractionRoute | null,
+    executed: boolean,
+    path: string
+  ): void {
+    this.traceSink?.(() => ({
+      kind: 'canonical-action',
+      action,
+      target: target.id,
+      executed,
+      path,
+      route,
+      provenance: {
+        sourcePath: binding.sourcePath,
+        sourceKind: binding.metadata.sourceKind,
+        sourceTemplate: binding.metadata.sourceTemplate
+      }
+    }))
   }
 
   private valueBinding(target: MsfsInteractionTarget): CompiledInteractionBinding | null {

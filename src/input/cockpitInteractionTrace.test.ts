@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 import { CockpitInteractionTrace } from './cockpitInteractionHistory'
+import { SharedMsfsRuntimeHost } from '../msfs/runtime'
 
 const encoder = new TextEncoder()
 
@@ -76,4 +77,47 @@ test('trace exports timestamped JSON text with matching metadata', () => {
     maxBytes: 16 * 1024 * 1024
   })
   expect(payload).toEqual({ metadata: exported.metadata, records: [record] })
+})
+
+test('runtime host emits lazy structured interaction records only while tracing is enabled', () => {
+  const trace = new CockpitInteractionTrace()
+  const host = new SharedMsfsRuntimeHost([])
+  let built = 0
+  host.setTraceSink(factory => trace.add(() => { built += 1; return factory() }))
+
+  host.writeVariable('L:TRACE_TEST', 1, 'number')
+  host.readVariable('L:TRACE_TEST', 'number')
+  expect(built).toBe(0)
+
+  trace.enabled = true
+  host.setInputEventBindings([{
+    name: 'TRACE_SET',
+    sourcePath: 'trace.xml',
+    expression: {
+      source: 'p0 (>L:TRACE_TEST)',
+      instructions: [
+        { op: 'pushParameter', index: 0 },
+        { op: 'writeVariable', key: 'L:TRACE_TEST', unit: 'number' }
+      ],
+      variableKeys: ['L:TRACE_TEST']
+    }
+  }])
+  host.readVariable('L:TRACE_TEST', 'number')
+  host.writeVariable('L:TRACE_TEST', 2, 'number')
+  host.invokeKeyEvent('TRACE_KEY', [3])
+  host.invokeHtmlEvent('TRACE_HTML', ['TRACE_HTML', 4])
+  host.invokeBridgeCall('TRACE_SET', [5])
+  host.invokeSoundEvent('trace-sound', {
+    phase: 'press', target: 'TRACE', normalizedTime: null, sourcePath: 'trace.xml', sourceParameter: 'SOUND'
+  })
+  host.invokeEffectEvent('trace-effect', {
+    action: 'start', direction: 'forward', target: 'TRACE', normalizedTime: null, sourcePath: 'trace.xml'
+  })
+
+  const kinds = trace.snapshot().map(record => (record as { kind: string }).kind)
+  expect(kinds).toEqual([
+    'variable-read', 'variable-write', 'key-event', 'html-event', 'input-event-rpn',
+    'variable-write', 'bridge-event', 'sound-event', 'effect-event'
+  ])
+  expect(built).toBe(kinds.length)
 })

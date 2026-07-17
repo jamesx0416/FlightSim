@@ -774,6 +774,14 @@ export class AircraftRuntime {
     if (state == null) return false
     this.triggerInteractionFeedback(binding, 'pulse')
     this.invokeInteractionSoundEvents(binding, 'press')
+    this.hostServices.trace?.(() => ({
+      kind: 'interaction-rpn',
+      phase: 'static-set',
+      target: binding.metadata.qualifiedId,
+      sourcePath: binding.sourcePath,
+      expression: state.expression.source,
+      value
+    }))
     evaluateCompiledExpression(state.expression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
       writeVariable: (key, next, unit) => this.hostServices.writeVariable(key, next, unit),
@@ -1018,6 +1026,15 @@ export class AircraftRuntime {
       this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
       this.invokeInteractionSoundEvents(binding, 'press')
     }
+    this.hostServices.trace?.(() => ({
+      kind: 'interaction-rpn',
+      phase: isReleaseEvent ? 'release-event' : 'execute',
+      target: binding.metadata.qualifiedId,
+      sourcePath: binding.sourcePath,
+      expression: binding.expression.source,
+      mouseEvent,
+      parameterValues: options.parameterValues ?? []
+    }))
     evaluateCompiledExpression(binding.expression, {
       readVariable: (key, unit) => readRuntimeMouseVariable(key, options) ?? this.hostServices.readVariable(key, unit),
       readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
@@ -1033,6 +1050,14 @@ export class AircraftRuntime {
   }
 
   private triggerInteractionFeedback(binding: CompiledInteractionBinding, mode: 'hold' | 'pulse'): void {
+    this.hostServices.trace?.(() => ({
+      kind: 'interaction-feedback',
+      phase: 'trigger',
+      target: binding.metadata.qualifiedId,
+      mode,
+      feedbackTargets: binding.feedbackTargets,
+      variableKeys: binding.feedbackVariableKeys
+    }))
     const delayedRelease = this.delayedInteractionReleases.get(binding)
     if (delayedRelease != null) this.interactionScheduler.cancel(delayedRelease)
     this.delayedInteractionReleases.delete(binding)
@@ -1143,6 +1168,13 @@ export class AircraftRuntime {
       return
     }
 
+    this.hostServices.trace?.(() => ({
+      kind: 'interaction-rpn',
+      phase: 'release-expression',
+      target: binding.metadata.qualifiedId,
+      sourcePath: binding.sourcePath,
+      expression: binding.releaseExpression?.source ?? ''
+    }))
     evaluateCompiledExpression(binding.releaseExpression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
       writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
@@ -1704,6 +1736,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private controlState = createInitialRuntimeControlState()
   private electricalState = createInitialRuntimeElectricalState()
   private cycles = createInitialRuntimeCycles()
+  private traceSink?: (record: () => Readonly<Record<string, unknown>>) => void
 
   constructor(
     private readonly diagnostics: ImportDiagnostic[],
@@ -1728,6 +1761,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.simVarSounds = aircraft?.soundDefinition?.simVarSounds ?? []
     this.seedColdAndDarkState()
     this.seedPreviewFlightState(aircraft?.previewFlightState ?? null)
+  }
+
+  setTraceSink(sink?: (record: () => Readonly<Record<string, unknown>>) => void): void {
+    this.traceSink = sink
+  }
+
+  trace(record: () => Readonly<Record<string, unknown>>): void {
+    this.traceSink?.(record)
   }
 
   resetRuntimeState(options: { readonly coldAndDark?: boolean } = {}): void {
@@ -1839,7 +1880,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const cachedValue = this.readCache.get(cacheKey)
     if (cachedValue != null) {
       this.variableReadCacheHitCount += 1
-      return cachedValue
+      return this.finishVariableRead(normalizedKey, normalizedUnit, cachedValue, 'cache')
     }
     this.variableReadCacheMissCount += 1
 
@@ -1849,27 +1890,27 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     )
     if (engineValue != null) {
       this.readCache.set(cacheKey, engineValue)
-      return engineValue
+      return this.finishVariableRead(normalizedKey, normalizedUnit, engineValue, 'canonical-simvar')
     }
 
     const localEngineValue =
       this.msfsCompatibilityBridge.readLocalVar(normalizedKey, unit)
     if (localEngineValue != null) {
       this.readCache.set(cacheKey, localEngineValue)
-      return localEngineValue
+      return this.finishVariableRead(normalizedKey, normalizedUnit, localEngineValue, 'canonical-localvar')
     }
 
     if (normalizedKey === 'A:TURBINE IGNITION SWITCH') {
       const indexedValue = this.resolveIndexedTurbineIgnitionSwitch()
       if (indexedValue != null) {
         this.readCache.set(cacheKey, indexedValue)
-        return indexedValue
+        return this.finishVariableRead(normalizedKey, normalizedUnit, indexedValue, 'indexed-fallback')
       }
     }
     const dynamicControlValue = this.resolveDynamicControlFallbackValue(normalizedKey, unit ?? null)
     if (dynamicControlValue != null) {
       this.readCache.set(cacheKey, dynamicControlValue)
-      return dynamicControlValue
+      return this.finishVariableRead(normalizedKey, normalizedUnit, dynamicControlValue, 'dynamic-control')
     }
     let value: number
     if (!this.values.has(normalizedKey)) {
@@ -1900,6 +1941,16 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       )
     }
     this.readCache.set(cacheKey, value)
+    return this.finishVariableRead(normalizedKey, normalizedUnit, value, 'runtime')
+  }
+
+  private finishVariableRead(
+    key: string,
+    unit: string,
+    value: number,
+    source: string
+  ): number {
+    this.trace(() => ({ kind: 'variable-read', key, unit, value, source }))
     return value
   }
 
@@ -1908,6 +1959,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.readCache.clear()
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
+    this.trace(() => ({
+      kind: 'variable-write',
+      key: normalizedKey,
+      unit: normalizeUnit(unit ?? null),
+      value: Number.isFinite(numericValue) ? numericValue : 0
+    }))
     this.writeEngineCompatibilityVariable(normalizedKey, numericValue, unit)
     if (normalizedKey.startsWith('B:')) {
       const handledByBinding = this.invokeInputEventBinding(
@@ -1951,6 +2008,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       args: [...args],
       sequence: this.keyEventCount
     }
+    this.trace(() => ({ kind: 'key-event', ...event }))
     this.recentKeyEvents.push(event)
     if (this.recentKeyEvents.length > 100) {
       this.recentKeyEvents.splice(0, this.recentKeyEvents.length - 100)
@@ -1977,6 +2035,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       args: args.length > 0 ? [...args] : [eventName],
       sequence: this.htmlEventCount
     }
+    this.trace(() => ({ kind: 'html-event', ...event }))
     this.values.set(normalizeRuntimeVariableKey(`H:${eventName}`), event.sequence)
     this.applyHtmlEventSideEffects(eventName, event.args)
     this.recentHtmlEvents.push(event)
@@ -2061,6 +2120,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       sourcePath: event.sourcePath,
       sequence: this.effectEventCount
     })
+    this.trace(() => ({ kind: 'effect-event', name: effectName, ...event }))
     if (this.recentEffectEvents.length > 100) {
       this.recentEffectEvents.splice(0, this.recentEffectEvents.length - 100)
     }
@@ -2095,6 +2155,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.activeInputEventBindings.add(normalizedName)
     let handledByBinding = false
     try {
+      this.trace(() => ({
+        kind: 'input-event-rpn',
+        phase: 'execute',
+        name: normalizedName,
+        source: binding.source,
+        parameterValues,
+        variableKeys: binding.variableKeys
+      }))
       evaluateCompiledExpression(binding, {
         readVariable: (key, unit) => this.readVariable(key, unit),
         writeVariable: (key, nextValue, unit) => this.writeVariable(key, nextValue, unit),
@@ -2115,13 +2183,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     args: readonly number[],
     handledByBinding: boolean
   ): void {
-    this.recentBridgeEvents.push({
+    const event = {
       name,
       value: args[0] ?? 0,
       args: [...args],
       handledByBinding,
       sequence: this.bridgeCallCount
-    })
+    }
+    this.recentBridgeEvents.push(event)
+    this.trace(() => ({ kind: 'bridge-event', ...event }))
     if (this.recentBridgeEvents.length > 100) {
       this.recentBridgeEvents.splice(0, this.recentBridgeEvents.length - 100)
     }
@@ -2151,6 +2221,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       sourceParameter: event.sourceParameter,
       sequence: this.soundEventCount
     })
+    this.trace(() => ({ kind: 'sound-event', name: soundName, ...event }))
     if (this.recentSoundEvents.length > 100) {
       this.recentSoundEvents.splice(0, this.recentSoundEvents.length - 100)
     }
