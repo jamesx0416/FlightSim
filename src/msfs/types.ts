@@ -247,6 +247,7 @@ export interface CompiledInteractionValueMetadata {
   readonly increaseStep?: number | null
   readonly decreaseStep?: number | null
   readonly cyclic: boolean
+  readonly cyclicUpperInclusive?: boolean | null
   readonly settleTimeSeconds: number
   readonly stateExpression?: CompiledExpression | null
   readonly setStates?: readonly {

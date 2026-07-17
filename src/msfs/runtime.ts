@@ -759,6 +759,15 @@ export class AircraftRuntime {
     return Number.isFinite(value) ? value : null
   }
 
+  readAuthoritativeInteractionValue(binding: CompiledInteractionBinding): number | null {
+    const expression = binding.metadata.value.stateExpression
+    if (!this.compiled.interactionBindings.includes(binding) || expression == null) return null
+    const value = evaluateCompiledExpression(expression, {
+      readVariable: (key, unit) => this.hostServices.readVariable(key, unit)
+    })
+    return Number.isFinite(value) ? value : null
+  }
+
   executeInteractionSetState(binding: CompiledInteractionBinding, value: number): boolean {
     if (!this.compiled.interactionBindings.includes(binding) || binding.metadata.disabled) return false
     const state = binding.metadata.value.setStates?.find(candidate => Object.is(candidate.value, value))
@@ -776,10 +785,11 @@ export class AircraftRuntime {
   }
 
   watchInteractionValue(binding: CompiledInteractionBinding): RuntimeInteractionValueWatch {
-    let value = this.readInteractionValue(binding)
+    const expression = binding.metadata.value.stateExpression
+    let value = this.readAuthoritativeInteractionValue(binding)
     let changed = false
     const check = (): void => {
-      const next = this.readInteractionValue(binding)
+      const next = this.readAuthoritativeInteractionValue(binding)
       if (!Object.is(value, next)) changed = true
       value = next
     }
@@ -791,7 +801,7 @@ export class AircraftRuntime {
       unsubscribers.push(this.simulatorEngine.state.subscribe(check))
     }
     return {
-      authoritative: value != null && unsubscribers.length > 0,
+      authoritative: value != null && expression != null && expression.variableKeys.length > 0 && unsubscribers.length > 0,
       didChange: () => changed,
       dispose: () => { for (const unsubscribe of unsubscribers) unsubscribe() }
     }

@@ -155,6 +155,80 @@ test('does not mutate through an unproven Set route', async () => {
   expect(executions).toBe(0)
 })
 
+test('does not mistake an unrelated Set parameter branch for an exact mutation', async () => {
+  let executions = 0
+  const base = interactionBinding(
+    { step: null, increaseStep: null, decreaseStep: null },
+    [{ channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }]
+  )
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: 'p0 0 > if{ 1 (>L:TEST) }',
+      instructions: [
+        { op: 'pushParameter', index: 0 },
+        { op: 'pushNumber', value: 0 },
+        { op: 'gt' },
+        {
+          op: 'if',
+          thenInstructions: [
+            { op: 'pushNumber', value: 1 },
+            { op: 'writeVariable', key: 'L:TEST', unit: 'number' }
+          ],
+          elseInstructions: []
+        }
+      ],
+      variableKeys: ['L:TEST']
+    }
+  }
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => 0,
+    executeInteractionBindingDirect: () => { executions += 1; return true },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+
+  expect((await adapter.setExact(adapter.fromBinding(binding), 2)).code).toBe('VALUE_REACHABILITY_UNKNOWN')
+  expect(executions).toBe(0)
+})
+
+test('fails exact mutation closed without authoritative state bounds or units', async () => {
+  let executions = 0
+  const setRoute: CompiledInteractionRoute = {
+    channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: []
+  }
+  const makeRuntime = (binding: CompiledInteractionBinding) => ({
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => 0,
+    executeInteractionBindingDirect: () => { executions += 1; return true },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime)
+  const directExpression = {
+    source: 'p0 (>L:TEST)',
+    instructions: [
+      { op: 'pushParameter' as const, index: 0 },
+      { op: 'writeVariable' as const, key: 'L:TEST', unit: 'number' }
+    ],
+    variableKeys: ['L:TEST']
+  }
+  const tooltipOnlyBase = interactionBinding({ stateExpression: null }, [setRoute])
+  const tooltipOnly = { ...tooltipOnlyBase, expression: directExpression }
+  const tooltipAdapter = new MsfsInteractionAdapter(makeRuntime(tooltipOnly), async () => {})
+  expect((await tooltipAdapter.setExact(tooltipAdapter.fromBinding(tooltipOnly), 1)).code).toBe('VALUE_REACHABILITY_UNKNOWN')
+
+  const unboundedBase = interactionBinding({ minimum: null, maximum: null }, [setRoute])
+  const unbounded = { ...unboundedBase, expression: directExpression }
+  const unboundedAdapter = new MsfsInteractionAdapter(makeRuntime(unbounded), async () => {})
+  expect((await unboundedAdapter.setExact(unboundedAdapter.fromBinding(unbounded), 1)).code).toBe('VALUE_REACHABILITY_UNKNOWN')
+
+  const unitlessBase = interactionBinding({ unit: null }, [setRoute])
+  const unitless = { ...unitlessBase, expression: directExpression }
+  const unitlessAdapter = new MsfsInteractionAdapter(makeRuntime(unitless), async () => {})
+  expect((await unitlessAdapter.setExact(unitlessAdapter.fromBinding(unitless), 1, 'number')).code).toBe('VALUE_REACHABILITY_UNKNOWN')
+  expect(executions).toBe(0)
+})
+
 test('reads independent authored state and executes a static state setter', async () => {
   const stateExpression = {
     source: '(L:TEST_STATE, number)',
@@ -213,6 +287,29 @@ test('preflights asymmetric directional steps and chooses the shorter cyclic pat
   expect(events).toEqual(['WheelUp'])
   events.length = 0
   expect((await adapter.setExact(adapter.fromBinding(binding), 1)).code).toBe('OK')
+  expect(events).toEqual(['WheelDown'])
+})
+
+test('treats an authored cyclic upper bound as a reachable state', async () => {
+  let value = 0
+  const events: string[] = []
+  const binding = interactionBinding({ maximum: 4, cyclic: true, cyclicUpperInclusive: true })
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => value,
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { mouseEvent?: string }) => {
+      events.push(options.mouseEvent ?? '')
+      value = options.mouseEvent === 'WheelDown'
+        ? (value === 0 ? 4 : value - 1)
+        : (value === 4 ? 0 : value + 1)
+      return true
+    },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+  const result = await adapter.setExact(adapter.fromBinding(binding), 4)
+
+  expect([result.code, result.executionPath, result.steps]).toEqual(['OK', 'decrease', 1])
   expect(events).toEqual(['WheelDown'])
 })
 
@@ -620,6 +717,12 @@ function interactionBinding(
   sourcePath = 'test.xml'
 ): CompiledInteractionBinding {
   const expression = { source: '', instructions: [], variableKeys: [] }
+  const valueExpression = {
+    source: '(L:TEST, number)',
+    instructions: [{ op: 'pushVariable' as const, key: 'L:TEST', unit: 'number' }],
+    variableKeys: ['L:TEST, number']
+  }
+  const cyclic = valueOverrides.cyclic ?? false
   return {
     target: 'TEST',
     feedbackTargets: [],
@@ -642,10 +745,11 @@ function interactionBinding(
       dragScalar: 0.025, discreteGate: null, wheelPrimaryToggle: false, cursor: null, tooltipTitle: null,
       tooltipDescription: null, tooltipStateLabels: [], tooltipUnavailable: null,
       tooltipValueLabel: null, tooltipActionHints: [],
-      tooltipValueExpression: expression,
+      tooltipValueExpression: valueExpression,
       value: {
         variableKey: 'L:TEST', unit: 'number', minimum: 0, maximum: 4, step: 1,
-        cyclic: false, settleTimeSeconds: 0, ...valueOverrides
+        cyclic, cyclicUpperInclusive: cyclic ? true : null, settleTimeSeconds: 0,
+        stateExpression: valueExpression, ...valueOverrides
       }
     }
   }
