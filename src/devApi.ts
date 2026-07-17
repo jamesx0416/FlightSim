@@ -49,7 +49,7 @@ import {
 import type { RendererInfo } from './rendering/createAppRenderer'
 import { MsfsInteractionAdapter, type InteractionResolution, type MsfsInteractionTarget } from './msfs/interactionAdapter'
 import { CockpitInteractionDispatcher, type CanonicalCockpitAction, type CockpitInteractionChannel, type CockpitInteractionOperation, type CockpitRelativeDirection } from './input/cockpitInteraction'
-import { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
+import type { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
 import {
   DEFAULT_COCKPIT_INPUT_PROFILE_ID,
   DEFAULT_COCKPIT_INPUT_STORE,
@@ -844,6 +844,8 @@ type ViewerDevApiContext = {
   readonly getSettingsSnapshot: () => Record<string, unknown>
   readonly getCockpitPerfDiagnostics: () => CockpitPerfDiagnostics
   readonly cockpitInteractionStats: Record<string, unknown>
+  readonly cockpitInteractionHistory: CockpitInteractionHistory
+  readonly cockpitInteractionTrace: CockpitInteractionTrace
   readonly getCockpitInteractionPickRegistry: () => CockpitInteractionPickRegistry
   readonly getCockpitInteractionAdapter: () => MsfsInteractionAdapter
   readonly getCockpitInteractionDispatcher: () => CockpitInteractionDispatcher<MsfsInteractionTarget>
@@ -855,6 +857,13 @@ type ViewerDevApiContext = {
     readonly forceCold?: boolean
   }) => Promise<unknown>
   readonly applySettings: (settings: Partial<ViewerConfigProfile>) => Promise<string | null>
+}
+
+export const VIEWER_INTERACTION_CANCEL_EVENT = 'flight-sim:interaction-cancel'
+
+export interface ViewerInteractionCancelDetail {
+  readonly reason: string
+  readonly targets: readonly string[]
 }
 
 function getLoadStageHistory(): readonly Record<string, unknown>[] {
@@ -1379,6 +1388,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       diagnostics: diagnostics.slice(0, limit),
       truncatedDiagnostics: Math.max(0, diagnostics.length - limit),
       gaugeDiagnostics,
+      interactionMisses: interactionDispatcher.snapshot.misses,
       status: statusData()
     }
   }
@@ -1883,9 +1893,30 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   }
   const interactionAdapter = context.getCockpitInteractionAdapter()
   const interactionDispatcher = context.getCockpitInteractionDispatcher()
-  const interactionHistory = new CockpitInteractionHistory(window.localStorage)
-  const interactionTrace = new CockpitInteractionTrace()
+  const interactionHistory = context.cockpitInteractionHistory
+  const interactionTrace = context.cockpitInteractionTrace
   const activeInteractionStates = new Map<string, ActiveDevApiInteraction>()
+  window.addEventListener(VIEWER_INTERACTION_CANCEL_EVENT, event => {
+    const detail = (event as CustomEvent<ViewerInteractionCancelDetail>).detail
+    const states = [...activeInteractionStates.values()]
+    for (const state of states) {
+      interactionDispatcher.cancel(state.target.id)
+      interactionAdapter.cancel(state.target)
+      if (state.lifecycle === 'held') interactionAdapter.release(state.target)
+    }
+    activeInteractionStates.clear()
+    interactionHistory.add({
+      timestampMs: Date.now(),
+      source: 'viewer',
+      target: '*',
+      action: 'cancel',
+      result: 'cancelled',
+      detail: {
+        reason: detail?.reason ?? 'external',
+        targets: detail?.targets ?? states.map(state => state.target.id)
+      }
+    })
+  })
   let cockpitInputStore = loadCockpitInputStore(window.localStorage)
   window.addEventListener('cockpit-input-settings-changed', () => {
     cockpitInputStore = loadCockpitInputStore(window.localStorage)
@@ -1907,6 +1938,16 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   ): Promise<DevApiInteractionResult> => {
     let runningTargetId: string | null = null
     let retainActiveState = false
+    const recordFailure = (result: DevApiInteractionResult, resolvedTarget = targetName): DevApiInteractionResult => {
+      interactionHistory.add({
+        timestampMs: Date.now(),
+        source: 'devapi',
+        target: resolvedTarget,
+        action: operation,
+        result: result.code
+      })
+      return result
+    }
     try {
       const resolution = resolveInteractionWithHeldFallback(
         targetName,
@@ -1914,16 +1955,16 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         interactionAdapter.resolve(targetName),
         activeInteractionStates
       )
-      if (!resolution.ok) return interactionResolutionFailure(targetName, resolution)
+      if (!resolution.ok) return recordFailure(interactionResolutionFailure(targetName, resolution))
       const variantFailure = rejectUnauthoredVariant(targetName, options.variant)
-      if (variantFailure != null) return variantFailure
+      if (variantFailure != null) return recordFailure(variantFailure)
       const request = resolveInteractionRequest(
         targetName,
         resolution,
         new Set([...activeInteractionStates.keys(), ...interactionDispatcher.snapshot.busy]),
         operation !== 'release'
       )
-      if (!request.ok) return request.result
+      if (!request.ok) return recordFailure(request.result)
       const target = request.target
       const heldState = activeInteractionStates.get(target.id)
       const trackRunning = (): void => {
@@ -2019,7 +2060,10 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             historyId: entry.id
           })
         }
-        return interactionResult(false, 'OPERATION_UNSUPPORTED', `${operation} is not authored for ${targetName}.`, { target: target.id, operations: target.operations })
+        return recordFailure(
+          interactionResult(false, 'OPERATION_UNSUPPORTED', `${operation} is not authored for ${targetName}.`, { target: target.id, operations: target.operations }),
+          target.id
+        )
       }
       if (operation !== 'release') trackRunning()
       for (let index = 0; index < steps; index += 1) {
@@ -2028,17 +2072,17 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
           timestampMs: performance.now()
         }
         const dispatched = interactionDispatcher.dispatch(target, action)
-        if (dispatched === 'busy') return interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id })
+        if (dispatched === 'busy') return recordFailure(interactionResult(false, 'TARGET_BUSY', `${targetName} is busy.`, { target: target.id }), target.id)
         if (dispatched !== 'executed') {
           if (operation === 'release' && heldState?.lifecycle === 'held') {
             interactionDispatcher.finish(target.id)
             interactionAdapter.release(target)
             activeInteractionStates.delete(target.id)
           }
-          return interactionResult(false, 'INTERACTION_UNAVAILABLE', `${operation} could not execute.`, {
+          return recordFailure(interactionResult(false, 'INTERACTION_UNAVAILABLE', `${operation} could not execute.`, {
             target: target.id,
             heldStateReleased: operation === 'release' && heldState?.lifecycle === 'held'
-          })
+          }), target.id)
         }
         interactionTrace.add(() => ({ action, route, target: target.binding.metadata }))
         await Promise.resolve()
@@ -2145,6 +2189,13 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       interactionDispatcher.cancel(resolved.target.id)
       interactionAdapter.cancel(resolved.target)
       if (state?.lifecycle === 'held') activeInteractionStates.delete(resolved.target.id)
+      interactionHistory.add({
+        timestampMs: Date.now(),
+        source: 'devapi',
+        target: resolved.target.id,
+        action: 'cancel',
+        result: 'cancelled'
+      })
       return interactionResult(true, 'CANCELLED', `Cancelled ${target}.`, {
         target: resolved.target.id,
         cancellationStatus: 'requested'
@@ -2162,6 +2213,14 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         interactionAdapter.release(state.target)
         activeInteractionStates.delete(state.target.id)
       }
+      interactionHistory.add({
+        timestampMs: Date.now(),
+        source: 'devapi',
+        target: '*',
+        action: 'cancel',
+        result: 'cancelled',
+        detail: { targets: states.map(state => state.target.id) }
+      })
       return interactionResult(true, 'CANCELLED', 'Cancelled all interactions.', {
         targets: states.map(state => state.target.id),
         cancellationStatus: 'requested'
@@ -2299,6 +2358,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       settings: context.getSettingsSnapshot(),
       diagnostics: getDiagnostics(),
       cockpitInteractionStats: { ...context.cockpitInteractionStats },
+      cockpitInteractionMisses: interactionDispatcher.snapshot.misses,
       gauges: gauges().map(summarizeGauge),
       events: api.events().data,
       perf: api.perf().data,
