@@ -246,6 +246,8 @@ export interface CompiledInteractionValueMetadata {
   readonly step: number | null
   readonly increaseStep?: number | null
   readonly decreaseStep?: number | null
+  readonly increaseStepExpression?: CompiledExpression | null
+  readonly decreaseStepExpression?: CompiledExpression | null
   readonly cyclic: boolean
   readonly cyclicUpperInclusive?: boolean | null
   readonly settleTimeSeconds: number
@@ -257,12 +259,24 @@ export interface CompiledInteractionValueMetadata {
   }[]
 }
 
+export interface CompiledInteractionTypedParameter {
+  readonly operation: 'increase' | 'decrease' | 'set'
+  readonly bindingIndex: number
+  readonly bindingName: string
+  readonly parameterIndex: number
+  readonly type: 'number' | 'boolean' | 'string' | 'unknown'
+  readonly authoredType: string
+  readonly dynamic: boolean
+  readonly expression: CompiledExpression | null
+}
+
 export interface CompiledInteractionMetadata {
   readonly authoredId: string | null
   readonly qualifiedId: string
   readonly nodeId: string | null
   readonly componentId: string | null
   readonly inputEventIds: readonly string[]
+  readonly typedParameters?: readonly CompiledInteractionTypedParameter[]
   readonly routes: readonly CompiledInteractionRoute[]
   readonly sourceKind: CompiledInteractionSourceKind
   readonly sourcePath: string
