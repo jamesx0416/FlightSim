@@ -126,6 +126,7 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(metadata.value).toEqual({
     variableKey: 'L:TEST_VALUE', unit: 'number', minimum: 0, maximum: 10,
     step: 0.5, increaseStep: 0.5, decreaseStep: 0.5,
+    increaseStepExpression: null, decreaseStepExpression: null,
     cyclic: false, cyclicUpperInclusive: null, settleTimeSeconds: 0, setStates: [],
     stateExpression: {
       source: '(L:TEST_VALUE, number)',
@@ -219,6 +220,38 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect([bounded.value.minimum, bounded.value.maximum, bounded.value.unit]).toEqual([0, 4, 'Enum'])
   expect(bounded.value.cyclicUpperInclusive).toBe(true)
   expect(bounded.value.increaseStep).toBe(null)
+  expect(bounded.value.increaseStepExpression?.source).toBe('p15 s0 2 0.1 l0 0 == ?')
+
+  const typed = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['IE_NAME', 'TEST_KNOB'],
+      ['BINDING_INC_0', 'Increase'],
+      ['BINDING_INC_0_PARAM_0', 'p0 2 *'],
+      ['BINDING_INC_0_PARAM_0_IS_DYNAMIC', 'True'],
+      ['INC_PARAM_0_TYPE', 'Float'],
+      ['BINDING_SET_1', 'Set'],
+      ['BINDING_SET_1_PARAM_0', 'p0'],
+      ['BINDING_SET_1_PARAM_0_IS_DYNAMIC', 'True'],
+      ['SET_PARAM_0_TYPE', 'Integer']
+    ]),
+    'TEST_TYPED',
+    'TEST_TYPED',
+    'test.xml',
+    'p0 (>L:TEST_TYPED)',
+    'callback',
+    diagnostics
+  )
+  expect(typed.typedParameters?.map(parameter => [
+    parameter.operation,
+    parameter.bindingName,
+    parameter.parameterIndex,
+    parameter.type,
+    parameter.dynamic,
+    parameter.expression?.source
+  ])).toEqual([
+    ['increase', 'Increase', 0, 'number', true, 'p0 2 *'],
+    ['set', 'Set', 0, 'number', true, 'p0']
+  ])
 
   const inverted = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([

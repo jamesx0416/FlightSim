@@ -1793,6 +1793,13 @@ function buildCompiledInteractionMetadata(
     diagnostics
   )
   const value = { ...baseValue, ...valueAuthority }
+  const typedParameters = compileInteractionTypedParameters(
+    params,
+    currentNode,
+    target,
+    sourcePath,
+    diagnostics
+  )
   const valueSource = getCompiledInteractionValueSource(params, value.variableKey, value.unit)
   const tooltipValueExpression = valueSource == null
     ? null
@@ -1833,6 +1840,7 @@ function buildCompiledInteractionMetadata(
     nodeId: params.get('NODE_ID')?.trim() || currentNode?.trim() || null,
     componentId: params.get('COMPONENT_ID')?.trim() || params.get('ID')?.trim() || null,
     inputEventIds,
+    typedParameters,
     routes,
     sourceKind,
     sourcePath,
@@ -2132,7 +2140,8 @@ function compileInteractionValueAuthority(
   diagnostics: ImportDiagnostic[]
 ): Pick<
   CompiledInteractionMetadata['value'],
-  'stateExpression' | 'setStates' | 'increaseStep' | 'decreaseStep' | 'step'
+  'stateExpression' | 'setStates' | 'increaseStep' | 'decreaseStep' |
+  'increaseStepExpression' | 'decreaseStepExpression' | 'step'
 > {
   const scope = resolveLocalVariableScope(params, currentNode, target)
   const authoredStateSource = getFirstUsableInteractionParameter(params, [
@@ -2209,7 +2218,14 @@ function compileInteractionValueAuthority(
   ])
   const increaseStep = parseOptionalPositiveNumber(increaseRaw)
   const decreaseStep = parseOptionalPositiveNumber(decreaseRaw)
-  if ((increaseRaw && increaseStep == null) || (decreaseRaw && decreaseStep == null)) {
+  const increaseStepExpression = increaseRaw != null && increaseRaw !== '' && increaseStep == null
+    ? compileInteractionStepExpression(increaseRaw, scope, sourcePath, diagnostics)
+    : null
+  const decreaseStepExpression = decreaseRaw != null && decreaseRaw !== '' && decreaseStep == null
+    ? compileInteractionStepExpression(decreaseRaw, scope, sourcePath, diagnostics)
+    : null
+  if ((increaseRaw && increaseStep == null && increaseStepExpression == null) ||
+      (decreaseRaw && decreaseStep == null && decreaseStepExpression == null)) {
     diagnostics.push({
       code: 'interaction_dynamic_increment_unproven',
       severity: 'info',
@@ -2240,7 +2256,136 @@ function compileInteractionValueAuthority(
     setStates: [...setStates.values()],
     increaseStep,
     decreaseStep,
+    increaseStepExpression,
+    decreaseStepExpression,
     step: increaseStep != null && increaseStep === decreaseStep ? increaseStep : baseValue.step
+  }
+}
+
+function compileInteractionStepExpression(
+  source: string | null,
+  localVariableScope: string | null,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledExpression | null {
+  if (!source) return null
+  const expressionSource = `p15 ${source}`
+  const expression = compileRpnExpression(expressionSource, {
+    sourcePath,
+    sourceExpression: expressionSource,
+    diagnostics,
+    localVariableScope
+  })
+  return expression != null && compiledExpressionIsPureParameterFunction(expression, 15)
+    ? expression
+    : null
+}
+
+function compiledExpressionIsPureParameterFunction(
+  expression: CompiledExpression,
+  parameterIndex: number
+): boolean {
+  let readsParameter = false
+  const visit = (instructions: readonly Instruction[]): boolean => instructions.every(instruction => {
+    switch (instruction.op) {
+      case 'pushParameter':
+        readsParameter ||= instruction.index === parameterIndex
+        return instruction.index === parameterIndex
+      case 'pushVariable':
+      case 'pushStringVariable':
+      case 'writeVariable':
+      case 'invokeKeyEvent':
+      case 'invokeHtmlEvent':
+      case 'pushString':
+        return false
+      case 'if':
+        return visit(instruction.thenInstructions) && visit(instruction.elseInstructions)
+      default:
+        return true
+    }
+  })
+  return visit(expression.instructions) && readsParameter
+}
+
+function compileInteractionTypedParameters(
+  params: ReadonlyMap<string, string>,
+  currentNode: string | null,
+  target: string,
+  sourcePath: string,
+  diagnostics: ImportDiagnostic[]
+): NonNullable<CompiledInteractionMetadata['typedParameters']> {
+  const typedParameters: NonNullable<CompiledInteractionMetadata['typedParameters']>[number][] = []
+  const scope = resolveLocalVariableScope(params, currentNode, target)
+  for (const kind of ['INC', 'DEC', 'SET'] as const) {
+    for (const [key, rawBindingName] of params) {
+      const match = new RegExp(`^BINDING_${kind}_(\\d+)$`, 'iu').exec(key.trim())
+      const bindingName = rawBindingName.trim()
+      if (match == null || isNoopInteractionParameter(bindingName)) continue
+      const bindingIndex = Number(match[1])
+      const eventIdOnly = parseBoolean(params.get(`BINDING_${kind}_${bindingIndex}_EVENT_ID_ONLY`)?.trim() ?? '')
+      for (let parameterIndex = 0; parameterIndex < 16; parameterIndex += 1) {
+        const parameterName = `BINDING_${kind}_${bindingIndex}_PARAM_${parameterIndex}`
+        const rawSource = params.get(parameterName)?.trim()
+        if (!rawSource) {
+          if (parameterIndex === 0 && !eventIdOnly) {
+            typedParameters.push({
+              operation: kind === 'INC' ? 'increase' : kind === 'DEC' ? 'decrease' : 'set',
+              bindingIndex,
+              bindingName,
+              parameterIndex,
+              type: 'number',
+              authoredType: 'Float',
+              dynamic: false,
+              expression: compileRpnExpression('1', {
+                sourcePath,
+                sourceExpression: '1',
+                diagnostics,
+                localVariableScope: scope
+              })
+            })
+          }
+          break
+        }
+        const dynamic = parseBoolean(params.get(`${parameterName}_IS_DYNAMIC`)?.trim() ?? '')
+        const authoredType = params.get(`${kind}_PARAM_${parameterIndex}_TYPE`)?.trim() || 'Float'
+        const expressionSource = dynamic ? rawSource : formatStaticRpnParameter(rawSource)
+        typedParameters.push({
+          operation: kind === 'INC' ? 'increase' : kind === 'DEC' ? 'decrease' : 'set',
+          bindingIndex,
+          bindingName,
+          parameterIndex,
+          type: normalizeInteractionParameterType(authoredType),
+          authoredType,
+          dynamic,
+          expression: compileRpnExpression(expressionSource, {
+            sourcePath,
+            sourceExpression: expressionSource,
+            diagnostics,
+            localVariableScope: scope
+          })
+        })
+      }
+    }
+  }
+  return typedParameters
+}
+
+function normalizeInteractionParameterType(
+  type: string
+): NonNullable<CompiledInteractionMetadata['typedParameters']>[number]['type'] {
+  switch (type.trim().toLowerCase()) {
+    case 'float':
+    case 'number':
+    case 'integer':
+    case 'int':
+      return 'number'
+    case 'bool':
+    case 'boolean':
+      return 'boolean'
+    case 'string':
+      return 'string'
+    default:
+      return 'unknown'
   }
 }
 

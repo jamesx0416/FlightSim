@@ -179,6 +179,112 @@ test('uses authored Set, rejects incompatible units, and observes cancellation',
   expect((await pending).code).toBe('CANCELLED')
 })
 
+test('converts only authoritative compatible exact units', async () => {
+  let value = 0.25
+  const base = interactionBinding(
+    { unit: 'ratio', minimum: 0, maximum: 1 },
+    [{ channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }]
+  )
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: 'p0 (>L:TEST, ratio)',
+      instructions: [
+        { op: 'pushParameter', index: 0 },
+        { op: 'writeVariable', key: 'L:TEST', unit: 'ratio' }
+      ],
+      variableKeys: ['L:TEST, ratio']
+    }
+  }
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => value,
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { parameterValues?: number[] }) => {
+      value = options.parameterValues?.[0] ?? value
+      return true
+    },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+  const target = adapter.fromBinding(binding)
+
+  const set = await adapter.setExact(target, 50, 'percent')
+  expect([set.code, set.requested, set.actual, set.unit]).toEqual(['OK', 0.5, 0.5, 'ratio'])
+  const adjust = await adapter.adjustExact(target, 25, 'percent')
+  expect([adjust.code, adjust.requested, adjust.actual]).toEqual(['OK', 0.75, 0.75])
+  expect((await adapter.setExact(target, 1, 'feet')).code).toBe('UNIT_INCOMPATIBLE')
+})
+
+test('preflights a pure current-state dynamic increment', async () => {
+  let value = 0
+  const binding = interactionBinding({
+    step: null,
+    increaseStep: null,
+    increaseStepExpression: {
+      source: 'p15 2 < if{ 1 } els{ 2 }',
+      instructions: [
+        { op: 'pushParameter', index: 15 },
+        { op: 'pushNumber', value: 2 },
+        { op: 'lt' },
+        {
+          op: 'if',
+          thenInstructions: [{ op: 'pushNumber', value: 1 }],
+          elseInstructions: [{ op: 'pushNumber', value: 2 }]
+        }
+      ],
+      variableKeys: []
+    }
+  })
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => value,
+    executeInteractionBindingDirect: () => {
+      value += value < 2 ? 1 : 2
+      return true
+    },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+  const result = await adapter.setExact(adapter.fromBinding(binding), 4)
+
+  expect([result.code, result.actual, result.steps]).toEqual(['OK', 4, 3])
+})
+
+test('accepts a numeric Set parameter through a deterministic transform', async () => {
+  let value = 0
+  const base = interactionBinding(
+    { step: null, increaseStep: null, decreaseStep: null },
+    [{ channel: null, phase: null, operation: 'set', msfsEvent: null, axis: null, inputTypes: [] }]
+  )
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: 'p0 2 * 2 / (>L:TEST)',
+      instructions: [
+        { op: 'pushParameter', index: 0 },
+        { op: 'pushNumber', value: 2 },
+        { op: 'mul' },
+        { op: 'pushNumber', value: 2 },
+        { op: 'div' },
+        { op: 'writeVariable', key: 'L:TEST', unit: 'number' }
+      ],
+      variableKeys: ['L:TEST']
+    }
+  }
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => value,
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { parameterValues?: number[] }) => {
+      value = (options.parameterValues?.[0] ?? value) * 2 / 2
+      return true
+    },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+
+  expect((await adapter.setExact(adapter.fromBinding(binding), 3)).code).toBe('OK')
+})
+
 test('does not mutate through an unproven Set route', async () => {
   let executions = 0
   const binding = interactionBinding(

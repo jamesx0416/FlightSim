@@ -1,6 +1,8 @@
 import type { CanonicalCockpitAction, CockpitInteractionMode, CockpitInteractionOperation, CockpitInteractionTarget, CockpitRelativeDirection } from '../input/cockpitInteraction'
+import { convertSimUnit, type SimUnit } from '../sim/engine'
+import { evaluateCompiledExpression } from './rpn'
 import type { AircraftRuntime, RuntimeInteractionValueWatch } from './runtime'
-import type { CompiledInteractionBinding, CompiledInteractionRoute, Instruction } from './types'
+import type { CompiledExpression, CompiledInteractionBinding, CompiledInteractionRoute, Instruction } from './types'
 
 export interface MsfsInteractionTarget extends CockpitInteractionTarget {
   readonly binding: CompiledInteractionBinding
@@ -295,7 +297,9 @@ export class MsfsInteractionAdapter {
   ): Promise<ExactInteractionResult> {
     const current = this.authoritativeValue(target)
     if (current == null) return exactResult('VALUE_REACHABILITY_UNKNOWN', current, current, delta, target, null, 0)
-    return this.setExact(target, current + delta, unit, channel, current)
+    const converted = convertExactUnitValue(delta, unit, target.binding.metadata.value.unit)
+    if (!converted.ok) return exactResult(converted.code, current, current, delta, target, null, 0)
+    return this.setExact(target, current + converted.value, target.binding.metadata.value.unit ?? undefined, channel, current)
   }
 
   async setBooleanState(
@@ -359,12 +363,9 @@ export class MsfsInteractionAdapter {
       return exactResult('VALUE_REACHABILITY_UNKNOWN', null, null, requested, target, null, 0)
     }
     const metadata = valueBinding.metadata.value
-    if (unit != null && metadata.unit == null) {
-      return exactResult('VALUE_REACHABILITY_UNKNOWN', null, null, requested, target, null, 0)
-    }
-    if (unit != null && unit.toLowerCase() !== metadata.unit?.toLowerCase()) {
-      return exactResult('UNIT_INCOMPATIBLE', null, null, requested, target, null, 0)
-    }
+    const converted = convertExactUnitValue(requested, unit, metadata.unit)
+    if (!converted.ok) return exactResult(converted.code, null, null, requested, target, null, 0)
+    requested = converted.value
     const previous = knownPrevious ?? this.authoritativeValue(target)
     if (previous == null) return exactResult('VALUE_REACHABILITY_UNKNOWN', null, null, requested, target, null, 0)
     if (Object.is(previous, requested)) return exactResult('OK', previous, previous, requested, target, 'direct-set', 0)
@@ -480,8 +481,14 @@ export class MsfsInteractionAdapter {
     const decreaseStep = decreaseSelection == null
       ? null
       : decreaseSelection.binding.metadata.value.decreaseStep ?? decreaseSelection.binding.metadata.value.step
-    if ((!metadata.cyclic && (requestedOperation === 'increase' ? increaseStep : decreaseStep) == null) ||
-        metadata.cyclic && (increaseStep == null || decreaseStep == null)) {
+    const increaseStepExpression = increaseSelection?.binding.metadata.value.increaseStepExpression ?? null
+    const decreaseStepExpression = decreaseSelection?.binding.metadata.value.decreaseStepExpression ?? null
+    if ((!metadata.cyclic && requestedOperation === 'increase' && increaseStep == null && increaseStepExpression == null) ||
+        (!metadata.cyclic && requestedOperation === 'decrease' && decreaseStep == null && decreaseStepExpression == null) ||
+        metadata.cyclic && (
+          increaseStep == null && increaseStepExpression == null ||
+          decreaseStep == null && decreaseStepExpression == null
+        )) {
       return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
     }
     const plan = planExactSteps(
@@ -489,6 +496,8 @@ export class MsfsInteractionAdapter {
       requested,
       increaseStep,
       decreaseStep,
+      increaseStepExpression,
+      decreaseStepExpression,
       metadata.minimum,
       metadata.maximum,
       metadata.cyclic
@@ -682,18 +691,24 @@ function planExactSteps(
   requested: number,
   increaseStep: number | null,
   decreaseStep: number | null,
+  increaseStepExpression: CompiledExpression | null,
+  decreaseStepExpression: CompiledExpression | null,
   minimum: number,
   maximum: number,
   cyclic: boolean
 ): { readonly operation: 'increase' | 'decrease'; readonly steps: number } | null {
   const simulate = (
-    operation: 'increase' | 'decrease',
-    step: number | null
+    operation: 'increase' | 'decrease'
   ): number | null => {
-    if (step == null || !Number.isFinite(step) || step <= 0) return null
     const visited = new Set<number>([current])
     let value = current
     for (let steps = 1; steps <= 10_000; steps += 1) {
+      const step = resolveExactStep(
+        operation === 'increase' ? increaseStep : decreaseStep,
+        operation === 'increase' ? increaseStepExpression : decreaseStepExpression,
+        value
+      )
+      if (step == null) return null
       let next = value + (operation === 'increase' ? step : -step)
       if (cyclic) {
         if (next > maximum) next = minimum
@@ -710,11 +725,11 @@ function planExactSteps(
   }
   if (!cyclic) {
     const operation = requested >= current ? 'increase' : 'decrease'
-    const steps = simulate(operation, operation === 'increase' ? increaseStep : decreaseStep)
+    const steps = simulate(operation)
     return steps == null ? null : { operation, steps }
   }
-  const increase = simulate('increase', increaseStep)
-  const decrease = simulate('decrease', decreaseStep)
+  const increase = simulate('increase')
+  const decrease = simulate('decrease')
   if (increase == null && decrease == null) return null
   if (decrease == null || increase != null && increase <= decrease) {
     return { operation: 'increase', steps: increase! }
@@ -722,24 +737,180 @@ function planExactSteps(
   return { operation: 'decrease', steps: decrease }
 }
 
+function resolveExactStep(
+  step: number | null,
+  expression: CompiledExpression | null,
+  current: number
+): number | null {
+  const resolved = expression == null
+    ? step
+    : evaluateCompiledExpression(expression, {
+        readVariable: () => Number.NaN,
+        parameterValues: [...new Array<number>(15).fill(0), current]
+      })
+  return resolved != null && Number.isFinite(resolved) && resolved > 0 ? resolved : null
+}
+
 function compiledInstructionsDirectlyMutateParameter(
   instructions: readonly Instruction[],
   parameterIndex: number
 ): boolean {
-  for (let index = 0; index < instructions.length; index += 1) {
-    const instruction = instructions[index]
-    if (instruction?.op === 'pushParameter' && instruction.index === parameterIndex) {
-      const mutation = instructions[index + 1]
-      if (mutation?.op === 'writeVariable' ||
-          mutation?.op === 'invokeHtmlEvent' ||
-          mutation?.op === 'invokeKeyEvent' && mutation.argCount > 0) return true
+  const visit = (
+    block: readonly Instruction[],
+    stack: boolean[],
+    registers: Map<number, boolean>
+  ): boolean => {
+    for (const instruction of block) {
+      switch (instruction.op) {
+        case 'pushParameter': stack.push(instruction.index === parameterIndex); break
+        case 'pushNumber':
+        case 'pushString':
+        case 'pushVariable':
+        case 'pushStringVariable':
+        case 'pushPi': stack.push(false); break
+        case 'duplicate': stack.push(stack.at(-1) ?? false); break
+        case 'popDiscard': stack.pop(); break
+        case 'swap': {
+          const right = stack.pop() ?? false
+          const left = stack.pop() ?? false
+          stack.push(right, left)
+          break
+        }
+        case 'storeRegister': {
+          const value = instruction.pop ? stack.pop() ?? false : stack.at(-1) ?? false
+          registers.set(instruction.index, value)
+          break
+        }
+        case 'loadRegister': stack.push(registers.get(instruction.index) ?? false); break
+        case 'increment':
+        case 'decrement':
+        case 'neg':
+        case 'not':
+        case 'abs':
+        case 'ceil':
+        case 'floor':
+        case 'roundNearest':
+        case 'sign':
+        case 'sqrt':
+        case 'sin':
+        case 'cos':
+        case 'degreesToRadians':
+        case 'radiansToDegrees':
+        case 'normalizeDegrees':
+        case 'normalizeRadians':
+          break
+        case 'add':
+        case 'sub':
+        case 'mul':
+        case 'div':
+        case 'integerDiv':
+        case 'mod':
+        case 'pow':
+        case 'min':
+        case 'max':
+        case 'gt':
+        case 'lt':
+        case 'gte':
+        case 'lte':
+        case 'eq':
+        case 'neq':
+        case 'and':
+        case 'or':
+        case 'stringCompare':
+        case 'stringCompareCaseInsensitive': {
+          const right = stack.pop() ?? false
+          const left = stack.pop() ?? false
+          stack.push(left || right)
+          break
+        }
+        case 'ternary': {
+          stack.pop()
+          const falseValue = stack.pop() ?? false
+          const trueValue = stack.pop() ?? false
+          stack.push(falseValue || trueValue)
+          break
+        }
+        case 'if':
+          stack.pop()
+          if (visit(instruction.thenInstructions, [...stack], new Map(registers)) ||
+              visit(instruction.elseInstructions, [...stack], new Map(registers))) return true
+          stack.length = 0
+          registers.clear()
+          break
+        case 'writeVariable':
+        case 'invokeHtmlEvent':
+          if (stack.pop() === true) return true
+          break
+        case 'invokeKeyEvent': {
+          let parameterFlowsToEvent = false
+          for (let index = 0; index < instruction.argCount; index += 1) {
+            parameterFlowsToEvent ||= stack.pop() === true
+          }
+          if (parameterFlowsToEvent) return true
+          break
+        }
+        case 'case':
+        case 'gotoLabel':
+        case 'label':
+        case 'quit':
+          stack.length = 0
+          registers.clear()
+          break
+      }
     }
-    if (instruction?.op === 'if' && (
-      compiledInstructionsDirectlyMutateParameter(instruction.thenInstructions, parameterIndex) ||
-      compiledInstructionsDirectlyMutateParameter(instruction.elseInstructions, parameterIndex)
-    )) return true
+    return false
   }
-  return false
+  return visit(instructions, [], new Map())
+}
+
+function convertExactUnitValue(
+  value: number,
+  fromUnit: string | undefined,
+  toUnit: string | null
+): { readonly ok: true; readonly value: number } |
+   { readonly ok: false; readonly code: 'VALUE_REACHABILITY_UNKNOWN' | 'UNIT_INCOMPATIBLE' } {
+  if (fromUnit == null) return { ok: true, value }
+  if (toUnit == null) return { ok: false, code: 'VALUE_REACHABILITY_UNKNOWN' }
+  if (normalizeExactUnitName(fromUnit) === normalizeExactUnitName(toUnit)) return { ok: true, value }
+  const from = parseExactSimUnit(fromUnit)
+  const to = parseExactSimUnit(toUnit)
+  if (from == null || to == null) return { ok: false, code: 'UNIT_INCOMPATIBLE' }
+  try {
+    return { ok: true, value: convertSimUnit(value, from, to) }
+  } catch {
+    return { ok: false, code: 'UNIT_INCOMPATIBLE' }
+  }
+}
+
+function parseExactSimUnit(unit: string): SimUnit | null {
+  switch (normalizeExactUnitName(unit)) {
+    case 'unitless': return 'unitless'
+    case 'number':
+    case 'scalar': return 'number'
+    case 'ratio':
+    case 'percent over 100': return 'ratio'
+    case 'percent':
+    case 'percentage': return 'percent'
+    case 'bool':
+    case 'boolean': return 'boolean'
+    case 'second':
+    case 'seconds': return 'seconds'
+    case 'meter':
+    case 'meters': return 'meters'
+    case 'foot':
+    case 'feet': return 'feet'
+    case 'meter per second':
+    case 'meters per second': return 'metersPerSecond'
+    case 'knot':
+    case 'knots': return 'knots'
+    case 'celsius': return 'celsius'
+    case 'kelvin': return 'kelvin'
+    default: return null
+  }
+}
+
+function normalizeExactUnitName(unit: string): string {
+  return unit.trim().toLowerCase().replaceAll('_', ' ').replace(/\s+/gu, ' ')
 }
 
 function selectRoute(
