@@ -22,10 +22,12 @@ test('claimed cockpit input always wins over an empty-cockpit camera mapping', (
     'gauge-surface'
   ]
   for (const reason of reasons) {
-    expect(resolveCockpitInputDecision({ kind: 'consumed', reason }, true)).toEqual({
-      kind: 'consumed',
-      reason
-    })
+    for (const _cameraAction of ['pan', 'zoom']) {
+      expect(resolveCockpitInputDecision({ kind: 'consumed', reason }, true)).toEqual({
+        kind: 'consumed',
+        reason
+      })
+    }
   }
 })
 

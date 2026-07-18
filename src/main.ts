@@ -61,6 +61,10 @@ import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPer
 import { MsfsInteractionLifecycle } from './msfs/interactionLifecycle'
 import { CockpitInteractionDispatcher, type CockpitInteractionChannel, type CockpitInteractionMissReason } from './input/cockpitInteraction'
 import { resolveCockpitInputDecision, type CockpitInputHit } from './input/cockpitInputArbitration'
+import {
+  collectCockpitOccluderMeshes,
+  resolveCockpitGeometryHit
+} from './input/cockpitInteractionGeometry'
 import { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
 import {
   DEFAULT_COCKPIT_INPUT_PROFILE_ID,
@@ -1683,6 +1687,42 @@ async function init(): Promise<void> {
   }
   cockpitInteractionAdapter.setMode(getCockpitInputProfile().interactionMode)
   window.addEventListener('cockpit-input-settings-changed', syncCockpitInteractionMode)
+  const resolveCurrentCockpitGeometryHit = (pickRegistry: CockpitInteractionPickRegistry) =>
+    resolveCockpitGeometryHit(cockpitInteractionRaycaster, {
+      interactionMeshes: pickRegistry.meshes.flatMap(object => {
+        const binding = pickRegistry.bindingsByMesh.get(object)
+        return binding == null ? [] : [{
+          object,
+          binding,
+          prioritizeVCockpits: binding.metadata.prioritizeVCockpits,
+          ignoreZTest: binding.metadata.ignoreZTest
+        }]
+      }),
+      fallbackHitboxes: pickRegistry.fallbackHitboxes.map(target => ({
+        object: target.sourceNode,
+        box: target.box,
+        binding: target.binding,
+        prioritizeVCockpits: target.binding.metadata.prioritizeVCockpits,
+        ignoreZTest: target.binding.metadata.ignoreZTest
+      })),
+      blockers: [
+        ...pickRegistry.blockerMeshes.map(object => ({
+          object,
+          mesh: object,
+          target: pickRegistry.blockersByMesh.get(object)?.target ?? object.name,
+          reason: 'blocker' as const
+        })),
+        ...pickRegistry.blockerHitboxes.map(target => ({
+          object: target.sourceNode,
+          box: target.box,
+          target: target.blocker.target,
+          reason: 'blocker' as const
+        }))
+      ],
+      gaugeSurfaces: pickRegistry.claimedSurfaceMeshes,
+      occluderMeshes: pickRegistry.occluderMeshes
+    })
+
   const handleCockpitInteractionPress = (
     event: MouseEvent | PointerEvent,
     options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean }
@@ -1705,106 +1745,39 @@ async function init(): Promise<void> {
       -(((event.clientY - rect.top) / rect.height) * 2 - 1)
     )
     cockpitInteractionRaycaster.setFromCamera(cockpitInteractionPointer, camera)
-    let sawOccludedHit = false
-
     const pickRegistry = getCockpitInteractionPickRegistry(root, runtime)
-    const blockerHits = getCockpitInteractionBlockerHits(pickRegistry)
-    const gaugeSurfaceHits = cockpitInteractionRaycaster
-      .intersectObjects([...pickRegistry.claimedSurfaceMeshes], false)
-      .sort((left, right) => left.distance - right.distance)
-    const meshHits = cockpitInteractionRaycaster
-      .intersectObjects([...pickRegistry.meshes], false)
-      .sort((left, right) => {
-        const leftPriority = pickRegistry.bindingsByMesh.get(left.object)?.metadata.prioritizeVCockpits ?? false
-        const rightPriority = pickRegistry.bindingsByMesh.get(right.object)?.metadata.prioritizeVCockpits ?? false
-        return Number(rightPriority) - Number(leftPriority) || left.distance - right.distance
-      })
-    if (meshHits.length > 0) {
+    const geometryHit = resolveCurrentCockpitGeometryHit(pickRegistry)
+
+    if (geometryHit.kind === 'active') {
       cockpitInteractionStats.hitCount += 1
-      for (const hit of meshHits) {
-        const binding = pickRegistry.bindingsByMesh.get(hit.object)
-        if (binding == null) {
-          continue
-        }
-        if (!binding.metadata.ignoreZTest && isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
-          sawOccludedHit = true
-          cockpitInteractionStats.lastMissReason = 'occluded'
-          continue
-        }
-        if (isCockpitInteractionHitBlocked(hit.distance, blockerHits, pickRegistry)) {
-          cockpitInteractionStats.lastMissReason = 'blocked'
-          recordCockpitInteractionMiss('blocker', { reason: 'mesh-blocked', target: binding.target })
-          return { kind: 'consumed', reason: 'blocker' }
-        }
-        return executeCockpitInteractionBinding(binding, hit.object, 'interaction-mesh', {
+      return executeCockpitInteractionBinding(
+        geometryHit.binding,
+        geometryHit.object,
+        geometryHit.hitKind,
+        {
           ...options,
           pointerId: 'pointerId' in event ? event.pointerId : 1,
           clickCount: event.detail === 2 ? 2 : 1,
           timestampMs: event.timeStamp
-        })
-      }
-    }
-
-    const fallbackHits = pickRegistry.fallbackHitboxes
-      .map(target => {
-        const point = cockpitInteractionRaycaster.ray.intersectBox(target.box, new Vector3())
-        return point == null
-          ? null
-          : {
-              target,
-              distance: point.distanceTo(cockpitInteractionRaycaster.ray.origin)
-            }
-      })
-      .filter((hit): hit is { readonly target: CockpitInteractionFallbackHitbox; readonly distance: number } => hit != null)
-      .sort((left, right) =>
-        Number(right.target.binding.metadata.prioritizeVCockpits) - Number(left.target.binding.metadata.prioritizeVCockpits) ||
-        left.distance - right.distance
+        }
       )
-    if (fallbackHits.length > 0) {
+    }
+
+    if (geometryHit.kind === 'consumed' && geometryHit.reason !== 'gauge-surface') {
       cockpitInteractionStats.hitCount += 1
-      for (const hit of fallbackHits) {
-        const target = hit.target
-        if (!target.binding.metadata.ignoreZTest && isCockpitInteractionHitOccluded(hit.distance, pickRegistry)) {
-          sawOccludedHit = true
-          cockpitInteractionStats.lastMissReason = 'occluded'
-          continue
-        }
-        if (isCockpitInteractionHitBlocked(hit.distance, blockerHits, pickRegistry)) {
-          cockpitInteractionStats.lastMissReason = 'blocked'
-          recordCockpitInteractionMiss('blocker', { reason: 'hitbox-blocked', target: target.binding.target })
-          return { kind: 'consumed', reason: 'blocker' }
-        }
-        return executeCockpitInteractionBinding(
-          target.binding,
-          target.sourceNode,
-          'fallback-hitbox',
-          {
-            ...options,
-            pointerId: 'pointerId' in event ? event.pointerId : 1,
-            clickCount: event.detail === 2 ? 2 : 1,
-            timestampMs: event.timeStamp
-          }
-        )
-      }
+      cockpitInteractionStats.lastHitObject = geometryHit.object.name || geometryHit.object.type
+      cockpitInteractionStats.lastHitKind = 'blocker'
+      cockpitInteractionStats.lastTarget = geometryHit.target
+      cockpitInteractionStats.lastMissReason = 'blocked'
+      recordCockpitInteractionMiss(geometryHit.reason, {
+        reason: `${geometryHit.reason}-hit`,
+        target: geometryHit.target
+      })
+      return { kind: 'consumed', reason: geometryHit.reason }
     }
 
-    if (
-      pickRegistry.meshes.length === 0 &&
-      pickRegistry.fallbackHitboxes.length === 0 &&
-      pickRegistry.blockerMeshes.length === 0 &&
-      pickRegistry.blockerHitboxes.length === 0 &&
-      pickRegistry.claimedSurfaceMeshes.length === 0
-    ) {
-      cockpitInteractionStats.lastMissReason = 'empty-interaction-registry'
-      recordCockpitInteractionMiss('raycast', { reason: 'empty-interaction-registry' })
-      return { kind: 'miss' }
-    }
-
-    const gaugeSurfaceHit = gaugeSurfaceHits.find(hit =>
-      !isCockpitInteractionHitOccluded(hit.distance, pickRegistry)
-    )
-    if (gaugeSurfaceHit != null) {
-      const target = gaugeSurfaceHit.object.name || gaugeSurfaceHit.object.type
+    if (geometryHit.kind === 'consumed') {
+      const target = geometryHit.target
       cockpitInteractionStats.hitCount += 1
       cockpitInteractionStats.lastHitObject = target
       cockpitInteractionStats.lastHitKind = 'gauge-surface'
@@ -1827,118 +1800,12 @@ async function init(): Promise<void> {
       return { kind: 'consumed', reason: 'gauge-surface' }
     }
 
-    if (sawOccludedHit) {
-      cockpitInteractionStats.lastMissReason = 'occluded'
-      recordCockpitInteractionMiss('raycast', { reason: 'occluded' })
-      return { kind: 'miss' }
-    }
-
-    if (blockerHits.length > 0) {
-      cockpitInteractionStats.hitCount += 1
-      cockpitInteractionStats.lastMissReason = 'blocked'
-      recordCockpitInteractionMiss('blocker', { reason: 'blocker-hit' })
-      return { kind: 'consumed', reason: 'blocker' }
-    }
-
-    if (meshHits.length === 0 && fallbackHits.length === 0) {
-      cockpitInteractionStats.lastMissReason = 'raycast-miss'
-      recordCockpitInteractionMiss('raycast', { reason: 'raycast-miss' })
-      return { kind: 'miss' }
-    }
-
-    cockpitInteractionStats.lastMissReason = 'no-bound-interaction'
-    recordCockpitInteractionMiss('raycast', { reason: 'no-bound-interaction' })
-    return { kind: 'consumed', reason: 'interaction' }
-  }
-
-  const getCockpitInteractionBlockerHits = (
-    pickRegistry: CockpitInteractionPickRegistry
-  ): readonly {
-    readonly distance: number
-    readonly object: Object3D
-    readonly target: string
-  }[] => {
-    const meshHits = cockpitInteractionRaycaster
-      .intersectObjects([...pickRegistry.blockerMeshes], false)
-      .map(hit => ({
-        distance: hit.distance,
-        object: hit.object,
-        target: pickRegistry.blockersByMesh.get(hit.object)?.target ?? hit.object.name
-      }))
-    const hitboxHits = pickRegistry.blockerHitboxes
-      .map(blocker => {
-        const point = cockpitInteractionRaycaster.ray.intersectBox(blocker.box, new Vector3())
-        return point == null
-          ? null
-          : {
-              distance: point.distanceTo(cockpitInteractionRaycaster.ray.origin),
-              object: blocker.sourceNode,
-              target: blocker.blocker.target
-            }
-      })
-      .filter((hit): hit is { readonly distance: number; readonly object: Object3D; readonly target: string } => hit != null)
-    return [...meshHits, ...hitboxHits].sort((left, right) => left.distance - right.distance)
-  }
-
-  const isCockpitInteractionHitBlocked = (
-    hitDistance: number,
-    blockerHits: readonly {
-      readonly distance: number
-      readonly object: Object3D
-      readonly target: string
-    }[],
-    pickRegistry: CockpitInteractionPickRegistry
-  ): boolean => {
-    const blockerHit = blockerHits.find(hit => hit.distance <= hitDistance + 1e-4)
-    if (blockerHit == null) {
-      return false
-    }
-    if (isCockpitInteractionHitOccluded(blockerHit.distance, pickRegistry)) {
-      return false
-    }
-    cockpitInteractionStats.lastHitObject = blockerHit.object.name || blockerHit.object.type
-    cockpitInteractionStats.lastHitKind = 'blocker'
-    cockpitInteractionStats.lastTarget = blockerHit.target
-    return true
-  }
-
-  const isCockpitInteractionHitOccluded = (
-    hitDistance: number,
-    pickRegistry: CockpitInteractionPickRegistry
-  ): boolean => {
-    const maxDistance = Math.max(hitDistance - 1e-4, 0)
-    if (maxDistance <= 0 || pickRegistry.occluderMeshes.length === 0) {
-      return false
-    }
-
-    const occluderCandidates: Mesh[] = []
-    for (const mesh of pickRegistry.occluderMeshes) {
-      if (!isRenderableMesh(mesh)) {
-        continue
-      }
-      mesh.updateWorldMatrix(true, false)
-      const bounds = new Box3().setFromObject(mesh)
-      if (bounds.isEmpty()) {
-        continue
-      }
-      const point = cockpitInteractionRaycaster.ray.intersectBox(bounds, new Vector3())
-      if (point == null) {
-        continue
-      }
-      const distance = point.distanceTo(cockpitInteractionRaycaster.ray.origin)
-      if (distance <= maxDistance) {
-        occluderCandidates.push(mesh)
-      }
-    }
-
-    const occluderHits = cockpitInteractionRaycaster.intersectObjects(occluderCandidates, false)
-    const occluderHit = occluderHits.find(hit => hit.distance <= maxDistance)
-    if (occluderHit == null) {
-      return false
-    }
-
-    cockpitInteractionStats.lastOccluderObject = occluderHit.object.name || occluderHit.object.type
-    return true
+    cockpitInteractionStats.lastMissReason = geometryHit.reason
+    cockpitInteractionStats.lastOccluderObject = geometryHit.occluder == null
+      ? null
+      : geometryHit.occluder.name || geometryHit.occluder.type
+    recordCockpitInteractionMiss('raycast', { reason: geometryHit.reason })
+    return { kind: 'miss' }
   }
 
   const executeCockpitInteractionBinding = (
@@ -2325,43 +2192,8 @@ async function init(): Promise<void> {
     )
     cockpitInteractionRaycaster.setFromCamera(cockpitInteractionPointer, camera)
     const registry = getCockpitInteractionPickRegistry(loadedModel.scene, runtime)
-    const blockerHits = getCockpitInteractionBlockerHits(registry)
-    let hit = cockpitInteractionRaycaster
-      .intersectObjects([...registry.meshes], false)
-      .map(candidate => {
-        const binding = registry.bindingsByMesh.get(candidate.object)
-        return binding == null ? null : { object: candidate.object, distance: candidate.distance, binding }
-      })
-      .filter((candidate): candidate is NonNullable<typeof candidate> => candidate != null)
-      .sort((left, right) =>
-        Number(right.binding.metadata.prioritizeVCockpits) - Number(left.binding.metadata.prioritizeVCockpits) ||
-        left.distance - right.distance
-      )
-      .find(({ distance, binding }) =>
-        (binding.metadata.ignoreZTest || !isCockpitInteractionHitOccluded(distance, registry)) &&
-        !isCockpitInteractionHitBlocked(distance, blockerHits, registry)
-      )
-    if (hit == null) {
-      hit = registry.fallbackHitboxes
-        .map(fallback => {
-          const point = cockpitInteractionRaycaster.ray.intersectBox(fallback.box, new Vector3())
-          return point == null ? null : {
-            object: fallback.sourceNode,
-            distance: point.distanceTo(cockpitInteractionRaycaster.ray.origin),
-            binding: fallback.binding
-          }
-        })
-        .filter((candidate): candidate is NonNullable<typeof candidate> => candidate != null)
-        .sort((left, right) =>
-          Number(right.binding.metadata.prioritizeVCockpits) - Number(left.binding.metadata.prioritizeVCockpits) ||
-          left.distance - right.distance
-        )
-        .find(({ distance, binding }) =>
-          (binding.metadata.ignoreZTest || !isCockpitInteractionHitOccluded(distance, registry)) &&
-          !isCockpitInteractionHitBlocked(distance, blockerHits, registry)
-        )
-    }
-    if (hit == null) {
+    const hit = resolveCurrentCockpitGeometryHit(registry)
+    if (hit.kind !== 'active') {
       clearCockpitInteractionFeedback()
       return
     }
@@ -11777,13 +11609,12 @@ function createCockpitInteractionPickRegistry(
   }
 
   const interactiveMeshSet = new Set([...meshes, ...blockerMeshes])
-  const occluderMeshes: Mesh[] = []
-  root.traverse(node => {
-    if (!isRenderableMesh(node) || interactiveMeshSet.has(node) || !isCockpitInteractionOccluderMesh(node)) {
-      return
-    }
-    occluderMeshes.push(node)
-  })
+  const occluderMeshes = collectCockpitOccluderMeshes(
+    root,
+    interactiveMeshSet,
+    isCockpitInteractionOccluderMesh,
+    new Set(claimedSurfaceMeshes)
+  )
 
   return {
     meshes,
