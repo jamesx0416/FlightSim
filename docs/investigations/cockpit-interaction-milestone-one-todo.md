@@ -4,6 +4,45 @@ This is the authoritative implementation and remaining-work checklist for milest
 
 Final automated verification on 2026-07-18: 187 tests passed with 805 expectations; typecheck, lint, and `git diff --check` passed.
 
+## Remaining
+
+### Exact Set/Adjust
+
+- [ ] Compile mutable runtime-counter acceleration expressions. Unproven acceleration remains fail closed.
+- [ ] Complete mounted-package exact Set/Adjust browser acceptance. The A339X scan found 23 increment/decrement candidates, but only three also had current value, bounds, unit, and static step metadata; each correctly returned `VALUE_REACHABILITY_UNKNOWN` with zero steps and no mutation because an authoritative state read was unavailable. No mounted target exposed both two or more `setStates` and readable current state.
+
+### Presentation and structured metadata
+
+- [ ] Compile authored dynamic/rich value formatting instead of falling back to `Intl.NumberFormat` when the format cannot be proven.
+- [ ] Compile rich and animated tooltip entries rather than flattening them to one title/description.
+- [ ] Preserve model-specific directional/center cursor fields and center radius.
+- [ ] Compile and honor `LockFlagsTemporary`.
+- [ ] Compile and honor `DragFlagsLockable`.
+- [ ] Compile and honor `DragUseAnimLag`.
+- [ ] Compile CallbackDragging `XScale`, `YScale`, and `ZScale` independently.
+- [ ] Preserve interaction `GroupID` for authored grouping and compound arbitration.
+- [ ] Diagnose any unknown future interaction-model instance instead of silently ignoring it. Mounted MSFS 2020 stock currently uses only `IMDefault` and `IMDrag`.
+
+### Fail-closed compiler behavior
+
+- [ ] Remove the compiler fallback that invents `LeftSingle` when no route can be discovered.
+- [ ] Record a structured diagnostic whenever an interaction candidate is dropped because its target, callback, template, or route cannot be compiled.
+- [ ] Distinguish unsupported-template, unsupported-event, dynamic-route-unproven, and invalid-expression failures.
+- [ ] Add compiler totals for candidates, compiled bindings, rejected bindings, and rejection reasons.
+
+### Browser acceptance and verification
+
+- [ ] Complete live browser cancellation acceptance for actual pointer-capture loss, LOD replacement, and target disappearance. Deterministic lifecycle tests cover the implementation, but these DOM/package paths have not all been exercised live.
+- [ ] Complete direct browser acceptance for interaction meshes, fallback hitboxes, gauges, blockers/covers, LOD replacement, and target disappearance.
+- [ ] Run direct-mouse and DevApi acceptance across the complete representative A330 control matrix in both Legacy and Lock, including presentation and exact controls. Profile/DevApi behavior and one representative EFB button passed.
+- [ ] Rerun Settings Escape and claimed-hit camera arbitration in Agent Browser after the local browser-command authorization service recovers. Focused regression tests pass, but the post-fix live rerun was denied by a 503 from the approval service.
+- [ ] Run the same generic acceptance against a second mounted aircraft package. The selector currently exposes only three liveries from the same Headwind A339X package.
+- [ ] Complete the compiler/control matrix for every channel, phase, callback kind, EventID/InputEvent route, compound control, timing mode, precedence rule, and unsupported MSFS 2024 diagnostic.
+- [ ] Scan every mounted stock MouseRect interaction-model instance and MouseFlags token.
+- [ ] Verify every advertised operation in Legacy and Lock or retain an explicit unsupported diagnostic.
+- [ ] Verify model-specific cursor, tooltip, timing, scale, and lock metadata on focused stock fixtures.
+- [ ] Repeat the claimed-hit camera check with real browser coordinates after browser authorization recovers.
+
 ## Completed
 
 ### Profiles, remapping, and Settings
@@ -72,42 +111,3 @@ Browser evidence on 2026-07-17 covered Mouse0/Mouse1/Mouse2/WheelUp/WheelDown ca
 - [x] Verify with focused tests that claimed interaction and gauge outcomes consume input while only a true miss can select camera behavior.
 - [x] Confirm the milestone diff adds no aircraft-specific runtime rules and changes no `aircrafts/` fixture data.
 - [x] Document the completed interactions, profiles, shared history, and trace APIs and remove stale raw-input documentation.
-
-## Remaining
-
-### Exact Set/Adjust
-
-- [ ] Compile mutable runtime-counter acceleration expressions. Unproven acceleration remains fail closed.
-- [ ] Complete mounted-package exact Set/Adjust browser acceptance. The A339X scan found 23 increment/decrement candidates, but only three also had current value, bounds, unit, and static step metadata; each correctly returned `VALUE_REACHABILITY_UNKNOWN` with zero steps and no mutation because an authoritative state read was unavailable. No mounted target exposed both two or more `setStates` and readable current state.
-
-### Presentation and structured metadata
-
-- [ ] Compile authored dynamic/rich value formatting instead of falling back to `Intl.NumberFormat` when the format cannot be proven.
-- [ ] Compile rich and animated tooltip entries rather than flattening them to one title/description.
-- [ ] Preserve model-specific directional/center cursor fields and center radius.
-- [ ] Compile and honor `LockFlagsTemporary`.
-- [ ] Compile and honor `DragFlagsLockable`.
-- [ ] Compile and honor `DragUseAnimLag`.
-- [ ] Compile CallbackDragging `XScale`, `YScale`, and `ZScale` independently.
-- [ ] Preserve interaction `GroupID` for authored grouping and compound arbitration.
-- [ ] Diagnose any unknown future interaction-model instance instead of silently ignoring it. Mounted MSFS 2020 stock currently uses only `IMDefault` and `IMDrag`.
-
-### Fail-closed compiler behavior
-
-- [ ] Remove the compiler fallback that invents `LeftSingle` when no route can be discovered.
-- [ ] Record a structured diagnostic whenever an interaction candidate is dropped because its target, callback, template, or route cannot be compiled.
-- [ ] Distinguish unsupported-template, unsupported-event, dynamic-route-unproven, and invalid-expression failures.
-- [ ] Add compiler totals for candidates, compiled bindings, rejected bindings, and rejection reasons.
-
-### Browser acceptance and verification
-
-- [ ] Complete live browser cancellation acceptance for actual pointer-capture loss, LOD replacement, and target disappearance. Deterministic lifecycle tests cover the implementation, but these DOM/package paths have not all been exercised live.
-- [ ] Complete direct browser acceptance for interaction meshes, fallback hitboxes, gauges, blockers/covers, LOD replacement, and target disappearance.
-- [ ] Run direct-mouse and DevApi acceptance across the complete representative A330 control matrix in both Legacy and Lock, including presentation and exact controls. Profile/DevApi behavior and one representative EFB button passed.
-- [ ] Rerun Settings Escape and claimed-hit camera arbitration in Agent Browser after the local browser-command authorization service recovers. Focused regression tests pass, but the post-fix live rerun was denied by a 503 from the approval service.
-- [ ] Run the same generic acceptance against a second mounted aircraft package. The selector currently exposes only three liveries from the same Headwind A339X package.
-- [ ] Complete the compiler/control matrix for every channel, phase, callback kind, EventID/InputEvent route, compound control, timing mode, precedence rule, and unsupported MSFS 2024 diagnostic.
-- [ ] Scan every mounted stock MouseRect interaction-model instance and MouseFlags token.
-- [ ] Verify every advertised operation in Legacy and Lock or retain an explicit unsupported diagnostic.
-- [ ] Verify model-specific cursor, tooltip, timing, scale, and lock metadata on focused stock fixtures.
-- [ ] Repeat the claimed-hit camera check with real browser coordinates after browser authorization recovers.
