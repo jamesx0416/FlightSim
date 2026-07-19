@@ -340,7 +340,9 @@ export const __behaviorTestHooks = {
   buildInteractionCodeBinding,
   buildCompiledInteractionMetadata,
   buildMouseEventInteractionCodeSource,
-  pushUniqueInteractionBinding
+  pushUniqueInteractionBinding,
+  evaluateTestOperator,
+  selectConditionBranch
 }
 
 function resolveBehaviorDocumentRequest(
@@ -1652,7 +1654,7 @@ function buildInteractionCodeBinding(
   return {
     target,
     feedbackTargets: collectInteractionFeedbackTargets(params, currentNode, target),
-    feedbackVariableKeys: collectInteractionFeedbackVariableKeys(params),
+    feedbackVariableKeys: [],
     soundEvents: collectInteractionSoundEvents(params),
     minHeldDurationSeconds: Math.max(parseNumber(params.get('MIN_HELD_DURATION'), 0), 0),
     animationDurationSeconds: parseOptionalPositiveNumber(params.get('ANIM_DURATION')),
@@ -1699,7 +1701,7 @@ function buildCompiledInteractionMetadata(
   diagnostics: ImportDiagnostic[],
   sourceKindOverride?: CompiledInteractionSourceKind
 ): CompiledInteractionMetadata {
-  const flagEntries = [...params].filter(([key]) => key.includes('MOUSE_FLAGS') || key.includes('MOUSEFLAGS'))
+  const flagEntries = [...params].filter(([key]) => /^MOUSE_?FLAGS(?:_(?:DEFAULT|DRAG)_IM)?$/u.test(key))
   const hasInteractionModels = flagEntries.some(([key]) => key.includes('DEFAULT_IM') || key.includes('DRAG_IM'))
   const declaredEventsFor = (interactionModel?: 'default' | 'drag'): Set<string> => {
     const suffix = interactionModel === 'default' ? 'DEFAULT_IM' : interactionModel === 'drag' ? 'DRAG_IM' : null
@@ -3373,23 +3375,6 @@ function collectInteractionFeedbackTargets(
   return [...targets]
 }
 
-function collectInteractionFeedbackVariableKeys(
-  params: ReadonlyMap<string, string>
-): readonly string[] {
-  const type = params.get('SWITCH_POSITION_TYPE')?.trim() ?? ''
-  const variable = params.get('SWITCH_POSITION_VAR')?.trim() ?? ''
-  if (
-    !type ||
-    !variable ||
-    type.includes('#') ||
-    variable.includes('#') ||
-    type.toUpperCase() === 'O'
-  ) {
-    return []
-  }
-  return [`${type}:${variable}`]
-}
-
 function isUsableInteractionFeedbackTarget(value: string): boolean {
   const normalized = value.trim()
   if (!normalized || normalized.includes('#')) {
@@ -3700,23 +3685,27 @@ function selectConditionBranch(
   conditionNode: Element,
   params: ReadonlyMap<string, string>
 ): Element | null {
+  const selectBranch = (matches: boolean): Element | null => {
+    const trueBranch = conditionNode.querySelector(':scope > True')
+    const falseBranch = conditionNode.querySelector(':scope > False')
+    if (trueBranch != null || falseBranch != null) return matches ? trueBranch : falseBranch
+    return matches ? conditionNode : null
+  }
   const notEmpty = getAttributeValue(conditionNode, 'NotEmpty')
   if (notEmpty) {
     const value = resolveNotEmptyValue(notEmpty, params)
-    return value ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
+    return selectBranch(Boolean(value))
   }
 
   const empty = getAttributeValue(conditionNode, 'Empty')
   if (empty) {
     const value = resolveNotEmptyValue(empty, params)
-    return value ? conditionNode.querySelector(':scope > False') : conditionNode.querySelector(':scope > True')
+    return selectBranch(!value)
   }
 
   const valid = getAttributeValue(conditionNode, 'Valid')
   if (valid) {
-    return isTruthyParameterReference(valid, params)
-      ? conditionNode.querySelector(':scope > True')
-      : conditionNode.querySelector(':scope > False')
+    return selectBranch(isTruthyParameterReference(valid, params))
   }
 
   const check = getAttributeValue(conditionNode, 'Check')
@@ -3726,17 +3715,15 @@ function selectConditionBranch(
     const matches = match == null
       ? isTruthyParameterReference(check, params)
       : value === substituteParameters(match, params).trim()
-    return matches ? conditionNode.querySelector(':scope > True') : conditionNode.querySelector(':scope > False')
+    return selectBranch(matches)
   }
 
   const testNode = conditionNode.querySelector(':scope > Test')
   if (testNode != null) {
-    return evaluateTestElement(testNode, params)
-      ? conditionNode.querySelector(':scope > True')
-      : conditionNode.querySelector(':scope > False')
+    return selectBranch(evaluateTestElement(testNode, params))
   }
 
-  return conditionNode.querySelector(':scope > True')
+  return selectBranch(true)
 }
 
 function selectSwitchBranch(
@@ -4396,6 +4383,14 @@ function evaluateTestOperator(
     case 'Greater': {
       const [left, right] = Array.from(node.children)
       return resolveTestNumericValue(left, params) > resolveTestNumericValue(right, params)
+    }
+    case 'LowerOrEqual': {
+      const [left, right] = Array.from(node.children)
+      return resolveTestNumericValue(left, params) <= resolveTestNumericValue(right, params)
+    }
+    case 'GreaterOrEqual': {
+      const [left, right] = Array.from(node.children)
+      return resolveTestNumericValue(left, params) >= resolveTestNumericValue(right, params)
     }
     case 'Equal': {
       const [left, right] = Array.from(node.children)

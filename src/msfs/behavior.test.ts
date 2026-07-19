@@ -21,6 +21,44 @@ function loadedDocument(path: string, includes: readonly string[]) {
   }
 }
 
+function testElement(tagName: string, textContent = '', children: readonly Element[] = []): Element {
+  return { tagName, textContent, children, getAttribute: () => null } as unknown as Element
+}
+
+test('evaluates inclusive stock template comparisons', () => {
+  const params = new Map([['NEXT_ID', '0']])
+  expect(__behaviorTestHooks.evaluateTestOperator(
+    testElement('GreaterOrEqual', '', [testElement('Value', 'NEXT_ID'), testElement('Number', '0')]),
+    params
+  )).toBe(true)
+  expect(__behaviorTestHooks.evaluateTestOperator(
+    testElement('LowerOrEqual', '', [testElement('Value', 'NEXT_ID'), testElement('Number', '-1')]),
+    params
+  )).toBe(false)
+})
+
+test('selects enabled condition content without a True wrapper', () => {
+  const directChild = testElement('UseTemplate')
+  const condition = {
+    attributes: [{ name: 'Check', value: 'ENABLED' }],
+    children: [directChild],
+    getAttribute: (name: string) => name === 'Check' ? 'ENABLED' : null,
+    querySelector: () => null
+  } as unknown as Element
+
+  expect(__behaviorTestHooks.selectConditionBranch(condition, new Map([['ENABLED', 'True']]))).toBe(condition)
+  expect(__behaviorTestHooks.selectConditionBranch(condition, new Map([['ENABLED', 'False']]))).toBe(null)
+
+  const falseBranch = testElement('False')
+  const wrappedCondition = {
+    attributes: [{ name: 'Check', value: 'ENABLED' }],
+    getAttribute: (name: string) => name === 'Check' ? 'ENABLED' : null,
+    querySelector: (selector: string) => selector === ':scope > False' ? falseBranch : null
+  } as unknown as Element
+  expect(__behaviorTestHooks.selectConditionBranch(wrappedCondition, new Map([['ENABLED', 'True']]))).toBe(null)
+  expect(__behaviorTestHooks.selectConditionBranch(wrappedCondition, new Map([['ENABLED', 'False']]))).toBe(falseBranch)
+})
+
 test('behavior documents fetch by level and retain deterministic depth-first order', async () => {
   const paths = ['root.xml', 'a.xml', 'b.xml', 'shared.xml']
   const root: BehaviorSourceRoot = {
@@ -362,6 +400,31 @@ test('keeps default and drag interaction-model routes separate', () => {
   expect(metadata.routes.filter(route => route.interactionModel === 'default').map(route => route.msfsEvent)).toEqual(['LeftSingle'])
   expect(metadata.routes.some(route => route.interactionModel === 'drag' && route.msfsEvent === 'LeftRelease')).toBe(true)
   expect(metadata.lockable).toBe(false)
+})
+
+test('compiles generic three-state switch wheel callbacks as canonical adjustments', () => {
+  const binding = __behaviorTestHooks.buildInteractionCodeBinding(
+    "(M:Event) 'WheelUp' scmi 0 == if{ 1 (>L:TEST_SWITCH) } els{ " +
+      "(M:Event) 'WheelDown' scmi 0 == if{ -1 (>L:TEST_SWITCH) } }",
+    null,
+    new Map([
+      ['NUM_STATES', '3'],
+      ['SWITCH_POSITION_TYPE', 'L'],
+      ['SWITCH_POSITION_VAR', 'TEST_SWITCH'],
+      ['ADDITIONAL_MOUSEFLAGS', ''],
+      ['DRAG_MOUSEFLAGS_LOCKABLE', 'LeftDrag+RightDrag+MiddleDrag']
+    ]),
+    'TEST_SWITCH',
+    'test.xml',
+    'callback',
+    []
+  )
+
+  expect(binding?.metadata.routes.map(route => [route.msfsEvent, route.operation])).toEqual([
+    ['WheelUp', 'increase'],
+    ['WheelDown', 'decrease']
+  ])
+  expect(binding?.feedbackVariableKeys).toEqual([])
 })
 
 test('keeps distinct callbacks for one interaction target', () => {
