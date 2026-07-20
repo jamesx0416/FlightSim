@@ -37,7 +37,7 @@ export interface CockpitInputGlobalSettings {
   readonly interactionMode: CockpitInteractionMode
   readonly showHighlights: boolean
   readonly showTooltips: boolean
-  readonly invertDefaultScrollDirection?: boolean
+  readonly invertDefaultScrollDirection: boolean
 }
 
 export interface CockpitInputStoreV2 {
@@ -533,7 +533,7 @@ function isGlobalSettings(value: unknown): value is CockpitInputGlobalSettings {
   return (value.interactionMode === 'legacy' || value.interactionMode === 'lock')
     && typeof value.showHighlights === 'boolean'
     && typeof value.showTooltips === 'boolean'
-    && (value.invertDefaultScrollDirection == null || typeof value.invertDefaultScrollDirection === 'boolean')
+    && typeof value.invertDefaultScrollDirection === 'boolean'
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

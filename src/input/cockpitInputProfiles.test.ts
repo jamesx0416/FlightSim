@@ -22,7 +22,6 @@ import {
   selectedCockpitInputProfileId,
   setCockpitInputBinding,
   updateCockpitInputSettings,
-  type CockpitInputStoreV1
 } from './cockpitInputProfiles'
 
 function memoryStorage(entries: readonly (readonly [string, string])[] = []): {
@@ -66,8 +65,8 @@ test('version 2 defaults resolve MSFS interaction and empty-cockpit mouse behavi
   })
 })
 
-test('version 1 storage migrates once and preserves legacy aircraft selections as fallbacks', () => {
-  const legacy: CockpitInputStoreV1 = {
+test('version 1 storage without the scroll setting recovers to defaults', () => {
+  const legacy = {
     version: 1,
     selectedGlobalProfileId: DEFAULT_COCKPIT_INPUT_PROFILE_ID,
     aircraftProfileSelections: { shared: 'testing' },
@@ -92,15 +91,9 @@ test('version 1 storage migrates once and preserves legacy aircraft selections a
     [LEGACY_COCKPIT_INPUT_STORE_KEY, JSON.stringify(legacy)]
   ])
   const result = loadCockpitInputStoreWithDiagnostics(storage)
-  expect(result.store.version).toBe(2)
-  expect(result.diagnostics.map(diagnostic => diagnostic.code)).toEqual([
-    'MIGRATED_V1',
-    'MIGRATED_LEGACY_AIRCRAFT_SELECTION'
-  ])
-  expect(result.store.profiles[0]?.bindings).toBeUndefined()
-  expect(selectedCockpitInputProfileId(result.store, '/package-a', 'shared')).toBe('testing')
+  expect(result.store).toEqual(DEFAULT_COCKPIT_INPUT_STORE)
+  expect(result.diagnostics.map(diagnostic => diagnostic.code)).toEqual(['RECOVERED_INVALID_STORE'])
   expect(values.has(COCKPIT_INPUT_STORE_KEY)).toBe(true)
-  expect(loadCockpitInputStoreWithDiagnostics(storage).diagnostics).toEqual([])
 })
 
 test('corrupt current storage is preserved and returns a structured recovery diagnostic', () => {
