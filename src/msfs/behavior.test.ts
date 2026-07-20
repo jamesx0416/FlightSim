@@ -310,6 +310,21 @@ test('interaction metadata expands authored flags and value reachability', () =>
     ['WheelDown', 'increase']
   ])
 
+  const fallback = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([['MOUSEFLAGS', 'Wheel']]),
+    'TEST',
+    'TEST',
+    'test.xml',
+    "(M:Event) 'LeftSingle' scmi 0 == if{ 1 (>L:TEST) }",
+    'callback',
+    diagnostics
+  )
+  expect(fallback.routes.map(route => [route.msfsEvent, route.operation])).toEqual([
+    ['WheelUp', 'increase'],
+    ['WheelDown', 'decrease']
+  ])
+  expect(fallback.routes.every(route => route.defaultWheelDirection)).toBe(true)
+
   const dynamicDiagnostics: ImportDiagnostic[] = []
   const dynamic = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([['ID', 'DYNAMIC']]), 'DYNAMIC', 'DYNAMIC', 'dynamic.xml',

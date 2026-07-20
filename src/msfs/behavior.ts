@@ -1724,6 +1724,7 @@ function buildCompiledInteractionMetadata(
     return declaredEvents
   }
   const inverted = inferInteractionInversion(params)
+  const hasAuthoredWheelDirection = source.includes("'WheelUp'") || source.includes("'WheelDown'")
   const interactionModels: readonly ('default' | 'drag' | undefined)[] = hasInteractionModels
     ? ['default', 'drag']
     : [undefined]
@@ -1735,6 +1736,9 @@ function buildCompiledInteractionMetadata(
         : declaredEvents.has(event) || declaredEvents.size === 0 && source.includes(event))
       .map(([, route]) => ({
         ...route,
+        ...(!hasAuthoredWheelDirection && (route.msfsEvent === 'WheelUp' || route.msfsEvent === 'WheelDown')
+          ? { defaultWheelDirection: true }
+          : {}),
         ...(interactionModel == null ? {} : { interactionModel }),
         operation: inverted && route.msfsEvent === 'WheelUp'
           ? 'decrease' as const

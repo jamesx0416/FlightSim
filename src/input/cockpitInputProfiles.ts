@@ -37,6 +37,7 @@ export interface CockpitInputGlobalSettings {
   readonly interactionMode: CockpitInteractionMode
   readonly showHighlights: boolean
   readonly showTooltips: boolean
+  readonly invertDefaultScrollDirection?: boolean
 }
 
 export interface CockpitInputStoreV2 {
@@ -108,7 +109,7 @@ export const DEFAULT_COCKPIT_INPUT_STORE: CockpitInputStoreV2 = {
   version: 2,
   selectedGlobalProfileId: DEFAULT_COCKPIT_INPUT_PROFILE_ID,
   aircraftProfileSelections: {},
-  globalSettings: { interactionMode: 'legacy', showHighlights: true, showTooltips: true },
+  globalSettings: { interactionMode: 'legacy', showHighlights: true, showTooltips: true, invertDefaultScrollDirection: false },
   profiles: [{ id: DEFAULT_COCKPIT_INPUT_PROFILE_ID, name: 'MSFS Mouse' }]
 }
 
@@ -532,6 +533,7 @@ function isGlobalSettings(value: unknown): value is CockpitInputGlobalSettings {
   return (value.interactionMode === 'legacy' || value.interactionMode === 'lock')
     && typeof value.showHighlights === 'boolean'
     && typeof value.showTooltips === 'boolean'
+    && (value.invertDefaultScrollDirection == null || typeof value.invertDefaultScrollDirection === 'boolean')
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

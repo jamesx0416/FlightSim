@@ -1858,7 +1858,7 @@ async function init(): Promise<void> {
           wheelOperation != null && candidate.msfsEvent == null && candidate.operation === wheelOperation
         ) ??
         (wheelOperation != null && selectedBinding.metadata.wheelPrimaryToggle
-          ? { operation: wheelOperation, channel: null }
+          ? { operation: wheelOperation, channel: null, defaultWheelDirection: false }
           : undefined)
     if (route == null) {
       cockpitInteractionStats.lastMissReason = 'operation-unsupported'
@@ -1876,12 +1876,15 @@ async function init(): Promise<void> {
     const target = cockpitInteractionAdapter.fromBinding(selectedBinding)
     const channel: CockpitInteractionChannel = route.channel ?? 'primary'
     const timestampMs = options.timestampMs ?? performance.now()
-    const isWheel = route.operation === 'increase' || route.operation === 'decrease'
+    const operation = route.defaultWheelDirection && getCockpitInputProfile().invertDefaultScrollDirection
+      ? route.operation === 'increase' ? 'decrease' : route.operation === 'decrease' ? 'increase' : route.operation
+      : route.operation
+    const isWheel = operation === 'increase' || operation === 'decrease'
     const wasBusy = cockpitInteractionDispatcher.snapshot.busy.includes(target.id)
     const executed = isWheel
       ? cockpitInteractionDispatcher.dispatch(target, {
           source: 'mouse',
-          operation: route.operation,
+          operation,
           phase: 'press',
           timestampMs
         }) === 'executed'
@@ -1899,7 +1902,7 @@ async function init(): Promise<void> {
         timestampMs: Date.now(),
         source: 'mouse',
         target: selectedBinding.target,
-        action: route.operation,
+        action: operation,
         result: 'target-busy'
       })
       return { kind: 'consumed', reason: 'target-busy' }
@@ -1949,12 +1952,12 @@ async function init(): Promise<void> {
           timestampMs: Date.now(),
           source: 'mouse',
           target: selectedBinding.target,
-          action: route.operation,
+          action: operation,
           result: 'executed',
-          detail: { steps: 1, delta: route.operation === 'increase' ? 1 : -1 }
+          detail: { steps: 1, delta: operation === 'increase' ? 1 : -1 }
         }, {
           coalesce: {
-            key: `wheel:${selectedBinding.metadata.qualifiedId}:${route.operation}`,
+            key: `wheel:${selectedBinding.metadata.qualifiedId}:${operation}`,
             withinMs: 120,
             accumulateDetail: ['steps', 'delta']
           }
@@ -1979,7 +1982,7 @@ async function init(): Promise<void> {
       timestampMs: Date.now(),
       source: 'mouse',
       target: selectedBinding.target,
-      action: route.operation,
+      action: operation,
       result: 'interaction-unavailable'
     })
     return { kind: 'consumed', reason: 'interaction-unavailable' }
@@ -13205,12 +13208,15 @@ function createCockpitInputSettingsEditor(options: {
   highlightSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
   const tooltipSelect = createSettingsSelect('Tooltips')
   tooltipSelect.append(createSettingsOption('on', 'On'), createSettingsOption('off', 'Off'))
+  const scrollDirectionSelect = createSettingsSelect('Default scroll direction')
+  scrollDirectionSelect.append(createSettingsOption('standard', 'Standard'), createSettingsOption('inverted', 'Inverted'))
   const generalForm = document.createElement('div')
   generalForm.className = 'viewer-settings-form'
   generalForm.append(
     createSettingsField('Interaction mode', interactionModeSelect),
     createSettingsField('Highlights', highlightSelect),
-    createSettingsField('Tooltips', tooltipSelect)
+    createSettingsField('Tooltips', tooltipSelect),
+    createSettingsField('Default scroll direction', scrollDirectionSelect)
   )
   generalRoot.append(generalForm)
 
@@ -13220,13 +13226,15 @@ function createCockpitInputSettingsEditor(options: {
       globalSettings: {
         interactionMode: interactionModeSelect.value === 'lock' ? 'lock' : 'legacy',
         showHighlights: highlightSelect.value === 'on',
-        showTooltips: tooltipSelect.value === 'on'
+        showTooltips: tooltipSelect.value === 'on',
+        invertDefaultScrollDirection: scrollDirectionSelect.value === 'inverted'
       }
     }
   }
   interactionModeSelect.addEventListener('change', updateGeneralDraft)
   highlightSelect.addEventListener('change', updateGeneralDraft)
   tooltipSelect.addEventListener('change', updateGeneralDraft)
+  scrollDirectionSelect.addEventListener('change', updateGeneralDraft)
 
   const createScopeEditor = (scope: ProfileScope): ScopeEditor => {
     const root = document.createElement('section')
@@ -13382,6 +13390,7 @@ function createCockpitInputSettingsEditor(options: {
     interactionModeSelect.value = draft.globalSettings.interactionMode
     highlightSelect.value = draft.globalSettings.showHighlights ? 'on' : 'off'
     tooltipSelect.value = draft.globalSettings.showTooltips ? 'on' : 'off'
+    scrollDirectionSelect.value = draft.globalSettings.invertDefaultScrollDirection ? 'inverted' : 'standard'
   }
 
   function renderScopes(message = ''): void {
