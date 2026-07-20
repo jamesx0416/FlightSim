@@ -230,6 +230,7 @@ export type CompiledInteractionSourceKind =
 
 export interface CompiledInteractionRoute {
   readonly interactionModel?: 'default' | 'drag'
+  readonly defaultWheelDirection?: boolean
   readonly channel: CockpitInteractionChannel | null
   readonly phase: CockpitInteractionPhase | null
   readonly operation: 'press' | 'hold' | 'release' | 'turn' | 'increase' | 'decrease' | 'adjust' | 'set' | 'on' | 'off' | 'toggle' | 'hover' | 'leave' | 'lock' | 'unlock'

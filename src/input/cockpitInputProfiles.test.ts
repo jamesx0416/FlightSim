@@ -286,7 +286,8 @@ test('settings updates save atomically while an unsaved draft does not change st
   expect(loadCockpitInputStore(storage).globalSettings).toEqual({
     interactionMode: 'lock',
     showHighlights: true,
-    showTooltips: false
+    showTooltips: false,
+    invertDefaultScrollDirection: false
   })
   const stored = loadCockpitInputStore(storage)
   const draft = { ...stored, globalSettings: { ...stored.globalSettings, interactionMode: 'legacy' as const } }
