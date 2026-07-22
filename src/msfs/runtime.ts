@@ -2422,6 +2422,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:SPOILERS HANDLE POSITION'), spoilersPct)
     this.values.set(normalizeRuntimeVariableKey('A:SPOILERS LEFT POSITION'), spoilersPct)
     this.values.set(normalizeRuntimeVariableKey('A:SPOILERS RIGHT POSITION'), spoilersPct)
+    this.values.set(
+      normalizeRuntimeVariableKey('A:SPOILERS ARMED'),
+      this.simulatorEngine.state.readBoolean(ControlStateKeys.spoilersArmed()) ? 1 : 0
+    )
     this.values.set(normalizeRuntimeVariableKey('A:AILERON POSITION'), this.controlState.aileronPosition)
     this.values.set(normalizeRuntimeVariableKey('A:ELEVATOR POSITION'), this.controlState.elevatorPosition)
     this.values.set(normalizeRuntimeVariableKey('A:RUDDER POSITION'), this.controlState.rudderPosition)
@@ -3207,6 +3211,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (upperKey.includes('HYD_AILERON_LEFT_DEFLECTION')) return handled(convertPercentUnit(cycles.aileronCycle * 100, unit))
     if (upperKey.includes('HYD_AILERON_RIGHT_DEFLECTION')) return handled(convertPercentUnit(-cycles.aileronCycle * 100, unit))
     if (upperKey.includes('RUDDER')) return handled(cycles.rudderCycle)
+    if (upperKey.includes('SPOILER') && upperKey.includes('ARMED')) {
+      return handled(
+        this.simulatorEngine.state.readBoolean(ControlStateKeys.spoilersArmed()) ? 1 : 0
+      )
+    }
     if (upperKey.includes('SPOILER_LEFT')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
     if (upperKey.includes('SPOILER_RIGHT')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
     if (upperKey.includes('SPOILER')) return handled(convertPercentUnit(cycles.spoilerCycle * 100, unit))
@@ -3277,7 +3286,10 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private applySpoilerObjectPosition(value: number): void {
     const position = Math.max(0, value)
-    this.setSpoilersArmed(position === 1 ? 1 : 0)
+    // Discrete 0/1 gates are aircraft-specific arm/retract encodings (ASOBO arm=1,
+    // FBW inverted arm=0). Armed is owned by key/input events and A/L vars.
+    // Mapping armed from O:Position fights Update code that re-publishes lever
+    // position from sim state every frame and causes 0/1 oscillation.
     const deployRatio = position <= 3 ? (position - 1) / 2 : (position - 1) / 200
     this.controlState.spoilersTarget = position <= 1 ? 0 : clamp01(deployRatio)
   }
