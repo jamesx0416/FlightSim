@@ -1907,41 +1907,40 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         return this.finishVariableRead(normalizedKey, normalizedUnit, indexedValue, 'indexed-fallback')
       }
     }
+    if (this.values.has(normalizedKey)) {
+      const value = resolveStoredRuntimeValue(
+        normalizedKey,
+        this.values.get(normalizedKey) ?? 0,
+        unit ?? null
+      )
+      this.readCache.set(cacheKey, value)
+      return this.finishVariableRead(normalizedKey, normalizedUnit, value, 'runtime')
+    }
     const dynamicControlValue = this.resolveDynamicControlFallbackValue(normalizedKey, unit ?? null)
     if (dynamicControlValue != null) {
       this.readCache.set(cacheKey, dynamicControlValue)
       return this.finishVariableRead(normalizedKey, normalizedUnit, dynamicControlValue, 'dynamic-control')
     }
-    let value: number
-    if (!this.values.has(normalizedKey)) {
-      const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
+    const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
 
-      if (
-        !resolved.handled ||
-        (isRuntimeStoredVariableKey(normalizedKey) && !isDynamicRuntimeFallbackKey(normalizedKey))
-      ) {
-        this.values.set(normalizedKey, resolved.value)
-      }
-      if (!resolved.handled && !this.defaultedKeys.has(normalizedKey)) {
-        this.defaultedKeys.add(normalizedKey)
-        this.defaultedVariableCount += 1
-        this.diagnostics.push({
-          code: 'runtime_variable_defaulted',
-          message: `Variable ${normalizedKey} is not provided by the demo host and defaulted to 0.`,
-          severity: 'info'
-        })
-      }
-
-      value = resolved.value
-    } else {
-      value = resolveStoredRuntimeValue(
-        normalizedKey,
-        this.values.get(normalizedKey) ?? 0,
-        unit ?? null
-      )
+    if (
+      !resolved.handled ||
+      (isRuntimeStoredVariableKey(normalizedKey) && !isDynamicRuntimeFallbackKey(normalizedKey))
+    ) {
+      this.values.set(normalizedKey, resolved.value)
     }
-    this.readCache.set(cacheKey, value)
-    return this.finishVariableRead(normalizedKey, normalizedUnit, value, 'runtime')
+    if (!resolved.handled && !this.defaultedKeys.has(normalizedKey)) {
+      this.defaultedKeys.add(normalizedKey)
+      this.defaultedVariableCount += 1
+      this.diagnostics.push({
+        code: 'runtime_variable_defaulted',
+        message: `Variable ${normalizedKey} is not provided by the demo host and defaulted to 0.`,
+        severity: 'info'
+      })
+    }
+
+    this.readCache.set(cacheKey, resolved.value)
+    return this.finishVariableRead(normalizedKey, normalizedUnit, resolved.value, 'runtime')
   }
 
   private finishVariableRead(
@@ -2421,12 +2420,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.values.set(normalizeRuntimeVariableKey('A:GEAR CENTER POSITION'), gearPct)
     this.values.set(normalizeRuntimeVariableKey('A:GEAR LEFT POSITION'), gearPct)
     this.values.set(normalizeRuntimeVariableKey('A:GEAR RIGHT POSITION'), gearPct)
-    this.values.set(normalizeRuntimeVariableKey('A:FLAPS HANDLE PERCENT'), flapsPct)
+    this.values.set(normalizeRuntimeVariableKey('A:FLAPS HANDLE PERCENT'), flapsTargetPct)
     this.values.set(normalizeRuntimeVariableKey('A:TRAILING EDGE FLAPS LEFT PERCENT'), flapsPct)
     this.values.set(normalizeRuntimeVariableKey('A:TRAILING EDGE FLAPS RIGHT PERCENT'), flapsPct)
     this.values.set(normalizeRuntimeVariableKey('A:LEADING EDGE FLAPS LEFT PERCENT'), flapsPct)
     this.values.set(normalizeRuntimeVariableKey('A:LEADING EDGE FLAPS RIGHT PERCENT'), flapsPct)
-    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS HANDLE POSITION'), spoilersPct)
+    this.values.set(normalizeRuntimeVariableKey('A:SPOILERS HANDLE POSITION'), spoilersTargetPct)
     this.values.set(normalizeRuntimeVariableKey('A:SPOILERS LEFT POSITION'), spoilersPct)
     this.values.set(normalizeRuntimeVariableKey('A:SPOILERS RIGHT POSITION'), spoilersPct)
     this.values.set(
@@ -3258,32 +3257,46 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (!key.startsWith('A:')) {
       return
     }
-    if (key === 'A:GEAR HANDLE POSITION' || key === 'A:GEAR HANDLE') {
-      this.controlState.gearTarget = normalizedValue > 0 ? 1 : 0
-      return
-    }
-    if (key.includes('FLAPS HANDLE') || key.includes('FLAP') || key.includes('SLAT')) {
-      this.controlState.flapsTarget = clamp01(toPercentOver100(normalizedValue, unit))
-      return
-    }
-    if (key.includes('SPOILER')) {
-      this.controlState.spoilersTarget = clamp01(toPercentOver100(normalizedValue, unit))
-      return
-    }
-    if (key.includes('AILERON')) {
-      this.controlState.aileronTarget = clamp(normalizedValue, -1, 1)
-      return
-    }
-    if (key.includes('ELEVATOR')) {
-      this.controlState.elevatorTarget = clamp(normalizedValue, -1, 1)
-      return
-    }
-    if (key.includes('RUDDER')) {
-      this.controlState.rudderTarget = clamp(normalizedValue, -1, 1)
-      return
-    }
-    if (key.includes('PARKING') || key.includes('PARK BRAKE')) {
-      this.controlState.parkingBrake = normalizedValue > 0 ? 1 : 0
+    const controlKey = key.replace(/:\d+$/u, '')
+    const ratio = controlEventPositionToRatio(normalizedValue)
+    switch (controlKey) {
+      case 'A:GEAR HANDLE POSITION':
+      case 'A:GEAR HANDLE':
+        this.controlState.gearTarget = ratio
+        return
+      case 'A:GEAR ANIMATION POSITION':
+      case 'A:GEAR CENTER POSITION':
+      case 'A:GEAR LEFT POSITION':
+      case 'A:GEAR RIGHT POSITION':
+        this.controlState.gearPosition = ratio
+        return
+      case 'A:FLAPS HANDLE PERCENT':
+        this.controlState.flapsTarget = ratio
+        return
+      case 'A:TRAILING EDGE FLAPS LEFT PERCENT':
+      case 'A:TRAILING EDGE FLAPS RIGHT PERCENT':
+      case 'A:LEADING EDGE FLAPS LEFT PERCENT':
+      case 'A:LEADING EDGE FLAPS RIGHT PERCENT':
+        this.controlState.flapsPosition = ratio
+        return
+      case 'A:SPOILERS HANDLE POSITION':
+        this.controlState.spoilersTarget = ratio
+        return
+      case 'A:SPOILERS LEFT POSITION':
+      case 'A:SPOILERS RIGHT POSITION':
+        this.controlState.spoilersPosition = ratio
+        return
+      case 'A:AILERON POSITION':
+        this.controlState.aileronTarget = clamp(normalizedValue, -1, 1)
+        return
+      case 'A:ELEVATOR POSITION':
+        this.controlState.elevatorTarget = clamp(normalizedValue, -1, 1)
+        return
+      case 'A:RUDDER POSITION':
+        this.controlState.rudderTarget = clamp(normalizedValue, -1, 1)
+        return
+      case 'A:BRAKE PARKING POSITION':
+        this.controlState.parkingBrake = normalizedValue > 0 ? 1 : 0
     }
   }
 
@@ -5613,57 +5626,28 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return true
     }
 
-    if (normalizedName.includes('GEAR')) {
-      if (normalizedName.includes('UP') || normalizedName.includes('RETRACT')) {
-        this.controlState.gearTarget = 0
-        return true
-      }
-      if (normalizedName.includes('DOWN') || normalizedName.includes('EXTEND')) {
-        this.controlState.gearTarget = 1
-        return true
-      }
-      if (normalizedName.includes('TOGGLE')) {
-        this.controlState.gearTarget = this.controlState.gearTarget > 0.5 ? 0 : 1
-        return true
-      }
-      if (normalizedName.includes('SET') || normalizedName.includes('HANDLE')) {
-        this.controlState.gearTarget = value > 0 ? 1 : 0
-        return true
-      }
+    if (normalizedName === 'LANDING_GEAR_GEAR_SET') {
+      this.controlState.gearTarget = value > 0 ? 1 : 0
+      return true
     }
-
-    if (normalizedName.includes('FLAP') || normalizedName.includes('SLAT')) {
-      if (normalizedName.includes('INCR') || normalizedName.includes('INC') || normalizedName.includes('DOWN')) {
-        this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget + 0.25)
-        return true
-      }
-      if (normalizedName.includes('DECR') || normalizedName.includes('DEC') || normalizedName.includes('UP')) {
-        this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget - 0.25)
-        return true
-      }
-      if (normalizedName.includes('SET') || normalizedName.includes('AXIS') || normalizedName.includes('HANDLE')) {
-        this.controlState.flapsTarget = controlEventPositionToRatio(value)
-        return true
-      }
+    if (normalizedName === 'HANDLING_FLAPS_SET' || normalizedName === 'HANDLING_SLATS_SET') {
+      this.controlState.flapsTarget = controlEventPositionToRatio(value)
+      return true
     }
-
-    if (normalizedName.includes('SPOILER')) {
-      if (normalizedName.includes('SET') || normalizedName.includes('AXIS') || normalizedName.includes('HANDLE')) {
-        this.controlState.spoilersTarget = controlEventPositionToRatio(value)
-        return true
-      }
-      if (normalizedName.includes('ARM') && value <= 0) {
-        this.controlState.spoilersTarget = 0
-        return true
-      }
+    if (normalizedName === 'HANDLING_FLAPS_INC' || normalizedName === 'HANDLING_FLAPS_INCR') {
+      this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget + 0.25)
+      return true
     }
-
-    if (normalizedName.includes('PARKING') || normalizedName.includes('PARK_BRAKE')) {
-      if (normalizedName.includes('TOGGLE')) {
-        this.controlState.parkingBrake = this.controlState.parkingBrake > 0.5 ? 0 : 1
-      } else {
-        this.controlState.parkingBrake = value > 0 ? 1 : 0
-      }
+    if (normalizedName === 'HANDLING_FLAPS_DEC' || normalizedName === 'HANDLING_FLAPS_DECR') {
+      this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget - 0.25)
+      return true
+    }
+    if (normalizedName === 'HANDLING_SPOILERS_SET') {
+      this.controlState.spoilersTarget = controlEventPositionToRatio(value)
+      return true
+    }
+    if (normalizedName === 'HANDLING_PARKING_BRAKE_SET') {
+      this.controlState.parkingBrake = value > 0 ? 1 : 0
       return true
     }
 

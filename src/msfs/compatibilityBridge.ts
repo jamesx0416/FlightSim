@@ -1005,6 +1005,12 @@ function mapMsfsControlSimVarToCanonicalState(name: string): MsfsStateAlias | un
       return surfaceRatioAlias(SurfaceStateKeys.positionRatio('flaps'), 'percent')
     case 'SPOILERS HANDLE POSITION':
       return controlRatioAlias(ControlStateKeys.spoilersHandleRatio(), 'percent')
+    case 'SPOILERS ARMED':
+      return {
+        kind: 'controlBoolean',
+        stateKey: ControlStateKeys.spoilersArmed(),
+        canonicalUnit: 'boolean',
+      }
     case 'SPOILERS LEFT POSITION':
     case 'SPOILERS RIGHT POSITION':
       return surfaceRatioAlias(SurfaceStateKeys.positionRatio('spoilers'), 'percent')
