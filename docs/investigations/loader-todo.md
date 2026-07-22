@@ -636,28 +636,33 @@ MSFS contracts must win over runtime name/position heuristics. See
     `B:HANDLING_Spoilers_Set` / `K:SPOILERS_SET`; the A330 expanded template
     likewise emits `K:SPOILERS_SET`. Removed the unsupported O:-to-deploy
     encoder and verified O: positions remain animation-local.
-- [ ] P0.3: Replace control-mutating `includes(...)` branches in
+- [x] P0.3: Replace control-mutating `includes(...)` branches in
   `applyVariableSideEffects` with exact simvar keys and compatibility-bridge
   aliases.
-  - Do not add aircraft names, template-position constants, or new substring
-    write fallbacks.
-- [ ] P1.1: Publish exact canonical control simvars every tick.
-  - Cover handle, position, and armed state for spoilers and the equivalent
-    flap, slat, gear, and parking-brake contracts before any heuristic read.
-- [ ] P1.2: Restrict heuristic resolution to missing reads.
-  - Stored package values and exact published/bridge values always win;
-    heuristics must never supply or overwrite exact `ARMED`, `HANDLE`, or
-    indexed control values.
-- [ ] P1.3: Put exact K:/B: event and bridge mappings before generic event-name
+  - Exact control writes now maintain local target/position state, and
+    `A:SPOILERS ARMED` maps directly to canonical armed state. No aircraft
+    names, template constants, or substring write fallbacks were added.
+- [x] P1.1: Publish exact canonical control simvars every tick.
+  - Handle, position, and armed state publish through exact canonical aliases;
+    stored flap/spoiler handle values now publish targets rather than surface
+    positions.
+- [x] P1.2: Restrict heuristic resolution to missing reads.
+  - Stored package values and exact published/bridge values now win before any
+    dynamic or level-4 fallback.
+- [x] P1.3: Put exact K:/B: event and bridge mappings before generic event-name
   matching.
-  - Retain a small read-only/diagnostic fallback only for unmapped names.
-- [ ] P2: Complete package-driven interaction IR only where a real input still
+  - Unbound B: mutations use the exact stock gear/flap/slat/spoiler/parking
+    catalog; unmatched names remain state-only.
+- [x] P1.4: Grow bridge exact maps where gaps appear.
+  - Added the generic `A:SPOILERS ARMED` alias; new mappings remain exact MSFS
+    contracts rather than substring rules.
+- [x] P2: Complete package-driven interaction IR only where a real input still
   fails.
-  - Prefer compiled inversion, gate, GET/SET-state, and step semantics; do not
-    recreate template parameters in runtime control encoders.
-- [ ] P3: Add one-shot diagnostics and focused generic regression coverage.
-  - Log a level-4 mutation once per exact key/path. Tests must use synthetic
-    package-shaped writes, not fixture XML changes.
+  - No remaining input failure was reproduced after P0/P1; existing compiled
+    inversion, gate, GET/SET-state, and step semantics remain authoritative.
+- [x] P3: Contain remaining heuristics with focused generic regression coverage.
+  - No level-4 path now mutates controls, so no mutation diagnostic is needed;
+    generic package-shaped O:/A:/B: regression tests cover the former paths.
 - [x] Support generic stock handling trim input events.
   - `B:HANDLING_RudderTrim_*`, `B:HANDLING_ElevatorTrim_*`, and `B:HANDLING_AileronsTrim_*` bridge calls now update the corresponding `A:* TRIM PCT` / indicator SimVars instead of only changing bridge-local `B:` state, so stock trim knobs, switches, and drag callbacks have visible runtime state.
 - [x] Bound generic DDS side fetches during model load.

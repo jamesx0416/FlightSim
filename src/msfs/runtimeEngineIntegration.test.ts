@@ -377,6 +377,53 @@ test('publishes key-event control and electrical state without waiting for a tic
     ).toBe(0)
   })
 
+  test('uses exact control SimVar contracts without substring side effects', () => {
+    const host = new SharedMsfsRuntimeHost([])
+
+    host.writeVariable('A:SPOILERS ARMED', 1, 'Bool')
+    host.writeVariable('A:UNRELATED SPOILER STATUS', 50, 'percent')
+    host.tick(0.05)
+
+    expect(host.simulatorEngine.state.readBoolean(ControlStateKeys.spoilersArmed())).toBe(true)
+    expect(host.simulatorEngine.state.readNumber(SurfaceStateKeys.targetRatio('spoilers'), {
+      unit: 'ratio',
+    })).toBe(0)
+
+    host.writeVariable('A:SPOILERS HANDLE POSITION', 50, 'percent')
+    host.tick(0.05)
+
+    expect(host.simulatorEngine.state.readNumber(SurfaceStateKeys.targetRatio('spoilers'), {
+      unit: 'ratio',
+    })).toBe(0.5)
+  })
+
+  test('prefers stored package values over dynamic control fallbacks', () => {
+    const host = new SharedMsfsRuntimeHost([])
+
+    host.writeVariable('A:PACKAGE SPOILER POSITION', 37, 'percent')
+
+    expect(host.readVariable('A:PACKAGE SPOILER POSITION', 'percent')).toBe(37)
+  })
+
+  test('uses the exact unbound B: control-event catalog', () => {
+    const host = new SharedMsfsRuntimeHost([])
+
+    host.writeVariable('B:HANDLING_Flaps_Set', 8192)
+    host.writeVariable('B:LANDING_GEAR_Gear_Set', 0)
+    host.writeVariable('B:UNRELATED_SPOILER_STATUS', 1)
+    host.tick(0.05)
+
+    expect(host.simulatorEngine.state.readNumber(SurfaceStateKeys.targetRatio('flaps'), {
+      unit: 'ratio',
+    })).toBe(0.5)
+    expect(host.simulatorEngine.state.readNumber(ControlStateKeys.gearHandleRatio(), {
+      unit: 'ratio',
+    })).toBe(0)
+    expect(host.simulatorEngine.state.readNumber(SurfaceStateKeys.targetRatio('spoilers'), {
+      unit: 'ratio',
+    })).toBe(0)
+  })
+
   test('mirrors generic trim key events into canonical controls state', () => {
     const host = new SharedMsfsRuntimeHost([])
 
