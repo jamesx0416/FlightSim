@@ -359,15 +359,13 @@ test('publishes key-event control and electrical state without waiting for a tic
     ).toBe(4096 / 16_383)
   })
 
-  test('spoiler object position gates do not flip armed (avoids lever Update feedback loop)', () => {
+  test('spoiler object positions remain animation-local', () => {
     const host = new SharedMsfsRuntimeHost([])
 
-    // FBW-style Update re-publishes O:Position from armed/handle every frame.
-    // Position 1 is retract (not armed); position 0 is armed under inverted encoding.
-    // Neither discrete gate may rewrite armed — that fought the Update mirror.
+    // Package Update code owns these O: mirrors; only K/B/A/L contracts control spoilers.
     host.writeVariable('O:LEVER_SPEEDBRAKE:POSITION', 1)
     host.writeVariable('O:LEVER_SPEEDBRAKE:POSITION', 0)
-    host.writeVariable('O:LEVER_SPEEDBRAKE:POSITION', 1)
+    host.writeVariable('O:LEVER_SPEEDBRAKE:POSITION', 2)
     host.tick(0.05)
 
     expect(host.readVariable('A:SPOILERS ARMED')).toBe(0)
@@ -377,15 +375,6 @@ test('publishes key-event control and electrical state without waiting for a tic
         unit: 'ratio',
       })
     ).toBe(0)
-
-    host.writeVariable('O:LEVER_SPEEDBRAKE:POSITION', 2)
-    host.tick(0.05)
-    expect(
-      host.simulatorEngine.state.readNumber(ControlStateKeys.spoilersHandleRatio(), {
-        unit: 'ratio',
-      })
-    ).toBe(0.5)
-    expect(host.readVariable('A:SPOILERS ARMED')).toBe(0)
   })
 
   test('mirrors generic trim key events into canonical controls state', () => {

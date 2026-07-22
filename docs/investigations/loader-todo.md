@@ -609,6 +609,55 @@ Rules:
   - Stock spoiler/speedbrake lever callbacks can update an object-scoped `O:*:Position` without emitting a `K:SPOILERS_SET` event on every aircraft path. The runtime now maps spoiler/speedbrake object positions to `A:SPOILERS ARMED` and the generic spoiler control target so cockpit lever movement drives `A:SPOILERS HANDLE POSITION`, `A:SPOILERS LEFT POSITION`, and `A:SPOILERS RIGHT POSITION` animation state.
   - Stored gear/flap/spoiler percent-style control SimVars now honor `Percent over 100` and `Position 16k` unit reads after the runtime publishes them, preventing stock update code such as `A:SPOILERS HANDLE POSITION, Percent over 100` from inflating object positions.
   - The spoiler object-position mapper accepts both compact detent positions and larger stock animation-length positions, so object/simvar sync code can round-trip without over-scaling deployment.
+
+### Runtime authority plan
+
+The completed spoiler object-position support above is historical. Its control
+side-effects are now the active authority-risk: expanded package RPN and exact
+MSFS contracts must win over runtime name/position heuristics. See
+[Runtime Authority vs Name Heuristics](runtime-authority-heuristics.md).
+
+- [x] P0.1: Make local `O:` Update-mirror writes store-only.
+  - Carry write provenance from compiled Update, interaction/drag, and
+    input-event expressions into `writeVariable`; K: dispatch remains an exact
+    event path and does not call `writeVariable`.
+  - An Update-originated local object write may update animation-visible state,
+    but must not mutate canonical controls. Interaction-originated writes may
+    do so only through an explicit contract.
+  - Verify with a generic runtime test that alternating O: mirror writes cannot
+    flip an armed state or handle target, plus a DevApi watch on stock and A330
+    retract/arm/deploy paths.
+  - Implemented and verified 2026-07-22 with generic regression coverage plus
+    a live A330 DevApi watch: armed stayed `1` and the handle stayed stable
+    while Update changed O:Position to `0`; a 50% deploy command was likewise
+    stable for one second.
+- [x] P0.2: Remove the residual spoiler O:-position deploy conversion.
+  - The inspected stock template routes drag through
+    `B:HANDLING_Spoilers_Set` / `K:SPOILERS_SET`; the A330 expanded template
+    likewise emits `K:SPOILERS_SET`. Removed the unsupported O:-to-deploy
+    encoder and verified O: positions remain animation-local.
+- [ ] P0.3: Replace control-mutating `includes(...)` branches in
+  `applyVariableSideEffects` with exact simvar keys and compatibility-bridge
+  aliases.
+  - Do not add aircraft names, template-position constants, or new substring
+    write fallbacks.
+- [ ] P1.1: Publish exact canonical control simvars every tick.
+  - Cover handle, position, and armed state for spoilers and the equivalent
+    flap, slat, gear, and parking-brake contracts before any heuristic read.
+- [ ] P1.2: Restrict heuristic resolution to missing reads.
+  - Stored package values and exact published/bridge values always win;
+    heuristics must never supply or overwrite exact `ARMED`, `HANDLE`, or
+    indexed control values.
+- [ ] P1.3: Put exact K:/B: event and bridge mappings before generic event-name
+  matching.
+  - Retain a small read-only/diagnostic fallback only for unmapped names.
+- [ ] P2: Complete package-driven interaction IR only where a real input still
+  fails.
+  - Prefer compiled inversion, gate, GET/SET-state, and step semantics; do not
+    recreate template parameters in runtime control encoders.
+- [ ] P3: Add one-shot diagnostics and focused generic regression coverage.
+  - Log a level-4 mutation once per exact key/path. Tests must use synthetic
+    package-shaped writes, not fixture XML changes.
 - [x] Support generic stock handling trim input events.
   - `B:HANDLING_RudderTrim_*`, `B:HANDLING_ElevatorTrim_*`, and `B:HANDLING_AileronsTrim_*` bridge calls now update the corresponding `A:* TRIM PCT` / indicator SimVars instead of only changing bridge-local `B:` state, so stock trim knobs, switches, and drag callbacks have visible runtime state.
 - [x] Bound generic DDS side fetches during model load.

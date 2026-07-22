@@ -784,7 +784,7 @@ export class AircraftRuntime {
     }))
     evaluateCompiledExpression(state.expression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
-      writeVariable: (key, next, unit) => this.hostServices.writeVariable(key, next, unit),
+      writeVariable: (key, next, unit) => this.hostServices.writeVariable(key, next, unit, { source: 'interaction' }),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     })
@@ -966,7 +966,7 @@ export class AircraftRuntime {
 
   private writeFrameVariable(key: string, value: number, unit: string | null | undefined): void {
     this.frameVariableValues.delete(getRuntimeVariableDependencyCacheKey(key, unit))
-    this.hostServices.writeVariable(key, value, unit)
+    this.hostServices.writeVariable(key, value, unit, { source: 'update' })
   }
 
   private applyWingFlexBindings(): void {
@@ -1038,7 +1038,7 @@ export class AircraftRuntime {
     evaluateCompiledExpression(binding.expression, {
       readVariable: (key, unit) => readRuntimeMouseVariable(key, options) ?? this.hostServices.readVariable(key, unit),
       readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
-      writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
+      writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit, { source: 'interaction' }),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args),
       parameterValues: options.parameterValues
@@ -1177,7 +1177,7 @@ export class AircraftRuntime {
     }))
     evaluateCompiledExpression(binding.releaseExpression, {
       readVariable: (key, unit) => this.hostServices.readVariable(key, unit),
-      writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit),
+      writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit, { source: 'interaction' }),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     })
@@ -1954,7 +1954,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     return value
   }
 
-  writeVariable(key: string, value: number, unit?: string | null): void {
+  writeVariable(
+    key: string,
+    value: number,
+    unit?: string | null,
+    options?: { readonly source?: 'update' | 'interaction' | 'input-event' }
+  ): void {
     this.variableWriteCount += 1
     this.readCache.clear()
     const normalizedKey = normalizeRuntimeVariableKey(key)
@@ -1988,9 +1993,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (normalizedKey.startsWith('H:')) {
       this.invokeHtmlEvent(normalizedKey.slice(2), [normalizedKey.slice(2), Number.isFinite(numericValue) ? numericValue : 0])
     }
-    this.applyLocalVariableSideEffects(normalizedKey, numericValue)
-    this.applyElectricalVariableSideEffects(normalizedKey, numericValue, unit ?? null)
-    this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
+    if (!(options?.source === 'update' && normalizedKey.startsWith('O:'))) {
+      this.applyLocalVariableSideEffects(normalizedKey, numericValue)
+      this.applyElectricalVariableSideEffects(normalizedKey, numericValue, unit ?? null)
+      this.applyVariableSideEffects(normalizedKey, numericValue, unit ?? null)
+    }
     this.emitVariableChange(normalizedKey)
   }
 
@@ -2165,7 +2172,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       }))
       evaluateCompiledExpression(binding, {
         readVariable: (key, unit) => this.readVariable(key, unit),
-        writeVariable: (key, nextValue, unit) => this.writeVariable(key, nextValue, unit),
+        writeVariable: (key, nextValue, unit) => this.writeVariable(key, nextValue, unit, { source: 'input-event' }),
         invokeKeyEvent: (eventName, args) => this.invokeKeyEvent(eventName, args),
         invokeHtmlEvent: (eventName, args) => this.invokeHtmlEvent(eventName, args),
         parameterValues
@@ -3248,10 +3255,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (/^[BHK]:/u.test(key) && this.applyGenericControlEventName(key.slice(2), normalizedValue)) {
       return
     }
-    if (isSpoilerObjectPositionKey(key)) {
-      this.applySpoilerObjectPosition(normalizedValue)
-      return
-    }
     if (!key.startsWith('A:')) {
       return
     }
@@ -3282,16 +3285,6 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (key.includes('PARKING') || key.includes('PARK BRAKE')) {
       this.controlState.parkingBrake = normalizedValue > 0 ? 1 : 0
     }
-  }
-
-  private applySpoilerObjectPosition(value: number): void {
-    const position = Math.max(0, value)
-    // Discrete 0/1 gates are aircraft-specific arm/retract encodings (ASOBO arm=1,
-    // FBW inverted arm=0). Armed is owned by key/input events and A/L vars.
-    // Mapping armed from O:Position fights Update code that re-publishes lever
-    // position from sim state every frame and causes 0/1 oscillation.
-    const deployRatio = position <= 3 ? (position - 1) / 2 : (position - 1) / 200
-    this.controlState.spoilersTarget = position <= 1 ? 0 : clamp01(deployRatio)
   }
 
   private resolveDynamicControlFallbackValue(key: string, unit: string | null): number | null {
@@ -6507,12 +6500,6 @@ function isDynamicControlFallbackKey(key: string): boolean {
     ((key.includes('PARKING') || key.includes('PARK_BRAKE')) &&
       (key.includes('POSITION') || key.includes('LEVER') || key.endsWith('_POS')))
   )
-}
-
-function isSpoilerObjectPositionKey(key: string): boolean {
-  return key.startsWith('O:') &&
-    (key.includes('SPOILER') || key.includes('SPEEDBRAKE')) &&
-    (key.endsWith(':POSITION') || key.endsWith('_POSITION'))
 }
 
 function isBatteryControlKey(key: string): boolean {

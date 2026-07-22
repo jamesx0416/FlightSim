@@ -417,7 +417,12 @@ export type Instruction =
 export interface RuntimeHostServices {
   tick(dtSeconds: number): void
   readVariable(key: string, unit?: string | null): number
-  writeVariable(key: string, value: number, unit?: string | null): void
+  writeVariable(
+    key: string,
+    value: number,
+    unit?: string | null,
+    options?: { readonly source?: 'update' | 'interaction' | 'input-event' }
+  ): void
   subscribeVariable?(listener: RuntimeVariableChangeListener): () => void
   trace?(record: () => Readonly<Record<string, unknown>>): void
   setInputEventBindings?(bindings: readonly CompiledInputEventBinding[]): void
