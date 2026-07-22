@@ -7,8 +7,8 @@ import {
   VectorKeyframeTrack,
 } from 'three'
 
-import { createSimulatorEngineForAircraft } from '../sim/engine'
-import { AircraftRuntime } from './runtime'
+import { ControlStateKeys, createSimulatorEngineForAircraft, SurfaceStateKeys } from '../sim/engine'
+import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
 import type { CompiledBehaviorSet, RuntimeHostServices } from './types'
 
 const emptyCompiledBehaviorSet: CompiledBehaviorSet = {
@@ -34,6 +34,39 @@ const hostServices: RuntimeHostServices = {
 }
 
 describe('AircraftRuntime canonical visual bindings', () => {
+  test('stores alternating update O: mirrors without changing canonical controls', () => {
+    const host = new SharedMsfsRuntimeHost([])
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      updateBindings: [{
+        expression: {
+          source: '(L:UPDATE_MIRROR, number) (>O:LEVER_SPEEDBRAKE:POSITION)',
+          instructions: [
+            { op: 'pushVariable', key: 'L:UPDATE_MIRROR', unit: 'number' },
+            { op: 'writeVariable', key: 'O:LEVER_SPEEDBRAKE:POSITION', unit: null },
+          ],
+          variableKeys: [],
+        },
+        sourcePath: 'test.xml',
+        frequency: 0,
+        once: false,
+      }],
+    }, new Object3D(), host, undefined, host.simulatorEngine.getAircraft(), host.simulatorEngine)
+
+    host.invokeKeyEvent('SPOILERS_ARM_SET', [1])
+    for (const position of [1, 0, 2]) {
+      host.writeVariable('L:UPDATE_MIRROR', position)
+      runtime.update(1 / 60)
+    }
+
+    expect(host.readVariable('O:LEVER_SPEEDBRAKE:POSITION')).toBe(2)
+    expect(host.simulatorEngine.state.readBoolean(ControlStateKeys.spoilersArmed())).toBe(true)
+    expect(host.simulatorEngine.state.readNumber(
+      SurfaceStateKeys.targetRatio('spoilers'),
+      { unit: 'ratio' }
+    )).toBe(0)
+  })
+
   test('samples and restores an authored animation trajectory', () => {
     const scene = new Object3D()
     const lever = new Object3D()
