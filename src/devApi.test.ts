@@ -120,6 +120,7 @@ test('input profile API manages v2 profiles and package-scoped selections withou
     interactionMode: 'legacy',
     showHighlights: true,
     showTooltips: true,
+    invertDefaultScrollDirection: false,
     bindings: {
       interaction: { Mouse0: 'primary', Mouse1: 'tertiary', Mouse2: 'secondary', WheelUp: 'increase', WheelDown: 'decrease' },
       emptyCockpit: { Mouse0: 'cameraPan', Mouse1: 'cameraPan', Mouse2: 'cameraPan', WheelUp: 'cameraZoomIn', WheelDown: 'cameraZoomOut' }
