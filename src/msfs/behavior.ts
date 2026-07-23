@@ -1862,7 +1862,7 @@ function buildCompiledInteractionMetadata(
     highlightNodeId: params.get('HIGHLIGHT_NODE_ID')?.trim() || currentNode?.trim() || null,
     axis,
     inverted,
-    dragAnimationName: params.get('DRAG_ANIM_NAME')?.trim() || null,
+    dragAnimationName: params.get('DRAG_ANIM_NAME')?.trim() || params.get('ANIM_NAME')?.trim() || null,
     dragMode:
       params.get('DRAG_MODE')?.trim().toLowerCase() === 'trajectory' ||
       parseBoolean(params.get('USE_TRAJECTORY_DRAG_MODE') ?? 'False')
