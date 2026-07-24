@@ -255,7 +255,6 @@ export class AircraftRuntime {
     string,
     { count: number; startedAtSeconds: number }
   >()
-  private readonly heldInteractionObjectVariables = new Map<string, Set<string>>()
   private readonly wingFlexBindings: readonly RuntimeWingFlexBinding[]
   private readonly delayedInteractionReleases = new Map<CompiledInteractionBinding, SimScheduledTaskId>()
   private readonly interactionScheduler: SimScheduler
@@ -901,14 +900,12 @@ export class AircraftRuntime {
       return false
     }
 
-    this.clearHeldInteractionObjectVariables(binding)
     this.releaseInteractionFeedback(binding)
     return true
   }
 
   cancelInteractionBinding(binding: CompiledInteractionBinding): boolean {
     if (!this.compiled.interactionBindings.includes(binding)) return false
-    this.clearHeldInteractionObjectVariables(binding)
     const delayedRelease = this.delayedInteractionReleases.get(binding)
     if (delayedRelease != null) this.interactionScheduler.cancel(delayedRelease)
     this.delayedInteractionReleases.delete(binding)
@@ -968,33 +965,8 @@ export class AircraftRuntime {
   }
 
   private writeFrameVariable(key: string, value: number, unit: string | null | undefined): void {
-    if (this.isHeldInteractionObjectVariable(key)) return
     this.frameVariableValues.delete(getRuntimeVariableDependencyCacheKey(key, unit))
     this.hostServices.writeVariable(key, value, unit, { source: 'update' })
-  }
-
-  private holdInteractionObjectVariable(binding: CompiledInteractionBinding, key: string): void {
-    if (!key.startsWith('O:')) return
-    const variables = this.heldInteractionObjectVariables.get(binding.metadata.qualifiedId) ?? new Set<string>()
-    variables.add(key)
-    this.heldInteractionObjectVariables.set(binding.metadata.qualifiedId, variables)
-  }
-
-  private clearHeldInteractionObjectVariables(binding: CompiledInteractionBinding): void {
-    this.heldInteractionObjectVariables.delete(binding.metadata.qualifiedId)
-  }
-
-  private isHeldInteractionObjectVariable(key: string): boolean {
-    return [...this.heldInteractionObjectVariables.values()].some(variables => variables.has(key))
-  }
-
-  private hasUnsyncedTrajectoryInteraction(binding: CompiledInteractionBinding): boolean {
-    return this.compiled.interactionBindings.some(candidate =>
-      candidate.target === binding.target &&
-      candidate.metadata.qualifiedId === binding.metadata.qualifiedId &&
-      candidate.metadata.dragMode === 'trajectory' &&
-      !candidate.metadata.dragAnimationSynced
-    )
   }
 
   private applyWingFlexBindings(): void {
@@ -1050,13 +1022,6 @@ export class AircraftRuntime {
   ): void {
     const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
     const isReleaseEvent = isRuntimeInteractionReleaseMouseEvent(mouseEvent)
-    if (mouseEvent === 'LeftDrag' || isReleaseEvent) {
-      this.clearHeldInteractionObjectVariables(binding)
-    }
-    const holdsTrajectoryEngagement =
-      options.holdFeedback === true &&
-      mouseEvent === 'LeftSingle' &&
-      this.hasUnsyncedTrajectoryInteraction(binding)
     if (!isReleaseEvent) {
       this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
       this.invokeInteractionSoundEvents(binding, 'press')
@@ -1073,10 +1038,7 @@ export class AircraftRuntime {
     evaluateCompiledExpression(binding.expression, {
       readVariable: (key, unit) => readRuntimeMouseVariable(key, options) ?? this.hostServices.readVariable(key, unit),
       readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
-      writeVariable: (key, value, unit) => {
-        this.hostServices.writeVariable(key, value, unit, { source: 'interaction' })
-        if (holdsTrajectoryEngagement) this.holdInteractionObjectVariable(binding, key)
-      },
+      writeVariable: (key, value, unit) => this.hostServices.writeVariable(key, value, unit, { source: 'interaction' }),
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args),
       parameterValues: options.parameterValues

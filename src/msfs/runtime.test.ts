@@ -9,7 +9,7 @@ import {
 
 import { ControlStateKeys, createSimulatorEngineForAircraft, SurfaceStateKeys } from '../sim/engine'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
-import type { CompiledBehaviorSet, CompiledInteractionBinding, RuntimeHostServices } from './types'
+import type { CompiledBehaviorSet, RuntimeHostServices } from './types'
 
 const emptyCompiledBehaviorSet: CompiledBehaviorSet = {
   irVersion: 'msfs-behavior/v1',
@@ -65,71 +65,6 @@ describe('AircraftRuntime canonical visual bindings', () => {
       SurfaceStateKeys.targetRatio('spoilers'),
       { unit: 'ratio' }
     )).toBe(0)
-  })
-
-  test('keeps an unsynced trajectory engagement until its first drag sample', () => {
-    const host = new SharedMsfsRuntimeHost([])
-    const interaction = {
-      target: 'LEVER',
-      feedbackTargets: [],
-      feedbackVariableKeys: [],
-      soundEvents: [],
-      minHeldDurationSeconds: 0,
-      animationDurationSeconds: null,
-      repeatFrequencyHz: null,
-      expression: {
-        source: '2 (>O:LEVER:Position)',
-        instructions: [
-          { op: 'pushNumber' as const, value: 2 },
-          { op: 'writeVariable' as const, key: 'O:LEVER:Position', unit: null }
-        ],
-        variableKeys: []
-      },
-      releaseExpression: null,
-      sourcePath: 'test.xml',
-      metadata: {
-        authoredId: 'LEVER', qualifiedId: 'test.xml#LEVER', nodeId: 'LEVER', componentId: null,
-        inputEventIds: [], routes: [], sourceKind: 'callbackCode' as const, sourcePath: 'test.xml',
-        sourceTemplate: null, templateRevision: null, lockable: false, dynamicEventHandling: false,
-        disabled: false, disabledInVr: false, prioritizeVCockpits: false, ignoreZTest: false,
-        highlightNodeId: 'LEVER', axis: 'y' as const, inverted: false, dragAnimationName: 'Lever',
-        dragMode: 'default' as const, dragAnimationSynced: true, dragScalar: 0.025,
-        discreteGate: null, wheelPrimaryToggle: false, cursor: null, tooltipTitle: null,
-        tooltipDescription: null, tooltipStateLabels: [], tooltipUnavailable: null,
-        tooltipValueLabel: null, tooltipActionHints: [], tooltipValueExpression: null,
-        value: { variableKey: null, unit: null, minimum: null, maximum: null, step: null,
-          increaseStep: null, decreaseStep: null, increaseStepExpression: null, decreaseStepExpression: null,
-          cyclic: false, cyclicUpperInclusive: null, settleTimeSeconds: 0, stateExpression: null,
-          setStates: [] }
-      }
-    } satisfies CompiledInteractionBinding
-    const trajectory = {
-      ...interaction,
-      metadata: { ...interaction.metadata, dragMode: 'trajectory' as const, dragAnimationSynced: false }
-    }
-    const runtime = new AircraftRuntime({
-      ...emptyCompiledBehaviorSet,
-      interactionBindings: [interaction, trajectory],
-      updateBindings: [{
-        expression: {
-          source: '1 (>O:LEVER:Position)',
-          instructions: [
-            { op: 'pushNumber', value: 1 },
-            { op: 'writeVariable', key: 'O:LEVER:Position', unit: null }
-          ],
-          variableKeys: []
-        },
-        sourcePath: 'test.xml', frequency: 30, once: false
-      }]
-    }, new Object3D(), host)
-
-    runtime.executeInteractionBindingDirect(interaction, { holdFeedback: true, mouseEvent: 'LeftSingle' })
-    runtime.update(1 / 30)
-    expect(host.readVariable('O:LEVER:Position')).toBe(2)
-
-    runtime.executeInteractionBindingDirect(trajectory, { holdFeedback: true, mouseEvent: 'LeftDrag' })
-    runtime.update(1 / 30)
-    expect(host.readVariable('O:LEVER:Position')).toBe(1)
   })
 
   test('samples and restores an authored animation trajectory', () => {
