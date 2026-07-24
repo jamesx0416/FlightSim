@@ -467,7 +467,7 @@ test('keeps distinct callbacks for one interaction target', () => {
   expect(bindings.map(candidate => candidate.expression.source)).toEqual(['default callback', 'drag callback'])
 })
 
-test('uses authored drag lifecycle code instead of a directional click fallback', () => {
+test('uses authored drag lifecycle code without inventing lock callbacks', () => {
   const params = new Map([
     ['DRAG_CODE', '(M:DragPercent) (>L:VALUE)'],
     ['DOWN_CODE', '1 (>O:HELD)'],
@@ -482,5 +482,16 @@ test('uses authored drag lifecycle code instead of a directional click fallback'
 
   expect(source.includes("'LeftSingle' scmi 0 == if{ 1 (>O:HELD) }")).toBe(true)
   expect(source.includes("'LeftDrag' scmi 0 == if{ (M:DragPercent) (>L:VALUE) }")).toBe(true)
-  expect([metadata.lockable, metadata.routes.some(route => route.operation === 'lock')]).toEqual([true, true])
+  expect([metadata.lockable, metadata.routes.some(route => route.operation === 'lock')]).toEqual([false, false])
+})
+
+test('does not invent a click action from drag gate metadata', () => {
+  const source = __behaviorTestHooks.getInteractionFallbackCodeSource(new Map([
+    ['POSITION_TYPE', 'O'],
+    ['POSITION_VAR', 'Position'],
+    ['DRAG_SPEED', '30'],
+    ['STEPS_NUMBER', '2']
+  ]))
+
+  expect(source).toBe('')
 })
