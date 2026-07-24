@@ -1937,7 +1937,7 @@ async function init(): Promise<void> {
             : resolveMsfsAxisPercent(dragBinding.metadata.axis ?? 'y', relativeX, relativeY, 0)
           cockpitInteractionDragTrajectories.set(selectedBinding, {
             points: trajectory,
-            offset: dragBinding.metadata.dragAnimationSynced ? currentPercent - grabbedPercent : 0,
+            offset: currentPercent - grabbedPercent,
             percent: currentPercent,
             mode: dragBinding.metadata.dragMode
           })
@@ -2041,6 +2041,11 @@ async function init(): Promise<void> {
     if (trajectory != null) {
       cockpitInteractionDragTrajectories.set(binding, { ...trajectory, percent: dragPercent })
     }
+    const axisValue = axis === 'x'
+      ? options.relativeX
+      : axis === 'z'
+        ? options.relativeZ
+        : options.relativeY
     if (
       options.firstSample &&
       getCockpitInputProfile().interactionMode === 'legacy' &&
@@ -2050,14 +2055,13 @@ async function init(): Promise<void> {
         source: 'mouse',
         operation: 'lock',
         phase: 'hold',
+        pointerId: options.pointerId,
+        axis,
+        axisValue,
+        dragPercent,
         timestampMs: performance.now()
       })
     }
-    const axisValue = axis === 'x'
-      ? options.relativeX
-      : axis === 'z'
-        ? options.relativeZ
-        : options.relativeY
     const dragged = cockpitInteractionDispatcher.pointerMove(
       options.pointerId,
       axis,

@@ -359,6 +359,18 @@ test('publishes key-event control and electrical state without waiting for a tic
     ).toBe(4096 / 16_383)
   })
 
+  test('mirrors explicit spoiler arm key events into canonical controls state', () => {
+    const host = new SharedMsfsRuntimeHost([])
+
+    host.invokeKeyEvent('SPOILERS_ARM_ON', [])
+    expect(host.readVariable('A:SPOILERS ARMED', 'Bool')).toBe(1)
+    expect(host.simulatorEngine.state.readBoolean(ControlStateKeys.spoilersArmed())).toBe(true)
+
+    host.invokeKeyEvent('SPOILERS_ARM_OFF', [])
+    expect(host.readVariable('A:SPOILERS ARMED', 'Bool')).toBe(0)
+    expect(host.simulatorEngine.state.readBoolean(ControlStateKeys.spoilersArmed())).toBe(false)
+  })
+
   test('spoiler object positions remain animation-local', () => {
     const host = new SharedMsfsRuntimeHost([])
 

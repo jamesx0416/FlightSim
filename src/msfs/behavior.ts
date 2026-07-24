@@ -339,6 +339,7 @@ export const __behaviorTestHooks = {
   loadBehaviorDocuments,
   buildInteractionCodeBinding,
   buildCompiledInteractionMetadata,
+  getInteractionFallbackCodeSource,
   buildMouseEventInteractionCodeSource,
   pushUniqueInteractionBinding,
   evaluateTestOperator,
@@ -1749,10 +1750,7 @@ function buildCompiledInteractionMetadata(
       }))
   })
   const interactionLockDisabled = parseBoolean(params.get('DISABLE_INTERACTION_LOCK') ?? 'False')
-  const authoredDragLock = !interactionLockDisabled && (
-    parseBoolean(params.get('DRAG_IM_LOCK_ENABLED') ?? 'False') ||
-    Boolean(params.get('DRAG_CODE')?.trim())
-  )
+  const authoredDragLock = !interactionLockDisabled && parseBoolean(params.get('DRAG_IM_LOCK_ENABLED') ?? 'False')
   if (authoredDragLock) {
     for (const eventName of ['Lock', 'Unlock'] as const) {
       const route = MSFS_INTERACTION_EVENTS[eventName]
@@ -2547,7 +2545,7 @@ function getInteractionFallbackCodeSource(params: ReadonlyMap<string, string>): 
     'IE_STANDBY_CODE',
     'LEFT_DOWN_CODE',
     'LEFT_UP_CODE'
-  ]) || buildInteractionGateCodeSource(params) || buildInteractionSwitchPositionCodeSource(params)
+  ]) || buildInteractionSwitchPositionCodeSource(params)
 }
 
 function buildMouseEventInteractionCodeSource(params: ReadonlyMap<string, string>): string {
@@ -3237,43 +3235,6 @@ function getInteractionInputEventBindingEventSource(
         'SET_STATE_EXTERNAL'
       ])
   }
-}
-
-function buildInteractionGateCodeSource(params: ReadonlyMap<string, string>): string {
-  const eventIdSet =
-    params.get('EVENTID_SET')?.trim() ||
-    params.get('DRAG_EVENTID_SET')?.trim() ||
-    ''
-  if (eventIdSet) {
-    const normalizedEventIdSet = normalizeKeyEventId(eventIdSet)
-    const simvar =
-      params.get('SIMVAR')?.trim() ||
-      params.get('DRAG_SIMVAR')?.trim() ||
-      ''
-    const simvarUnits =
-      params.get('SIMVAR_UNITS')?.trim() ||
-      params.get('DRAG_SIMVAR_UNITS')?.trim() ||
-      'number'
-    const increment =
-      params.get('INCREMENT')?.trim() ||
-      params.get('DRAG_SPEED')?.trim() ||
-      params.get('DRAG_DELTA')?.trim() ||
-      '1'
-    const eventConversion = params.get('EVENTID_CONVERSION')?.trim() ?? ''
-    if (simvar) {
-      return `(A:${simvar}, ${simvarUnits}) ${increment} + ${eventConversion} (>K:${normalizedEventIdSet})`
-    }
-    return `1 (>K:${normalizedEventIdSet})`
-  }
-
-  const positionType = params.get('POSITION_TYPE')?.trim() || 'O'
-  const positionVar = params.get('POSITION_VAR')?.trim() ?? ''
-  if (!positionVar) {
-    return ''
-  }
-  const stepsNumber = params.get('STEPS_NUMBER')?.trim() || '100'
-  const dragSpeed = params.get('DRAG_SPEED')?.trim() || '1'
-  return `(${positionType}:${positionVar}) ${dragSpeed} + ${stepsNumber} min (>${positionType}:${positionVar})`
 }
 
 function buildInteractionSwitchPositionCodeSource(params: ReadonlyMap<string, string>): string {
