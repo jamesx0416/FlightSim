@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import { Object3D } from 'three'
 
 import { SimScheduler } from '../sim/engine'
-import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
+import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
 import { MsfsInteractionLifecycle } from './interactionLifecycle'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
 import type { CompiledBehaviorSet, CompiledInteractionBinding, CompiledInteractionRoute } from './types'
@@ -77,6 +77,22 @@ test('projects pointer movement onto the authored drag trajectory', () => {
   expect(resolveMsfsDragPercent([], 0.8, 0.3, resolveMsfsAxisPercent('y', 0.8, 0.3, 0), 0.2)).toBe(0.5)
   expect(resolveMsfsLockDragPercent(0.5, 'y', 0, -20, 0.025, false)).toBe(1)
   expect(resolveMsfsLockDragPercent(0.5, 'y', 0, 20, 0.025, false)).toBe(0)
+})
+
+test('matches MSFS gated drag ranges without constraining invalid gate metadata', () => {
+  const bothDirections = { steps: 3, dragSpeed: 10, tolerance: 0.2, direction: 0 as const, ignoredGate: 2 }
+  const forwardOnly = { ...bothDirections, direction: -1 as const, ignoredGate: null }
+  const backwardOnly = { ...bothDirections, direction: 1 as const, ignoredGate: null }
+
+  expect(resolveMsfsGateDragRange(0, bothDirections)).toEqual({ minimum: 0, maximum: 1 })
+  expect(resolveMsfsGateDragRange(1, bothDirections)).toEqual({ minimum: 0, maximum: 3 })
+  expect(resolveMsfsGateDragRange(3, bothDirections)).toEqual({ minimum: 1, maximum: 3 })
+  expect(resolveMsfsGateDragRange(1.5, bothDirections)).toEqual({ minimum: 1, maximum: 3 })
+  expect(resolveMsfsGateDragRange(2, forwardOnly)).toEqual({ minimum: 1, maximum: 3 })
+  expect(resolveMsfsGateDragRange(2, backwardOnly)).toEqual({ minimum: 0, maximum: 3 })
+  expect(resolveMsfsGateDragRange(1, { ...bothDirections, direction: null })).toBe(null)
+  expect(resolveMsfsGateDragRange(1, { ...bothDirections, tolerance: null })).toBe(null)
+  expect(resolveMsfsGateDragRange(1, { ...bothDirections, steps: 2.5 })).toBe(null)
 })
 
 test('preflights and verifies exact convergence and detects no progress', async () => {

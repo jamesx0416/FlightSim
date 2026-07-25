@@ -2,7 +2,7 @@ import type { CanonicalCockpitAction, CockpitInteractionMode, CockpitInteraction
 import { convertSimUnit, type SimUnit } from '../sim/engine'
 import { evaluateCompiledExpression } from './rpn'
 import type { AircraftRuntime, RuntimeInteractionValueWatch } from './runtime'
-import type { CompiledExpression, CompiledInteractionBinding, CompiledInteractionRoute, Instruction } from './types'
+import type { CompiledExpression, CompiledInteractionBinding, CompiledInteractionMetadata, CompiledInteractionRoute, Instruction } from './types'
 
 export interface MsfsInteractionTarget extends CockpitInteractionTarget {
   readonly binding: CompiledInteractionBinding
@@ -39,6 +39,30 @@ export interface MsfsDragTrajectoryPoint {
   readonly relativeX: number
   readonly relativeY: number
   readonly dragPercent: number
+}
+
+export function resolveMsfsGateDragRange(
+  position: number,
+  gate: NonNullable<CompiledInteractionMetadata['discreteGate']>
+): { readonly minimum: number; readonly maximum: number } | null {
+  if (!Number.isFinite(position) || position < 0 || position > gate.steps ||
+      !Number.isInteger(gate.steps) || gate.steps <= 0 ||
+      gate.tolerance == null || gate.tolerance < 0 || gate.direction == null) {
+    return null
+  }
+  const nearest = Math.round(position)
+  const nearGate = Math.abs(nearest - position) < gate.tolerance
+  let maximum = gate.direction === -1
+    ? gate.steps
+    : Math.min(gate.steps, (nearGate ? nearest + 1 : Math.ceil(position)))
+  let minimum = gate.direction === 1
+    ? 0
+    : Math.max(0, (nearGate ? nearest - 1 : Math.floor(position)))
+  if (gate.ignoredGate != null) {
+    if (maximum === gate.ignoredGate) maximum = Math.min(gate.steps, maximum + 1)
+    if (minimum === gate.ignoredGate) minimum = Math.max(0, minimum - 1)
+  }
+  return minimum <= maximum ? { minimum, maximum } : null
 }
 
 export function isSameMsfsInteractionTarget(

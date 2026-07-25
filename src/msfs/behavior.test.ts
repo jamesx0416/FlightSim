@@ -336,6 +336,38 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(dynamicDiagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_dynamic_routes_unproven'])
 })
 
+test('compiles authored gated-drag metadata', () => {
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['GATE_TOLERANCE', '0.2'],
+      ['POSITION_VAR', 'Position'],
+      ['STEPS_NUMBER', '3'],
+      ['DRAG_SPEED', '10'],
+      ['GATE_DIRECTION', '0'],
+      ['IGNORE_GATE', '2']
+    ]),
+    'TEST_GATE', 'TEST_GATE', 'test.xml', '(M:Event)', 'callback', []
+  )
+
+  expect(metadata.discreteGate).toEqual({
+    steps: 3, dragSpeed: 10, tolerance: 0.2, direction: 0, ignoredGate: 2
+  })
+  const invalid = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['GATE_TOLERANCE', 'invalid'],
+      ['POSITION_VAR', 'Position'],
+      ['STEPS_NUMBER', '3'],
+      ['DRAG_SPEED', '10'],
+      ['GATE_DIRECTION', '2'],
+      ['IGNORE_GATE', '3']
+    ]),
+    'TEST_GATE', 'TEST_GATE', 'test.xml', '(M:Event)', 'callback', []
+  )
+  expect(invalid.discreteGate).toEqual({
+    steps: 3, dragSpeed: 10, tolerance: null, direction: null, ignoredGate: null
+  })
+})
+
 test('fails unsupported dynamic and rich tooltip IR closed with diagnostics', () => {
   const diagnostics: ImportDiagnostic[] = []
   const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
