@@ -93,6 +93,9 @@ describe('AircraftRuntime canonical visual bindings', () => {
 
     expect(trajectory.map(point => [point.dragPercent, point.position.x])).toEqual([[0, 0], [1, 2]])
     expect(lever.position.x).toBe(1)
+
+    const resolvedTrajectory = runtime.sampleAnimationObjectTrajectory('LeverAnimation')
+    expect(resolvedTrajectory.map(point => [point.dragPercent, point.position.x])).toEqual([[0, 0], [1, 2]])
   })
 
   test('maps normalized values across the authored animation key range', () => {

@@ -4,6 +4,7 @@ import {
   Box3,
   type Material,
   type Object3D,
+  PropertyBinding,
   Vector3,
 } from 'three'
 
@@ -701,11 +702,19 @@ export class AircraftRuntime {
 
   sampleAnimationObjectTrajectory(
     target: string,
-    object: Object3D
+    object?: Object3D
   ): readonly { readonly dragPercent: number; readonly position: Vector3 }[] {
     const action = this.actions.get(target)
     if (action == null) return []
     const clip = action.getClip()
+    const objects = object == null
+      ? [...new Set(clip.tracks.flatMap(track => {
+          const nodeName = PropertyBinding.parseTrackName(track.name).nodeName
+          const node = this.nodes.get(nodeName) ?? this.nodes.get(nodeName.toLowerCase())
+          return node == null ? [] : [node]
+        }))]
+      : [object]
+    if (objects.length === 0) return []
     const times = [...new Set(clip.tracks.flatMap(track => [...track.times]))].sort((left, right) => left - right)
     const firstTime = times[0]
     const lastTime = times.at(-1)
@@ -716,9 +725,10 @@ export class AircraftRuntime {
         action.time = time
         this.mixer.update(0)
         this.sceneRoot.updateWorldMatrix(true, true)
-        const bounds = new Box3().setFromObject(object)
+        const bounds = new Box3()
+        for (const trajectoryObject of objects) bounds.expandByObject(trajectoryObject)
         const position = bounds.isEmpty()
-          ? object.getWorldPosition(new Vector3())
+          ? objects[0]!.getWorldPosition(new Vector3())
           : bounds.getCenter(new Vector3())
         return { dragPercent: (time - firstTime) / (lastTime - firstTime), position }
       })

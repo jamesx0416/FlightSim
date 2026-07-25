@@ -41,6 +41,12 @@ export interface MsfsDragTrajectoryPoint {
   readonly dragPercent: number
 }
 
+export interface MsfsGateDragCapture {
+  readonly minimum: number
+  readonly maximum: number
+  readonly gate: NonNullable<CompiledInteractionMetadata['discreteGate']>
+}
+
 export function resolveMsfsGateDragRange(
   position: number,
   gate: NonNullable<CompiledInteractionMetadata['discreteGate']>
@@ -63,6 +69,23 @@ export function resolveMsfsGateDragRange(
     if (minimum === gate.ignoredGate) minimum = Math.max(0, minimum - 1)
   }
   return minimum <= maximum ? { minimum, maximum } : null
+}
+
+export function clampMsfsGateDragPercent(
+  dragPercent: number,
+  previousDragPercent: number,
+  capture: MsfsGateDragCapture
+): { readonly dragPercent: number; readonly capture: MsfsGateDragCapture } {
+  const range = resolveMsfsGateDragRange(previousDragPercent * capture.gate.steps, capture.gate)
+  const nextCapture = range == null
+    ? capture
+    : {
+        ...capture,
+        minimum: Math.max(capture.minimum, range.minimum / capture.gate.steps),
+        maximum: Math.min(capture.maximum, range.maximum / capture.gate.steps)
+      }
+  const constrained = Math.min(nextCapture.maximum, Math.max(nextCapture.minimum, dragPercent))
+  return { dragPercent: constrained, capture: nextCapture }
 }
 
 export function isSameMsfsInteractionTarget(
@@ -101,24 +124,28 @@ export function resolveMsfsDragPercent(
   fallback: number,
   offset = 0
 ): number {
+  const first = trajectory[0]
+  const last = trajectory.at(-1)
+  const useHorizontalAxis = first != null && last != null &&
+    Math.abs(last.relativeX - first.relativeX) >= Math.abs(last.relativeY - first.relativeY)
+  const pointerCoordinate = useHorizontalAxis ? relativeX : relativeY
   let bestDistanceSquared = Number.POSITIVE_INFINITY
   let bestPercent = fallback
   for (let index = 1; index < trajectory.length; index += 1) {
     const start = trajectory[index - 1]!
     const end = trajectory[index]!
-    const dx = end.relativeX - start.relativeX
-    const dy = end.relativeY - start.relativeY
-    const lengthSquared = dx * dx + dy * dy
+    const startCoordinate = useHorizontalAxis ? start.relativeX : start.relativeY
+    const endCoordinate = useHorizontalAxis ? end.relativeX : end.relativeY
+    const delta = endCoordinate - startCoordinate
+    const lengthSquared = delta * delta
     if (lengthSquared <= Number.EPSILON) continue
-    const projectedRatio =
-      ((relativeX - start.relativeX) * dx + (relativeY - start.relativeY) * dy) / lengthSquared
+    const projectedRatio = (pointerCoordinate - startCoordinate) * delta / lengthSquared
     const ratio = Math.min(
       index === trajectory.length - 1 ? Number.POSITIVE_INFINITY : 1,
       Math.max(index === 1 ? Number.NEGATIVE_INFINITY : 0, projectedRatio)
     )
-    const projectedX = start.relativeX + dx * ratio
-    const projectedY = start.relativeY + dy * ratio
-    const distanceSquared = (relativeX - projectedX) ** 2 + (relativeY - projectedY) ** 2
+    const projectedCoordinate = startCoordinate + delta * ratio
+    const distanceSquared = (pointerCoordinate - projectedCoordinate) ** 2
     if (distanceSquared < bestDistanceSquared) {
       bestDistanceSquared = distanceSquared
       bestPercent = start.dragPercent + (end.dragPercent - start.dragPercent) * ratio

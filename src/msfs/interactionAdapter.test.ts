@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import { Object3D } from 'three'
 
 import { SimScheduler } from '../sim/engine'
-import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
+import { MsfsInteractionAdapter, clampMsfsGateDragPercent, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
 import { MsfsInteractionLifecycle } from './interactionLifecycle'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
 import type { CompiledBehaviorSet, CompiledInteractionBinding, CompiledInteractionRoute } from './types'
@@ -73,6 +73,14 @@ test('projects pointer movement onto the authored drag trajectory', () => {
   expect(resolveMsfsDragPercent(trajectory, 0.5, 0.5, 0, 0.25)).toBe(0.75)
   expect(resolveMsfsDragPercent(trajectory, 0.05, 0.95, 0, 0.25)).toBe(0)
   expect(resolveMsfsDragPercent(trajectory, 0.95, 0.05, 0, -0.25)).toBe(1)
+  const horizontalTrajectory = [
+    { relativeX: 0.2, relativeY: 0.5, dragPercent: 0 },
+    { relativeX: 0.8, relativeY: 0.5, dragPercent: 1 }
+  ]
+  expect(resolveMsfsDragPercent(horizontalTrajectory, 0.8, 0.1, 0.5)).toBe(1)
+  expect(resolveMsfsDragPercent(horizontalTrajectory, 0.8, 0.9, 0.5)).toBe(1)
+  expect(Math.abs(resolveMsfsDragPercent(horizontalTrajectory, 0.5, 0.1, 0.5) - 0.5) < 1e-10).toBe(true)
+  expect(Math.abs(resolveMsfsDragPercent(horizontalTrajectory, 0.5, 0.9, 0.5) - 0.5) < 1e-10).toBe(true)
   expect(resolveMsfsDragPercent([], 0.8, 0.2, 0.25)).toBe(0.25)
   expect(resolveMsfsDragPercent([], 0.8, 0.3, resolveMsfsAxisPercent('y', 0.8, 0.3, 0), 0.2)).toBe(0.5)
   expect(resolveMsfsLockDragPercent(0.5, 'y', 0, -20, 0.025, false)).toBe(1)
@@ -93,6 +101,21 @@ test('matches MSFS gated drag ranges without constraining invalid gate metadata'
   expect(resolveMsfsGateDragRange(1, { ...bothDirections, direction: null })).toBe(null)
   expect(resolveMsfsGateDragRange(1, { ...bothDirections, tolerance: null })).toBe(null)
   expect(resolveMsfsGateDragRange(1, { ...bothDirections, steps: 2.5 })).toBe(null)
+
+  const initialCapture = { minimum: 0, maximum: 1, gate: bothDirections }
+  const partialUpperBranch = clampMsfsGateDragPercent(2.5 / 3, 1 / 3, initialCapture)
+  expect(partialUpperBranch.capture).toEqual(initialCapture)
+  const returnedFromPartialUpperBranch = clampMsfsGateDragPercent(0, 2.5 / 3, partialUpperBranch.capture)
+  expect(returnedFromPartialUpperBranch.dragPercent).toBe(1 / 3)
+  expect(returnedFromPartialUpperBranch.capture.minimum).toBe(1 / 3)
+
+  const shallowUpperMove = clampMsfsGateDragPercent(0, 1.1 / 3, initialCapture)
+  expect(shallowUpperMove.dragPercent).toBe(0)
+
+  const lowerBranch = clampMsfsGateDragPercent(0, 1 / 3, initialCapture)
+  const returnedFromLowerBranch = clampMsfsGateDragPercent(1, 0, lowerBranch.capture)
+  expect(returnedFromLowerBranch.dragPercent).toBe(1 / 3)
+  expect(returnedFromLowerBranch.capture.maximum).toBe(1 / 3)
 })
 
 test('preflights and verifies exact convergence and detects no progress', async () => {
@@ -914,7 +937,7 @@ function interactionBinding(
       sourceKind: 'callbackCode', sourcePath, sourceTemplate: null, templateRevision: null,
       lockable: false, dynamicEventHandling: false, disabled: false, disabledInVr: false,
       prioritizeVCockpits: false, ignoreZTest: false, highlightNodeId: 'TEST', axis: null,
-      inverted: false, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
+      inverted: false, dragNodeId: null, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
       dragScalar: 0.025, discreteGate: null, wheelPrimaryToggle: false, cursor: null, tooltipTitle: null,
       tooltipDescription: null, tooltipStateLabels: [], tooltipUnavailable: null,
       tooltipValueLabel: null, tooltipActionHints: [],

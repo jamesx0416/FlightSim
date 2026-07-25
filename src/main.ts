@@ -57,7 +57,8 @@ import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import { loadMsfsLocalization, resolveMsfsInteractionPresentation, type MsfsLocalization } from './msfs/localization'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
-import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { MsfsInteractionAdapter, clampMsfsGateDragPercent, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { resolveMsfsAuthoredDragNode } from './msfs/interactionTrajectory'
 import { MsfsInteractionLifecycle } from './msfs/interactionLifecycle'
 import { CockpitInteractionDispatcher, type CockpitInteractionChannel, type CockpitInteractionMissReason } from './input/cockpitInteraction'
 import { resolveCockpitInputDecision, type CockpitInputHit } from './input/cockpitInputArbitration'
@@ -1565,7 +1566,11 @@ async function init(): Promise<void> {
       readonly offset: number
       readonly percent: number
       readonly mode: 'default' | 'trajectory'
-      readonly gateRange: { readonly minimum: number; readonly maximum: number } | null
+      readonly gateRange: {
+        readonly minimum: number
+        readonly maximum: number
+        readonly gate: NonNullable<CompiledInteractionBinding['metadata']['discreteGate']>
+      } | null
     }
   >()
   const cockpitInteractionAdapter = new MsfsInteractionAdapter(
@@ -1923,8 +1928,11 @@ async function init(): Promise<void> {
         target.bindings.find(candidate => candidate.metadata.dragAnimationName != null)
       if (options.mouseEvent === 'LeftSingle' && dragBinding?.metadata.dragAnimationName != null) {
         const dragAnimationName = dragBinding.metadata.dragAnimationName
+        const dragObject = cockpitInteractionPickRegistryCache?.runtime === runtime
+          ? cockpitInteractionPickRegistryCache.registry.dragNodesByBinding.get(dragBinding)
+          : undefined
         const trajectory = runtime
-          .sampleAnimationObjectTrajectory(dragAnimationName, hitObject)
+          .sampleAnimationObjectTrajectory(dragAnimationName, dragObject)
           .map(point => {
             const projected = point.position.clone().project(camera)
             return {
@@ -1954,7 +1962,11 @@ async function init(): Promise<void> {
               const range = resolveMsfsGateDragRange(position, gate)
               return range == null
                 ? null
-                : { minimum: range.minimum / gate.steps, maximum: range.maximum / gate.steps }
+                : {
+                    minimum: range.minimum / gate.steps,
+                    maximum: range.maximum / gate.steps,
+                    gate
+                  }
             })()
           })
         }
@@ -2054,11 +2066,16 @@ async function init(): Promise<void> {
           binding.metadata.inverted
         )
         : resolveMsfsAxisPercent(axis, options.relativeX, options.relativeY, options.relativeZ)
-    const dragPercent = trajectory?.gateRange == null
-      ? resolvedDragPercent
-      : Math.min(trajectory.gateRange.maximum, Math.max(trajectory.gateRange.minimum, resolvedDragPercent))
+    const gatedDrag = trajectory?.gateRange == null
+      ? null
+      : clampMsfsGateDragPercent(resolvedDragPercent, trajectory.percent, trajectory.gateRange)
+    const dragPercent = gatedDrag?.dragPercent ?? resolvedDragPercent
     if (trajectory != null) {
-      cockpitInteractionDragTrajectories.set(binding, { ...trajectory, percent: dragPercent })
+      cockpitInteractionDragTrajectories.set(binding, {
+        ...trajectory,
+        percent: dragPercent,
+        gateRange: gatedDrag?.capture ?? trajectory.gateRange
+      })
     }
     const axisValue = axis === 'x'
       ? options.relativeX
@@ -11520,6 +11537,7 @@ export type CockpitInteractionBlockerHitbox = {
 export type CockpitInteractionPickRegistry = {
   readonly meshes: readonly Mesh[]
   readonly bindingsByMesh: ReadonlyMap<Object3D, CompiledInteractionBinding>
+  readonly dragNodesByBinding: ReadonlyMap<CompiledInteractionBinding, Object3D>
   readonly fallbackHitboxes: readonly CockpitInteractionFallbackHitbox[]
   readonly blockerMeshes: readonly Mesh[]
   readonly blockersByMesh: ReadonlyMap<Object3D, CompiledInteractionBlocker>
@@ -11556,6 +11574,7 @@ function createCockpitInteractionPickRegistry(
 
   const meshes: Mesh[] = []
   const bindingsByMesh = new Map<Object3D, CompiledInteractionBinding>()
+  const dragNodesByBinding = new Map<CompiledInteractionBinding, Object3D>()
   const bindingDepthByMesh = new Map<Object3D, number>()
   const fallbackHitboxes: CockpitInteractionFallbackHitbox[] = []
   const seen = new Set<string>()
@@ -11563,6 +11582,10 @@ function createCockpitInteractionPickRegistry(
     const node = resolveCockpitInteractionNode(binding, nodesByName, animationNodesByName)
     if (node == null) {
       continue
+    }
+    const dragNode = resolveMsfsAuthoredDragNode(binding, nodesByName)
+    if (dragNode != null) {
+      dragNodesByBinding.set(binding, dragNode)
     }
     const key = `${binding.target}\n${node.uuid}`
     if (seen.has(key)) {
@@ -11645,6 +11668,7 @@ function createCockpitInteractionPickRegistry(
   return {
     meshes,
     bindingsByMesh,
+    dragNodesByBinding,
     fallbackHitboxes,
     blockerMeshes,
     blockersByMesh,

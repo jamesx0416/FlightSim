@@ -292,6 +292,8 @@ export interface CompiledInteractionMetadata {
   readonly highlightNodeId: string | null
   readonly axis: 'x' | 'y' | 'z' | null
   readonly inverted: boolean
+  /** Authored MSFS node used to calculate a trajectory drag path. */
+  readonly dragNodeId: string | null
   readonly dragAnimationName: string | null
   readonly dragMode: 'default' | 'trajectory'
   readonly dragAnimationSynced: boolean

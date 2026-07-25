@@ -1860,6 +1860,7 @@ function buildCompiledInteractionMetadata(
     highlightNodeId: params.get('HIGHLIGHT_NODE_ID')?.trim() || currentNode?.trim() || null,
     axis,
     inverted,
+    dragNodeId: params.get('DRAG_NODE_ID')?.trim() || null,
     dragAnimationName: params.get('DRAG_ANIM_NAME')?.trim() || params.get('ANIM_NAME')?.trim() || null,
     dragMode:
       params.get('DRAG_MODE')?.trim().toLowerCase() === 'trajectory' ||
@@ -3466,6 +3467,7 @@ function pushUniqueInteractionBinding(
       highlightNodeId: binding.metadata.highlightNodeId ?? previous.metadata.highlightNodeId,
       axis: binding.metadata.axis ?? previous.metadata.axis,
       inverted: previous.metadata.inverted || binding.metadata.inverted,
+      dragNodeId: binding.metadata.dragNodeId ?? previous.metadata.dragNodeId,
       dragAnimationName: binding.metadata.dragAnimationName ?? previous.metadata.dragAnimationName,
       dragMode: previous.metadata.dragMode === 'trajectory' || binding.metadata.dragMode === 'trajectory'
         ? 'trajectory'
