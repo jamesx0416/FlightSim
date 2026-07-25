@@ -1563,7 +1563,6 @@ async function init(): Promise<void> {
     CompiledInteractionBinding,
     {
       readonly points: readonly MsfsDragTrajectoryPoint[]
-      readonly offset: number
       readonly percent: number
       readonly mode: 'default' | 'trajectory'
       readonly gateRange: {
@@ -1764,6 +1763,7 @@ async function init(): Promise<void> {
       return executeCockpitInteractionBinding(
         geometryHit.binding,
         geometryHit.object,
+        geometryHit.point,
         geometryHit.hitKind,
         {
           ...options,
@@ -1822,6 +1822,7 @@ async function init(): Promise<void> {
   const executeCockpitInteractionBinding = (
     binding: CompiledInteractionBinding,
     hitObject: Object3D,
+    hitPoint: Vector3,
     hitKind: 'interaction-mesh' | 'fallback-hitbox',
     options: { readonly holdFeedback: boolean; readonly mouseEvent?: string; readonly execute?: boolean; readonly pointerId?: number; readonly clickCount?: number; readonly timestampMs?: number }
   ): CockpitInputHit<CompiledInteractionBinding> => {
@@ -1928,11 +1929,19 @@ async function init(): Promise<void> {
         target.bindings.find(candidate => candidate.metadata.dragAnimationName != null)
       if (options.mouseEvent === 'LeftSingle' && dragBinding?.metadata.dragAnimationName != null) {
         const dragAnimationName = dragBinding.metadata.dragAnimationName
-        const dragObject = cockpitInteractionPickRegistryCache?.runtime === runtime
+        const authoredDragObject = cockpitInteractionPickRegistryCache?.runtime === runtime
           ? cockpitInteractionPickRegistryCache.registry.dragNodesByBinding.get(dragBinding)
           : undefined
-        const trajectory = runtime
-          .sampleAnimationObjectTrajectory(dragAnimationName, dragObject)
+        const dragObject = authoredDragObject ?? hitObject
+        const localAnchor = dragObject.worldToLocal(hitPoint.clone())
+        const anchoredTrajectory = runtime
+          .sampleAnimationObjectTrajectory(dragAnimationName, dragObject, localAnchor)
+        const trajectoryPoints = anchoredTrajectory.some(point =>
+          point.position.distanceToSquared(anchoredTrajectory[0]!.position) > Number.EPSILON
+        )
+          ? anchoredTrajectory
+          : runtime.sampleAnimationObjectTrajectory(dragAnimationName)
+        const trajectory = trajectoryPoints
           .map(point => {
             const projected = point.position.clone().project(camera)
             return {
@@ -1944,14 +1953,8 @@ async function init(): Promise<void> {
           .filter(point => Number.isFinite(point.relativeX) && Number.isFinite(point.relativeY))
         const currentPercent = runtime.getAnimationNormalizedValue(dragAnimationName)
         if (currentPercent != null) {
-          const relativeX = (cockpitInteractionPointer.x + 1) / 2
-          const relativeY = (1 - cockpitInteractionPointer.y) / 2
-          const grabbedPercent = trajectory.length > 1
-            ? resolveMsfsDragPercent(trajectory, relativeX, relativeY, currentPercent)
-            : resolveMsfsAxisPercent(dragBinding.metadata.axis ?? 'y', relativeX, relativeY, 0)
           cockpitInteractionDragTrajectories.set(selectedBinding, {
             points: trajectory,
-            offset: currentPercent - grabbedPercent,
             percent: currentPercent,
             mode: dragBinding.metadata.dragMode,
             gateRange: (() => {
@@ -2053,8 +2056,7 @@ async function init(): Promise<void> {
           trajectory?.points ?? [],
           options.relativeX,
           options.relativeY,
-          resolveMsfsAxisPercent(axis, options.relativeX, options.relativeY, options.relativeZ),
-          trajectory?.offset ?? 0
+          resolveMsfsAxisPercent(axis, options.relativeX, options.relativeY, options.relativeZ)
         )
       : trajectory != null
         ? resolveMsfsLockDragPercent(

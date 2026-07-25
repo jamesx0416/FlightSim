@@ -53,6 +53,7 @@ test('interaction meshes are active while a true geometric miss stays a miss', (
     control,
     'interaction-mesh'
   ])
+  expect(Math.abs(active.point.z - 0.1) < 1e-6).toBe(true)
 
   control.position.x = 4
   control.updateWorldMatrix(true, false)
@@ -101,6 +102,7 @@ test('fallback hitboxes remain selectable without renderable interaction geometr
     sourceNode,
     'fallback-hitbox'
   ])
+  expect(Math.abs(hit.point.z - 0.1) < 1e-6).toBe(true)
 })
 
 test('blockers and covers consume hits in front of an interaction', () => {

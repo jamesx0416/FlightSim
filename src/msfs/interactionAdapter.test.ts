@@ -70,9 +70,9 @@ test('projects pointer movement onto the authored drag trajectory', () => {
 
   expect(resolveMsfsDragPercent(trajectory, 0.2, 0.8, 0.5)).toBe(0)
   expect(resolveMsfsDragPercent(trajectory, 0.8, 0.2, 0.5)).toBe(1)
-  expect(resolveMsfsDragPercent(trajectory, 0.5, 0.5, 0, 0.25)).toBe(0.75)
-  expect(resolveMsfsDragPercent(trajectory, 0.05, 0.95, 0, 0.25)).toBe(0)
-  expect(resolveMsfsDragPercent(trajectory, 0.95, 0.05, 0, -0.25)).toBe(1)
+  expect(Math.abs(resolveMsfsDragPercent(trajectory, 0.5, 0.5, 0) - 0.5) < 1e-10).toBe(true)
+  expect(resolveMsfsDragPercent(trajectory, 0.05, 0.95, 0)).toBe(0)
+  expect(resolveMsfsDragPercent(trajectory, 0.95, 0.05, 0)).toBe(1)
   const horizontalTrajectory = [
     { relativeX: 0.2, relativeY: 0.5, dragPercent: 0 },
     { relativeX: 0.8, relativeY: 0.5, dragPercent: 1 }
@@ -82,7 +82,7 @@ test('projects pointer movement onto the authored drag trajectory', () => {
   expect(Math.abs(resolveMsfsDragPercent(horizontalTrajectory, 0.5, 0.1, 0.5) - 0.5) < 1e-10).toBe(true)
   expect(Math.abs(resolveMsfsDragPercent(horizontalTrajectory, 0.5, 0.9, 0.5) - 0.5) < 1e-10).toBe(true)
   expect(resolveMsfsDragPercent([], 0.8, 0.2, 0.25)).toBe(0.25)
-  expect(resolveMsfsDragPercent([], 0.8, 0.3, resolveMsfsAxisPercent('y', 0.8, 0.3, 0), 0.2)).toBe(0.5)
+  expect(resolveMsfsDragPercent([], 0.8, 0.3, resolveMsfsAxisPercent('y', 0.8, 0.3, 0))).toBe(0.3)
   expect(resolveMsfsLockDragPercent(0.5, 'y', 0, -20, 0.025, false)).toBe(1)
   expect(resolveMsfsLockDragPercent(0.5, 'y', 0, 20, 0.025, false)).toBe(0)
 })

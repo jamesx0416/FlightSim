@@ -4,6 +4,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   Object3D,
+  Vector3,
   VectorKeyframeTrack,
 } from 'three'
 
@@ -71,6 +72,9 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const scene = new Object3D()
     const lever = new Object3D()
     lever.name = 'Lever'
+    const grip = new Object3D()
+    grip.position.x = 1
+    lever.add(grip)
     scene.add(lever)
     const runtime = new AircraftRuntime({
       ...emptyCompiledBehaviorSet,
@@ -90,8 +94,14 @@ describe('AircraftRuntime canonical visual bindings', () => {
     runtime.update(1 / 60)
 
     const trajectory = runtime.sampleAnimationObjectTrajectory('LeverAnimation', lever)
+    const anchoredTrajectory = runtime.sampleAnimationObjectTrajectory(
+      'LeverAnimation',
+      grip,
+      new Vector3()
+    )
 
     expect(trajectory.map(point => [point.dragPercent, point.position.x])).toEqual([[0, 0], [1, 2]])
+    expect(anchoredTrajectory.map(point => [point.dragPercent, point.position.x])).toEqual([[0, 1], [1, 3]])
     expect(lever.position.x).toBe(1)
 
     const resolvedTrajectory = runtime.sampleAnimationObjectTrajectory('LeverAnimation')

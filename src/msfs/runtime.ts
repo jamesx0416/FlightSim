@@ -702,7 +702,8 @@ export class AircraftRuntime {
 
   sampleAnimationObjectTrajectory(
     target: string,
-    object?: Object3D
+    object?: Object3D,
+    localAnchor?: Vector3
   ): readonly { readonly dragPercent: number; readonly position: Vector3 }[] {
     const action = this.actions.get(target)
     if (action == null) return []
@@ -725,11 +726,15 @@ export class AircraftRuntime {
         action.time = time
         this.mixer.update(0)
         this.sceneRoot.updateWorldMatrix(true, true)
-        const bounds = new Box3()
-        for (const trajectoryObject of objects) bounds.expandByObject(trajectoryObject)
-        const position = bounds.isEmpty()
-          ? objects[0]!.getWorldPosition(new Vector3())
-          : bounds.getCenter(new Vector3())
+        const position = localAnchor == null
+          ? (() => {
+              const bounds = new Box3()
+              for (const trajectoryObject of objects) bounds.expandByObject(trajectoryObject)
+              return bounds.isEmpty()
+                ? objects[0]!.getWorldPosition(new Vector3())
+                : bounds.getCenter(new Vector3())
+            })()
+          : objects[0]!.localToWorld(localAnchor.clone())
         return { dragPercent: (time - firstTime) / (lastTime - firstTime), position }
       })
     } finally {

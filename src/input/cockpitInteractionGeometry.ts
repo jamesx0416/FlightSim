@@ -44,6 +44,7 @@ export type CockpitGeometryHit<T> =
       readonly kind: 'active'
       readonly binding: T
       readonly object: Object3D
+      readonly point: Vector3
       readonly hitKind: 'interaction-mesh' | 'fallback-hitbox'
       readonly distance: number
     }
@@ -62,6 +63,7 @@ export type CockpitGeometryHit<T> =
 type RankedInteractionHit<T> = {
   readonly binding: T
   readonly object: Object3D
+  readonly point: Vector3
   readonly hitKind: 'interaction-mesh' | 'fallback-hitbox'
   readonly distance: number
   readonly prioritizeVCockpits: boolean
@@ -97,6 +99,7 @@ export function resolveCockpitGeometryHit<T>(
       return target == null ? [] : [{
         binding: target.binding,
         object: target.object,
+        point: hit.point.clone(),
         hitKind: 'interaction-mesh' as const,
         distance: hit.distance,
         prioritizeVCockpits: target.prioritizeVCockpits,
@@ -108,6 +111,7 @@ export function resolveCockpitGeometryHit<T>(
       return hit == null ? [] : [{
         binding: target.binding,
         object: target.object,
+        point: hit.point,
         hitKind: 'fallback-hitbox' as const,
         distance: hit.distance,
         prioritizeVCockpits: target.prioritizeVCockpits,
@@ -146,6 +150,7 @@ export function resolveCockpitGeometryHit<T>(
       kind: 'active',
       binding: hit.binding,
       object: hit.object,
+      point: hit.point,
       hitKind: hit.hitKind,
       distance: hit.distance
     }
@@ -207,10 +212,10 @@ export function collectCockpitOccluderMeshes(
   return occluders
 }
 
-function intersectBox(raycaster: Raycaster, box: Box3 | undefined): { readonly distance: number } | null {
+function intersectBox(raycaster: Raycaster, box: Box3 | undefined): { readonly distance: number; readonly point: Vector3 } | null {
   if (box == null) return null
   const point = raycaster.ray.intersectBox(box, new Vector3())
-  return point == null ? null : { distance: point.distanceTo(raycaster.ray.origin) }
+  return point == null ? null : { distance: point.distanceTo(raycaster.ray.origin), point }
 }
 
 function findCockpitOccluder(
