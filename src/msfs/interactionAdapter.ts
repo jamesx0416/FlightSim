@@ -121,8 +121,7 @@ export function resolveMsfsDragPercent(
   trajectory: readonly MsfsDragTrajectoryPoint[],
   relativeX: number,
   relativeY: number,
-  fallback: number,
-  offset = 0
+  fallback: number
 ): number {
   const first = trajectory[0]
   const last = trajectory.at(-1)
@@ -151,10 +150,9 @@ export function resolveMsfsDragPercent(
       bestPercent = start.dragPercent + (end.dragPercent - start.dragPercent) * ratio
     }
   }
-  const result = bestPercent + offset
-  if (result <= Number.EPSILON) return 0
-  if (result >= 1 - Number.EPSILON) return 1
-  return result
+  if (bestPercent <= Number.EPSILON) return 0
+  if (bestPercent >= 1 - Number.EPSILON) return 1
+  return bestPercent
 }
 
 export class MsfsInteractionAdapter {
