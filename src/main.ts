@@ -57,7 +57,7 @@ import { normalizeSurfaceLookupName, parseVCockpitSurfaces } from './msfs/panel'
 import { loadMsfsLocalization, resolveMsfsInteractionPresentation, type MsfsLocalization } from './msfs/localization'
 import type { VCockpitGaugeEntry, VCockpitSurface } from './msfs/panel'
 import { AircraftRuntime, type RuntimeUpdateProfile, SharedMsfsRuntimeHost } from './msfs/runtime'
-import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import { MsfsInteractionAdapter, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, type MsfsDragTrajectoryPoint, type MsfsInteractionTarget } from './msfs/interactionAdapter'
 import { MsfsInteractionLifecycle } from './msfs/interactionLifecycle'
 import { CockpitInteractionDispatcher, type CockpitInteractionChannel, type CockpitInteractionMissReason } from './input/cockpitInteraction'
 import { resolveCockpitInputDecision, type CockpitInputHit } from './input/cockpitInputArbitration'
@@ -1560,7 +1560,13 @@ async function init(): Promise<void> {
     | null = null
   const cockpitInteractionDragTrajectories = new WeakMap<
     CompiledInteractionBinding,
-    { readonly points: readonly MsfsDragTrajectoryPoint[]; readonly offset: number; readonly percent: number; readonly mode: 'default' | 'trajectory' }
+    {
+      readonly points: readonly MsfsDragTrajectoryPoint[]
+      readonly offset: number
+      readonly percent: number
+      readonly mode: 'default' | 'trajectory'
+      readonly gateRange: { readonly minimum: number; readonly maximum: number } | null
+    }
   >()
   const cockpitInteractionAdapter = new MsfsInteractionAdapter(
     () => runtime,
@@ -1939,7 +1945,17 @@ async function init(): Promise<void> {
             points: trajectory,
             offset: currentPercent - grabbedPercent,
             percent: currentPercent,
-            mode: dragBinding.metadata.dragMode
+            mode: dragBinding.metadata.dragMode,
+            gateRange: (() => {
+              const gate = dragBinding.metadata.discreteGate
+              if (gate == null) return null
+              const position = runtime.readInteractionValue(dragBinding)
+              if (position == null) return null
+              const range = resolveMsfsGateDragRange(position, gate)
+              return range == null
+                ? null
+                : { minimum: range.minimum / gate.steps, maximum: range.maximum / gate.steps }
+            })()
           })
         }
       }
@@ -2020,7 +2036,7 @@ async function init(): Promise<void> {
     if (!target.bindings.some(candidate => candidate.metadata.routes.some(route => route.phase === 'drag'))) return false
     const trajectory = cockpitInteractionDragTrajectories.get(binding)
     const axis = binding.metadata.axis ?? 'y'
-    const dragPercent = trajectory?.mode === 'trajectory' && trajectory.points.length > 1
+    const resolvedDragPercent = trajectory?.mode === 'trajectory' && trajectory.points.length > 1
       ? resolveMsfsDragPercent(
           trajectory?.points ?? [],
           options.relativeX,
@@ -2038,6 +2054,9 @@ async function init(): Promise<void> {
           binding.metadata.inverted
         )
         : resolveMsfsAxisPercent(axis, options.relativeX, options.relativeY, options.relativeZ)
+    const dragPercent = trajectory?.gateRange == null
+      ? resolvedDragPercent
+      : Math.min(trajectory.gateRange.maximum, Math.max(trajectory.gateRange.minimum, resolvedDragPercent))
     if (trajectory != null) {
       cockpitInteractionDragTrajectories.set(binding, { ...trajectory, percent: dragPercent })
     }

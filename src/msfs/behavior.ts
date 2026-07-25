@@ -1874,8 +1874,19 @@ function buildCompiledInteractionMetadata(
       if (!params.has('GATE_TOLERANCE') || !params.get('POSITION_VAR')?.trim()) return null
       const steps = parseOptionalFiniteNumber(params.get('STEPS_NUMBER'))
       const dragSpeed = parseOptionalFiniteNumber(params.get('DRAG_SPEED'))
+      const tolerance = parseOptionalFiniteNumber(params.get('GATE_TOLERANCE'))
+      const direction = parseOptionalFiniteNumber(params.get('GATE_DIRECTION'))
+      const ignoredGate = parseOptionalFiniteNumber(params.get('IGNORE_GATE'))
       return steps != null && steps > 0 && dragSpeed != null && dragSpeed !== 0
-        ? { steps, dragSpeed }
+        ? {
+            steps,
+            dragSpeed,
+            tolerance: tolerance != null && tolerance >= 0 ? tolerance : null,
+            direction: direction === -1 || direction === 0 || direction === 1 ? direction : null,
+            ignoredGate: ignoredGate != null && Number.isInteger(ignoredGate) && ignoredGate > 0 && ignoredGate < steps
+              ? ignoredGate
+              : null
+          }
         : null
     })(),
     wheelPrimaryToggle: parseBoolean(params.get('__WHEEL_PRIMARY_TOGGLE') ?? 'False'),

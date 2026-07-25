@@ -299,6 +299,9 @@ export interface CompiledInteractionMetadata {
   readonly discreteGate: {
     readonly steps: number
     readonly dragSpeed: number
+    readonly tolerance: number | null
+    readonly direction: -1 | 0 | 1 | null
+    readonly ignoredGate: number | null
   } | null
   readonly wheelPrimaryToggle: boolean
   readonly cursor: string | null
