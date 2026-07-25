@@ -432,6 +432,7 @@ function describeInteractionTarget(
       sourceTemplate: binding.metadata.sourceTemplate,
       dragMode: binding.metadata.dragMode,
       dragAnimationSynced: binding.metadata.dragAnimationSynced,
+      dragNodeId: binding.metadata.dragNodeId,
       dragAnimationName: binding.metadata.dragAnimationName,
       routes: binding.metadata.routes
     })),

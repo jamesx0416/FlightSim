@@ -135,6 +135,7 @@ test('interaction metadata expands authored flags and value reachability', () =>
       ['VALUE_STEP', '0.5'],
       ['DRAG_SCALAR', '0.05'],
       ['DRAG_MODE', 'Trajectory'],
+      ['DRAG_NODE_ID', 'TEST_KNOB_DRAG_NODE'],
       ['ANIM_NAME', 'TEST_KNOB_ANIMATION'],
       ['DRAG_ANIM_SYNCED', 'False'],
       ['__SOURCE_TEMPLATE', 'ASOBO_TEST_KNOB'],
@@ -177,6 +178,7 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(metadata.sourceTemplate).toBe('ASOBO_TEST_KNOB')
   expect(metadata.dragScalar).toBe(0.05)
   expect([metadata.dragMode, metadata.dragAnimationSynced]).toEqual(['trajectory', false])
+  expect(metadata.dragNodeId).toBe('TEST_KNOB_DRAG_NODE')
   expect(metadata.dragAnimationName).toBe('TEST_KNOB_ANIMATION')
   expect([metadata.tooltipTitle, metadata.tooltipDescription, metadata.tooltipUnavailable]).toEqual([
     'TT:TEST.TITLE', 'TT:TEST.DESCRIPTION', 'TT:TEST.UNAVAILABLE'
