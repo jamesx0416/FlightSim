@@ -15,7 +15,7 @@ test('starts each authored drag lifecycle with its lock route', () => {
   expect(selectDragRoutes([drag, lock], false)).toEqual([drag])
 })
 
-test('traces canonical actions with selected routes and cancellation provenance', () => {
+test('traces canonical actions with selected routes and stop provenance', () => {
   const binding = interactionBinding()
   const records: Readonly<Record<string, unknown>>[] = []
   const runtime = {
@@ -34,9 +34,9 @@ test('traces canonical actions with selected routes and cancellation provenance'
   expect(adapter.execute(target, {
     source: 'devapi', operation: 'increase', phase: 'press', timestampMs: 1
   })).toBe(true)
-  adapter.cancel(target)
+  adapter.stop(target)
 
-  expect(records.map(record => record.kind)).toEqual(['canonical-action', 'interaction-cancel'])
+  expect(records.map(record => record.kind)).toEqual(['canonical-action', 'interaction-stop'])
   expect(records[0]).toEqual({
     kind: 'canonical-action',
     action: { source: 'devapi', operation: 'increase', phase: 'press', timestampMs: 1 },
@@ -213,7 +213,7 @@ test('uses authored Set, rejects incompatible units, and observes cancellation',
   expect((await adapter.setExact(target, 1, 'degree')).executionPath).toBe('direct-set')
   wait = true
   const pending = adapter.setExact(target, 2, 'degree')
-  adapter.cancel(target)
+  adapter.stop(target)
   resume()
   expect((await pending).code).toBe('CANCELLED')
 })
@@ -639,7 +639,7 @@ test('routes one captured target across its authored click and drag bindings', (
   expect(executed).toEqual([click, drag])
 })
 
-test('runs authored single, double, repeat, drag, release, and cancellation lifecycle in simulator time', () => {
+test('runs authored single, double, repeat, drag, release, and stop lifecycle in simulator time', () => {
   const binding = {
     ...interactionBinding({}, [
       { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] },
@@ -688,7 +688,7 @@ test('runs authored single, double, repeat, drag, release, and cancellation life
 
   lifecycle.press(target, base, 2)
   expect(events.slice(-2)).toEqual(['LeftSingle', 'LeftDouble'])
-  lifecycle.cancel(target)
+  lifecycle.stop(target, base, { release: true, unlock: false })
   scheduler.tick(2)
   expect(events.at(-1)).toBe('release-feedback')
   expect(trace.some(record => record.phase === 'repeat-scheduled')).toBe(true)
@@ -696,7 +696,7 @@ test('runs authored single, double, repeat, drag, release, and cancellation life
   expect(trace.some(record => record.phase === 'scope-cancelled')).toBe(true)
 })
 
-test('bridges captured pointer actions and keeps repeated cancellation idempotent', () => {
+test('stops captured pointer actions through release and keeps repeated stops idempotent', () => {
   const binding = interactionBinding({}, [
     { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] },
     { channel: 'primary', phase: 'double', operation: 'press', msfsEvent: 'LeftDouble', axis: null, inputTypes: [] },
@@ -704,15 +704,15 @@ test('bridges captured pointer actions and keeps repeated cancellation idempoten
     { channel: 'secondary', phase: 'release', operation: 'release', msfsEvent: 'RightRelease', axis: null, inputTypes: [] }
   ])
   const events: string[] = []
-  let cancellations = 0
+  let stops = 0
   const runtime = {
     getInteractionBindings: () => [binding],
     executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { mouseEvent?: string }) => {
       events.push(options.mouseEvent ?? '')
       return true
     },
-    cancelInteractionBinding: () => {
-      cancellations += 1
+    stopInteractionBinding: () => {
+      stops += 1
       return true
     },
     readInteractionValue: () => null
@@ -724,19 +724,13 @@ test('bridges captured pointer actions and keeps repeated cancellation idempoten
   expect(lifecycle.execute(target, {
     source: 'mouse', operation: 'hold', phase: 'hold', channel: 'primary', pointerId: 1, clickCount: 2, timestampMs: 0
   })).toBe(true)
-  expect(lifecycle.execute(target, {
+  expect(lifecycle.stop(target, {
     source: 'mouse', operation: 'release', phase: 'release', channel: 'secondary', timestampMs: 1
-  })).toBe(true)
-  expect(lifecycle.execute(target, {
-    source: 'mouse', operation: 'turn', phase: 'drag', channel: 'primary', pointerId: 1, axis: 'y', axisValue: 0.5, timestampMs: 2
-  })).toBe(true)
-  lifecycle.execute(target, {
-    source: 'mouse', operation: 'cancel', phase: 'cancel', timestampMs: 3
-  })
-  adapter.cancel(target)
+  }, { release: true, unlock: false })).toBe(true)
+  adapter.stop(target)
 
-  expect(events).toEqual(['LeftSingle', 'LeftDouble', 'RightRelease', 'LeftDrag'])
-  expect(cancellations).toBe(1)
+  expect(events).toEqual(['LeftSingle', 'LeftDouble', 'RightRelease'])
+  expect(stops).toBe(1)
 })
 
 test('fails repeat closed when authored routes do not prove timing', () => {
@@ -767,7 +761,7 @@ test('fails repeat closed when authored routes do not prove timing', () => {
   expect(diagnostics).toEqual(['interaction_repeat_timing_unproven'])
 })
 
-test('bulk cancellation does not release inactive controls', () => {
+test('bulk stopping does not release inactive controls', () => {
   const binding = interactionBinding()
   let releases = 0
   const runtime = {
@@ -776,7 +770,7 @@ test('bulk cancellation does not release inactive controls', () => {
     readInteractionValue: () => null
   } as unknown as AircraftRuntime
 
-  new MsfsInteractionAdapter(runtime).cancelAll()
+  new MsfsInteractionAdapter(runtime).stopAll()
 
   expect(releases).toBe(0)
 })
@@ -863,7 +857,7 @@ test('waits authored settle time before counting two completed simulator ticks',
   expect((await pending).code).toBe('OK')
 })
 
-test('schedules minimum hold and spring release in simulator time and cancels it explicitly', () => {
+test('stopping pending interaction feedback does not replay a release expression', () => {
   const base = interactionBinding()
   const binding: CompiledInteractionBinding = {
     ...base,
@@ -899,9 +893,10 @@ test('schedules minimum hold and spring release in simulator time and cancels it
   runtime.executeInteractionBindingDirect(binding, { holdFeedback: true })
   runtime.releaseInteractionBinding(binding)
   runtime.update(0.25)
-  runtime.cancelInteractionBinding(binding)
+  runtime.stopInteractionBinding(binding)
   runtime.update(1)
-  expect(host.readVariable('L:PRESSED')).toBe(0)
+  expect(host.readVariable('L:PRESSED')).toBe(1)
+  expect(host.readVariable('O:TEST:_ButtonAnimVar')).toBe(0)
 })
 
 function interactionBinding(

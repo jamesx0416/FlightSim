@@ -42,10 +42,6 @@ export class MsfsInteractionLifecycle {
         return this.release(target, action)
       }
     }
-    if (action.source === 'mouse' && action.operation === 'cancel' && action.phase === 'cancel') {
-      this.cancel(target)
-      return true
-    }
     return this.adapter.execute(target, action)
   }
 
@@ -95,14 +91,26 @@ export class MsfsInteractionLifecycle {
     return executed || released
   }
 
-  cancel(target: MsfsInteractionTarget): void {
+  stop(
+    target: MsfsInteractionTarget,
+    action: CanonicalCockpitAction,
+    options: { readonly release: boolean; readonly unlock: boolean }
+  ): boolean {
     this.cancelTasks(target.id)
-    this.adapter.cancel(target)
+    let released = false
+    if (options.release) {
+      released = this.adapter.execute(target, { ...action, operation: 'release', phase: 'release' })
+      if (options.unlock) this.adapter.execute(target, { ...action, operation: 'unlock', phase: 'release' })
+    }
+    this.adapter.stop(target)
+    return released
   }
 
-  cancelAll(): void {
-    for (const { target } of [...this.active.values()]) this.cancel(target)
-    this.adapter.cancelAll()
+  stopAll(): void {
+    for (const { target } of [...this.active.values()]) {
+      this.stop(target, { source: 'mouse', operation: 'release', phase: 'release', timestampMs: performance.now() }, { release: true, unlock: false })
+    }
+    this.adapter.stopAll()
   }
 
   private scheduleRepeat(

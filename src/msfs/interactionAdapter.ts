@@ -318,21 +318,21 @@ export class MsfsInteractionAdapter {
 
   active(): readonly string[] { return [...this.busy] }
 
-  cancel(target: MsfsInteractionTarget): void {
-    this.traceSink?.(() => ({ kind: 'interaction-cancel', target: target.id }))
+  stop(target: MsfsInteractionTarget): void {
+    this.traceSink?.(() => ({ kind: 'interaction-stop', target: target.id }))
     this.signalCancellation(target.id)
     if (!this.held.delete(target.id)) return
     const runtime = this.runtime as AircraftRuntime & {
-      cancelInteractionBinding?: (binding: CompiledInteractionBinding) => boolean
+      stopInteractionBinding?: (binding: CompiledInteractionBinding) => boolean
     }
-    if (typeof runtime.cancelInteractionBinding === 'function') {
-      for (const binding of target.bindings) runtime.cancelInteractionBinding(binding)
+    if (typeof runtime.stopInteractionBinding === 'function') {
+      for (const binding of target.bindings) runtime.stopInteractionBinding(binding)
     } else {
       this.release(target)
     }
   }
 
-  cancelAll(): void {
+  stopAll(): void {
     for (const target of this.list()) {
       this.signalCancellation(target.id)
     }

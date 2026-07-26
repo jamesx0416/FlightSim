@@ -317,7 +317,7 @@ test('active status is structured and held release falls back to the stored targ
     source: 'devapi' as const,
     lifecycle: 'held' as const,
     startedAtMs: 100,
-    cancellationStatus: 'requested' as const
+    stopStatus: 'active' as const
   }]])
   const fallback = __devApiInteractionTestHooks.resolveInteractionWithHeldFallback(
     'CONTROL',
@@ -327,8 +327,8 @@ test('active status is structured and held release falls back to the stored targ
   )
   expect(fallback.ok ? fallback.target : null).toBe(target)
   expect(__devApiInteractionTestHooks.listActiveInteractionStates(active, ['adapter-only'], ['dispatcher-only'])).toEqual([
-    { target: target.id, operation: 'hold', source: 'devapi', lifecycle: 'held', startedAtMs: 100, cancellationStatus: 'requested' },
-    { target: 'adapter-only', operation: 'unknown', source: 'unknown', lifecycle: 'adapter-active', startedAtMs: null, cancellationStatus: 'active' },
-    { target: 'dispatcher-only', operation: 'unknown', source: 'unknown', lifecycle: 'dispatcher-active', startedAtMs: null, cancellationStatus: 'active' }
+    { target: target.id, operation: 'hold', source: 'devapi', lifecycle: 'held', startedAtMs: 100, stopStatus: 'active' },
+    { target: 'adapter-only', operation: 'unknown', source: 'unknown', lifecycle: 'adapter-active', startedAtMs: null, stopStatus: 'active' },
+    { target: 'dispatcher-only', operation: 'unknown', source: 'unknown', lifecycle: 'dispatcher-active', startedAtMs: null, stopStatus: 'active' }
   ])
 })
