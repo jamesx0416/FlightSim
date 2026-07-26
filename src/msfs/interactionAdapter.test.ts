@@ -690,7 +690,7 @@ test('runs authored single, double, repeat, drag, release, and stop lifecycle in
   expect(events.slice(-2)).toEqual(['LeftSingle', 'LeftDouble'])
   lifecycle.stop(target, base, { release: true, unlock: false })
   scheduler.tick(2)
-  expect(events.at(-1)).toBe('release-feedback')
+  expect(events.at(-1)).toBe('LeftRelease')
   expect(trace.some(record => record.phase === 'repeat-scheduled')).toBe(true)
   expect(trace.some(record => record.phase === 'repeat-fired')).toBe(true)
   expect(trace.some(record => record.phase === 'scope-cancelled')).toBe(true)

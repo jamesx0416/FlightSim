@@ -86,11 +86,55 @@ declare global {
   }
 }
 
-type DevApiResponse<T = unknown> = {
-  readonly ok: boolean
-  readonly summary: string
-  readonly data: T
-  readonly warnings?: readonly string[]
+type DevApiResponse<T = unknown, TFailure = unknown> =
+  | {
+      readonly ok: true
+      readonly summary: string
+      readonly data: T
+      readonly warnings?: readonly string[]
+    }
+  | {
+      readonly ok: false
+      readonly summary: string
+      readonly data: TFailure
+      readonly warnings?: readonly string[]
+    }
+
+type DevApiStatusData = Readonly<Record<string, unknown>> & {
+  readonly loadStage: Readonly<Record<string, unknown>> | null
+  readonly counts?: Readonly<Record<string, number>> & {
+    readonly gauges?: number
+    readonly loadedGauges?: number
+    readonly capturedGauges?: number
+  }
+  readonly diagnostics?: Readonly<Record<string, number>> & {
+    readonly error?: number
+  }
+}
+
+type DevApiGaugeSummary = Readonly<Record<string, unknown>> & {
+  readonly key: string
+  readonly textureName: string
+  readonly captured: boolean
+  readonly hasCaptureImage: boolean
+}
+
+type DevApiGaugeCheckData = {
+  readonly gauge: DevApiGaugeSummary
+  readonly screenshot: string | null
+}
+
+type DevApiGaugeCheckFailure = {
+  readonly key: string | undefined
+  readonly gauges: readonly DevApiGaugeSummary[]
+}
+
+function getDevApiLoadStage(): Readonly<Record<string, unknown>> | null {
+  const value = (globalThis as Record<string, unknown>).__msfsLoadStage
+  if (typeof value !== 'object' || value == null) {
+    return null
+  }
+  return value as Record<string, unknown>
 }
 
 type DevApiInteractionResult<T = unknown> = {
@@ -755,22 +799,35 @@ type DevApiRuntimeEvent =
   | RuntimeEffectEvent
   | RuntimeBridgeEvent
 
+type DevApiList = {
+  (options: {
+    readonly kind: 'gauges'
+    readonly filter?: string
+    readonly limit?: number
+  }): DevApiResponse<readonly DevApiGaugeSummary[]>
+  (options?: {
+    readonly kind?: DevApiListKind
+    readonly filter?: string
+    readonly limit?: number
+  }): DevApiResponse
+}
+
 type ViewerDevApi = {
   readonly ready: () => Promise<DevApiResponse>
-  readonly status: () => DevApiResponse
+  readonly status: () => DevApiResponse<DevApiStatusData>
   readonly help: () => DevApiResponse
   readonly schema: () => DevApiResponse
   readonly report: () => DevApiResponse
   readonly reset: (options?: { readonly runtime?: boolean; readonly coldAndDark?: boolean }) => DevApiResponse
   readonly find: (query: string, options?: { readonly limit?: number }) => DevApiResponse
-  readonly list: (options?: { readonly kind?: DevApiListKind; readonly filter?: string; readonly limit?: number }) => DevApiResponse
+  readonly list: DevApiList
   readonly interactions: DevApiInteractions
   readonly checkComponent: (target: string) => DevApiResponse
   readonly checkMaterial: (target: string, options?: { readonly descendants?: boolean }) => DevApiResponse
   readonly checkGauge: (
     key?: string,
     options?: { readonly screenshot?: boolean; readonly surface?: string; readonly source?: string }
-  ) => DevApiResponse
+  ) => DevApiResponse<DevApiGaugeCheckData, DevApiGaugeCheckFailure>
   readonly inspectWasm: (
     key?: string,
     options?: { readonly maxBytes?: number; readonly surface?: string; readonly source?: string }
@@ -1132,13 +1189,13 @@ async function refreshDevApiPackageVersions(): Promise<{
 
 export function installViewerBootDevApi(): void {
   const installedAt = performance.now()
-  const ok = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
+  const ok = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T, never> => ({
     ok: true,
     summary,
     data,
     ...(warnings != null && warnings.length > 0 ? { warnings } : {})
   })
-  const fail = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
+  const fail = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<never, T> => ({
     ok: false,
     summary,
     data,
@@ -1146,15 +1203,12 @@ export function installViewerBootDevApi(): void {
   })
   const sleep = (delayMs: number): Promise<void> =>
     new Promise(resolve => window.setTimeout(resolve, Math.max(0, delayMs)))
-  const getLoadStage = (): Record<string, unknown> | null => {
-    const value = (globalThis as Record<string, unknown>).__msfsLoadStage
-    return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
-  }
+  const getLoadStage = getDevApiLoadStage
   const getGltfLoadingManagerStats = (): Record<string, unknown> | null => {
     const value = (globalThis as Record<string, unknown>).__msfsGltfLoadingManagerStats
     return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
   }
-  const loadingData = (): Record<string, unknown> => ({
+  const loadingData = (): DevApiStatusData => ({
     ready: false,
     loadStage: getLoadStage(),
     gltfLoadingManager: getGltfLoadingManagerStats(),
@@ -1272,13 +1326,13 @@ export function installViewerBootDevApi(): void {
 
 export function installViewerDevApi(context: ViewerDevApiContext): void {
   let highlightGroup: Group | null = null
-  const ok = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
+  const ok = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T, never> => ({
     ok: true,
     summary,
     data,
     ...(warnings != null && warnings.length > 0 ? { warnings } : {})
   })
-  const fail = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<T> => ({
+  const fail = <T>(summary: string, data: T, warnings?: readonly string[]): DevApiResponse<never, T> => ({
     ok: false,
     summary,
     data,
@@ -1301,10 +1355,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     inspectedWasmModules.set(info.url, info)
     return info
   }
-  const getLoadStage = (): Record<string, unknown> | null => {
-    const value = (globalThis as Record<string, unknown>).__msfsLoadStage
-    return typeof value === 'object' && value != null ? value as Record<string, unknown> : null
-  }
+  const getLoadStage = getDevApiLoadStage
   const getDiagnostics = (): readonly ImportDiagnostic[] => dedupeDiagnostics([
     ...context.packageData.diagnostics,
     ...context.getCompiledBehaviors().diagnostics,
@@ -1402,7 +1453,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     runtime.captureImage != null ||
     runtime.staticCaptureImage != null ||
     runtime.textureName.toUpperCase() !== 'NO_TEXTURE'
-  const summarizeGauge = (runtime: VCockpitHtmlGaugeRuntime): Record<string, unknown> => ({
+  const summarizeGauge = (runtime: VCockpitHtmlGaugeRuntime): DevApiGaugeSummary => ({
     key: runtime.gaugeKey,
     surface: runtime.surface,
     textureName: runtime.textureName,
@@ -1833,7 +1884,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         entry: state.getEntry(definition.key) ?? null,
       }))
   }
-  const statusData = (): Record<string, unknown> => {
+  const statusData = (): DevApiStatusData => {
     const loadedModel = context.getLoadedModel()
     const cockpit = context.getCockpitCameraController()
     const binding = loadedModel.interior?.vcockpitBinding ?? null
@@ -2301,7 +2352,21 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       }
     })
   }
-  const list = (options: { readonly kind?: DevApiListKind; readonly filter?: string; readonly limit?: number } = {}): DevApiResponse => {
+  function list(options: {
+    readonly kind: 'gauges'
+    readonly filter?: string
+    readonly limit?: number
+  }): DevApiResponse<readonly DevApiGaugeSummary[]>
+  function list(options?: {
+    readonly kind?: DevApiListKind
+    readonly filter?: string
+    readonly limit?: number
+  }): DevApiResponse
+  function list(options: {
+    readonly kind?: DevApiListKind
+    readonly filter?: string
+    readonly limit?: number
+  } = {}): DevApiResponse {
     const kind = options.kind ?? 'components'
     const filter = options.filter ?? ''
     const limit = Math.max(1, Math.min(5_000, Math.floor(options.limit ?? 500)))
@@ -3178,30 +3243,24 @@ function evaluateDevApiWaitCondition(
   const options = typeof condition === 'string' ? {} : condition
   switch (kind) {
     case 'viewerReady': case 'ready':
-      const viewerStatus = api.status().data as { readonly loadStage?: { readonly stage?: unknown } }
-      return typeof viewerStatus.loadStage?.stage === 'string' && viewerStatus.loadStage.stage !== 'init:error'
+      const viewerStatus = api.status()
+      const stage = viewerStatus.ok ? viewerStatus.data.loadStage?.stage : null
+      return typeof stage === 'string' && stage !== 'init:error'
     case 'cockpitReady': case 'cockpitActive':
       return context.getCockpitCameraController().isActive()
     case 'gaugesLoaded': case 'gaugesReady':
-      const gaugeStatus = api.status().data as {
-        readonly counts?: {
-          readonly gauges?: unknown
-          readonly loadedGauges?: unknown
-          readonly capturedGauges?: unknown
-        }
-      }
-      const total = typeof gaugeStatus.counts?.gauges === 'number' ? gaugeStatus.counts.gauges : 0
-      const loaded = typeof gaugeStatus.counts?.loadedGauges === 'number' ? gaugeStatus.counts.loadedGauges : 0
-      const captured = typeof gaugeStatus.counts?.capturedGauges === 'number' ? gaugeStatus.counts.capturedGauges : 0
-      const gaugeRows = api.list({ kind: 'gauges', limit: 5_000 }).data as readonly {
-        readonly captured?: unknown
-        readonly hasCaptureImage?: unknown
-        readonly textureName?: unknown
-      }[]
-      const isCapturableGauge = (gauge: { readonly captured?: unknown; readonly hasCaptureImage?: unknown; readonly textureName?: unknown }): boolean =>
-        gauge.captured === true ||
-        gauge.hasCaptureImage === true ||
-        (typeof gauge.textureName === 'string' && gauge.textureName.toUpperCase() !== 'NO_TEXTURE')
+      const gaugeStatus = api.status()
+      if (!gaugeStatus.ok) return false
+      const total = gaugeStatus.data.counts?.gauges ?? 0
+      const loaded = gaugeStatus.data.counts?.loadedGauges ?? 0
+      const captured = gaugeStatus.data.counts?.capturedGauges ?? 0
+      const gaugeList = api.list({ kind: 'gauges', limit: 5_000 })
+      if (!gaugeList.ok) return false
+      const gaugeRows = gaugeList.data
+      const isCapturableGauge = (gauge: DevApiGaugeSummary): boolean =>
+        gauge.captured ||
+        gauge.hasCaptureImage ||
+        gauge.textureName.toUpperCase() !== 'NO_TEXTURE'
       const capturableTotal = gaugeRows.filter(isCapturableGauge).length
       const capturableCaptured = gaugeRows.filter(
         gauge => isCapturableGauge(gauge) && gauge.captured === true
@@ -3221,8 +3280,8 @@ function evaluateDevApiWaitCondition(
       return total > 0 && loaded >= minimum && (!capturesRequired || (captured >= capturedMinimum && capturableCaptured >= capturedMinimum))
     case 'gaugeCaptured':
       const gaugeTarget = options.target
-      const gauge = (api.checkGauge(gaugeTarget).data as { readonly gauge?: { readonly captured?: unknown } }).gauge
-      return gauge?.captured === true
+      const gaugeCheck = api.checkGauge(gaugeTarget)
+      return gaugeCheck.ok && gaugeCheck.data.gauge.captured
     case 'componentAvailable':
       const componentTarget = options.target ?? ''
       return api.checkComponent(componentTarget).ok
@@ -3235,8 +3294,8 @@ function evaluateDevApiWaitCondition(
         (options.below != null && variableValue < options.below)
       )
     case 'noNewErrors':
-      const errorStatus = api.status().data as { readonly diagnostics?: { readonly error?: unknown } }
-      return errorStatus.diagnostics?.error === 0
+      const errorStatus = api.status()
+      return errorStatus.ok && errorStatus.data.diagnostics?.error === 0
     case 'event':
       return evaluateDevApiEventWaitCondition(condition, context)
     case 'varChanged':
