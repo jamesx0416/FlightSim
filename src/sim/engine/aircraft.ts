@@ -125,11 +125,21 @@ export interface CanonicalSurfaceSystemConfig {
   readonly surfaces?: readonly CanonicalSurfaceConfig[]
 }
 
-export interface CanonicalSystemDefinition {
+interface CanonicalSystemDefinitionBase<
+  TKind extends string,
+  TConfig
+> {
   readonly id: string
-  readonly kind: string
-  readonly config?: Readonly<Record<string, unknown>>
+  readonly kind: TKind
+  readonly config?: TConfig
 }
+
+export type CanonicalSystemDefinition =
+  | CanonicalSystemDefinitionBase<'electrical', CanonicalElectricalSystemConfig>
+  | CanonicalSystemDefinitionBase<'fuel', CanonicalFuelSystemConfig>
+  | CanonicalSystemDefinitionBase<'propulsion', CanonicalPropulsionSystemConfig>
+  | CanonicalSystemDefinitionBase<'surfaces', CanonicalSurfaceSystemConfig>
+  | CanonicalSystemDefinitionBase<'surface-animation', CanonicalSurfaceSystemConfig>
 
 export interface CanonicalControlDefinition {
   readonly id: string

@@ -5749,9 +5749,9 @@ function createCanonicalSystemDefinitions(
   const propulsion = createCanonicalPropulsionSystemConfig(engineCount, aircraft.cfgFiles)
 
   return [
-    { id: 'electrical', kind: 'electrical', config: toCanonicalSystemConfig(electrical) },
-    { id: 'fuel', kind: 'fuel', config: toCanonicalSystemConfig(fuel) },
-    { id: 'propulsion', kind: 'propulsion', config: toCanonicalSystemConfig(propulsion) },
+    { id: 'electrical', kind: 'electrical', config: electrical },
+    { id: 'fuel', kind: 'fuel', config: fuel },
+    { id: 'propulsion', kind: 'propulsion', config: propulsion },
   ]
 }
 
@@ -5959,15 +5959,6 @@ function parseCfgScalarNumber(value: string | undefined): number | null {
   if (match == null) return null
   const parsed = Number.parseFloat(match[0])
   return Number.isFinite(parsed) ? parsed : null
-}
-
-function toCanonicalSystemConfig(
-  config:
-    | CanonicalElectricalSystemConfig
-    | CanonicalFuelSystemConfig
-    | CanonicalPropulsionSystemConfig
-): Readonly<Record<string, unknown>> {
-  return config as unknown as Readonly<Record<string, unknown>>
 }
 
 function rangeOneBased(count: number): number[] {
