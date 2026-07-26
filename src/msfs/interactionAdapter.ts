@@ -327,8 +327,6 @@ export class MsfsInteractionAdapter {
     }
     if (typeof runtime.stopInteractionBinding === 'function') {
       for (const binding of target.bindings) runtime.stopInteractionBinding(binding)
-    } else {
-      this.release(target)
     }
   }
 

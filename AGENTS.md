@@ -37,3 +37,5 @@ This command kills all agent-browsers; use it only if needed. It also runs autom
 - For routine checks, use bun typecheck, bun lint, and focused tests instead of bun run build
 - src/main.ts and src/msfs/runtime.ts are repeatedly re-read and large; use targeted symbol/search reads or known line ranges instead of broad sed scans.
 - When testing viewer or behavioural changes, assume dev server is running and test changes with `window.__DevApi`.
+- As this codebase currently has 0 users, consider and suggest breaking changes(devapi formats/structures, etc.) if it benefits in code reduction, clean code, and future development. The user must approve before breaking changes are applied.
+- Run the whole test suite instead of focused tests
