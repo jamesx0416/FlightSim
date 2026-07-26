@@ -92,7 +92,7 @@ import {
   type CockpitPhysicalInput,
   type EffectiveCockpitInputProfile
 } from './input/cockpitInputProfiles'
-import { installViewerBootDevApi, installViewerDevApi, VIEWER_INTERACTION_CANCEL_EVENT } from './devApi'
+import { installViewerBootDevApi, installViewerDevApi, VIEWER_INTERACTION_STOP_EVENT } from './devApi'
 import packageMetadata from '../package.json'
 import type {
   CompiledBehaviorSet,
@@ -270,7 +270,7 @@ export type CockpitCameraController = {
   readonly dispose: () => void
   readonly isActive: () => boolean
   readonly update: () => void
-  readonly cancelInteraction: () => void
+  readonly stopInteraction: () => void
   readonly enter: (source?: CockpitViewToggleSource) => void
   readonly exit: (source?: CockpitViewToggleSource) => void
 }
@@ -613,9 +613,9 @@ async function init(): Promise<void> {
   let runtimeMaterialState = collectRuntimeMaterialState(loadedModel.scene)
   runtime.bindAnimations(loadedModel.animations)
   let lastRuntimeModelRevision = runtime.getModelRevision()
-  let cancelCockpitPointerInteraction = (): void => {}
-  let cancelAllCockpitInteractionWork = (_reason: string): void => {
-    cancelCockpitPointerInteraction()
+  let stopCockpitPointerInteraction = (): void => {}
+  let stopAllCockpitInteractionWork = (_reason: string): void => {
+    stopCockpitPointerInteraction()
   }
   ;(globalThis as Record<string, unknown>).__lastAircraftRuntime = runtime
   const cockpitInteractionStats = {
@@ -929,7 +929,7 @@ async function init(): Promise<void> {
   }
 
   const rebuildRuntimeForLoadedModel = (): void => {
-    cancelAllCockpitInteractionWork('runtime-rebuild')
+    stopAllCockpitInteractionWork('runtime-rebuild')
     runtime.dispose()
     runtime = new AircraftRuntime(
       compiledBehaviors,
@@ -1592,7 +1592,8 @@ async function init(): Promise<void> {
   }
   const cockpitInteractionDispatcher = new CockpitInteractionDispatcher<MsfsInteractionTarget>(
     getCockpitInputProfile().interactionMode,
-    (target, action) => cockpitInteractionLifecycle.execute(target, action)
+    (target, action) => cockpitInteractionLifecycle.execute(target, action),
+    (target, action, unlock) => cockpitInteractionLifecycle.stop(target, action, { release: true, unlock })
   )
   const recordCockpitInteractionMiss = (
     reason: CockpitInteractionMissReason,
@@ -1665,24 +1666,24 @@ async function init(): Promise<void> {
       })
     }
   }
-  cancelAllCockpitInteractionWork = (reason: string): void => {
+  stopAllCockpitInteractionWork = (reason: string): void => {
     const snapshot = cockpitInteractionDispatcher.snapshot
     const targets = [...new Set([
       ...snapshot.busy,
       ...(snapshot.captured == null ? [] : [snapshot.captured])
     ])]
-    cancelCockpitPointerInteraction()
-    cockpitInteractionDispatcher.cancelAll()
-    cockpitInteractionLifecycle.cancelAll()
-    cockpitInteractionAdapter.cancelAll()
+    stopCockpitPointerInteraction()
+    cockpitInteractionDispatcher.stopAll()
+    cockpitInteractionLifecycle.stopAll()
+    cockpitInteractionAdapter.stopAll()
     clearCockpitInteractionFeedback()
-    traceCockpitInteraction(() => ({ kind: 'interaction-cancel', reason, targets }))
-    window.dispatchEvent(new CustomEvent(VIEWER_INTERACTION_CANCEL_EVENT, {
+    traceCockpitInteraction(() => ({ kind: 'interaction-stop', reason, targets }))
+    window.dispatchEvent(new CustomEvent(VIEWER_INTERACTION_STOP_EVENT, {
       detail: { reason, targets }
     }))
   }
   const syncCockpitInteractionMode = (): void => {
-    cancelAllCockpitInteractionWork('input-profile-replaced')
+    stopAllCockpitInteractionWork('input-profile-replaced')
     const mode = getCockpitInputProfile().interactionMode
     cockpitInteractionDispatcher.setMode(mode)
     cockpitInteractionAdapter.setMode(mode)
@@ -2134,7 +2135,7 @@ async function init(): Promise<void> {
 
   const releaseCockpitInteractionPress = (
     binding: CompiledInteractionBinding | null,
-    options: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary'; readonly pointerId?: number; readonly cancelled?: boolean } = { unlock: false }
+    options: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary'; readonly pointerId?: number; readonly stopped?: boolean } = { unlock: false }
   ): void => {
     if (binding == null) {
       return
@@ -2157,8 +2158,8 @@ async function init(): Promise<void> {
       }
       return
     }
-    if (options.cancelled) {
-      cockpitInteractionDispatcher.cancel(target.id)
+    if (options.stopped) {
+      cockpitInteractionDispatcher.stop(target.id)
     } else {
       if (options.unlock && getCockpitInputProfile().interactionMode === 'legacy') {
         cockpitInteractionDispatcher.dispatchCaptured({
@@ -2179,7 +2180,7 @@ async function init(): Promise<void> {
         source: 'mouse',
         target: mouseHistory.target,
         action: mouseHistory.dragged ? 'drag' : 'click',
-        result: options.cancelled ? 'cancelled' : 'executed',
+        result: options.stopped ? 'stopped' : 'executed',
         detail: {
           durationMs: Math.max(0, performance.now() - mouseHistory.startedAtMs),
           deltaX: mouseHistory.deltaX,
@@ -2487,7 +2488,7 @@ async function init(): Promise<void> {
     },
     restoreExteriorInteriorLod,
     (mode, source) => {
-      if (mode === 'exit') cancelAllCockpitInteractionWork('cockpit-exit')
+      if (mode === 'exit') stopAllCockpitInteractionWork('cockpit-exit')
       recordCockpitBenchmarkEvent(`cockpit:toggle:${mode}`, { source })
       cockpitInteractionHistory.add({
         timestampMs: Date.now(),
@@ -2506,8 +2507,8 @@ async function init(): Promise<void> {
     isCockpitInteractionBindingPresent,
     recordCockpitCameraAction
   )
-  cancelCockpitPointerInteraction = cockpitCameraController.cancelInteraction
-  window.addEventListener('pagehide', () => cancelAllCockpitInteractionWork('pagehide'), { once: true })
+  stopCockpitPointerInteraction = cockpitCameraController.stopInteraction
+  window.addEventListener('pagehide', () => stopAllCockpitInteractionWork('pagehide'), { once: true })
   ;(globalThis as Record<string, unknown>).__lastCockpitCameraController =
     cockpitCameraController
   loadedModel.interior?.vcockpitBinding?.setActive(shouldUpdateVCockpitGaugesForCurrentView())
@@ -3130,6 +3131,7 @@ async function init(): Promise<void> {
     getCockpitInteractionPickRegistry: () =>
       getCockpitInteractionPickRegistry(loadedModel.scene, runtime),
     getCockpitInteractionAdapter: () => cockpitInteractionAdapter,
+    getCockpitInteractionLifecycle: () => cockpitInteractionLifecycle,
     getCockpitInteractionDispatcher: () => cockpitInteractionDispatcher,
     getCockpitLocalization: () => cockpitLocalization,
     getCockpitCameraController: () => cockpitCameraController,
@@ -11839,7 +11841,7 @@ function installCockpitCameraShortcut(
   ) => boolean,
   onCockpitRelease?: (
     binding: CompiledInteractionBinding | null,
-    options?: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary'; readonly pointerId?: number; readonly cancelled?: boolean }
+    options?: { readonly unlock: boolean; readonly channel?: 'primary' | 'secondary' | 'tertiary'; readonly pointerId?: number; readonly stopped?: boolean }
   ) => void,
   onCockpitWheel?: (
     event: MouseEvent | PointerEvent,
@@ -11867,7 +11869,7 @@ function installCockpitCameraShortcut(
       dispose: () => {},
       isActive: () => false,
       update: () => {},
-      cancelInteraction: () => {},
+      stopInteraction: () => {},
       enter: () => {},
       exit: () => {}
     }
@@ -11990,7 +11992,7 @@ function installCockpitCameraShortcut(
       unlock: true,
       channel: activeInteractionChannel,
       pointerId: activePointerId ?? undefined,
-      cancelled: true
+      stopped: true
     })
     activeCockpitPressBinding = null
     onCockpitHover?.(null)
@@ -12039,7 +12041,7 @@ function installCockpitCameraShortcut(
 
   const onKeyDown = (event: KeyboardEvent): void => {
     if (event.code === 'Escape' && activeCockpitPressBinding != null) {
-      onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, cancelled: true })
+      onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, stopped: true })
       activeCockpitPressBinding = null
       releasePointer()
       event.preventDefault()
@@ -12079,7 +12081,7 @@ function installCockpitCameraShortcut(
         event.preventDefault()
         return
       }
-      cancelActivePointer()
+      stopActivePointer()
     } else if (activePointerId != null) {
       event.preventDefault()
       return
@@ -12200,7 +12202,7 @@ function installCockpitCameraShortcut(
     if (activePointerId !== event.pointerId) {
       return
     }
-    cancelActivePointer()
+    stopActivePointer()
     event.preventDefault()
   }
 
@@ -12213,11 +12215,11 @@ function installCockpitCameraShortcut(
 
   const onPointerLeave = (): void => onCockpitHover?.(null)
 
-  const cancelActivePointer = (): void => {
+  const stopActivePointer = (): void => {
     if (activePointerId != null && activeCockpitPressBinding == null) {
       onCameraAction?.('pan', 'cancel', { pointerId: activePointerId })
     }
-    onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, cancelled: true })
+    onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, stopped: true })
     activeCockpitPressBinding = null
     releasePointer()
   }
@@ -12266,27 +12268,27 @@ function installCockpitCameraShortcut(
   }
 
   window.addEventListener('keydown', onKeyDown)
-  window.addEventListener('blur', cancelActivePointer)
+  window.addEventListener('blur', stopActivePointer)
   window.addEventListener('pointermove', onPointerMove)
   window.addEventListener('pointerup', onPointerUp)
   window.addEventListener('pointercancel', onPointerCancel)
-  window.addEventListener('cockpit-input-settings-changed', cancelActivePointer)
+  window.addEventListener('cockpit-input-settings-changed', stopActivePointer)
   domElement.addEventListener('pointerdown', onPointerDown)
   domElement.addEventListener('pointerleave', onPointerLeave)
-  domElement.addEventListener('lostpointercapture', cancelActivePointer)
+  domElement.addEventListener('lostpointercapture', stopActivePointer)
   domElement.addEventListener('contextmenu', onContextMenu)
   domElement.addEventListener('wheel', onWheel, { passive: false })
   disposeCockpitCameraShortcut = () => {
     exitCockpitView()
     window.removeEventListener('keydown', onKeyDown)
-    window.removeEventListener('blur', cancelActivePointer)
+    window.removeEventListener('blur', stopActivePointer)
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerup', onPointerUp)
     window.removeEventListener('pointercancel', onPointerCancel)
-    window.removeEventListener('cockpit-input-settings-changed', cancelActivePointer)
+    window.removeEventListener('cockpit-input-settings-changed', stopActivePointer)
     domElement.removeEventListener('pointerdown', onPointerDown)
     domElement.removeEventListener('pointerleave', onPointerLeave)
-    domElement.removeEventListener('lostpointercapture', cancelActivePointer)
+    domElement.removeEventListener('lostpointercapture', stopActivePointer)
     domElement.removeEventListener('contextmenu', onContextMenu)
     domElement.removeEventListener('wheel', onWheel)
   }
@@ -12303,11 +12305,11 @@ function installCockpitCameraShortcut(
         activeCockpitPressBinding != null &&
         isCockpitInteractionTargetPresent?.(activeCockpitPressBinding) === false
       ) {
-        cancelActivePointer()
+        stopActivePointer()
       }
       applyCockpitCamera()
     },
-    cancelInteraction: cancelActivePointer,
+    stopInteraction: stopActivePointer,
     enter: source => enterCockpitView(source ?? 'benchmark'),
     exit: source => exitCockpitView(source ?? 'benchmark')
   }
@@ -13212,9 +13214,9 @@ const COCKPIT_BINDING_ROWS: readonly {
   { context: 'interaction', action: 'tertiary', label: 'Interaction: Tertiary' },
   { context: 'interaction', action: 'increase', label: 'Interaction: Increase' },
   { context: 'interaction', action: 'decrease', label: 'Interaction: Decrease' },
-  { context: 'emptyCockpit', action: 'cameraPan', label: 'Empty cockpit: Camera pan' },
-  { context: 'emptyCockpit', action: 'cameraZoomIn', label: 'Empty cockpit: Zoom in' },
-  { context: 'emptyCockpit', action: 'cameraZoomOut', label: 'Empty cockpit: Zoom out' }
+  { context: 'emptyCockpit', action: 'cameraPan', label: 'Camera: Pan' },
+  { context: 'emptyCockpit', action: 'cameraZoomIn', label: 'Camera: Zoom in' },
+  { context: 'emptyCockpit', action: 'cameraZoomOut', label: 'Camera: Zoom out' }
 ]
 
 function createCockpitInputSettingsEditor(options: {
@@ -13292,7 +13294,7 @@ function createCockpitInputSettingsEditor(options: {
       'Input profile',
       scope === 'global' ? 'Global mouse profile' : 'Aircraft mouse profile',
       scope === 'global'
-        ? 'Select the default physical mouse mapping used by every aircraft.'
+      ? 'Select the default physical mouse mapping used by every aircraft.'
         : 'Choose a package-scoped override or inherit the global mouse profile.'
     ))
     const profileSelect = createSettingsSelect(`${scope} input profile`)
@@ -13310,7 +13312,7 @@ function createCockpitInputSettingsEditor(options: {
     const mappingHeader = createSettingsSectionHeader(
       'Physical remapping',
       'Mouse bindings',
-      'Capture a mouse button or wheel direction. Escape remains the fixed cancel and unlock input.'
+      'Capture a mouse button or wheel direction. Escape stops an active cockpit control safely.'
     )
     const mappingForm = document.createElement('div')
     mappingForm.className = 'viewer-settings-form'
@@ -13495,7 +13497,7 @@ function createCockpitInputSettingsEditor(options: {
         pendingCapture = { scope, context: descriptor.context, action: descriptor.action, button: capture }
         capture.textContent = 'Listening...'
         capture.setAttribute('aria-pressed', 'true')
-        editor.status.textContent = `Press a mouse button or scroll for ${descriptor.label}. Escape cancels.`
+        editor.status.textContent = `Press a mouse button or scroll for ${descriptor.label}. Escape cancels capture and stops active cockpit controls.`
       })
       const clear = createCompactSettingsButton('Clear')
       clear.disabled = editableProfileId == null || inputs.length === 0

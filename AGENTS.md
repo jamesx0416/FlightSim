@@ -28,7 +28,6 @@ Future todo(Do not do this unless user asks): Continue implementation until ever
 # Dev server URL
 
 https://vanilla-3dtiles.localhost:3000
-http://100.68.82.123:3001
 
 `bun scripts/kill-stale-agent-browsers.mjs --kill-all`
 
@@ -38,27 +37,3 @@ This command kills all agent-browsers; use it only if needed. It also runs autom
 - For routine checks, use bun typecheck, bun lint, and focused tests instead of bun run build
 - src/main.ts and src/msfs/runtime.ts are repeatedly re-read and large; use targeted symbol/search reads or known line ranges instead of broad sed scans.
 - When testing viewer or behavioural changes, assume dev server is running and test changes with `window.__DevApi`.
-
-<!-- codebase-memory-mcp:start -->
-# Codebase Knowledge Graph (codebase-memory-mcp)
-
-This project uses codebase-memory-mcp to maintain a knowledge graph of the codebase.
-ALWAYS prefer MCP graph tools over grep/glob/file-search for code discovery.
-
-## Priority Order
-1. `search_graph` — find functions, classes, routes, variables by pattern
-2. `trace_path` — trace who calls a function or what it calls
-3. `get_code_snippet` — read specific function/class source code
-4. `query_graph` — run Cypher queries for complex patterns
-5. `get_architecture` — high-level project summary
-
-## When to fall back to grep/glob
-- Searching for string literals, error messages, config values
-- Searching non-code files (Dockerfiles, shell scripts, configs)
-- When MCP tools return insufficient results
-
-## Examples
-- Find a handler: `search_graph(name_pattern=".*OrderHandler.*")`
-- Who calls it: `trace_path(function_name="OrderHandler", direction="inbound")`
-- Read source: `get_code_snippet(qualified_name="pkg/orders.OrderHandler")`
-<!-- codebase-memory-mcp:end -->

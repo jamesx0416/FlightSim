@@ -919,7 +919,7 @@ export class AircraftRuntime {
     return true
   }
 
-  cancelInteractionBinding(binding: CompiledInteractionBinding): boolean {
+  stopInteractionBinding(binding: CompiledInteractionBinding): boolean {
     if (!this.compiled.interactionBindings.includes(binding)) return false
     const delayedRelease = this.delayedInteractionReleases.get(binding)
     if (delayedRelease != null) this.interactionScheduler.cancel(delayedRelease)
@@ -936,7 +936,6 @@ export class AircraftRuntime {
     for (const variableKey of binding.feedbackVariableKeys) {
       this.hostServices.writeVariable(variableKey, 0)
     }
-    this.executeInteractionReleaseBinding(binding)
     return true
   }
 

@@ -48,6 +48,7 @@ import {
 } from './msfs/packageAssets'
 import type { RendererInfo } from './rendering/createAppRenderer'
 import { MsfsInteractionAdapter, type InteractionResolution, type MsfsInteractionTarget } from './msfs/interactionAdapter'
+import type { MsfsInteractionLifecycle } from './msfs/interactionLifecycle'
 import { CockpitInteractionDispatcher, type CanonicalCockpitAction, type CockpitInteractionChannel, type CockpitInteractionOperation, type CockpitRelativeDirection } from './input/cockpitInteraction'
 import type { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
 import {
@@ -158,8 +159,8 @@ type DevApiInteractions = {
   readonly on: (target: string, options?: InteractionSelector) => Promise<DevApiInteractionResult>
   readonly off: (target: string, options?: InteractionSelector) => Promise<DevApiInteractionResult>
   readonly toggle: (target: string, options?: InteractionSelector) => Promise<DevApiInteractionResult>
-  readonly cancel: (target: string) => DevApiInteractionResult
-  readonly cancelAll: () => DevApiInteractionResult
+  readonly stop: (target: string) => DevApiInteractionResult
+  readonly stopAll: () => DevApiInteractionResult
   readonly dispatch: (target: string, action: CanonicalCockpitAction) => Promise<DevApiInteractionResult>
 }
 
@@ -528,7 +529,7 @@ function startCanonicalInteractionDispatch(
       targetName,
       dependencies.resolve(targetName),
       dependencies.busyTargetIds(),
-      action.operation !== 'release' && action.operation !== 'cancel'
+      action.operation !== 'release'
     )
     if (!request.ok) return Promise.resolve(request.result)
     const route = dependencies.route(request.target, action)
@@ -572,7 +573,7 @@ type ActiveDevApiInteraction = {
   readonly source: CanonicalCockpitAction['source']
   readonly lifecycle: 'running' | 'held'
   readonly startedAtMs: number
-  readonly cancellationStatus: 'active' | 'requested'
+  readonly stopStatus: 'active'
 }
 
 function resolveInteractionWithHeldFallback(
@@ -600,18 +601,18 @@ function listActiveInteractionStates(
     source: state.source,
     lifecycle: state.lifecycle,
     startedAtMs: state.startedAtMs,
-    cancellationStatus: state.cancellationStatus
+    stopStatus: state.stopStatus
   }))
   const known = new Set(rows.map(row => row.target))
   for (const target of adapterTargetIds) {
     if (known.has(target)) continue
     known.add(target)
-    rows.push({ target, operation: 'unknown', source: 'unknown', lifecycle: 'adapter-active', startedAtMs: null, cancellationStatus: 'active' })
+    rows.push({ target, operation: 'unknown', source: 'unknown', lifecycle: 'adapter-active', startedAtMs: null, stopStatus: 'active' })
   }
   for (const target of dispatcherTargetIds) {
     if (known.has(target)) continue
     known.add(target)
-    rows.push({ target, operation: 'unknown', source: 'unknown', lifecycle: 'dispatcher-active', startedAtMs: null, cancellationStatus: 'active' })
+    rows.push({ target, operation: 'unknown', source: 'unknown', lifecycle: 'dispatcher-active', startedAtMs: null, stopStatus: 'active' })
   }
   return rows
 }
@@ -849,6 +850,7 @@ type ViewerDevApiContext = {
   readonly cockpitInteractionTrace: CockpitInteractionTrace
   readonly getCockpitInteractionPickRegistry: () => CockpitInteractionPickRegistry
   readonly getCockpitInteractionAdapter: () => MsfsInteractionAdapter
+  readonly getCockpitInteractionLifecycle: () => MsfsInteractionLifecycle
   readonly getCockpitInteractionDispatcher: () => CockpitInteractionDispatcher<MsfsInteractionTarget>
   readonly getCockpitLocalization: () => MsfsLocalization
   readonly getCockpitCameraController: () => CockpitCameraController
@@ -860,9 +862,9 @@ type ViewerDevApiContext = {
   readonly applySettings: (settings: Partial<ViewerConfigProfile>) => Promise<string | null>
 }
 
-export const VIEWER_INTERACTION_CANCEL_EVENT = 'flight-sim:interaction-cancel'
+export const VIEWER_INTERACTION_STOP_EVENT = 'flight-sim:interaction-stop'
 
-export interface ViewerInteractionCancelDetail {
+export interface ViewerInteractionStopDetail {
   readonly reason: string
   readonly targets: readonly string[]
 }
@@ -1893,25 +1895,30 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     ) ?? null
   }
   const interactionAdapter = context.getCockpitInteractionAdapter()
+  const interactionLifecycle = context.getCockpitInteractionLifecycle()
   const interactionDispatcher = context.getCockpitInteractionDispatcher()
   const interactionHistory = context.cockpitInteractionHistory
   const interactionTrace = context.cockpitInteractionTrace
   const activeInteractionStates = new Map<string, ActiveDevApiInteraction>()
-  window.addEventListener(VIEWER_INTERACTION_CANCEL_EVENT, event => {
-    const detail = (event as CustomEvent<ViewerInteractionCancelDetail>).detail
+  window.addEventListener(VIEWER_INTERACTION_STOP_EVENT, event => {
+    const detail = (event as CustomEvent<ViewerInteractionStopDetail>).detail
     const states = [...activeInteractionStates.values()]
     for (const state of states) {
-      interactionDispatcher.cancel(state.target.id)
-      interactionAdapter.cancel(state.target)
-      if (state.lifecycle === 'held') interactionAdapter.release(state.target)
+      interactionLifecycle.stop(
+        state.target,
+        { source: 'devapi', operation: 'release', phase: 'release', timestampMs: performance.now() },
+        { release: state.lifecycle === 'held', unlock: false }
+      )
+      interactionDispatcher.finish(state.target.id)
     }
+    interactionAdapter.stopAll()
     activeInteractionStates.clear()
     interactionHistory.add({
       timestampMs: Date.now(),
       source: 'viewer',
       target: '*',
-      action: 'cancel',
-      result: 'cancelled',
+      action: 'stop',
+      result: 'stopped',
       detail: {
         reason: detail?.reason ?? 'external',
         targets: detail?.targets ?? states.map(state => state.target.id)
@@ -1976,7 +1983,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
           source: 'devapi',
           lifecycle: 'running',
           startedAtMs: Date.now(),
-          cancellationStatus: 'active'
+          stopStatus: 'active'
         })
       }
       if (operation === 'on' || operation === 'off') {
@@ -2194,51 +2201,62 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     on: (target, options) => runInteraction(target, 'on', options),
     off: (target, options) => runInteraction(target, 'off', options),
     toggle: (target, options) => runInteraction(target, 'toggle', options),
-    cancel: target => {
+    stop: target => {
       const resolved = interactionAdapter.resolve(target)
       if (!resolved.ok) return interactionResolutionFailure(target, resolved)
       const state = activeInteractionStates.get(resolved.target.id)
-      if (state != null) {
-        activeInteractionStates.set(resolved.target.id, { ...state, cancellationStatus: 'requested' })
+      if (state?.lifecycle === 'held') {
+        interactionLifecycle.stop(
+          resolved.target,
+          { source: 'devapi', operation: 'release', phase: 'release', timestampMs: performance.now() },
+          { release: true, unlock: false }
+        )
+        interactionDispatcher.finish(resolved.target.id)
+      } else {
+        interactionDispatcher.stop(resolved.target.id)
+        interactionLifecycle.stop(
+          resolved.target,
+          { source: 'devapi', operation: 'release', phase: 'release', timestampMs: performance.now() },
+          { release: false, unlock: false }
+        )
       }
-      interactionDispatcher.cancel(resolved.target.id)
-      interactionAdapter.cancel(resolved.target)
-      if (state?.lifecycle === 'held') activeInteractionStates.delete(resolved.target.id)
+      activeInteractionStates.delete(resolved.target.id)
       interactionHistory.add({
         timestampMs: Date.now(),
         source: 'devapi',
         target: resolved.target.id,
-        action: 'cancel',
-        result: 'cancelled'
+        action: 'stop',
+        result: 'stopped'
       })
-      return interactionResult(true, 'CANCELLED', `Cancelled ${target}.`, {
+      return interactionResult(true, 'STOPPED', `Stopped ${target}.`, {
         target: resolved.target.id,
-        cancellationStatus: 'requested'
+        status: 'stopped'
       })
     },
-    cancelAll: () => {
+    stopAll: () => {
       const states = [...activeInteractionStates.values()]
+      interactionDispatcher.stopAll()
       for (const state of states) {
-        activeInteractionStates.set(state.target.id, { ...state, cancellationStatus: 'requested' })
+        interactionLifecycle.stop(
+          state.target,
+          { source: 'devapi', operation: 'release', phase: 'release', timestampMs: performance.now() },
+          { release: state.lifecycle === 'held', unlock: false }
+        )
+        interactionDispatcher.finish(state.target.id)
       }
-      interactionDispatcher.cancelAll()
-      interactionAdapter.cancelAll()
-      for (const state of states) {
-        if (state.lifecycle !== 'held') continue
-        interactionAdapter.release(state.target)
-        activeInteractionStates.delete(state.target.id)
-      }
+      interactionAdapter.stopAll()
+      activeInteractionStates.clear()
       interactionHistory.add({
         timestampMs: Date.now(),
         source: 'devapi',
         target: '*',
-        action: 'cancel',
-        result: 'cancelled',
+        action: 'stop',
+        result: 'stopped',
         detail: { targets: states.map(state => state.target.id) }
       })
-      return interactionResult(true, 'CANCELLED', 'Cancelled all interactions.', {
+      return interactionResult(true, 'STOPPED', 'Stopped all interactions.', {
         targets: states.map(state => state.target.id),
-        cancellationStatus: 'requested'
+        status: 'stopped'
       })
     },
     dispatch: (target, action) => startCanonicalInteractionDispatch(target, action, {
@@ -2273,7 +2291,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             source: canonicalAction.source,
             lifecycle: 'held',
             startedAtMs: Date.now(),
-            cancellationStatus: 'active'
+            stopStatus: 'active'
           })
         }
         if (canonicalAction.operation === 'release') {
@@ -2360,7 +2378,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     schema: () => ok('Returned DevApi schema summary.', {
       response: '{ ok, summary, data, warnings? }',
       listKinds: ['nodes', 'nodeAnimations', 'components', 'interactions', 'gauges', 'animations', 'animationTriggers', 'canonicalVisuals', 'materials', 'inputEvents', 'variables', 'state', 'commands', 'diagnostics', 'events', 'settings', 'camera'],
-      interactionMethods: ['list', 'describe', 'active', 'history', 'press', 'hold', 'release', 'turn', 'increase', 'decrease', 'adjust', 'set', 'on', 'off', 'toggle', 'cancel', 'cancelAll', 'dispatch'],
+      interactionMethods: ['list', 'describe', 'active', 'history', 'press', 'hold', 'release', 'turn', 'increase', 'decrease', 'adjust', 'set', 'on', 'off', 'toggle', 'stop', 'stopAll', 'dispatch'],
       waitConditions: ['viewerReady', 'cockpitReady', 'gaugesLoaded', 'gaugesReady', 'gaugeCaptured', 'componentAvailable', 'varEquals', 'varAbove', 'varBelow', 'noNewErrors', 'event', 'varChanged', 'interactionExecuted'],
       waitEventKinds: ['key', 'html', 'sound', 'effect', 'bridge'],
       diagnosticsOptions: ['severity', 'filter', 'limit', 'includeGauges'],

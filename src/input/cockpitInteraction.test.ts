@@ -13,14 +13,15 @@ describe('CockpitInteractionDispatcher', () => {
     expect(actions[0]?.clickCount).toBe(2)
   })
 
-  test('lock mode locks authored complex controls and cancels safely', () => {
+  test('lock mode stops authored complex controls through release then unlock', () => {
     const operations: string[] = []
-    const target: CockpitInteractionTarget = { id: 'knob', lockable: true, operations: ['lock', 'hold', 'unlock', 'cancel'] }
+    const target: CockpitInteractionTarget = { id: 'knob', lockable: true, operations: ['lock', 'hold', 'release', 'unlock'] }
     const dispatcher = new CockpitInteractionDispatcher('lock', (_target, action) => { operations.push(action.operation); return true })
     dispatcher.pointerDown(target, 2, 'primary', 1)
-    dispatcher.cancelAll()
-    expect(operations).toEqual(['lock', 'hold', 'cancel', 'unlock'])
+    dispatcher.stopAll()
+    expect(operations).toEqual(['lock', 'hold', 'release', 'unlock'])
     expect(dispatcher.snapshot.captured).toBe(null)
+    expect(dispatcher.snapshot.state).toBe('stopped')
   })
 
   test('consumes busy targets and keeps capture on the initiating pointer', () => {

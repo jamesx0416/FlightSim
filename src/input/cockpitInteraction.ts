@@ -5,7 +5,7 @@ export type CockpitRelativeDirection = 'increase' | 'decrease' | 'left' | 'right
 export type CockpitInteractionSource = 'mouse' | 'keyboard' | 'gamepad' | 'touch' | 'vr' | 'hid' | 'devapi'
 export type CockpitInteractionOperation =
   | 'press' | 'hold' | 'release' | 'turn' | 'increase' | 'decrease' | 'adjust' | 'set'
-  | 'on' | 'off' | 'toggle' | 'hover' | 'leave' | 'lock' | 'unlock' | 'cancel'
+  | 'on' | 'off' | 'toggle' | 'hover' | 'leave' | 'lock' | 'unlock'
 
 export interface CockpitInteractionInput {
   readonly source: CockpitInteractionSource
@@ -49,7 +49,7 @@ export interface CockpitInteractionMiss {
   readonly detail?: Readonly<Record<string, unknown>>
 }
 
-export type CockpitInteractionState = 'idle' | 'hovered' | 'pressed' | 'captured' | 'dragging' | 'held' | 'repeating' | 'released' | 'locked' | 'cancelled'
+export type CockpitInteractionState = 'idle' | 'hovered' | 'pressed' | 'captured' | 'dragging' | 'held' | 'repeating' | 'released' | 'locked' | 'stopped'
 
 export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
   private hovered: T | null = null
@@ -69,7 +69,8 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
 
   constructor(
     private mode: CockpitInteractionMode,
-    private readonly execute: (target: T, action: CanonicalCockpitAction) => boolean
+    private readonly execute: (target: T, action: CanonicalCockpitAction) => boolean,
+    private readonly stopCaptured?: (target: T, action: CanonicalCockpitAction, unlock: boolean) => boolean
   ) {}
 
   get snapshot(): Readonly<{
@@ -97,7 +98,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     this.latestMiss = { reason, timestampMs, detail }
   }
 
-  setMode(mode: CockpitInteractionMode): void { this.cancelAll(); this.mode = mode }
+  setMode(mode: CockpitInteractionMode): void { this.stopAll(); this.mode = mode }
 
   claim(target: T, operation: CockpitInteractionOperation): boolean {
     if (this.busy.has(target.id)) {
@@ -166,7 +167,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
       this.recordMiss('unsupported', { target: target.id, operation: action.operation }, action.timestampMs)
       return 'unsupported'
     }
-    if (this.busy.has(target.id) && action.operation !== 'release' && action.operation !== 'cancel') {
+    if (this.busy.has(target.id) && action.operation !== 'release') {
       this.recordMiss('busy', { target: target.id, operation: action.operation }, action.timestampMs)
       return 'busy'
     }
@@ -175,7 +176,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
       return 'unsupported'
     }
     if (action.operation === 'hold') this.busy.set(target.id, 'hold')
-    if (action.operation === 'release' || action.operation === 'cancel') this.busy.delete(target.id)
+    if (action.operation === 'release') this.busy.delete(target.id)
     return 'executed'
   }
 
@@ -186,20 +187,25 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     return executed
   }
 
-  cancel(targetId?: string, timestampMs = performance.now()): boolean {
+  stop(targetId?: string, timestampMs = performance.now()): boolean {
     if (targetId != null && this.captured?.target.id !== targetId && !this.busy.has(targetId)) return false
     if (this.captured != null && (targetId == null || this.captured.target.id === targetId)) {
-      this.execute(this.captured.target, event('cancel', 'cancel', timestampMs))
-      this.execute(this.captured.target, event('unlock', 'cancel', timestampMs))
+      const capture = this.captured
+      const release = { ...event('release', 'release', timestampMs), channel: capture.channel, pointerId: capture.pointerId }
+      if (this.stopCaptured != null) this.stopCaptured(capture.target, release, capture.locked)
+      else {
+        this.execute(capture.target, release)
+        if (capture.locked) this.execute(capture.target, { ...event('unlock', 'release', timestampMs), channel: capture.channel, pointerId: capture.pointerId })
+      }
       this.busy.delete(this.captured.target.id)
       this.captured = null
     }
     if (targetId == null) this.busy.clear(); else this.busy.delete(targetId)
-    this.state = 'cancelled'
+    this.state = 'stopped'
     return true
   }
 
-  cancelAll(): void { this.cancel() }
+  stopAll(): void { this.stop() }
 }
 
 function event(operation: CockpitInteractionOperation, phase: CockpitInteractionPhase, timestampMs: number): CanonicalCockpitAction {
