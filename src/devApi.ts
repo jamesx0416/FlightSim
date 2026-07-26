@@ -3175,75 +3175,77 @@ function evaluateDevApiWaitCondition(
   state: DevApiWaitEvaluationState
 ): boolean {
   const kind = getDevApiWaitConditionKind(condition)
-  if (kind === 'viewerReady' || kind === 'ready') {
-    const status = api.status().data as { readonly loadStage?: { readonly stage?: unknown } }
-    return typeof status.loadStage?.stage === 'string' && status.loadStage.stage !== 'init:error'
-  }
-  if (kind === 'cockpitReady' || kind === 'cockpitActive') return context.getCockpitCameraController().isActive()
-  if (kind === 'gaugesLoaded' || kind === 'gaugesReady') {
-    const status = api.status().data as {
-      readonly counts?: {
-        readonly gauges?: unknown
-        readonly loadedGauges?: unknown
-        readonly capturedGauges?: unknown
+  const options = typeof condition === 'string' ? {} : condition
+  switch (kind) {
+    case 'viewerReady': case 'ready':
+      const viewerStatus = api.status().data as { readonly loadStage?: { readonly stage?: unknown } }
+      return typeof viewerStatus.loadStage?.stage === 'string' && viewerStatus.loadStage.stage !== 'init:error'
+    case 'cockpitReady': case 'cockpitActive':
+      return context.getCockpitCameraController().isActive()
+    case 'gaugesLoaded': case 'gaugesReady':
+      const gaugeStatus = api.status().data as {
+        readonly counts?: {
+          readonly gauges?: unknown
+          readonly loadedGauges?: unknown
+          readonly capturedGauges?: unknown
+        }
       }
-    }
-    const total = typeof status.counts?.gauges === 'number' ? status.counts.gauges : 0
-    const loaded = typeof status.counts?.loadedGauges === 'number' ? status.counts.loadedGauges : 0
-    const captured = typeof status.counts?.capturedGauges === 'number' ? status.counts.capturedGauges : 0
-    const gaugeRows = api.list({ kind: 'gauges', limit: 5_000 }).data as readonly {
-      readonly captured?: unknown
-      readonly hasCaptureImage?: unknown
-      readonly textureName?: unknown
-    }[]
-    const isCapturableGauge = (gauge: { readonly captured?: unknown; readonly hasCaptureImage?: unknown; readonly textureName?: unknown }): boolean =>
-      gauge.captured === true ||
-      gauge.hasCaptureImage === true ||
-      (typeof gauge.textureName === 'string' && gauge.textureName.toUpperCase() !== 'NO_TEXTURE')
-    const capturableTotal = gaugeRows.filter(isCapturableGauge).length
-    const capturableCaptured = gaugeRows.filter(
-      gauge => isCapturableGauge(gauge) && gauge.captured === true
-    ).length
-    const requestedMinimum = typeof condition === 'string' ? undefined : condition.minimum
-    const minimum =
-      requestedMinimum == null
-        ? total
-        : Math.max(0, Math.min(total, Math.floor(requestedMinimum)))
-    const capturedMinimum =
-      requestedMinimum == null
-        ? capturableTotal
-        : Math.max(0, Math.min(capturableTotal, Math.floor(requestedMinimum)))
-    const requireCaptured =
-      kind === 'gaugesReady' &&
-      (typeof condition === 'string' || condition.captured !== false)
-    return total > 0 && loaded >= minimum && (!requireCaptured || (captured >= capturedMinimum && capturableCaptured >= capturedMinimum))
+      const total = typeof gaugeStatus.counts?.gauges === 'number' ? gaugeStatus.counts.gauges : 0
+      const loaded = typeof gaugeStatus.counts?.loadedGauges === 'number' ? gaugeStatus.counts.loadedGauges : 0
+      const captured = typeof gaugeStatus.counts?.capturedGauges === 'number' ? gaugeStatus.counts.capturedGauges : 0
+      const gaugeRows = api.list({ kind: 'gauges', limit: 5_000 }).data as readonly {
+        readonly captured?: unknown
+        readonly hasCaptureImage?: unknown
+        readonly textureName?: unknown
+      }[]
+      const isCapturableGauge = (gauge: { readonly captured?: unknown; readonly hasCaptureImage?: unknown; readonly textureName?: unknown }): boolean =>
+        gauge.captured === true ||
+        gauge.hasCaptureImage === true ||
+        (typeof gauge.textureName === 'string' && gauge.textureName.toUpperCase() !== 'NO_TEXTURE')
+      const capturableTotal = gaugeRows.filter(isCapturableGauge).length
+      const capturableCaptured = gaugeRows.filter(
+        gauge => isCapturableGauge(gauge) && gauge.captured === true
+      ).length
+      const requestedMinimum = options.minimum
+      const minimum =
+        requestedMinimum == null
+          ? total
+          : Math.max(0, Math.min(total, Math.floor(requestedMinimum)))
+      const capturedMinimum =
+        requestedMinimum == null
+          ? capturableTotal
+          : Math.max(0, Math.min(capturableTotal, Math.floor(requestedMinimum)))
+      const capturesRequired =
+        kind === 'gaugesReady' &&
+        options.captured !== false
+      return total > 0 && loaded >= minimum && (!capturesRequired || (captured >= capturedMinimum && capturableCaptured >= capturedMinimum))
+    case 'gaugeCaptured':
+      const gaugeTarget = options.target
+      const gauge = (api.checkGauge(gaugeTarget).data as { readonly gauge?: { readonly captured?: unknown } }).gauge
+      return gauge?.captured === true
+    case 'componentAvailable':
+      const componentTarget = options.target ?? ''
+      return api.checkComponent(componentTarget).ok
+    case 'varEquals': case 'varAbove': case 'varBelow':
+      if (options.var == null) return false
+      const variableValue = context.getRuntimeHost().readVariable(options.var, options.unit ?? null)
+      return (
+        (options.equals != null && Math.abs(variableValue - options.equals) < 1e-6) ||
+        (options.above != null && variableValue > options.above) ||
+        (options.below != null && variableValue < options.below)
+      )
+    case 'noNewErrors':
+      const errorStatus = api.status().data as { readonly diagnostics?: { readonly error?: unknown } }
+      return errorStatus.diagnostics?.error === 0
+    case 'event':
+      return evaluateDevApiEventWaitCondition(condition, context)
+    case 'varChanged':
+      return evaluateDevApiVarChangedCondition(condition, context, state)
+    case 'interactionExecuted':
+      return evaluateDevApiInteractionExecutedCondition(condition, context, state)
+    default:
+      return false
   }
-  if (kind === 'gaugeCaptured') {
-    const target = typeof condition === 'string' ? undefined : condition.target
-    const gauge = (api.checkGauge(target).data as { readonly gauge?: { readonly captured?: unknown } }).gauge
-    return gauge?.captured === true
-  }
-  if (kind === 'componentAvailable') {
-    const target = typeof condition === 'string' ? '' : condition.target ?? ''
-    return api.checkComponent(target).ok
-  }
-  if (kind === 'varEquals' || kind === 'varAbove' || kind === 'varBelow') {
-    if (typeof condition === 'string' || condition.var == null) return false
-    const value = context.getRuntimeHost().readVariable(condition.var, condition.unit ?? null)
-    return (
-      (condition.equals != null && Math.abs(value - condition.equals) < 1e-6) ||
-      (condition.above != null && value > condition.above) ||
-      (condition.below != null && value < condition.below)
-    )
-  }
-  if (kind === 'noNewErrors') {
-    const status = api.status().data as { readonly diagnostics?: { readonly error?: unknown } }
-    return status.diagnostics?.error === 0
-  }
-  if (kind === 'event') return evaluateDevApiEventWaitCondition(condition, context)
-  if (kind === 'varChanged') return evaluateDevApiVarChangedCondition(condition, context, state)
-  if (kind === 'interactionExecuted') return evaluateDevApiInteractionExecutedCondition(condition, context, state)
-  return false
 }
 
 function evaluateDevApiEventWaitCondition(

@@ -1,8 +1,6 @@
 import type {
   CanonicalAircraftDefinition,
-  CanonicalElectricalSystemConfig,
-  CanonicalFuelSystemConfig,
-  CanonicalPropulsionSystemConfig,
+  CanonicalSystemDefinition,
   CanonicalSurfaceSystemConfig,
 } from './aircraft'
 import { AutopilotSubsystem } from './autopilot'
@@ -10,7 +8,7 @@ import { AvionicsSubsystem } from './avionics'
 import { ControlStateKeys, ControlsSubsystem } from './controls'
 import { ElectricalSubsystem } from './electrical'
 import { EnvironmentSubsystem } from './environment'
-import { FuelSubsystem, type FuelSubsystemDefinition } from './fuel'
+import { FuelSubsystem } from './fuel'
 import { LightingElectricalSubsystem } from './lightingElectrical'
 import { PropulsionSubsystem } from './propulsion'
 import { SimulatorEngine } from './SimulatorEngine'
@@ -40,27 +38,24 @@ export function createSimulatorEngineForAircraft(
 
   engine.registerSubsystem(
     new ElectricalSubsystem(
-      findSystemConfig<CanonicalElectricalSystemConfig>(aircraft, 'electrical') ?? {}
+      findSystemDefinition(aircraft, 'electrical')?.config ?? {}
     )
   )
   engine.registerSubsystem(
     new FuelSubsystem(
-      findSystemConfig<CanonicalFuelSystemConfig & FuelSubsystemDefinition>(
-        aircraft,
-        'fuel'
-      ) ?? {}
+      findSystemDefinition(aircraft, 'fuel')?.config ?? {}
     )
   )
   engine.registerSubsystem(
     new PropulsionSubsystem(
-      findSystemConfig<CanonicalPropulsionSystemConfig>(aircraft, 'propulsion') ?? {}
+      findSystemDefinition(aircraft, 'propulsion')?.config ?? {}
     )
   )
   engine.registerSubsystem(new ControlsSubsystem())
   engine.registerSubsystem(
     new SurfaceAnimationSubsystem(
-      findSystemConfig<CanonicalSurfaceSystemConfig>(aircraft, 'surfaces') ??
-        findSystemConfig<CanonicalSurfaceSystemConfig>(aircraft, 'surface-animation') ??
+      findSystemDefinition(aircraft, 'surfaces')?.config ??
+        findSystemDefinition(aircraft, 'surface-animation')?.config ??
         DEFAULT_SURFACE_SYSTEM
     )
   )
@@ -72,11 +67,14 @@ export function createSimulatorEngineForAircraft(
   return engine
 }
 
-function findSystemConfig<T>(
+function findSystemDefinition<
+  TKind extends CanonicalSystemDefinition['kind']
+>(
   aircraft: CanonicalAircraftDefinition,
-  kind: string
-): T | undefined {
-  return aircraft.systems?.find(system => system.kind === kind)?.config as unknown as
-    | T
-    | undefined
+  kind: TKind
+): Extract<CanonicalSystemDefinition, { readonly kind: TKind }> | undefined {
+  return aircraft.systems?.find(
+    (system): system is Extract<CanonicalSystemDefinition, { readonly kind: TKind }> =>
+      system.kind === kind
+  )
 }

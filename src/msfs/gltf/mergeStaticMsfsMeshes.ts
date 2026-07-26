@@ -6,6 +6,7 @@ import {
   Matrix4,
   Vector3,
   Mesh,
+  SkinnedMesh,
   type Material,
   type Object3D
 } from 'three'
@@ -197,7 +198,7 @@ function getMatrixRelativeToAnchor(object: Object3D, anchor: Object3D): Matrix4 
 
 function canMergeMesh(mesh: Mesh, material: Material): boolean {
   const isBlendGBufferMaterial = usesBlendGBufferMaterial(material)
-  if ((mesh as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh === true) {
+  if (mesh instanceof SkinnedMesh) {
     return false
   }
   if (mesh.morphTargetInfluences != null && mesh.morphTargetInfluences.length > 0) {

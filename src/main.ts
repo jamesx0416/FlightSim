@@ -3571,7 +3571,7 @@ function collectModelRenderStats(root: Object3D): Record<string, unknown> {
     if (object.visible) {
       visibleMeshCount += 1
     }
-    if ((object as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh === true) {
+    if (object instanceof SkinnedMesh) {
       skinnedMeshCount += 1
     }
     if (object.morphTargetInfluences != null && object.morphTargetInfluences.length > 0) {
@@ -3635,7 +3635,7 @@ function collectModelRenderStats(root: Object3D): Record<string, unknown> {
       !hasTransparentMaterial &&
       materialList.length === 1 &&
       materialList[0] != null &&
-      (object as unknown as { isSkinnedMesh?: boolean }).isSkinnedMesh !== true &&
+      !(object instanceof SkinnedMesh) &&
       (object.morphTargetInfluences == null || object.morphTargetInfluences.length === 0)
     ) {
       staticMergeCandidateCount += 1
