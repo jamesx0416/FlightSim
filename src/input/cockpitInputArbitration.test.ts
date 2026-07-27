@@ -18,8 +18,7 @@ test('claimed cockpit input always wins over an empty-cockpit camera mapping', (
     'target-busy',
     'interaction-unavailable',
     'blocker',
-    'cover',
-    'gauge-surface'
+    'cover'
   ]
   for (const reason of reasons) {
     expect(resolveCockpitInputDecision({ kind: 'consumed', reason }, true)).toEqual({

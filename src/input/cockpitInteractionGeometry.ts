@@ -50,7 +50,7 @@ export type CockpitGeometryHit<T> =
     }
   | {
       readonly kind: 'consumed'
-      readonly reason: Extract<CockpitInputConsumeReason, 'blocker' | 'cover' | 'gauge-surface'>
+      readonly reason: Extract<CockpitInputConsumeReason, 'blocker' | 'cover'>
       readonly object: Object3D
       readonly target: string
     }
@@ -161,10 +161,9 @@ export function resolveCockpitGeometryHit<T>(
   )
   if (gaugeHit != null) {
     return {
-      kind: 'consumed',
-      reason: 'gauge-surface',
-      object: gaugeHit.object,
-      target: gaugeHit.object.name || gaugeHit.object.type
+      kind: 'miss',
+      reason: 'occluded',
+      occluder: gaugeHit.object
     }
   }
 

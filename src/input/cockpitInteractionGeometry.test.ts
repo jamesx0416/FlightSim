@@ -146,7 +146,7 @@ test('IgnoreZTest authoritatively bypasses ordinary cockpit occlusion', () => {
   expect(ignored.kind === 'active' ? ignored.binding : null).toBe('CONTROL')
 })
 
-test('a claimed VCockpit gauge mesh remains an occluder and consumes its own surface hit', () => {
+test('a claimed VCockpit gauge mesh hides controls but falls through to camera input', () => {
   const root = new Group()
   const control = meshAt('control', 0)
   const gauge = meshAt('gauge', 1)
@@ -170,7 +170,5 @@ test('a claimed VCockpit gauge mesh remains an occluder and consumes its own sur
     gaugeSurfaces: [gauge],
     occluderMeshes: occluders
   }))
-  expect(hit.kind).toBe('consumed')
-  if (hit.kind !== 'consumed') throw new Error('Expected the claimed gauge surface to consume the hit.')
-  expect([hit.reason, hit.object, hit.target]).toEqual(['gauge-surface', gauge, 'gauge'])
+  expect(hit).toEqual({ kind: 'miss', reason: 'occluded', occluder: gauge })
 })
