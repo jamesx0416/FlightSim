@@ -37,6 +37,16 @@ function memoryStorage(entries: readonly (readonly [string, string])[] = []): {
   return { storage, values }
 }
 
+function withoutWarnings<T>(callback: () => T): T {
+  const warn = console.warn
+  console.warn = () => {}
+  try {
+    return callback()
+  } finally {
+    console.warn = warn
+  }
+}
+
 function errorMessage(run: () => void): string {
   try {
     run()
@@ -90,7 +100,7 @@ test('version 1 storage without the scroll setting recovers to defaults', () => 
   const { storage, values } = memoryStorage([
     [LEGACY_COCKPIT_INPUT_STORE_KEY, JSON.stringify(legacy)]
   ])
-  const result = loadCockpitInputStoreWithDiagnostics(storage)
+  const result = withoutWarnings(() => loadCockpitInputStoreWithDiagnostics(storage))
   expect(result.store).toEqual(DEFAULT_COCKPIT_INPUT_STORE)
   expect(result.diagnostics.map(diagnostic => diagnostic.code)).toEqual(['RECOVERED_INVALID_STORE'])
   expect(values.has(COCKPIT_INPUT_STORE_KEY)).toBe(true)
@@ -98,12 +108,11 @@ test('version 1 storage without the scroll setting recovers to defaults', () => 
 
 test('corrupt current storage is preserved and returns a structured recovery diagnostic', () => {
   const { storage, values } = memoryStorage([[COCKPIT_INPUT_STORE_KEY, '{bad']])
-  const result = loadCockpitInputStoreWithDiagnostics(storage)
+  const result = withoutWarnings(() => loadCockpitInputStoreWithDiagnostics(storage))
   expect(result.store).toEqual(DEFAULT_COCKPIT_INPUT_STORE)
   expect(result.diagnostics.length).toBe(1)
   expect([result.diagnostics[0]?.code, result.diagnostics[0]?.severity]).toEqual([
-    'RECOVERED_INVALID_STORE',
-    'warning'
+    'RECOVERED_INVALID_STORE', 'warning'
   ])
   expect(result.diagnostics[0]?.recoveryKey?.includes(`${COCKPIT_INPUT_STORE_KEY}.recovery.`)).toBe(true)
   expect(values.get(result.diagnostics[0]!.recoveryKey!)).toBe('{bad')
