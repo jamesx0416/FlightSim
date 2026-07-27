@@ -62,11 +62,11 @@ async function createPreferredWebGlRenderer(searchParams: URLSearchParams): Prom
   }
 }
 
-async function createWebGpuRendererOptions(): Promise<{ antialias: true; requiredLimits?: Record<string, number> }> {
+async function createWebGpuRendererOptions(): Promise<{ antialias: false; requiredLimits?: Record<string, number> }> {
   const requiredLimits = await getWebGpuRequiredLimits()
   return requiredLimits == null
-    ? { antialias: true }
-    : { antialias: true, requiredLimits }
+    ? { antialias: false }
+    : { antialias: false, requiredLimits }
 }
 
 async function getWebGpuRequiredLimits(): Promise<Record<string, number> | undefined> {
