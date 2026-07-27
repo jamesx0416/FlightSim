@@ -298,7 +298,6 @@ function canCopyBlendGBufferSceneDepth(
 
   const depthCopyRenderer = renderer as DepthCopyRenderer
   return (
-    !isWebGpuRenderer(renderer) &&
     depthCopyRenderer.copyFramebufferToTexture != null &&
     depthCopyRenderer.getDrawingBufferSize != null
   )
@@ -319,11 +318,6 @@ function hasBlendGBufferDepthMaskMaterial(materials: Iterable<Material>): boolea
   }
 
   return false
-}
-
-function isWebGpuRenderer(renderer: AppRenderer): boolean {
-  return (renderer as AppRenderer & { readonly backend?: { readonly isWebGPUBackend?: boolean } })
-    .backend?.isWebGPUBackend === true
 }
 
 function restoreMaterialRenderState(
