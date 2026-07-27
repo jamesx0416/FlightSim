@@ -108,6 +108,42 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(resolvedTrajectory.map(point => [point.dragPercent, point.position.x])).toEqual([[0, 0], [1, 2]])
   })
 
+  test('initializes lagged animations at their authoritative value', () => {
+    let authoritativeValue = 80
+    const scene = new Object3D()
+    const lever = new Object3D()
+    lever.name = 'Lever'
+    scene.add(lever)
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      animationBindings: [{
+        target: 'LeverAnimation',
+        expression: {
+          source: '(A:LEVER POSITION, percent)',
+          instructions: [{ op: 'pushVariable', key: 'A:LEVER POSITION', unit: 'percent' }],
+          variableKeys: ['A:LEVER POSITION'],
+        },
+        length: 100,
+        wrap: false,
+        delta: false,
+        lagFramesPerSecond: 10,
+        sourcePath: 'test.xml'
+      }]
+    }, scene, {
+      ...hostServices,
+      readVariable: () => authoritativeValue,
+    })
+    runtime.bindAnimations([new AnimationClip('LeverAnimation', 1, [
+      new VectorKeyframeTrack('Lever.position', [0, 1], [0, 0, 0, 10, 0, 0])
+    ])])
+
+    expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(80)
+    expect(lever.position.x).toBe(8)
+
+    authoritativeValue = 100
+    expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(81)
+  })
+
   test('maps normalized values across the authored animation key range', () => {
     const scene = new Object3D()
     const lever = new Object3D()
