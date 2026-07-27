@@ -508,7 +508,7 @@ export class AircraftRuntime {
       const previousValue = this.animationValues.get(binding.target) ?? 0
       const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
       const value =
-        binding.lagFramesPerSecond > 0
+        hadPreviousValue && binding.lagFramesPerSecond > 0
           ? moveTowards(previousValue, rawValue, binding.lagFramesPerSecond * dtSeconds)
           : rawValue
       if (hadPreviousValue && Math.abs(value - previousValue) <= 1e-6) {
