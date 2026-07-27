@@ -20,9 +20,8 @@ import {
 } from 'three'
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import {
-  cameraFar,
-  cameraNear,
   TBNViewMatrix,
+  attribute,
   materialAO,
   materialColor,
   materialMetalness,
@@ -82,7 +81,6 @@ type MsfsMaterial = Material & {
     msfsBaseOpacity?: number
     msfsBlendGBufferDepthMask?: boolean
     msfsBlendGBufferForwardColor?: boolean
-    msfsBlendGBufferProjectionDepthAllowance?: number
     msfsBlendGBufferProjectedToReceiver?: boolean
   }
 }
@@ -245,9 +243,6 @@ type MsfsNodeMaterial = MsfsMaterial & NodeMaterial & {
 const MSFS_BLEND_GBUFFER_RENDER_ORDER_BASE = 10
 const MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE = -1
 const MSFS_MATERIAL_DRAW_ORDER_MIN = -999
-const msfsBlendGBufferProjectionDepthAllowance = uniform(0).onObjectUpdate(({ material }) =>
-  getMsfsBlendGBufferProjectionDepthAllowance(material as Material | MsfsMaterial | null | undefined)
-)
 const msfsBlendGBufferDepthMaskEnabled = uniform(1)
 
 const RESOLVED_COLOR_FRAGMENT_CHUNK = `#if defined( USE_COLOR_ALPHA )
@@ -427,8 +422,25 @@ function projectBlendGBufferDecals(
   parser: GltfParserLike | undefined
 ): void {
   root.updateWorldMatrix(true, true)
+  initializeBlendGBufferDepthAllowances(root)
   const projectedMeshes = projectSameMeshBlendGBufferDecals(root, parser)
   projectSameParentBlendGBufferDecals(root, projectedMeshes)
+}
+
+function initializeBlendGBufferDepthAllowances(root: Object3D): void {
+  root.traverse(object => {
+    if (!(object instanceof Mesh) || !usesBlendGBufferMaterial(getSingleMeshMaterial(object.material))) {
+      return
+    }
+    const geometry = (object as MeshWithGeometry).geometry
+    const position = geometry.getAttribute('position')
+    if (position != null && geometry.getAttribute('msfsBlendGBufferDepthAllowance') == null) {
+      geometry.setAttribute(
+        'msfsBlendGBufferDepthAllowance',
+        new BufferAttribute(new Float32Array(position.count), 1)
+      )
+    }
+  })
 }
 
 function projectSameMeshBlendGBufferDecals(
@@ -493,16 +505,15 @@ function projectSameMeshBlendGBufferDecals(
       }
 
       for (const decalPrimitive of decalPrimitives) {
-        const projectionDepthAllowance = projectBlendGBufferPrimitiveToBase(
+        conformProjectedDecalToBase(
           decalPrimitive.mesh,
           triangleIndex
         )
         decalPrimitive.mesh.userData.msfsBlendGBufferProjectedToReceiver = true
+        if (basePrimitives.length === 1) {
+          decalPrimitive.mesh.userData.msfsBlendGBufferReceiver = basePrimitives[0].mesh
+        }
         projectedMeshes.add(decalPrimitive.mesh)
-        setMsfsBlendGBufferProjectionDepthAllowance(
-          decalPrimitive.material,
-          projectionDepthAllowance
-        )
       }
     }
   }
@@ -583,14 +594,13 @@ function projectSameParentBlendGBufferDecals(
     }
 
     for (const decalPrimitive of decalPrimitives) {
-      const projectionDepthAllowance = projectBlendGBufferPrimitiveToBase(
+      conformProjectedDecalToBase(
         decalPrimitive.mesh,
         triangleIndex
       )
-      setMsfsBlendGBufferProjectionDepthAllowance(
-        decalPrimitive.material,
-        projectionDepthAllowance
-      )
+      if (basePrimitives.length === 1) {
+        decalPrimitive.mesh.userData.msfsBlendGBufferReceiver = basePrimitives[0].mesh
+      }
     }
   }
 }
@@ -772,15 +782,23 @@ function getVectorAxis(vector: Vector3, axis: 'x' | 'y' | 'z'): number {
   return axis === 'x' ? vector.x : axis === 'y' ? vector.y : vector.z
 }
 
+function conformProjectedDecalToBase(
+  mesh: MeshWithGeometry,
+  triangleIndex: DecalProjectionSpatialIndex
+): void {
+  projectBlendGBufferPrimitiveToBase(mesh, triangleIndex)
+  setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
+}
+
 function projectBlendGBufferPrimitiveToBase(
   mesh: MeshWithGeometry,
   triangleIndex: DecalProjectionSpatialIndex
-): number {
+): void {
   const geometry = mesh.geometry
   mesh.updateWorldMatrix(true, false)
   const positionAttribute = geometry.getAttribute('position')
   if (positionAttribute == null || positionAttribute.itemSize < 3) {
-    return 0
+    return
   }
 
   const normalAttribute = geometry.getAttribute('normal') ?? null
@@ -790,8 +808,6 @@ function projectBlendGBufferPrimitiveToBase(
   const skinIndices = new Uint16Array(positionAttribute.count * 4)
   const skinWeights = new Float32Array(positionAttribute.count * 4)
   let shouldReplaceSkinAttributes = false
-  let maxProjectionDistance = 0
-
   for (let vertexIndex = 0; vertexIndex < positionAttribute.count; vertexIndex += 1) {
     const point = getPositionAttributeVector(positionAttribute, vertexIndex)
       .applyMatrix4(mesh.matrixWorld)
@@ -800,10 +816,6 @@ function projectBlendGBufferPrimitiveToBase(
       continue
     }
 
-    maxProjectionDistance = Math.max(
-      maxProjectionDistance,
-      closest.point.distanceTo(point)
-    )
     const localProjectedPoint = closest.point.clone().applyMatrix4(inverseMeshMatrix)
     positionAttribute.setXYZ(
       vertexIndex,
@@ -840,6 +852,7 @@ function projectBlendGBufferPrimitiveToBase(
         skinWeights[vertexIndex * 4 + component] = influences[component]?.weight ?? 0
       }
     }
+
   }
 
   positionAttribute.needsUpdate = true
@@ -860,69 +873,41 @@ function projectBlendGBufferPrimitiveToBase(
       new BufferAttribute(skinWeights, 4)
     )
   }
-
   geometry.computeBoundingBox()
   geometry.computeBoundingSphere()
-
-  // After projection, the depth mask only needs the remaining receiver residual.
-  // The original helper-mesh displacement is not a valid screen-space tolerance.
-  return measureProjectedBlendGBufferSurfaceDistance(mesh, triangleIndex)
 }
 
-function setMsfsBlendGBufferProjectionDepthAllowance(
-  material: MsfsMaterial,
-  projectionDepthAllowance: number
+function setProjectedBlendGBufferDepthAllowance(
+  mesh: MeshWithGeometry,
+  triangleIndex: DecalProjectionSpatialIndex
 ): void {
-  if (!Number.isFinite(projectionDepthAllowance) || projectionDepthAllowance <= 0) {
+  const position = mesh.geometry.getAttribute('position')
+  if (position == null || position.itemSize < 3) {
     return
   }
 
-  material.userData ??= {}
-  material.userData.msfsBlendGBufferProjectionDepthAllowance = Math.max(
-    material.userData.msfsBlendGBufferProjectionDepthAllowance ?? 0,
-    projectionDepthAllowance
-  )
-}
-
-function measureProjectedBlendGBufferSurfaceDistance(
-  mesh: MeshWithGeometry,
-  triangleIndex: DecalProjectionSpatialIndex
-): number {
-  const geometry = mesh.geometry
-  const positionAttribute = geometry.getAttribute('position')
-  if (positionAttribute == null || positionAttribute.itemSize < 3) {
-    return 0
-  }
-
   mesh.updateWorldMatrix(true, false)
-  const indexAttribute = geometry.index
-  const indexCount = indexAttribute?.count ?? positionAttribute.count
-  let maxDistance = 0
-
-  for (let index = 0; index + 2 < indexCount; index += 3) {
-    const aIndex = indexAttribute?.getX(index) ?? index
-    const bIndex = indexAttribute?.getX(index + 1) ?? index + 1
-    const cIndex = indexAttribute?.getX(index + 2) ?? index + 2
-    const a = getPositionAttributeVector(positionAttribute, aIndex)
-      .applyMatrix4(mesh.matrixWorld)
-    const b = getPositionAttributeVector(positionAttribute, bIndex)
-      .applyMatrix4(mesh.matrixWorld)
-    const c = getPositionAttributeVector(positionAttribute, cIndex)
-      .applyMatrix4(mesh.matrixWorld)
-
-    maxDistance = Math.max(
-      maxDistance,
-      getProjectedSurfaceDistance(a, triangleIndex),
-      getProjectedSurfaceDistance(b, triangleIndex),
-      getProjectedSurfaceDistance(c, triangleIndex),
+  const allowances = new Float32Array(position.count)
+  const index = mesh.geometry.index
+  const count = index?.count ?? position.count
+  for (let vertex = 0; vertex + 2 < count; vertex += 3) {
+    const aIndex = index?.getX(vertex) ?? vertex
+    const bIndex = index?.getX(vertex + 1) ?? vertex + 1
+    const cIndex = index?.getX(vertex + 2) ?? vertex + 2
+    const a = getPositionAttributeVector(position, aIndex).applyMatrix4(mesh.matrixWorld)
+    const b = getPositionAttributeVector(position, bIndex).applyMatrix4(mesh.matrixWorld)
+    const c = getPositionAttributeVector(position, cIndex).applyMatrix4(mesh.matrixWorld)
+    const allowance = Math.max(
       getProjectedSurfaceDistance(a.clone().add(b).multiplyScalar(0.5), triangleIndex),
       getProjectedSurfaceDistance(b.clone().add(c).multiplyScalar(0.5), triangleIndex),
       getProjectedSurfaceDistance(c.clone().add(a).multiplyScalar(0.5), triangleIndex),
-      getProjectedSurfaceDistance(a.clone().add(b).add(c).multiplyScalar(1 / 3), triangleIndex)
+      getProjectedSurfaceDistance(a.add(b).add(c).multiplyScalar(1 / 3), triangleIndex)
     )
+    allowances[aIndex] = Math.max(allowances[aIndex], allowance)
+    allowances[bIndex] = Math.max(allowances[bIndex], allowance)
+    allowances[cIndex] = Math.max(allowances[cIndex], allowance)
   }
-
-  return maxDistance
+  mesh.geometry.setAttribute('msfsBlendGBufferDepthAllowance', new BufferAttribute(allowances, 1))
 }
 
 function getProjectedSurfaceDistance(
@@ -1494,6 +1479,7 @@ function applyMsfsBlendGBufferNodeMaterial(
     return material
   }
 
+  nodeMaterial.lights = !hasForwardColor
   const opacityBlendFactor = getMsfsBlendGBufferForwardOpacityFactor(blendFactors)
   if (material.map != null) {
     const baseTexture = texture(material.map)
@@ -1523,8 +1509,6 @@ function applyMsfsBlendGBufferNodeMaterial(
   nodeMaterial.userData ??= {}
   nodeMaterial.userData.msfsBlendGBufferDepthMask = true
   nodeMaterial.userData.msfsBlendGBufferForwardColor = hasForwardColor
-  nodeMaterial.userData.msfsBlendGBufferProjectionDepthAllowance =
-    getMsfsBlendGBufferProjectionDepthAllowance(material)
   nodeMaterial.needsUpdate = true
   return nodeMaterial as unknown as MsfsMaterial
 }
@@ -1536,36 +1520,17 @@ function getMsfsBlendGBufferForwardOpacityFactor(blendFactors: MsfsBlendFactors)
 function createMsfsBlendGBufferDepthMaskNode() {
   const decalDepth = linearDepth()
   const sceneDepth = linearDepth(texture(msfsBlendGBufferDepthTexture, screenUV).r)
-  // Projected MSFS geometry decals resolve against the covered surface in a
-  // G-buffer pass. In this forward fallback, equal-depth decal/base fragments
-  // can differ by a local pixel footprint at grazing angles. When a projected
-  // decal triangle spans multiple receiver triangles, its interior can also
-  // sit off the receiver even when all decal vertices are exactly projected.
-  // Use that measured projection displacement/residual as the component this
-  // forward pass cannot otherwise recover without a true per-fragment G-buffer
-  // resolve.
+  // Receiver-conformed decal geometry can still differ from its base surface by
+  // a local pixel footprint at grazing angles.
   const sameSurfaceDepthAllowance = decalDepth
     .fwidth()
     .add(sceneDepth.fwidth())
-    .add(msfsBlendGBufferProjectionDepthAllowance.div(cameraFar.sub(cameraNear)))
+    .add(attribute('msfsBlendGBufferDepthAllowance', 'float'))
 
   const depthMask = decalDepth
     .lessThanEqual(sceneDepth.add(sameSurfaceDepthAllowance))
     .select(1, 0)
   return msfsBlendGBufferDepthMaskEnabled.lessThan(0.5).select(1, depthMask)
-}
-
-function getMsfsBlendGBufferProjectionDepthAllowance(
-  material: Material | MsfsMaterial | null | undefined
-): number {
-  const projectionDepthAllowance =
-    (material?.userData as MsfsMaterial['userData'] | undefined)
-      ?.msfsBlendGBufferProjectionDepthAllowance
-  return typeof projectionDepthAllowance === 'number' &&
-    Number.isFinite(projectionDepthAllowance) &&
-    projectionDepthAllowance > 0
-    ? projectionDepthAllowance
-    : 0
 }
 
 function applyMsfsDetailMapNodeMaterial(
