@@ -1951,8 +1951,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
   const interactionHistory = context.cockpitInteractionHistory
   const interactionTrace = context.cockpitInteractionTrace
   const activeInteractionStates = new Map<string, ActiveDevApiInteraction>()
-  window.addEventListener(VIEWER_INTERACTION_STOP_EVENT, event => {
-    const detail = (event as CustomEvent<ViewerInteractionStopDetail>).detail
+  const stopAllDevApiInteractions = (): readonly ActiveDevApiInteraction[] => {
     const states = [...activeInteractionStates.values()]
     for (const state of states) {
       interactionLifecycle.stop(
@@ -1964,6 +1963,11 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     }
     interactionAdapter.stopAll()
     activeInteractionStates.clear()
+    return states
+  }
+  window.addEventListener(VIEWER_INTERACTION_STOP_EVENT, event => {
+    const detail = (event as CustomEvent<ViewerInteractionStopDetail>).detail
+    const states = stopAllDevApiInteractions()
     interactionHistory.add({
       timestampMs: Date.now(),
       source: 'viewer',
@@ -2285,18 +2289,8 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       })
     },
     stopAll: () => {
-      const states = [...activeInteractionStates.values()]
       interactionDispatcher.stopAll()
-      for (const state of states) {
-        interactionLifecycle.stop(
-          state.target,
-          { source: 'devapi', operation: 'release', phase: 'release', timestampMs: performance.now() },
-          { release: state.lifecycle === 'held', unlock: false }
-        )
-        interactionDispatcher.finish(state.target.id)
-      }
-      interactionAdapter.stopAll()
-      activeInteractionStates.clear()
+      const states = stopAllDevApiInteractions()
       interactionHistory.add({
         timestampMs: Date.now(),
         source: 'devapi',
