@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun scripts/dev.mjs",
     "typecheck": "tsc --noEmit --preserveSymlinks",
-    "test": "bun test",
+    "test": "AGENT=1 bun test",
     "lint": "bun run typecheck",
     "build": "vite build",
     "preview": "vite preview",
