@@ -6,7 +6,6 @@ export type CockpitInputConsumeReason =
   | 'interaction-unavailable'
   | 'blocker'
   | 'cover'
-  | 'gauge-surface'
 
 export type CockpitInputHit<T> =
   | { readonly kind: 'active'; readonly binding: T }

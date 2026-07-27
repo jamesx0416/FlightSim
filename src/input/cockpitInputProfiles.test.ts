@@ -17,10 +17,12 @@ import {
   renameCockpitInputProfile,
   resetCockpitInputProfile,
   resolveCockpitInputBindings,
+  resolveCockpitInputShortcut,
   selectAircraftCockpitInputProfile,
   selectGlobalCockpitInputProfile,
   selectedCockpitInputProfileId,
   setCockpitInputBinding,
+  setCockpitInputShortcut,
   updateCockpitInputSettings,
 } from './cockpitInputProfiles'
 
@@ -73,6 +75,7 @@ test('version 2 defaults resolve MSFS interaction and empty-cockpit mouse behavi
     WheelUp: 'cameraZoomIn',
     WheelDown: 'cameraZoomOut'
   })
+  expect(effective.bindings.shortcuts).toEqual({ stop: 'Escape' })
 })
 
 test('version 1 storage without the scroll setting recovers to defaults', () => {
@@ -177,6 +180,22 @@ test('binding capture blocks a same-context claim but permits the same input acr
   expect(effectiveCockpitInputProfile(rebound.store, created.profile.id).bindings.emptyCockpit.Mouse1).toBe('cameraPan')
 })
 
+test('keyboard stop shortcut inherits Escape and supports rebind or explicit unbind', () => {
+  const created = createCockpitInputProfile(structuredClone(DEFAULT_COCKPIT_INPUT_STORE), 'Custom')
+  const inherited = effectiveCockpitInputProfile(created.store, created.profile.id)
+  expect(resolveCockpitInputShortcut(inherited, 'Escape')).toBe('stop')
+
+  const rebound = setCockpitInputShortcut(created.store, created.profile.id, 'stop', 'KeyQ')
+  const remapped = effectiveCockpitInputProfile(rebound, created.profile.id)
+  expect([resolveCockpitInputShortcut(remapped, 'Escape'), resolveCockpitInputShortcut(remapped, 'KeyQ')]).toEqual([null, 'stop'])
+
+  const unbound = setCockpitInputShortcut(rebound, created.profile.id, 'stop', null)
+  expect(resolveCockpitInputShortcut(effectiveCockpitInputProfile(unbound, created.profile.id), 'KeyQ')).toBe(null)
+
+  const restored = setCockpitInputShortcut(unbound, created.profile.id, 'stop', 'Escape')
+  expect(resolveCockpitInputShortcut(effectiveCockpitInputProfile(restored, created.profile.id), 'Escape')).toBe('stop')
+})
+
 test('physical routing resolves all mouse buttons and both wheel directions from the effective profile', () => {
   const store = {
     ...structuredClone(DEFAULT_COCKPIT_INPUT_STORE),
@@ -278,6 +297,13 @@ test('store validation rejects duplicate IDs and incompatible physical bindings'
     profiles: [{
       ...store.profiles[0],
       bindings: { interaction: { WheelUp: 'primary' } }
+    }]
+  })).toBe(false)
+  expect(isCockpitInputStoreV2({
+    ...store,
+    profiles: [{
+      ...store.profiles[0],
+      bindings: { shortcuts: { stop: '' } }
     }]
   })).toBe(false)
 })

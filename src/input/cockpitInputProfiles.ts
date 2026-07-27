@@ -18,10 +18,12 @@ export type CockpitInteractionBindingAction =
   | 'decrease'
 export type EmptyCockpitBindingAction = 'cameraPan' | 'cameraZoomIn' | 'cameraZoomOut'
 export type CockpitInputBindingAction = CockpitInteractionBindingAction | EmptyCockpitBindingAction
+export type CockpitInputShortcut = 'stop'
 
 export interface CockpitInputBindings {
   readonly interaction?: Readonly<Partial<Record<CockpitPhysicalInput, CockpitInteractionBindingAction | null>>>
   readonly emptyCockpit?: Readonly<Partial<Record<CockpitPhysicalInput, EmptyCockpitBindingAction | null>>>
+  readonly shortcuts?: Readonly<Partial<Record<CockpitInputShortcut, string | null>>>
 }
 
 export interface CockpitInputProfile {
@@ -64,6 +66,7 @@ export interface EffectiveCockpitInputProfile extends CockpitInputGlobalSettings
   readonly bindings: {
     readonly interaction: Readonly<Record<CockpitPhysicalInput, CockpitInteractionBindingAction | null>>
     readonly emptyCockpit: Readonly<Record<CockpitPhysicalInput, EmptyCockpitBindingAction | null>>
+    readonly shortcuts: Readonly<Record<CockpitInputShortcut, string | null>>
   }
 }
 
@@ -102,6 +105,9 @@ export const DEFAULT_COCKPIT_INPUT_BINDINGS: EffectiveCockpitInputProfile['bindi
     Mouse2: 'cameraPan',
     WheelUp: 'cameraZoomIn',
     WheelDown: 'cameraZoomOut'
+  },
+  shortcuts: {
+    stop: 'Escape'
   }
 }
 
@@ -256,7 +262,8 @@ export function effectiveCockpitInputProfile(
     ...profile,
     bindings: {
       interaction: { ...DEFAULT_COCKPIT_INPUT_BINDINGS.interaction, ...profile.bindings?.interaction },
-      emptyCockpit: { ...DEFAULT_COCKPIT_INPUT_BINDINGS.emptyCockpit, ...profile.bindings?.emptyCockpit }
+      emptyCockpit: { ...DEFAULT_COCKPIT_INPUT_BINDINGS.emptyCockpit, ...profile.bindings?.emptyCockpit },
+      shortcuts: { ...DEFAULT_COCKPIT_INPUT_BINDINGS.shortcuts, ...profile.bindings?.shortcuts }
     }
   }
 }
@@ -280,6 +287,13 @@ export function resolveCockpitInputBindings(
     interaction: profile.bindings.interaction[input],
     emptyCockpit: profile.bindings.emptyCockpit[input]
   }
+}
+
+export function resolveCockpitInputShortcut(
+  profile: EffectiveCockpitInputProfile,
+  input: string
+): CockpitInputShortcut | null {
+  return profile.bindings.shortcuts.stop === input ? 'stop' : null
 }
 
 export interface CockpitInputProfileChange {
@@ -416,6 +430,29 @@ export function setCockpitInputBinding(
   return { ok: true, store: replaceProfile(store, profileId, () => nextProfile) }
 }
 
+export function setCockpitInputShortcut(
+  store: CockpitInputStoreV2,
+  profileId: string,
+  shortcut: CockpitInputShortcut,
+  input: string | null
+): CockpitInputStoreV2 {
+  if (input != null && !isCockpitShortcutCode(input)) throw new Error(`${input} is not a valid keyboard code`)
+  const profile = requireProfile(store, profileId)
+  const overrides: Partial<Record<CockpitInputShortcut, string | null>> = {
+    ...profile.bindings?.shortcuts
+  }
+  if (input === DEFAULT_COCKPIT_INPUT_BINDINGS.shortcuts[shortcut]) delete overrides[shortcut]
+  else overrides[shortcut] = input
+  const bindings: CockpitInputBindings = { ...profile.bindings, shortcuts: overrides }
+  const nextProfile = {
+    ...profile,
+    bindings: Object.values(bindings).some(value => value != null && Object.keys(value).length > 0)
+      ? bindings
+      : undefined
+  }
+  return replaceProfile(store, profileId, () => nextProfile)
+}
+
 function replaceProfile(
   store: CockpitInputStoreV2,
   profileId: string,
@@ -517,6 +554,7 @@ function isProfile(value: unknown): value is CockpitInputProfile {
   if (!isRecord(profile.bindings)) return false
   return isBindingOverrides('interaction', profile.bindings.interaction)
     && isBindingOverrides('emptyCockpit', profile.bindings.emptyCockpit)
+    && isShortcutOverrides(profile.bindings.shortcuts)
 }
 
 function isBindingOverrides(context: CockpitInputBindingContext, value: unknown): boolean {
@@ -526,6 +564,18 @@ function isBindingOverrides(context: CockpitInputBindingContext, value: unknown)
     isCockpitPhysicalInput(input)
     && (action === null || (typeof action === 'string' && isBindingActionForContext(context, action) && isCompatibleBinding(context, input, action)))
   )
+}
+
+function isShortcutOverrides(value: unknown): boolean {
+  if (value == null) return true
+  if (!isRecord(value)) return false
+  return Object.entries(value).every(([shortcut, input]) =>
+    shortcut === 'stop' && (input === null || isCockpitShortcutCode(input))
+  )
+}
+
+function isCockpitShortcutCode(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0 && value.length <= 64
 }
 
 function isGlobalSettings(value: unknown): value is CockpitInputGlobalSettings {

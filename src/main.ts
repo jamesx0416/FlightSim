@@ -81,13 +81,16 @@ import {
   renameCockpitInputProfile,
   resetCockpitInputProfile,
   resolveCockpitInputBindings,
+  resolveCockpitInputShortcut,
   saveCockpitInputStore,
   selectAircraftCockpitInputProfile,
   selectGlobalCockpitInputProfile,
   selectedCockpitInputProfileId,
   setCockpitInputBinding,
+  setCockpitInputShortcut,
   type CockpitInputBindingAction,
   type CockpitInputBindingContext,
+  type CockpitInputShortcut,
   type CockpitInputStoreV2,
   type CockpitPhysicalInput,
   type EffectiveCockpitInputProfile
@@ -625,7 +628,7 @@ async function init(): Promise<void> {
     lastTarget: null as string | null,
     activeHeldTarget: null as string | null,
     lastHitObject: null as string | null,
-    lastHitKind: null as 'interaction-mesh' | 'fallback-hitbox' | 'blocker' | 'gauge-surface' | null,
+    lastHitKind: null as 'interaction-mesh' | 'fallback-hitbox' | 'blocker' | null,
     lastMissReason: null as string | null,
     interactionTargetCount: runtime.getInteractionBindings().length,
     interactionHitVolumeCount: 0,
@@ -1775,7 +1778,7 @@ async function init(): Promise<void> {
       )
     }
 
-    if (geometryHit.kind === 'consumed' && geometryHit.reason !== 'gauge-surface') {
+    if (geometryHit.kind === 'consumed') {
       cockpitInteractionStats.hitCount += 1
       cockpitInteractionStats.lastHitObject = geometryHit.object.name || geometryHit.object.type
       cockpitInteractionStats.lastHitKind = 'blocker'
@@ -1786,30 +1789,6 @@ async function init(): Promise<void> {
         target: geometryHit.target
       })
       return { kind: 'consumed', reason: geometryHit.reason }
-    }
-
-    if (geometryHit.kind === 'consumed') {
-      const target = geometryHit.target
-      cockpitInteractionStats.hitCount += 1
-      cockpitInteractionStats.lastHitObject = target
-      cockpitInteractionStats.lastHitKind = 'gauge-surface'
-      cockpitInteractionStats.lastTarget = target
-      cockpitInteractionStats.lastMissReason = 'gauge-surface'
-      recordCockpitInteractionMiss('blocker', { reason: 'gauge-surface', target })
-      traceCockpitInteraction(() => ({
-        kind: 'hit-test',
-        result: 'gauge-surface',
-        target,
-        pointer: { x: cockpitInteractionPointer.x, y: cockpitInteractionPointer.y }
-      }))
-      cockpitInteractionHistory.add({
-        timestampMs: Date.now(),
-        source: 'mouse',
-        target,
-        action: options.mouseEvent ?? 'press',
-        result: 'gauge-surface'
-      })
-      return { kind: 'consumed', reason: 'gauge-surface' }
     }
 
     cockpitInteractionStats.lastMissReason = geometryHit.reason
@@ -12040,8 +12019,11 @@ function installCockpitCameraShortcut(
   }
 
   const onKeyDown = (event: KeyboardEvent): void => {
-    if (event.code === 'Escape' && activeCockpitPressBinding != null) {
-      stopActivePointer()
+    if (
+      !shouldIgnoreKeyboardShortcut(event) &&
+      resolveCockpitInputShortcut(getCockpitInputProfile(), event.code) === 'stop'
+    ) {
+      if (activeCockpitPressBinding != null) stopActivePointer()
       event.preventDefault()
       return
     }
@@ -13195,6 +13177,7 @@ type CockpitInputSettingsEditor = {
   readonly aircraftRoot: HTMLElement
   readonly apply: () => boolean
   readonly cancelCapture: () => boolean
+  readonly captureKeyboardShortcut: (event: KeyboardEvent) => boolean
   readonly discard: () => void
   readonly reset: (scope: 'general' | ViewerSettingsPanelScope) => string
   readonly selectedAircraftChanged: () => void
@@ -13215,6 +13198,13 @@ const COCKPIT_BINDING_ROWS: readonly {
   { context: 'emptyCockpit', action: 'cameraZoomOut', label: 'Camera: Zoom out' }
 ]
 
+const COCKPIT_SHORTCUT_ROWS: readonly {
+  readonly shortcut: CockpitInputShortcut
+  readonly label: string
+}[] = [
+  { shortcut: 'stop', label: 'Cockpit: Stop active control' }
+]
+
 function createCockpitInputSettingsEditor(options: {
   readonly overlay: HTMLElement
   readonly getSelectedAircraftOption: () => AircraftSelectorOption
@@ -13232,12 +13222,21 @@ function createCockpitInputSettingsEditor(options: {
   }
 
   let draft: CockpitInputStoreV2 = loadCockpitInputStore()
-  let pendingCapture: {
-    readonly scope: ProfileScope
-    readonly context: CockpitInputBindingContext
-    readonly action: CockpitInputBindingAction
-    readonly button: HTMLButtonElement
-  } | null = null
+  let pendingCapture:
+    | {
+      readonly kind: 'binding'
+      readonly scope: ProfileScope
+      readonly context: CockpitInputBindingContext
+      readonly action: CockpitInputBindingAction
+      readonly button: HTMLButtonElement
+    }
+    | {
+      readonly kind: 'shortcut'
+      readonly scope: ProfileScope
+      readonly shortcut: CockpitInputShortcut
+      readonly button: HTMLButtonElement
+    }
+    | null = null
 
   const generalRoot = document.createElement('section')
   generalRoot.className = 'viewer-settings-card'
@@ -13288,10 +13287,10 @@ function createCockpitInputSettingsEditor(options: {
     root.className = 'viewer-settings-card viewer-settings-input-profile'
     root.append(createSettingsSectionHeader(
       'Input profile',
-      scope === 'global' ? 'Global mouse profile' : 'Aircraft mouse profile',
+      scope === 'global' ? 'Global input profile' : 'Aircraft input profile',
       scope === 'global'
-      ? 'Select the default physical mouse mapping used by every aircraft.'
-        : 'Choose a package-scoped override or inherit the global mouse profile.'
+      ? 'Select the default physical input mapping used by every aircraft.'
+        : 'Choose a package-scoped override or inherit the global input profile.'
     ))
     const profileSelect = createSettingsSelect(`${scope} input profile`)
     const profileForm = document.createElement('div')
@@ -13307,8 +13306,8 @@ function createCockpitInputSettingsEditor(options: {
     profileActions.append(createButton, duplicateButton, renameButton, deleteButton, resetButton)
     const mappingHeader = createSettingsSectionHeader(
       'Physical remapping',
-      'Mouse bindings',
-      'Capture a mouse button or wheel direction. Escape stops an active cockpit control safely.'
+      'Cockpit bindings',
+      'Capture mouse, wheel, and keyboard inputs. Escape always cancels Settings capture or closes Settings.'
     )
     const mappingForm = document.createElement('div')
     mappingForm.className = 'viewer-settings-form'
@@ -13490,10 +13489,10 @@ function createCockpitInputSettingsEditor(options: {
       capture.setAttribute('aria-pressed', 'false')
       capture.addEventListener('click', () => {
         cancelCapture()
-        pendingCapture = { scope, context: descriptor.context, action: descriptor.action, button: capture }
+        pendingCapture = { kind: 'binding', scope, context: descriptor.context, action: descriptor.action, button: capture }
         capture.textContent = 'Listening...'
         capture.setAttribute('aria-pressed', 'true')
-        editor.status.textContent = `Press a mouse button or scroll for ${descriptor.label}. Escape cancels capture and stops active cockpit controls.`
+        editor.status.textContent = `Press a mouse button or scroll for ${descriptor.label}. Escape cancels capture.`
       })
       const clear = createCompactSettingsButton('Clear')
       clear.disabled = editableProfileId == null || inputs.length === 0
@@ -13515,6 +13514,49 @@ function createCockpitInputSettingsEditor(options: {
       row.append(label, controls)
       editor.mappingForm.append(row)
     }
+    for (const descriptor of COCKPIT_SHORTCUT_ROWS) {
+      const row = document.createElement('div')
+      row.className = 'viewer-settings-field viewer-settings-binding-row'
+      const label = document.createElement('span')
+      label.className = 'viewer-settings-field-label'
+      label.textContent = descriptor.label
+      const controls = document.createElement('div')
+      controls.className = 'viewer-settings-binding-controls'
+      const value = document.createElement('output')
+      value.className = 'viewer-settings-binding-value'
+      value.textContent = effective.bindings.shortcuts[descriptor.shortcut] ?? 'Unbound'
+      const capture = createCompactSettingsButton('Capture')
+      capture.disabled = editableProfileId == null
+      capture.setAttribute('aria-label', `Capture ${descriptor.label} binding`)
+      capture.setAttribute('aria-pressed', 'false')
+      capture.addEventListener('click', () => {
+        cancelCapture()
+        pendingCapture = { kind: 'shortcut', scope, shortcut: descriptor.shortcut, button: capture }
+        capture.textContent = 'Listening...'
+        capture.setAttribute('aria-pressed', 'true')
+        editor.status.textContent = `Press a keyboard key for ${descriptor.label}. Escape cancels capture.`
+      })
+      const useEscape = createCompactSettingsButton('Use Escape')
+      useEscape.disabled = editableProfileId == null || value.textContent === 'Escape'
+      useEscape.addEventListener('click', () => {
+        if (editableProfileId == null) return
+        draft = setCockpitInputShortcut(draft, editableProfileId, descriptor.shortcut, 'Escape')
+        renderScopes()
+        editor.status.textContent = `${descriptor.label} uses Escape in the draft.`
+      })
+      const clear = createCompactSettingsButton('Clear')
+      clear.disabled = editableProfileId == null || value.textContent === 'Unbound'
+      clear.setAttribute('aria-label', `Clear ${descriptor.label} binding`)
+      clear.addEventListener('click', () => {
+        if (editableProfileId == null) return
+        draft = setCockpitInputShortcut(draft, editableProfileId, descriptor.shortcut, null)
+        renderScopes()
+        editor.status.textContent = `${descriptor.label} is unbound in the draft.`
+      })
+      controls.append(value, capture, useEscape, clear)
+      row.append(label, controls)
+      editor.mappingForm.append(row)
+    }
   }
 
   function cancelCapture(): boolean {
@@ -13526,7 +13568,7 @@ function createCockpitInputSettingsEditor(options: {
   }
 
   function captureInput(input: CockpitPhysicalInput): void {
-    if (pendingCapture == null) return
+    if (pendingCapture == null || pendingCapture.kind !== 'binding') return
     const capture = pendingCapture
     const editor = scopeEditors[capture.scope]
     const profileId = selectedProfileId(capture.scope)
@@ -13557,12 +13599,39 @@ function createCockpitInputSettingsEditor(options: {
     }
   }
 
+  function captureKeyboardShortcut(event: KeyboardEvent): boolean {
+    if (pendingCapture == null || pendingCapture.kind !== 'shortcut') return false
+    const capture = pendingCapture
+    const editor = scopeEditors[capture.scope]
+    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.code === 'Unidentified') {
+      editor.status.textContent = 'Press an unmodified keyboard key.'
+      return true
+    }
+    const profileId = selectedProfileId(capture.scope)
+    if (profileId == null) {
+      cancelCapture()
+      editor.status.textContent = 'Choose an aircraft profile before remapping.'
+      return true
+    }
+    try {
+      draft = setCockpitInputShortcut(draft, profileId, capture.shortcut, event.code)
+      cancelCapture()
+      renderScopes()
+      editor.status.textContent = `${event.code} captured for ${capture.shortcut}.`
+    } catch (error) {
+      editor.status.textContent = settingsErrorMessage(error)
+    }
+    return true
+  }
+
   options.overlay.addEventListener('pointerdown', event => {
     if (pendingCapture == null) return
     event.preventDefault()
     event.stopPropagation()
-    if (event.pointerType !== 'mouse') {
-      scopeEditors[pendingCapture.scope].status.textContent = 'Only mouse buttons can be captured.'
+    if (pendingCapture.kind !== 'binding' || event.pointerType !== 'mouse') {
+      scopeEditors[pendingCapture.scope].status.textContent = pendingCapture.kind === 'shortcut'
+        ? 'Press a keyboard key.'
+        : 'Only mouse buttons can be captured.'
       return
     }
     const input = event.button === 0 ? 'Mouse0' : event.button === 1 ? 'Mouse1' : event.button === 2 ? 'Mouse2' : null
@@ -13574,6 +13643,7 @@ function createCockpitInputSettingsEditor(options: {
   }, true)
   options.overlay.addEventListener('wheel', event => {
     if (pendingCapture == null || event.deltaY === 0) return
+    if (pendingCapture.kind !== 'binding') return
     event.preventDefault()
     event.stopPropagation()
     captureInput(event.deltaY < 0 ? 'WheelUp' : 'WheelDown')
@@ -13590,6 +13660,7 @@ function createCockpitInputSettingsEditor(options: {
     globalRoot: globalEditor.root,
     aircraftRoot: aircraftEditor.root,
     cancelCapture,
+    captureKeyboardShortcut,
     apply: () => {
       updateGeneralDraft()
       const changed = JSON.stringify(draft) !== JSON.stringify(loadCockpitInputStore())
@@ -14015,7 +14086,13 @@ function createSettingsPanel(options: {
       cockpitInputEditor.cancelCapture,
       () => setOpen(false)
     )
-    if (!handled) event.stopPropagation()
+    if (handled) return
+    if (cockpitInputEditor.captureKeyboardShortcut(event)) {
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
+    event.stopPropagation()
   }
   disposeViewerSettingsKeyDown?.()
   document.addEventListener('keydown', onKeyDown)
