@@ -12041,9 +12041,7 @@ function installCockpitCameraShortcut(
 
   const onKeyDown = (event: KeyboardEvent): void => {
     if (event.code === 'Escape' && activeCockpitPressBinding != null) {
-      onCockpitRelease?.(activeCockpitPressBinding, { unlock: true, channel: activeInteractionChannel, pointerId: activePointerId ?? undefined, stopped: true })
-      activeCockpitPressBinding = null
-      releasePointer()
+      stopActivePointer()
       event.preventDefault()
       return
     }
