@@ -7,7 +7,9 @@ import {
   Material,
   Matrix3,
   Mesh,
+  NoBlending,
   NoColorSpace,
+  NormalBlending,
   Object3D,
   RGFormat,
   RED_GREEN_RGTC2_Format,
@@ -21,15 +23,22 @@ import {
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import {
   TBNViewMatrix,
+  Fn,
   attribute,
+  cameraFar,
+  cameraNear,
+  float,
+  linearDepth,
   materialAO,
   materialColor,
-  materialMetalness,
   materialEmissive,
+  materialMetalness,
   materialOpacity,
   materialRoughness,
-  linearDepth,
   mix,
+  mrt,
+  normalView,
+  orthographicDepthToViewZ,
   screenUV,
   texture,
   uniform,
@@ -37,10 +46,13 @@ import {
   vec2,
   vec3,
   vec4,
+  viewZToOrthographicDepth,
+  viewZToPerspectiveDepth,
   vertexColor,
 } from 'three/tsl'
-import type { NodeMaterial } from 'three/webgpu'
+import { MeshBasicNodeMaterial, type NodeMaterial } from 'three/webgpu'
 import type { NodeMaterialFactory } from '../../rendering/createAppRenderer'
+import type { AircraftGBufferTextures } from '../../rendering/createAircraftGBuffer'
 
 type MsfsMaterial = Material & {
   map?: Texture & {
@@ -82,6 +94,7 @@ type MsfsMaterial = Material & {
     msfsBlendGBufferDepthMask?: boolean
     msfsBlendGBufferForwardColor?: boolean
     msfsBlendGBufferProjectedToReceiver?: boolean
+    msfsGBufferWriter?: Material
   }
 }
 
@@ -238,6 +251,16 @@ type MsfsNodeMaterial = MsfsMaterial & NodeMaterial & {
   metalnessNode?: any
   aoNode?: any
   normalNode?: any
+  fragmentNode?: any
+  mrtNode?: any
+}
+
+type MsfsProjectedDecalMesh = MeshWithGeometry & {
+  userData: MeshWithGeometry['userData'] & {
+    msfsBlendGBufferProjectedToReceiver?: boolean
+    msfsBlendGBufferReceiver?: MeshWithGeometry
+    msfsBlendGBufferReceivers?: readonly MeshWithGeometry[]
+  }
 }
 
 const MSFS_BLEND_GBUFFER_RENDER_ORDER_BASE = 10
@@ -375,6 +398,7 @@ export async function normalizeMsfsMaterials(
   })
 
   projectBlendGBufferDecals(root, parser)
+  const gBufferMaterials = collectProjectedBlendGBufferMaterials(root)
 
   await Promise.all(
     [...materials].map(async material => {
@@ -383,7 +407,8 @@ export async function normalizeMsfsMaterials(
         parser,
         textureCache,
         parser?.associations.get(material)?.materials,
-        options
+        options,
+        gBufferMaterials.has(material)
       )
       materialReplacements.set(material, normalizedMaterial)
     })
@@ -504,14 +529,17 @@ function projectSameMeshBlendGBufferDecals(
         continue
       }
 
+      const receivers = basePrimitives.map(primitive => primitive.mesh)
       for (const decalPrimitive of decalPrimitives) {
         conformProjectedDecalToBase(
           decalPrimitive.mesh,
           triangleIndex
         )
-        decalPrimitive.mesh.userData.msfsBlendGBufferProjectedToReceiver = true
-        if (basePrimitives.length === 1) {
-          decalPrimitive.mesh.userData.msfsBlendGBufferReceiver = basePrimitives[0].mesh
+        const decalMesh = decalPrimitive.mesh as MsfsProjectedDecalMesh
+        decalMesh.userData.msfsBlendGBufferProjectedToReceiver = true
+        decalMesh.userData.msfsBlendGBufferReceivers = receivers
+        if (receivers.length === 1) {
+          decalMesh.userData.msfsBlendGBufferReceiver = receivers[0]
         }
         projectedMeshes.add(decalPrimitive.mesh)
       }
@@ -523,7 +551,7 @@ function projectSameMeshBlendGBufferDecals(
 
 function projectSameParentBlendGBufferDecals(
   root: Object3D,
-  projectedMeshes: ReadonlySet<MeshWithGeometry>
+  projectedMeshes: Set<MeshWithGeometry>
 ): void {
   const primitivesByParent = new Map<
     Object3D,
@@ -593,16 +621,51 @@ function projectSameParentBlendGBufferDecals(
       continue
     }
 
+    const receivers = basePrimitives.map(primitive => primitive.mesh)
     for (const decalPrimitive of decalPrimitives) {
       conformProjectedDecalToBase(
         decalPrimitive.mesh,
         triangleIndex
       )
-      if (basePrimitives.length === 1) {
-        decalPrimitive.mesh.userData.msfsBlendGBufferReceiver = basePrimitives[0].mesh
+      const decalMesh = decalPrimitive.mesh as MsfsProjectedDecalMesh
+      decalMesh.userData.msfsBlendGBufferProjectedToReceiver = true
+      decalMesh.userData.msfsBlendGBufferReceivers = receivers
+      if (receivers.length === 1) {
+        decalMesh.userData.msfsBlendGBufferReceiver = receivers[0]
       }
+      projectedMeshes.add(decalPrimitive.mesh)
     }
   }
+}
+
+function collectProjectedBlendGBufferMaterials(root: Object3D): Set<MsfsMaterial> {
+  const materials = new Set<MsfsMaterial>()
+  root.traverse(object => {
+    if (!(object instanceof Mesh)) {
+      return
+    }
+    const decal = object as MsfsProjectedDecalMesh
+    if (decal.userData.msfsBlendGBufferProjectedToReceiver !== true) {
+      return
+    }
+    for (const material of Array.isArray(decal.material) ? decal.material : [decal.material]) {
+      if (usesBlendGBufferMaterial(material)) {
+        materials.add(material as MsfsMaterial)
+      }
+    }
+    const receivers = decal.userData.msfsBlendGBufferReceivers ??
+      (decal.userData.msfsBlendGBufferReceiver == null
+        ? []
+        : [decal.userData.msfsBlendGBufferReceiver])
+    for (const receiver of receivers) {
+      for (const material of Array.isArray(receiver.material)
+        ? receiver.material
+        : [receiver.material]) {
+        materials.add(material as MsfsMaterial)
+      }
+    }
+  })
+  return materials
 }
 
 function getSingleMeshMaterial(material: Material | Material[]): Material | null {
@@ -614,7 +677,7 @@ function getSingleMeshMaterial(material: Material | Material[]): Material | null
 }
 
 function shouldProjectBlendGBufferPrimitive(material: Material | MsfsMaterial): boolean {
-  return usesBlendGBufferColorMaterial(material)
+  return usesBlendGBufferMaterial(material)
 }
 
 function isSkinnedMeshWithBones(mesh: MeshWithGeometry): boolean {
@@ -1232,9 +1295,11 @@ async function normalizeMsfsMaterial(
   parser: GltfParserLike | undefined,
   textureCache: Map<number, Promise<Texture>>,
   materialIndex: number | undefined,
-  options: MsfsMaterialNormalizationOptions
+  options: MsfsMaterialNormalizationOptions,
+  buildGBufferWriter: boolean
 ): Promise<MsfsMaterial> {
   let outputMaterial = material
+  const isBlendGBufferMaterial = usesBlendGBufferMaterial(outputMaterial)
   const blendFactors = getMsfsBlendFactors(outputMaterial)
   const materialDef =
     parser != null && materialIndex != null
@@ -1248,9 +1313,13 @@ async function normalizeMsfsMaterial(
 
   // MSFS exports DirectX-convention normal maps, while stock glTF assumes OpenGL.
   if (outputMaterial.normalMap != null && outputMaterial.normalScale != null) {
+    const normalBlendFactor =
+      isBlendGBufferMaterial && buildGBufferWriter
+        ? 1
+        : blendFactors.normal
     outputMaterial.normalScale.set(
-      outputMaterial.normalScale.x * blendFactors.normal,
-      -Math.abs(outputMaterial.normalScale.y) * blendFactors.normal
+      outputMaterial.normalScale.x * normalBlendFactor,
+      -Math.abs(outputMaterial.normalScale.y) * normalBlendFactor
     )
     outputMaterial.normalMap.needsUpdate = true
     outputMaterial.needsUpdate = true
@@ -1293,7 +1362,7 @@ async function normalizeMsfsMaterial(
     outputMaterial.needsUpdate = true
   }
 
-  if (usesBlendGBufferMaterial(outputMaterial)) {
+  if (isBlendGBufferMaterial) {
     const hasForwardColor = usesBlendGBufferColorMaterial(outputMaterial)
     outputMaterial.depthWrite = false
     outputMaterial.alphaTest = 0.02
@@ -1307,14 +1376,6 @@ async function normalizeMsfsMaterial(
     outputMaterial.userData ??= {}
     outputMaterial.userData.msfsBlendGBufferForwardColor = hasForwardColor
     outputMaterial.needsUpdate = true
-    if (options.createNodeMaterial != null) {
-      outputMaterial = applyMsfsBlendGBufferNodeMaterial(
-        outputMaterial,
-        blendFactors,
-        hasForwardColor,
-        options.createNodeMaterial
-      )
-    }
   }
 
   if (parser != null && materialIndex != null) {
@@ -1334,6 +1395,32 @@ async function normalizeMsfsMaterial(
         )
       } else {
         applyMsfsDetailMapShader(outputMaterial, detailMapExtension, detailTextures)
+      }
+    }
+  }
+
+  if (options.createNodeMaterial != null) {
+    const nodeMaterial = ensureNodeMaterial(outputMaterial, options.createNodeMaterial)
+    if (nodeMaterial != null) {
+      const gBufferWriter = buildGBufferWriter
+        ? createMsfsGBufferWriter(
+            nodeMaterial,
+            isBlendGBufferMaterial ? blendFactors : null
+          )
+        : null
+      if (isBlendGBufferMaterial) {
+        outputMaterial = applyMsfsBlendGBufferNodeMaterial(
+          nodeMaterial,
+          blendFactors,
+          usesBlendGBufferColorMaterial(nodeMaterial),
+          options.createNodeMaterial
+        )
+      } else {
+        outputMaterial = nodeMaterial as unknown as MsfsMaterial
+      }
+      outputMaterial.userData ??= {}
+      if (gBufferWriter != null) {
+        outputMaterial.userData.msfsGBufferWriter = gBufferWriter
       }
     }
   }
@@ -1466,6 +1553,239 @@ function createCompressedRgNormalNodeMaterial(
   nodeMaterial.normalNode = compressedRgNormalNode
   nodeMaterial.needsUpdate = true
   return nodeMaterial as unknown as MsfsMaterial
+}
+
+export function getMsfsGBufferWriter(
+  material: Material | MsfsMaterial | null | undefined
+): Material | null {
+  return (material?.userData as MsfsMaterial['userData'] | undefined)?.msfsGBufferWriter ?? null
+}
+
+export function createMsfsDeferredLightingMaterial(
+  material: Material | MsfsMaterial,
+  textures: AircraftGBufferTextures
+): Material | null {
+  const source = material as MsfsNodeMaterial
+  if (source.isNodeMaterial !== true) {
+    return null
+  }
+
+  const lightingMaterial = source.clone() as MsfsNodeMaterial
+  const g0 = texture(textures.g0, screenUV)
+  const g1 = texture(textures.g1, screenUV)
+  const g2 = texture(textures.g2, screenUV)
+  const g3 = texture(textures.g3, screenUV)
+
+  lightingMaterial.colorNode = vec4(g0.rgb, 1)
+  lightingMaterial.opacityNode = float(1)
+  lightingMaterial.normalNode = g1.xyz.normalize()
+  lightingMaterial.roughnessNode = g2.r
+  lightingMaterial.metalnessNode = g2.g
+  lightingMaterial.aoNode = g2.b
+  lightingMaterial.emissiveNode = g3.rgb
+  lightingMaterial.transparent = false
+  lightingMaterial.alphaTest = 0
+  lightingMaterial.depthTest = true
+  lightingMaterial.depthWrite = true
+  lightingMaterial.polygonOffset = false
+  lightingMaterial.blending = NoBlending
+  lightingMaterial.userData = { ...lightingMaterial.userData }
+  delete lightingMaterial.userData.msfsGBufferWriter
+  lightingMaterial.needsUpdate = true
+  return lightingMaterial as unknown as Material
+}
+
+function createMsfsGBufferWriter(
+  source: MsfsNodeMaterial,
+  blendFactors: MsfsBlendFactors | null
+): Material | null {
+  const writer = new MeshBasicNodeMaterial() as unknown as MsfsNodeMaterial
+  copyMsfsGBufferWriterInputs(writer, source)
+  const resolveNode = (node: any, fallback: any): any =>
+    node?.isVarNode === true ? node.node : node ?? fallback
+  const colorNode = vec4(resolveNode(source.colorNode, materialColor))
+  const opacityNode = resolveNode(source.opacityNode, materialOpacity)
+  const materialCoverage = colorNode.a.mul(opacityNode).clamp(0, 1)
+  const normalNode = vec3(resolveNode(
+    source.normalNode,
+    createMsfsGBufferNormalNode(source)
+  )).normalize()
+  const roughnessNode = resolveNode(
+    source.roughnessNode,
+    createMsfsGBufferRoughnessNode(source)
+  )
+  const metalnessNode = resolveNode(
+    source.metalnessNode,
+    createMsfsGBufferMetalnessNode(source)
+  )
+  const aoNode = resolveNode(source.aoNode, createMsfsGBufferAoNode(source))
+  const emissiveNode = vec3(createMsfsGBufferEmissiveNode(source))
+  const isDecal = blendFactors != null
+  if (
+    isDecal &&
+    (
+      blendFactors.roughness !== blendFactors.metallic ||
+      blendFactors.roughness !== blendFactors.occlusion
+    )
+  ) {
+    // A packed RGB attachment has one source alpha, so independent ORM blend
+    // factors cannot be represented without reading the destination. Fall back
+    // rather than silently blending the three channels incorrectly.
+    writer.dispose()
+    return null
+  }
+  const coverage = (factor: number) => isDecal
+    ? materialCoverage.mul(factor)
+    : float(1)
+  const ormCoverage = coverage(blendFactors?.roughness ?? 1)
+
+  const writerMrt = mrt({
+    aircraftG0: vec4(colorNode.rgb, coverage(blendFactors?.baseColor ?? 1)),
+    aircraftG1: vec4(normalNode, coverage(blendFactors?.normal ?? 1)),
+    aircraftG2: vec4(roughnessNode, metalnessNode, aoNode, ormCoverage),
+    aircraftG3: vec4(emissiveNode, coverage(blendFactors?.emissive ?? 1)),
+  }) as unknown as {
+    getBlendMode?: (name: string) => { constructor: new (blending?: number) => unknown }
+    setBlendMode?: (name: string, blendMode: unknown) => unknown
+  }
+
+  if (isDecal) {
+    if (writerMrt.getBlendMode == null || writerMrt.setBlendMode == null) {
+      writer.dispose()
+      return null
+    }
+    const BlendMode = writerMrt.getBlendMode('output').constructor
+    for (const name of ['aircraftG0', 'aircraftG1', 'aircraftG2', 'aircraftG3']) {
+      writerMrt.setBlendMode(name, new BlendMode(NormalBlending))
+    }
+  }
+
+  // NodeMaterial only merges mrtNode through its standard fragment path. Use
+  // the MRT output struct directly so converted MSFS node graphs cannot replace
+  // or bypass the G-buffer outputs during compilation.
+  writer.fragmentNode = writerMrt
+  writer.mrtNode = writerMrt
+  writer.depthNode = isDecal ? createMsfsGBufferDecalDepthNode() : null
+  writer.lights = false
+  writer.fog = false
+  writer.toneMapped = false
+  writer.transparent = isDecal
+  writer.alphaTest = isDecal ? 0.02 : 0
+  writer.depthTest = true
+  writer.depthWrite = !isDecal
+  writer.polygonOffset = false
+  writer.premultipliedAlpha = false
+  writer.blending = isDecal ? NormalBlending : NoBlending
+  writer.userData = { ...writer.userData }
+  delete writer.userData.msfsGBufferWriter
+  writer.needsUpdate = true
+  return writer as unknown as Material
+}
+
+const linearDepthToFragmentDepth = Fn((
+  [linearDepthNode]: [any],
+  builder: any
+) => {
+  const viewZ = orthographicDepthToViewZ(linearDepthNode, cameraNear, cameraFar)
+  const fragmentDepth = builder.camera.isPerspectiveCamera
+    ? viewZToPerspectiveDepth(viewZ, cameraNear, cameraFar)
+    : viewZToOrthographicDepth(viewZ, cameraNear, cameraFar)
+  return builder.renderer.reversedDepthBuffer === true
+    ? fragmentDepth.oneMinus()
+    : fragmentDepth
+})
+
+function createMsfsGBufferDecalDepthNode() {
+  const decalDepth = linearDepth()
+  const allowance = decalDepth
+    .fwidth()
+    .mul(2)
+    .add(attribute('msfsBlendGBufferDepthAllowance', 'float'))
+  return linearDepthToFragmentDepth(decalDepth.sub(allowance).clamp(0, 1))
+}
+
+function copyMsfsGBufferWriterInputs(
+  writer: MsfsNodeMaterial,
+  source: MsfsNodeMaterial
+): void {
+  const sourceMaterial = source as any
+  const writerMaterial = writer as any
+  for (const property of [
+    'alphaMap',
+    'aoMap',
+    'aoMapIntensity',
+    'bumpMap',
+    'bumpScale',
+    'displacementBias',
+    'displacementMap',
+    'displacementScale',
+    'emissiveIntensity',
+    'emissiveMap',
+    'map',
+    'metalness',
+    'metalnessMap',
+    'normalMap',
+    'normalMapType',
+    'normalScale',
+    'opacity',
+    'roughness',
+    'roughnessMap',
+    'side',
+    'vertexColors',
+  ]) {
+    if (sourceMaterial[property] !== undefined) {
+      writerMaterial[property] = sourceMaterial[property]
+    }
+  }
+  writerMaterial.color?.copy?.(sourceMaterial.color)
+  writerMaterial.emissive = sourceMaterial.emissive
+}
+
+function createMsfsGBufferNormalNode(material: MsfsMaterial) {
+  if (material.normalMap == null) {
+    return normalView
+  }
+  const tangentNormal = createMsfsBaseTangentNormalNode(material)
+  return tangentNormal == null
+    ? normalView
+    : TBNViewMatrix.mul(tangentNormal).normalize()
+}
+
+function createMsfsGBufferRoughnessNode(material: MsfsMaterial) {
+  const source = material as any
+  const value = float(source.roughness ?? 1)
+  return source.roughnessMap == null
+    ? value
+    : value.mul(texture(source.roughnessMap).g)
+}
+
+function createMsfsGBufferMetalnessNode(material: MsfsMaterial) {
+  const source = material as any
+  const value = float(source.metalness ?? 0)
+  return source.metalnessMap == null
+    ? value
+    : value.mul(texture(source.metalnessMap).b)
+}
+
+function createMsfsGBufferAoNode(material: MsfsMaterial) {
+  const source = material as any
+  if (source.aoMap == null) {
+    return float(1)
+  }
+  return mix(
+    float(1),
+    texture(source.aoMap).r,
+    float(source.aoMapIntensity ?? 1)
+  ).clamp(0, 1)
+}
+
+function createMsfsGBufferEmissiveNode(material: MsfsMaterial) {
+  const source = material as any
+  let emissiveNode = vec3(uniform(source.emissive)).mul(source.emissiveIntensity ?? 1)
+  if (source.emissiveMap != null) {
+    emissiveNode = emissiveNode.mul(texture(source.emissiveMap).rgb)
+  }
+  return emissiveNode
 }
 
 function applyMsfsBlendGBufferNodeMaterial(
