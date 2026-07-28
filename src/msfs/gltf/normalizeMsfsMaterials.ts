@@ -38,7 +38,7 @@ import {
   mix,
   mrt,
   normalView,
-  orthographicDepthToViewZ,
+  positionView,
   screenUV,
   texture,
   uniform,
@@ -1682,26 +1682,27 @@ function createMsfsGBufferWriter(
   return writer as unknown as Material
 }
 
-const linearDepthToFragmentDepth = Fn((
-  [linearDepthNode]: [any],
+const viewZToBiasedFragmentDepth = Fn((
+  [viewZ]: [any],
   builder: any
 ) => {
-  const viewZ = orthographicDepthToViewZ(linearDepthNode, cameraNear, cameraFar)
   const fragmentDepth = builder.camera.isPerspectiveCamera
     ? viewZToPerspectiveDepth(viewZ, cameraNear, cameraFar)
     : viewZToOrthographicDepth(viewZ, cameraNear, cameraFar)
-  return builder.renderer.reversedDepthBuffer === true
+  const outputDepth = builder.renderer.reversedDepthBuffer === true
     ? fragmentDepth.oneMinus()
     : fragmentDepth
+  const pixelAllowance = outputDepth.fwidth().mul(2)
+  return builder.renderer.reversedDepthBuffer === true
+    ? outputDepth.add(pixelAllowance).clamp(0, 1)
+    : outputDepth.sub(pixelAllowance).clamp(0, 1)
 })
 
 function createMsfsGBufferDecalDepthNode() {
-  const decalDepth = linearDepth()
-  const allowance = decalDepth
-    .fwidth()
-    .mul(2)
-    .add(attribute('msfsBlendGBufferDepthAllowance', 'float'))
-  return linearDepthToFragmentDepth(decalDepth.sub(allowance).clamp(0, 1))
+  // The measured allowance is in world units. Camera view space uses the same
+  // scale, so apply it to view Z before projection into normalized depth.
+  const viewSpaceAllowance = attribute('msfsBlendGBufferDepthAllowance', 'float')
+  return viewZToBiasedFragmentDepth(positionView.z.add(viewSpaceAllowance))
 }
 
 function copyMsfsGBufferWriterInputs(
