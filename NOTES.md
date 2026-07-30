@@ -59,3 +59,9 @@ Durable investigation notes that are useful context but are not active implement
 ## Spoiler / Speedbrake Lever
 
 - 2026-07-21: Speedbrake lever bounce at retract was a feedback loop, not physics. Aircraft Update code re-publishes `O:*:POSITION` from armed/handle LVars (FBW: armed→0, retract→1). Runtime `applySpoilerObjectPosition` treated position===1 as armed (ASOBO-style), which inverted FBW encoding every frame. Fix: do not map discrete O:Position gates to armed; key/input events and A/L vars own armed. Also guard `A:SPOILERS ARMED` reads so the generic SPOILER heuristic cannot return spoiler percent.
+
+## Blend G-buffer Stabilizer Plate Investigation
+
+- 2026-07-30: The visible A339X stabilizer-root “black hole” or X-ray artifact is produced by projected blend-G-buffer decal meshes `node2010` and `node2011`, using material `A339_AIFRAME_STABPLATE`. Hiding those two nodes removes the artifact. `node2008` is a separate receiverless background layer and is not the visible pair.
+- 2026-07-30: Strongest current hypothesis: zero-alpha or below-threshold texels in the stabilizer plate decal texture are still changing one or more material/G-buffer attachments. The transparent background therefore affects later lighting and exposes the decal geometry silhouette even though it should contribute nothing. The generic requirement is that decal fragments below effective coverage must write nothing to colour, normal, ORM, emissive, depth, or receiver-lighting state.
+- 2026-07-30: Projection-direction, nearest-surface, receiver-parent, and render-classification experiments did not remove the artifact and were reverted. Do not use node names, aircraft names, material names, fixed distance thresholds, or visibility suppression as the fix.
