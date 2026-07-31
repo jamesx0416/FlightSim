@@ -493,32 +493,25 @@ function createForwardMsfsRenderPasses(
         const blendMesh = object as BlendGBufferMesh
         blendMeshes.push(blendMesh)
         const isProjectedDecal =
-          blendMesh.userData?.msfsBlendGBufferProjectedToReceiver === true &&
-          materials.some(material => usesBlendGBufferColorMaterial(material as MsfsMaterial))
-        if (isProjectedDecal) {
-          decalBlendMeshes.push(blendMesh)
-        }
+          blendMesh.userData?.msfsBlendGBufferProjectedToReceiver === true
+        let hasForwardColor = false
         for (const material of materials) {
           if (usesBlendGBufferMaterial(material as MsfsMaterial)) {
             const isColorBlendMaterial = usesBlendGBufferColorMaterial(material as MsfsMaterial)
-            const isDrawOrderBlendMaterial = usesBlendGBufferDrawOrderMaterial(
-              material as MsfsMaterial
-            )
             if (isProjectedDecal && isColorBlendMaterial) {
               hiddenBlendMaterials.add(material)
               colorBlendMaterials.add(material)
-            } else if (!isColorBlendMaterial || isDrawOrderBlendMaterial) {
+              hasForwardColor = true
+            } else {
               hiddenBlendMaterials.add(material)
               componentOnlyBlendMaterials.add(material)
-            } else {
-              // Receiverless blend-gbuffer color materials without draw-order
-              // metadata are treated as physical/background surfaces in this
-              // forward renderer. They stay visible in the base pass with the
-              // blend depth mask disabled.
             }
           } else {
             nonBlendMaterialsOnBlendMeshes.add(material)
           }
+        }
+        if (hasForwardColor) {
+          decalBlendMeshes.push(blendMesh)
         }
       }
     })
@@ -629,11 +622,7 @@ function hideMaterials(
   }
 }
 
-function usesBlendGBufferDrawOrderMaterial(material: MsfsMaterial): boolean {
-  return material.userData?.gltfExtensions?.ASOBO_material_draw_order != null
-}
-
-function configureBlendGBufferMaterialsForDecalPass(
+export function configureBlendGBufferMaterialsForDecalPass(
   materials: Iterable<Material>,
   originalMaterialState: Map<MsfsMaterial, MaterialRenderState>,
   useDepthMask: boolean
@@ -644,7 +633,7 @@ function configureBlendGBufferMaterialsForDecalPass(
     const useMaterialDepthMask = hasDepthMask && useDepthMask
     preserveMaterialRenderState(msfsMaterial, originalMaterialState)
     msfsMaterial.visible = originalMaterialState.get(msfsMaterial)?.visible ?? msfsMaterial.visible
-    msfsMaterial.depthTest = !useMaterialDepthMask
+    msfsMaterial.depthTest = true
     msfsMaterial.depthWrite = false
     msfsMaterial.polygonOffset =
       useMaterialDepthMask

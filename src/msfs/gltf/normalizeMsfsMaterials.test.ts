@@ -6,6 +6,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  NormalBlending,
   Texture,
   type Material
 } from 'three'
@@ -32,6 +33,74 @@ function blendGBufferMaterial(): MeshBasicMaterial {
     ASOBO_material_blend_gbuffer: { baseColorBlendFactor: 1 }
   }
   return material
+}
+
+function unwrapNode(node: any): any {
+  return node?.isVarNode === true ? node.node : node
+}
+
+function collectMaterialNodeScopes(root: any): string[] {
+  const scopes: string[] = []
+  const visited = new Set<object>()
+  const pending = [root]
+
+  while (pending.length > 0) {
+    const node = unwrapNode(pending.pop())
+    if (node == null || typeof node !== 'object' || visited.has(node)) {
+      continue
+    }
+    visited.add(node)
+    if (node.scope === 'color' || node.scope === 'opacity') {
+      scopes.push(node.scope)
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) {
+        pending.push(...value.filter(item => item?.isNode === true))
+      } else if ((value as { isNode?: boolean } | null)?.isNode === true) {
+        pending.push(value)
+      }
+    }
+  }
+
+  return scopes.sort()
+}
+
+function evaluateCoverageNode(
+  input: any,
+  values: { readonly colorAlpha: number; readonly opacity: number }
+): number | readonly number[] {
+  const node = unwrapNode(input)
+  if (node?.isConstNode === true) {
+    return node.value
+  }
+  if (node?.scope === 'color') {
+    return [1, 1, 1, values.colorAlpha]
+  }
+  if (node?.scope === 'opacity') {
+    return values.opacity
+  }
+  if (typeof node?.components === 'string') {
+    const source = evaluateCoverageNode(node.node, values)
+    if (!Array.isArray(source)) {
+      throw new Error('Expected vector source for split node')
+    }
+    const index = 'xyzw'.indexOf(node.components)
+    return source[index]
+  }
+  if (node?.convertTo != null) {
+    return evaluateCoverageNode(node.node, values)
+  }
+  if (node?.op === '*') {
+    return Number(evaluateCoverageNode(node.aNode, values)) *
+      Number(evaluateCoverageNode(node.bNode, values))
+  }
+  if (node?.method === 'clamp') {
+    const value = Number(evaluateCoverageNode(node.aNode, values))
+    const minimum = Number(evaluateCoverageNode(node.bNode, values))
+    const maximum = Number(evaluateCoverageNode(node.cNode, values))
+    return Math.min(maximum, Math.max(minimum, value))
+  }
+  throw new Error(`Unsupported coverage node: ${node?.constructor?.name ?? typeof node}`)
 }
 
 test('projects planar blend-gbuffer decals without extra triangles', async () => {
@@ -125,7 +194,13 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
     triangleGeometry([0, 0, 0, 1, 0, 0, 0, 1, 0]),
     receiverMaterial
   )
-  const decalMaterial = new MeshStandardMaterial()
+  const decalMap = new Texture()
+  const decalMaterial = new MeshStandardMaterial({
+    map: decalMap,
+    opacity: 0.5,
+    transparent: true,
+    alphaTest: 0.35,
+  })
   decalMaterial.userData.gltfExtensions = {
     ASOBO_material_blend_gbuffer: { baseColorBlendFactor: 1 }
   }
@@ -165,6 +240,8 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
     roughnessMap?: Texture | null
     metalnessMap?: Texture | null
     aoMap?: Texture | null
+    fragmentNode?: unknown
+    mrtNode?: unknown
   }
   expect(receiverWriter.type).toBe('MeshBasicNodeMaterial')
   expect(receiverWriter.map).toBe(baseMap)
@@ -173,13 +250,38 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
   expect(receiverWriter.metalnessMap).toBe(ormMap)
   expect(receiverWriter.aoMap).toBe(ormMap)
   expect((receiverWriter as typeof receiverWriter & { depthNode?: unknown }).depthNode ?? null).toBe(null)
+  const normalizedDecal = decal.material as Material & {
+    colorNode?: any
+    lights?: boolean
+  }
   const decalWriter = getMsfsGBufferWriter(decal.material) as Material & {
     depthNode?: unknown
+    fragmentNode?: unknown
+    mrtNode?: any
   }
+  const decalColorNode = unwrapNode(normalizedDecal.colorNode)
+  const decalColorAlpha = unwrapNode(decalColorNode.nodes.at(-1))
+  const decalG0 = unwrapNode(decalWriter.mrtNode.outputNodes.aircraftG0)
+  const decalCoverage = decalG0.nodes.at(-1)
+
+  expect(decalColorAlpha.value).toBe(1)
+  expect(normalizedDecal.opacity).toBe(0.5)
+  expect(normalizedDecal.alphaTest).toBe(0.35)
+  expect(collectMaterialNodeScopes(decalCoverage)).toEqual(['color', 'opacity'])
+  for (const alpha of [0, 0.1, 0.5, 1]) {
+    expect(evaluateCoverageNode(decalCoverage, { colorAlpha: alpha, opacity: 1 })).toBe(alpha)
+  }
+  expect(evaluateCoverageNode(decalCoverage, { colorAlpha: 0.5, opacity: 0.5 })).toBe(0.25)
+  expect(receiverWriter.fragmentNode).toBe(receiverWriter.mrtNode)
+  expect(decalWriter.fragmentNode === decalWriter.mrtNode).toBe(false)
+  expect(decalWriter.alphaTest).toBe(0)
+  expect(decalWriter.transparent).toBe(true)
+  expect(decalWriter.blending).toBe(NormalBlending)
+  expect(decalWriter.premultipliedAlpha).toBe(false)
   expect(decalWriter.depthNode == null).toBe(false)
   expect(decalWriter.depthTest).toBe(true)
   expect(decalWriter.depthWrite).toBe(false)
-  expect((decal.material as typeof decalMaterial & { lights?: boolean }).lights).toBe(false)
+  expect(normalizedDecal.lights).toBe(false)
   expect(getMsfsGBufferWriter(unsupported.material)).toBe(null)
 })
 
