@@ -8,6 +8,7 @@ gpuGlobals.GPUShaderStage ??= { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
 
 const {
   canKeepBlendGBufferDecalInForwardScenePass,
+  configureBlendGBufferMaterialsForDecalPass,
   hasBlendGBufferReceiver,
   selectMsfsDecalRenderPath
 } = await import('./createMsfsRenderPasses')
@@ -43,4 +44,18 @@ test('keeps only transparent colour decals in the normal scene pass', () => {
   expect(canKeepBlendGBufferDecalInForwardScenePass([transparentColour])).toBe(true)
   expect(canKeepBlendGBufferDecalInForwardScenePass([opaqueColour])).toBe(false)
   expect(canKeepBlendGBufferDecalInForwardScenePass([transparentComponent])).toBe(false)
+})
+
+test('keeps hardware depth testing enabled when using the decal depth mask', () => {
+  const material = new MeshBasicMaterial()
+  material.depthTest = false
+  material.depthWrite = true
+  material.polygonOffset = true
+  material.userData.msfsBlendGBufferDepthMask = true
+
+  configureBlendGBufferMaterialsForDecalPass([material], new Map(), true)
+
+  expect(material.depthTest).toBe(true)
+  expect(material.depthWrite).toBe(false)
+  expect(material.polygonOffset).toBe(false)
 })
