@@ -1365,7 +1365,6 @@ async function normalizeMsfsMaterial(
   if (isBlendGBufferMaterial) {
     const hasForwardColor = usesBlendGBufferColorMaterial(outputMaterial)
     outputMaterial.depthWrite = false
-    outputMaterial.alphaTest = 0.02
     outputMaterial.polygonOffset = true
     outputMaterial.polygonOffsetFactor =
       MSFS_BLEND_GBUFFER_POLYGON_OFFSET_BASE - getMsfsDrawOrderOffset(outputMaterial)
@@ -1662,15 +1661,21 @@ function createMsfsGBufferWriter(
 
   // NodeMaterial only merges mrtNode through its standard fragment path. Use
   // the MRT output struct directly so converted MSFS node graphs cannot replace
-  // or bypass the G-buffer outputs during compilation.
-  writer.fragmentNode = writerMrt
+  // or bypass the G-buffer outputs during compilation. That direct path also
+  // bypasses alphaTest, so apply the source cutoff only to decal writers.
+  writer.fragmentNode = isDecal
+    ? Fn(() => {
+        materialCoverage.lessThanEqual(source.alphaTest ?? 0).discard()
+        return writerMrt
+      })()
+    : writerMrt
   writer.mrtNode = writerMrt
   writer.depthNode = isDecal ? createMsfsGBufferDecalDepthNode() : null
   writer.lights = false
   writer.fog = false
   writer.toneMapped = false
   writer.transparent = isDecal
-  writer.alphaTest = isDecal ? 0.02 : 0
+  writer.alphaTest = 0
   writer.depthTest = true
   writer.depthWrite = !isDecal
   writer.polygonOffset = false
@@ -1811,7 +1816,7 @@ function applyMsfsBlendGBufferNodeMaterial(
       .mul(depthMaskNode)
     nodeMaterial.colorNode = vec4(
       baseTexture.rgb.mul(materialColor.rgb).mul(blendFactors.baseColor),
-      opacityNode
+      1
     )
     nodeMaterial.opacityNode = opacityNode
   } else {
