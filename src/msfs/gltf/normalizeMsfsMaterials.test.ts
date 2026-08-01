@@ -52,6 +52,11 @@ function collectMaterialNodeScopes(root: any): string[] {
     visited.add(node)
     if (node.scope === 'color' || node.scope === 'opacity') {
       scopes.push(node.scope)
+    } else if (
+      node.isMaterialReferenceNode === true &&
+      (node.property === 'color' || node.property === 'opacity')
+    ) {
+      scopes.push(node.property)
     }
     for (const value of Object.values(node)) {
       if (Array.isArray(value)) {
@@ -65,9 +70,39 @@ function collectMaterialNodeScopes(root: any): string[] {
   return scopes.sort()
 }
 
+function nodeGraphHasConstructor(root: any, constructorName: string): boolean {
+  const visited = new Set<object>()
+  const pending = [root]
+
+  while (pending.length > 0) {
+    const node = unwrapNode(pending.pop())
+    if (node == null || typeof node !== 'object' || visited.has(node)) {
+      continue
+    }
+    visited.add(node)
+    if (node.constructor?.name === constructorName) {
+      return true
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) {
+        pending.push(...value.filter(item => item?.isNode === true))
+      } else if ((value as { isNode?: boolean } | null)?.isNode === true) {
+        pending.push(value)
+      }
+    }
+  }
+
+  return false
+}
+
 function evaluateCoverageNode(
   input: any,
-  values: { readonly colorAlpha: number; readonly opacity: number }
+  values: {
+    readonly colorAlpha: number
+    readonly opacity: number
+    readonly textureAlpha: number
+    readonly vertexAlpha: number
+  }
 ): number | readonly number[] {
   const node = unwrapNode(input)
   if (node?.isConstNode === true) {
@@ -78,6 +113,28 @@ function evaluateCoverageNode(
   }
   if (node?.scope === 'opacity') {
     return values.opacity
+  }
+  if (node?.isMaterialReferenceNode === true) {
+    if (node.property === 'color') {
+      return [1, 1, 1]
+    }
+    if (node.property === 'opacity') {
+      return values.opacity
+    }
+  }
+  if (node?.constructor?.name === 'JoinNode') {
+    const joined: number[] = []
+    for (const child of node.nodes ?? []) {
+      const value = evaluateCoverageNode(child, values)
+      joined.push(...(Array.isArray(value) ? value : [Number(value)]))
+    }
+    return joined
+  }
+  if (node?.constructor?.name === 'TextureNode') {
+    return [1, 1, 1, values.textureAlpha]
+  }
+  if (node?.constructor?.name === 'VertexColorNode') {
+    return [1, 1, 1, values.vertexAlpha]
   }
   if (typeof node?.components === 'string') {
     const source = evaluateCoverageNode(node.node, values)
@@ -91,8 +148,16 @@ function evaluateCoverageNode(
     return evaluateCoverageNode(node.node, values)
   }
   if (node?.op === '*') {
-    return Number(evaluateCoverageNode(node.aNode, values)) *
-      Number(evaluateCoverageNode(node.bNode, values))
+    const left = evaluateCoverageNode(node.aNode, values)
+    const right = evaluateCoverageNode(node.bNode, values)
+    if (Array.isArray(left) || Array.isArray(right)) {
+      const length = Array.isArray(left) ? left.length : (right as readonly number[]).length
+      return Array.from({ length }, (_, index) =>
+        Number(Array.isArray(left) ? left[index] : left) *
+        Number(Array.isArray(right) ? right[index] : right)
+      )
+    }
+    return Number(left) * Number(right)
   }
   if (node?.method === 'clamp') {
     const value = Number(evaluateCoverageNode(node.aNode, values))
@@ -199,6 +264,7 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
     map: decalMap,
     opacity: 0.5,
     transparent: true,
+    vertexColors: true,
     alphaTest: 0.35,
   })
   decalMaterial.userData.gltfExtensions = {
@@ -207,6 +273,14 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
   const decal = new Mesh(
     triangleGeometry([0, 0, 0.01, 1, 0, 0.01, 0, 1, 0.01]),
     decalMaterial
+  )
+  decal.geometry.setAttribute(
+    'color',
+    new BufferAttribute(new Float32Array([
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+      1, 1, 1, 1,
+    ]), 4)
   )
   const unsupported = new Mesh(
     triangleGeometry([0, 0, 1, 1, 0, 1, 0, 1, 1]),
@@ -252,6 +326,7 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
   expect((receiverWriter as typeof receiverWriter & { depthNode?: unknown }).depthNode ?? null).toBe(null)
   const normalizedDecal = decal.material as Material & {
     colorNode?: any
+    opacityNode?: any
     lights?: boolean
   }
   const decalWriter = getMsfsGBufferWriter(decal.material) as Material & {
@@ -268,10 +343,32 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
   expect(normalizedDecal.opacity).toBe(0.5)
   expect(normalizedDecal.alphaTest).toBe(0.35)
   expect(collectMaterialNodeScopes(decalCoverage)).toEqual(['color', 'opacity'])
+  expect(nodeGraphHasConstructor(decalG0.nodes.at(0), 'TextureNode')).toBe(true)
+  expect(nodeGraphHasConstructor(decalG0.nodes.at(0), 'VertexColorNode')).toBe(true)
+  expect(nodeGraphHasConstructor(normalizedDecal.colorNode, 'TextureNode')).toBe(true)
+  expect(nodeGraphHasConstructor(normalizedDecal.colorNode, 'VertexColorNode')).toBe(true)
+  expect(nodeGraphHasConstructor(normalizedDecal.opacityNode, 'TextureNode')).toBe(true)
+  expect(nodeGraphHasConstructor(normalizedDecal.opacityNode, 'VertexColorNode')).toBe(true)
   for (const alpha of [0, 0.1, 0.5, 1]) {
-    expect(evaluateCoverageNode(decalCoverage, { colorAlpha: alpha, opacity: 1 })).toBe(alpha)
+    expect(evaluateCoverageNode(decalCoverage, {
+      colorAlpha: 1,
+      opacity: 1,
+      textureAlpha: alpha,
+      vertexAlpha: 1,
+    })).toBe(alpha)
   }
-  expect(evaluateCoverageNode(decalCoverage, { colorAlpha: 0.5, opacity: 0.5 })).toBe(0.25)
+  expect(evaluateCoverageNode(decalCoverage, {
+    colorAlpha: 1,
+    opacity: 0.5,
+    textureAlpha: 0.5,
+    vertexAlpha: 1,
+  })).toBe(0.25)
+  expect(evaluateCoverageNode(decalCoverage, {
+    colorAlpha: 1,
+    opacity: 0.5,
+    textureAlpha: 0.5,
+    vertexAlpha: 0.5,
+  })).toBe(0.125)
   expect(receiverWriter.fragmentNode).toBe(receiverWriter.mrtNode)
   expect(decalWriter.fragmentNode === decalWriter.mrtNode).toBe(false)
   expect(decalWriter.alphaTest).toBe(0)
