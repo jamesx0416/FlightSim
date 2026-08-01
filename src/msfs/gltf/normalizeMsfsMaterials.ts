@@ -1697,14 +1697,14 @@ function createMsfsGBufferWriter(
 
   // NodeMaterial only merges mrtNode through its standard fragment path. Use
   // the MRT output struct directly so converted MSFS node graphs cannot replace
-  // or bypass the G-buffer outputs during compilation. That direct path also
-  // bypasses alphaTest, so apply the source cutoff only to decal writers.
-  writer.fragmentNode = isDecal
-    ? Fn(() => {
-        materialCoverage.lessThanEqual(source.alphaTest ?? 0).discard()
-        return writerMrt
-      })()
-    : writerMrt
+  // or bypass the G-buffer outputs during compilation. Keep coverage rejection
+  // in maskNode so it runs before the direct MRT output without wrapping it.
+  writer.fragmentNode = writerMrt
+  writer.maskNode = isDecal
+    ? materialCoverage
+        .greaterThan(source.alphaTest ?? 0)
+        .and(createMsfsBlendGBufferDepthMaskNode().greaterThan(0.5))
+    : null
   writer.mrtNode = writerMrt
   writer.depthNode = isDecal ? createMsfsGBufferDecalDepthNode() : null
   writer.lights = false
