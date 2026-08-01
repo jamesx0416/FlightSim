@@ -85,6 +85,13 @@ export function canKeepBlendGBufferDecalInForwardScenePass(
   )
 }
 
+export function canKeepReceiverlessBlendGBufferMaterialInBasePass(
+  material: Material
+): boolean {
+  return usesBlendGBufferColorMaterial(material) &&
+    !usesBlendGBufferDrawOrderMaterial(material as MsfsMaterial)
+}
+
 export function hasBlendGBufferReceiver(receiverCount: number): boolean {
   return receiverCount > 0
 }
@@ -340,6 +347,9 @@ function createDeferredMsfsRenderPasses(
         setMeshMaterialsFor(receivers, writerMaterials)
         renderer.render(scene, camera)
 
+        const useDeferredDepthMask = copyCurrentBlendGBufferDepth(renderer)
+        configureDeferredDecalWriterDepthTest(decals, writerMaterials, useDeferredDepthMask)
+        setMsfsBlendGBufferDepthMaskEnabled(useDeferredDepthMask)
         renderer.autoClear = false
         setMeshMaterials(sourceMaterials, hiddenMaterial)
         setMeshMaterialsFor(decals, writerMaterials)
@@ -377,6 +387,7 @@ function createDeferredMsfsRenderPasses(
           renderer.render(scene, camera)
         }
       } finally {
+        configureDeferredDecalWriterDepthTest(decals, writerMaterials, false)
         setMsfsBlendGBufferDepthMaskEnabled(true)
         restoreMeshMaterials(forwardSourceMaterials)
         restoreMeshMaterials(sourceMaterials)
@@ -445,6 +456,22 @@ function setMeshMaterialsFor(
   }
 }
 
+function configureDeferredDecalWriterDepthTest(
+  decals: Iterable<DeferredMesh>,
+  materials: ReadonlyMap<DeferredMesh, MeshMaterial>,
+  useDepthMask: boolean
+): void {
+  for (const decal of decals) {
+    const material = materials.get(decal)
+    if (material == null) {
+      continue
+    }
+    for (const writer of getMaterials(material)) {
+      writer.depthTest = !useDepthMask
+    }
+  }
+}
+
 function restoreMeshMaterials(
   sourceMaterials: ReadonlyMap<DeferredMesh, MeshMaterial>
 ): void {
@@ -502,7 +529,7 @@ function createForwardMsfsRenderPasses(
               hiddenBlendMaterials.add(material)
               colorBlendMaterials.add(material)
               hasForwardColor = true
-            } else {
+            } else if (!canKeepReceiverlessBlendGBufferMaterialInBasePass(material)) {
               hiddenBlendMaterials.add(material)
               componentOnlyBlendMaterials.add(material)
             }
@@ -622,6 +649,10 @@ function hideMaterials(
   }
 }
 
+function usesBlendGBufferDrawOrderMaterial(material: MsfsMaterial): boolean {
+  return material.userData?.gltfExtensions?.ASOBO_material_draw_order != null
+}
+
 export function configureBlendGBufferMaterialsForDecalPass(
   materials: Iterable<Material>,
   originalMaterialState: Map<MsfsMaterial, MaterialRenderState>,
@@ -633,7 +664,7 @@ export function configureBlendGBufferMaterialsForDecalPass(
     const useMaterialDepthMask = hasDepthMask && useDepthMask
     preserveMaterialRenderState(msfsMaterial, originalMaterialState)
     msfsMaterial.visible = originalMaterialState.get(msfsMaterial)?.visible ?? msfsMaterial.visible
-    msfsMaterial.depthTest = true
+    msfsMaterial.depthTest = !useMaterialDepthMask
     msfsMaterial.depthWrite = false
     msfsMaterial.polygonOffset =
       useMaterialDepthMask
@@ -646,11 +677,19 @@ function copyBlendGBufferSceneDepth(
   renderer: AppRenderer,
   materials: Iterable<Material>
 ): boolean {
-  if (!canCopyBlendGBufferSceneDepth(renderer, materials)) {
+  return canCopyBlendGBufferSceneDepth(renderer, materials) &&
+    copyCurrentBlendGBufferDepth(renderer)
+}
+
+function copyCurrentBlendGBufferDepth(renderer: AppRenderer): boolean {
+  const depthCopyRenderer = renderer as DepthCopyRenderer
+  if (
+    depthCopyRenderer.copyFramebufferToTexture == null ||
+    depthCopyRenderer.getDrawingBufferSize == null
+  ) {
     return false
   }
 
-  const depthCopyRenderer = renderer as DepthCopyRenderer
   depthCopyRenderer.getDrawingBufferSize(depthTextureSize)
   const depthTexture = getMsfsBlendGBufferDepthTexture()
   depthTexture.format = DepthFormat

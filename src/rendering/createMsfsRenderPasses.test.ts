@@ -8,6 +8,7 @@ gpuGlobals.GPUShaderStage ??= { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
 
 const {
   canKeepBlendGBufferDecalInForwardScenePass,
+  canKeepReceiverlessBlendGBufferMaterialInBasePass,
   configureBlendGBufferMaterialsForDecalPass,
   hasBlendGBufferReceiver,
   selectMsfsDecalRenderPath
@@ -46,7 +47,30 @@ test('keeps only transparent colour decals in the normal scene pass', () => {
   expect(canKeepBlendGBufferDecalInForwardScenePass([transparentComponent])).toBe(false)
 })
 
-test('keeps hardware depth testing enabled when using the decal depth mask', () => {
+test('keeps receiverless colour decals in the base pass unless draw order requires projection', () => {
+  const colour = new MeshBasicMaterial({ transparent: true })
+  colour.userData.gltfExtensions = {
+    ASOBO_material_blend_gbuffer: { baseColorBlendFactor: 1 }
+  }
+  const ordered = colour.clone()
+  ordered.userData.gltfExtensions = {
+    ...colour.userData.gltfExtensions,
+    ASOBO_material_draw_order: { drawOrderOffset: 1 }
+  }
+  const componentOnly = new MeshBasicMaterial({ transparent: true })
+  componentOnly.userData.gltfExtensions = {
+    ASOBO_material_blend_gbuffer: {
+      baseColorBlendFactor: 0,
+      emissiveBlendFactor: 0,
+    }
+  }
+
+  expect(canKeepReceiverlessBlendGBufferMaterialInBasePass(colour)).toBe(true)
+  expect(canKeepReceiverlessBlendGBufferMaterialInBasePass(ordered)).toBe(false)
+  expect(canKeepReceiverlessBlendGBufferMaterialInBasePass(componentOnly)).toBe(false)
+})
+
+test('uses the sampled receiver depth mask instead of rejecting coplanar decals twice', () => {
   const material = new MeshBasicMaterial()
   material.depthTest = false
   material.depthWrite = true
@@ -55,7 +79,7 @@ test('keeps hardware depth testing enabled when using the decal depth mask', () 
 
   configureBlendGBufferMaterialsForDecalPass([material], new Map(), true)
 
-  expect(material.depthTest).toBe(true)
+  expect(material.depthTest).toBe(false)
   expect(material.depthWrite).toBe(false)
   expect(material.polygonOffset).toBe(false)
 })

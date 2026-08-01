@@ -332,6 +332,7 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
   const decalWriter = getMsfsGBufferWriter(decal.material) as Material & {
     depthNode?: unknown
     fragmentNode?: unknown
+    maskNode?: unknown
     mrtNode?: any
   }
   const decalColorNode = unwrapNode(normalizedDecal.colorNode)
@@ -370,7 +371,10 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
     vertexAlpha: 0.5,
   })).toBe(0.125)
   expect(receiverWriter.fragmentNode).toBe(receiverWriter.mrtNode)
-  expect(decalWriter.fragmentNode === decalWriter.mrtNode).toBe(false)
+  expect(decalWriter.fragmentNode).toBe(decalWriter.mrtNode)
+  expect(decalWriter.maskNode == null).toBe(false)
+  expect(nodeGraphHasConstructor(decalWriter.maskNode, 'TextureNode')).toBe(true)
+  expect(nodeGraphHasConstructor(decalWriter.maskNode, 'VertexColorNode')).toBe(true)
   expect(decalWriter.alphaTest).toBe(0)
   expect(decalWriter.transparent).toBe(true)
   expect(decalWriter.blending).toBe(NormalBlending)
