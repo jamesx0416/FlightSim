@@ -30,10 +30,9 @@ import {
   float,
   linearDepth,
   materialAO,
-  materialColor,
   materialEmissive,
   materialMetalness,
-  materialOpacity,
+  materialReference,
   materialRoughness,
   mix,
   mrt,
@@ -59,6 +58,7 @@ type MsfsMaterial = Material & {
     format?: number
     needsUpdate?: boolean
   } | null
+  alphaMap?: Texture | null
   metalness?: number
   normalMap?: Texture & {
     format?: number
@@ -76,6 +76,7 @@ type MsfsMaterial = Material & {
   aoMapIntensity?: number
   emissiveIntensity?: number
   transparent?: boolean
+  vertexColors?: boolean
   alphaTest?: number
   depthWrite?: boolean
   polygonOffset?: boolean
@@ -1594,30 +1595,65 @@ export function createMsfsDeferredLightingMaterial(
   return lightingMaterial as unknown as Material
 }
 
+function resolveMsfsMaterialNode(node: any, fallback: any): any {
+  return node?.isVarNode === true ? node.node : node ?? fallback
+}
+
+// Direct MRT fragment outputs bypass NodeMaterial's diffuse setup, so mirror its
+// color, texture, vertex-color, opacity, and alpha-map composition explicitly.
+function createMsfsMaterialBaseColorNode(source: MsfsNodeMaterial) {
+  let colorNode: any
+  if (source.colorNode != null) {
+    colorNode = vec4(resolveMsfsMaterialNode(source.colorNode, vec4(1)))
+  } else {
+    colorNode = vec4(materialReference('color', 'color'), 1)
+    if (source.map != null) {
+      colorNode = colorNode.mul(texture(source.map))
+    }
+  }
+  if (source.vertexColors === true) {
+    colorNode = colorNode.mul(vec4(vertexColor()))
+  }
+  return colorNode
+}
+
+function createMsfsMaterialOpacityNode(source: MsfsNodeMaterial) {
+  if (source.opacityNode != null) {
+    return float(resolveMsfsMaterialNode(source.opacityNode, 1))
+  }
+
+  let opacityNode: any = materialReference('opacity', 'float')
+  if (source.alphaMap != null) {
+    opacityNode = opacityNode.mul(texture(source.alphaMap).g)
+  }
+  return opacityNode
+}
+
+function createMsfsMaterialCoverageNode(source: MsfsNodeMaterial, colorNode: any) {
+  return colorNode.a.mul(createMsfsMaterialOpacityNode(source)).clamp(0, 1)
+}
+
 function createMsfsGBufferWriter(
   source: MsfsNodeMaterial,
   blendFactors: MsfsBlendFactors | null
 ): Material | null {
   const writer = new MeshBasicNodeMaterial() as unknown as MsfsNodeMaterial
   copyMsfsGBufferWriterInputs(writer, source)
-  const resolveNode = (node: any, fallback: any): any =>
-    node?.isVarNode === true ? node.node : node ?? fallback
-  const colorNode = vec4(resolveNode(source.colorNode, materialColor))
-  const opacityNode = resolveNode(source.opacityNode, materialOpacity)
-  const materialCoverage = colorNode.a.mul(opacityNode).clamp(0, 1)
-  const normalNode = vec3(resolveNode(
+  const colorNode = createMsfsMaterialBaseColorNode(source)
+  const materialCoverage = createMsfsMaterialCoverageNode(source, colorNode)
+  const normalNode = vec3(resolveMsfsMaterialNode(
     source.normalNode,
     createMsfsGBufferNormalNode(source)
   )).normalize()
-  const roughnessNode = resolveNode(
+  const roughnessNode = resolveMsfsMaterialNode(
     source.roughnessNode,
     createMsfsGBufferRoughnessNode(source)
   )
-  const metalnessNode = resolveNode(
+  const metalnessNode = resolveMsfsMaterialNode(
     source.metalnessNode,
     createMsfsGBufferMetalnessNode(source)
   )
-  const aoNode = resolveNode(source.aoNode, createMsfsGBufferAoNode(source))
+  const aoNode = resolveMsfsMaterialNode(source.aoNode, createMsfsGBufferAoNode(source))
   const emissiveNode = vec3(createMsfsGBufferEmissiveNode(source))
   const isDecal = blendFactors != null
   if (
@@ -1806,24 +1842,15 @@ function applyMsfsBlendGBufferNodeMaterial(
   }
 
   nodeMaterial.lights = !hasForwardColor
+  const baseColorNode = createMsfsMaterialBaseColorNode(nodeMaterial)
   const opacityBlendFactor = getMsfsBlendGBufferForwardOpacityFactor(blendFactors)
-  if (material.map != null) {
-    const baseTexture = texture(material.map)
-    const depthMaskNode = createMsfsBlendGBufferDepthMaskNode()
-    const opacityNode = baseTexture.a
-      .mul(materialOpacity)
-      .mul(opacityBlendFactor)
-      .mul(depthMaskNode)
-    nodeMaterial.colorNode = vec4(
-      baseTexture.rgb.mul(materialColor.rgb).mul(blendFactors.baseColor),
-      1
-    )
-    nodeMaterial.opacityNode = opacityNode
-  } else {
-    nodeMaterial.opacityNode = materialOpacity
-      .mul(opacityBlendFactor)
-      .mul(createMsfsBlendGBufferDepthMaskNode())
-  }
+  nodeMaterial.colorNode = vec4(
+    baseColorNode.rgb.mul(blendFactors.baseColor),
+    1
+  )
+  nodeMaterial.opacityNode = createMsfsMaterialCoverageNode(nodeMaterial, baseColorNode)
+    .mul(opacityBlendFactor)
+    .mul(createMsfsBlendGBufferDepthMaskNode())
 
   if (material.emissiveMap != null) {
     nodeMaterial.emissiveNode = texture(material.emissiveMap)
@@ -1882,9 +1909,7 @@ function applyMsfsDetailMapNodeMaterial(
   detailBlend = detailBlend.clamp(0, 1)
 
   if (textures.detailColorTexture != null) {
-    const baseColorNode = nodeMaterial.colorNode != null
-      ? vec4(nodeMaterial.colorNode)
-      : materialColor
+    const baseColorNode = createMsfsMaterialBaseColorNode(nodeMaterial)
     const detailColorNode = texture(textures.detailColorTexture, detailUv).rgb.mul(2)
     nodeMaterial.colorNode = vec4(
       mix(baseColorNode.rgb, baseColorNode.rgb.mul(detailColorNode), detailBlend),
