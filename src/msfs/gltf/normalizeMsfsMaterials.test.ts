@@ -194,17 +194,19 @@ test('projects planar blend-gbuffer decals without extra triangles', async () =>
   expect(decal.userData.msfsBlendGBufferReceivers).toEqual([receiver])
 })
 
-test('keeps curved projected decals flat while recording their local depth allowance', async () => {
+test('keeps same-parent decals authored when a receiver descendant is closer', async () => {
   const root = new Group()
   const receiver = new Mesh(
-    triangleGeometry([
-      -0.2, 0, 0, 0, 0, 0, 0, 0.2, 0,
-      0, 0, 0, 0, 0, 0.2, 0, 0.2, 0
-    ]),
+    triangleGeometry([0, 0, 0, 0.2, 0, 0, 0, 0.2, 0]),
     new MeshBasicMaterial()
   )
+  const closerDescendant = new Mesh(
+    triangleGeometry([0, 0, 0.2, 0.2, 0, 0.2, 0, 0.2, 0.2]),
+    new MeshBasicMaterial()
+  )
+  receiver.add(closerDescendant)
   const decal = new Mesh(
-    triangleGeometry([-0.1, 0.02, 0.01, 0.01, 0.02, 0.1, 0, 0.18, 0.01]),
+    triangleGeometry([0, 0, 0.19, 0.2, 0, 0.19, 0, 0.2, 0.19]),
     blendGBufferMaterial()
   )
   const parent = new Group()
@@ -213,9 +215,49 @@ test('keeps curved projected decals flat while recording their local depth allow
 
   await normalizeMsfsMaterials({ scene: root } as GLTF)
 
-  expect(decal.geometry.getAttribute('position').count).toBe(3)
-  const allowance = decal.geometry.getAttribute('msfsBlendGBufferDepthAllowance')
-  expect(Math.max(...Array.from({ length: allowance.count }, (_, index) => allowance.getX(index))) > 0).toBe(true)
+  expect(decal.userData.msfsBlendGBufferProjectedToReceiver === true).toBe(false)
+  const position = decal.geometry.getAttribute('position')
+  expect(Math.abs(position.getZ(0) - 0.19) < 1e-6).toBe(true)
+})
+
+test('clips curved projected decals onto receiver triangles', async () => {
+  const root = new Group()
+  const receiver = new Mesh(
+    triangleGeometry([
+      -0.2, 0, 0, 0, 0, 0, 0, 0.2, 0,
+      0, 0, 0, 0, 0, 0.2, 0, 0.2, 0
+    ]),
+    new MeshBasicMaterial()
+  )
+  const decalGeometry = triangleGeometry([
+    -0.1, 0.02, 0.01,
+    0.01, 0.02, 0.1,
+    0, 0.18, 0.01,
+  ])
+  decalGeometry.setAttribute(
+    'uv',
+    new BufferAttribute(new Float32Array([0, 0, 1, 0, 0.5, 1]), 2)
+  )
+  const decal = new Mesh(decalGeometry, blendGBufferMaterial())
+  const parent = new Group()
+  parent.add(receiver, decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  const position = decal.geometry.getAttribute('position')
+  expect(position.count > 3).toBe(true)
+  expect(decal.geometry.getAttribute('uv').count).toBe(position.count)
+  expect(decal.geometry.getAttribute('msfsBlendGBufferDepthAllowance')).toBeUndefined()
+  for (let index = 0; index < position.count; index += 3) {
+    const onXPlane = [0, 1, 2].every(offset =>
+      Math.abs(position.getX(index + offset)) < 1e-6
+    )
+    const onZPlane = [0, 1, 2].every(offset =>
+      Math.abs(position.getZ(index + offset)) < 1e-6
+    )
+    expect(onXPlane || onZPlane).toBe(true)
+  }
 })
 
 test('parses every blend-gbuffer component factor', () => {
