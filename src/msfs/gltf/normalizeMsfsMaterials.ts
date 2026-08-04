@@ -193,7 +193,6 @@ type GltfPrimitiveMesh = {
 }
 
 type DecalProjectionTriangle = {
-  readonly receiver: MeshWithGeometry
   readonly a: Vector3
   readonly b: Vector3
   readonly c: Vector3
@@ -755,7 +754,6 @@ function buildDecalProjectionTriangles(
       }
 
       triangles.push({
-        receiver: mesh,
         a,
         b,
         c,
@@ -1068,17 +1066,12 @@ function clipBlendGBufferPrimitiveToBase(
           sourceWorld[2],
           sourceCenterBarycentric
         )
-        const closestReceiverTriangle = findClosestProjectionTriangle(
-          sourceCenter,
-          triangleIndex,
-          sourceOrientationNormal
-        )?.triangle
         if (
-          closestReceiverTriangle == null ||
-          (
-            closestReceiverTriangle !== receiverTriangle &&
-            !shareProjectionTriangleEdge(closestReceiverTriangle, receiverTriangle)
-          )
+          findClosestProjectionTriangle(
+            sourceCenter,
+            triangleIndex,
+            sourceOrientationNormal
+          )?.triangle !== receiverTriangle
         ) {
           continue
         }
@@ -1122,20 +1115,6 @@ function clipBlendGBufferPrimitiveToBase(
 
   rebuildConformedDecalGeometry(mesh, vertices)
   return true
-}
-
-function shareProjectionTriangleEdge(
-  left: DecalProjectionTriangle,
-  right: DecalProjectionTriangle
-): boolean {
-  if (left.receiver !== right.receiver) {
-    return false
-  }
-
-  const rightVertices = [right.a, right.b, right.c]
-  return [left.a, left.b, left.c].filter(leftVertex =>
-    rightVertices.some(rightVertex => leftVertex.equals(rightVertex))
-  ).length >= 2
 }
 
 function rebuildConformedDecalGeometry(
