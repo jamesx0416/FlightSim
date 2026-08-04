@@ -194,7 +194,53 @@ test('projects planar blend-gbuffer decals without extra triangles', async () =>
   expect(decal.userData.msfsBlendGBufferReceivers).toEqual([receiver])
 })
 
-test('keeps curved projected decals flat while recording their local depth allowance', async () => {
+test('projects decals only onto receiver faces matching their authored normal', async () => {
+  const root = new Group()
+  const parent = new Group()
+  parent.add(new Mesh(triangleGeometry([0, 0, 0, 0.2, 0, 0, 0.2, 0]), new MeshBasicMaterial()))
+  parent.add(
+    new Mesh(
+      triangleGeometry([0, 0, -0.1, 0, 0.2, -0.1, 0.2, 0, -0.1]),
+      new MeshBasicMaterial()
+    )
+  )
+  const decalGeometry = triangleGeometry([0, 0, 0.01, 0, 0.2, 0.01, 0.2, 0, 0.01])
+  const decal = new Mesh(decalGeometry, blendGBufferMaterial())
+  parent.add(decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  expect(Math.abs(decal.geometry.getAttribute('position').getZ(0) + 0.1) < 1e-6).toBe(true)
+})
+
+test('does not project a decal through a solid receiver descendant', async () => {
+  const root = new Group()
+  const parent = new Group()
+  const receiver = new Mesh(
+    triangleGeometry([0, 0, 0, 0.2, 0, 0, 0, 0.2, 0]),
+    new MeshBasicMaterial()
+  )
+  receiver.add(
+    new Mesh(
+      triangleGeometry([0, 0, 0.005, 0.2, 0, 0.005, 0, 0.2, 0.005]),
+      new MeshBasicMaterial()
+    )
+  )
+  const decal = new Mesh(
+    triangleGeometry([0, 0, 0.01, 0.2, 0, 0.01, 0, 0.2, 0.01]),
+    blendGBufferMaterial()
+  )
+  parent.add(receiver, decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  expect(decal.geometry.getAttribute('position').getZ(0) > 0.009).toBe(true)
+  expect(decal.userData.msfsBlendGBufferProjectedToReceiver).toBeUndefined()
+})
+
+test('keeps curved projected decals flat', async () => {
   const root = new Group()
   const receiver = new Mesh(
     triangleGeometry([
@@ -214,8 +260,7 @@ test('keeps curved projected decals flat while recording their local depth allow
   await normalizeMsfsMaterials({ scene: root } as GLTF)
 
   expect(decal.geometry.getAttribute('position').count).toBe(3)
-  const allowance = decal.geometry.getAttribute('msfsBlendGBufferDepthAllowance')
-  expect(Math.max(...Array.from({ length: allowance.count }, (_, index) => allowance.getX(index))) > 0).toBe(true)
+  expect(decal.geometry.getAttribute('msfsBlendGBufferDepthAllowance')).toBeUndefined()
 })
 
 test('parses every blend-gbuffer component factor', () => {
@@ -382,7 +427,7 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
   expect(decalWriter.depthNode == null).toBe(false)
   expect(decalWriter.depthTest).toBe(true)
   expect(decalWriter.depthWrite).toBe(false)
-  expect(normalizedDecal.lights).toBe(false)
+  expect(normalizedDecal.lights).toBe(true)
   expect(getMsfsGBufferWriter(unsupported.material)).toBe(null)
 })
 

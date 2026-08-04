@@ -70,16 +70,14 @@ test('keeps receiverless colour decals in the base pass unless draw order requir
   expect(canKeepReceiverlessBlendGBufferMaterialInBasePass(componentOnly)).toBe(false)
 })
 
-test('uses the sampled receiver depth mask instead of rejecting coplanar decals twice', () => {
+test('keeps native depth testing for decal occlusion', () => {
   const material = new MeshBasicMaterial()
   material.depthTest = false
   material.depthWrite = true
   material.polygonOffset = true
-  material.userData.msfsBlendGBufferDepthMask = true
+  configureBlendGBufferMaterialsForDecalPass([material], new Map())
 
-  configureBlendGBufferMaterialsForDecalPass([material], new Map(), true)
-
-  expect(material.depthTest).toBe(false)
+  expect(material.depthTest).toBe(true)
   expect(material.depthWrite).toBe(false)
-  expect(material.polygonOffset).toBe(false)
+  expect(material.polygonOffset).toBe(true)
 })
