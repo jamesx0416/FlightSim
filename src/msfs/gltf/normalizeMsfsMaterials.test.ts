@@ -260,6 +260,41 @@ test('clips curved projected decals onto receiver triangles', async () => {
   }
 })
 
+test('keeps adjacent receiver triangles across overlapping projection ownership', async () => {
+  const root = new Group()
+  const receiver = new Mesh(
+    triangleGeometry([
+      -1, 0, 0, 0, 0, 0, 0, 1, 0,
+      0, 0, 0, 0, 1, 0, -0.8, 0.5, 0.2,
+    ]),
+    new MeshBasicMaterial()
+  )
+  const decal = new Mesh(
+    triangleGeometry([
+      -0.9, 0.05, 0.3,
+      -0.05, 0.05, 0.3,
+      -0.05, 0.9, 0.3,
+    ]),
+    blendGBufferMaterial()
+  )
+  const parent = new Group()
+  parent.add(receiver, decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  const position = decal.geometry.getAttribute('position')
+  let hasFlatReceiverTriangle = false
+  let hasFoldedReceiverTriangle = false
+  for (let index = 0; index + 2 < position.count; index += 3) {
+    const z = [0, 1, 2].map(offset => position.getZ(index + offset))
+    hasFlatReceiverTriangle ||= z.every(value => Math.abs(value) < 1e-6)
+    hasFoldedReceiverTriangle ||= z.some(value => value > 1e-3)
+  }
+  expect(hasFlatReceiverTriangle).toBe(true)
+  expect(hasFoldedReceiverTriangle).toBe(true)
+})
+
 test('parses every blend-gbuffer component factor', () => {
   const material = new MeshBasicMaterial()
   material.userData.gltfExtensions = {
