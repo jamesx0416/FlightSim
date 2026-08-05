@@ -936,65 +936,12 @@ function conformProjectedDecalToBase(
   mesh: MeshWithGeometry,
   triangleIndex: DecalProjectionSpatialIndex
 ): void {
-  if (!isBlendGBufferPrimitivePlanar(mesh)) {
-    subdivideBlendGBufferPrimitive(mesh, 4)
-    projectBlendGBufferPrimitiveToBase(mesh, triangleIndex)
+  if (!isBlendGBufferPrimitivePlanar(mesh) && clipBlendGBufferPrimitiveToBase(mesh, triangleIndex)) {
     setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
     return
   }
   projectBlendGBufferPrimitiveToBase(mesh, triangleIndex)
   setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
-}
-
-function subdivideBlendGBufferPrimitive(mesh: MeshWithGeometry, divisions: number): void {
-  const geometry = mesh.geometry
-  const position = geometry.getAttribute('position')
-  if (position == null || position.itemSize < 3 || Object.keys(geometry.morphAttributes).length > 0) {
-    return
-  }
-
-  const sourceAttributes = Object.entries(geometry.attributes) as [string, GeometryAttribute][]
-  const output = new Map(sourceAttributes.map(([name]) => [name, [] as number[]]))
-  const index = geometry.index
-  const count = index?.count ?? position.count
-  const appendVertex = (indices: readonly [number, number, number], b: number, c: number) => {
-    const a = 1 - b - c
-    for (const [name, attribute] of sourceAttributes) {
-      const values = output.get(name)!
-      for (let component = 0; component < attribute.itemSize; component += 1) {
-        values.push(
-          getAttributeComponent(attribute, indices[0], component) * a +
-          getAttributeComponent(attribute, indices[1], component) * b +
-          getAttributeComponent(attribute, indices[2], component) * c
-        )
-      }
-    }
-  }
-
-  for (let offset = 0; offset + 2 < count; offset += 3) {
-    const indices = [
-      index?.getX(offset) ?? offset,
-      index?.getX(offset + 1) ?? offset + 1,
-      index?.getX(offset + 2) ?? offset + 2,
-    ] as const
-    for (let b = 0; b < divisions; b += 1) {
-      for (let c = 0; c < divisions - b; c += 1) {
-        appendVertex(indices, b / divisions, c / divisions)
-        appendVertex(indices, (b + 1) / divisions, c / divisions)
-        appendVertex(indices, b / divisions, (c + 1) / divisions)
-        if (b + c + 1 < divisions) {
-          appendVertex(indices, (b + 1) / divisions, c / divisions)
-          appendVertex(indices, (b + 1) / divisions, (c + 1) / divisions)
-          appendVertex(indices, b / divisions, (c + 1) / divisions)
-        }
-      }
-    }
-  }
-
-  for (const [name, attribute] of sourceAttributes) {
-    geometry.setAttribute(name, new BufferAttribute(new Float32Array(output.get(name)!), attribute.itemSize))
-  }
-  geometry.setIndex(null)
 }
 
 function isBlendGBufferPrimitivePlanar(mesh: MeshWithGeometry): boolean {
@@ -1064,6 +1011,8 @@ function clipBlendGBufferPrimitiveToBase(
     mesh.matrixWorld
   )
   const vertices: ConformedDecalVertex[] = []
+  // ponytail: two levels match the old 4x per-edge subdivision ceiling.
+  const maxRefinementDepth = 2
 
   for (let triangleOffset = 0; triangleOffset + 2 < count; triangleOffset += 3) {
     const sourceIndices = [
@@ -1099,6 +1048,7 @@ function clipBlendGBufferPrimitiveToBase(
         sourceOrientationNormal.negate()
       }
     }
+
     const projectionNormal = projectionNormals.get(triangleOffset / 3) ?? sourceNormal
     if (projectionNormal.dot(sourceNormal) < 0) {
       projectionNormal.negate()
@@ -1122,110 +1072,231 @@ function clipBlendGBufferPrimitiveToBase(
     ]
     const toPlane = (point: Vector3): ProjectionPoint2 =>
       toPlaneCoordinates(point.x, point.y, point.z)
-    const sourceTriangle2 = sourceWorld.map(toPlane) as [
-      ProjectionPoint2,
-      ProjectionPoint2,
-      ProjectionPoint2,
+
+    const interpolateSourceBarycentric = (
+      triangle: readonly [ProjectionBarycentric, ProjectionBarycentric, ProjectionBarycentric],
+      barycentric: ProjectionBarycentric
+    ): ProjectionBarycentric => [
+      triangle[0][0] * barycentric[0] + triangle[1][0] * barycentric[1] + triangle[2][0] * barycentric[2],
+      triangle[0][1] * barycentric[0] + triangle[1][1] * barycentric[1] + triangle[2][1] * barycentric[2],
+      triangle[0][2] * barycentric[0] + triangle[1][2] * barycentric[1] + triangle[2][2] * barycentric[2],
     ]
-    const receiverTriangles = getProjectionTriangleCandidates(
-      triangleIndex,
-      toPlaneCoordinates,
-      getProjectionBounds(sourceTriangle2)
-    )
-    let emittedTriangle = false
-
-    for (const receiverTriangle of receiverTriangles) {
-      if (receiverTriangle.orientationNormal.dot(sourceOrientationNormal) <= 0) {
-        continue
-      }
-      const receiverTriangle2 = [
-        toPlane(receiverTriangle.a),
-        toPlane(receiverTriangle.b),
-        toPlane(receiverTriangle.c),
-      ] as [ProjectionPoint2, ProjectionPoint2, ProjectionPoint2]
-      const receiverArea = getProjectionSignedArea(receiverTriangle2)
-      if (receiverArea === 0) {
-        continue
-      }
-
-      let overlap = clipProjectionPolygon(sourceTriangle2, receiverTriangle2)
-      if (overlap.length < 3) {
-        continue
-      }
-
-      if (receiverArea < 0) {
-        overlap = [...overlap].reverse()
-      }
-      for (let polygonVertex = 1; polygonVertex + 1 < overlap.length; polygonVertex += 1) {
-        const outputTriangle = [
-          overlap[0],
-          overlap[polygonVertex],
-          overlap[polygonVertex + 1],
-        ] as const
-        if (Math.abs(getProjectionSignedArea(outputTriangle)) <= getProjectionAreaEpsilon(outputTriangle)) {
-          continue
-        }
-
-        const outputCenter = getProjectionPolygonCenter(outputTriangle)
-        const sourceCenterBarycentric = getProjectionBarycentric(
-          outputCenter,
-          sourceTriangle2
+    const projectSourceVertex = (
+      sourceBarycentric: ProjectionBarycentric
+    ): ConformedDecalVertex | null => {
+      const sourcePoint = interpolateProjectionVector3(
+        sourceWorld[0], sourceWorld[1], sourceWorld[2], sourceBarycentric
+      )
+      const orientationNormal = sourceIndices.reduce((normal, sourceIndex, vertex) => {
+        const authoredNormal = getNormalAttributeVector(
+          normalAttribute,
+          sourceIndex,
+          worldNormalMatrix
         )
-        if (sourceCenterBarycentric == null) {
+        return authoredNormal == null
+          ? normal
+          : normal.addScaledVector(authoredNormal, sourceBarycentric[vertex])
+      }, new Vector3())
+      if (orientationNormal.lengthSq() <= Number.EPSILON) {
+        orientationNormal.copy(sourceOrientationNormal)
+      } else {
+        orientationNormal.normalize()
+      }
+      const projected = findClosestProjectionTriangle(
+        sourcePoint,
+        triangleIndex,
+        orientationNormal
+      )
+      return projected == null ? null : {
+        receiverPoint: projected.point,
+        receiverTriangle: projected.triangle,
+        receiverBarycentric: projected.barycentric,
+        sourceBarycentric,
+        sourceIndices,
+      }
+    }
+
+    const appendRefinedTriangle = (
+      sourceBarycentrics: readonly [
+        ProjectionBarycentric,
+        ProjectionBarycentric,
+        ProjectionBarycentric,
+      ],
+      depth: number
+    ): void => {
+      const refinedWorld = sourceBarycentrics.map(barycentric =>
+        interpolateProjectionVector3(
+          sourceWorld[0], sourceWorld[1], sourceWorld[2], barycentric
+        )
+      ) as [Vector3, Vector3, Vector3]
+      const refinedTriangle2 = refinedWorld.map(toPlane) as [
+        ProjectionPoint2,
+        ProjectionPoint2,
+        ProjectionPoint2,
+      ]
+      const sourceArea = Math.abs(getProjectionSignedArea(refinedTriangle2))
+      if (sourceArea <= getProjectionAreaEpsilon(refinedTriangle2)) {
+        return
+      }
+
+      const refinedVertices: ConformedDecalVertex[] = []
+      const acceptedTriangles: Array<readonly [ProjectionPoint2, ProjectionPoint2, ProjectionPoint2]> = []
+      const receiverTriangles = getProjectionTriangleCandidates(
+        triangleIndex,
+        toPlaneCoordinates,
+        getProjectionBounds(refinedTriangle2)
+      )
+
+      for (const receiverTriangle of receiverTriangles) {
+        if (receiverTriangle.orientationNormal.dot(sourceOrientationNormal) <= 0) {
           continue
         }
-        const sourceCenter = interpolateProjectionVector3(
-          sourceWorld[0],
-          sourceWorld[1],
-          sourceWorld[2],
-          sourceCenterBarycentric
-        )
-        const closestReceiverTriangle = findClosestProjectionTriangle(
-          sourceCenter,
-          triangleIndex,
-          sourceOrientationNormal
-        )?.triangle
-        if (
-          closestReceiverTriangle == null ||
-          (
-            closestReceiverTriangle !== receiverTriangle &&
-            !shareProjectionTriangleEdge(closestReceiverTriangle, receiverTriangle)
-          )
-        ) {
+        const receiverTriangle2 = [
+          toPlane(receiverTriangle.a),
+          toPlane(receiverTriangle.b),
+          toPlane(receiverTriangle.c),
+        ] as [ProjectionPoint2, ProjectionPoint2, ProjectionPoint2]
+        const receiverArea = getProjectionSignedArea(receiverTriangle2)
+        if (receiverArea === 0) {
           continue
         }
 
-        const outputVertices: ConformedDecalVertex[] = []
-        for (const point of outputTriangle) {
-          const sourceBarycentric = getProjectionBarycentric(point, sourceTriangle2)
-          const receiverBarycentric = getProjectionBarycentric(point, receiverTriangle2)
-          if (sourceBarycentric == null || receiverBarycentric == null) {
-            outputVertices.length = 0
-            break
+        let overlap = clipProjectionPolygon(refinedTriangle2, receiverTriangle2)
+        if (overlap.length < 3) {
+          continue
+        }
+        if (receiverArea < 0) {
+          overlap = [...overlap].reverse()
+        }
+
+        for (let polygonVertex = 1; polygonVertex + 1 < overlap.length; polygonVertex += 1) {
+          const outputTriangle = [
+            overlap[0],
+            overlap[polygonVertex],
+            overlap[polygonVertex + 1],
+          ] as const
+          const outputArea = Math.abs(getProjectionSignedArea(outputTriangle))
+          if (outputArea <= getProjectionAreaEpsilon(outputTriangle)) {
+            continue
           }
-          outputVertices.push({
-            receiverPoint: interpolateProjectionVector3(
-              receiverTriangle.a,
-              receiverTriangle.b,
-              receiverTriangle.c,
-              receiverBarycentric
-            ),
-            receiverTriangle,
-            receiverBarycentric,
-            sourceBarycentric,
-            sourceIndices,
-          })
+
+          const outputCenter = getProjectionPolygonCenter(outputTriangle)
+          const refinedCenterBarycentric = getProjectionBarycentric(
+            outputCenter,
+            refinedTriangle2
+          )
+          if (refinedCenterBarycentric == null) {
+            continue
+          }
+          const sourceCenterBarycentric = interpolateSourceBarycentric(
+            sourceBarycentrics,
+            refinedCenterBarycentric
+          )
+          const sourceCenter = interpolateProjectionVector3(
+            sourceWorld[0], sourceWorld[1], sourceWorld[2], sourceCenterBarycentric
+          )
+          const closestReceiverTriangle = findClosestProjectionTriangle(
+            sourceCenter,
+            triangleIndex,
+            sourceOrientationNormal
+          )?.triangle
+          if (
+            closestReceiverTriangle == null ||
+            (
+              closestReceiverTriangle !== receiverTriangle &&
+              !shareProjectionTriangleEdge(closestReceiverTriangle, receiverTriangle)
+            )
+          ) {
+            continue
+          }
+
+          const outputVertices: ConformedDecalVertex[] = []
+          for (const point of outputTriangle) {
+            const refinedBarycentric = getProjectionBarycentric(point, refinedTriangle2)
+            const receiverBarycentric = getProjectionBarycentric(point, receiverTriangle2)
+            if (refinedBarycentric == null || receiverBarycentric == null) {
+              outputVertices.length = 0
+              break
+            }
+            outputVertices.push({
+              receiverPoint: interpolateProjectionVector3(
+                receiverTriangle.a,
+                receiverTriangle.b,
+                receiverTriangle.c,
+                receiverBarycentric
+              ),
+              receiverTriangle,
+              receiverBarycentric,
+              sourceBarycentric: interpolateSourceBarycentric(
+                sourceBarycentrics,
+                refinedBarycentric
+              ),
+              sourceIndices,
+            })
+          }
+          if (outputVertices.length === 3) {
+            refinedVertices.push(...outputVertices)
+            acceptedTriangles.push(outputTriangle)
+          }
         }
-        if (outputVertices.length === 3) {
-          vertices.push(...outputVertices)
-          emittedTriangle = true
-        }
+      }
+
+      const sampleWeights: readonly ProjectionBarycentric[] = [
+        [1 / 3, 1 / 3, 1 / 3],
+        [0.5, 0.25, 0.25],
+        [0.25, 0.5, 0.25],
+        [0.25, 0.25, 0.5],
+        [0.5, 0.5, 0],
+        [0.5, 0, 0.5],
+        [0, 0.5, 0.5],
+      ]
+      const barycentricEpsilon = Number.EPSILON * 1024
+      const isCovered = (point: ProjectionPoint2): boolean =>
+        acceptedTriangles.some(triangle => {
+          const barycentric = getProjectionBarycentric(point, triangle)
+          return barycentric != null && barycentric.every(
+            value => value >= -barycentricEpsilon && value <= 1 + barycentricEpsilon
+          )
+        })
+      const samplesCovered = sampleWeights.every(weights => isCovered([
+        refinedTriangle2[0][0] * weights[0] + refinedTriangle2[1][0] * weights[1] + refinedTriangle2[2][0] * weights[2],
+        refinedTriangle2[0][1] * weights[0] + refinedTriangle2[1][1] * weights[1] + refinedTriangle2[2][1] * weights[2],
+      ]))
+      if (samplesCovered) {
+        vertices.push(...refinedVertices)
+        return
+      }
+
+      if (depth < maxRefinementDepth) {
+        const [a, b, c] = sourceBarycentrics
+        const midpoint = (left: ProjectionBarycentric, right: ProjectionBarycentric): ProjectionBarycentric => [
+          (left[0] + right[0]) * 0.5,
+          (left[1] + right[1]) * 0.5,
+          (left[2] + right[2]) * 0.5,
+        ]
+        const ab = midpoint(a, b)
+        const bc = midpoint(b, c)
+        const ca = midpoint(c, a)
+        appendRefinedTriangle([a, ab, ca], depth + 1)
+        appendRefinedTriangle([ab, b, bc], depth + 1)
+        appendRefinedTriangle([ca, bc, c], depth + 1)
+        appendRefinedTriangle([ab, bc, ca], depth + 1)
+        return
+      }
+
+      const fallbackVertices = sourceBarycentrics.map(projectSourceVertex)
+      if (fallbackVertices.every(vertex => vertex != null)) {
+        vertices.push(...fallbackVertices as ConformedDecalVertex[])
+      } else {
+        vertices.push(...refinedVertices)
       }
     }
 
-    if (!emittedTriangle) {
-      continue
-    }
+    appendRefinedTriangle([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ], 0)
   }
 
   if (vertices.length === 0) {
