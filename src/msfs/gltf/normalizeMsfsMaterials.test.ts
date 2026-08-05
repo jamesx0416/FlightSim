@@ -168,7 +168,7 @@ function evaluateCoverageNode(
   throw new Error(`Unsupported coverage node: ${node?.constructor?.name ?? typeof node}`)
 }
 
-test('projects planar blend-gbuffer decals without extra triangles', async () => {
+test('subdivides blend-gbuffer decals before projection', async () => {
   const root = new Group()
   const receiver = new Mesh(
     triangleGeometry([0, 0, 0, 0.2, 0, 0, 0, 0.2, 0]),
@@ -185,13 +185,35 @@ test('projects planar blend-gbuffer decals without extra triangles', async () =>
   await normalizeMsfsMaterials({ scene: root } as GLTF)
 
   const position = decal.geometry.getAttribute('position')
-  expect(position.count === 3).toBe(true)
+  expect(position.count === 48).toBe(true)
   expect(Math.max(...Array.from(
     { length: position.count },
     (_, index) => Math.abs(position.getZ(index))
   )) < 1e-6).toBe(true)
   expect(decal.userData.msfsBlendGBufferProjectedToReceiver).toBe(true)
   expect(decal.userData.msfsBlendGBufferReceivers).toEqual([receiver])
+})
+
+test('keeps planar decal triangle joins shared', async () => {
+  const root = new Group()
+  const receiverGeometry = triangleGeometry([
+    -0.2, -0.2, 0, 0.2, -0.2, 0, 0.2, 0.2, 0, -0.2, 0.2, 0,
+  ])
+  receiverGeometry.setIndex([0, 1, 2, 0, 2, 3])
+  const decalGeometry = triangleGeometry([
+    -0.2, -0.2, 0.01, 0.2, -0.2, 0.01, 0.2, 0.2, 0.01, -0.2, 0.2, 0.01,
+  ])
+  decalGeometry.setIndex([0, 1, 2, 0, 2, 3])
+  const receiver = new Mesh(receiverGeometry, new MeshBasicMaterial())
+  const decal = new Mesh(decalGeometry, blendGBufferMaterial())
+  const parent = new Group()
+  parent.add(receiver, decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  expect(decal.geometry.getAttribute('position').count).toBe(4)
+  expect(decal.geometry.index?.count).toBe(6)
 })
 
 test('projects decals only onto receiver faces matching their authored normal', async () => {
@@ -212,6 +234,33 @@ test('projects decals only onto receiver faces matching their authored normal', 
   await normalizeMsfsMaterials({ scene: root } as GLTF)
 
   expect(Math.abs(decal.geometry.getAttribute('position').getZ(0) + 0.1) < 1e-6).toBe(true)
+})
+
+test('projects decals along their authored normal before snapping to nearby surfaces', async () => {
+  const root = new Group()
+  const parent = new Group()
+  const receiverGeometry = triangleGeometry([
+    -0.2, -0.2, 0, 0.2, -0.2, 0, 0.2, 0.2, 0, -0.2, 0.2, 0,
+  ])
+  receiverGeometry.setIndex([0, 1, 2, 0, 2, 3])
+  const receiver = new Mesh(receiverGeometry, new MeshBasicMaterial())
+  const nearbySurface = new Mesh(
+    triangleGeometry([
+      0.02, -0.01, 0.09, 0.03, -0.01, 0.09, 0.02, 0.01, 0.09,
+    ]),
+    new MeshBasicMaterial()
+  )
+  const decalGeometry = triangleGeometry([
+    0, 0, 0.1, 0.1, 0, 0.1, 0.1, 0.1, 0.1, 0, 0.1, 0.1,
+  ])
+  decalGeometry.setIndex([0, 1, 2, 0, 2, 3])
+  const decal = new Mesh(decalGeometry, blendGBufferMaterial())
+  parent.add(receiver, nearbySurface, decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  expect(Math.abs(decal.geometry.getAttribute('position').getZ(0)) < 1e-6).toBe(true)
 })
 
 test('does not project a decal through a solid receiver descendant', async () => {
@@ -240,7 +289,7 @@ test('does not project a decal through a solid receiver descendant', async () =>
   expect(decal.userData.msfsBlendGBufferProjectedToReceiver).toBeUndefined()
 })
 
-test('keeps curved projected decals flat', async () => {
+test('splits curved projected decals across receiver faces', async () => {
   const root = new Group()
   const receiver = new Mesh(
     triangleGeometry([
@@ -259,8 +308,12 @@ test('keeps curved projected decals flat', async () => {
 
   await normalizeMsfsMaterials({ scene: root } as GLTF)
 
-  expect(decal.geometry.getAttribute('position').count).toBe(3)
-  expect(decal.geometry.getAttribute('msfsBlendGBufferDepthAllowance')).toBeUndefined()
+  expect(decal.geometry.getAttribute('position').count > 3).toBe(true)
+  expect(Array.from(
+    { length: decal.geometry.getAttribute('position').count },
+    (_, index) => Math.abs(decal.geometry.getAttribute('position').getX(index))
+  ).some(value => value < 1e-10)).toBe(true)
+  expect(decal.geometry.getAttribute('msfsBlendGBufferDepthAllowance') == null).toBe(false)
 })
 
 test('parses every blend-gbuffer component factor', () => {
@@ -429,6 +482,7 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
   expect(decalWriter.depthWrite).toBe(false)
   expect(normalizedDecal.lights).toBe(true)
   expect(getMsfsGBufferWriter(unsupported.material)).toBe(null)
+  expect((unsupported.material as { isNodeMaterial?: boolean }).isNodeMaterial === true).toBe(false)
 })
 
 test('preserves primitive draw order for overlapping decals', async () => {

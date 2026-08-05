@@ -5,6 +5,7 @@ import {
   LinearSRGBColorSpace,
   Material,
   Matrix3,
+  Matrix4,
   Mesh,
   NoBlending,
   NoColorSpace,
@@ -175,6 +176,7 @@ type LoadedMsfsDetailTextures = {
 
 type MsfsMaterialNormalizationOptions = {
   readonly createNodeMaterial?: NodeMaterialFactory | null
+  readonly buildGBufferWriters?: boolean
 }
 
 type MsfsBlendGBufferExtension = NonNullable<MsfsMaterialExtensions['ASOBO_material_blend_gbuffer']>
@@ -191,6 +193,7 @@ type GltfPrimitiveMesh = {
 }
 
 type DecalProjectionTriangle = {
+  readonly receiver: MeshWithGeometry
   readonly a: Vector3
   readonly b: Vector3
   readonly c: Vector3
@@ -232,6 +235,20 @@ type SkinInfluence = {
 }
 
 type GeometryAttribute = BufferAttribute | InterleavedBufferAttribute
+type ProjectionPoint2 = readonly [number, number]
+type ProjectionBarycentric = readonly [number, number, number]
+type ProjectionBounds2 = {
+  readonly min: ProjectionPoint2
+  readonly max: ProjectionPoint2
+}
+
+type ConformedDecalVertex = {
+  readonly receiverPoint: Vector3
+  readonly receiverTriangle: DecalProjectionTriangle
+  readonly receiverBarycentric: ProjectionBarycentric
+  readonly sourceBarycentric: ProjectionBarycentric
+  readonly sourceIndices: readonly [number, number, number]
+}
 
 export type MsfsBlendFactors = {
   readonly baseColor: number
@@ -396,7 +413,7 @@ export async function normalizeMsfsMaterials(
         textureCache,
         parser?.associations.get(material)?.materials,
         options,
-        gBufferMaterials.has(material)
+        options.buildGBufferWriters !== false && gBufferMaterials.has(material)
       )
       materialReplacements.set(material, normalizedMaterial)
     })
@@ -435,8 +452,25 @@ function projectBlendGBufferDecals(
   parser: GltfParserLike | undefined
 ): void {
   root.updateWorldMatrix(true, true)
+  initializeBlendGBufferDepthAllowances(root)
   const projectedMeshes = projectSameMeshBlendGBufferDecals(root, parser)
   projectSameParentBlendGBufferDecals(root, projectedMeshes)
+}
+
+function initializeBlendGBufferDepthAllowances(root: Object3D): void {
+  root.traverse(object => {
+    if (!(object instanceof Mesh) || !usesBlendGBufferMaterial(getSingleMeshMaterial(object.material))) {
+      return
+    }
+    const geometry = (object as MeshWithGeometry).geometry
+    const position = geometry.getAttribute('position')
+    if (position != null && geometry.getAttribute('msfsBlendGBufferDepthAllowance') == null) {
+      geometry.setAttribute(
+        'msfsBlendGBufferDepthAllowance',
+        new BufferAttribute(new Float32Array(position.count), 1)
+      )
+    }
+  })
 }
 
 function projectSameMeshBlendGBufferDecals(
@@ -717,6 +751,7 @@ function buildDecalProjectionTriangles(
       }
 
       triangles.push({
+        receiver: mesh,
         a,
         b,
         c,
@@ -901,7 +936,815 @@ function conformProjectedDecalToBase(
   mesh: MeshWithGeometry,
   triangleIndex: DecalProjectionSpatialIndex
 ): void {
+  if (!isBlendGBufferPrimitivePlanar(mesh)) {
+    subdivideBlendGBufferPrimitive(mesh, 4)
+    projectBlendGBufferPrimitiveToBase(mesh, triangleIndex)
+    setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
+    return
+  }
   projectBlendGBufferPrimitiveToBase(mesh, triangleIndex)
+  setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
+}
+
+function subdivideBlendGBufferPrimitive(mesh: MeshWithGeometry, divisions: number): void {
+  const geometry = mesh.geometry
+  const position = geometry.getAttribute('position')
+  if (position == null || position.itemSize < 3 || Object.keys(geometry.morphAttributes).length > 0) {
+    return
+  }
+
+  const sourceAttributes = Object.entries(geometry.attributes) as [string, GeometryAttribute][]
+  const output = new Map(sourceAttributes.map(([name]) => [name, [] as number[]]))
+  const index = geometry.index
+  const count = index?.count ?? position.count
+  const appendVertex = (indices: readonly [number, number, number], b: number, c: number) => {
+    const a = 1 - b - c
+    for (const [name, attribute] of sourceAttributes) {
+      const values = output.get(name)!
+      for (let component = 0; component < attribute.itemSize; component += 1) {
+        values.push(
+          getAttributeComponent(attribute, indices[0], component) * a +
+          getAttributeComponent(attribute, indices[1], component) * b +
+          getAttributeComponent(attribute, indices[2], component) * c
+        )
+      }
+    }
+  }
+
+  for (let offset = 0; offset + 2 < count; offset += 3) {
+    const indices = [
+      index?.getX(offset) ?? offset,
+      index?.getX(offset + 1) ?? offset + 1,
+      index?.getX(offset + 2) ?? offset + 2,
+    ] as const
+    for (let b = 0; b < divisions; b += 1) {
+      for (let c = 0; c < divisions - b; c += 1) {
+        appendVertex(indices, b / divisions, c / divisions)
+        appendVertex(indices, (b + 1) / divisions, c / divisions)
+        appendVertex(indices, b / divisions, (c + 1) / divisions)
+        if (b + c + 1 < divisions) {
+          appendVertex(indices, (b + 1) / divisions, c / divisions)
+          appendVertex(indices, (b + 1) / divisions, (c + 1) / divisions)
+          appendVertex(indices, b / divisions, (c + 1) / divisions)
+        }
+      }
+    }
+  }
+
+  for (const [name, attribute] of sourceAttributes) {
+    geometry.setAttribute(name, new BufferAttribute(new Float32Array(output.get(name)!), attribute.itemSize))
+  }
+  geometry.setIndex(null)
+}
+
+function isBlendGBufferPrimitivePlanar(mesh: MeshWithGeometry): boolean {
+  const position = mesh.geometry.getAttribute('position')
+  if (position == null || position.itemSize < 3) {
+    return false
+  }
+
+  const index = mesh.geometry.index
+  const count = index?.count ?? position.count
+  if (count < 6) {
+    return false
+  }
+  let origin: Vector3 | null = null
+  let normal: Vector3 | null = null
+  for (let triangleOffset = 0; triangleOffset + 2 < count; triangleOffset += 3) {
+    const a = getPositionAttributeVector(position, index?.getX(triangleOffset) ?? triangleOffset)
+    const b = getPositionAttributeVector(position, index?.getX(triangleOffset + 1) ?? triangleOffset + 1)
+    const c = getPositionAttributeVector(position, index?.getX(triangleOffset + 2) ?? triangleOffset + 2)
+    const candidate = new Vector3().subVectors(b, a).cross(new Vector3().subVectors(c, a))
+    if (candidate.lengthSq() > Number.EPSILON) {
+      origin = a
+      normal = candidate.normalize()
+      break
+    }
+  }
+  if (origin == null || normal == null) {
+    return false
+  }
+
+  let scale = 0
+  for (let vertex = 0; vertex < position.count; vertex += 1) {
+    scale = Math.max(scale, origin.distanceTo(getPositionAttributeVector(position, vertex)))
+  }
+  const tolerance = Math.max(1e-6, scale * 1e-6)
+  for (let vertex = 0; vertex < position.count; vertex += 1) {
+    if (Math.abs(normal.dot(getPositionAttributeVector(position, vertex).sub(origin))) > tolerance) {
+      return false
+    }
+  }
+  return true
+}
+
+function clipBlendGBufferPrimitiveToBase(
+  mesh: MeshWithGeometry,
+  triangleIndex: DecalProjectionSpatialIndex
+): boolean {
+  const geometry = mesh.geometry
+  const position = geometry.getAttribute('position')
+  if (
+    position == null ||
+    position.itemSize < 3 ||
+    Object.keys(geometry.morphAttributes).length > 0
+  ) {
+    return false
+  }
+
+  mesh.updateWorldMatrix(true, false)
+  const normalAttribute = geometry.getAttribute('normal') ?? null
+  const worldNormalMatrix = new Matrix3().getNormalMatrix(mesh.matrixWorld)
+  const index = geometry.index
+  const count = index?.count ?? position.count
+  const projectionNormals = buildBlendGBufferProjectionNormals(
+    position,
+    index,
+    count,
+    mesh.matrixWorld
+  )
+  const vertices: ConformedDecalVertex[] = []
+
+  for (let triangleOffset = 0; triangleOffset + 2 < count; triangleOffset += 3) {
+    const sourceIndices = [
+      index?.getX(triangleOffset) ?? triangleOffset,
+      index?.getX(triangleOffset + 1) ?? triangleOffset + 1,
+      index?.getX(triangleOffset + 2) ?? triangleOffset + 2,
+    ] as const
+    const sourceWorld = sourceIndices.map(vertexIndex =>
+      getPositionAttributeVector(position, vertexIndex).applyMatrix4(mesh.matrixWorld)
+    ) as [Vector3, Vector3, Vector3]
+    const sourceEdge = new Vector3().subVectors(sourceWorld[1], sourceWorld[0])
+    const sourceNormal = sourceEdge.clone().cross(
+      new Vector3().subVectors(sourceWorld[2], sourceWorld[0])
+    )
+    if (sourceEdge.lengthSq() === 0 || sourceNormal.lengthSq() === 0) {
+      continue
+    }
+    sourceNormal.normalize()
+    const sourceOrientationNormal = sourceNormal.clone()
+    if (normalAttribute != null && normalAttribute.itemSize >= 3) {
+      const authoredNormal = sourceIndices.reduce((sum, vertexIndex) => {
+        const normal = getNormalAttributeVector(
+          normalAttribute,
+          vertexIndex,
+          worldNormalMatrix
+        )
+        return normal == null ? sum : sum.add(normal)
+      }, new Vector3())
+      if (
+        authoredNormal.lengthSq() > 0 &&
+        sourceOrientationNormal.dot(authoredNormal) < 0
+      ) {
+        sourceOrientationNormal.negate()
+      }
+    }
+    const projectionNormal = projectionNormals.get(triangleOffset / 3) ?? sourceNormal
+    if (projectionNormal.dot(sourceNormal) < 0) {
+      projectionNormal.negate()
+    }
+    const xAxis = sourceEdge.addScaledVector(
+      projectionNormal,
+      -sourceEdge.dot(projectionNormal)
+    )
+    if (xAxis.lengthSq() <= Number.EPSILON) {
+      continue
+    }
+    xAxis.normalize()
+    const yAxis = projectionNormal.cross(xAxis).normalize()
+    const toPlaneCoordinates = (x: number, y: number, z: number): ProjectionPoint2 => [
+      (x - sourceWorld[0].x) * xAxis.x +
+        (y - sourceWorld[0].y) * xAxis.y +
+        (z - sourceWorld[0].z) * xAxis.z,
+      (x - sourceWorld[0].x) * yAxis.x +
+        (y - sourceWorld[0].y) * yAxis.y +
+        (z - sourceWorld[0].z) * yAxis.z,
+    ]
+    const toPlane = (point: Vector3): ProjectionPoint2 =>
+      toPlaneCoordinates(point.x, point.y, point.z)
+    const sourceTriangle2 = sourceWorld.map(toPlane) as [
+      ProjectionPoint2,
+      ProjectionPoint2,
+      ProjectionPoint2,
+    ]
+    const receiverTriangles = getProjectionTriangleCandidates(
+      triangleIndex,
+      toPlaneCoordinates,
+      getProjectionBounds(sourceTriangle2)
+    )
+    let emittedTriangle = false
+
+    for (const receiverTriangle of receiverTriangles) {
+      if (receiverTriangle.orientationNormal.dot(sourceOrientationNormal) <= 0) {
+        continue
+      }
+      const receiverTriangle2 = [
+        toPlane(receiverTriangle.a),
+        toPlane(receiverTriangle.b),
+        toPlane(receiverTriangle.c),
+      ] as [ProjectionPoint2, ProjectionPoint2, ProjectionPoint2]
+      const receiverArea = getProjectionSignedArea(receiverTriangle2)
+      if (receiverArea === 0) {
+        continue
+      }
+
+      let overlap = clipProjectionPolygon(sourceTriangle2, receiverTriangle2)
+      if (overlap.length < 3) {
+        continue
+      }
+
+      if (receiverArea < 0) {
+        overlap = [...overlap].reverse()
+      }
+      for (let polygonVertex = 1; polygonVertex + 1 < overlap.length; polygonVertex += 1) {
+        const outputTriangle = [
+          overlap[0],
+          overlap[polygonVertex],
+          overlap[polygonVertex + 1],
+        ] as const
+        if (Math.abs(getProjectionSignedArea(outputTriangle)) <= getProjectionAreaEpsilon(outputTriangle)) {
+          continue
+        }
+
+        const outputCenter = getProjectionPolygonCenter(outputTriangle)
+        const sourceCenterBarycentric = getProjectionBarycentric(
+          outputCenter,
+          sourceTriangle2
+        )
+        if (sourceCenterBarycentric == null) {
+          continue
+        }
+        const sourceCenter = interpolateProjectionVector3(
+          sourceWorld[0],
+          sourceWorld[1],
+          sourceWorld[2],
+          sourceCenterBarycentric
+        )
+        const closestReceiverTriangle = findClosestProjectionTriangle(
+          sourceCenter,
+          triangleIndex,
+          sourceOrientationNormal
+        )?.triangle
+        if (
+          closestReceiverTriangle == null ||
+          (
+            closestReceiverTriangle !== receiverTriangle &&
+            !shareProjectionTriangleEdge(closestReceiverTriangle, receiverTriangle)
+          )
+        ) {
+          continue
+        }
+
+        const outputVertices: ConformedDecalVertex[] = []
+        for (const point of outputTriangle) {
+          const sourceBarycentric = getProjectionBarycentric(point, sourceTriangle2)
+          const receiverBarycentric = getProjectionBarycentric(point, receiverTriangle2)
+          if (sourceBarycentric == null || receiverBarycentric == null) {
+            outputVertices.length = 0
+            break
+          }
+          outputVertices.push({
+            receiverPoint: interpolateProjectionVector3(
+              receiverTriangle.a,
+              receiverTriangle.b,
+              receiverTriangle.c,
+              receiverBarycentric
+            ),
+            receiverTriangle,
+            receiverBarycentric,
+            sourceBarycentric,
+            sourceIndices,
+          })
+        }
+        if (outputVertices.length === 3) {
+          vertices.push(...outputVertices)
+          emittedTriangle = true
+        }
+      }
+    }
+
+    if (!emittedTriangle) {
+      continue
+    }
+  }
+
+  if (vertices.length === 0) {
+    return false
+  }
+
+  rebuildConformedDecalGeometry(mesh, vertices)
+  return true
+}
+
+function buildBlendGBufferProjectionNormals(
+  position: GeometryAttribute,
+  index: BufferAttribute | null,
+  count: number,
+  worldMatrix: Matrix4
+): ReadonlyMap<number, Vector3> {
+  const triangleCount = Math.floor(count / 3)
+  const triangleNormals = new Array<Vector3 | null>(triangleCount).fill(null)
+  const adjacentTriangles = Array.from({ length: triangleCount }, () => new Set<number>())
+  const edgeOwners = new Map<string, number[]>()
+  const vertexIds = new Map<string, number>()
+  let nextVertexId = 0
+
+  const getVertexId = (vertexIndex: number): number => {
+    const key = `${getAttributeComponent(position, vertexIndex, 0)},${getAttributeComponent(position, vertexIndex, 1)},${getAttributeComponent(position, vertexIndex, 2)}`
+    const existing = vertexIds.get(key)
+    if (existing != null) {
+      return existing
+    }
+    const vertexId = nextVertexId
+    nextVertexId += 1
+    vertexIds.set(key, vertexId)
+    return vertexId
+  }
+
+  for (let triangle = 0; triangle < triangleCount; triangle += 1) {
+    const offset = triangle * 3
+    const indices = [
+      index?.getX(offset) ?? offset,
+      index?.getX(offset + 1) ?? offset + 1,
+      index?.getX(offset + 2) ?? offset + 2,
+    ] as const
+    const points = indices.map(vertexIndex =>
+      getPositionAttributeVector(position, vertexIndex).applyMatrix4(worldMatrix)
+    ) as [Vector3, Vector3, Vector3]
+    const normal = new Vector3().subVectors(points[1], points[0]).cross(
+      new Vector3().subVectors(points[2], points[0])
+    )
+    if (normal.lengthSq() <= Number.EPSILON) {
+      continue
+    }
+    triangleNormals[triangle] = normal
+
+    const vertexIdsForTriangle = indices.map(getVertexId) as [number, number, number]
+    for (let edge = 0; edge < 3; edge += 1) {
+      const a = vertexIdsForTriangle[edge]
+      const b = vertexIdsForTriangle[(edge + 1) % 3]
+      const edgeKey = a < b ? `${a}:${b}` : `${b}:${a}`
+      const owners = edgeOwners.get(edgeKey)
+      if (owners != null) {
+        for (const owner of owners) {
+          adjacentTriangles[triangle].add(owner)
+          adjacentTriangles[owner].add(triangle)
+        }
+        owners.push(triangle)
+      } else {
+        edgeOwners.set(edgeKey, [triangle])
+      }
+    }
+  }
+
+  const normals = new Map<number, Vector3>()
+  const visited = new Set<number>()
+  for (let start = 0; start < triangleCount; start += 1) {
+    if (triangleNormals[start] == null || visited.has(start)) {
+      continue
+    }
+    const component: number[] = []
+    const pending = [start]
+    const normal = new Vector3()
+    while (pending.length > 0) {
+      const triangle = pending.pop()!
+      if (visited.has(triangle) || triangleNormals[triangle] == null) {
+        continue
+      }
+      visited.add(triangle)
+      component.push(triangle)
+      normal.add(triangleNormals[triangle]!)
+      pending.push(...adjacentTriangles[triangle])
+    }
+    if (normal.lengthSq() <= Number.EPSILON) {
+      normal.copy(triangleNormals[start]!)
+    }
+    normal.normalize()
+    for (const triangle of component) {
+      normals.set(triangle, normal.clone())
+    }
+  }
+
+  return normals
+}
+
+function getProjectionTriangleCandidates(
+  root: DecalProjectionSpatialIndex,
+  toPlaneCoordinates: (x: number, y: number, z: number) => ProjectionPoint2,
+  sourceBounds: ProjectionBounds2
+): DecalProjectionTriangle[] {
+  const candidates: DecalProjectionTriangle[] = []
+  const pending = [root]
+
+  while (pending.length > 0) {
+    const node = pending.pop()!
+    if (!doProjectionBoundsOverlap(sourceBounds, getProjectionBounds([
+      toPlaneCoordinates(node.min.x, node.min.y, node.min.z),
+      toPlaneCoordinates(node.min.x, node.min.y, node.max.z),
+      toPlaneCoordinates(node.min.x, node.max.y, node.min.z),
+      toPlaneCoordinates(node.min.x, node.max.y, node.max.z),
+      toPlaneCoordinates(node.max.x, node.min.y, node.min.z),
+      toPlaneCoordinates(node.max.x, node.min.y, node.max.z),
+      toPlaneCoordinates(node.max.x, node.max.y, node.min.z),
+      toPlaneCoordinates(node.max.x, node.max.y, node.max.z),
+    ]))) {
+      continue
+    }
+    if (node.items != null) {
+      candidates.push(...node.items.map(item => item.triangle))
+    } else {
+      if (node.left != null) pending.push(node.left)
+      if (node.right != null) pending.push(node.right)
+    }
+  }
+
+  return candidates
+}
+
+function getProjectionBounds(points: readonly ProjectionPoint2[]): ProjectionBounds2 {
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (const [x, y] of points) {
+    minX = Math.min(minX, x)
+    minY = Math.min(minY, y)
+    maxX = Math.max(maxX, x)
+    maxY = Math.max(maxY, y)
+  }
+  return { min: [minX, minY], max: [maxX, maxY] }
+}
+
+function doProjectionBoundsOverlap(left: ProjectionBounds2, right: ProjectionBounds2): boolean {
+  return (
+    left.min[0] <= right.max[0] &&
+    left.max[0] >= right.min[0] &&
+    left.min[1] <= right.max[1] &&
+    left.max[1] >= right.min[1]
+  )
+}
+
+function shareProjectionTriangleEdge(
+  left: DecalProjectionTriangle,
+  right: DecalProjectionTriangle
+): boolean {
+  if (left.receiver !== right.receiver) {
+    return false
+  }
+
+  const rightVertices = [right.a, right.b, right.c]
+  return [left.a, left.b, left.c].filter(leftVertex =>
+    rightVertices.some(rightVertex => leftVertex.equals(rightVertex))
+  ).length >= 2
+}
+
+function rebuildConformedDecalGeometry(
+  mesh: MeshWithGeometry,
+  vertices: readonly ConformedDecalVertex[]
+): void {
+  const geometry = mesh.geometry
+  const sourceAttributes = Object.entries(geometry.attributes) as [string, GeometryAttribute][]
+  const outputAttributes = new Map<string, number[]>()
+  for (const [name] of sourceAttributes) {
+    if (name !== 'msfsBlendGBufferDepthAllowance') {
+      outputAttributes.set(name, [])
+    }
+  }
+
+  const inverseMeshMatrix = mesh.matrixWorld.clone().invert()
+  const inverseNormalMatrix = new Matrix3().getNormalMatrix(inverseMeshMatrix)
+  const projectedSkinIndices: number[] = []
+  const projectedSkinWeights: number[] = []
+  let hasProjectedSkin = false
+
+  for (const vertex of vertices) {
+    for (const [name, attribute] of sourceAttributes) {
+      const values = outputAttributes.get(name)
+      if (values == null) {
+        continue
+      }
+
+      if (name === 'position') {
+        const localPosition = vertex.receiverPoint.clone().applyMatrix4(inverseMeshMatrix)
+        values.push(localPosition.x, localPosition.y, localPosition.z)
+        continue
+      }
+      if (name === 'normal' && attribute.itemSize >= 3) {
+        const normal = interpolateProjectedNormal(
+          vertex.receiverTriangle,
+          vertex.receiverBarycentric
+        )
+        if (normal != null) {
+          normal.applyMatrix3(inverseNormalMatrix).normalize()
+          values.push(normal.x, normal.y, normal.z)
+          for (let component = 3; component < attribute.itemSize; component += 1) {
+            values.push(interpolateProjectionAttribute(
+              attribute,
+              vertex.sourceIndices,
+              vertex.sourceBarycentric,
+              component
+            ))
+          }
+          continue
+        }
+      }
+      if (name === 'tangent' && attribute.itemSize >= 4) {
+        const tangent = interpolateProjectedTangent(
+          vertex.receiverTriangle,
+          vertex.receiverBarycentric
+        )
+        if (tangent != null) {
+          const tangentDirection = new Vector3(tangent[0], tangent[1], tangent[2])
+            .applyMatrix3(inverseNormalMatrix)
+            .normalize()
+          values.push(
+            tangentDirection.x,
+            tangentDirection.y,
+            tangentDirection.z,
+            tangent[3]
+          )
+          continue
+        }
+      }
+
+      for (let component = 0; component < attribute.itemSize; component += 1) {
+        values.push(interpolateProjectionAttribute(
+          attribute,
+          vertex.sourceIndices,
+          vertex.sourceBarycentric,
+          component
+        ))
+      }
+    }
+
+    const influences = interpolateProjectedSkinInfluences(
+      vertex.receiverTriangle,
+      vertex.receiverBarycentric
+    )
+    hasProjectedSkin ||= influences.length > 0
+    for (let component = 0; component < 4; component += 1) {
+      projectedSkinIndices.push(influences[component]?.joint ?? 0)
+      projectedSkinWeights.push(influences[component]?.weight ?? 0)
+    }
+  }
+
+  for (const [name, attribute] of sourceAttributes) {
+    if (
+      name === 'msfsBlendGBufferDepthAllowance' ||
+      (hasProjectedSkin && (name === 'skinIndex' || name === 'skinWeight'))
+    ) {
+      continue
+    }
+    const values = outputAttributes.get(name)
+    if (values != null) {
+      geometry.setAttribute(
+        name,
+        new BufferAttribute(new Float32Array(values), attribute.itemSize)
+      )
+    }
+  }
+  geometry.deleteAttribute('msfsBlendGBufferDepthAllowance')
+  if (hasProjectedSkin) {
+    geometry.setAttribute(
+      'skinIndex',
+      new BufferAttribute(new Uint16Array(projectedSkinIndices), 4)
+    )
+    geometry.setAttribute(
+      'skinWeight',
+      new BufferAttribute(new Float32Array(projectedSkinWeights), 4)
+    )
+  }
+  geometry.setIndex(null)
+  geometry.computeBoundingBox()
+  geometry.computeBoundingSphere()
+}
+
+function interpolateProjectionAttribute(
+  attribute: GeometryAttribute,
+  indices: readonly [number, number, number],
+  barycentric: ProjectionBarycentric,
+  component: number
+): number {
+  return (
+    getAttributeComponent(attribute, indices[0], component) * barycentric[0] +
+    getAttributeComponent(attribute, indices[1], component) * barycentric[1] +
+    getAttributeComponent(attribute, indices[2], component) * barycentric[2]
+  )
+}
+
+function interpolateProjectionVector3(
+  a: Vector3,
+  b: Vector3,
+  c: Vector3,
+  barycentric: ProjectionBarycentric
+): Vector3 {
+  return new Vector3()
+    .addScaledVector(a, barycentric[0])
+    .addScaledVector(b, barycentric[1])
+    .addScaledVector(c, barycentric[2])
+}
+
+function getProjectionBarycentric(
+  point: ProjectionPoint2,
+  triangle: readonly [ProjectionPoint2, ProjectionPoint2, ProjectionPoint2]
+): ProjectionBarycentric | null {
+  const ab: ProjectionPoint2 = [
+    triangle[1][0] - triangle[0][0],
+    triangle[1][1] - triangle[0][1],
+  ]
+  const ac: ProjectionPoint2 = [
+    triangle[2][0] - triangle[0][0],
+    triangle[2][1] - triangle[0][1],
+  ]
+  const ap: ProjectionPoint2 = [
+    point[0] - triangle[0][0],
+    point[1] - triangle[0][1],
+  ]
+  const denominator = getProjectionCross(ab, ac)
+  if (Math.abs(denominator) <= getProjectionAreaEpsilon(triangle)) {
+    return null
+  }
+  const b = getProjectionCross(ap, ac) / denominator
+  const c = getProjectionCross(ab, ap) / denominator
+  return [1 - b - c, b, c]
+}
+
+function clipProjectionPolygon(
+  subject: readonly ProjectionPoint2[],
+  clipTriangle: readonly [ProjectionPoint2, ProjectionPoint2, ProjectionPoint2]
+): ProjectionPoint2[] {
+  const clipOrientation = Math.sign(getProjectionSignedArea(clipTriangle))
+  if (clipOrientation === 0) {
+    return []
+  }
+  const epsilon = getProjectionAreaEpsilon([...subject, ...clipTriangle])
+  let output = [...subject]
+
+  for (let edgeIndex = 0; edgeIndex < 3 && output.length > 0; edgeIndex += 1) {
+    const edgeStart = clipTriangle[edgeIndex]
+    const edgeEnd = clipTriangle[(edgeIndex + 1) % 3]
+    const edge: ProjectionPoint2 = [
+      edgeEnd[0] - edgeStart[0],
+      edgeEnd[1] - edgeStart[1],
+    ]
+    const edgeLength = Math.hypot(edge[0], edge[1])
+    if (edgeLength === 0) {
+      return []
+    }
+    const input = output
+    output = []
+    let previous = input[input.length - 1]
+    let previousInside = isProjectionPointInsideEdge(
+      previous,
+      edgeStart,
+      edge,
+      clipOrientation,
+      epsilon
+    )
+
+    for (const current of input) {
+      const currentInside = isProjectionPointInsideEdge(
+        current,
+        edgeStart,
+        edge,
+        clipOrientation,
+        epsilon
+      )
+      if (currentInside !== previousInside) {
+        const intersection = intersectProjectionLines(
+          previous,
+          current,
+          edgeStart,
+          edgeEnd,
+          epsilon
+        )
+        if (intersection != null) {
+          output.push(intersection)
+        }
+      }
+      if (currentInside) {
+        output.push(current)
+      }
+      previous = current
+      previousInside = currentInside
+    }
+  }
+
+  return output
+}
+
+function isProjectionPointInsideEdge(
+  point: ProjectionPoint2,
+  edgeStart: ProjectionPoint2,
+  edge: ProjectionPoint2,
+  orientation: number,
+  epsilon: number
+): boolean {
+  return orientation * getProjectionCross(edge, [
+    point[0] - edgeStart[0],
+    point[1] - edgeStart[1],
+  ]) >= -epsilon
+}
+
+function intersectProjectionLines(
+  segmentStart: ProjectionPoint2,
+  segmentEnd: ProjectionPoint2,
+  edgeStart: ProjectionPoint2,
+  edgeEnd: ProjectionPoint2,
+  epsilon: number
+): ProjectionPoint2 | null {
+  const segment: ProjectionPoint2 = [
+    segmentEnd[0] - segmentStart[0],
+    segmentEnd[1] - segmentStart[1],
+  ]
+  const edge: ProjectionPoint2 = [
+    edgeEnd[0] - edgeStart[0],
+    edgeEnd[1] - edgeStart[1],
+  ]
+  const denominator = getProjectionCross(segment, edge)
+  if (Math.abs(denominator) <= epsilon) {
+    return null
+  }
+  const toEdge: ProjectionPoint2 = [
+    edgeStart[0] - segmentStart[0],
+    edgeStart[1] - segmentStart[1],
+  ]
+  const amount = getProjectionCross(toEdge, edge) / denominator
+  return [
+    segmentStart[0] + segment[0] * amount,
+    segmentStart[1] + segment[1] * amount,
+  ]
+}
+
+function getProjectionPolygonCenter(points: readonly ProjectionPoint2[]): ProjectionPoint2 {
+  const sum = points.reduce(
+    (value, point) => [value[0] + point[0], value[1] + point[1]] as ProjectionPoint2,
+    [0, 0] as ProjectionPoint2
+  )
+  return [sum[0] / points.length, sum[1] / points.length]
+}
+
+function getProjectionSignedArea(points: readonly ProjectionPoint2[]): number {
+  let twiceArea = 0
+  for (let index = 0; index < points.length; index += 1) {
+    const current = points[index]
+    const next = points[(index + 1) % points.length]
+    twiceArea += current[0] * next[1] - current[1] * next[0]
+  }
+  return twiceArea * 0.5
+}
+
+function getProjectionCross(a: ProjectionPoint2, b: ProjectionPoint2): number {
+  return a[0] * b[1] - a[1] * b[0]
+}
+
+function getProjectionAreaEpsilon(points: readonly ProjectionPoint2[]): number {
+  let scale = 1
+  for (const point of points) {
+    scale = Math.max(scale, Math.abs(point[0]), Math.abs(point[1]))
+  }
+  return Number.EPSILON * scale * scale * 128
+}
+
+
+function setProjectedBlendGBufferDepthAllowance(
+  mesh: MeshWithGeometry,
+  triangleIndex: DecalProjectionSpatialIndex
+): void {
+  const position = mesh.geometry.getAttribute('position')
+  if (position == null || position.itemSize < 3) {
+    return
+  }
+
+  mesh.updateWorldMatrix(true, false)
+  const allowances = new Float32Array(position.count)
+  const index = mesh.geometry.index
+  const count = index?.count ?? position.count
+  for (let vertex = 0; vertex + 2 < count; vertex += 3) {
+    const aIndex = index?.getX(vertex) ?? vertex
+    const bIndex = index?.getX(vertex + 1) ?? vertex + 1
+    const cIndex = index?.getX(vertex + 2) ?? vertex + 2
+    const a = getPositionAttributeVector(position, aIndex).applyMatrix4(mesh.matrixWorld)
+    const b = getPositionAttributeVector(position, bIndex).applyMatrix4(mesh.matrixWorld)
+    const c = getPositionAttributeVector(position, cIndex).applyMatrix4(mesh.matrixWorld)
+    const allowance = Math.max(
+      getProjectedSurfaceDistance(a.clone().add(b).multiplyScalar(0.5), triangleIndex),
+      getProjectedSurfaceDistance(b.clone().add(c).multiplyScalar(0.5), triangleIndex),
+      getProjectedSurfaceDistance(c.clone().add(a).multiplyScalar(0.5), triangleIndex),
+      getProjectedSurfaceDistance(a.add(b).add(c).multiplyScalar(1 / 3), triangleIndex)
+    )
+    allowances[aIndex] = Math.max(allowances[aIndex], allowance)
+    allowances[bIndex] = Math.max(allowances[bIndex], allowance)
+    allowances[cIndex] = Math.max(allowances[cIndex], allowance)
+  }
+  mesh.geometry.setAttribute('msfsBlendGBufferDepthAllowance', new BufferAttribute(allowances, 1))
+}
+
+function getProjectedSurfaceDistance(
+  point: Vector3,
+  triangleIndex: DecalProjectionSpatialIndex
+): number {
+  return findClosestProjectionTriangle(point, triangleIndex)?.point.distanceTo(point) ?? 0
 }
 
 function projectBlendGBufferPrimitiveToBase(
@@ -1041,8 +1884,19 @@ function findClosestProjectionTriangle(
     result: null,
     distanceSq: Infinity,
   }
+  const projected = {
+    triangle: null as DecalProjectionTriangleItem | null,
+    result: null as ClosestPointResult | null,
+    distanceSq: Infinity,
+  }
+  const searchDistanceSq = (): number =>
+    orientationNormal != null && projected.result != null
+      ? projected.distanceSq
+      : orientationNormal == null
+        ? closest.distanceSq
+        : Infinity
   const search = (node: DecalProjectionSpatialIndex): void => {
-    if (getPointToBoundsDistanceSquared(point, node.min, node.max) > closest.distanceSq) {
+    if (getPointToBoundsDistanceSquared(point, node.min, node.max) > searchDistanceSq()) {
       return
     }
 
@@ -1051,7 +1905,7 @@ function findClosestProjectionTriangle(
         if (orientationNormal != null && item.triangle.orientationNormal.dot(orientationNormal) <= 0) {
           continue
         }
-        if (getPointToBoundsDistanceSquared(point, item.min, item.max) > closest.distanceSq) {
+        if (getPointToBoundsDistanceSquared(point, item.min, item.max) > searchDistanceSq()) {
           continue
         }
 
@@ -1061,6 +1915,22 @@ function findClosestProjectionTriangle(
           closest.distanceSq = distanceSq
           closest.triangle = item
           closest.result = result
+        }
+
+        if (orientationNormal != null) {
+          const projectedResult = projectPointToTriangleAlongNormal(
+            point,
+            item.triangle,
+            orientationNormal
+          )
+          if (projectedResult != null) {
+            const projectedDistanceSq = projectedResult.point.distanceToSquared(point)
+            if (projectedDistanceSq < projected.distanceSq) {
+              projected.distanceSq = projectedDistanceSq
+              projected.triangle = item
+              projected.result = projectedResult
+            }
+          }
         }
       }
       return
@@ -1094,13 +1964,52 @@ function findClosestProjectionTriangle(
 
   search(triangleIndex)
 
-  return closest.triangle != null && closest.result != null
+  const selected = projected.result != null ? projected : closest
+  return selected.triangle != null && selected.result != null
     ? {
-        point: closest.result.point,
-        barycentric: closest.result.barycentric,
-        triangle: closest.triangle.triangle,
+        point: selected.result.point,
+        barycentric: selected.result.barycentric,
+        triangle: selected.triangle.triangle,
       }
     : null
+}
+
+function projectPointToTriangleAlongNormal(
+  point: Vector3,
+  triangle: DecalProjectionTriangle,
+  projectionNormal: Vector3
+): ClosestPointResult | null {
+  const planeDot = triangle.orientationNormal.dot(projectionNormal)
+  if (Math.abs(planeDot) <= Number.EPSILON) {
+    return null
+  }
+
+  const distance = triangle.orientationNormal.dot(
+    new Vector3().subVectors(triangle.a, point)
+  ) / planeDot
+  const projectedPoint = point.clone().addScaledVector(projectionNormal, distance)
+  const ab = new Vector3().subVectors(triangle.b, triangle.a)
+  const ac = new Vector3().subVectors(triangle.c, triangle.a)
+  const ap = new Vector3().subVectors(projectedPoint, triangle.a)
+  const d00 = ab.dot(ab)
+  const d01 = ab.dot(ac)
+  const d11 = ac.dot(ac)
+  const d20 = ap.dot(ab)
+  const d21 = ap.dot(ac)
+  const denominator = d00 * d11 - d01 * d01
+  if (Math.abs(denominator) <= Number.EPSILON) {
+    return null
+  }
+
+  const v = (d11 * d20 - d01 * d21) / denominator
+  const w = (d00 * d21 - d01 * d20) / denominator
+  const u = 1 - v - w
+  const epsilon = Number.EPSILON * 128
+  if (u < -epsilon || v < -epsilon || w < -epsilon) {
+    return null
+  }
+
+  return { point: projectedPoint, barycentric: [u, v, w] }
 }
 
 function getPointToBoundsDistanceSquared(point: Vector3, min: Vector3, max: Vector3): number {
@@ -1448,7 +2357,7 @@ async function normalizeMsfsMaterial(
     }
   }
 
-  if (options.createNodeMaterial != null) {
+  if (options.createNodeMaterial != null && (buildGBufferWriter || isBlendGBufferMaterial)) {
     const nodeMaterial = ensureNodeMaterial(outputMaterial, options.createNodeMaterial)
     if (nodeMaterial != null) {
       const gBufferWriter = buildGBufferWriter
@@ -1781,14 +2690,16 @@ const viewZToBiasedFragmentDepth = Fn((
   const outputDepth = builder.renderer.reversedDepthBuffer === true
     ? fragmentDepth.oneMinus()
     : fragmentDepth
-  const pixelAllowance = outputDepth.fwidth().mul(2)
+  const pixelAllowance = outputDepth.fwidth().mul(6)
   return builder.renderer.reversedDepthBuffer === true
     ? outputDepth.add(pixelAllowance).clamp(0, 1)
     : outputDepth.sub(pixelAllowance).clamp(0, 1)
 })
 
 function createMsfsGBufferDecalDepthNode() {
-  return viewZToBiasedFragmentDepth(positionView.z)
+  return viewZToBiasedFragmentDepth(
+    positionView.z.add(attribute('msfsBlendGBufferDepthAllowance', 'float'))
+  )
 }
 
 function copyMsfsGBufferWriterInputs(
