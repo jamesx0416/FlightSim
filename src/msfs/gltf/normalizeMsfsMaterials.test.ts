@@ -168,7 +168,7 @@ function evaluateCoverageNode(
   throw new Error(`Unsupported coverage node: ${node?.constructor?.name ?? typeof node}`)
 }
 
-test('subdivides blend-gbuffer decals before projection', async () => {
+test('clips blend-gbuffer decals to receiver topology before projection fallback', async () => {
   const root = new Group()
   const receiver = new Mesh(
     triangleGeometry([0, 0, 0, 0.2, 0, 0, 0, 0.2, 0]),
@@ -185,7 +185,7 @@ test('subdivides blend-gbuffer decals before projection', async () => {
   await normalizeMsfsMaterials({ scene: root } as GLTF)
 
   const position = decal.geometry.getAttribute('position')
-  expect(position.count === 48).toBe(true)
+  expect(position.count === 3).toBe(true)
   expect(Math.max(...Array.from(
     { length: position.count },
     (_, index) => Math.abs(position.getZ(index))
