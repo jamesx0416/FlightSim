@@ -3181,6 +3181,7 @@ async function init(): Promise<void> {
       const vcockpitEndMs = performance.now()
       updateCockpitInteractionHitboxHelpers()
       const renderStartMs = performance.now()
+      renderPasses.setDeferredEnabled(!cockpitCameraController.isActive())
       renderPasses.render()
       const renderEndMs = performance.now()
       cockpitPerfDiagnostics.recordFrame({
@@ -3217,6 +3218,7 @@ async function init(): Promise<void> {
         renderer.domElement
       )
       updateCockpitInteractionHitboxHelpers()
+      renderPasses.setDeferredEnabled(!cockpitCameraController.isActive())
       renderPasses.render()
     }
     const nowMs = performance.now()
@@ -4602,8 +4604,10 @@ async function loadAircraftModelComponent(
     options.fallbackToOtherLods ?? true,
     recordPhase,
     options.firstAllowedLodIndex ?? null,
-    options.prepareGltfInWorker === true
+    options.prepareGltfInWorker === true,
+    options.kind === 'exterior'
   )
+  loaded.gltf.scene.userData.msfsModelKind = options.kind
   if (options.stripTextures === true) {
     const stripStartMs = performance.now()
     stripObjectTextures(loaded.gltf.scene)
@@ -10256,7 +10260,8 @@ async function loadAircraftModelDefinitionGltf(
     details?: Record<string, unknown> | null
   ) => void = () => {},
   firstAllowedLodIndex: number | null = null,
-  prepareGltfInWorker = false
+  prepareGltfInWorker = false,
+  buildGBufferWriters = true
 ): Promise<{
   readonly gltf: GLTF
   readonly loadedLodIndex: number
@@ -10374,7 +10379,7 @@ async function loadAircraftModelDefinitionGltf(
         lodMinSize: lod.minSize
       })
       const materialStartMs = performance.now()
-      await normalizeMsfsMaterials(gltf, { createNodeMaterial })
+      await normalizeMsfsMaterials(gltf, { createNodeMaterial, buildGBufferWriters })
       recordPhase('lod:normalize-materials', materialStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:ready',
