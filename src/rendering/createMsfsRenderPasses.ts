@@ -48,6 +48,7 @@ type BlendGBufferMesh = Mesh & {
 export interface MsfsRenderPasses {
   readonly hasBlendGBufferDecals: boolean
   refresh(): void
+  setDeferredEnabled(enabled: boolean): void
   render(): void
 }
 
@@ -149,6 +150,7 @@ function createDeferredMsfsRenderPasses(
   const disposableLightingMaterials = new Set<Material>()
   let forwardDecalLayerMask = findLayerMaskOutsideCamera(camera)
   let canRenderDeferred = false
+  let deferredEnabled = true
 
   const refresh = (): void => {
     fallback.refresh()
@@ -172,6 +174,10 @@ function createDeferredMsfsRenderPasses(
     forwardDecalLayerMask = findLayerMaskOutsideCamera(camera)
     canRenderDeferred = false
 
+    if (!deferredEnabled) {
+      return
+    }
+
     collectSceneMaterials(scene, opaqueSceneMaterials, transparentSceneMaterials)
 
     let requiresFullFallback = false
@@ -180,6 +186,9 @@ function createDeferredMsfsRenderPasses(
         return
       }
       const decal = object as DeferredMesh
+      if (isInteriorModelObject(decal)) {
+        return
+      }
       const decalMaterials = getMaterials(decal.material)
       if (
         decal.userData.msfsBlendGBufferProjectedToReceiver !== true ||
@@ -299,8 +308,15 @@ function createDeferredMsfsRenderPasses(
       return canRenderDeferred || fallback.hasBlendGBufferDecals
     },
     refresh,
+    setDeferredEnabled: enabled => {
+      if (deferredEnabled === enabled) {
+        return
+      }
+      deferredEnabled = enabled
+      refresh()
+    },
     render: () => {
-      if (!canRenderDeferred) {
+      if (!deferredEnabled || !canRenderDeferred) {
         fallback.render()
         return
       }
@@ -392,6 +408,15 @@ function collectSceneMaterials(
       ;(item.transparent === true ? transparent : opaque).add(item)
     }
   })
+}
+
+function isInteriorModelObject(object: Object3D): boolean {
+  for (let current: Object3D | null = object; current != null; current = current.parent) {
+    if (current.userData.msfsModelKind === 'interior') {
+      return true
+    }
+  }
+  return false
 }
 
 function mapMaterials(
@@ -532,6 +557,7 @@ function createForwardMsfsRenderPasses(
       return decalBlendMeshes.length > 0
     },
     refresh,
+    setDeferredEnabled: () => {},
     render: () => {
       if (blendMeshes.length === 0) {
         renderer.render(scene, camera)
