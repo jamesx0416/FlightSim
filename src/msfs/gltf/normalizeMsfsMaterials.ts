@@ -1081,9 +1081,15 @@ function clipBlendGBufferPrimitiveToBase(
       triangle[0][1] * barycentric[0] + triangle[1][1] * barycentric[1] + triangle[2][1] * barycentric[2],
       triangle[0][2] * barycentric[0] + triangle[1][2] * barycentric[1] + triangle[2][2] * barycentric[2],
     ]
+    const projectedSourceVertices = new Map<string, ConformedDecalVertex | null>()
     const projectSourceVertex = (
-      sourceBarycentric: ProjectionBarycentric
+      sourceBarycentric: ProjectionBarycentric,
+      seedTriangle?: DecalProjectionTriangle
     ): ConformedDecalVertex | null => {
+      const cacheKey = sourceBarycentric.join(',')
+      if (projectedSourceVertices.has(cacheKey)) {
+        return projectedSourceVertices.get(cacheKey) ?? null
+      }
       const sourcePoint = interpolateProjectionVector3(
         sourceWorld[0], sourceWorld[1], sourceWorld[2], sourceBarycentric
       )
@@ -1105,15 +1111,55 @@ function clipBlendGBufferPrimitiveToBase(
       const projected = findClosestProjectionTriangle(
         sourcePoint,
         triangleIndex,
-        orientationNormal
+        orientationNormal,
+        seedTriangle
       )
-      return projected == null ? null : {
+      const vertex = projected == null ? null : {
         receiverPoint: projected.point,
         receiverTriangle: projected.triangle,
         receiverBarycentric: projected.barycentric,
         sourceBarycentric,
         sourceIndices,
       }
+      projectedSourceVertices.set(cacheKey, vertex)
+      return vertex
+    }
+
+    const midpointSourceBarycentric = (
+      left: ProjectionBarycentric,
+      right: ProjectionBarycentric
+    ): ProjectionBarycentric => [
+      (left[0] + right[0]) * 0.5,
+      (left[1] + right[1]) * 0.5,
+      (left[2] + right[2]) * 0.5,
+    ]
+    const projectRefinedTriangle = (
+      sourceBarycentrics: readonly [
+        ProjectionBarycentric,
+        ProjectionBarycentric,
+        ProjectionBarycentric,
+      ],
+      depth: number
+    ): ConformedDecalVertex[] | null => {
+      if (depth >= maxRefinementDepth) {
+        const projected = sourceBarycentrics.map(barycentric => projectSourceVertex(barycentric))
+        return projected.every(vertex => vertex != null)
+          ? projected as ConformedDecalVertex[]
+          : null
+      }
+      const [a, b, c] = sourceBarycentrics
+      const ab = midpointSourceBarycentric(a, b)
+      const bc = midpointSourceBarycentric(b, c)
+      const ca = midpointSourceBarycentric(c, a)
+      const children = [
+        projectRefinedTriangle([a, ab, ca], depth + 1),
+        projectRefinedTriangle([ab, b, bc], depth + 1),
+        projectRefinedTriangle([ca, bc, c], depth + 1),
+        projectRefinedTriangle([ab, bc, ca], depth + 1),
+      ]
+      return children.every(child => child != null)
+        ? children.flat() as ConformedDecalVertex[]
+        : null
     }
 
     const appendRefinedTriangle = (
@@ -1147,6 +1193,8 @@ function clipBlendGBufferPrimitiveToBase(
         getProjectionBounds(refinedTriangle2)
       )
 
+      let projectionInconsistent = false
+      receiverLoop:
       for (const receiverTriangle of receiverTriangles) {
         if (receiverTriangle.orientationNormal.dot(sourceOrientationNormal) <= 0) {
           continue
@@ -1195,19 +1243,34 @@ function clipBlendGBufferPrimitiveToBase(
           const sourceCenter = interpolateProjectionVector3(
             sourceWorld[0], sourceWorld[1], sourceWorld[2], sourceCenterBarycentric
           )
-          const closestReceiverTriangle = findClosestProjectionTriangle(
+          const closestReceiver = findClosestProjectionTriangle(
             sourceCenter,
             triangleIndex,
-            sourceOrientationNormal
-          )?.triangle
+            sourceOrientationNormal,
+            receiverTriangle
+          )
           if (
-            closestReceiverTriangle == null ||
+            closestReceiver == null ||
             (
-              closestReceiverTriangle !== receiverTriangle &&
-              !shareProjectionTriangleEdge(closestReceiverTriangle, receiverTriangle)
+              closestReceiver.triangle !== receiverTriangle &&
+              !shareProjectionTriangleEdge(closestReceiver.triangle, receiverTriangle)
             )
           ) {
             continue
+          }
+          const projectedCenterBarycentric = getProjectionBarycentric(
+            toPlane(closestReceiver.point),
+            refinedTriangle2
+          )
+          const projectionEpsilon = Number.EPSILON * 1024
+          if (
+            projectedCenterBarycentric == null ||
+            projectedCenterBarycentric.some(
+              value => value < -projectionEpsilon || value > 1 + projectionEpsilon
+            )
+          ) {
+            projectionInconsistent = true
+            break receiverLoop
           }
 
           const outputVertices: ConformedDecalVertex[] = []
@@ -1218,19 +1281,24 @@ function clipBlendGBufferPrimitiveToBase(
               outputVertices.length = 0
               break
             }
+            const sourceBarycentric = interpolateSourceBarycentric(
+              sourceBarycentrics,
+              refinedBarycentric
+            )
+            const edgeEpsilon = Number.EPSILON * 1024
+            const edgeProjection = sourceBarycentric.some(
+              value => Math.abs(value) <= edgeEpsilon
+            ) ? projectSourceVertex(sourceBarycentric, receiverTriangle) : null
             outputVertices.push({
-              receiverPoint: interpolateProjectionVector3(
+              receiverPoint: edgeProjection?.receiverPoint ?? interpolateProjectionVector3(
                 receiverTriangle.a,
                 receiverTriangle.b,
                 receiverTriangle.c,
                 receiverBarycentric
               ),
-              receiverTriangle,
-              receiverBarycentric,
-              sourceBarycentric: interpolateSourceBarycentric(
-                sourceBarycentrics,
-                refinedBarycentric
-              ),
+              receiverTriangle: edgeProjection?.receiverTriangle ?? receiverTriangle,
+              receiverBarycentric: edgeProjection?.receiverBarycentric ?? receiverBarycentric,
+              sourceBarycentric,
               sourceIndices,
             })
           }
@@ -1238,6 +1306,14 @@ function clipBlendGBufferPrimitiveToBase(
             refinedVertices.push(...outputVertices)
             acceptedTriangles.push(outputTriangle)
           }
+        }
+      }
+
+      if (projectionInconsistent) {
+        const projectedVertices = projectRefinedTriangle(sourceBarycentrics, depth)
+        if (projectedVertices != null) {
+          vertices.push(...projectedVertices)
+          return
         }
       }
 
@@ -1269,14 +1345,9 @@ function clipBlendGBufferPrimitiveToBase(
 
       if (depth < maxRefinementDepth) {
         const [a, b, c] = sourceBarycentrics
-        const midpoint = (left: ProjectionBarycentric, right: ProjectionBarycentric): ProjectionBarycentric => [
-          (left[0] + right[0]) * 0.5,
-          (left[1] + right[1]) * 0.5,
-          (left[2] + right[2]) * 0.5,
-        ]
-        const ab = midpoint(a, b)
-        const bc = midpoint(b, c)
-        const ca = midpoint(c, a)
+        const ab = midpointSourceBarycentric(a, b)
+        const bc = midpointSourceBarycentric(b, c)
+        const ca = midpointSourceBarycentric(c, a)
         appendRefinedTriangle([a, ab, ca], depth + 1)
         appendRefinedTriangle([ab, b, bc], depth + 1)
         appendRefinedTriangle([ca, bc, c], depth + 1)
@@ -1284,9 +1355,9 @@ function clipBlendGBufferPrimitiveToBase(
         return
       }
 
-      const fallbackVertices = sourceBarycentrics.map(projectSourceVertex)
-      if (fallbackVertices.every(vertex => vertex != null)) {
-        vertices.push(...fallbackVertices as ConformedDecalVertex[])
+      const fallbackVertices = projectRefinedTriangle(sourceBarycentrics, depth)
+      if (fallbackVertices != null) {
+        vertices.push(...fallbackVertices)
       } else {
         vertices.push(...refinedVertices)
       }
@@ -1945,6 +2016,7 @@ function findClosestProjectionTriangle(
   point: Vector3,
   triangleIndex: DecalProjectionSpatialIndex,
   orientationNormal?: Vector3,
+  seedTriangle?: DecalProjectionTriangle,
 ): (ClosestPointResult & { readonly triangle: DecalProjectionTriangle }) | null {
   const closest: {
     triangle: DecalProjectionTriangleItem | null
@@ -1955,10 +2027,17 @@ function findClosestProjectionTriangle(
     result: null,
     distanceSq: Infinity,
   }
-  const projected = {
-    triangle: null as DecalProjectionTriangleItem | null,
-    result: null as ClosestPointResult | null,
-    distanceSq: Infinity,
+  const seededProjection = orientationNormal != null && seedTriangle != null
+    ? projectPointToTriangleAlongNormal(point, seedTriangle, orientationNormal)
+    : null
+  const projected: {
+    triangle: DecalProjectionTriangle | null
+    result: ClosestPointResult | null
+    distanceSq: number
+  } = {
+    triangle: seededProjection == null ? null : seedTriangle ?? null,
+    result: seededProjection,
+    distanceSq: seededProjection?.point.distanceToSquared(point) ?? Infinity,
   }
   const searchDistanceSq = (): number =>
     orientationNormal != null && projected.result != null
@@ -1998,7 +2077,7 @@ function findClosestProjectionTriangle(
             const projectedDistanceSq = projectedResult.point.distanceToSquared(point)
             if (projectedDistanceSq < projected.distanceSq) {
               projected.distanceSq = projectedDistanceSq
-              projected.triangle = item
+              projected.triangle = item.triangle
               projected.result = projectedResult
             }
           }
@@ -2035,12 +2114,18 @@ function findClosestProjectionTriangle(
 
   search(triangleIndex)
 
-  const selected = projected.result != null ? projected : closest
-  return selected.triangle != null && selected.result != null
+  if (projected.triangle != null && projected.result != null) {
+    return {
+      point: projected.result.point,
+      barycentric: projected.result.barycentric,
+      triangle: projected.triangle,
+    }
+  }
+  return closest.triangle != null && closest.result != null
     ? {
-        point: selected.result.point,
-        barycentric: selected.result.barycentric,
-        triangle: selected.triangle.triangle,
+        point: closest.result.point,
+        barycentric: closest.result.barycentric,
+        triangle: closest.triangle.triangle,
       }
     : null
 }

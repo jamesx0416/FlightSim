@@ -194,6 +194,40 @@ test('clips blend-gbuffer decals to receiver topology before projection fallback
   expect(decal.userData.msfsBlendGBufferReceivers).toEqual([receiver])
 })
 
+test('does not let an averaged clip plane slide a decal away from its authored projection', async () => {
+  const root = new Group()
+  const receiverGeometry = triangleGeometry([
+    -2, -2, 0, 2, -2, 0, 2, 2, 0, -2, 2, 0,
+  ])
+  receiverGeometry.setIndex([0, 1, 2, 0, 2, 3])
+  const decalGeometry = triangleGeometry([
+    -0.1, -0.1, 0.1, 0.1, -0.1, 0.1, -0.1, 0.1, 0.1,
+    0.1, -0.1, 0.1, 0.1, 0.1, 1.1, -0.1, 0.1, 0.1,
+  ])
+  decalGeometry.setAttribute('uv', new BufferAttribute(new Float32Array([
+    0, 0, 0, 0, 0, 0,
+    1, 0, 1, 0, 1, 0,
+  ]), 2))
+  const receiver = new Mesh(receiverGeometry, new MeshBasicMaterial())
+  const decal = new Mesh(decalGeometry, blendGBufferMaterial())
+  const parent = new Group()
+  parent.add(receiver, decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  const position = decal.geometry.getAttribute('position')
+  const uv = decal.geometry.getAttribute('uv')
+  const flatSourceVertices = Array.from({ length: position.count }, (_, index) => index)
+    .filter(index => uv.getX(index) < 0.1)
+  expect(flatSourceVertices.length > 0).toBe(true)
+  expect(flatSourceVertices.every(index =>
+    Math.abs(position.getX(index)) <= 0.100001 &&
+    Math.abs(position.getY(index)) <= 0.100001 &&
+    Math.abs(position.getZ(index)) <= 1e-6
+  )).toBe(true)
+})
+
 test('keeps planar decal triangle joins shared', async () => {
   const root = new Group()
   const receiverGeometry = triangleGeometry([

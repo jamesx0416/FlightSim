@@ -134,21 +134,22 @@ function createDeferredMsfsRenderPasses(
     colorWrite: false,
     depthTest: false,
     depthWrite: false,
+    visible: false,
   })
   const decals: DeferredMesh[] = []
   const forwardDecals: DeferredMesh[] = []
   const receivers = new Set<DeferredMesh>()
   const writerMaterials = new Map<DeferredMesh, MeshMaterial>()
-  const lightingMaterials = new Map<DeferredMesh, MeshMaterial>()
+  const resolveMaterials = new Map<DeferredMesh, MeshMaterial>()
   const sourceMaterials = new Map<DeferredMesh, MeshMaterial>()
   const forwardSourceMaterials = new Map<DeferredMesh, MeshMaterial>()
   const forwardColorMaterials = new Set<Material>()
   const originalForwardDecalLayerMasks = new Map<Mesh, number>()
   const opaqueSceneMaterials = new Set<Material>()
   const transparentSceneMaterials = new Set<Material>()
-  const lightingMaterialCache = new Map<Material, Material | null>()
   const disposableLightingMaterials = new Set<Material>()
   let forwardDecalLayerMask = findLayerMaskOutsideCamera(camera)
+  let sharedResolveMaterial: Material | null = null
   let canRenderDeferred = false
   let deferredEnabled = true
 
@@ -163,14 +164,14 @@ function createDeferredMsfsRenderPasses(
     forwardDecals.length = 0
     receivers.clear()
     writerMaterials.clear()
-    lightingMaterials.clear()
+    resolveMaterials.clear()
     sourceMaterials.clear()
     forwardSourceMaterials.clear()
     forwardColorMaterials.clear()
     opaqueSceneMaterials.clear()
     transparentSceneMaterials.clear()
-    lightingMaterialCache.clear()
     disposableLightingMaterials.clear()
+    sharedResolveMaterial = null
     forwardDecalLayerMask = findLayerMaskOutsideCamera(camera)
     canRenderDeferred = false
 
@@ -221,11 +222,29 @@ function createDeferredMsfsRenderPasses(
         rejectRelationship()
         return
       }
+      if (sharedResolveMaterial == null) {
+        const sourceMaterial = decalMaterials[0]
+        const writer = getMsfsGBufferWriter(sourceMaterial) as (Material & { depthNode?: unknown }) | null
+        const lighting = createMsfsDeferredLightingMaterial(sourceMaterial, gBuffer.textures)
+        if (writer == null || lighting == null) {
+          lighting?.dispose()
+          rejectRelationship()
+          return
+        }
+        const resolve = lighting as Material & { depthNode?: unknown }
+        resolve.depthNode = writer.depthNode
+        resolve.depthTest = true
+        resolve.depthWrite = false
+        sharedResolveMaterial = resolve
+        disposableLightingMaterials.add(resolve)
+      }
+      const decalResolve = Array.isArray(decal.material)
+        ? decal.material.map(() => sharedResolveMaterial!)
+        : sharedResolveMaterial
 
       const pendingReceiverVariants: Array<{
         readonly receiver: DeferredMesh
         readonly writers: MeshMaterial
-        readonly lighting: MeshMaterial
       }> = []
       for (const receiver of relatedReceivers) {
         const receiverMaterials = getMaterials(receiver.material)
@@ -238,40 +257,21 @@ function createDeferredMsfsRenderPasses(
           return
         }
         const receiverWriters = mapMaterials(receiver.material, getMsfsGBufferWriter)
-        const receiverLighting = mapMaterials(receiver.material, material => {
-          if (!lightingMaterialCache.has(material)) {
-            const lightingMaterial = createMsfsDeferredLightingMaterial(
-              material,
-              gBuffer.textures
-            )
-            lightingMaterialCache.set(material, lightingMaterial)
-            if (lightingMaterial != null) {
-              disposableLightingMaterials.add(lightingMaterial)
-            }
-          }
-          return lightingMaterialCache.get(material) ?? null
-        })
-        if (receiverWriters == null || receiverLighting == null) {
+        if (receiverWriters == null) {
           rejectRelationship()
           return
         }
-        pendingReceiverVariants.push({
-          receiver,
-          writers: receiverWriters,
-          lighting: receiverLighting,
-        })
+        pendingReceiverVariants.push({ receiver, writers: receiverWriters })
       }
 
       decals.push(decal)
       sourceMaterials.set(decal, decal.material)
       writerMaterials.set(decal, decalWriters)
+      resolveMaterials.set(decal, decalResolve)
       for (const variant of pendingReceiverVariants) {
         receivers.add(variant.receiver)
         sourceMaterials.set(variant.receiver, variant.receiver.material)
         writerMaterials.set(variant.receiver, variant.writers)
-        if (!lightingMaterials.has(variant.receiver)) {
-          lightingMaterials.set(variant.receiver, variant.lighting)
-        }
       }
     })
 
@@ -282,7 +282,7 @@ function createDeferredMsfsRenderPasses(
       decals.length = 0
       receivers.clear()
       writerMaterials.clear()
-      lightingMaterials.clear()
+        resolveMaterials.clear()
       sourceMaterials.clear()
       forwardDecals.length = 0
       forwardSourceMaterials.clear()
@@ -336,6 +336,7 @@ function createDeferredMsfsRenderPasses(
         renderer.autoClear = true
         camera.layers.mask = originalCameraLayerMask
         setMeshMaterials(sourceMaterials, hiddenMaterial)
+        setMeshMaterialsFor(receivers, sourceMaterials)
         hideMaterials(transparentSceneMaterials, originalMaterialState)
         renderer.render(scene, camera)
 
@@ -359,7 +360,7 @@ function createDeferredMsfsRenderPasses(
         renderer.setRenderTarget(originalTarget)
         renderer.setClearColor(originalClearColor.getHex(), originalClearAlpha)
         setMeshMaterials(sourceMaterials, hiddenMaterial)
-        setMeshMaterialsFor(receivers, lightingMaterials)
+        setMeshMaterialsFor(decals, resolveMaterials)
         renderer.render(scene, camera)
 
         restoreMaterialRenderState(originalMaterialState.keys(), originalMaterialState)
