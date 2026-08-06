@@ -276,6 +276,7 @@ type MsfsProjectedDecalMesh = MeshWithGeometry & {
     msfsBlendGBufferProjectedToReceiver?: boolean
     msfsBlendGBufferReceiver?: MeshWithGeometry
     msfsBlendGBufferReceivers?: readonly MeshWithGeometry[]
+    msfsBlendGBufferUsedReceivers?: readonly MeshWithGeometry[]
   }
 }
 
@@ -536,13 +537,14 @@ function projectSameMeshBlendGBufferDecals(
 
       const receivers = basePrimitives.map(primitive => primitive.mesh)
       for (const decalPrimitive of decalPrimitives) {
-        conformProjectedDecalToBase(
+        const usedReceivers = conformProjectedDecalToBase(
           decalPrimitive.mesh,
           triangleIndex
         )
         const decalMesh = decalPrimitive.mesh as MsfsProjectedDecalMesh
         decalMesh.userData.msfsBlendGBufferProjectedToReceiver = true
         decalMesh.userData.msfsBlendGBufferReceivers = receivers
+        decalMesh.userData.msfsBlendGBufferUsedReceivers = usedReceivers ?? receivers
         if (receivers.length === 1) {
           decalMesh.userData.msfsBlendGBufferReceiver = receivers[0]
         }
@@ -632,13 +634,14 @@ function projectSameParentBlendGBufferDecals(
       if (!isDecalProjectionVisible(decalPrimitive.mesh, triangleIndex, occluderIndex)) {
         continue
       }
-      conformProjectedDecalToBase(
+      const usedReceivers = conformProjectedDecalToBase(
         decalPrimitive.mesh,
         triangleIndex
       )
       const decalMesh = decalPrimitive.mesh as MsfsProjectedDecalMesh
       decalMesh.userData.msfsBlendGBufferProjectedToReceiver = true
       decalMesh.userData.msfsBlendGBufferReceivers = receivers
+      decalMesh.userData.msfsBlendGBufferUsedReceivers = usedReceivers ?? receivers
       if (receivers.length === 1) {
         decalMesh.userData.msfsBlendGBufferReceiver = receivers[0]
       }
@@ -935,13 +938,17 @@ function getVectorAxis(vector: Vector3, axis: 'x' | 'y' | 'z'): number {
 function conformProjectedDecalToBase(
   mesh: MeshWithGeometry,
   triangleIndex: DecalProjectionSpatialIndex
-): void {
-  if (!isBlendGBufferPrimitivePlanar(mesh) && clipBlendGBufferPrimitiveToBase(mesh, triangleIndex)) {
-    setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
-    return
+): readonly MeshWithGeometry[] | null {
+  if (!isBlendGBufferPrimitivePlanar(mesh)) {
+    const clippedReceivers = clipBlendGBufferPrimitiveToBase(mesh, triangleIndex)
+    if (clippedReceivers != null) {
+      setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
+      return clippedReceivers
+    }
   }
   projectBlendGBufferPrimitiveToBase(mesh, triangleIndex)
   setProjectedBlendGBufferDepthAllowance(mesh, triangleIndex)
+  return null
 }
 
 function isBlendGBufferPrimitivePlanar(mesh: MeshWithGeometry): boolean {
@@ -988,7 +995,7 @@ function isBlendGBufferPrimitivePlanar(mesh: MeshWithGeometry): boolean {
 function clipBlendGBufferPrimitiveToBase(
   mesh: MeshWithGeometry,
   triangleIndex: DecalProjectionSpatialIndex
-): boolean {
+): readonly MeshWithGeometry[] | null {
   const geometry = mesh.geometry
   const position = geometry.getAttribute('position')
   if (
@@ -996,7 +1003,7 @@ function clipBlendGBufferPrimitiveToBase(
     position.itemSize < 3 ||
     Object.keys(geometry.morphAttributes).length > 0
   ) {
-    return false
+    return null
   }
 
   mesh.updateWorldMatrix(true, false)
@@ -1393,11 +1400,11 @@ function clipBlendGBufferPrimitiveToBase(
   }
 
   if (vertices.length === 0) {
-    return false
+    return null
   }
 
   rebuildConformedDecalGeometry(mesh, vertices)
-  return true
+  return [...new Set(vertices.map(vertex => vertex.receiverTriangle.receiver))]
 }
 
 function buildBlendGBufferProjectionNormals(
@@ -1937,7 +1944,6 @@ function projectBlendGBufferPrimitiveToBase(
     if (closest == null) {
       continue
     }
-
     const localProjectedPoint = closest.point.clone().applyMatrix4(inverseMeshMatrix)
     positionAttribute.setXYZ(
       vertexIndex,
