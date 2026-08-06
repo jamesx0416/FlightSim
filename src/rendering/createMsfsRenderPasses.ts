@@ -121,6 +121,7 @@ type DeferredMesh = Mesh & {
     readonly msfsBlendGBufferProjectedToReceiver?: boolean
     readonly msfsBlendGBufferReceiver?: DeferredMesh
     readonly msfsBlendGBufferReceivers?: readonly DeferredMesh[]
+    readonly msfsBlendGBufferUsedReceivers?: readonly DeferredMesh[]
   }
 }
 
@@ -219,7 +220,8 @@ function createDeferredMsfsRenderPasses(
           requiresFullFallback = true
         }
       }
-      const relatedReceivers = decal.userData.msfsBlendGBufferReceivers ??
+      const relatedReceivers = decal.userData.msfsBlendGBufferUsedReceivers ??
+        decal.userData.msfsBlendGBufferReceivers ??
         (decal.userData.msfsBlendGBufferReceiver == null
           ? []
           : [decal.userData.msfsBlendGBufferReceiver])
