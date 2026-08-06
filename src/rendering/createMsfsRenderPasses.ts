@@ -1,5 +1,7 @@
 import {
   Color,
+  Frustum,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   type Camera,
@@ -139,6 +141,7 @@ function createDeferredMsfsRenderPasses(
   const decals: DeferredMesh[] = []
   const forwardDecals: DeferredMesh[] = []
   const receivers = new Set<DeferredMesh>()
+  const decalReceivers = new Map<DeferredMesh, readonly DeferredMesh[]>()
   const writerMaterials = new Map<DeferredMesh, MeshMaterial>()
   const resolveMaterials = new Map<DeferredMesh, MeshMaterial>()
   const sourceMaterials = new Map<DeferredMesh, MeshMaterial>()
@@ -148,6 +151,8 @@ function createDeferredMsfsRenderPasses(
   const opaqueSceneMaterials = new Set<Material>()
   const transparentSceneMaterials = new Set<Material>()
   const disposableLightingMaterials = new Set<Material>()
+  const deferredFrustum = new Frustum()
+  const deferredViewProjection = new Matrix4()
   let forwardDecalLayerMask = findLayerMaskOutsideCamera(camera)
   let sharedResolveMaterial: Material | null = null
   let canRenderDeferred = false
@@ -163,6 +168,7 @@ function createDeferredMsfsRenderPasses(
     decals.length = 0
     forwardDecals.length = 0
     receivers.clear()
+    decalReceivers.clear()
     writerMaterials.clear()
     resolveMaterials.clear()
     sourceMaterials.clear()
@@ -265,6 +271,7 @@ function createDeferredMsfsRenderPasses(
       }
 
       decals.push(decal)
+      decalReceivers.set(decal, relatedReceivers)
       sourceMaterials.set(decal, decal.material)
       writerMaterials.set(decal, decalWriters)
       resolveMaterials.set(decal, decalResolve)
@@ -281,8 +288,9 @@ function createDeferredMsfsRenderPasses(
       }
       decals.length = 0
       receivers.clear()
+      decalReceivers.clear()
       writerMaterials.clear()
-        resolveMaterials.clear()
+      resolveMaterials.clear()
       sourceMaterials.clear()
       forwardDecals.length = 0
       forwardSourceMaterials.clear()
@@ -340,6 +348,24 @@ function createDeferredMsfsRenderPasses(
         hideMaterials(transparentSceneMaterials, originalMaterialState)
         renderer.render(scene, camera)
 
+        deferredFrustum.setFromProjectionMatrix(
+          deferredViewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+          camera.coordinateSystem,
+          camera.reversedDepth
+        )
+        const active = collectVisibleDeferredRelationships(
+          decals,
+          decalReceivers,
+          decal =>
+            isDeferredMeshVisible(
+              decal,
+              camera,
+              deferredFrustum,
+              sourceMaterials.get(decal),
+              originalMaterialState
+            )
+        )
+
         restoreMaterialRenderState(originalMaterialState.keys(), originalMaterialState)
         hideMaterials(opaqueSceneMaterials, originalMaterialState)
         hideMaterials(transparentSceneMaterials, originalMaterialState)
@@ -348,19 +374,19 @@ function createDeferredMsfsRenderPasses(
         renderer.setRenderTarget(gBuffer.renderTarget)
         renderer.autoClear = true
         setMeshMaterials(sourceMaterials, hiddenMaterial)
-        setMeshMaterialsFor(receivers, writerMaterials)
+        setMeshMaterialsFor(active.receivers, writerMaterials)
         renderer.render(scene, camera)
 
-        configureDeferredDecalWriterDepthTest(decals, writerMaterials)
+        configureDeferredDecalWriterDepthTest(active.decals, writerMaterials)
         renderer.autoClear = false
         setMeshMaterials(sourceMaterials, hiddenMaterial)
-        setMeshMaterialsFor(decals, writerMaterials)
+        setMeshMaterialsFor(active.decals, writerMaterials)
         renderer.render(scene, camera)
 
         renderer.setRenderTarget(originalTarget)
         renderer.setClearColor(originalClearColor.getHex(), originalClearAlpha)
         setMeshMaterials(sourceMaterials, hiddenMaterial)
-        setMeshMaterialsFor(decals, resolveMaterials)
+        setMeshMaterialsFor(active.decals, resolveMaterials)
         renderer.render(scene, camera)
 
         restoreMaterialRenderState(originalMaterialState.keys(), originalMaterialState)
@@ -393,6 +419,45 @@ function createDeferredMsfsRenderPasses(
       }
     },
   }
+}
+
+export function collectVisibleDeferredRelationships<T>(
+  decals: readonly T[],
+  receiversByDecal: ReadonlyMap<T, readonly T[]>,
+  isVisible: (decal: T) => boolean
+): { readonly decals: T[]; readonly receivers: Set<T> } {
+  const visibleDecals: T[] = []
+  const visibleReceivers = new Set<T>()
+  for (const decal of decals) {
+    if (!isVisible(decal)) continue
+    visibleDecals.push(decal)
+    for (const receiver of receiversByDecal.get(decal) ?? []) {
+      visibleReceivers.add(receiver)
+    }
+  }
+  return { decals: visibleDecals, receivers: visibleReceivers }
+}
+
+function isDeferredMeshVisible(
+  mesh: DeferredMesh,
+  camera: Camera,
+  frustum: Frustum,
+  sourceMaterial: MeshMaterial | undefined,
+  originalMaterialState: ReadonlyMap<MsfsMaterial, MaterialRenderState>
+): boolean {
+  for (let current: Object3D | null = mesh; current != null; current = current.parent) {
+    if (!current.visible) return false
+  }
+  if (!mesh.layers.test(camera.layers)) return false
+  if (
+    sourceMaterial != null &&
+    !getMaterials(sourceMaterial).some(material =>
+      originalMaterialState.get(material as MsfsMaterial)?.visible ?? material.visible
+    )
+  ) {
+    return false
+  }
+  return mesh.frustumCulled === false || frustum.intersectsObject(mesh)
 }
 
 function collectSceneMaterials(

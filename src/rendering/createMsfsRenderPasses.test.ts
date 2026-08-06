@@ -9,6 +9,7 @@ gpuGlobals.GPUShaderStage ??= { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
 const {
   canKeepBlendGBufferDecalInForwardScenePass,
   canKeepReceiverlessBlendGBufferMaterialInBasePass,
+  collectVisibleDeferredRelationships,
   configureBlendGBufferMaterialsForDecalPass,
   hasBlendGBufferReceiver,
   selectMsfsDecalRenderPath
@@ -80,4 +81,21 @@ test('keeps native depth testing for decal occlusion', () => {
   expect(material.depthTest).toBe(true)
   expect(material.depthWrite).toBe(false)
   expect(material.polygonOffset).toBe(true)
+})
+
+
+test('limits deferred receivers to visible decals', () => {
+  const receivers = new Map([
+    ['visible', ['receiver-a']],
+    ['hidden', ['receiver-b']],
+    ['shared', ['receiver-a', 'receiver-c']],
+  ])
+  const active = collectVisibleDeferredRelationships(
+    ['visible', 'hidden', 'shared'],
+    receivers,
+    decal => decal !== 'hidden'
+  )
+
+  expect(active.decals).toEqual(['visible', 'shared'])
+  expect([...active.receivers]).toEqual(['receiver-a', 'receiver-c'])
 })
