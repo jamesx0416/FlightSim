@@ -194,6 +194,30 @@ test('clips blend-gbuffer decals to receiver topology before projection fallback
   expect(decal.userData.msfsBlendGBufferReceivers).toEqual([receiver])
 })
 
+test('records only receivers touched by finalized projected geometry', async () => {
+  const root = new Group()
+  const usedReceiver = new Mesh(
+    triangleGeometry([0, 0, 0, 1, 0, 0, 0, 1, 0]),
+    new MeshBasicMaterial()
+  )
+  const unusedReceiver = new Mesh(
+    triangleGeometry([10, 0, 0, 11, 0, 0, 10, 1, 0]),
+    new MeshBasicMaterial()
+  )
+  const decal = new Mesh(
+    triangleGeometry([0.1, 0.1, 0.01, 0.3, 0.1, 0.01, 0.1, 0.3, 0.01]),
+    blendGBufferMaterial()
+  )
+  const parent = new Group()
+  parent.add(usedReceiver, unusedReceiver, decal)
+  root.add(parent)
+
+  await normalizeMsfsMaterials({ scene: root } as GLTF)
+
+  expect(decal.userData.msfsBlendGBufferReceivers).toEqual([usedReceiver, unusedReceiver])
+  expect(decal.userData.msfsBlendGBufferUsedReceivers).toEqual([usedReceiver])
+})
+
 test('does not let an averaged clip plane slide a decal away from its authored projection', async () => {
   const root = new Group()
   const receiverGeometry = triangleGeometry([
