@@ -1073,6 +1073,28 @@ function clipBlendGBufferPrimitiveToBase(
     const toPlane = (point: Vector3): ProjectionPoint2 =>
       toPlaneCoordinates(point.x, point.y, point.z)
 
+    const getAabbPlaneBounds = (min: Vector3, max: Vector3): ProjectionBounds2 => {
+      const centerX = (min.x + max.x) * 0.5
+      const centerY = (min.y + max.y) * 0.5
+      const centerZ = (min.z + max.z) * 0.5
+      const extentX = (max.x - min.x) * 0.5
+      const extentY = (max.y - min.y) * 0.5
+      const extentZ = (max.z - min.z) * 0.5
+      const center = toPlaneCoordinates(centerX, centerY, centerZ)
+      const radiusX =
+        Math.abs(xAxis.x) * extentX +
+        Math.abs(xAxis.y) * extentY +
+        Math.abs(xAxis.z) * extentZ
+      const radiusY =
+        Math.abs(yAxis.x) * extentX +
+        Math.abs(yAxis.y) * extentY +
+        Math.abs(yAxis.z) * extentZ
+      return {
+        min: [center[0] - radiusX, center[1] - radiusY],
+        max: [center[0] + radiusX, center[1] + radiusY],
+      }
+    }
+
     const interpolateSourceBarycentric = (
       triangle: readonly [ProjectionBarycentric, ProjectionBarycentric, ProjectionBarycentric],
       barycentric: ProjectionBarycentric
@@ -1189,7 +1211,7 @@ function clipBlendGBufferPrimitiveToBase(
       const acceptedTriangles: Array<readonly [ProjectionPoint2, ProjectionPoint2, ProjectionPoint2]> = []
       const receiverTriangles = getProjectionTriangleCandidates(
         triangleIndex,
-        toPlaneCoordinates,
+        getAabbPlaneBounds,
         getProjectionBounds(refinedTriangle2)
       )
 
@@ -1472,7 +1494,7 @@ function buildBlendGBufferProjectionNormals(
 
 function getProjectionTriangleCandidates(
   root: DecalProjectionSpatialIndex,
-  toPlaneCoordinates: (x: number, y: number, z: number) => ProjectionPoint2,
+  getNodeBounds: (min: Vector3, max: Vector3) => ProjectionBounds2,
   sourceBounds: ProjectionBounds2
 ): DecalProjectionTriangle[] {
   const candidates: DecalProjectionTriangle[] = []
@@ -1480,16 +1502,7 @@ function getProjectionTriangleCandidates(
 
   while (pending.length > 0) {
     const node = pending.pop()!
-    if (!doProjectionBoundsOverlap(sourceBounds, getProjectionBounds([
-      toPlaneCoordinates(node.min.x, node.min.y, node.min.z),
-      toPlaneCoordinates(node.min.x, node.min.y, node.max.z),
-      toPlaneCoordinates(node.min.x, node.max.y, node.min.z),
-      toPlaneCoordinates(node.min.x, node.max.y, node.max.z),
-      toPlaneCoordinates(node.max.x, node.min.y, node.min.z),
-      toPlaneCoordinates(node.max.x, node.min.y, node.max.z),
-      toPlaneCoordinates(node.max.x, node.max.y, node.min.z),
-      toPlaneCoordinates(node.max.x, node.max.y, node.max.z),
-    ]))) {
+    if (!doProjectionBoundsOverlap(sourceBounds, getNodeBounds(node.min, node.max))) {
       continue
     }
     if (node.items != null) {
