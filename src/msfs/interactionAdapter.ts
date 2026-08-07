@@ -1,4 +1,4 @@
-import type { CanonicalCockpitAction, CockpitInteractionMode, CockpitInteractionOperation, CockpitInteractionTarget, CockpitRelativeDirection } from '../input/cockpitInteraction'
+import type { CanonicalCockpitAction, CockpitInteractionChannel, CockpitInteractionMode, CockpitInteractionOperation, CockpitInteractionTarget, CockpitRelativeDirection } from '../input/cockpitInteraction'
 import { convertSimUnit, type SimUnit } from '../sim/engine'
 import { evaluateCompiledExpression } from './rpn'
 import type { AircraftRuntime, RuntimeInteractionValueWatch } from './runtime'
@@ -195,7 +195,7 @@ export class MsfsInteractionAdapter {
 
   execute(target: MsfsInteractionTarget, action: CanonicalCockpitAction): boolean {
     const selected = target.bindings
-      .map(binding => ({ binding, route: selectRoute(binding.metadata.routes, action, this.mode, target.lockable) }))
+      .map(binding => ({ binding, route: selectRoute(binding.metadata.routes, action, this.mode, target.lockable, binding.metadata.dragFlagsLockable) }))
       .find(value => value.route != null)
     if (selected?.route != null &&
         (action.operation === 'increase' || action.operation === 'decrease') &&
@@ -237,7 +237,7 @@ export class MsfsInteractionAdapter {
 
   route(target: MsfsInteractionTarget, action: CanonicalCockpitAction): CompiledInteractionRoute | null {
     for (const binding of target.bindings) {
-      const route = selectRoute(binding.metadata.routes, action, this.mode, target.lockable)
+      const route = selectRoute(binding.metadata.routes, action, this.mode, target.lockable, binding.metadata.dragFlagsLockable)
       if (route != null) return route
     }
     if ((action.operation === 'increase' || action.operation === 'decrease') &&
@@ -705,6 +705,9 @@ export class MsfsInteractionAdapter {
     return {
       id: binding.metadata.qualifiedId,
       lockable: bindings.some(candidate => candidate.metadata.lockable),
+      temporaryLockChannels: [...new Set(bindings.flatMap(candidate =>
+        interactionChannelsForMouseFlags(candidate.metadata.lockFlagsTemporary, 'Single')
+      ))],
       operations: [...new Set([
         ...bindings.flatMap(candidate => candidate.metadata.routes.map(route => route.operation)),
         ...(bindings.some(candidate => candidate.metadata.wheelPrimaryToggle)
@@ -974,16 +977,35 @@ function normalizeExactUnitName(unit: string): string {
   return unit.trim().toLowerCase().replaceAll('_', ' ').replace(/\s+/gu, ' ')
 }
 
+function mouseFlagForChannel(channel: CockpitInteractionChannel, suffix: 'Single' | 'Drag'): string {
+  const prefix = channel === 'primary' ? 'Left' : channel === 'secondary' ? 'Right' : 'Middle'
+  return `${prefix}${suffix}`
+}
+
+function interactionChannelsForMouseFlags(
+  flags: readonly string[],
+  suffix: 'Single' | 'Drag'
+): CockpitInteractionChannel[] {
+  return (['primary', 'secondary', 'tertiary'] as const).filter(channel =>
+    flags.includes(mouseFlagForChannel(channel, suffix))
+  )
+}
+
 function selectRoute(
   routes: readonly CompiledInteractionRoute[],
   action: CanonicalCockpitAction,
   mode: CockpitInteractionMode,
-  lockable: boolean
+  lockable: boolean,
+  dragFlagsLockable: readonly string[] = []
 ): CompiledInteractionRoute | null {
   const operation: CockpitInteractionOperation = action.operation === 'hold' && action.phase !== 'repeat'
     ? 'press'
     : action.operation
   const interactionModel = mode === 'lock' && lockable ? 'drag' : 'default'
+  if (interactionModel === 'drag' && action.phase === 'drag') {
+    const requiredDragFlag = mouseFlagForChannel(action.channel ?? 'primary', 'Drag')
+    if (!dragFlagsLockable.includes(requiredDragFlag)) return null
+  }
   const isWheelOperation = operation === 'increase' || operation === 'decrease'
   const matchesAction = (route: CompiledInteractionRoute): boolean =>
     (route.operation === operation || (operation === 'turn' && route.phase === 'drag')) &&

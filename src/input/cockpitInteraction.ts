@@ -34,6 +34,7 @@ export interface CanonicalCockpitAction extends CockpitInteractionInput {
 export interface CockpitInteractionTarget {
   readonly id: string
   readonly lockable: boolean
+  readonly temporaryLockChannels?: readonly CockpitInteractionChannel[]
   readonly operations: readonly CockpitInteractionOperation[]
 }
 
@@ -135,7 +136,10 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
       this.recordMiss('busy', { target: target.id, operation: 'hold' }, timestampMs)
       return true
     }
-    const locked = this.mode === 'lock' && target.lockable && channel === 'primary'
+    const temporaryLockChannels = target.temporaryLockChannels
+    const locked = this.mode === 'lock' && target.lockable && (
+      temporaryLockChannels == null ? channel === 'primary' : temporaryLockChannels.includes(channel)
+    )
     this.captured = { target, pointerId, channel, locked }
     this.state = locked ? 'locked' : 'pressed'
     this.busy.set(target.id, 'hold')
