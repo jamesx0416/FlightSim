@@ -1008,9 +1008,16 @@ function collectMouseRectMetadata(
     IGNOREZTEST: 'IGNORE_Z_TEST',
     DRAGANIMNAME: 'DRAG_ANIM_NAME',
     DRAGANIMSYNCED: 'DRAG_ANIM_SYNCED',
+    DRAGUSEANIMLAG: 'DRAG_USE_ANIM_LAG',
+    DRAGFLAGSLOCKABLE: 'DRAG_MOUSEFLAGS_LOCKABLE',
     DRAGMODE: 'DRAG_MODE',
     DRAGAXIS: 'DRAG_AXIS',
     DRAGSCALAR: 'DRAG_SCALAR',
+    XSCALE: 'DRAG_AXIS_X_SCALE',
+    YSCALE: 'DRAG_AXIS_Y_SCALE',
+    ZSCALE: 'DRAG_AXIS_Z_SCALE',
+    LOCKFLAGSTEMPORARY: 'TEMPORARY_LOCK_FLAGS',
+    GROUPID: 'INTERACTABLE_GROUP_ID',
     CURSOR: 'CURSOR',
     TOOLTIPID: 'TOOLTIPID',
     TTTITLE: 'TOOLTIP_TITLE'
@@ -1024,6 +1031,24 @@ function collectMouseRectMetadata(
         result.set(tag === 'IMDEFAULT' ? 'MOUSEFLAGS_DEFAULT_IM' : 'MOUSEFLAGS_DRAG_IM', value)
       }
       continue
+    }
+    const cursorModel = child.parentElement
+    if (cursorModel != null && cursorModel.parentElement != null && getElementTagName(cursorModel.parentElement) === 'IMCursorsInstances') {
+      const modelTag = getElementTagName(cursorModel).toUpperCase()
+      const prefix = modelTag === 'IMDEFAULT' ? 'DEFAULT' : modelTag === 'IMDRAG' ? 'DRAG' : ''
+      const cursorKey = ({
+        CURSOR: 'CURSOR',
+        CURSORLEFT: 'LEFTARROW',
+        CURSORRIGHT: 'RIGHTARROW',
+        CURSORUP: 'UPARROW',
+        CURSORDOWN: 'DOWNARROW',
+        CURSORCENTER: 'CENTER_CURSOR',
+        CURSORCENTERRADIUS: 'CENTER_RADIUS'
+      } as const)[tag as 'CURSOR' | 'CURSORLEFT' | 'CURSORRIGHT' | 'CURSORUP' | 'CURSORDOWN' | 'CURSORCENTER' | 'CURSORCENTERRADIUS']
+      if (prefix && cursorKey) {
+        result.set(`${cursorKey}_${prefix}_IM`, value)
+        continue
+      }
     }
     const key = mappings[tag]
     const current = key == null ? '' : result.get(key)?.trim() ?? ''
@@ -1046,11 +1071,16 @@ function collectMouseRectPayloadMetadata(
     MAXVALUE: 'DRAG_MAX_VALUE',
     DRAGANIMNAME: 'DRAG_ANIM_NAME',
     DRAGANIMSYNCED: 'DRAG_ANIM_SYNCED',
+    DRAGUSEANIMLAG: 'DRAG_USE_ANIM_LAG',
+    DRAGFLAGSLOCKABLE: 'DRAG_MOUSEFLAGS_LOCKABLE',
     DRAGMODE: 'DRAG_MODE',
     DRAGNODEID: 'DRAG_NODE_ID',
     DRAGAXIS: 'DRAG_AXIS',
     DRAGSCALAR: 'DRAG_SCALAR',
     SCALE: 'DRAG_SCALE',
+    XSCALE: 'DRAG_AXIS_X_SCALE',
+    YSCALE: 'DRAG_AXIS_Y_SCALE',
+    ZSCALE: 'DRAG_AXIS_Z_SCALE',
     ISRELATIVE: 'DRAG_IS_RELATIVE',
     DELTA: 'VALUE_STEP'
   }
@@ -1692,6 +1722,32 @@ const MSFS_INTERACTION_EVENTS: Readonly<Record<string, Omit<CompiledInteractionR
   Unlock: { channel: null, phase: null, operation: 'unlock', msfsEvent: 'Unlock', axis: null }
 }
 
+function parseInteractionFlagList(source: string | undefined): string[] {
+  return source?.split('+').map(value => value.trim()).filter(Boolean) ?? []
+}
+
+function compileInteractionCursorModel(
+  params: ReadonlyMap<string, string>,
+  model: 'DEFAULT' | 'DRAG'
+) {
+  return {
+    cursor: params.get(`CURSOR_${model}_IM`)?.trim() || null,
+    left: params.get(`LEFTARROW_${model}_IM`)?.trim() || null,
+    right: params.get(`RIGHTARROW_${model}_IM`)?.trim() || null,
+    up: params.get(`UPARROW_${model}_IM`)?.trim() || null,
+    down: params.get(`DOWNARROW_${model}_IM`)?.trim() || null,
+    center: params.get(`CENTER_CURSOR_${model}_IM`)?.trim() || null,
+    centerRadius: parseOptionalFiniteNumber(params.get(`CENTER_RADIUS_${model}_IM`))
+  }
+}
+
+function mergeInteractionCursorModels<T extends ReturnType<typeof compileInteractionCursorModel>>(previous: T, next: T): T {
+  return Object.fromEntries(Object.keys(previous).map(key => [
+    key,
+    next[key as keyof T] ?? previous[key as keyof T]
+  ])) as unknown as T
+}
+
 function buildCompiledInteractionMetadata(
   params: ReadonlyMap<string, string>,
   currentNode: string | null,
@@ -1870,7 +1926,16 @@ function buildCompiledInteractionMetadata(
     dragAnimationSynced: params.has('DONT_SYNC_DRAG_TO_ANIM')
       ? false
       : parseBoolean(params.get('DRAG_ANIM_SYNCED') ?? 'True'),
+    dragUseAnimLag: parseBoolean(params.get('DRAG_USE_ANIM_LAG') ?? 'False'),
     dragScalar: parseNumber(params.get('DRAG_SCALAR'), 0.025),
+    dragScales: {
+      x: parseNumber(params.get('DRAG_AXIS_X_SCALE'), 0),
+      y: parseNumber(params.get('DRAG_AXIS_Y_SCALE'), 0),
+      z: parseNumber(params.get('DRAG_AXIS_Z_SCALE'), 0)
+    },
+    dragFlagsLockable: parseInteractionFlagList(params.get('DRAG_MOUSEFLAGS_LOCKABLE')),
+    lockFlagsTemporary: parseInteractionFlagList(params.get('TEMPORARY_LOCK_FLAGS')),
+    groupId: params.get('INTERACTABLE_GROUP_ID')?.trim() || null,
     discreteGate: (() => {
       if (!params.has('GATE_TOLERANCE') || !params.get('POSITION_VAR')?.trim()) return null
       const steps = parseOptionalFiniteNumber(params.get('STEPS_NUMBER'))
@@ -1891,7 +1956,11 @@ function buildCompiledInteractionMetadata(
         : null
     })(),
     wheelPrimaryToggle: parseBoolean(params.get('__WHEEL_PRIMARY_TOGGLE') ?? 'False'),
-    cursor: params.get('CURSOR')?.trim() || null,
+    cursor: params.get('CURSOR')?.trim() || params.get('CURSOR_DEFAULT_IM')?.trim() || null,
+    cursors: {
+      default: compileInteractionCursorModel(params, 'DEFAULT'),
+      drag: compileInteractionCursorModel(params, 'DRAG')
+    },
     tooltipTitle: tooltip.title,
     tooltipDescription: tooltip.description,
     tooltipStateLabels: tooltip.stateLabels,
@@ -3473,8 +3542,17 @@ function pushUniqueInteractionBinding(
         ? 'trajectory'
         : 'default',
       dragAnimationSynced: previous.metadata.dragAnimationSynced && binding.metadata.dragAnimationSynced,
+      dragUseAnimLag: previous.metadata.dragUseAnimLag || binding.metadata.dragUseAnimLag,
       dragScalar: binding.metadata.dragScalar,
+      dragScales: binding.metadata.dragScales,
+      dragFlagsLockable: [...new Set([...previous.metadata.dragFlagsLockable, ...binding.metadata.dragFlagsLockable])],
+      lockFlagsTemporary: [...new Set([...previous.metadata.lockFlagsTemporary, ...binding.metadata.lockFlagsTemporary])],
+      groupId: binding.metadata.groupId ?? previous.metadata.groupId,
       cursor: binding.metadata.cursor ?? previous.metadata.cursor,
+      cursors: {
+        default: mergeInteractionCursorModels(previous.metadata.cursors.default, binding.metadata.cursors.default),
+        drag: mergeInteractionCursorModels(previous.metadata.cursors.drag, binding.metadata.cursors.drag)
+      },
       tooltipTitle: binding.metadata.tooltipTitle ?? previous.metadata.tooltipTitle,
       tooltipDescription: binding.metadata.tooltipDescription ?? previous.metadata.tooltipDescription,
       tooltipValueExpression: binding.metadata.tooltipValueExpression ?? previous.metadata.tooltipValueExpression,

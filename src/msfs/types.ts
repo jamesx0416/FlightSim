@@ -271,6 +271,16 @@ export interface CompiledInteractionTypedParameter {
   readonly expression: CompiledExpression | null
 }
 
+export interface CompiledInteractionCursorModel {
+  readonly cursor: string | null
+  readonly left: string | null
+  readonly right: string | null
+  readonly up: string | null
+  readonly down: string | null
+  readonly center: string | null
+  readonly centerRadius: number | null
+}
+
 export interface CompiledInteractionMetadata {
   readonly authoredId: string | null
   readonly qualifiedId: string
@@ -297,7 +307,12 @@ export interface CompiledInteractionMetadata {
   readonly dragAnimationName: string | null
   readonly dragMode: 'default' | 'trajectory'
   readonly dragAnimationSynced: boolean
+  readonly dragUseAnimLag: boolean
   readonly dragScalar: number
+  readonly dragScales: { readonly x: number; readonly y: number; readonly z: number }
+  readonly dragFlagsLockable: readonly string[]
+  readonly lockFlagsTemporary: readonly string[]
+  readonly groupId: string | null
   readonly discreteGate: {
     readonly steps: number
     readonly dragSpeed: number
@@ -307,6 +322,10 @@ export interface CompiledInteractionMetadata {
   } | null
   readonly wheelPrimaryToggle: boolean
   readonly cursor: string | null
+  readonly cursors: {
+    readonly default: CompiledInteractionCursorModel
+    readonly drag: CompiledInteractionCursorModel
+  }
   readonly tooltipTitle: string | null
   readonly tooltipDescription: string | null
   readonly tooltipStateLabels: readonly {

@@ -134,6 +134,21 @@ test('interaction metadata expands authored flags and value reachability', () =>
       ['DRAG_MAX_VALUE', '10'],
       ['VALUE_STEP', '0.5'],
       ['DRAG_SCALAR', '0.05'],
+      ['DRAG_AXIS_X_SCALE', '2'],
+      ['DRAG_AXIS_Y_SCALE', '-3'],
+      ['DRAG_AXIS_Z_SCALE', '4'],
+      ['DRAG_USE_ANIM_LAG', 'True'],
+      ['DRAG_MOUSEFLAGS_LOCKABLE', 'LeftDrag+RightDrag'],
+      ['TEMPORARY_LOCK_FLAGS', 'LeftSingle+Wheel'],
+      ['INTERACTABLE_GROUP_ID', 'TEST_GROUP'],
+      ['CURSOR_DEFAULT_IM', 'Grab'],
+      ['LEFTARROW_DEFAULT_IM', 'TurnLeft'],
+      ['RIGHTARROW_DEFAULT_IM', 'TurnRight'],
+      ['UPARROW_DEFAULT_IM', 'TurnUp'],
+      ['DOWNARROW_DEFAULT_IM', 'TurnDown'],
+      ['CENTER_CURSOR_DEFAULT_IM', 'Hand'],
+      ['CENTER_RADIUS_DEFAULT_IM', '0.25'],
+      ['CURSOR_DRAG_IM', 'Move'],
       ['DRAG_MODE', 'Trajectory'],
       ['DRAG_NODE_ID', 'TEST_KNOB_DRAG_NODE'],
       ['ANIM_NAME', 'TEST_KNOB_ANIMATION'],
@@ -177,6 +192,20 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect([metadata.prioritizeVCockpits, metadata.ignoreZTest]).toEqual([true, true])
   expect(metadata.sourceTemplate).toBe('ASOBO_TEST_KNOB')
   expect(metadata.dragScalar).toBe(0.05)
+  expect(metadata.dragScales).toEqual({ x: 2, y: -3, z: 4 })
+  expect(metadata.dragUseAnimLag).toBe(true)
+  expect(metadata.dragFlagsLockable).toEqual(['LeftDrag', 'RightDrag'])
+  expect(metadata.lockFlagsTemporary).toEqual(['LeftSingle', 'Wheel'])
+  expect(metadata.groupId).toBe('TEST_GROUP')
+  expect(metadata.cursors).toEqual({
+    default: {
+      cursor: 'Grab', left: 'TurnLeft', right: 'TurnRight', up: 'TurnUp', down: 'TurnDown',
+      center: 'Hand', centerRadius: 0.25
+    },
+    drag: {
+      cursor: 'Move', left: null, right: null, up: null, down: null, center: null, centerRadius: null
+    }
+  })
   expect([metadata.dragMode, metadata.dragAnimationSynced]).toEqual(['trajectory', false])
   expect(metadata.dragNodeId).toBe('TEST_KNOB_DRAG_NODE')
   expect(metadata.dragAnimationName).toBe('TEST_KNOB_ANIMATION')

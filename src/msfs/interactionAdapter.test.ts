@@ -933,7 +933,14 @@ function interactionBinding(
       lockable: false, dynamicEventHandling: false, disabled: false, disabledInVr: false,
       prioritizeVCockpits: false, ignoreZTest: false, highlightNodeId: 'TEST', axis: null,
       inverted: false, dragNodeId: null, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
-      dragScalar: 0.025, discreteGate: null, wheelPrimaryToggle: false, cursor: null, tooltipTitle: null,
+      dragUseAnimLag: false, dragScalar: 0.025, dragScales: { x: 0, y: 0, z: 0 },
+      dragFlagsLockable: [], lockFlagsTemporary: [], groupId: null,
+      discreteGate: null, wheelPrimaryToggle: false, cursor: null,
+      cursors: {
+        default: { cursor: null, left: null, right: null, up: null, down: null, center: null, centerRadius: null },
+        drag: { cursor: null, left: null, right: null, up: null, down: null, center: null, centerRadius: null }
+      },
+      tooltipTitle: null,
       tooltipDescription: null, tooltipStateLabels: [], tooltipUnavailable: null,
       tooltipValueLabel: null, tooltipActionHints: [],
       tooltipValueExpression: valueExpression,
