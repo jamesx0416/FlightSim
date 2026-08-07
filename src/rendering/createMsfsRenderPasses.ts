@@ -1,15 +1,18 @@
 import {
+  BufferAttribute,
   Color,
   Frustum,
   Matrix4,
   Mesh,
   MeshBasicMaterial,
+  SkinnedMesh,
   type Camera,
   type Material,
   type Object3D,
   type Scene
 } from 'three'
 import type { WebGPURenderer } from 'three/webgpu'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import {
   createMsfsDeferredLightingMaterial,
@@ -127,6 +130,11 @@ type DeferredMesh = Mesh & {
   }
 }
 
+type ResolveBatch = {
+  readonly mesh: DeferredMesh
+  readonly members: readonly DeferredMesh[]
+}
+
 function createDeferredMsfsRenderPasses(
   renderer: WebGPURenderer,
   scene: Scene,
@@ -149,6 +157,7 @@ function createDeferredMsfsRenderPasses(
   const receiverFootprintMaterials = new Map<DeferredMesh, MeshMaterial>()
   const writerMaterials = new Map<DeferredMesh, MeshMaterial>()
   const resolveMaterials = new Map<DeferredMesh, MeshMaterial>()
+  const resolveBatches: ResolveBatch[] = []
   const sourceMaterials = new Map<DeferredMesh, MeshMaterial>()
   const forwardSourceMaterials = new Map<DeferredMesh, MeshMaterial>()
   const forwardColorMaterials = new Set<Material>()
@@ -167,6 +176,11 @@ function createDeferredMsfsRenderPasses(
     fallback.refresh()
     restoreMeshDrawables(originalForwardDecalLayerMasks)
     originalForwardDecalLayerMasks.clear()
+    for (const batch of resolveBatches) {
+      batch.mesh.removeFromParent()
+      batch.mesh.geometry.dispose()
+    }
+    resolveBatches.length = 0
     for (const material of disposableLightingMaterials) {
       material.dispose()
     }
@@ -348,6 +362,9 @@ function createDeferredMsfsRenderPasses(
     }
 
     decals.sort((left, right) => left.renderOrder - right.renderOrder)
+    if (sharedResolveMaterial != null) {
+      createResolveBatches(decals, sharedResolveMaterial, resolveBatches)
+    }
     forwardDecals.sort((left, right) => left.renderOrder - right.renderOrder)
     addMeshDrawablesToLayer(
       forwardDecals,
@@ -438,8 +455,16 @@ function createDeferredMsfsRenderPasses(
         renderer.setRenderTarget(originalTarget)
         renderer.setClearColor(originalClearColor.getHex(), originalClearAlpha)
         setMeshMaterials(sourceMaterials, hiddenMaterial)
-        setMeshMaterialsFor(active.decals, resolveMaterials)
+        const selectedBatches = selectCompleteResolveBatches(
+          active.decals,
+          resolveBatches.map(batch => batch.members)
+        )
+        setMeshMaterialsFor(selectedBatches.unbatched, resolveMaterials)
+        for (const batchIndex of selectedBatches.batchIndices) {
+          syncResolveBatch(resolveBatches[batchIndex])
+        }
         renderer.render(scene, camera)
+        hideResolveBatches(resolveBatches)
 
         restoreMaterialRenderState(originalMaterialState.keys(), originalMaterialState)
         hideMaterials(opaqueSceneMaterials, originalMaterialState)
@@ -459,6 +484,7 @@ function createDeferredMsfsRenderPasses(
           renderer.render(scene, camera)
         }
       } finally {
+        hideResolveBatches(resolveBatches)
         configureDeferredDecalWriterDepthTest(decals, writerMaterials)
         restoreMeshMaterials(forwardSourceMaterials)
         restoreMeshMaterials(sourceMaterials)
@@ -471,6 +497,116 @@ function createDeferredMsfsRenderPasses(
       }
     },
   }
+}
+
+function createResolveBatches(
+  decals: readonly DeferredMesh[],
+  material: Material,
+  output: ResolveBatch[]
+): void {
+  const remaining = new Set(decals)
+  for (const seed of decals) {
+    if (!remaining.has(seed)) continue
+    const members = decals.filter(candidate =>
+      remaining.has(candidate) && canShareResolveBatch(seed, candidate)
+    )
+    if (members.length < 2) continue
+    const geometry = createResolveBatchGeometry(members)
+    if (geometry == null || seed.parent == null) {
+      geometry?.dispose()
+      continue
+    }
+
+    const mesh = seed instanceof SkinnedMesh
+      ? new SkinnedMesh(geometry, material)
+      : new Mesh(geometry, material)
+    if (mesh instanceof SkinnedMesh && seed instanceof SkinnedMesh) {
+      mesh.skeleton = seed.skeleton
+      mesh.bindMatrix.copy(seed.bindMatrix)
+      mesh.bindMatrixInverse.copy(seed.bindMatrixInverse)
+    }
+    mesh.matrixAutoUpdate = false
+    mesh.matrix.copy(seed.matrix)
+    mesh.layers.mask = seed.layers.mask
+    mesh.frustumCulled = false
+    mesh.visible = false
+    seed.parent.add(mesh)
+    output.push({ mesh: mesh as DeferredMesh, members })
+    for (const member of members) remaining.delete(member)
+  }
+}
+
+function canShareResolveBatch(left: DeferredMesh, right: DeferredMesh): boolean {
+  if (
+    left.parent !== right.parent ||
+    left.geometry.index != null ||
+    right.geometry.index != null ||
+    Object.keys(left.geometry.morphAttributes).length > 0 ||
+    Object.keys(right.geometry.morphAttributes).length > 0
+  ) {
+    return false
+  }
+  left.updateMatrix()
+  right.updateMatrix()
+  if (!left.matrix.equals(right.matrix) || left.layers.mask !== right.layers.mask) {
+    return false
+  }
+  if (left instanceof SkinnedMesh || right instanceof SkinnedMesh) {
+    return left instanceof SkinnedMesh &&
+      right instanceof SkinnedMesh &&
+      left.bindMatrix.equals(right.bindMatrix) &&
+      left.bindMatrixInverse.equals(right.bindMatrixInverse) &&
+      left.skeleton.bones.length === right.skeleton.bones.length &&
+      left.skeleton.bones.every((bone, index) => bone === right.skeleton.bones[index])
+  }
+  return true
+}
+
+function createResolveBatchGeometry(members: readonly DeferredMesh[]) {
+  const clones = members.map(member => {
+    const clone = member.geometry.clone()
+    const skinIndex = clone.getAttribute('skinIndex')
+    if (skinIndex != null && !(skinIndex.array instanceof Uint32Array)) {
+      clone.setAttribute(
+        'skinIndex',
+        new BufferAttribute(new Uint32Array(skinIndex.array), skinIndex.itemSize, skinIndex.normalized)
+      )
+    }
+    return clone
+  })
+  const merged = mergeGeometries(clones, false)
+  for (const clone of clones) clone.dispose()
+  return merged
+}
+
+function syncResolveBatch(batch: ResolveBatch): void {
+  const source = batch.members[0]
+  if (source == null || !batch.members.every(member => canShareResolveBatch(source, member))) {
+    return
+  }
+  source.updateMatrix()
+  batch.mesh.matrix.copy(source.matrix)
+  batch.mesh.matrixWorldNeedsUpdate = true
+  batch.mesh.visible = true
+}
+
+function hideResolveBatches(batches: readonly ResolveBatch[]): void {
+  for (const batch of batches) batch.mesh.visible = false
+}
+
+export function selectCompleteResolveBatches<T>(
+  active: readonly T[],
+  batches: readonly (readonly T[])[]
+): { readonly batchIndices: number[]; readonly unbatched: T[] } {
+  const remaining = new Set(active)
+  const batchIndices: number[] = []
+  for (let index = 0; index < batches.length; index += 1) {
+    const batch = batches[index]
+    if (batch.length < 2 || !batch.every(member => remaining.has(member))) continue
+    batchIndices.push(index)
+    for (const member of batch) remaining.delete(member)
+  }
+  return { batchIndices, unbatched: [...remaining] }
 }
 
 export function canWriteReceiverGBufferFromProjectedGeometry(material: Material): boolean {
