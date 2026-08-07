@@ -547,7 +547,8 @@ export class MsfsInteractionAdapter {
       decreaseStepExpression,
       metadata.minimum,
       metadata.maximum,
-      metadata.cyclic
+      metadata.cyclic,
+      (expression, current) => this.evaluateExactStepExpression(expression, current)
     )
     if (plan == null) return exactResult('VALUE_NOT_REACHABLE', previous, previous, requested, target, null, 0)
     const routeOperation = plan.operation
@@ -602,6 +603,19 @@ export class MsfsInteractionAdapter {
     } finally {
       this.busy.delete(target.id)
     }
+  }
+
+  private evaluateExactStepExpression(expression: CompiledExpression, current: number): number {
+    const parameterValues = [...new Array<number>(15).fill(0), current]
+    const runtime = this.runtime as AircraftRuntime & {
+      evaluateInteractionReadOnlyExpression?: (
+        expression: CompiledExpression,
+        parameterValues: readonly number[]
+      ) => number
+    }
+    return typeof runtime.evaluateInteractionReadOnlyExpression === 'function'
+      ? runtime.evaluateInteractionReadOnlyExpression(expression, parameterValues)
+      : evaluateCompiledExpression(expression, { readVariable: () => Number.NaN, parameterValues })
   }
 
   private beginValueWatch(binding: CompiledInteractionBinding): RuntimeInteractionValueWatch | null {
@@ -742,7 +756,8 @@ function planExactSteps(
   decreaseStepExpression: CompiledExpression | null,
   minimum: number,
   maximum: number,
-  cyclic: boolean
+  cyclic: boolean,
+  evaluateStepExpression: (expression: CompiledExpression, current: number) => number
 ): { readonly operation: 'increase' | 'decrease'; readonly steps: number } | null {
   const simulate = (
     operation: 'increase' | 'decrease'
@@ -753,7 +768,8 @@ function planExactSteps(
       const step = resolveExactStep(
         operation === 'increase' ? increaseStep : decreaseStep,
         operation === 'increase' ? increaseStepExpression : decreaseStepExpression,
-        value
+        value,
+        evaluateStepExpression
       )
       if (step == null) return null
       let next = value + (operation === 'increase' ? step : -step)
@@ -787,14 +803,12 @@ function planExactSteps(
 function resolveExactStep(
   step: number | null,
   expression: CompiledExpression | null,
-  current: number
+  current: number,
+  evaluateStepExpression: (expression: CompiledExpression, current: number) => number
 ): number | null {
   const resolved = expression == null
     ? step
-    : evaluateCompiledExpression(expression, {
-        readVariable: () => Number.NaN,
-        parameterValues: [...new Array<number>(15).fill(0), current]
-      })
+    : evaluateStepExpression(expression, current)
   return resolved != null && Number.isFinite(resolved) && resolved > 0 ? resolved : null
 }
 

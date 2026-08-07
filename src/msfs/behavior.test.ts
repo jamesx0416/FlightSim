@@ -426,6 +426,33 @@ test('fails interaction candidates closed with structured rejection totals', () 
   })
 })
 
+test('compiles mutable runtime variables as exact step expressions', () => {
+  const diagnostics: ImportDiagnostic[] = []
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['INCREMENT', '(L:XMLVAR_Autopilot_Altitude_Increment)'],
+      ['DECREMENT', '(L:XMLVAR_Autopilot_Altitude_Increment)'],
+      ['MIN_VALUE', '0'],
+      ['MAX_VALUE', '50000'],
+      ['VALUE_UNIT', 'feet']
+    ]),
+    'AUTOPILOT_Knob_Altitude',
+    'AUTOPILOT_Knob_Altitude',
+    'Autopilot_Subtemplates.xml',
+    '1 (>L:TEST)',
+    'callback',
+    diagnostics
+  )
+
+  expect(metadata.value.increaseStepExpression?.variableKeys).toEqual([
+    'L:XMLVAR_Autopilot_Altitude_Increment'
+  ])
+  expect(metadata.value.decreaseStepExpression?.variableKeys).toEqual([
+    'L:XMLVAR_Autopilot_Altitude_Increment'
+  ])
+  expect(diagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_increment_unproven')).toBe(false)
+})
+
 test('compiles authored gated-drag metadata', () => {
   const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([
