@@ -968,6 +968,7 @@ function interactionRuntime(binding: CompiledInteractionBinding): {
     inputEventBindings: [],
     interactionBindings: [binding],
     interactionBlockers: [],
+    interactionCompilerTotals: { candidates: 0, compiledBindings: 0, rejectedBindings: 0, rejectionReasons: {} },
     variableKeys: [],
     builtinFallbackHits: [],
     diagnostics: []
