@@ -9,6 +9,7 @@ import {
 } from 'three'
 
 import { ControlStateKeys, createSimulatorEngineForAircraft, SurfaceStateKeys } from '../sim/engine'
+import { __behaviorTestHooks } from './behavior'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
 import type { CompiledBehaviorSet, RuntimeHostServices } from './types'
 
@@ -143,6 +144,63 @@ describe('AircraftRuntime canonical visual bindings', () => {
 
     authoritativeValue = 100
     expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(81)
+  })
+
+  test('bypasses authored animation lag only while DragUseAnimLag is false', () => {
+    const createRuntime = (useAnimLag: boolean) => {
+      let value = 0
+      const params = new Map([
+        ['NODE_ID', 'Lever'],
+        ['MOUSEFLAGS', 'LeftDrag'],
+        ['DRAG_ANIM_NAME', 'LeverAnimation'],
+        ['DRAG_USE_ANIM_LAG', useAnimLag ? 'True' : 'False']
+      ])
+      const interaction = __behaviorTestHooks.buildInteractionCodeBinding(
+        '100 (>L:LEVER_VALUE)', null, params, 'Lever', 'test.xml', 'callback', []
+      )!
+      const scene = new Object3D()
+      const lever = new Object3D()
+      lever.name = 'Lever'
+      scene.add(lever)
+      const runtime = new AircraftRuntime({
+        ...emptyCompiledBehaviorSet,
+        animationBindings: [{
+          target: 'LeverAnimation',
+          expression: {
+            source: '(L:LEVER_VALUE, number)',
+            instructions: [{ op: 'pushVariable', key: 'L:LEVER_VALUE', unit: 'number' }],
+            variableKeys: ['L:LEVER_VALUE']
+          },
+          length: 100,
+          wrap: false,
+          delta: false,
+          lagFramesPerSecond: 10,
+          sourcePath: 'test.xml'
+        }],
+        interactionBindings: [interaction]
+      }, scene, {
+        ...hostServices,
+        readVariable: () => value,
+        writeVariable: (_key, nextValue) => { value = nextValue }
+      })
+      runtime.bindAnimations([new AnimationClip('LeverAnimation', 1, [
+        new VectorKeyframeTrack('Lever.position', [0, 1], [0, 0, 0, 10, 0, 0])
+      ])])
+      runtime.update(0.1)
+      return { runtime, interaction, getValue: () => value, setValue: (next: number) => { value = next } }
+    }
+
+    const direct = createRuntime(false)
+    expect(direct.runtime.executeInteractionBindingDirect(direct.interaction, { mouseEvent: 'LeftDrag' })).toBe(true)
+    expect(direct.getValue()).toBe(100)
+    expect(direct.runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(100)
+    direct.runtime.releaseInteractionBinding(direct.interaction)
+    direct.setValue(0)
+    expect(direct.runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(99)
+
+    const lagged = createRuntime(true)
+    expect(lagged.runtime.executeInteractionBindingDirect(lagged.interaction, { mouseEvent: 'LeftDrag' })).toBe(true)
+    expect(lagged.runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(1)
   })
 
   test('maps normalized values across the authored animation key range', () => {

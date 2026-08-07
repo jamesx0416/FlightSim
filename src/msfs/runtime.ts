@@ -258,6 +258,7 @@ export class AircraftRuntime {
   >()
   private readonly wingFlexBindings: readonly RuntimeWingFlexBinding[]
   private readonly delayedInteractionReleases = new Map<CompiledInteractionBinding, SimScheduledTaskId>()
+  private readonly interactionLagBypassBindings = new Set<CompiledInteractionBinding>()
   private readonly interactionScheduler: SimScheduler
   private readonly interactionSchedulerScope = `msfs-interactions:${nextInteractionSchedulerScope++}`
   private interactionExecutionCount = 0
@@ -507,8 +508,10 @@ export class AircraftRuntime {
       const hadPreviousValue = this.animationValues.has(binding.target)
       const previousValue = this.animationValues.get(binding.target) ?? 0
       const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
+      const bypassInteractionLag = this.interactionLagBypassBindings.size > 0 &&
+        [...this.interactionLagBypassBindings].some(interaction => interaction.metadata.dragAnimationName === binding.target)
       const value =
-        hadPreviousValue && binding.lagFramesPerSecond > 0
+        hadPreviousValue && binding.lagFramesPerSecond > 0 && !bypassInteractionLag
           ? moveTowards(previousValue, rawValue, binding.lagFramesPerSecond * dtSeconds)
           : rawValue
       if (hadPreviousValue && Math.abs(value - previousValue) <= 1e-6) {
@@ -932,12 +935,14 @@ export class AircraftRuntime {
       return false
     }
 
+    this.interactionLagBypassBindings.delete(binding)
     this.releaseInteractionFeedback(binding)
     return true
   }
 
   stopInteractionBinding(binding: CompiledInteractionBinding): boolean {
     if (!this.compiled.interactionBindings.includes(binding)) return false
+    this.interactionLagBypassBindings.delete(binding)
     const delayedRelease = this.delayedInteractionReleases.get(binding)
     if (delayedRelease != null) this.interactionScheduler.cancel(delayedRelease)
     this.delayedInteractionReleases.delete(binding)
@@ -1053,6 +1058,14 @@ export class AircraftRuntime {
   ): void {
     const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
     const isReleaseEvent = isRuntimeInteractionReleaseMouseEvent(mouseEvent)
+    if (
+      /DRAG$/iu.test(mouseEvent) &&
+      binding.metadata.dragAnimationName != null &&
+      !binding.metadata.dragUseAnimLag
+    ) {
+      this.interactionLagBypassBindings.add(binding)
+    }
+    if (isReleaseEvent) this.interactionLagBypassBindings.delete(binding)
     if (!isReleaseEvent) {
       this.triggerInteractionFeedback(binding, options.holdFeedback === true ? 'hold' : 'pulse')
       this.invokeInteractionSoundEvents(binding, 'press')
