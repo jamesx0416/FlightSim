@@ -18,6 +18,7 @@ const gpuGlobals = globalThis as typeof globalThis & {
 gpuGlobals.GPUShaderStage ??= { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
 const { MeshStandardNodeMaterial } = await import('three/webgpu')
 const {
+  createMsfsDeferredLightingMaterial,
   getMsfsBlendFactors,
   getMsfsGBufferWriter,
   normalizeMsfsMaterials
@@ -530,6 +531,18 @@ test('builds G-buffer writers only for node-compatible materials', async () => {
     vertexAlpha: 0.5,
   })).toBe(0.125)
   expect(receiverWriter.fragmentNode).toBe(receiverWriter.mrtNode)
+  for (const outputName of ['aircraftG0', 'aircraftG1', 'aircraftG2', 'aircraftG3']) {
+    const output = unwrapNode((receiverWriter as any).mrtNode.outputNodes[outputName])
+    expect(unwrapNode(output.nodes.at(-1)).value).toBe(0)
+  }
+  const lighting = createMsfsDeferredLightingMaterial(decal.material, {
+    g0: new Texture(),
+    g1: new Texture(),
+    g2: new Texture(),
+    g3: new Texture(),
+  }) as Material & { maskNode?: unknown }
+  expect(lighting.maskNode == null).toBe(false)
+  lighting.dispose()
   expect(decalWriter.fragmentNode).toBe(decalWriter.mrtNode)
   expect(decalWriter.maskNode == null).toBe(false)
   expect(nodeGraphHasConstructor(decalWriter.maskNode, 'TextureNode')).toBe(true)
