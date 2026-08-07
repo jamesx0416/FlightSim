@@ -65,6 +65,24 @@ describe('CockpitInteractionDispatcher', () => {
     expect(dispatcher.pointerUp(1, 5)).toBe(true)
   })
 
+  test('arbitrates authored compound groups without changing target IDs', () => {
+    const first: CockpitInteractionTarget = {
+      id: 'first', arbitrationId: 'group:compound', lockable: false, operations: ['hold', 'release']
+    }
+    const second: CockpitInteractionTarget = {
+      id: 'second', arbitrationId: 'group:compound', lockable: false, operations: ['hold', 'release']
+    }
+    const dispatcher = new CockpitInteractionDispatcher('legacy', () => true)
+
+    expect(dispatcher.claim(first, 'hold')).toBe(true)
+    expect(dispatcher.snapshot.busy).toEqual(['first'])
+    expect(dispatcher.pointerDown(second, 1, 'primary', 1)).toBe(true)
+    expect(dispatcher.snapshot.captured).toBe(null)
+    dispatcher.finish(first.id)
+    expect(dispatcher.pointerDown(second, 1, 'primary', 2)).toBe(true)
+    expect(dispatcher.snapshot.captured).toBe('second')
+  })
+
   test('keeps cumulative miss counts and the latest structured detail', () => {
     const target: CockpitInteractionTarget = { id: 'control', lockable: false, operations: ['press'] }
     const dispatcher = new CockpitInteractionDispatcher('legacy', () => false)

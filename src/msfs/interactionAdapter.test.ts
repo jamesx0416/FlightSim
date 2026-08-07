@@ -62,6 +62,39 @@ test('groups sibling bindings by authoritative interaction identity', () => {
   expect(isSameMsfsInteractionTarget(click, otherQualifiedId)).toBe(false)
 })
 
+test('groups distinct authored targets only when GroupID matches', () => {
+  const leftBase = interactionBinding({}, [
+    { channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [] }
+  ])
+  const rightBase = interactionBinding({}, [
+    { channel: null, phase: null, operation: 'increase', msfsEvent: 'WheelUp', axis: null, inputTypes: [] }
+  ])
+  const left = {
+    ...leftBase,
+    target: 'LEFT_NODE',
+    metadata: { ...leftBase.metadata, qualifiedId: 'LEFT_NODE@1', authoredId: 'LEFT', groupId: 'DUAL_KNOB' }
+  }
+  const right = {
+    ...rightBase,
+    target: 'RIGHT_NODE',
+    metadata: { ...rightBase.metadata, qualifiedId: 'RIGHT_NODE@1', authoredId: 'RIGHT', groupId: 'DUAL_KNOB' }
+  }
+  const unrelated = {
+    ...right,
+    metadata: { ...right.metadata, qualifiedId: 'RIGHT_NODE@2', groupId: 'OTHER' }
+  }
+  const runtime = { getInteractionBindings: () => [left, right, unrelated] } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+  const target = adapter.fromBinding(left)
+
+  expect(isSameMsfsInteractionTarget(left, right)).toBe(true)
+  expect(isSameMsfsInteractionTarget(left, unrelated)).toBe(false)
+  expect(target.id).toBe('LEFT_NODE@1')
+  expect(target.arbitrationId).toBe('group:DUAL_KNOB')
+  expect(target.bindings).toEqual([left, right])
+  expect(target.operations).toEqual(['press', 'increase'])
+})
+
 test('projects pointer movement onto the authored drag trajectory', () => {
   const trajectory = [
     { relativeX: 0.2, relativeY: 0.8, dragPercent: 0 },

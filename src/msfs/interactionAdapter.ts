@@ -92,6 +92,9 @@ export function isSameMsfsInteractionTarget(
   left: CompiledInteractionBinding,
   right: CompiledInteractionBinding
 ): boolean {
+  const leftGroup = left.metadata.groupId?.trim()
+  const rightGroup = right.metadata.groupId?.trim()
+  if (leftGroup && rightGroup && leftGroup === rightGroup) return true
   return left.target === right.target &&
     left.metadata.qualifiedId === right.metadata.qualifiedId
 }
@@ -169,6 +172,7 @@ export class MsfsInteractionAdapter {
   ) {}
 
   private get runtime(): AircraftRuntime { return typeof this.runtimeSource === 'function' ? this.runtimeSource() : this.runtimeSource }
+  private arbitrationKey(target: MsfsInteractionTarget): string { return target.arbitrationId ?? target.id }
 
   setMode(mode: CockpitInteractionMode): void { this.mode = mode }
 
@@ -354,8 +358,8 @@ export class MsfsInteractionAdapter {
     desired: boolean,
     channel?: CanonicalCockpitAction['channel']
   ): Promise<ExactInteractionResult> {
-    if (this.busy.has(target.id)) return exactResult('TARGET_BUSY', null, this.authoritativeValue(target), Number(desired), target, null, 0)
-    this.busy.add(target.id)
+    if (this.busy.has(this.arbitrationKey(target))) return exactResult('TARGET_BUSY', null, this.authoritativeValue(target), Number(desired), target, null, 0)
+    this.busy.add(this.arbitrationKey(target))
     try {
     const valueBinding = this.valueBinding(target)
     const previous = this.authoritativeValue(target)
@@ -391,7 +395,7 @@ export class MsfsInteractionAdapter {
         : 'VALUE_NOT_REACHABLE'
     return exactResult(code, previous, actual, requested, target, 'direct-set', 1)
     } finally {
-      this.busy.delete(target.id)
+      this.busy.delete(this.arbitrationKey(target))
     }
   }
 
@@ -402,8 +406,8 @@ export class MsfsInteractionAdapter {
     channel?: CanonicalCockpitAction['channel'],
     knownPrevious?: number
   ): Promise<ExactInteractionResult> {
-    if (this.busy.has(target.id)) return exactResult('TARGET_BUSY', null, this.authoritativeValue(target), requested, target, null, 0)
-    this.busy.add(target.id)
+    if (this.busy.has(this.arbitrationKey(target))) return exactResult('TARGET_BUSY', null, this.authoritativeValue(target), requested, target, null, 0)
+    this.busy.add(this.arbitrationKey(target))
     try {
     const valueBinding = this.valueBinding(target)
     if (valueBinding == null) {
@@ -601,7 +605,7 @@ export class MsfsInteractionAdapter {
     }
     return exactResult(Object.is(actual, requested) ? 'OK' : 'VALUE_NOT_REACHABLE', previous, actual, requested, target, routeOperation, plan.steps)
     } finally {
-      this.busy.delete(target.id)
+      this.busy.delete(this.arbitrationKey(target))
     }
   }
 
@@ -704,6 +708,9 @@ export class MsfsInteractionAdapter {
     )]
     return {
       id: binding.metadata.qualifiedId,
+      arbitrationId: binding.metadata.groupId?.trim()
+        ? `group:${binding.metadata.groupId.trim()}`
+        : binding.metadata.qualifiedId,
       lockable: bindings.some(candidate => candidate.metadata.lockable),
       temporaryLockChannels: [...new Set(bindings.flatMap(candidate =>
         interactionChannelsForMouseFlags(candidate.metadata.lockFlagsTemporary, 'Single')
