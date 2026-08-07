@@ -85,6 +85,7 @@ export function resolveMsfsInteractionPresentation(
   localization: MsfsLocalization,
   options: {
     readonly value?: number | null
+    readonly authoredValue?: string | null
     readonly locale?: string
   } = {}
 ): MsfsInteractionPresentation {
@@ -99,7 +100,8 @@ export function resolveMsfsInteractionPresentation(
     stateLabel ?? metadata.tooltipValueLabel,
     localization
   )
-  const value = localizedStateLabel ?? formatInteractionNumber(options.value, metadata.value.unit, options.locale)
+  const authoredValue = resolveMsfsLocalizedString(options.authoredValue ?? null, localization)
+  const value = authoredValue ?? localizedStateLabel ?? formatInteractionNumber(options.value, metadata.value.unit, options.locale)
   const operations = [...new Set(metadata.routes.map(route => route.operation))]
   const unavailable = resolveMsfsLocalizedString(metadata.tooltipUnavailable, localization)
   return {

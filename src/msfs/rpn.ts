@@ -329,6 +329,11 @@ function compileInstructionBlock(
       continue
     }
 
+    if (normalized === '@sprintf' || normalized === '(F:Format)') {
+      instructions.push({ op: 'formatString' })
+      continue
+    }
+
     options.diagnostics.push({
       code: 'rpn_token_unsupported',
       message: `Unsupported RPN token "${normalized}" prevented compilation.`,
@@ -345,20 +350,29 @@ function compileInstructionBlock(
   }
 }
 
-export function evaluateCompiledExpression(
+type EvaluationServices = {
+  readVariable: (key: string, unit?: string | null) => number
+  readStringVariable?: (key: string, unit?: string | null) => string
+  writeVariable?: (key: string, value: number, unit?: string | null) => void
+  invokeKeyEvent?: (name: string, args: readonly number[]) => void
+  invokeHtmlEvent?: (name: string, args: readonly (number | string)[]) => void
+  parameterValues?: readonly number[]
+}
+
+export function evaluateCompiledExpressionValue(
   expression: CompiledExpression,
-  services: {
-    readVariable: (key: string, unit?: string | null) => number
-    readStringVariable?: (key: string, unit?: string | null) => string
-    writeVariable?: (key: string, value: number, unit?: string | null) => void
-    invokeKeyEvent?: (name: string, args: readonly number[]) => void
-    invokeHtmlEvent?: (name: string, args: readonly (number | string)[]) => void
-    parameterValues?: readonly number[]
-  }
-): number {
+  services: EvaluationServices
+): number | string {
   const stack: StackValue[] = []
   executeInstructions(expression.instructions, stack, services, createEvaluationContext())
-  return toNumber(stack.at(-1) ?? 0)
+  return stack.at(-1) ?? 0
+}
+
+export function evaluateCompiledExpression(
+  expression: CompiledExpression,
+  services: EvaluationServices
+): number {
+  return toNumber(evaluateCompiledExpressionValue(expression, services))
 }
 
 function executeInstructions(
@@ -649,6 +663,11 @@ function executeInstructions(
         stack.push(compareStrings(left, right, true))
         break
       }
+      case 'formatString': {
+        const format = toStringValue(stack.pop() ?? '')
+        stack.push(formatMsfsString(format, stack))
+        break
+      }
     }
   }
 
@@ -889,6 +908,32 @@ function normalizeAngleRadians(value: number): number {
   const turn = Math.PI * 2
   const normalized = value % turn
   return normalized < 0 ? normalized + turn : normalized
+}
+
+function formatMsfsString(format: string, stack: StackValue[]): string {
+  const placeholders = [...format.matchAll(/%(?!%)([-+0 #]*)(\d+)?(?:\.(\d+))?([dfsxX])/gu)]
+  const values = new Array<StackValue>(placeholders.length)
+  for (let index = placeholders.length - 1; index >= 0; index -= 1) {
+    values[index] = stack.pop() ?? 0
+  }
+  let valueIndex = 0
+  return format.replace(/%%|%(?!%)([-+0 #]*)(\d+)?(?:\.(\d+))?([dfsxX])/gu, (token, flags = '', widthText = '', precisionText = '', type = '') => {
+    if (token === '%%') return '%'
+    const value = values[valueIndex++] ?? 0
+    const width = widthText ? Number(widthText) : 0
+    const precision = precisionText ? Number(precisionText) : null
+    let rendered: string
+    switch (type) {
+      case 'd': rendered = String(Math.trunc(toNumber(value))); break
+      case 'f': rendered = precision == null ? String(toNumber(value)) : toNumber(value).toFixed(precision); break
+      case 'x': rendered = Math.trunc(toNumber(value)).toString(16); break
+      case 'X': rendered = Math.trunc(toNumber(value)).toString(16).toUpperCase(); break
+      default: rendered = toStringValue(value); break
+    }
+    if (width <= rendered.length) return rendered
+    const padding = (flags.includes('0') ? '0' : ' ').repeat(width - rendered.length)
+    return flags.includes('-') ? rendered + padding : padding + rendered
+  })
 }
 
 function toNumber(value: StackValue): number {

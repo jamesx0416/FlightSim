@@ -2014,6 +2014,13 @@ function buildCompiledInteractionMetadata(
         diagnostics,
         localVariableScope: resolveLocalVariableScope(params, currentNode, target)
       })
+  const tooltipFormattedValueExpression = compileInteractionFormattedTooltipValue(
+    params,
+    resolveLocalVariableScope(params, currentNode, target),
+    sourcePath,
+    authoredId ?? target,
+    diagnostics
+  )
   const inputEventIds = [...new Set(
     [...params]
       .filter(([key, value]) =>
@@ -2113,6 +2120,9 @@ function buildCompiledInteractionMetadata(
     tooltipActionHints: tooltip.actionHints,
     tooltipUnavailable: tooltip.unavailable,
     tooltipValueExpression,
+    tooltipFormattedValueExpression,
+    tooltipEntries: tooltip.entries,
+    tooltipAnimated: tooltip.animated,
     value
   }
 }
@@ -2129,6 +2139,8 @@ function compileInteractionTooltipMetadata(
   readonly valueLabel: string | null
   readonly actionHints: readonly { readonly label: string; readonly cursor: string | null }[]
   readonly unavailable: string | null
+  readonly entries: readonly { readonly id: string }[]
+  readonly animated: CompiledInteractionMetadata['tooltipAnimated']
 } {
   const rawTitle = params.get('TOOLTIP_TITLE')?.trim() || params.get('TOOLTIPID')?.trim() || null
   const dynamicTitle = rawTitle?.includes('%((') === true
@@ -2169,7 +2181,10 @@ function compileInteractionTooltipMetadata(
   const valueLabel = rawValue == null
     ? null
     : parseStaticTooltipValue(rawValue, parseBoolean(params.get('TT_VALUE_IS_DYNAMIC') ?? 'False'))
-  if (rawValue != null && valueLabel == null) hasUnsupportedValue = true
+  if (rawValue != null && valueLabel == null &&
+      !parseBoolean(params.get('TT_VALUE_IS_DYNAMIC') ?? params.get('TOOLTIP_VALUE_IS_DYNAMIC') ?? 'False')) {
+    hasUnsupportedValue = true
+  }
   if (hasUnsupportedValue) pushUnsupportedTooltipDiagnostic(
     diagnostics,
     'interaction_tooltip_value_ir_unsupported',
@@ -2201,15 +2216,45 @@ function compileInteractionTooltipMetadata(
     'dynamic action hint'
   )
 
-  if ([...params].some(([key, value]) => /^TOOLTIP_ENTRY_\d+$/u.test(key) && value.trim())) {
-    pushUnsupportedTooltipDiagnostic(
-      diagnostics,
-      'interaction_tooltip_rich_entry_ir_unsupported',
-      sourcePath,
-      target,
-      'rich tooltip entries'
-    )
-  }
+  const entries = [...params]
+    .flatMap(([key, value]) => {
+      const match = /^TOOLTIP_ENTRY_(\d+)$/u.exec(key)
+      return match != null && value.trim()
+        ? [{ index: Number(match[1]), id: value.trim() }]
+        : []
+    })
+    .sort((left, right) => left.index - right.index)
+    .map(({ id }) => ({ id }))
+  const animatedEntries = [...params]
+    .flatMap(([key, value]) => {
+      const match = /^ANIMTIP_(\d+)$/u.exec(key)
+      if (match == null || !value.trim()) return []
+      const index = Number(match[1])
+      return [{
+        index,
+        label: value.trim(),
+        percent: parseOptionalFiniteNumber(params.get(`ANIMTIP_${index}_ON_PERCENT`)),
+        cursor: params.get(`ANIMTIP_${index}_ON_CURSOR`)?.trim() || null,
+        hitbox: params.get(`ANIMTIP_${index}_ON_HITBOX`)?.trim() || null
+      }]
+    })
+    .sort((left, right) => left.index - right.index)
+    .map(({ index: _index, ...entry }) => entry)
+  const hasAnimatedMetadata = animatedEntries.length > 0 || Boolean(
+    params.get('ANIMREF_ID')?.trim() || params.get('ANIMCURSOR_MIN')?.trim() || params.get('ANIMCURSOR_MAX')?.trim()
+  )
+  const animated = hasAnimatedMetadata
+    ? {
+        animRefId: params.get('ANIMREF_ID')?.trim() || null,
+        cursor: {
+          minimum: parseOptionalFiniteNumber(params.get('ANIMCURSOR_MIN')),
+          maximum: parseOptionalFiniteNumber(params.get('ANIMCURSOR_MAX')),
+          direction: parseOptionalFiniteNumber(params.get('ANIMCURSOR_DIR'))
+        },
+        loop: parseBoolean(params.get('ANIMTIP_LOOP') ?? 'False'),
+        entries: animatedEntries
+      }
+    : null
 
   const unavailable = params.get('TOOLTIP_UNAVAILABLE')?.trim() || params.get('TT_UNAVAILABLE')?.trim() || null
   const dynamicUnavailable = unavailable?.includes('%((') === true
@@ -2227,8 +2272,40 @@ function compileInteractionTooltipMetadata(
     stateLabels: [...labels].map(([value, label]) => ({ value, label })),
     valueLabel,
     actionHints,
-    unavailable: dynamicUnavailable ? null : unavailable
+    unavailable: dynamicUnavailable ? null : unavailable,
+    entries,
+    animated
   }
+}
+
+function compileInteractionFormattedTooltipValue(
+  params: ReadonlyMap<string, string>,
+  localVariableScope: string | null,
+  sourcePath: string,
+  target: string,
+  diagnostics: ImportDiagnostic[]
+): CompiledExpression | null {
+  const source = params.get('TT_VALUE')?.trim() || params.get('TOOLTIP_VALUE')?.trim() || ''
+  if (!source || !parseBoolean(params.get('TT_VALUE_IS_DYNAMIC') ?? params.get('TOOLTIP_VALUE_IS_DYNAMIC') ?? 'False')) {
+    return null
+  }
+  const expression = compileRpnExpression(source, {
+    sourcePath,
+    sourceExpression: source,
+    diagnostics,
+    localVariableScope
+  })
+  if (expression == null || compiledExpressionHasSideEffects(expression)) {
+    pushUnsupportedTooltipDiagnostic(
+      diagnostics,
+      'interaction_tooltip_value_ir_unsupported',
+      sourcePath,
+      target,
+      'dynamic value formatting'
+    )
+    return null
+  }
+  return expression
 }
 
 function parseStaticTooltipValue(value: string, dynamic: boolean): string | null {
@@ -3702,6 +3779,9 @@ function pushUniqueInteractionBinding(
       tooltipTitle: binding.metadata.tooltipTitle ?? previous.metadata.tooltipTitle,
       tooltipDescription: binding.metadata.tooltipDescription ?? previous.metadata.tooltipDescription,
       tooltipValueExpression: binding.metadata.tooltipValueExpression ?? previous.metadata.tooltipValueExpression,
+      tooltipFormattedValueExpression: binding.metadata.tooltipFormattedValueExpression ?? previous.metadata.tooltipFormattedValueExpression,
+      tooltipEntries: [...new Map([...previous.metadata.tooltipEntries, ...binding.metadata.tooltipEntries].map(entry => [entry.id, entry])).values()],
+      tooltipAnimated: binding.metadata.tooltipAnimated ?? previous.metadata.tooltipAnimated,
       value: nextValueScore > previousValueScore ? binding.metadata.value : previous.metadata.value
     }
   }

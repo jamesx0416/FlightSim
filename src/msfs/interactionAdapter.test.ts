@@ -986,6 +986,9 @@ function interactionBinding(
       tooltipDescription: null, tooltipStateLabels: [], tooltipUnavailable: null,
       tooltipValueLabel: null, tooltipActionHints: [],
       tooltipValueExpression: valueExpression,
+      tooltipFormattedValueExpression: null,
+      tooltipEntries: [],
+      tooltipAnimated: null,
       value: {
         variableKey: 'L:TEST', unit: 'number', minimum: 0, maximum: 4, step: 1,
         cyclic, cyclicUpperInclusive: cyclic ? true : null, settleTimeSeconds: 0,

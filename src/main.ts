@@ -2227,10 +2227,13 @@ async function init(): Promise<void> {
     cockpitInteractionDispatcher.hover(target, event.timeStamp)
     const settings = getCockpitInputProfile()
     const value = cockpitInteractionAdapter.currentValue(target)
+    const formattedValue = target.bindings
+      .map(binding => runtime.evaluateInteractionFormattedValue(binding))
+      .find(candidate => candidate != null) ?? null
     const presentation = resolveMsfsInteractionPresentation({
       ...hit.binding.metadata,
       routes: target.bindings.flatMap(binding => binding.metadata.routes)
-    }, cockpitLocalization, { value, locale: navigator.language })
+    }, cockpitLocalization, { value, authoredValue: formattedValue, locale: navigator.language })
     const actionText = hit.binding.metadata.disabled
       ? presentation.unavailableMessage
       : [...new Set([
@@ -2248,7 +2251,10 @@ async function init(): Promise<void> {
     cockpitTooltip.style.left = `${Math.min(event.clientX + 14, window.innerWidth - 330)}px`
     cockpitTooltip.style.top = `${Math.min(event.clientY + 16, window.innerHeight - 100)}px`
     cockpitTooltip.hidden = !settings.showTooltips
-    renderer.domElement.style.cursor = toCssCockpitCursor(hit.binding.metadata.cursor)
+    const cursorModel = settings.interactionMode === 'lock'
+      ? hit.binding.metadata.cursors.drag
+      : hit.binding.metadata.cursors.default
+    renderer.domElement.style.cursor = toCssCockpitCursor(cursorModel.cursor ?? hit.binding.metadata.cursor)
 
     const highlightId = hit.binding.metadata.highlightNodeId
     if (cockpitHighlightTarget !== target.id) clearCockpitHighlight()

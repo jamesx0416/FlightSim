@@ -216,7 +216,7 @@ test('interaction summaries expose stable unknown metadata and proven presentati
     ['CONTROL_TITLE', 'Localized control'],
     ['STATE_ON', 'On']
   ])
-  const summary = __devApiInteractionTestHooks.summarizeInteractionTarget(target, 2, 1, localization)
+  const summary = __devApiInteractionTestHooks.summarizeInteractionTarget(target, 2, 1, null, localization)
   expect({
     controlKind: summary.controlKind,
     title: summary.title,
@@ -239,6 +239,7 @@ test('interaction summaries expose stable unknown metadata and proven presentati
     packageId: 'package',
     packageVersion: '1.0',
     currentValue: 1,
+    formattedValue: null,
     localization,
     localizationAvailable: true,
     blockers,

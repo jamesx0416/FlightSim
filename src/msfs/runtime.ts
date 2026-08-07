@@ -32,7 +32,7 @@ import {
   type SimScheduledTaskId,
   type SimulatorEngine,
 } from '../sim/engine'
-import { evaluateCompiledExpression } from './rpn'
+import { evaluateCompiledExpression, evaluateCompiledExpressionValue } from './rpn'
 import { MsfsCompatibilityBridge } from './compatibilityBridge'
 import type {
   CompiledAnimationBinding,
@@ -699,6 +699,13 @@ export class AircraftRuntime {
       ...this.readOnlyExpressionServices,
       parameterValues
     })
+  }
+
+  evaluateInteractionFormattedValue(binding: CompiledInteractionBinding): string | null {
+    const expression = binding.metadata.tooltipFormattedValueExpression
+    if (expression == null) return null
+    const value = evaluateCompiledExpressionValue(expression, this.readOnlyExpressionServices)
+    return typeof value === 'string' ? value : Number.isFinite(value) ? String(value) : null
   }
 
   getAnimationNormalizedValue(target: string): number | null {
