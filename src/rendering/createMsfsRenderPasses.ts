@@ -122,6 +122,8 @@ type DeferredMesh = Mesh & {
     readonly msfsBlendGBufferReceiver?: DeferredMesh
     readonly msfsBlendGBufferReceivers?: readonly DeferredMesh[]
     readonly msfsBlendGBufferUsedReceivers?: readonly DeferredMesh[]
+    readonly msfsBlendGBufferReceiverGroups?: readonly (DeferredMesh | null)[]
+    readonly msfsBlendGBufferFootprintReceivers?: readonly DeferredMesh[]
   }
 }
 
@@ -142,7 +144,9 @@ function createDeferredMsfsRenderPasses(
   const decals: DeferredMesh[] = []
   const forwardDecals: DeferredMesh[] = []
   const receivers = new Set<DeferredMesh>()
+  const footprintReceivers = new Set<DeferredMesh>()
   const decalReceivers = new Map<DeferredMesh, readonly DeferredMesh[]>()
+  const receiverFootprintMaterials = new Map<DeferredMesh, MeshMaterial>()
   const writerMaterials = new Map<DeferredMesh, MeshMaterial>()
   const resolveMaterials = new Map<DeferredMesh, MeshMaterial>()
   const sourceMaterials = new Map<DeferredMesh, MeshMaterial>()
@@ -169,7 +173,9 @@ function createDeferredMsfsRenderPasses(
     decals.length = 0
     forwardDecals.length = 0
     receivers.clear()
+    footprintReceivers.clear()
     decalReceivers.clear()
+    receiverFootprintMaterials.clear()
     writerMaterials.clear()
     resolveMaterials.clear()
     sourceMaterials.clear()
@@ -290,7 +296,9 @@ function createDeferredMsfsRenderPasses(
       }
       decals.length = 0
       receivers.clear()
+      footprintReceivers.clear()
       decalReceivers.clear()
+      receiverFootprintMaterials.clear()
       writerMaterials.clear()
       resolveMaterials.clear()
       sourceMaterials.clear()
@@ -299,6 +307,44 @@ function createDeferredMsfsRenderPasses(
       forwardColorMaterials.clear()
       disposableLightingMaterials.clear()
       return
+    }
+
+    for (const receiver of receivers) {
+      const sourceMaterial = sourceMaterials.get(receiver)
+      const writer = writerMaterials.get(receiver)
+      if (
+        sourceMaterial == null ||
+        writer == null ||
+        Array.isArray(sourceMaterial) ||
+        Array.isArray(writer) ||
+        !canWriteReceiverGBufferFromProjectedGeometry(sourceMaterial)
+      ) {
+        continue
+      }
+      const relatedDecals = decals.filter(decal =>
+        decalReceivers.get(decal)?.includes(receiver)
+      )
+      if (
+        relatedDecals.length > 0 &&
+        relatedDecals.every(decal =>
+          decal.userData.msfsBlendGBufferFootprintReceivers?.includes(receiver) === true
+        )
+      ) {
+        footprintReceivers.add(receiver)
+      }
+    }
+
+    for (const decal of decals) {
+      const groupReceivers = decal.userData.msfsBlendGBufferReceiverGroups
+      if (groupReceivers == null || groupReceivers.length === 0) continue
+      const materials = groupReceivers.map(receiver => {
+        if (receiver == null || !footprintReceivers.has(receiver)) return hiddenMaterial
+        const writer = writerMaterials.get(receiver)
+        return Array.isArray(writer) || writer == null ? hiddenMaterial : writer
+      })
+      if (materials.some(material => material !== hiddenMaterial)) {
+        receiverFootprintMaterials.set(decal, materials)
+      }
     }
 
     decals.sort((left, right) => left.renderOrder - right.renderOrder)
@@ -376,7 +422,11 @@ function createDeferredMsfsRenderPasses(
         renderer.setRenderTarget(gBuffer.renderTarget)
         renderer.autoClear = true
         setMeshMaterials(sourceMaterials, hiddenMaterial)
-        setMeshMaterialsFor(active.receivers, writerMaterials)
+        setMeshMaterialsFor(
+          [...active.receivers].filter(receiver => !footprintReceivers.has(receiver)),
+          writerMaterials
+        )
+        setMeshMaterialsFor(active.decals, receiverFootprintMaterials)
         renderer.render(scene, camera)
 
         configureDeferredDecalWriterDepthTest(active.decals, writerMaterials)
@@ -421,6 +471,49 @@ function createDeferredMsfsRenderPasses(
       }
     },
   }
+}
+
+export function canWriteReceiverGBufferFromProjectedGeometry(material: Material): boolean {
+  const source = material as Material & {
+    alphaHash?: boolean
+    alphaMap?: unknown
+    aoMap?: unknown
+    bumpMap?: unknown
+    colorNode?: unknown
+    displacementMap?: unknown
+    emissiveMap?: unknown
+    emissiveNode?: unknown
+    map?: unknown
+    metalnessMap?: unknown
+    metalnessNode?: unknown
+    normalMap?: unknown
+    normalNode?: unknown
+    opacityNode?: unknown
+    roughnessMap?: unknown
+    roughnessNode?: unknown
+    aoNode?: unknown
+    vertexColors?: boolean
+  }
+  return source.transparent !== true &&
+    source.alphaHash !== true &&
+    (source.alphaTest ?? 0) === 0 &&
+    source.vertexColors !== true &&
+    source.alphaMap == null &&
+    source.aoMap == null &&
+    source.bumpMap == null &&
+    source.displacementMap == null &&
+    source.emissiveMap == null &&
+    source.map == null &&
+    source.metalnessMap == null &&
+    source.normalMap == null &&
+    source.roughnessMap == null &&
+    source.colorNode == null &&
+    source.opacityNode == null &&
+    source.emissiveNode == null &&
+    source.roughnessNode == null &&
+    source.metalnessNode == null &&
+    source.aoNode == null &&
+    source.normalNode == null
 }
 
 export function collectVisibleDeferredRelationships<T>(

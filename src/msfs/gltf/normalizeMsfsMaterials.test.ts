@@ -192,6 +192,9 @@ test('clips blend-gbuffer decals to receiver topology before projection fallback
   )) < 1e-6).toBe(true)
   expect(decal.userData.msfsBlendGBufferProjectedToReceiver).toBe(true)
   expect(decal.userData.msfsBlendGBufferReceivers).toEqual([receiver])
+  expect(decal.userData.msfsBlendGBufferReceiverGroups).toEqual([receiver])
+  expect(decal.userData.msfsBlendGBufferFootprintReceivers).toEqual([receiver])
+  expect(decal.geometry.groups).toEqual([{ start: 0, count: 3, materialIndex: 0 }])
 })
 
 test('records only receivers touched by finalized projected geometry', async () => {
