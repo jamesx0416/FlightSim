@@ -24,6 +24,32 @@ describe('CockpitInteractionDispatcher', () => {
     expect(dispatcher.snapshot.state).toBe('stopped')
   })
 
+  test('locks only channels authored by temporary lock flags', () => {
+    const target: CockpitInteractionTarget = {
+      id: 'knob',
+      lockable: true,
+      temporaryLockChannels: ['secondary'],
+      operations: ['lock', 'hold', 'release', 'unlock']
+    }
+    const primaryActions: string[] = []
+    const primary = new CockpitInteractionDispatcher('lock', (_target, action) => {
+      primaryActions.push(action.operation)
+      return true
+    })
+    primary.pointerDown(target, 1, 'primary', 1)
+    primary.pointerUp(1, 2)
+    expect(primaryActions).toEqual(['hold', 'release'])
+
+    const secondaryActions: string[] = []
+    const secondary = new CockpitInteractionDispatcher('lock', (_target, action) => {
+      secondaryActions.push(action.operation)
+      return true
+    })
+    secondary.pointerDown(target, 2, 'secondary', 1)
+    secondary.pointerUp(2, 2)
+    expect(secondaryActions).toEqual(['lock', 'hold', 'release', 'unlock'])
+  })
+
   test('consumes busy targets and keeps capture on the initiating pointer', () => {
     const target: CockpitInteractionTarget = { id: 'control', lockable: false, operations: ['hold', 'turn', 'release'] }
     const dispatcher = new CockpitInteractionDispatcher('legacy', () => true)

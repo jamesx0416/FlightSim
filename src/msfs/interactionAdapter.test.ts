@@ -642,6 +642,33 @@ test('uses Primary as a directional wheel fallback only for compiled two-state s
   expect(events).toEqual(['LeftSingle', 'LeftSingle'])
 })
 
+test('emits lock-model drag routes only for authored lockable drag flags', () => {
+  const base = interactionBinding({}, [
+    { interactionModel: 'drag', channel: 'primary', phase: 'drag', operation: 'turn', msfsEvent: 'LeftDrag', axis: 'y', inputTypes: [1] },
+    { interactionModel: 'drag', channel: 'secondary', phase: 'drag', operation: 'turn', msfsEvent: 'RightDrag', axis: 'y', inputTypes: [1] }
+  ])
+  const binding = {
+    ...base,
+    metadata: {
+      ...base.metadata,
+      lockable: true,
+      dragFlagsLockable: ['RightDrag'],
+      lockFlagsTemporary: ['RightSingle']
+    }
+  }
+  const adapter = new MsfsInteractionAdapter({ getInteractionBindings: () => [binding] } as unknown as AircraftRuntime)
+  adapter.setMode('lock')
+  const target = adapter.fromBinding(binding)
+
+  expect(target.temporaryLockChannels).toEqual(['secondary'])
+  expect(adapter.route(target, {
+    source: 'mouse', operation: 'turn', phase: 'drag', channel: 'primary', axis: 'y', axisValue: 0.5, timestampMs: 0
+  })).toBe(null)
+  expect(adapter.route(target, {
+    source: 'mouse', operation: 'turn', phase: 'drag', channel: 'secondary', axis: 'y', axisValue: 0.5, timestampMs: 0
+  })?.msfsEvent).toBe('RightDrag')
+})
+
 test('selects release callbacks from the active authored interaction model', () => {
   const routes: CompiledInteractionRoute[] = [
     { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] },
@@ -998,7 +1025,7 @@ function interactionBinding(
       prioritizeVCockpits: false, ignoreZTest: false, highlightNodeId: 'TEST', axis: null,
       inverted: false, dragNodeId: null, dragAnimationName: null, dragMode: 'default', dragAnimationSynced: true,
       dragUseAnimLag: false, dragScalar: 0.025, dragScales: { x: 0, y: 0, z: 0 },
-      dragFlagsLockable: [], lockFlagsTemporary: [], groupId: null,
+      dragFlagsLockable: ['LeftDrag', 'RightDrag', 'MiddleDrag'], lockFlagsTemporary: ['LeftSingle'], groupId: null,
       discreteGate: null, wheelPrimaryToggle: false, cursor: null,
       cursors: {
         default: { cursor: null, left: null, right: null, up: null, down: null, center: null, centerRadius: null },
