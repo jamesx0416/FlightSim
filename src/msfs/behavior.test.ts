@@ -454,6 +454,27 @@ test('compiles mutable runtime variables as exact step expressions', () => {
   expect(diagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_increment_unproven')).toBe(false)
 })
 
+test('compiles CallbackDragging axis scales from anchor-relative mouse movement', () => {
+  const callback = testElement('CallbackDragging', '', [
+    testElement('Variable', '#DRAG_SIMVAR#'),
+    testElement('Units', 'number'),
+    testElement('Scale', '10'),
+    testElement('XScale', '2'),
+    testElement('YScale', '-3'),
+    testElement('ZScale', '4'),
+    testElement('MinValue', '0'),
+    testElement('MaxValue', '100'),
+    testElement('IsRelative', 'True')
+  ])
+  const source = __behaviorTestHooks.buildCallbackDraggingSource(callback, new Map([
+    ['DRAG_SIMVAR', 'TEST_VALUE']
+  ]))
+
+  expect(source).toBe(
+    '(A:TEST_VALUE, number) (M:RelativeX) 2 * (M:RelativeY) -3 * + (M:RelativeZ) 4 * + 10 * + 100 min 0 max (>A:TEST_VALUE, number)'
+  )
+})
+
 test('compiles authored gated-drag metadata', () => {
   const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([

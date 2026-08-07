@@ -2009,6 +2009,9 @@ async function init(): Promise<void> {
       readonly dragPercent: number
       readonly deltaX: number
       readonly deltaY: number
+      readonly mouseRelativeX: number
+      readonly mouseRelativeY: number
+      readonly mouseRelativeZ: number
       readonly firstSample: boolean
     }
   ): boolean => {
@@ -2085,7 +2088,8 @@ async function init(): Promise<void> {
       axis,
       axisValue,
       dragPercent,
-      performance.now()
+      performance.now(),
+      { x: options.mouseRelativeX, y: options.mouseRelativeY, z: options.mouseRelativeZ }
     )
     if (dragged) {
       cockpitInteractionStats.executedCount += 1
@@ -11826,6 +11830,9 @@ function installCockpitCameraShortcut(
       readonly dragPercent: number
       readonly deltaX: number
       readonly deltaY: number
+      readonly mouseRelativeX: number
+      readonly mouseRelativeY: number
+      readonly mouseRelativeZ: number
       readonly firstSample: boolean
     }
   ) => boolean,
@@ -11948,6 +11955,9 @@ function installCockpitCameraShortcut(
     readonly relativeY: number
     readonly relativeZ: number
     readonly dragPercent: number
+    readonly mouseRelativeX: number
+    readonly mouseRelativeY: number
+    readonly mouseRelativeZ: number
   } => {
     const rect = domElement.getBoundingClientRect()
     const width = Math.max(rect.width, 1)
@@ -11968,7 +11978,10 @@ function installCockpitCameraShortcut(
       relativeX,
       relativeY,
       relativeZ: 0,
-      dragPercent
+      dragPercent,
+      mouseRelativeX: (event.clientX - startPointerX) / width,
+      mouseRelativeY: (event.clientY - startPointerY) / height,
+      mouseRelativeZ: 0
     }
   }
 

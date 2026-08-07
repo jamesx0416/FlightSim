@@ -385,6 +385,7 @@ export const __behaviorTestHooks = {
   loadBehaviorDocuments,
   buildInteractionCodeBinding,
   buildCompiledInteractionMetadata,
+  buildCallbackDraggingSource,
   collectMouseRectMetadata,
   interactionCompilerTotals,
   getInteractionFallbackCodeSource,
@@ -805,7 +806,7 @@ function traverseElement(
       getDirectChild(element, 'CallbackCode')
     const callbackSource =
       buildCallbackCodeSource(callbackNode) ??
-      buildCallbackDraggingSource(getDirectChild(element, 'CallbackDragging')) ??
+      buildCallbackDraggingSource(getDirectChild(element, 'CallbackDragging'), mouseRectParams) ??
       buildCallbackJumpDraggingSource(getDirectChild(element, 'CallbackJumpDragging')) ??
       ''
     if (callbackNode != null) {
@@ -1007,7 +1008,7 @@ function buildMouseRectPayloadInteractionBinding(
 
   if (elementTagName === 'CallbackDragging') {
     return buildInteractionCodeBinding(
-      buildCallbackDraggingSource(element) ?? '',
+      buildCallbackDraggingSource(element, payloadParams) ?? '',
       null,
       payloadParams,
       currentNode,
@@ -1483,24 +1484,32 @@ function buildCallbackCodeSource(node: Element | null): string | null {
   return dragSource || defaultSource || ''
 }
 
-function buildCallbackDraggingSource(node: Element | null): string | null {
-  if (node == null) {
-    return null
-  }
-  const variable = getDirectChildText(node, 'Variable')
-  if (!variable) {
-    return null
-  }
-  const units = getDirectChildText(node, 'Units') || 'Number'
-  const scale = getDirectChildText(node, 'Scale') || '1'
-  const minValue = getDirectChildText(node, 'MinValue') || '0'
-  const maxValue = getDirectChildText(node, 'MaxValue') || '16384'
-  const eventId = normalizeKeyEventId(getDirectChildText(node, 'EventID'))
-  const isRelative = parseBoolean(getDirectChildText(node, 'IsRelative') || 'False')
-  const dragValue = `(M:DragPercent) ${scale} * ${maxValue} min ${minValue} max`
+function buildCallbackDraggingSource(
+  node: Element | null,
+  params: ReadonlyMap<string, string> = new Map()
+): string | null {
+  if (node == null) return null
+  const read = (tag: string): string => substituteParameters(getDirectChildText(node, tag), params).trim()
+  const variable = read('Variable')
+  if (!variable) return null
+  const units = read('Units') || 'Number'
+  const scale = read('Scale') || '1'
+  const minValue = read('MinValue') || '0'
+  const maxValue = read('MaxValue') || '16384'
+  const eventId = normalizeKeyEventId(read('EventID'))
+  const isRelative = parseBoolean(read('IsRelative') || 'False')
+  const xScale = read('XScale') || '0'
+  const yScale = read('YScale') || '0'
+  const zScale = read('ZScale') || '0'
+  const axis = (read('DragAxis') || params.get('DRAG_AXIS') || 'Y').trim().toUpperCase()
+  const hasAxisScales = [xScale, yScale, zScale].some(value => parseNumber(value, 0) !== 0)
+  const dragDelta = hasAxisScales
+    ? `(M:RelativeX) ${xScale} * (M:RelativeY) ${yScale} * + (M:RelativeZ) ${zScale} * +`
+    : `(M:Relative${axis === 'X' || axis === 'Z' ? axis : 'Y'})`
+  const scaledDelta = `${dragDelta} ${scale} *`
   const nextValue = isRelative
-    ? `(A:${variable}, ${units}) ${dragValue} +`
-    : dragValue
+    ? `(A:${variable}, ${units}) ${scaledDelta} + ${maxValue} min ${minValue} max`
+    : `${scaledDelta} ${maxValue} min ${minValue} max`
   return eventId
     ? `${nextValue} (>K:${eventId})`
     : `${nextValue} (>A:${variable}, ${units})`

@@ -681,6 +681,28 @@ test('routes one captured target across its authored click and drag bindings', (
   expect(executed).toEqual([click, drag])
 })
 
+test('preserves all anchor-relative axes for CallbackDragging execution', () => {
+  const drag = interactionBinding({}, [
+    { channel: 'primary', phase: 'drag', operation: 'turn', msfsEvent: 'LeftDrag', axis: 'y', inputTypes: [] }
+  ])
+  const samples: Array<{ relativeX?: number; relativeY?: number; relativeZ?: number }> = []
+  const runtime = {
+    getInteractionBindings: () => [drag],
+    executeInteractionBindingDirect: (_binding: CompiledInteractionBinding, options: { relativeX?: number; relativeY?: number; relativeZ?: number }) => {
+      samples.push(options)
+      return true
+    },
+    readInteractionValue: () => null
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+
+  expect(adapter.execute(adapter.fromBinding(drag), {
+    source: 'mouse', operation: 'turn', phase: 'drag', channel: 'primary', axis: 'y', axisValue: 0.8,
+    relativeX: 0.1, relativeY: -0.2, relativeZ: 0.3, timestampMs: 0
+  })).toBe(true)
+  expect(samples).toEqual([{ relativeX: 0.1, relativeY: -0.2, relativeZ: 0.3, holdFeedback: true, mouseEvent: 'LeftDrag', inputType: undefined, dragPercent: undefined, parameterValues: undefined }])
+})
+
 test('runs authored single, double, repeat, drag, release, and stop lifecycle in simulator time', () => {
   const binding = {
     ...interactionBinding({}, [
