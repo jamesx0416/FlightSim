@@ -2757,6 +2757,7 @@ export function createMsfsDeferredLightingMaterial(
 
   lightingMaterial.colorNode = vec4(g0.rgb, 1)
   lightingMaterial.opacityNode = float(1)
+  lightingMaterial.maskNode = g0.a.max(g1.a).max(g2.a).max(g3.a).greaterThan(0)
   lightingMaterial.normalNode = g1.xyz.normalize()
   lightingMaterial.roughnessNode = g2.r
   lightingMaterial.metalnessNode = g2.g
@@ -2854,10 +2855,10 @@ function createMsfsGBufferWriter(
   const ormCoverage = coverage(blendFactors?.roughness ?? 1)
 
   const writerMrt = mrt({
-    aircraftG0: vec4(colorNode.rgb, coverage(blendFactors?.baseColor ?? 1)),
-    aircraftG1: vec4(normalNode, coverage(blendFactors?.normal ?? 1)),
-    aircraftG2: vec4(roughnessNode, metalnessNode, aoNode, ormCoverage),
-    aircraftG3: vec4(emissiveNode, coverage(blendFactors?.emissive ?? 1)),
+    aircraftG0: vec4(colorNode.rgb, isDecal ? coverage(blendFactors?.baseColor ?? 1) : float(0)),
+    aircraftG1: vec4(normalNode, isDecal ? coverage(blendFactors?.normal ?? 1) : float(0)),
+    aircraftG2: vec4(roughnessNode, metalnessNode, aoNode, isDecal ? ormCoverage : float(0)),
+    aircraftG3: vec4(emissiveNode, isDecal ? coverage(blendFactors?.emissive ?? 1) : float(0)),
   }) as unknown as {
     getBlendMode?: (name: string) => { constructor: new (blending?: number) => unknown }
     setBlendMode?: (name: string, blendMode: unknown) => unknown
