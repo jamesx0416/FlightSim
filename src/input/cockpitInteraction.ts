@@ -35,6 +35,7 @@ export interface CockpitInteractionTarget {
   readonly id: string
   readonly lockable: boolean
   readonly temporaryLockChannels?: readonly CockpitInteractionChannel[]
+  readonly arbitrationId?: string
   readonly operations: readonly CockpitInteractionOperation[]
 }
 
@@ -58,7 +59,7 @@ export type CockpitInteractionState = 'idle' | 'hovered' | 'pressed' | 'captured
 export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
   private hovered: T | null = null
   private captured: { target: T; pointerId: number; channel: CockpitInteractionChannel; locked: boolean } | null = null
-  private readonly busy = new Map<string, CockpitInteractionOperation>()
+  private readonly busy = new Map<string, { readonly operation: CockpitInteractionOperation; readonly targetId: string }>()
   private readonly missCounts: Record<CockpitInteractionMissReason, number> = {
     raycast: 0,
     unsupported: 0,
@@ -88,7 +89,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
       state: this.state,
       hovered: this.hovered?.id ?? null,
       captured: this.captured?.target.id ?? null,
-      busy: [...this.busy.keys()],
+      busy: [...new Set([...this.busy.values()].map(entry => entry.targetId))],
       misses: { counts: { ...this.missCounts }, latest: this.latestMiss }
     }
   }
@@ -104,16 +105,24 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
 
   setMode(mode: CockpitInteractionMode): void { this.stopAll(); this.mode = mode }
 
+  private arbitrationKey(target: T): string { return target.arbitrationId ?? target.id }
+
+  private clearBusyTarget(targetId: string): void {
+    for (const [key, entry] of this.busy) {
+      if (entry.targetId === targetId) this.busy.delete(key)
+    }
+  }
+
   claim(target: T, operation: CockpitInteractionOperation): boolean {
-    if (this.busy.has(target.id)) {
+    if (this.busy.has(this.arbitrationKey(target))) {
       this.recordMiss('busy', { target: target.id, operation })
       return false
     }
-    this.busy.set(target.id, operation)
+    this.busy.set(this.arbitrationKey(target), { operation, targetId: target.id })
     return true
   }
 
-  finish(targetId: string): void { this.busy.delete(targetId) }
+  finish(targetId: string): void { this.clearBusyTarget(targetId) }
 
   hover(target: T | null, timestampMs = performance.now()): void {
     if (this.captured != null) return
@@ -132,7 +141,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     clickCount = 1
   ): boolean {
     if (target == null) return false
-    if (this.busy.has(target.id)) {
+    if (this.busy.has(this.arbitrationKey(target))) {
       this.recordMiss('busy', { target: target.id, operation: 'hold' }, timestampMs)
       return true
     }
@@ -142,7 +151,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     )
     this.captured = { target, pointerId, channel, locked }
     this.state = locked ? 'locked' : 'pressed'
-    this.busy.set(target.id, 'hold')
+    this.busy.set(this.arbitrationKey(target), { operation: 'hold', targetId: target.id })
     if (locked) this.execute(target, { ...event('lock', 'hold', timestampMs), channel, pointerId })
     this.execute(target, { ...event('hold', 'hold', timestampMs), channel, pointerId, clickCount })
     return true
@@ -178,7 +187,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     const capture = this.captured
     this.execute(capture.target, { ...event('release', 'release', timestampMs), channel: capture.channel, pointerId })
     if (capture.locked) this.execute(capture.target, { ...event('unlock', 'release', timestampMs), channel: capture.channel, pointerId })
-    this.busy.delete(capture.target.id)
+    this.busy.delete(this.arbitrationKey(capture.target))
     this.captured = null
     this.state = this.hovered == null ? 'idle' : 'hovered'
     return true
@@ -191,7 +200,7 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
       this.recordMiss('unsupported', { target: target.id, operation: action.operation }, action.timestampMs)
       return 'unsupported'
     }
-    if (this.busy.has(target.id) && action.operation !== 'release') {
+    if (this.busy.has(this.arbitrationKey(target)) && action.operation !== 'release') {
       this.recordMiss('busy', { target: target.id, operation: action.operation }, action.timestampMs)
       return 'busy'
     }
@@ -199,8 +208,8 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
       this.recordMiss('unavailable', { target: target.id, operation: action.operation }, action.timestampMs)
       return 'unsupported'
     }
-    if (action.operation === 'hold') this.busy.set(target.id, 'hold')
-    if (action.operation === 'release') this.busy.delete(target.id)
+    if (action.operation === 'hold') this.busy.set(this.arbitrationKey(target), { operation: 'hold', targetId: target.id })
+    if (action.operation === 'release') this.busy.delete(this.arbitrationKey(target))
     return 'executed'
   }
 
@@ -212,7 +221,8 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
   }
 
   stop(targetId?: string, timestampMs = performance.now()): boolean {
-    if (targetId != null && this.captured?.target.id !== targetId && !this.busy.has(targetId)) return false
+    if (targetId != null && this.captured?.target.id !== targetId &&
+        ![...this.busy.values()].some(entry => entry.targetId === targetId)) return false
     if (this.captured != null && (targetId == null || this.captured.target.id === targetId)) {
       const capture = this.captured
       const release = { ...event('release', 'release', timestampMs), channel: capture.channel, pointerId: capture.pointerId }
@@ -221,10 +231,10 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
         this.execute(capture.target, release)
         if (capture.locked) this.execute(capture.target, { ...event('unlock', 'release', timestampMs), channel: capture.channel, pointerId: capture.pointerId })
       }
-      this.busy.delete(this.captured.target.id)
+      this.busy.delete(this.arbitrationKey(this.captured.target))
       this.captured = null
     }
-    if (targetId == null) this.busy.clear(); else this.busy.delete(targetId)
+    if (targetId == null) this.busy.clear(); else this.clearBusyTarget(targetId)
     this.state = 'stopped'
     return true
   }
