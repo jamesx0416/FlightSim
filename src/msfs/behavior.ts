@@ -2522,6 +2522,7 @@ function compiledExpressionIsPureParameterFunction(
         readsParameter ||= instruction.index === parameterIndex
         return instruction.index === parameterIndex
       case 'pushVariable':
+        return true
       case 'pushStringVariable':
       case 'writeVariable':
       case 'invokeKeyEvent':

@@ -691,6 +691,16 @@ export class AircraftRuntime {
     return this.interactionExecutionCount
   }
 
+  evaluateInteractionReadOnlyExpression(
+    expression: CompiledExpression,
+    parameterValues: readonly number[] = []
+  ): number {
+    return evaluateCompiledExpression(expression, {
+      ...this.readOnlyExpressionServices,
+      parameterValues
+    })
+  }
+
   getAnimationNormalizedValue(target: string): number | null {
     const binding = this.compiled.animationBindings.find(candidate => candidate.target === target)
     const value = binding == null ? undefined : this.animationValues.get(binding.target)

@@ -289,6 +289,48 @@ test('preflights a pure current-state dynamic increment', async () => {
   expect([result.code, result.actual, result.steps]).toEqual(['OK', 4, 3])
 })
 
+test('preflights a mutable runtime-variable increment without guessing', async () => {
+  let value = 0
+  let increment = 100
+  let executions = 0
+  const binding = interactionBinding({
+    maximum: 1000,
+    step: null,
+    increaseStep: null,
+    decreaseStep: null,
+    increaseStepExpression: {
+      source: 'p15 (L:STEP, number)',
+      instructions: [
+        { op: 'pushParameter', index: 15 },
+        { op: 'pushVariable', key: 'L:STEP', unit: 'number' }
+      ],
+      variableKeys: ['L:STEP, number']
+    }
+  })
+  const runtime = {
+    getInteractionBindings: () => [binding],
+    readInteractionValue: () => value,
+    evaluateInteractionReadOnlyExpression: () => increment,
+    executeInteractionBindingDirect: () => {
+      executions += 1
+      value += increment
+      return true
+    },
+    releaseInteractionBinding: () => true
+  } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+  const target = adapter.fromBinding(binding)
+
+  expect((await adapter.setExact(target, 300)).code).toBe('OK')
+  expect([value, executions]).toEqual([300, 3])
+
+  value = 0
+  executions = 0
+  increment = 400
+  const unreachable = await adapter.setExact(target, 300)
+  expect([unreachable.code, value, executions]).toEqual(['VALUE_NOT_REACHABLE', 0, 0])
+})
+
 test('accepts a numeric Set parameter through a deterministic transform', async () => {
   let value = 0
   const base = interactionBinding(
