@@ -222,9 +222,9 @@ export class MsfsInteractionAdapter {
       holdFeedback: action.phase === 'hold' || action.phase === 'drag',
       mouseEvent: selected.route.msfsEvent ?? undefined,
       inputType: selected.route.inputTypes[0],
-      relativeX: action.axis === 'x' ? value : undefined,
-      relativeY: action.axis === 'y' ? value : undefined,
-      relativeZ: action.axis === 'z' ? value : undefined,
+      relativeX: action.relativeX ?? (action.axis === 'x' ? value : undefined),
+      relativeY: action.relativeY ?? (action.axis === 'y' ? value : undefined),
+      relativeZ: action.relativeZ ?? (action.axis === 'z' ? value : undefined),
       dragPercent: action.dragPercent,
       parameterValues: actionValue == null ? undefined : [actionValue]
     })

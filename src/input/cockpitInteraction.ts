@@ -17,6 +17,9 @@ export interface CockpitInteractionInput {
   readonly axisValue?: number
   readonly delta?: number
   readonly dragPercent?: number
+  readonly relativeX?: number
+  readonly relativeY?: number
+  readonly relativeZ?: number
   readonly timestampMs: number
 }
 
@@ -141,10 +144,27 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     return true
   }
 
-  pointerMove(pointerId: number, axis: 'x' | 'y' | 'z', axisValue: number, dragPercent: number, timestampMs: number): boolean {
+  pointerMove(
+    pointerId: number,
+    axis: 'x' | 'y' | 'z',
+    axisValue: number,
+    dragPercent: number,
+    timestampMs: number,
+    relative?: { readonly x: number; readonly y: number; readonly z: number }
+  ): boolean {
     if (this.captured?.pointerId !== pointerId) return false
     this.state = 'dragging'
-    const executed = this.execute(this.captured.target, { ...event('turn', 'drag', timestampMs), channel: this.captured.channel, pointerId, axis, axisValue, dragPercent })
+    const executed = this.execute(this.captured.target, {
+      ...event('turn', 'drag', timestampMs),
+      channel: this.captured.channel,
+      pointerId,
+      axis,
+      axisValue,
+      dragPercent,
+      relativeX: relative?.x,
+      relativeY: relative?.y,
+      relativeZ: relative?.z
+    })
     if (!executed) this.recordMiss('unavailable', { target: this.captured.target.id, operation: 'turn' }, timestampMs)
     return executed
   }
