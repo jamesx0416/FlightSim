@@ -53,6 +53,25 @@ test('builds shared localized interaction presentation from authored metadata', 
   expect(resolveMsfsInteractionPresentation(metadata, strings, { value: 2 }).value).toBe('Selected increment')
 })
 
+test('prefers authored dynamic formatting over generic numeric formatting', () => {
+  const metadata = {
+    authoredId: 'ALTITUDE',
+    nodeId: 'ALTITUDE_NODE',
+    tooltipTitle: 'Altitude',
+    tooltipDescription: null,
+    tooltipStateLabels: [],
+    tooltipValueLabel: null,
+    tooltipActionHints: [],
+    tooltipUnavailable: null,
+    routes: [{ operation: 'increase' as const }],
+    value: { unit: 'feet' }
+  }
+  expect(resolveMsfsInteractionPresentation(metadata, new Map(), {
+    value: 1234.5,
+    authoredValue: '1235 FT'
+  }).value).toBe('1235 FT')
+})
+
 test('uses concise viewer fallbacks when authored presentation is absent', () => {
   const metadata = {
     authoredId: 'CABIN_ALTITUDE',

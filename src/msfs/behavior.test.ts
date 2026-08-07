@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import { __behaviorTestHooks } from './behavior'
+import { evaluateCompiledExpressionValue } from './rpn'
 import type { BehaviorSourceRoot, CompiledInteractionBinding, CompiledInteractionRoute, ImportDiagnostic } from './types'
 
 function include(relativeFile: string): Element {
@@ -485,7 +486,7 @@ test('compiles authored gated-drag metadata', () => {
   })
 })
 
-test('fails unsupported dynamic and rich tooltip IR closed with diagnostics', () => {
+test('compiles dynamic formatted values and rich tooltip metadata', () => {
   const diagnostics: ImportDiagnostic[] = []
   const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([
@@ -509,11 +510,17 @@ test('fails unsupported dynamic and rich tooltip IR closed with diagnostics', ()
   expect(metadata.tooltipDescription).toBe('TT:TEST.ACTION')
   expect(metadata.tooltipValueLabel).toBe(null)
   expect(metadata.tooltipUnavailable).toBe(null)
+  expect(metadata.tooltipEntries).toEqual([{ id: 'opaque rich entry' }])
+  expect(metadata.tooltipAnimated?.entries).toEqual([{
+    label: '%((L:VALUE, number))%!d!', percent: null, cursor: null, hitbox: null
+  }])
+  expect(metadata.tooltipFormattedValueExpression != null).toBe(true)
+  expect(evaluateCompiledExpressionValue(metadata.tooltipFormattedValueExpression!, {
+    readVariable: key => key === 'L:VALUE' ? 12.34 : 0
+  })).toBe('12.3')
   expect(diagnostics.map(diagnostic => diagnostic.code)).toEqual([
     'interaction_tooltip_title_ir_unsupported',
-    'interaction_tooltip_value_ir_unsupported',
-    'interaction_tooltip_action_hint_ir_unsupported',
-    'interaction_tooltip_rich_entry_ir_unsupported'
+    'interaction_tooltip_action_hint_ir_unsupported'
   ])
 })
 

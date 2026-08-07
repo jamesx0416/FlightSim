@@ -339,6 +339,23 @@ export interface CompiledInteractionMetadata {
   }[]
   readonly tooltipUnavailable: string | null
   readonly tooltipValueExpression: CompiledExpression | null
+  readonly tooltipFormattedValueExpression: CompiledExpression | null
+  readonly tooltipEntries: readonly { readonly id: string }[]
+  readonly tooltipAnimated: {
+    readonly animRefId: string | null
+    readonly cursor: {
+      readonly minimum: number | null
+      readonly maximum: number | null
+      readonly direction: number | null
+    }
+    readonly loop: boolean
+    readonly entries: readonly {
+      readonly label: string
+      readonly percent: number | null
+      readonly cursor: string | null
+      readonly hitbox: string | null
+    }[]
+  } | null
   readonly value: CompiledInteractionValueMetadata
 }
 
@@ -445,6 +462,7 @@ export type Instruction =
   | { readonly op: 'sqrt' | 'sin' | 'cos' | 'degreesToRadians' | 'radiansToDegrees' }
   | { readonly op: 'normalizeDegrees' | 'normalizeRadians' }
   | { readonly op: 'stringCompare' | 'stringCompareCaseInsensitive' }
+  | { readonly op: 'formatString' }
 
 export interface RuntimeHostServices {
   tick(dtSeconds: number): void

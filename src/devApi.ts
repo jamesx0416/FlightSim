@@ -391,13 +391,14 @@ function summarizeInteractionTarget(
   target: MsfsInteractionTarget,
   authoredCount: number,
   value: number | null,
+  formattedValue: string | null,
   localization: MsfsLocalization,
   localizationAvailable = true
 ): Record<string, unknown> {
   const presentation = resolveMsfsInteractionPresentation({
     ...target.binding.metadata,
     routes: target.bindings.flatMap(binding => binding.metadata.routes)
-  }, localization, { value })
+  }, localization, { value, authoredValue: formattedValue })
   return {
     authoredId: target.binding.metadata.authoredId,
     qualifiedId: target.id,
@@ -428,6 +429,7 @@ function describeInteractionTarget(
     readonly packageId: string
     readonly packageVersion: string | null
     readonly currentValue: number | null
+    readonly formattedValue: string | null
     readonly localization: MsfsLocalization
     readonly localizationAvailable: boolean
     readonly blockers: readonly CompiledInteractionBlocker[]
@@ -508,7 +510,7 @@ function describeInteractionTarget(
         routes: target.bindings.flatMap(binding => binding.metadata.routes)
       },
       options.localization,
-      { value: options.currentValue }
+      { value: options.currentValue, authoredValue: options.formattedValue }
     ),
     timing: target.bindings.map(binding => ({
       sourcePath: binding.metadata.sourcePath,
@@ -2200,6 +2202,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             ? 0
             : authoredCounts.get(target.binding.metadata.authoredId) ?? 0,
           interactionAdapter.currentValue(target),
+          target.bindings.map(binding => context.getRuntime().evaluateInteractionFormattedValue(binding)).find(value => value != null) ?? null,
           localization
         ))
       return interactionResult(true, 'OK', 'Listed cockpit interactions.', rows)
@@ -2211,6 +2214,9 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
             packageId: context.packageData.packageName,
             packageVersion: context.packageData.manifest?.packageVersion ?? null,
             currentValue: interactionAdapter.currentValue(result.target),
+            formattedValue: result.target.bindings
+              .map(binding => context.getRuntime().evaluateInteractionFormattedValue(binding))
+              .find(value => value != null) ?? null,
             localization: context.getCockpitLocalization(),
             localizationAvailable: true,
             blockers: context.getCompiledBehaviors().interactionBlockers,
