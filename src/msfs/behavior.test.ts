@@ -367,6 +367,65 @@ test('interaction metadata expands authored flags and value reachability', () =>
   expect(dynamicDiagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_dynamic_routes_unproven'])
 })
 
+
+
+test('diagnoses unknown interaction model instances', () => {
+  const diagnostics: ImportDiagnostic[] = []
+  const container = { tagName: 'IMMouseFlagsInstances', getAttribute: () => null } as unknown as Element
+  const futureModel = {
+    tagName: 'IMFuture',
+    textContent: 'LeftSingle',
+    parentElement: container,
+    getAttribute: () => null
+  } as unknown as Element
+  const mouseRect = {
+    querySelectorAll: () => [futureModel]
+  } as unknown as Element
+
+  __behaviorTestHooks.collectMouseRectMetadata(mouseRect, new Map(), diagnostics, 'future.xml')
+  expect(diagnostics.map(diagnostic => diagnostic.code)).toEqual(['interaction_model_unsupported'])
+})
+
+test('fails interaction candidates closed with structured rejection totals', () => {
+  const diagnostics: ImportDiagnostic[] = []
+  const base = new Map([['NODE_ID', 'TEST']])
+
+  expect(__behaviorTestHooks.buildInteractionCodeBinding(
+    '1 (>L:TEST)', null, base, 'TEST', 'test.xml', 'callback', diagnostics
+  )).toBe(null)
+  expect(__behaviorTestHooks.buildInteractionCodeBinding(
+    '', null, new Map([...base, ['MOUSEFLAGS', 'LeftSingle']]), 'TEST', 'test.xml', 'callback', diagnostics
+  )).toBe(null)
+  expect(__behaviorTestHooks.buildInteractionCodeBinding(
+    'if{', null, new Map([...base, ['MOUSEFLAGS', 'LeftSingle']]), 'TEST', 'test.xml', 'callback', diagnostics
+  )).toBe(null)
+  expect(__behaviorTestHooks.buildInteractionCodeBinding(
+    '1 (>L:TEST)', null, new Map([...base, ['MOUSEFLAGS', 'FutureGesture']]), 'TEST', 'test.xml', 'callback', diagnostics
+  )).toBe(null)
+  expect(__behaviorTestHooks.buildInteractionCodeBinding(
+    '(M:Event) (>L:TEST)', null, base, 'TEST', 'test.xml', 'callback', diagnostics
+  )).toBe(null)
+  expect(__behaviorTestHooks.buildInteractionCodeBinding(
+    '1 (>L:TEST)', null, new Map([['MOUSEFLAGS', 'LeftSingle']]), null, 'test.xml', 'callback', diagnostics
+  )).toBe(null)
+
+  expect(diagnostics.some(diagnostic => diagnostic.code === 'interaction_event_unsupported')).toBe(true)
+  expect(diagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_routes_unproven')).toBe(true)
+  expect(__behaviorTestHooks.interactionCompilerTotals(diagnostics, 2)).toEqual({
+    candidates: 8,
+    compiledBindings: 2,
+    rejectedBindings: 6,
+    rejectionReasons: {
+      'route-unproven': 1,
+      'missing-callback': 1,
+      'invalid-expression': 1,
+      'unsupported-event': 1,
+      'dynamic-route-unproven': 1,
+      'missing-target': 1
+    }
+  })
+})
+
 test('compiles authored gated-drag metadata', () => {
   const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
     new Map([

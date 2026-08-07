@@ -2455,6 +2455,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       settings: context.getSettingsSnapshot(),
       diagnostics: getDiagnostics(),
       cockpitInteractionStats: { ...context.cockpitInteractionStats },
+      interactionCompilerTotals: context.getCompiledBehaviors().interactionCompilerTotals,
       cockpitInteractionMisses: interactionDispatcher.snapshot.misses,
       gauges: gauges().map(summarizeGauge),
       events: api.events().data,

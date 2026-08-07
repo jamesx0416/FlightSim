@@ -375,6 +375,13 @@ export interface CompiledInteractionSoundEvent {
   readonly sourceParameter: string
 }
 
+export interface CompiledInteractionCompilerTotals {
+  readonly candidates: number
+  readonly compiledBindings: number
+  readonly rejectedBindings: number
+  readonly rejectionReasons: Readonly<Record<string, number>>
+}
+
 export interface CompiledBehaviorSet {
   readonly irVersion: 'msfs-behavior/v1'
   readonly aircraftId: string
@@ -386,6 +393,7 @@ export interface CompiledBehaviorSet {
   readonly inputEventBindings: readonly CompiledInputEventBinding[]
   readonly interactionBindings: readonly CompiledInteractionBinding[]
   readonly interactionBlockers: readonly CompiledInteractionBlocker[]
+  readonly interactionCompilerTotals: CompiledInteractionCompilerTotals
   readonly variableKeys: readonly string[]
   readonly builtinFallbackHits: readonly string[]
   readonly diagnostics: readonly ImportDiagnostic[]

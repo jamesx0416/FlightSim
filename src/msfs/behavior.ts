@@ -8,6 +8,7 @@ import type {
   CompiledExpression,
   CompiledInputEventBinding,
   CompiledInteractionBinding,
+  CompiledInteractionCompilerTotals,
   CompiledInteractionBlocker,
   CompiledInteractionMetadata,
   CompiledInteractionRoute,
@@ -81,6 +82,49 @@ const VISIBILITY_TEMPLATE_NAMES = new Set([
 const BEHAVIOR_FETCH_TIMEOUT_MS = 10000
 let activeParameterFunctionMap: ReadonlyMap<string, Element> = new Map()
 
+interface MutableInteractionCompilerTotals {
+  rejectedBindings: number
+  rejectionReasons: Record<string, number>
+}
+
+const interactionCompilerTotalsByDiagnostics = new WeakMap<ImportDiagnostic[], MutableInteractionCompilerTotals>()
+
+function mutableInteractionCompilerTotals(diagnostics: ImportDiagnostic[]): MutableInteractionCompilerTotals {
+  let totals = interactionCompilerTotalsByDiagnostics.get(diagnostics)
+  if (totals == null) {
+    totals = { rejectedBindings: 0, rejectionReasons: {} }
+    interactionCompilerTotalsByDiagnostics.set(diagnostics, totals)
+  }
+  return totals
+}
+
+function rejectInteractionCandidate(
+  diagnostics: ImportDiagnostic[],
+  reason: string,
+  code: string,
+  message: string,
+  sourcePath: string
+): null {
+  const totals = mutableInteractionCompilerTotals(diagnostics)
+  totals.rejectedBindings += 1
+  totals.rejectionReasons[reason] = (totals.rejectionReasons[reason] ?? 0) + 1
+  diagnostics.push({ code, message, severity: 'warning', sourcePath, details: `rejectionReason=${reason}` })
+  return null
+}
+
+function interactionCompilerTotals(
+  diagnostics: ImportDiagnostic[],
+  compiledBindings: number
+): CompiledInteractionCompilerTotals {
+  const totals = mutableInteractionCompilerTotals(diagnostics)
+  return {
+    candidates: compiledBindings + totals.rejectedBindings,
+    compiledBindings,
+    rejectedBindings: totals.rejectedBindings,
+    rejectionReasons: { ...totals.rejectionReasons }
+  }
+}
+
 export async function compileMsfs2020Behaviors(
   pkg: ImportedPackage,
   aircraft: ImportedAircraft,
@@ -109,6 +153,7 @@ export async function compileMsfs2020Behaviors(
       inputEventBindings: [],
       interactionBindings: [],
       interactionBlockers: [],
+      interactionCompilerTotals: interactionCompilerTotals(diagnostics, 0),
       variableKeys: [],
       builtinFallbackHits: [],
       diagnostics: dedupeImportDiagnostics(diagnostics)
@@ -217,6 +262,7 @@ export async function compileMsfs2020Behaviors(
     inputEventBindings,
     interactionBindings,
     interactionBlockers,
+    interactionCompilerTotals: interactionCompilerTotals(diagnostics, interactionBindings.length),
     variableKeys: [...variableKeys].sort(),
     builtinFallbackHits: [...context.builtinFallbackHits].sort(),
     diagnostics: dedupeImportDiagnostics(diagnostics)
@@ -339,6 +385,8 @@ export const __behaviorTestHooks = {
   loadBehaviorDocuments,
   buildInteractionCodeBinding,
   buildCompiledInteractionMetadata,
+  collectMouseRectMetadata,
+  interactionCompilerTotals,
   getInteractionFallbackCodeSource,
   buildMouseEventInteractionCodeSource,
   pushUniqueInteractionBinding,
@@ -746,7 +794,7 @@ function traverseElement(
   }
 
   if (elementTagName === 'MouseRect') {
-    const mouseRectParams = collectMouseRectMetadata(element, scopedState.params)
+    const mouseRectParams = collectMouseRectMetadata(element, scopedState.params, context.diagnostics, state.path)
     const blocker = buildInteractionBlocker(mouseRectParams, scopedState.currentNode, state.path)
     if (blocker != null) {
       pushUniqueInteractionBlocker(interactionBlockers, blocker)
@@ -788,7 +836,7 @@ function traverseElement(
       if (interactionBinding != null) {
         pushUniqueInteractionBinding(interactionBindings, interactionBinding)
       }
-    } else if (callbackSource.trim()) {
+    } else if (callbackNode == null && callbackSource.trim()) {
       const interactionBinding = buildInteractionCodeBinding(
         callbackSource,
         null,
@@ -995,7 +1043,9 @@ function buildMouseRectPayloadInteractionBinding(
 
 function collectMouseRectMetadata(
   element: Element,
-  params: ReadonlyMap<string, string>
+  params: ReadonlyMap<string, string>,
+  diagnostics?: ImportDiagnostic[],
+  sourcePath = ''
 ): ReadonlyMap<string, string> {
   const result = new Map(params)
   const mappings: Readonly<Record<string, string>> = {
@@ -1024,6 +1074,19 @@ function collectMouseRectMetadata(
   }
   for (const child of Array.from(element.querySelectorAll('*'))) {
     const tag = getElementTagName(child).toUpperCase()
+    const parentTag = child.parentElement == null ? '' : getElementTagName(child.parentElement)
+    if (
+      (parentTag === 'IMMouseFlagsInstances' || parentTag === 'IMCursorsInstances' ||
+        parentTag === 'IMTooltipsInstances' || parentTag === 'IMCodeInstances') &&
+      tag !== 'IMDEFAULT' && tag !== 'IMDRAG'
+    ) {
+      diagnostics?.push({
+        code: 'interaction_model_unsupported',
+        severity: 'warning',
+        sourcePath,
+        message: `Interaction model ${getElementTagName(child)} is not supported; only IMDefault and IMDrag are compiled.`
+      })
+    }
     const value = substituteParameters(child.textContent ?? '', params).trim()
     if (!value) continue
     if (tag === 'IMDEFAULT' || tag === 'IMDRAG') {
@@ -1122,6 +1185,21 @@ function isMouseRectPayloadElement(element: Element): boolean {
     getElementTagName(switchNode) === 'Switch' &&
     switchNode.parentElement != null &&
     getElementTagName(switchNode.parentElement) === 'MouseRect'
+}
+
+function hasInteractionCandidateParameters(params: ReadonlyMap<string, string>): boolean {
+  return [...params].some(([key, value]) => {
+    if (!value.trim()) return false
+    const normalized = key.trim().toUpperCase()
+    return /^MOUSE_?FLAGS/u.test(normalized) ||
+      /^CALLBACK/u.test(normalized) ||
+      normalized === 'EVENTID' ||
+      normalized === 'INPUT_EVENT_ID_SOURCE' ||
+      normalized === 'LEFT_SINGLE_CODE' ||
+      normalized.startsWith('BINDING_INC_') ||
+      normalized.startsWith('BINDING_DEC_') ||
+      normalized.startsWith('BINDING_SET_')
+  })
 }
 
 function expandTemplateUse(
@@ -1227,12 +1305,22 @@ function expandTemplateUse(
 
   const templateNode = context.templateMap.get(normalizedTemplateName)
   if (templateNode == null) {
-    context.diagnostics.push({
-      code: 'template_missing',
-      message: `Template ${templateName} is not available in the imported package.`,
-      severity: 'warning',
-      sourcePath: state.path
-    })
+    if (hasInteractionCandidateParameters(childParams)) {
+      rejectInteractionCandidate(
+        context.diagnostics,
+        'unsupported-template',
+        'interaction_rejected_unsupported_template',
+        `Interaction template ${templateName} is not available in the imported package.`,
+        state.path
+      )
+    } else {
+      context.diagnostics.push({
+        code: 'template_missing',
+        message: `Template ${templateName} is not available in the imported package.`,
+        severity: 'warning',
+        sourcePath: state.path
+      })
+    }
     return
   }
 
@@ -1611,6 +1699,26 @@ function hasAnimationSimSource(params: ReadonlyMap<string, string>): boolean {
   return Boolean(params.get('ANIM_SIMVAR')?.trim())
 }
 
+function classifyInteractionRouteFailure(
+  params: ReadonlyMap<string, string>,
+  source: string
+): { readonly reason: string; readonly message: string } {
+  const supportedFlags = new Set([
+    ...Object.keys(MSFS_INTERACTION_EVENTS),
+    'LeftAll', 'RightAll', 'MiddleAll', 'Wheel'
+  ])
+  const authoredFlags = [...params]
+    .filter(([key]) => /^MOUSE_?FLAGS(?:_(?:DEFAULT|DRAG)_IM)?$/u.test(key))
+    .flatMap(([, value]) => value.split(/[,+|\s]+/).filter(Boolean))
+  if (authoredFlags.some(flag => !supportedFlags.has(flag))) {
+    return { reason: 'unsupported-event', message: 'Authored MouseFlags contain an unsupported event' }
+  }
+  if (source.includes('M:Event')) {
+    return { reason: 'dynamic-route-unproven', message: 'Dynamic interaction route could not be proven' }
+  }
+  return { reason: 'route-unproven', message: 'Interaction callback has no authoritative input route' }
+}
+
 function buildInteractionCodeBinding(
   sourceCode: string,
   releaseSourceCode: string | null,
@@ -1632,8 +1740,17 @@ function buildInteractionCodeBinding(
     params
   ).trim()
 
-  if (!target || !source) {
-    return null
+  if (!target) {
+    return rejectInteractionCandidate(
+      diagnostics, 'missing-target', 'interaction_rejected_missing_target',
+      'Interaction candidate has no authored target node, animation, or part ID.', sourcePath
+    )
+  }
+  if (!source) {
+    return rejectInteractionCandidate(
+      diagnostics, 'missing-callback', 'interaction_rejected_missing_callback',
+      `Interaction candidate ${target} has no compilable callback or event route.`, sourcePath
+    )
   }
 
   const expression = compileRpnExpression(source, {
@@ -1643,7 +1760,10 @@ function buildInteractionCodeBinding(
     localVariableScope: resolveLocalVariableScope(params, currentNode, target)
   })
   if (expression == null) {
-    return null
+    return rejectInteractionCandidate(
+      diagnostics, 'invalid-expression', 'interaction_rejected_invalid_expression',
+      `Interaction candidate ${target} has an invalid callback expression.`, sourcePath
+    )
   }
 
   const releaseSource = substituteParameters(
@@ -1659,7 +1779,10 @@ function buildInteractionCodeBinding(
       })
     : null
   if (releaseSource && releaseExpression == null) {
-    return null
+    return rejectInteractionCandidate(
+      diagnostics, 'invalid-expression', 'interaction_rejected_invalid_expression',
+      `Interaction candidate ${target} has an invalid release expression.`, sourcePath
+    )
   }
 
   const metadata = buildCompiledInteractionMetadata(
@@ -1672,6 +1795,16 @@ function buildInteractionCodeBinding(
     diagnostics,
     sourceKindOverride
   )
+  if (metadata.routes.length === 0) {
+    const failure = classifyInteractionRouteFailure(params, source)
+    return rejectInteractionCandidate(
+      diagnostics,
+      failure.reason,
+      `interaction_rejected_${failure.reason.replaceAll('-', '_')}`,
+      `${failure.message} for ${metadata.authoredId ?? target}.`,
+      sourcePath
+    )
+  }
   const repeatFrequencyHz = parseOptionalPositiveNumber(params.get('MOMENTARY_REPEAT_FREQUENCY'))
   if (metadata.routes.some(route => route.phase === 'repeat') && repeatFrequencyHz == null) {
     diagnostics.push({
@@ -1759,6 +1892,19 @@ function buildCompiledInteractionMetadata(
   sourceKindOverride?: CompiledInteractionSourceKind
 ): CompiledInteractionMetadata {
   const flagEntries = [...params].filter(([key]) => /^MOUSE_?FLAGS(?:_(?:DEFAULT|DRAG)_IM)?$/u.test(key))
+  const supportedFlagTokens = new Set([...Object.keys(MSFS_INTERACTION_EVENTS), 'LeftAll', 'RightAll', 'MiddleAll', 'Wheel'])
+  const unsupportedFlagTokens = [...new Set(flagEntries
+    .flatMap(([, value]) => value.split(/[,+|\s]+/).filter(Boolean))
+    .filter(flag => !supportedFlagTokens.has(flag)))]
+  for (const flag of unsupportedFlagTokens) {
+    diagnostics.push({
+      code: 'interaction_event_unsupported',
+      severity: 'warning',
+      sourcePath,
+      message: `MouseFlags event ${flag} is not supported for ${target}.`,
+      details: `event=${flag}`
+    })
+  }
   const hasInteractionModels = flagEntries.some(([key]) => key.includes('DEFAULT_IM') || key.includes('DRAG_IM'))
   const declaredEventsFor = (interactionModel?: 'default' | 'drag'): Set<string> => {
     const suffix = interactionModel === 'default' ? 'DEFAULT_IM' : interactionModel === 'drag' ? 'DRAG_IM' : null
@@ -1831,7 +1977,6 @@ function buildCompiledInteractionMetadata(
   addSemanticRoute('on', ['ON_CODE', 'ON_EVENT'])
   addSemanticRoute('off', ['OFF_CODE', 'OFF_EVENT'])
   addSemanticRoute('toggle', ['TOGGLE_CODE', 'TOGGLE_EVENT'])
-  if (routes.length === 0) routes.push({ ...MSFS_INTERACTION_EVENTS.LeftSingle, inputTypes: [] })
   const axisText = (params.get('DRAG_AXIS') ?? params.get('AXIS') ?? '').trim().toLowerCase()
   const axis = axisText === 'x' || axisText === 'y' || axisText === 'z' ? axisText : null
   const authoredId = params.get('ID')?.trim() || params.get('INTERACTION_ID')?.trim() || target || null
