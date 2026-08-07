@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { MeshBasicMaterial } from 'three'
+import { MeshBasicMaterial, Texture } from 'three'
 
 const gpuGlobals = globalThis as typeof globalThis & {
   GPUShaderStage?: { VERTEX: number; FRAGMENT: number; COMPUTE: number }
@@ -9,6 +9,7 @@ gpuGlobals.GPUShaderStage ??= { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
 const {
   canKeepBlendGBufferDecalInForwardScenePass,
   canKeepReceiverlessBlendGBufferMaterialInBasePass,
+  canWriteReceiverGBufferFromProjectedGeometry,
   collectVisibleDeferredRelationships,
   configureBlendGBufferMaterialsForDecalPass,
   hasBlendGBufferReceiver,
@@ -83,6 +84,16 @@ test('keeps native depth testing for decal occlusion', () => {
   expect(material.polygonOffset).toBe(true)
 })
 
+
+test('uses projected decal geometry only for constant receiver G-buffer inputs', () => {
+  const material = new MeshBasicMaterial()
+  expect(canWriteReceiverGBufferFromProjectedGeometry(material)).toBe(true)
+  material.map = new Texture()
+  expect(canWriteReceiverGBufferFromProjectedGeometry(material)).toBe(false)
+  material.map = null
+  ;(material as any).normalNode = {}
+  expect(canWriteReceiverGBufferFromProjectedGeometry(material)).toBe(false)
+})
 
 test('limits deferred receivers to visible decals', () => {
   const receivers = new Map([

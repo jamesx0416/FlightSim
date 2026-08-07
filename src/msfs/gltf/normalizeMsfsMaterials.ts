@@ -277,6 +277,8 @@ type MsfsProjectedDecalMesh = MeshWithGeometry & {
     msfsBlendGBufferReceiver?: MeshWithGeometry
     msfsBlendGBufferReceivers?: readonly MeshWithGeometry[]
     msfsBlendGBufferUsedReceivers?: readonly MeshWithGeometry[]
+    msfsBlendGBufferReceiverGroups?: readonly (MeshWithGeometry | null)[]
+    msfsBlendGBufferFootprintReceivers?: readonly MeshWithGeometry[]
   }
 }
 
@@ -1677,6 +1679,50 @@ function rebuildConformedDecalGeometry(
     )
   }
   geometry.setIndex(null)
+  geometry.clearGroups()
+  const receiverGroups: Array<MeshWithGeometry | null> = []
+  const receiverMaterialIndices = new Map<MeshWithGeometry | null, number>()
+  const getReceiverMaterialIndex = (receiver: MeshWithGeometry | null): number => {
+    const existing = receiverMaterialIndices.get(receiver)
+    if (existing != null) return existing
+    const index = receiverGroups.length
+    receiverGroups.push(receiver)
+    receiverMaterialIndices.set(receiver, index)
+    return index
+  }
+  const allFootprintReceivers = new Set<MeshWithGeometry>()
+  const incompleteFootprintReceivers = new Set<MeshWithGeometry>()
+  let groupStart = 0
+  let groupMaterialIndex = -1
+  for (let offset = 0; offset + 2 < vertices.length; offset += 3) {
+    const triangleReceivers = new Set([
+      vertices[offset].receiverTriangle.receiver,
+      vertices[offset + 1].receiverTriangle.receiver,
+      vertices[offset + 2].receiverTriangle.receiver,
+    ])
+    for (const receiver of triangleReceivers) allFootprintReceivers.add(receiver)
+    if (triangleReceivers.size > 1) {
+      for (const receiver of triangleReceivers) incompleteFootprintReceivers.add(receiver)
+    }
+    const receiver = triangleReceivers.size === 1
+      ? triangleReceivers.values().next().value as MeshWithGeometry
+      : null
+    const materialIndex = getReceiverMaterialIndex(receiver)
+    if (groupMaterialIndex !== materialIndex) {
+      if (groupMaterialIndex >= 0) {
+        geometry.addGroup(groupStart, offset - groupStart, groupMaterialIndex)
+      }
+      groupStart = offset
+      groupMaterialIndex = materialIndex
+    }
+  }
+  if (groupMaterialIndex >= 0) {
+    geometry.addGroup(groupStart, vertices.length - groupStart, groupMaterialIndex)
+  }
+  const projectedDecal = mesh as MsfsProjectedDecalMesh
+  projectedDecal.userData.msfsBlendGBufferReceiverGroups = receiverGroups
+  projectedDecal.userData.msfsBlendGBufferFootprintReceivers = [...allFootprintReceivers]
+    .filter(receiver => !incompleteFootprintReceivers.has(receiver))
   geometry.computeBoundingBox()
   geometry.computeBoundingSphere()
 }
