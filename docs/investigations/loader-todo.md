@@ -373,7 +373,8 @@ Current implemented slice:
 - [x] Dispatch native single/single/double sequencing, authored `DownRepeat`/`MoveRepeat`, and scheduler-driven repeat, long-press, minimum-hold, delayed-release, spring-return, and cancellation lifecycle.
 - [x] Persist and coalesce compact history, including the 120 ms wheel window, and provide shared lazy detailed trace with 10,000-record/approximately-16-MB caps, overflow accounting, low-level runtime events, and DevApi export.
 - [x] Complete the documented canonical dispatch, active lifecycle, semantic variant, profile, history, and trace DevApi surface and remove stale raw `input.pointer`, `input.key`, and `input.wheel` documentation.
-- [x] Prevent claimed, unbound, unsupported, busy, unavailable, blocker/cover, and bound VCockpit gauge-surface input from falling through to camera pan/zoom; only a true miss may use the empty-cockpit mapping.
+- [x] Prevent claimed, unbound, unsupported, busy, unavailable, and blocker/cover interaction input from falling through to camera pan/zoom. Bound passive VCockpit surfaces occlude controls behind them but may fall through to camera input when the gauge itself does not own the gesture.
+- [ ] Distinguish touch/input-owning VCockpit gauges from passive displays and consume only the pointer gestures authoritatively owned by those gauges.
 - [ ] Complete the remaining broader milestone-one compiler metadata and mounted-package acceptance work tracked in `cockpit-interaction-milestone-one-todo.md`.
   - Compile dynamic increment/typed parameter/cross-unit exact relationships, authored rich value formatting and tooltips, directional/center cursors, temporary/lockable/lag drag flags, independent drag scales, and `GroupID`.
   - Remove the invented `LeftSingle` compiler fallback and add structured dropped-candidate diagnostics plus candidate/compiled/rejected totals.
@@ -394,6 +395,7 @@ Current implemented slice:
   - Add separately bindable keyboard, gamepad, touch, VR, and HID/flight-sim hardware inputs. Bind an input to a canonical cockpit action, never directly to a mesh name.
   - Persist global profiles with optional aircraft-category/profile selection. Aircraft package metadata remains the only source of what that canonical action does on a hovered or locked object.
   - Reserve an explicit advanced binding capability for hardware only where an aircraft exposes a stable, authored interaction target/input-event ID. It must be opt-in, discoverable, scoped to that package, and never replace the normal metadata-driven interaction path.
+- Add a viewer Debug Mode toggle and group diagnostic-only settings under it, including cockpit performance instrumentation, interaction hitboxes, gauge debug/diagnostic overrides, and similar developer-facing controls. Keep normal rendering/interaction settings visible outside Debug Mode.
 - Add a Cockpit Input settings surface:
   - Select interaction mode: `legacy` direct manipulation or `lock` target acquisition.
   - Display and edit primary, secondary, tertiary, increase/decrease, lock/unlock, and camera-look bindings.

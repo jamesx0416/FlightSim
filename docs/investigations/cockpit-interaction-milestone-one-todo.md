@@ -66,7 +66,7 @@ Browser evidence on 2026-07-17 covered Mouse0/Mouse1/Mouse2/WheelUp/WheelDown ca
 ### Complete history and detailed tracing
 
 - [x] Aggregate wheel bursts within 120 ms.
-- [x] Record logical mouse, cockpit drag, camera pan/zoom, settings/profile, aircraft/cockpit/app-version, cancellation, unsupported, unavailable, and claimed gauge-surface actions.
+- [x] Record logical mouse, cockpit drag, camera pan/zoom, settings/profile, aircraft/cockpit/app-version, cancellation, unsupported, unavailable, and passive-gauge occlusion/camera outcomes.
 - [x] Coalesce each logical click, drag, camera gesture, wheel burst, and exact Set/Adjust operation into one compact history entry.
 - [x] Persist a versioned latest-300 history, migrate the legacy raw array, and include structured detail plus stable one-line formatting.
 - [x] Bound memory-only detailed tracing by 10,000 records and approximately 16 MB, dropping the oldest records into one coalesced overflow marker.
@@ -96,18 +96,19 @@ Browser evidence on 2026-07-17 covered Mouse0/Mouse1/Mouse2/WheelUp/WheelDown ca
 
 ### Hit testing and camera arbitration
 
-- [x] Use an explicit `active`/`consumed`/`miss` result so claimed, unbound, unsupported, busy, unavailable, blocker, cover, and gauge-surface hits cannot start camera pan or zoom.
-- [x] Expose deduplicated bound VCockpit surface meshes as input claims while retaining them as occluders, so a gauge screen consumes input and still hides controls behind it.
+- [x] Use an explicit `active`/`consumed`/`miss` result so claimed interactions, unbound/unsupported/busy/unavailable controls, blockers, and covers cannot start camera pan or zoom. Passive VCockpit gauge surfaces remain occluders but do not claim pointer input.
+- [x] Expose deduplicated bound VCockpit surface meshes as occluders, so a passive gauge screen hides controls behind it while unhandled pointer gestures can still fall through to camera input.
+- [ ] Distinguish interactive touchscreen gauge surfaces from passive displays; only proven touchscreen/input-owning surfaces should consume their authored pointer gestures instead of camera input.
 - [x] Preserve package priority, depth, `PrioritizeVCockpits`, `IgnoreZTest`, fallback hitboxes, pointer capture, LOD/target cancellation, and true-miss camera routing in the generic viewer path.
-- [x] Cover priority/depth, blocker/cover occlusion, fallback hitboxes, `PrioritizeVCockpits`, `IgnoreZTest`, and claimed gauge surfaces with focused geometric tests.
+- [x] Cover priority/depth, blocker/cover occlusion, fallback hitboxes, `PrioritizeVCockpits`, `IgnoreZTest`, and passive gauge-surface occlusion with focused geometric tests.
 
 ### Observability, acceptance, and documentation
 
 - [x] Keep cumulative dispatcher miss counters for `raycast`, `unsupported`, `unavailable`, `busy`, blocker, cover, and target loss, plus the latest structured detail.
-- [x] Add unsupported, unavailable, busy, and claimed-gauge mouse attempts to compact history; keep blockers in cumulative counters and detailed trace.
+- [x] Add unsupported, unavailable, and busy mouse attempts plus passive-gauge occlusion/camera outcomes to compact history; keep blockers in cumulative counters and detailed trace.
 - [x] Add pre-dispatch rejection and detailed hit records to trace.
 - [x] Expose compiler/runtime diagnostics and cumulative dispatcher totals through `__DevApi.report()` and the interaction APIs.
 - [x] Load the local A339X and record its 1,619 compiled interactions, zero runtime errors during acceptance, DevApi/profile results, exact preflight blockers, history, and trace export.
-- [x] Verify with focused tests that claimed interaction and gauge outcomes consume input while only a true miss can select camera behavior.
+- [x] Verify with focused tests that claimed interactions consume input, passive gauge surfaces occlude controls without claiming camera gestures, and ordinary empty-space misses select camera behavior.
 - [x] Confirm the milestone diff adds no aircraft-specific runtime rules and changes no `aircrafts/` fixture data.
 - [x] Document the completed interactions, profiles, shared history, and trace APIs and remove stale raw-input documentation.
