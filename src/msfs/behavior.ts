@@ -2521,12 +2521,14 @@ function compileInteractionValueAuthority(
 
   const increaseRaw = getFirstUsableInteractionParameter(params, [
     'WHEEL_INCREMENT',
+    'INCREMENT_VALUE',
     'VALUE_STEP',
     'STEP_SIZE',
     'INCREMENT'
   ])
   const decreaseRaw = getFirstUsableInteractionParameter(params, [
     'WHEEL_DECREMENT',
+    'INCREMENT_VALUE',
     'DECREMENT',
     'VALUE_STEP',
     'STEP_SIZE',

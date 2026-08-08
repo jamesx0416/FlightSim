@@ -2,13 +2,13 @@
 
 This is the authoritative implementation and verification checklist for milestone one. Status markers follow the project convention: `[ ]` not started, `[~]` in progress, `[-]` blocked, and `[x]` completed. Browser-only claims are completed only after direct mounted-package verification.
 
-Latest automated verification: 234 tests passed with 1,017 expectations; typecheck and `git diff --check` passed.
+Latest automated verification: 237 tests passed with 1,023 expectations; typecheck and `git diff --check` passed.
 
 ## Milestone Status
 
 ### Exact Set/Adjust
 
-- [~] Extend exact-step support to mutable runtime-counter acceleration expressions. Runtime-dependent read-only step expressions are supported; unproven acceleration remains fail closed.
+- [x] Extend exact-step support to mutable runtime-counter acceleration expressions. Stock `INCREMENT_VALUE` expressions are compiled, mutable callback state is preflighted through a shadow variable map before real mutation, and callbacks that escape through external key or HTML events still fail closed. The stock `ASOBO_GT_Switch_3States_IncDec` acceleration shape is covered, and mounted A339X flap exact Set remains verified in both Legacy and Lock.
 - [x] Complete mounted-package exact Set/Adjust browser acceptance. On the A339X `LEVER_FLAPS`, exact Set and Adjust succeeded with authoritative readback in both Legacy and Lock, including restoration to the original value; the altitude selector still correctly fails closed when authoritative state is insufficient.
 
 ### Presentation and structured metadata
