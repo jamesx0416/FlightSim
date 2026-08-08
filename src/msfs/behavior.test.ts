@@ -454,6 +454,28 @@ test('compiles mutable runtime variables as exact step expressions', () => {
   expect(diagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_increment_unproven')).toBe(false)
 })
 
+test('compiles stock accelerated INCREMENT_VALUE as an exact step expression', () => {
+  const diagnostics: ImportDiagnostic[] = []
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['INCREMENT_VALUE', '(O:XMLVAR_IncrementCount) 10 > if{ 2 } els{ 1 }'],
+      ['MIN_VALUE', '0'],
+      ['MAX_VALUE', '100'],
+      ['VALUE_UNIT', 'number']
+    ]),
+    'TEST_SWITCH',
+    'TEST_SWITCH',
+    'Switch.xml',
+    '1 (>L:TEST)',
+    'callback',
+    diagnostics
+  )
+
+  expect(metadata.value.increaseStepExpression?.variableKeys).toEqual(['O:TEST_SWITCH:XMLVAR_IncrementCount'])
+  expect(metadata.value.decreaseStepExpression?.variableKeys).toEqual(['O:TEST_SWITCH:XMLVAR_IncrementCount'])
+  expect(diagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_increment_unproven')).toBe(false)
+})
+
 test('compiles CallbackDragging axis scales from anchor-relative mouse movement', () => {
   const callback = testElement('CallbackDragging', '', [
     testElement('Variable', '#DRAG_SIMVAR#'),

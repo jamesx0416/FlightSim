@@ -542,18 +542,40 @@ export class MsfsInteractionAdapter {
         )) {
       return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
     }
-    const plan = planExactSteps(
-      previous,
-      requested,
-      increaseStep,
-      decreaseStep,
-      increaseStepExpression,
-      decreaseStepExpression,
-      metadata.minimum,
-      metadata.maximum,
-      metadata.cyclic,
-      (expression, current) => this.evaluateExactStepExpression(expression, current)
-    )
+    const hasMutableStepExpression = [increaseStepExpression, decreaseStepExpression]
+      .some(expression => expression != null && expression.variableKeys.length > 0)
+    const simulatedPlan = hasMutableStepExpression
+      ? this.planMutableExactSteps(
+          valueBinding,
+          previous,
+          requested,
+          metadata.minimum,
+          metadata.maximum,
+          metadata.cyclic,
+          increaseSelection,
+          decreaseSelection
+        )
+      : undefined
+    if (simulatedPlan?.code === 'VALUE_REACHABILITY_UNKNOWN') {
+      return exactResult('VALUE_REACHABILITY_UNKNOWN', previous, previous, requested, target, null, 0)
+    }
+    if (simulatedPlan?.code === 'VALUE_NOT_REACHABLE') {
+      return exactResult('VALUE_NOT_REACHABLE', previous, previous, requested, target, null, 0)
+    }
+    const plan = simulatedPlan?.code === 'OK'
+      ? simulatedPlan
+      : planExactSteps(
+          previous,
+          requested,
+          increaseStep,
+          decreaseStep,
+          increaseStepExpression,
+          decreaseStepExpression,
+          metadata.minimum,
+          metadata.maximum,
+          metadata.cyclic,
+          (expression, current) => this.evaluateExactStepExpression(expression, current)
+        )
     if (plan == null) return exactResult('VALUE_NOT_REACHABLE', previous, previous, requested, target, null, 0)
     const routeOperation = plan.operation
     const selectedRoute = routeOperation === 'increase' ? increaseSelection : decreaseSelection
@@ -607,6 +629,94 @@ export class MsfsInteractionAdapter {
     } finally {
       this.busy.delete(this.arbitrationKey(target))
     }
+  }
+
+  private planMutableExactSteps(
+    valueBinding: CompiledInteractionBinding,
+    current: number,
+    requested: number,
+    minimum: number,
+    maximum: number,
+    cyclic: boolean,
+    increaseSelection: { readonly binding: CompiledInteractionBinding; readonly route: CompiledInteractionRoute | null } | null,
+    decreaseSelection: { readonly binding: CompiledInteractionBinding; readonly route: CompiledInteractionRoute | null } | null
+  ): { readonly code: 'OK'; readonly operation: 'increase' | 'decrease'; readonly steps: number } |
+     { readonly code: 'VALUE_NOT_REACHABLE' | 'VALUE_REACHABILITY_UNKNOWN' } | undefined {
+    const stateExpression = valueBinding.metadata.value.stateExpression
+    const runtime = this.runtime as AircraftRuntime & {
+      simulateInteractionBindingDirect?: (
+        binding: CompiledInteractionBinding,
+        options: { readonly mouseEvent?: string; readonly inputType?: number },
+        shadowVariables: Map<string, number>
+      ) => boolean
+      evaluateInteractionReadOnlyExpression?: (
+        expression: CompiledExpression,
+        parameterValues?: readonly number[],
+        shadowVariables?: ReadonlyMap<string, number>
+      ) => number
+    }
+    if (stateExpression == null ||
+        typeof runtime.simulateInteractionBindingDirect !== 'function' ||
+        typeof runtime.evaluateInteractionReadOnlyExpression !== 'function') {
+      return undefined
+    }
+
+    type DirectionResult =
+      | { readonly code: 'OK'; readonly steps: number }
+      | { readonly code: 'VALUE_NOT_REACHABLE' | 'VALUE_REACHABILITY_UNKNOWN' }
+    const simulate = (operation: 'increase' | 'decrease'): DirectionResult => {
+      const selection = operation === 'increase' ? increaseSelection : decreaseSelection
+      if (selection?.route == null || selection.binding.metadata.discreteGate != null) {
+        return { code: 'VALUE_REACHABILITY_UNKNOWN' }
+      }
+      const shadowVariables = new Map<string, number>()
+      const visited = new Set<number>([current])
+      let value = current
+      for (let steps = 1; steps <= 10_000; steps += 1) {
+        const safe = runtime.simulateInteractionBindingDirect!(selection.binding, {
+          mouseEvent: selection.route.msfsEvent ?? undefined,
+          inputType: selection.route.inputTypes[0]
+        }, shadowVariables)
+        if (!safe) return { code: 'VALUE_REACHABILITY_UNKNOWN' }
+        const next = runtime.evaluateInteractionReadOnlyExpression!(stateExpression, [], shadowVariables)
+        if (!Number.isFinite(next) || next < minimum || next > maximum) {
+          return { code: 'VALUE_REACHABILITY_UNKNOWN' }
+        }
+        if (Object.is(next, requested)) return { code: 'OK', steps }
+        if (Object.is(next, value)) return { code: 'VALUE_REACHABILITY_UNKNOWN' }
+        if (!cyclic) {
+          if (operation === 'increase' && next < value || operation === 'decrease' && next > value) {
+            return { code: 'VALUE_REACHABILITY_UNKNOWN' }
+          }
+          if (operation === 'increase' && next > requested || operation === 'decrease' && next < requested) {
+            return { code: 'VALUE_NOT_REACHABLE' }
+          }
+        }
+        if (visited.has(next)) return { code: 'VALUE_NOT_REACHABLE' }
+        visited.add(next)
+        value = next
+      }
+      return { code: 'VALUE_NOT_REACHABLE' }
+    }
+
+    if (!cyclic) {
+      const operation = requested >= current ? 'increase' : 'decrease'
+      const result = simulate(operation)
+      return result.code === 'OK' ? { ...result, operation } : result
+    }
+    const increase = simulate('increase')
+    const decrease = simulate('decrease')
+    if (increase.code === 'VALUE_REACHABILITY_UNKNOWN' || decrease.code === 'VALUE_REACHABILITY_UNKNOWN') {
+      return { code: 'VALUE_REACHABILITY_UNKNOWN' }
+    }
+    if (increase.code === 'OK' && decrease.code === 'OK') {
+      return increase.steps <= decrease.steps
+        ? { code: 'OK', operation: 'increase', steps: increase.steps }
+        : { code: 'OK', operation: 'decrease', steps: decrease.steps }
+    }
+    if (increase.code === 'OK') return { code: 'OK', operation: 'increase', steps: increase.steps }
+    if (decrease.code === 'OK') return { code: 'OK', operation: 'decrease', steps: decrease.steps }
+    return { code: 'VALUE_NOT_REACHABLE' }
   }
 
   private evaluateExactStepExpression(expression: CompiledExpression, current: number): number {

@@ -364,6 +364,100 @@ test('preflights a mutable runtime-variable increment without guessing', async (
   expect([unreachable.code, value, executions]).toEqual(['VALUE_NOT_REACHABLE', 0, 0])
 })
 
+test('shadow preflights stock mutable counter acceleration before exact mutation', async () => {
+  const stepExpression = {
+    source: '(O:XMLVAR_IncrementCount) 10 > if{ (O:XMLVAR_IncrementCount) 25 > if{ 5 } els{ 2 } } els{ 1 }',
+    instructions: [
+      { op: 'pushVariable' as const, key: 'O:XMLVAR_IncrementCount', unit: null },
+      { op: 'pushNumber' as const, value: 10 },
+      { op: 'gt' as const },
+      {
+        op: 'if' as const,
+        thenInstructions: [
+          { op: 'pushVariable' as const, key: 'O:XMLVAR_IncrementCount', unit: null },
+          { op: 'pushNumber' as const, value: 25 },
+          { op: 'gt' as const },
+          { op: 'if' as const, thenInstructions: [{ op: 'pushNumber' as const, value: 5 }], elseInstructions: [{ op: 'pushNumber' as const, value: 2 }] }
+        ],
+        elseInstructions: [{ op: 'pushNumber' as const, value: 1 }]
+      }
+    ],
+    variableKeys: ['O:XMLVAR_IncrementCount']
+  }
+  const base = interactionBinding({
+    maximum: 100,
+    step: null,
+    increaseStep: null,
+    decreaseStep: null,
+    increaseStepExpression: stepExpression
+  })
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: '(L:TEST, number) #INCREMENT_VALUE# + (>L:TEST, number) (O:XMLVAR_IncrementCount) 1 + (>O:XMLVAR_IncrementCount)',
+      instructions: [
+        { op: 'pushVariable', key: 'L:TEST', unit: 'number' },
+        ...stepExpression.instructions,
+        { op: 'add' },
+        { op: 'writeVariable', key: 'L:TEST', unit: 'number' },
+        { op: 'pushVariable', key: 'O:XMLVAR_IncrementCount', unit: null },
+        { op: 'pushNumber', value: 1 },
+        { op: 'add' },
+        { op: 'writeVariable', key: 'O:XMLVAR_IncrementCount', unit: null }
+      ],
+      variableKeys: ['L:TEST, number', 'O:XMLVAR_IncrementCount']
+    }
+  }
+  const { runtime, host } = interactionRuntime(binding)
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+  const target = adapter.fromBinding(binding)
+  host.writeVariable('L:TEST', 0, 'number')
+  host.writeVariable('O:XMLVAR_IncrementCount', 0)
+
+  const success = await adapter.setExact(target, 13)
+  expect([success.code, success.steps, host.readVariable('L:TEST'), host.readVariable('O:XMLVAR_IncrementCount')])
+    .toEqual(['OK', 12, 13, 12])
+
+  host.writeVariable('L:TEST', 0, 'number')
+  host.writeVariable('O:XMLVAR_IncrementCount', 0)
+  const unreachable = await adapter.setExact(target, 12)
+  expect([unreachable.code, host.readVariable('L:TEST'), host.readVariable('O:XMLVAR_IncrementCount')])
+    .toEqual(['VALUE_NOT_REACHABLE', 0, 0])
+})
+
+test('shadow exact preflight fails closed when a mutable step escapes through an event', async () => {
+  const base = interactionBinding({
+    maximum: 1000,
+    step: null,
+    increaseStep: null,
+    decreaseStep: null,
+    increaseStepExpression: {
+      source: 'p15 (L:STEP, number)',
+      instructions: [
+        { op: 'pushParameter', index: 15 },
+        { op: 'pushVariable', key: 'L:STEP', unit: 'number' }
+      ],
+      variableKeys: ['L:STEP, number']
+    }
+  })
+  const binding: CompiledInteractionBinding = {
+    ...base,
+    expression: {
+      source: '(>K:TEST_EVENT)',
+      instructions: [{ op: 'invokeKeyEvent', name: 'TEST_EVENT', argCount: 0 }],
+      variableKeys: []
+    }
+  }
+  const { runtime, host } = interactionRuntime(binding)
+  const adapter = new MsfsInteractionAdapter(runtime, async () => {})
+  host.writeVariable('L:TEST', 0, 'number')
+  host.writeVariable('L:STEP', 100, 'number')
+
+  const result = await adapter.setExact(adapter.fromBinding(binding), 300)
+  expect([result.code, host.readVariable('L:TEST'), host.readVariable('L:STEP')])
+    .toEqual(['VALUE_REACHABILITY_UNKNOWN', 0, 100])
+})
+
 test('accepts a numeric Set parameter through a deterministic transform', async () => {
   let value = 0
   const base = interactionBinding(

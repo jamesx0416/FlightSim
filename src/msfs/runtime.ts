@@ -696,12 +696,44 @@ export class AircraftRuntime {
 
   evaluateInteractionReadOnlyExpression(
     expression: CompiledExpression,
-    parameterValues: readonly number[] = []
+    parameterValues: readonly number[] = [],
+    shadowVariables?: ReadonlyMap<string, number>
   ): number {
     return evaluateCompiledExpression(expression, {
       ...this.readOnlyExpressionServices,
+      readVariable: shadowVariables == null
+        ? this.readOnlyExpressionServices.readVariable
+        : (key, unit) => shadowVariables.get(getRuntimeVariableDependencyCacheKey(key, unit))
+          ?? this.hostServices.readVariable(key, unit),
       parameterValues
     })
+  }
+
+  simulateInteractionBindingDirect(
+    binding: CompiledInteractionBinding,
+    options: RuntimeInteractionOptions,
+    shadowVariables: Map<string, number>
+  ): boolean {
+    if (!this.compiled.interactionBindings.includes(binding) || binding.metadata.disabled) return false
+    const nextShadow = new Map(shadowVariables)
+    let safe = true
+    const mouseEvent = options.mouseEvent?.trim() || 'LeftSingle'
+    evaluateCompiledExpression(binding.expression, {
+      readVariable: (key, unit) => readRuntimeMouseVariable(key, options)
+        ?? nextShadow.get(getRuntimeVariableDependencyCacheKey(key, unit))
+        ?? this.hostServices.readVariable(key, unit),
+      readStringVariable: key => readRuntimeStringVariable(key, mouseEvent),
+      writeVariable: (key, value, unit) => {
+        nextShadow.set(getRuntimeVariableDependencyCacheKey(key, unit), value)
+      },
+      invokeKeyEvent: () => { safe = false },
+      invokeHtmlEvent: () => { safe = false },
+      parameterValues: options.parameterValues
+    })
+    if (!safe) return false
+    shadowVariables.clear()
+    for (const [key, value] of nextShadow) shadowVariables.set(key, value)
+    return true
   }
 
   evaluateInteractionFormattedValue(binding: CompiledInteractionBinding): string | null {
