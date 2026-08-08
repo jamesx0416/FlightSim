@@ -2,7 +2,7 @@
 
 This is the authoritative implementation and verification checklist for milestone one. Status markers follow the project convention: `[ ]` not started, `[~]` in progress, `[-]` blocked, and `[x]` completed. Browser-only claims are completed only after direct mounted-package verification.
 
-Latest automated verification: 233 tests passed with 1,014 expectations; typecheck and `git diff --check` passed.
+Latest automated verification: 234 tests passed with 1,017 expectations; typecheck and `git diff --check` passed.
 
 ## Milestone Status
 
@@ -32,16 +32,18 @@ Latest automated verification: 233 tests passed with 1,014 expectations; typeche
 
 ### Browser acceptance and verification
 
-- [~] Complete live browser cancellation acceptance. LOD replacement and cockpit exit are verified live; actual `lostpointercapture` and target disappearance still need direct browser verification.
-- [~] Complete direct browser acceptance for hit testing and replacement paths. Interaction meshes, fallback hitboxes, passive gauges, and LOD replacement are verified; blockers/covers and target disappearance still need clean direct checks.
-- [~] Run direct-mouse and DevApi acceptance across the complete representative A330 control matrix in both Legacy and Lock, including presentation and exact controls. Representative button, fallback-hitbox, exact flap, camera-arbitration, and lifecycle paths pass; the full matrix remains incomplete.
+- [x] Complete live browser cancellation acceptance. LOD replacement, cockpit exit, actual browser `lostpointercapture`, and live target disappearance are verified. On the mounted A339X CSTR control, releasing real pointer capture stopped and cleared the held interaction, and hiding the mounted interaction node while held released capture and cleared the active target on the next viewer update.
+- [~] Complete direct browser acceptance for hit testing and replacement paths. Interaction meshes, fallback hitboxes, passive gauges, LOD replacement, and live target disappearance are verified; blockers/covers still need clean direct checks.
+- [~] Run direct-mouse and DevApi acceptance across the complete representative A330 control matrix in both Legacy and Lock, including presentation and exact controls. Mounted DevApi acceptance now covers button, momentary, reversible toggle, finite and infinite detents, primary/secondary/tertiary compound knob behavior, guarded/covered controls, inner/outer RMP tuning plus transfer, FCU baro push/pull and wheel routes, exact flap Set with restoration, camera arbitration, fallback hitboxes, and lifecycle paths. Legacy correctly rejects secondary/tertiary compound routes authored only for the drag/Lock model. Remaining work is the final direct-mouse/presentation sweep and blocker/cover geometry acceptance.
 - [x] Rerun Settings Escape and claimed-hit camera arbitration in Agent Browser. Physical Escape closes Settings, real empty-cockpit mouse drag pans the camera, and a claimed CSTR interaction routes to the control instead of the camera.
 - [-] Run the same generic acceptance against a second mounted aircraft package. Blocked because the selector currently exposes only three liveries from the same Headwind A339X package.
 - [~] Complete the compiler/control matrix for every channel, phase, callback kind, EventID/InputEvent route, compound control, timing mode, precedence rule, and unsupported MSFS 2024 diagnostic.
 - [~] Scan every mounted stock MouseRect interaction-model instance and MouseFlags token. The mounted A339X interaction set has been scanned; broader mounted-stock coverage remains.
-- [~] Verify every advertised operation in Legacy and Lock or retain an explicit unsupported diagnostic.
+- [x] Verify every advertised operation in Legacy and Lock or retain an explicit unsupported diagnostic. Mounted A339X acceptance exercised press, release, turn, increase, decrease, toggle, exact Set, lock, and unlock in both modes; exact flap Set converged `0 -> 0.25 -> 0` with authoritative readback, and mode-specific secondary/tertiary routes fail closed in Legacy when they are authored only for the drag/Lock interaction model.
 - [~] Verify model-specific cursor, tooltip, timing, scale, and lock metadata on focused stock fixtures. Compiler/unit coverage exists; broader focused mounted-stock verification remains.
 - [x] Repeat the claimed-hit camera check with real browser coordinates. Physical CSTR interaction was claimed by the cockpit control and did not start camera pan.
+
+- [x] Preserve distinct mounted controls when package templates reuse one authored ID. The A339X reuses generic IDs such as `1` across many physical controls in one source file; the adapter now preserves each distinct compiled interaction identity, exposes deterministic `sourcePath#bindingTarget` fallback IDs for collisions, and makes the short authored ID explicitly ambiguous instead of silently dropping controls. Mounted public targets increased from 489 to 856; FCU baro and RMP controls are directly addressable and short ID `1` reports 73 candidates.
 
 ## Completed
 
