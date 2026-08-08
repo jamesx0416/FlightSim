@@ -374,14 +374,15 @@ Current implemented slice:
 - [x] Persist and coalesce compact history, including the 120 ms wheel window, and provide shared lazy detailed trace with 10,000-record/approximately-16-MB caps, overflow accounting, low-level runtime events, and DevApi export.
 - [x] Complete the documented canonical dispatch, active lifecycle, semantic variant, profile, history, and trace DevApi surface and remove stale raw `input.pointer`, `input.key`, and `input.wheel` documentation.
 - [x] Prevent claimed, unbound, unsupported, busy, unavailable, and blocker/cover interaction input from falling through to camera pan/zoom. Bound passive VCockpit surfaces occlude controls behind them but may fall through to camera input when the gauge itself does not own the gesture.
+- [~] Complete the remaining milestone-one acceptance and edge coverage tracked in `cockpit-interaction-milestone-one-todo.md`.
+  - Finish mutable runtime-counter acceleration and the remaining unproven rich-format variants.
+  - Finish direct browser cancellation, blocker/cover, target-disappearance, and representative A330 Legacy/Lock matrix coverage.
+  - Finish the broader stock interaction/control metadata matrix.
+  - [-] Run the same generic matrix against a second mounted package. Blocked because only three liveries from the same Headwind A339X package are currently mounted.
+
+Later interaction work that does not block milestone one:
+
 - [ ] Distinguish touch/input-owning VCockpit gauges from passive displays and consume only the pointer gestures authoritatively owned by those gauges.
-- [ ] Complete the remaining broader milestone-one compiler metadata and mounted-package acceptance work tracked in `cockpit-interaction-milestone-one-todo.md`.
-  - Compile dynamic increment/typed parameter/cross-unit exact relationships, authored rich value formatting and tooltips, directional/center cursors, temporary/lockable/lag drag flags, independent drag scales, and `GroupID`.
-  - Remove the invented `LeftSingle` compiler fallback and add structured dropped-candidate diagnostics plus candidate/compiled/rejected totals.
-  - Run focused geometric hit/arbitration coverage and the complete A330 direct-mouse, lifecycle, presentation, exact Set/Adjust, and Legacy/Lock matrix.
-  - Run the same generic matrix against a second mounted package. Only three liveries from the same Headwind A339X package were available on 2026-07-17.
-  - Rerun post-fix Settings Escape and camera-arbitration browser checks after the local browser-command authorization service recovers from its 503 failure.
-  - The current A339X has no fully provable browser exact target: three otherwise eligible percentage controls lack authoritative state reads, and no mounted target exposes both multiple static states and readable current state. Keep exact mutation fail closed.
 
 - Preserve package authority:
   - Keep importing the aircraft's `MouseRect`, callback, input-event, template, tooltip, and sound metadata.
@@ -502,7 +503,7 @@ Rules:
 - Stock XML items can only be checked when the relevant official docs/reference pages have been read for that area and the implementation has been updated or confirmed against them.
 - Reference-doc items can only be checked when they have actually been reviewed during implementation, not merely downloaded.
 - No item can be checked off unless an `agent-browser` verification pass has been run on both the A330 and A320 routes, screenshots have been taken, and those screenshots indicate nothing is broken and the change likely works.
-- Continue the implementation until every checklist item that is in scope for this repo is either completed and checked off or explicitly blocked with a documented reason; do not stop early just because a subset is finished.
+- Use `[ ]` for not started, `[~]` for in progress, `[-]` for blocked, and `[x]` for completed. Continue implementation until every in-scope item is completed or explicitly blocked with a documented reason; do not stop early just because a subset is finished.
 
 ### 1. Create A Granular Stock-Support Checklist
 
@@ -839,28 +840,28 @@ Scope note:
 
 ##### AircraftTypes
 
-- [ ] `AircraftTypes/Gliders.xml`
+- [-] `AircraftTypes/Gliders.xml`
   - Blocked on fixture coverage as of 2026-05-28. The file defines generic yaw-string/noise animation templates driven by glider/relative-wind SimVars, but it is not included by the current A320/A330 fixture routes. Do not mark checked until a public glider package route exercises the mounted stock XML through the generic compiler/runtime with screenshots and diagnostics.
-- [ ] `AircraftTypes/Rotorcrafts.xml`
+- [-] `AircraftTypes/Rotorcrafts.xml`
   - Blocked on fixture coverage as of 2026-05-28. The file includes `Gliders.xml` and defines rotor visibility/rotation, swashplate/control-rod/tail-rotor/governor/collective/clutch/rotor-brake templates driven by rotorcraft SimVars and stock engine/handling templates. Some underlying rotor clutch/brake key events are covered by the generic Common input support above, but the mounted rotorcraft XML itself is not exercised by the A320/A330 airliner routes. Do not mark checked until a public rotorcraft package route verifies these templates without aircraft-specific aliases.
 
 ##### Airliner
 
-Scope note: the active A320/A330 fixture routes do not include the public `Asobo/Airliner/*.xml` family as their full airliner behavior source. Existing coverage is limited to targeted generic runtime work such as stock FMC/MCDU brightness and the documented missing `FBW_AIRBUS_Update_PTU_Template` non-alias decision above. Keep these rows unchecked until each mounted public airliner file is exercised through a stock harness and, where relevant, route-verified without vendor-prefix aliases.
+Scope note: the active A320/A330 fixture routes do not include the public `Asobo/Airliner/*.xml` family as their full airliner behavior source. Existing coverage is limited to targeted generic runtime work such as stock FMC/MCDU brightness and the documented missing `FBW_AIRBUS_Update_PTU_Template` non-alias decision above. Keep these rows blocked until each mounted public airliner file is exercised through a stock harness and, where relevant, route-verified without vendor-prefix aliases.
 
-- [ ] `Airliner/AS02A.xml`
+- [-] `Airliner/AS02A.xml`
   - Blocked on representative mounted-stock airliner fixture coverage; the active A320/A330 routes do not include this file as their behavior source.
-- [ ] `Airliner/Airbus.xml`
+- [-] `Airliner/Airbus.xml`
   - Blocked on representative mounted-stock Airbus airliner fixture coverage; the active FBW routes use package/vendor templates and the remaining `FBW_` to `ASOBO_` alias is intentionally not guessed.
-- [ ] `Airliner/AirlinerCommon.xml`
+- [-] `Airliner/AirlinerCommon.xml`
   - Blocked on representative mounted-stock airliner fixture coverage; shared lower-level runtime primitives are covered elsewhere, but this complete file is not route-exercised.
-- [ ] `Airliner/Boeing.xml`
+- [-] `Airliner/Boeing.xml`
   - Blocked on representative mounted-stock Boeing fixture coverage; no active A320/A330 route instantiates this Boeing-specific stock behavior file.
-- [ ] `Airliner/FMC.xml`
+- [-] `Airliner/FMC.xml`
   - Partial verified on 2026-05-14 for `ASOBO_FMC_Push_BRT_DIM_Template` and related MCDU brightness behavior through mounted `Asobo/Airliner/FMC.xml`; blocked on broader FMC button/screen/emissive/tooltip/template fixture coverage before this complete file can be checked.
-- [ ] `Airliner/GlassCockpit.xml`
+- [-] `Airliner/GlassCockpit.xml`
   - Blocked on representative mounted-stock airliner glass-cockpit fixture coverage; shared screen/input primitives are covered elsewhere, but this complete airliner file is not route-exercised.
-- [ ] `Airliner/Inputs/Airliner_Inputs.xml`
+- [-] `Airliner/Inputs/Airliner_Inputs.xml`
   - Blocked on representative mounted-stock airliner input-event fixture coverage; checked Common/NAVCOM/Transponder input support does not prove the full airliner input file.
 
 ##### Common
@@ -924,15 +925,15 @@ Scope note: the active A320/A330 fixture routes do not include the public `Asobo
 
 Scope note: the active A320/A330 routes do not instantiate the public Asobo GPS units as mounted `AS430`, `AS530`, or `AS510/Aera` panels. These files combine generic push/knob input-event handling, NAVCOM helpers, emissive gauge surfaces, and GPS-specific HTML event IDs, so route smokes for airliner MCDUs or NAVCOM/transponder controls are not enough to check them off.
 
-- [ ] `GPS/AS430.xml`
+- [-] `GPS/AS430.xml`
   - Blocked on representative AS430 fixture coverage; the active A320/A330 routes do not instantiate this public GPS unit.
-- [ ] `GPS/AS530.xml`
+- [-] `GPS/AS530.xml`
   - Blocked on representative AS530 fixture coverage; the active A320/A330 routes do not instantiate this public GPS unit.
-- [ ] `GPS/Aera.xml`
+- [-] `GPS/Aera.xml`
   - Blocked on representative Aera/AS510 fixture coverage; the active A320/A330 routes do not instantiate this public GPS unit.
-- [ ] `GPS/Inputs/AS430_Inputs.xml`
+- [-] `GPS/Inputs/AS430_Inputs.xml`
   - Blocked on representative AS430 input fixture coverage; shared generic input-event support does not prove the GPS-specific input IDs and softkey contract.
-- [ ] `GPS/Inputs/Aera_Inputs.xml`
+- [-] `GPS/Inputs/Aera_Inputs.xml`
   - Blocked on representative Aera input fixture coverage; shared generic input-event support does not prove the GPS-specific input IDs and softkey contract.
 
 ##### Generic
@@ -944,104 +945,104 @@ Scope note: the active A320/A330 routes do not instantiate the public Asobo GPS 
 - [x] `Generic/FX.xml`
 - [x] `Generic/Helpers.xml`
 - [x] `Generic/Index.xml`
-- [ ] `Generic/Interactions.xml`
+- [~] `Generic/Interactions.xml`
   - Partial verified through mounted-stock harnesses on 2026-05-14, 2026-05-27, and 2026-05-28: left-single event/code/leave, timed press, wheel/continuous-left, push-pull, drag axis/event/set/gate, disabled interaction blockers, emissive-adjacent interaction paths, and selected `ASOBO_GT_MouseRect` `Switch`/`Loop` callback payloads compile and execute through the generic XML/RPN path with route smokes recorded above. Blocked on user-facing tooltip rendering plus the remaining `MouseRect` metadata/display surface before this complete file can be checked.
 - [x] `Generic/Updates.xml`
 - [x] `Generic/Visibility.xml`
 
 ##### Generic Complex
 
-- [ ] `Generic/Complex/Index.xml`
-  - Include aggregator for the Generic Complex family; keep unchecked until the Joystick/Knob/Lever/Misc/PushButton/Switch files below are complete or split into checked/blocked subcontracts.
-- [ ] `Generic/Complex/Joystick.xml`
+- [~] `Generic/Complex/Index.xml`
+  - Include aggregator for the Generic Complex family; keep in progress until the Joystick/Knob/Lever/Misc/PushButton/Switch files below are complete or split into completed/blocked subcontracts.
+- [~] `Generic/Complex/Joystick.xml`
   - Partial covered through generic `M:RelativeX/Y`, drag, wheel, animation, and `ASOBO_GT_Joystick_Interaction_Knob` consumer paths in GPS/glass templates, but blocked on route-exercising the full joystick pan/knob interaction contract with repeat updates, drag-lock state, pad drag mode, and dual-axis animation/sound triggers.
-- [ ] `Generic/Complex/Knob.xml`
+- [~] `Generic/Complex/Knob.xml`
   - Partial covered through finite/infinite knob interaction, push, wheel, sound-trigger, and rotary key-event fallback work above. Blocked on route-exercising the full finite switch/centered/push-pull/timed/dual-hitbox matrix, animation-handled-separately variants, and dummy/force-full animation branches.
-- [ ] `Generic/Complex/Lever.xml`
+- [~] `Generic/Complex/Lever.xml`
   - Partial verified by mounted-stock lever drag harnesses for dragging-Y events/inc-dec/gates/sim-gates/code/event-set and wheel-left-drag axis paths. Blocked on route-exercising all lever animation/sound trigger variants and stock consumers as a complete file.
-- [ ] `Generic/Complex/Misc.xml`
+- [~] `Generic/Complex/Misc.xml`
   - Partial covered by generic needle animation, PartID preservation, and disabled interaction blocker support. Blocked on camera-title metadata, alternate PartID branches, and complete consumer route coverage.
-- [ ] `Generic/Complex/PushButton.xml`
+- [~] `Generic/Complex/PushButton.xml`
   - Partial covered by generic push, held/timed push, airliner push, emissive, cover, visibility, release, repeat, and disabled/inop paths used by the current cockpit routes. Blocked on route-exercising the full covered-button, dummy/emissive, potentiometer, sequence-light, min-held-duration, and visibility/emissive branch matrix.
-- [ ] `Generic/Complex/Switch.xml`
+- [~] `Generic/Complex/Switch.xml`
   - Partial covered by generic switch code, 2/3-state, multistate, covered switch, toggle-variable, consistency update, and left-single/multistate interaction support. Blocked on route-exercising the complete 4-7 state, duration/cancellable, accelerated-hold, single-true/false, dummy, and covered-switch branch matrix.
 
 ##### Generic Subtemplates
 
-- [ ] `Generic/Subtemplates/Animations_Subtemplates.xml`
+- [~] `Generic/Subtemplates/Animations_Subtemplates.xml`
   - Partial covered by stock `ASOBO_GT_Anim`, `ASOBO_GT_Anim_Code`, inversion/repeat handling, animation triggers, and effect/sound trigger recording. Blocked on route-verifying the full failure-test, direct `<Animation>` authoring surface, recursive animation-event effect triggers, and stock consumer matrix.
-- [ ] `Generic/Subtemplates/Interactions_Subtemplates.xml`
-  - Partial verified through the same mounted-stock interaction harnesses: left-single leave subtemplates, multistate setup/code recursion, wheel/continuous-left horizontal/vertical/base dispatch, and dragging-Y sim-gate base expansion compile and execute through the generic path. Keep unchecked until the remaining lockable, center, timed, repeat, tooltip/display, and `MouseRect` metadata variants are either exercised generically or explicitly blocked.
-- [ ] `Generic/Subtemplates/Updates_Subtemplates.xml`
+- [~] `Generic/Subtemplates/Interactions_Subtemplates.xml`
+  - Partial verified through the same mounted-stock interaction harnesses: left-single leave subtemplates, multistate setup/code recursion, wheel/continuous-left horizontal/vertical/base dispatch, and dragging-Y sim-gate base expansion compile and execute through the generic path. Keep in progress until the remaining lockable, center, timed, repeat, tooltip/display, and `MouseRect` metadata variants are either exercised generically or explicitly blocked.
+- [~] `Generic/Subtemplates/Updates_Subtemplates.xml`
   - Partial covered by generic `ASOBO_GT_Update`, stock update runtime execution, smooth lever movement, and selected multistate consistency paths. Blocked on exercising the recursive multistate param/code setup variants against mounted stock consumers.
 
 ##### GlassCockpit
 
 Scope note: the active A320/A330 routes do not instantiate the public Asobo glass-cockpit suites as mounted AS1000/AS3000/AS3X/AS5/AS580/AS650 units. Existing generic support covers shared input-event, autopilot, emissive, screen, and knob primitives used by parts of these files, but the complete suite-specific softkey/joystick/screen/control-panel contracts are not route-verified.
 
-- [ ] `GlassCockpit/AS1000.xml`
+- [-] `GlassCockpit/AS1000.xml`
   - Partial covered only for shared AS1000 autopilot input/key-event behavior noted above; blocked on representative AS1000 fixture coverage for the full bezel, joystick, softkey, and screen template surface.
-- [ ] `GlassCockpit/AS3000.xml`
+- [-] `GlassCockpit/AS3000.xml`
   - Blocked on representative AS3000 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
-- [ ] `GlassCockpit/AS307.xml`
+- [-] `GlassCockpit/AS307.xml`
   - Blocked on representative AS307 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
-- [ ] `GlassCockpit/AS3X.xml`
+- [-] `GlassCockpit/AS3X.xml`
   - Blocked on representative AS3X fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
-- [ ] `GlassCockpit/AS3X_Touch.xml`
+- [-] `GlassCockpit/AS3X_Touch.xml`
   - Blocked on representative AS3X Touch fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
-- [ ] `GlassCockpit/AS5.xml`
+- [-] `GlassCockpit/AS5.xml`
   - Blocked on representative AS5 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
-- [ ] `GlassCockpit/AS580.xml`
+- [-] `GlassCockpit/AS580.xml`
   - Blocked on representative AS580 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
-- [ ] `GlassCockpit/AS650.xml`
+- [-] `GlassCockpit/AS650.xml`
   - Blocked on representative AS650 fixture coverage; the active A320/A330 routes do not instantiate this public glass-cockpit suite.
-- [ ] `GlassCockpit/Inputs/AS1000_Inputs.xml`
+- [-] `GlassCockpit/Inputs/AS1000_Inputs.xml`
   - Blocked on representative AS1000 input fixture coverage; shared autopilot/input primitives do not prove the complete suite input contract.
-- [ ] `GlassCockpit/Inputs/AS3X_Inputs.xml`
+- [-] `GlassCockpit/Inputs/AS3X_Inputs.xml`
   - Blocked on representative AS3X input fixture coverage; shared input primitives do not prove the complete suite input contract.
-- [ ] `GlassCockpit/Inputs/AS5_Inputs.xml`
+- [-] `GlassCockpit/Inputs/AS5_Inputs.xml`
   - Blocked on representative AS5 input fixture coverage; shared input primitives do not prove the complete suite input contract.
 
 ##### Inputs
 
-- [ ] `Inputs/Generic.xml`
+- [~] `Inputs/Generic.xml`
   - Partial verified through the Common input-event work above: the compiler/runtime supports `ASOBO_GIE` / `ASOBO_GIE_Base` patterns for explicit `BINDING_*`, static and dynamic binding parameters, `*_EVENT_ID`, `*_EVENT_ID_ONLY`, generated direct `Inc` / `Dec` / `Set` bridge bindings, generated multistate bindings, two-state toggles, `SET_STATE_EXTERNAL` step/set synthesis, and `ON_STATE_CHANGED_EXTERNAL_CODE`. Blocked on route-exercising the full generic tooltip/watch-var/value metadata surface and every integer/float animation-helper branch as a complete stock contract.
-- [ ] `Inputs/Helpers.xml`
+- [~] `Inputs/Helpers.xml`
   - Partial verified as a dependency of the checked Common input families: macro/include resolution is active for `ASOBO\Inputs\Helpers.xml`, and its `Generic.xml` / `Templates.xml` includes are resolved by the mounted stock loader. Blocked on verifying the helper macros and included files as a complete public stock input contract rather than only through covered Common/NAVCOM/Transponder consumers.
-- [ ] `Inputs/Index.xml`
-  - This file is an include aggregator for the public `Asobo/Inputs` family. Keep unchecked until the included `Generic.xml`, `Helpers.xml`, and `Templates.xml` rows are either complete or explicitly split into checked/blocked subcontracts.
-- [ ] `Inputs/Templates.xml`
+- [~] `Inputs/Index.xml`
+  - This file is an include aggregator for the public `Asobo/Inputs` family. Keep in progress until the included `Generic.xml`, `Helpers.xml`, and `Templates.xml` rows are either complete or explicitly split into completed/blocked subcontracts.
+- [~] `Inputs/Templates.xml`
   - Partial verified through mounted-stock interaction/input harnesses: `UseInputEvent` wrappers, `SET_ARG_COUNT` / multi-argument bridge calls, push/pull event bases, BRT/DIM held-button behavior, and generated input-event bindings are supported by the generic compiler/runtime. Blocked on route-exercising the full `ASOBO_Interaction_Base_Template` matrix for push/switch/knob/lever/joystick, tooltip/display metadata, first-available binding selection, lockable/center/timed/repeat variants, and emissive template dispatch.
 
 ##### Misc
 
-Scope note: these public stock files are not part of the active A320/A330 airliner include graph as complete mounted contracts. Most are standalone avionics/instrument packages that depend on `Misc/Inputs/Misc_Inputs.xml`, emissive screen templates, tooltips, and generic interaction bases; `GroundVehicles.xml` and `SimObjects.xml` are non-aircraft/service-object animation helpers. Keep this family unchecked until representative fixtures or harnesses instantiate each unit without aircraft-specific aliases.
+Scope note: these public stock files are not part of the active A320/A330 airliner include graph as complete mounted contracts. Most are standalone avionics/instrument packages that depend on `Misc/Inputs/Misc_Inputs.xml`, emissive screen templates, tooltips, and generic interaction bases; `GroundVehicles.xml` and `SimObjects.xml` are non-aircraft/service-object animation helpers. Keep this family blocked until representative fixtures or harnesses instantiate each unit without aircraft-specific aliases.
 
-- [ ] `Misc/ASDigiflo.xml`
+- [-] `Misc/ASDigiflo.xml`
   - Blocked on representative AS Digiflo fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/ASDigitalFuelMeter_FP5L.xml`
+- [-] `Misc/ASDigitalFuelMeter_FP5L.xml`
   - Blocked on representative FP5L fuel-meter fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/ASPropeller.xml`
+- [-] `Misc/ASPropeller.xml`
   - Blocked on representative AS Propeller fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/ASVigilus.xml`
+- [-] `Misc/ASVigilus.xml`
   - Blocked on representative AS Vigilus fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/AS_EPM.xml`
+- [-] `Misc/AS_EPM.xml`
   - Blocked on representative AS EPM fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/Accelerometer.xml`
+- [-] `Misc/Accelerometer.xml`
   - Blocked on representative accelerometer fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/Clock.xml`
+- [-] `Misc/Clock.xml`
   - Partial covered only through shared `Common/Inputs/Instrument_Inputs.xml` and generic timed push-button support; blocked on representative clock/OAT fixture coverage for the complete screen and control-button template contract.
-- [ ] `Misc/GX2.xml`
+- [-] `Misc/GX2.xml`
   - Blocked on representative GX2 fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/GroundVehicles.xml`
+- [-] `Misc/GroundVehicles.xml`
   - Blocked/out of current aircraft-loader verification scope until there is a representative ground-service vehicle fixture path; the active viewer aircraft routes do not instantiate catering trucks, boarding ramps, baggage loaders, pushback vehicles, fuel trucks, or GPU animation templates.
-- [ ] `Misc/Pl463.xml`
+- [-] `Misc/Pl463.xml`
   - Blocked on representative PL463 fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/SimObjects.xml`
+- [-] `Misc/SimObjects.xml`
   - Blocked/out of current aircraft-loader verification scope until there is a representative non-aircraft SimObject fixture path; this file covers wind turbines, wind direction, and jetway animation helpers rather than the aircraft SimObject path currently loaded by the viewer.
-- [ ] `Misc/VoltsAmps.xml`
+- [-] `Misc/VoltsAmps.xml`
   - Blocked on representative volts/amps fixture coverage; the active A320/A330 routes do not instantiate this standalone instrument.
-- [ ] `Misc/Inputs/Misc_Inputs.xml`
+- [-] `Misc/Inputs/Misc_Inputs.xml`
   - Partial covered only for the generic `ASOBO_GIE_Anim_Handling` wrapper pattern shared with other checked input families. Blocked on exercising the concrete `AS_Propeller`, `ACCELEROMETER`, `AS_Vigilus`, `AS_Digiflo`, `AS_DigitalFuelMeter_FP5L`, `AS_GX2`, and `AS_EPM` input IDs with their owning Misc instruments.
 
 ##### NAVCOM
@@ -1064,7 +1065,7 @@ Scope note: these public stock files are not part of the active A320/A330 airlin
 Checked stock XML families in this batch are limited to the families covered by the generic runtime/input work and A320/A330 DevApi verification above:
 - Common aircraft, handling, landing-gear, fuel, electrical, deice, engine, instrument, common-procedure, and autopilot event support was implemented from the mounted public XML paths and verified on both fixture routes with screenshots under the matching `backups/agent-browser/*-support/` folders.
 - NAVCOM and Transponder support was implemented from `Asobo/NAVCOM/*` and `Asobo/Transponder/*` plus their input XMLs, then verified on both fixture routes with `backups/agent-browser/navcom-transponder-support/` screenshots.
-- GPS, glass cockpit, generic complex, and misc XML families remain unchecked because their mounted stock XML contracts have not yet been exercised and verified as complete on both fixture routes.
+- GPS, glass cockpit, and misc XML families remain blocked on representative fixture coverage; generic complex remains in progress because its mounted stock contract is only partially exercised.
 - Lighting, pressurization, safety, and electrical subtemplate coverage is checked in this batch because the mounted XML paths were reviewed, generic compiler/runtime support exists for their stock input-event/key-event patterns, and A330/A320 DevApi verification with screenshots is recorded above under the matching support folders.
 
 #### CFG Reference Targets
@@ -1082,12 +1083,12 @@ Checked stock XML families in this batch are limited to the families covered by 
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/cockpit_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/engines_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/flight_model_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Aircraft_SimO/gameplay_cfg.htm`
+- [-] `Content_Configuration/SimObjects/Aircraft_SimO/gameplay_cfg.htm`
   - Blocked/out of current loader scope as of 2026-05-28. The importer resolves and parses `gameplay.cfg` when present, but the mirrored SDK contract covers keyboard-response scaling and force-feedback effects, which require a flight-control / force-feedback simulation backend rather than model, material, texture, panel, or cockpit-loader behavior. Do not mark this checked until the viewer has an authoritative generic flight-control backend that can consume `[KEYBOARD_RESPONSE]` and `[FORCEFEEDBACK]` without aircraft-specific assumptions.
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/Instruments/panel_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/systems_cfg.htm`
 - [x] `Content_Configuration/SimObjects/Aircraft_SimO/target_performance_cfg.htm`
-- [ ] `Content_Configuration/SimObjects/Living_Things/Living_Things_sim_cfg.htm`
+- [-] `Content_Configuration/SimObjects/Living_Things/Living_Things_sim_cfg.htm`
   - Blocked/out of current aircraft-loader scope as of 2026-05-28. The mirrored SDK contract is for non-aircraft `sim.cfg` living-thing SimObjects, including humans/animals, `animation` folders, pilot-list UI metadata, AI waypoint/contact-point behavior, and living-world category/distance simulation. The current importer intentionally discovers aircraft under `SimObjects/Airplanes/**/aircraft.cfg`; do not mark this checked until the loader has an authoritative generic non-aircraft SimObject path for `sim.cfg` packages.
 - [x] `Content_Configuration/Textures/texture_cfg.htm`
   - Reviewed during the generic texture fallback implementation. The importer resolves `texture.cfg` `[fltsim] fallback.N` folders relative to the `texture.cfg` file, follows only the documented contiguous `fallback.1..N` sequence, recurses through fallback folders with cycle prevention, and emits a warning when a gap makes later entries unreachable. Verified with `tsc --noEmit` and Agent Browser A330/A320 route smokes on 2026-05-28; both loaded with zero diagnostics and screenshots were captured under `backups/agent-browser/texture-cfg-fallback-support/`.
@@ -1114,9 +1115,9 @@ Checked stock XML families in this batch are limited to the families covered by 
 - [x] `html/Content_Configuration/SimObjects/SimObjects.htm`
   - Reviewed against the mirrored SDK overview on 2026-05-28. The in-scope aircraft portion is covered by package `layout.json` discovery, aircraft `aircraft.cfg`, root aircraft CFG file loading, and documented `model*`, `panel*`, `sound*`, and `texture*` folder/suffix resolution; the overview's non-aircraft `sim.cfg` / `container.cfg` SimObject families remain out of current aircraft-loader scope and are tracked separately by the blocked living-things CFG item. Verified through the A330/A320 route smokes recorded for aircraft, model, cameras, and texture CFG support.
 - [x] `html/Content_Configuration/SimObjects/Aircraft_SimO/flight_model/interactive_points.htm`
-- [ ] `html/Content_Configuration/VisualEffects/Visual_Effects_Landing_Templates.htm`
+- [-] `html/Content_Configuration/VisualEffects/Visual_Effects_Landing_Templates.htm`
   - Blocked/out of current loader scope as of 2026-05-28. The mirrored SDK contract covers landing-contact visual-effect templates for contact points, gears, and bundled gear effects. The current viewer imports model, material, texture, panel, sound, XML behavior, and runtime state, but it does not have an authoritative generic visual-effects playback system for simulator `.fx` / effect instances. Do not mark this checked until a generic effect backend can consume these landing templates without aircraft-specific assumptions.
-- [ ] `html/Content_Configuration/Checklists/Checklists.htm`
+- [-] `html/Content_Configuration/Checklists/Checklists.htm`
   - Blocked/out of current loader scope as of 2026-05-28. The SDK page defines aircraft checklist XML authoring, checklist UI grouping, completion conditions, and in-sim checklist behavior. The current viewer does not expose checklist UI/state execution, so this is not a model/material/panel loader contract yet. Do not mark this checked until checklists are parsed, surfaced, and driven through generic runtime state.
 - [x] `msfs2024/html/3_Models_And_Textures/Plugins/glTF_Schemas.htm`
   - Reviewed against the mirrored SDK schema index on 2026-05-28. The in-scope built-aircraft glTF subset active in the A330/A320 routes is covered by the current loader: `MSFT_texture_dds`, DirectX normal-map conversion / `ASOBO_normal_map_convention` behavior, `ASOBO_material_blend_gbuffer`, `ASOBO_material_detail_map`, `ASOBO_material_draw_order`, `ASOBO_material_invisible`, `ASOBO_material_shadow_options`, material-code extras, primitive base-vertex/winding normalization, skinning/texcoord/color normalization, and property-animation/runtime XML behavior through the model XML path. Verified through the A330/A320 material, decal, texture fallback, model, and route-smoke evidence recorded above.
@@ -1161,7 +1162,7 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 ### 7. Revisit The A320 Wing Structure / Transform Issue
 
-- [ ] Revisit the A320 wing structure/transform issue after stock XML and CFG coverage is expanded.
+- [-] Revisit the A320 wing structure/transform issue after stock XML and CFG coverage is expanded.
   - Deferred until the remaining generic stock XML partials above are either completed or fixture-blocked; current authoritative evidence is recorded below.
 - [x] Implement generic model-level `NodeAnimation` runtime support from official docs.
   Documented-first scope:
@@ -1189,7 +1190,7 @@ Checked stock XML families in this batch are limited to the families covered by 
   - 2026-06-03 stabilizer-root follow-up: blend-gbuffer forward fallback now separates authored layer roles instead of promoting every color blend-gbuffer mesh to a decal pass. Same-glTF receiver-projected color blend meshes render as decals; receiverless color blend-gbuffer layers without draw-order metadata stay visible in the base pass with blend-depth masking disabled; draw-order blend-gbuffer strips without an authoritative same-glTF receiver stay out of the decal pass. Loader projection covers standalone same-parent blend-gbuffer decal meshes, not only same-glTF-mesh skinned primitives, while explicitly avoiding scene-root global nearest-receiver projection because top-level standalone decals lack an authoritative receiver binding without a real deferred/G-buffer resolve. Verified with `tsc --noEmit`; `bun run lint` MCP wrapper timed out and left a stray `tsc --noEmit` process, which terminated after the direct typecheck passed.
   - 2026-05-29 pedestal long-session follow-up: useful counters, rejected offscreen-suspension notes, and visible MCDU dirty-layer findings were moved to [NOTES.md](../../NOTES.md). Current generic fixes are the `SimVar.GetRegisteredId` fast cache and cached static layer reuse for `unknown` VCockpit dirty events.
   - The exact `WingFlex` node deformation math remains blocked by missing public documentation; do not re-enable the prior transform approximation unless authoritative math becomes available.
-- [ ] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.
+- [-] If it still remains after the stock-support work, fix it generically, non-heuristically, and not aircraft-specifically.
   - Blocked until a remaining visible A320 wing/structure defect is reproduced after the documented stock-support pass; existing WingFlex deformation remains blocked on missing public math, while the known flap decal issue has generic material/decal fixes recorded below.
 
 ### 8. Finish Selectable Cockpit / Interior LOD Support
@@ -1224,19 +1225,19 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 ### 9. Prototype Experimental Native HTML Gauge Texture Path
 
-- [ ] Evaluate Three.js `r184+` `HTMLTexture` / HTML-in-Canvas support against the current WebGPU-first renderer stack.
+- [-] Evaluate Three.js `r184+` `HTMLTexture` / HTML-in-Canvas support against the current WebGPU-first renderer stack.
   - 2026-05-27 local dependency audit: the repo is currently on `three@0.182.0` / `@types/three@0.182.0`. The installed `three/examples/jsm/interactive/HTMLMesh.js` `HTMLTexture` is not a native browser HTML texture upload path; it extends `CanvasTexture` and rerenders DOM through the example `html2canvas` helper. That does not replace the viewer's dirty-driven compositor.
   - 2026-05-27 blocker: upgrading blindly to Three `r184+` is not safe in this repo because the current lockfile includes `postprocessing@6.38.3` with peer range `three >=0.157.0 <0.184.0`. A native-path prototype needs a renderer/dependency audit first, then browser feature detection and long-session route validation.
   - 2026-05-28 audit confirmed the current dependency state remains `three@0.182.0`, `@types/three@0.182.0`, and `postprocessing@6.38.3` with peer range `three >= 0.157.0 < 0.184.0`; keep the r184+ path explicitly blocked until that renderer/dependency audit is done.
-- [ ] Add a query-gated `?vcockpitGaugeMode=htmlTexture` prototype that is used only when native browser feature detection succeeds.
+- [~] Add a query-gated `?vcockpitGaugeMode=htmlTexture` prototype that is used only when native browser feature detection succeeds.
   - 2026-05-28: the query value is accepted as an explicit experimental request, is not exposed through persisted settings, and is intentionally forced back to effective `texture` mode even when browser native hooks are detected. Native use remains blocked until renderer integration passes feature detection and validation.
 - [x] Detect and report native browser support for `drawElementImage`, `texElementImage2D`, and WebGPU `copyElementImageToTexture`.
   - 2026-05-27: unsupported browsers emit `vcockpit-html-texture-unsupported` with per-API support details; browsers exposing one of the native hooks emit `vcockpit-html-texture-blocked` and still use `CanvasTexture` until renderer integration and long-session validation are complete.
 - [x] Keep the current optimized dirty-driven `CanvasTexture` path as the fallback for normal browsers and for incompatible gauge documents.
   - 2026-05-27: `htmlTexture` resolves to the effective `texture` mode today, so the dirty-driven compositor remains default and fallback.
-- [ ] Verify whether sandboxed same-origin MSFS gauge iframes, custom elements, SVG, loaded fonts, and nested gauge canvases render correctly through the native path.
+- [-] Verify whether sandboxed same-origin MSFS gauge iframes, custom elements, SVG, loaded fonts, and nested gauge canvases render correctly through the native path.
   - Blocked 2026-05-28: there is no native renderer integration to validate yet; the only active runtime path is still the dirty-driven `CanvasTexture` compositor.
-- [ ] Compare long-session CPU stability, capture duration, upload timing, and visual correctness against the current canvas compositor on both A330 and A320 routes.
+- [-] Compare long-session CPU stability, capture duration, upload timing, and visual correctness against the current canvas compositor on both A330 and A320 routes.
   - Blocked 2026-05-28: long-session native comparison is intentionally deferred until the native renderer path is implemented behind feature detection.
 - [x] Keep this mode blocked from default use until it works without aircraft-specific assumptions and without requiring unstable browser APIs for normal users.
   - 2026-05-28: `htmlTexture` is query-only, omitted from persisted settings, emits support/blocking diagnostics when requested, and always resolves to the dirty-driven `CanvasTexture` renderer for normal users.
