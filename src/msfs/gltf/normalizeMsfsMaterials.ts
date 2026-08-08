@@ -2104,15 +2104,19 @@ function findClosestProjectionTriangle(
     result: seededProjection,
     distanceSq: seededProjection?.point.distanceToSquared(point) ?? Infinity,
   }
-  const searchDistanceSq = (): number =>
-    orientationNormal != null && projected.result != null
+  const pending: DecalProjectionSpatialIndex[] = [triangleIndex]
+  const pendingDistanceSq = [getPointToBoundsDistanceSquared(point, triangleIndex.min, triangleIndex.max)]
+
+  while (pending.length > 0) {
+    const node = pending.pop()!
+    const nodeDistanceSq = pendingDistanceSq.pop()!
+    const searchDistanceSq = orientationNormal != null && projected.result != null
       ? projected.distanceSq
       : orientationNormal == null
         ? closest.distanceSq
         : Infinity
-  const search = (node: DecalProjectionSpatialIndex): void => {
-    if (getPointToBoundsDistanceSquared(point, node.min, node.max) > searchDistanceSq()) {
-      return
+    if (nodeDistanceSq > searchDistanceSq) {
+      continue
     }
 
     if (node.items != null) {
@@ -2120,7 +2124,12 @@ function findClosestProjectionTriangle(
         if (orientationNormal != null && item.triangle.orientationNormal.dot(orientationNormal) <= 0) {
           continue
         }
-        if (getPointToBoundsDistanceSquared(point, item.min, item.max) > searchDistanceSq()) {
+        const itemSearchDistanceSq = orientationNormal != null && projected.result != null
+          ? projected.distanceSq
+          : orientationNormal == null
+            ? closest.distanceSq
+            : Infinity
+        if (getPointToBoundsDistanceSquared(point, item.min, item.max) > itemSearchDistanceSq) {
           continue
         }
 
@@ -2148,36 +2157,37 @@ function findClosestProjectionTriangle(
           }
         }
       }
-      return
+      continue
     }
 
     const left = node.left
     const right = node.right
     if (left == null && right == null) {
-      return
+      continue
     }
-
     if (left == null) {
-      search(right!)
-      return
+      const rightDistanceSq = getPointToBoundsDistanceSquared(point, right!.min, right!.max)
+      pending.push(right!)
+      pendingDistanceSq.push(rightDistanceSq)
+      continue
     }
     if (right == null) {
-      search(left)
-      return
+      const leftDistanceSq = getPointToBoundsDistanceSquared(point, left.min, left.max)
+      pending.push(left)
+      pendingDistanceSq.push(leftDistanceSq)
+      continue
     }
 
     const leftDistanceSq = getPointToBoundsDistanceSquared(point, left.min, left.max)
     const rightDistanceSq = getPointToBoundsDistanceSquared(point, right.min, right.max)
     if (leftDistanceSq <= rightDistanceSq) {
-      search(left)
-      search(right)
+      pending.push(right, left)
+      pendingDistanceSq.push(rightDistanceSq, leftDistanceSq)
     } else {
-      search(right)
-      search(left)
+      pending.push(left, right)
+      pendingDistanceSq.push(leftDistanceSq, rightDistanceSq)
     }
   }
-
-  search(triangleIndex)
 
   if (projected.triangle != null && projected.result != null) {
     return {
