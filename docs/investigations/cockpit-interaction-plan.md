@@ -370,7 +370,7 @@ glTF node names are descriptive metadata, not public identity.
 - Pointer movement does not retarget the active gesture.
 - A real interaction target consumes the action even when unavailable or unsupported.
 - Unsupported interaction never falls through to camera movement.
-- Camera movement begins only when pointer down hits no eligible interaction or gauge surface.
+- Camera movement begins when pointer down is not claimed by an eligible interaction. Passive gauge surfaces can still occlude controls behind them without claiming camera gestures; future touchscreen support should consume only pointer gestures proven to belong to the gauge.
 - Lost pointer capture, browser blur, cockpit exit, aircraft replacement, LOD replacement, profile replacement, and explicit cancellation release all capture state.
 
 ### Wheel arbitration
@@ -439,8 +439,9 @@ Interaction priority follows MSFS metadata:
 4. Respect `IgnoreZTest`.
 5. Respect covers and blockers.
 6. Respect disabled and unavailable state.
-7. Never click through a claimed VCockpit surface.
-8. Never apply a global “gauges always win” rule.
+7. Never click an interaction target through a VCockpit surface that geometrically occludes it.
+8. Passive VCockpit surfaces do not own pointer input by default; unhandled gestures may continue to camera controls.
+9. Never apply a global “gauges always win” rule. Future touchscreen/input ownership must be proven from gauge metadata/runtime support.
 
 Compound controls remain separate when authored separately:
 
