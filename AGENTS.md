@@ -23,6 +23,8 @@ See `docs/devapi-reference.md` for callable methods, examples, wait/chaining pat
 
 Use `NOTES.md` for durable investigation observations, rejected experiments, and useful-but-not-active evidence. Do not turn notes into behavior changes unless the current user request and fresh verification show they address the active bug. Keep active task/checklist state in `docs/investigations/loader-todo.md`.
 
+When working in a todo list/checklist, check off items as you work using `- [ ]` for not started, `- [~]` for in progress, `- [-]` for blocked, and `- [x]` for completed. Mark an item `[~]` as soon as substantive work starts, use `[-]` when progress is blocked and document the reason, and use `[x]` only when the item is fully implemented and verified. Keep partially completed work `[~]`, not `[x]`.
+
 Future todo(Do not do this unless user asks): Continue implementation until everything in `docs/investigations/loader-todo.md#stock-support-todo` that is in scope for this repo is either checked off or explicitly documented as blocked with a reason. Treat that checklist as MSFS adapter/compatibility work serving the engine direction.
 
 # Dev server URL
