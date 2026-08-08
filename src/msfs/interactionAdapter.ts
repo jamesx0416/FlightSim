@@ -179,15 +179,15 @@ export class MsfsInteractionAdapter {
   list(): readonly MsfsInteractionTarget[] {
     const bindings = this.runtime.getInteractionBindings()
     return bindings.filter((binding, index) =>
-      bindings.findIndex(candidate => candidate.metadata.qualifiedId === binding.metadata.qualifiedId) === index
-    ).map(binding => this.toTarget(binding))
+      bindings.findIndex(candidate => isSameMsfsInteractionTarget(candidate, binding)) === index
+    ).map(binding => this.toTarget(binding, bindings))
   }
 
   resolve(id: string): InteractionResolution {
-    const bindings = this.runtime.getInteractionBindings()
-    const qualified = bindings.find(binding => binding.metadata.qualifiedId === id)
-    if (qualified != null) return { ok: true, target: this.toTarget(qualified) }
-    const authored = this.list().filter(target => target.binding.metadata.authoredId === id)
+    const targets = this.list()
+    const qualified = targets.find(target => target.id === id)
+    if (qualified != null) return { ok: true, target: qualified }
+    const authored = targets.filter(target => target.binding.metadata.authoredId === id)
     if (authored.length === 1) return { ok: true, target: authored[0]! }
     if (authored.length > 1) return { ok: false, code: 'TARGET_AMBIGUOUS', candidates: authored.map(target => target.id) }
     return { ok: false, code: 'TARGET_NOT_FOUND', candidates: [] }
@@ -701,16 +701,26 @@ export class MsfsInteractionAdapter {
     this.cancellationWaiters.delete(targetId)
   }
 
-  private toTarget(binding: CompiledInteractionBinding): MsfsInteractionTarget {
-    const bindings = [binding, ...this.runtime.getInteractionBindings().filter(candidate =>
+  private toTarget(
+    binding: CompiledInteractionBinding,
+    allBindings = this.runtime.getInteractionBindings()
+  ): MsfsInteractionTarget {
+    const bindings = [binding, ...allBindings.filter(candidate =>
       candidate !== binding &&
       isSameMsfsInteractionTarget(candidate, binding)
     )]
+    const hasQualifiedIdCollision = allBindings.some(candidate =>
+      candidate.metadata.qualifiedId === binding.metadata.qualifiedId &&
+      !isSameMsfsInteractionTarget(candidate, binding)
+    )
+    const id = hasQualifiedIdCollision
+      ? `${binding.metadata.sourcePath}#${binding.target}`
+      : binding.metadata.qualifiedId
     return {
-      id: binding.metadata.qualifiedId,
+      id,
       arbitrationId: binding.metadata.groupId?.trim()
         ? `group:${binding.metadata.groupId.trim()}`
-        : binding.metadata.qualifiedId,
+        : id,
       lockable: bindings.some(candidate => candidate.metadata.lockable),
       temporaryLockChannels: [...new Set(bindings.flatMap(candidate =>
         interactionChannelsForMouseFlags(candidate.metadata.lockFlagsTemporary, 'Single')

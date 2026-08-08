@@ -590,6 +590,31 @@ test('resolves duplicate authored IDs strictly and requires an unambiguous chann
   expect(adapter.route(qualified.target, { source: 'devapi', operation: 'press', phase: 'press', channel: 'secondary', timestampMs: 0 })?.msfsEvent).toBe('RightSingle')
 })
 
+test('preserves distinct controls when one source reuses an authored ID', () => {
+  const first = interactionBinding()
+  const secondBase = interactionBinding()
+  const second = {
+    ...secondBase,
+    target: 'BARO_KNOB',
+    metadata: { ...secondBase.metadata, nodeId: 'BARO_KNOB' }
+  }
+  const adapter = new MsfsInteractionAdapter({
+    getInteractionBindings: () => [first, second]
+  } as unknown as AircraftRuntime)
+
+  expect(adapter.list().map(target => target.id)).toEqual([
+    'test.xml#TEST',
+    'test.xml#BARO_KNOB'
+  ])
+  expect(adapter.resolve('TEST')).toEqual({
+    ok: false,
+    code: 'TARGET_AMBIGUOUS',
+    candidates: ['test.xml#TEST', 'test.xml#BARO_KNOB']
+  })
+  const qualified = adapter.resolve('test.xml#BARO_KNOB')
+  expect(qualified.ok && qualified.target.binding.target).toBe('BARO_KNOB')
+})
+
 test('uses an authored drag-model wheel route in Legacy when no default wheel route exists', () => {
   const binding = interactionBinding({}, [
     { interactionModel: 'default', channel: 'primary', phase: 'press', operation: 'press', msfsEvent: 'LeftSingle', axis: null, inputTypes: [0] },
