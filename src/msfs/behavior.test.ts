@@ -476,6 +476,35 @@ test('compiles stock accelerated INCREMENT_VALUE as an exact step expression', (
   expect(diagnostics.some(diagnostic => diagnostic.code === 'interaction_dynamic_increment_unproven')).toBe(false)
 })
 
+test('preserves authored cover and lock node relationships', () => {
+  const diagnostics: ImportDiagnostic[] = []
+  const covered = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([
+      ['NODE_ID', 'PUSH_TEST'],
+      ['LOCK_NODE_ID', 'LOCK_TEST'],
+      ['COVER_NODE_ID', 'LOCK_TEST']
+    ]),
+    'PUSH_TEST',
+    'PUSH_TEST',
+    'covered.xml',
+    '1 (>L:TEST)',
+    'callback',
+    diagnostics
+  )
+  const cover = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([['NODE_ID', 'LOCK_TEST'], ['LOCK_NODE_ID', 'LOCK_TEST']]),
+    'LOCK_TEST',
+    'LOCK_TEST',
+    'covered.xml',
+    '1 (>L:LOCK)',
+    'callback',
+    diagnostics
+  )
+
+  expect(covered.covers).toEqual(['LOCK_TEST'])
+  expect(cover.covers).toEqual([])
+})
+
 test('compiles CallbackDragging axis scales from anchor-relative mouse movement', () => {
   const callback = testElement('CallbackDragging', '', [
     testElement('Variable', '#DRAG_SIMVAR#'),

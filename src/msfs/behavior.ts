@@ -2061,6 +2061,9 @@ function buildCompiledInteractionMetadata(
     nodeId: params.get('NODE_ID')?.trim() || currentNode?.trim() || null,
     componentId: params.get('COMPONENT_ID')?.trim() || params.get('ID')?.trim() || null,
     inputEventIds,
+    covers: [...new Set(['COVER_NODE_ID', 'LOCK_NODE_ID']
+      .map(key => substituteParameters(params.get(key) ?? '', params).trim())
+      .filter(nodeId => nodeId && nodeId !== target && nodeId !== currentNode))],
     typedParameters,
     routes,
     sourceKind,

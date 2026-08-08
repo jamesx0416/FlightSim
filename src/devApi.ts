@@ -451,10 +451,6 @@ function describeInteractionTarget(
       'interaction_variants_unproven',
       'The compiler did not preserve authored semantic variant identifiers.'
     ), scope: 'contract' },
-    { ...unprovenInteractionDiagnostic(
-      'interaction_covers_unproven',
-      'The compiler did not preserve authored covers relationships.'
-    ), scope: 'contract' },
     ...(options.localizationAvailable ? [] : [{
       ...unprovenInteractionDiagnostic(
         'interaction_localization_catalog_unavailable',
@@ -500,7 +496,7 @@ function describeInteractionTarget(
     declarationOccurrence: null,
     typedParameters: [],
     variants: [],
-    covers: [],
+    covers: [...new Set(target.bindings.flatMap(binding => binding.metadata.covers ?? []))],
     blockers: options.blockers.filter(blocker => blocker.target === target.binding.target),
     diagnostics,
     localizationCatalogAvailable: options.localizationAvailable,
