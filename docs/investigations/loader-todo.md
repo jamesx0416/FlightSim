@@ -1157,7 +1157,7 @@ Checked stock XML families in this batch are limited to the families covered by 
 
 ### 6. Fix The WebGPU Wing Lighting/Reflection Jitter During Camera Motion
 
-- [ ] Reproduce and fix the WebGPU wing lighting/reflection jitter with a generic renderer or material change.
+- [x] Reproduce and fix the WebGPU wing lighting/reflection jitter with a generic renderer or material change.
 
 
 ### 7. Revisit The A320 Wing Structure / Transform Issue
