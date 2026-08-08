@@ -33,6 +33,7 @@ function interactionTarget(): MsfsInteractionTarget {
       nodeId: 'CONTROL_NODE',
       componentId: 'CONTROL_COMPONENT',
       inputEventIds: [],
+      covers: ['CONTROL_GUARD'],
       routes: [route],
       sourceKind: 'callbackCode',
       sourcePath: 'controls.xml',
@@ -289,14 +290,13 @@ test('interaction summaries expose stable unknown metadata and proven presentati
     declarationOccurrence: null,
     typedParameters: [],
     variants: [],
-    covers: [],
+    covers: ['CONTROL_GUARD'],
     blockers: [blockers[0]],
     diagnosticScopes: [
       ['interaction_control_kind_unproven', 'contract'],
       ['interaction_declaration_occurrence_unproven', 'contract'],
       ['interaction_typed_parameters_unproven', 'contract'],
       ['interaction_variants_unproven', 'contract'],
-      ['interaction_covers_unproven', 'contract'],
       ['source_warning', 'source']
     ],
     localization: {

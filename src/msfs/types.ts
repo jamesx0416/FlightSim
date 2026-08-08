@@ -287,6 +287,7 @@ export interface CompiledInteractionMetadata {
   readonly nodeId: string | null
   readonly componentId: string | null
   readonly inputEventIds: readonly string[]
+  readonly covers?: readonly string[]
   readonly typedParameters?: readonly CompiledInteractionTypedParameter[]
   readonly routes: readonly CompiledInteractionRoute[]
   readonly sourceKind: CompiledInteractionSourceKind
