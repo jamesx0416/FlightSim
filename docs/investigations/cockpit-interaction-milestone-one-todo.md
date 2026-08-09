@@ -2,7 +2,7 @@
 
 This is the authoritative implementation and verification checklist for milestone one. Status markers follow the project convention: `[ ]` not started, `[~]` in progress, `[-]` blocked, and `[x]` completed. Browser-only claims are completed only after direct mounted-package verification.
 
-Latest automated verification: 240 tests passed with 1,036 expectations; typecheck and `git diff --check` passed.
+Latest automated verification: 246 tests passed across 26 files with 1,061 expectations; typecheck and `git diff --check v10..HEAD` passed.
 
 ## Milestone Status
 
