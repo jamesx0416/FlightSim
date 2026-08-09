@@ -1,11 +1,11 @@
 {
-    "schema_version": 2,
-    "commit": "0594d0298b2bcaf4794c4aa3073647a2d9cfbb4a",
-    "indexed_at": "2026-07-26T06:28:47Z",
+    "schema_version": 1,
+    "commit": "3fd43baa436d0c4842ff4cd715af9407dba46ed1",
+    "indexed_at": "2026-07-16T09:46:10Z",
     "project": "Users-4980-Projects-FlightSim",
-    "nodes": 223,
-    "edges": 653,
-    "original_size": 196608,
-    "compressed_size": 28519,
+    "nodes": 3565,
+    "edges": 11588,
+    "original_size": 13828096,
+    "compressed_size": 2783445,
     "compression_level": 3
 }
