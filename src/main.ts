@@ -11591,7 +11591,7 @@ function createCockpitInteractionPickRegistry(
     }
     seen.add(key)
 
-    const nodeMeshes = collectRenderableMeshDescendants(node)
+    const nodeMeshes = collectInteractionMeshDescendants(node)
     if (nodeMeshes.length === 0) {
       fallbackHitboxes.push({
         binding,
@@ -11631,7 +11631,7 @@ function createCockpitInteractionPickRegistry(
     }
     seenBlockers.add(key)
 
-    const nodeMeshes = collectRenderableMeshDescendants(node)
+    const nodeMeshes = collectInteractionMeshDescendants(node)
     if (nodeMeshes.length === 0) {
       blockerHitboxes.push({
         blocker,
@@ -11671,7 +11671,7 @@ function createCockpitInteractionPickRegistry(
     blockerMeshes,
     blockersByMesh,
     blockerHitboxes,
-    claimedSurfaceMeshes: claimedSurfaceMeshes.filter(mesh => isRenderableMesh(mesh)),
+    claimedSurfaceMeshes: claimedSurfaceMeshes.filter(mesh => mesh.geometry != null),
     occluderMeshes
   }
 }
@@ -11696,7 +11696,7 @@ function resolveCockpitInteractionNode(
       animationNodesByName.get(trimmedName) ??
       animationNodesByName.get(trimmedName.toLowerCase())
     if (animatedNodes != null) {
-      const renderableNode = animatedNodes.find(candidate => collectRenderableMeshDescendants(candidate).length > 0)
+      const renderableNode = animatedNodes.find(candidate => collectInteractionMeshDescendants(candidate).length > 0)
       return renderableNode ?? animatedNodes[0] ?? null
     }
   }
@@ -11729,13 +11729,12 @@ function buildAnimationNodesByName(
   return animationNodesByName
 }
 
-function collectRenderableMeshDescendants(node: Object3D): Mesh[] {
+function collectInteractionMeshDescendants(node: Object3D): Mesh[] {
   const meshes: Mesh[] = []
   node.traverse(descendant => {
-    if (!isRenderableMesh(descendant)) {
-      return
-    }
-    meshes.push(descendant)
+    const mesh = descendant as Mesh
+    if (mesh.isMesh !== true || mesh.geometry == null) return
+    meshes.push(mesh)
   })
   return meshes
 }

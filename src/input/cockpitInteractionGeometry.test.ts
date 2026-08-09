@@ -67,6 +67,35 @@ test('interaction meshes are active while a true geometric miss stays a miss', (
   }))).toEqual({ kind: 'miss', reason: 'raycast-miss', occluder: null })
 })
 
+test('live visibility and ancestor visibility gate cached interaction meshes', () => {
+  const parent = new Group()
+  const control = meshAt('control', 0)
+  parent.add(control)
+  parent.updateWorldMatrix(true, true)
+  const cached = registry({
+    interactionMeshes: [{
+      object: control,
+      binding: 'CONTROL',
+      prioritizeVCockpits: false,
+      ignoreZTest: false
+    }]
+  })
+
+  control.visible = false
+  expect(resolveCockpitGeometryHit(raycaster(), cached)).toEqual({
+    kind: 'miss', reason: 'raycast-miss', occluder: null
+  })
+
+  control.visible = true
+  parent.visible = false
+  expect(resolveCockpitGeometryHit(raycaster(), cached)).toEqual({
+    kind: 'miss', reason: 'raycast-miss', occluder: null
+  })
+
+  parent.visible = true
+  expect(resolveCockpitGeometryHit(raycaster(), cached).kind).toBe('active')
+})
+
 test('PrioritizeVCockpits wins before geometric depth and equal priority keeps the nearest hit', () => {
   const near = meshAt('near', 1)
   const far = meshAt('far', 0)
