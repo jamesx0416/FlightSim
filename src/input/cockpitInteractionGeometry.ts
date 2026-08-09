@@ -81,6 +81,7 @@ export function resolveCockpitGeometryHit<T>(
   )
   const blockerHits = registry.blockers
     .flatMap(blocker => {
+      if (!isEffectivelyVisible(blocker.object) || (blocker.mesh != null && !isEffectivelyVisible(blocker.mesh))) return []
       const hit = blocker.mesh == null
         ? intersectBox(raycaster, blocker.box)
         : raycaster.intersectObject(blocker.mesh, false)[0]
@@ -88,11 +89,11 @@ export function resolveCockpitGeometryHit<T>(
     })
     .sort((left, right) => left.distance - right.distance)
   const gaugeHits = raycaster
-    .intersectObjects([...registry.gaugeSurfaces], false)
+    .intersectObjects(registry.gaugeSurfaces.filter(isEffectivelyVisible), false)
     .sort((left, right) => left.distance - right.distance)
   const interactionHits: RankedInteractionHit<T>[] = [
     ...raycaster.intersectObjects(
-      registry.interactionMeshes.map(target => target.object),
+      registry.interactionMeshes.filter(target => isEffectivelyVisible(target.object)).map(target => target.object),
       false
     ).flatMap(hit => {
       const target = interactionByMesh.get(hit.object as Mesh)
@@ -107,6 +108,7 @@ export function resolveCockpitGeometryHit<T>(
       }]
     }),
     ...registry.fallbackHitboxes.flatMap(target => {
+      if (!isEffectivelyVisible(target.object)) return []
       const hit = intersectBox(raycaster, target.box)
       return hit == null ? [] : [{
         binding: target.binding,
@@ -202,7 +204,7 @@ export function collectCockpitOccluderMeshes(
   const occluders: Mesh[] = []
   root.traverse(node => {
     if (
-      !isRenderableMesh(node) ||
+      !isMeshWithGeometry(node) ||
       (excludedMeshes.has(node) && !retainedMeshes.has(node)) ||
       !isOccluder(node)
     ) return
@@ -226,7 +228,7 @@ function findCockpitOccluder(
   if (maxDistance <= 0 || occluderMeshes.length === 0) return null
 
   const candidates = occluderMeshes.filter(mesh => {
-    if (!isRenderableMesh(mesh)) return false
+    if (!isMeshWithGeometry(mesh) || !isEffectivelyVisible(mesh)) return false
     mesh.updateWorldMatrix(true, false)
     const bounds = new Box3().setFromObject(mesh)
     const point = bounds.isEmpty()
@@ -239,7 +241,16 @@ function findCockpitOccluder(
     .find(hit => hit.distance <= maxDistance)?.object ?? null
 }
 
-function isRenderableMesh(object: Object3D): object is Mesh {
+function isMeshWithGeometry(object: Object3D): object is Mesh {
   const mesh = object as Mesh
-  return mesh.isMesh === true && mesh.geometry != null && object.visible
+  return mesh.isMesh === true && mesh.geometry != null
+}
+
+function isEffectivelyVisible(object: Object3D): boolean {
+  let current: Object3D | null = object
+  while (current != null) {
+    if (!current.visible) return false
+    current = current.parent
+  }
+  return true
 }
