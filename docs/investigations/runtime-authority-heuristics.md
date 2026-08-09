@@ -1,7 +1,7 @@
 # Runtime Authority vs Name Heuristics
 
-Status: planning / backlog  
-Date: 2026-07-22  
+Status: planning / backlog
+Date: 2026-07-22
 Related: speedbrake lever bounce (O:Position armed feedback loop), interaction IR (`inferInteractionInversion`, `discreteGate`), MSFS compatibility bridge
 
 ## Goal
@@ -85,8 +85,8 @@ These are **not** aircraft-specific bugs. They are adapter/runtime authority bug
 
 MSFS order in practice:
 
-1. Base template defaults  
-2. Aircraft `UseTemplate` / Override / aircraft model behavior XML (expanded into final RPN)  
+1. Base template defaults
+2. Aircraft `UseTemplate` / Override / aircraft model behavior XML (expanded into final RPN)
 3. Runtime state set by that RPN and by systems (LVars, B: events)
 
 We do not need a special “override table” if we execute the **already-expanded** package graph. Overrides are already baked into the compiled expressions and bindings.
@@ -161,14 +161,14 @@ Surfaces / symptoms:
 
 ## Recommended order of work
 
-1. **P0.1** Write-source / O: store-only policy (generic, unblocks many levers).  
-2. **P0.3** Narrow `applyVariableSideEffects` to exact keys + bridge.  
-3. **P0.2** Delete or gate residual spoiler O→deploy mapping after stock verification.  
-4. **P1.3** Full publish of exact control simvars from canonical state.  
-5. **P1.2** Contain `resolveHeuristicValue` (stored/canonical win; exact ARMED/HANDLE/etc.).  
-6. **P1.1** Exact key/input event catalog before name match.  
-7. **P1.4** Bridge growth as gaps appear (driven by real packages, not speculation).  
-8. **P2.*** Interaction IR completeness where user input still wrong.  
+1. **P0.1** Write-source / O: store-only policy (generic, unblocks many levers).
+2. **P0.3** Narrow `applyVariableSideEffects` to exact keys + bridge.
+3. **P0.2** Delete or gate residual spoiler O→deploy mapping after stock verification.
+4. **P1.3** Full publish of exact control simvars from canonical state.
+5. **P1.2** Contain `resolveHeuristicValue` (stored/canonical win; exact ARMED/HANDLE/etc.).
+6. **P1.1** Exact key/input event catalog before name match.
+7. **P1.4** Bridge growth as gaps appear (driven by real packages, not speculation).
+8. **P2.*** Interaction IR completeness where user input still wrong.
 9. **P3.*** Diagnostics + tests to keep level-4 from growing back.
 
 Do **not** start by inventing an `ARMED_POSITION` runtime table. Expanded package code already owns that.
@@ -177,20 +177,20 @@ Do **not** start by inventing an `ARMED_POSITION` runtime table. Expanded packag
 
 ## What is already in good shape
 
-- Template expansion into compiled RPN and interaction bindings  
-- `inferInteractionInversion` / wheel polarity from package params  
-- `discreteGate` from `STEPS_NUMBER` + `DRAG_SPEED` (partial)  
-- Compatibility bridge exact A:/L: → canonical controls/surfaces (partial)  
-- Spoiler armed no longer driven by discrete O: gates (landed 2026-07-21/22)  
+- Template expansion into compiled RPN and interaction bindings
+- `inferInteractionInversion` / wheel polarity from package params
+- `discreteGate` from `STEPS_NUMBER` + `DRAG_SPEED` (partial)
+- Compatibility bridge exact A:/L: → canonical controls/surfaces (partial)
+- Spoiler armed no longer driven by discrete O: gates (landed 2026-07-21/22)
 - `A:SPOILERS ARMED` published/read from canonical state (landed)
 
 ---
 
 ## Verification principles
 
-- Generic tests in `runtimeEngineIntegration` / bridge tests; no fixture XML patches.  
-- Live checks via `window.__DevApi.watch` on O: + A: + L: for oscillation.  
-- Stock and complex packages both: if MSFS relies on Update RPN, we must not side-effect against it.  
+- Generic tests in `runtimeEngineIntegration` / bridge tests; no fixture XML patches.
+- Live checks via `window.__DevApi.watch` on O: + A: + L: for oscillation.
+- Stock and complex packages both: if MSFS relies on Update RPN, we must not side-effect against it.
 - Aircraft-specific investigation OK; **landed fixes must stay generic**.
 
 ### DevApi smoke (speedbrake class)
@@ -211,18 +211,18 @@ __DevApi.setParam('spoilers', 50)
 
 ## Out of scope
 
-- Aircraft-specific constants in runtime  
-- Patching package fixtures under `aircrafts/` to hide engine bugs  
-- Replacing physics / systems logic with template param tables  
+- Aircraft-specific constants in runtime
+- Patching package fixtures under `aircrafts/` to hide engine bugs
+- Replacing physics / systems logic with template param tables
 - “Support only A339X” shortcuts
 
 ---
 
 ## Related notes
 
-- `NOTES.md` — Spoiler / Speedbrake Lever (2026-07-21 bounce root cause)  
-- Interaction IR: `src/msfs/behavior.ts` (`buildCompiledInteractionMetadata`, `inferInteractionInversion`)  
-- Bridge: `src/msfs/compatibilityBridge.ts`  
+- `NOTES.md` — Spoiler / Speedbrake Lever (2026-07-21 bounce root cause)
+- Interaction IR: `src/msfs/behavior.ts` (`buildCompiledInteractionMetadata`, `inferInteractionInversion`)
+- Bridge: `src/msfs/compatibilityBridge.ts`
 - Loader checklist: `docs/investigations/loader-todo.md` (stock spoiler O:Position note — treat as historical; policy above supersedes re-encoding O: as armed)
 
 ---
