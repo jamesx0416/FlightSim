@@ -121,7 +121,6 @@ import {
 } from './rendering/createAppRenderer'
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 import { queueTask } from './worker/pool'
-import { isAircraftImmutableCacheMode } from './aircraftAssets/cachePolicy'
 import { handleViewerSettingsKeyDown } from './viewerSettingsKeyboard'
 
 const DEFAULT_PACKAGE_ROOT = '/tmp/headwindsim-aircraft-a330-900/'
@@ -10732,9 +10731,7 @@ function resolveVersionedGltfDependencyUrl(uri: string, gltfUrl: string): string
   return resolved.toString()
 }
 
-const GLTF_BUFFER_CHUNK_BYTES = 256 * 1024
-const GLTF_BUFFER_CHUNK_TIMEOUT_MS = 60000
-const GLTF_BUFFER_CHUNK_CONCURRENCY = 6
+const GLTF_BUFFER_FETCH_TIMEOUT_MS = 60000
 
 async function fetchExternalGltfBuffer(
   url: string,
@@ -10745,90 +10742,21 @@ async function fetchExternalGltfBuffer(
     readonly totalChunks: number | null
   }) => void = () => {}
 ): Promise<ArrayBuffer> {
-  if (isAircraftImmutableCacheMode()) {
-    const buffer = await fetchExternalGltfBufferFull(url)
-    onProgress({
-      loadedBytes: buffer.byteLength,
-      totalBytes: buffer.byteLength,
-      loadedChunks: 1,
-      totalChunks: 1
-    })
-    return buffer
-  }
-
-  const firstEnd = GLTF_BUFFER_CHUNK_BYTES - 1
-  const firstResponse = await fetchExternalGltfBufferRange(url, 0, firstEnd)
-  if (firstResponse.status !== 206) {
-    if (!firstResponse.ok) {
-      throw new Error(`Failed to load ${url}: HTTP ${firstResponse.status}`)
-    }
-    onProgress({
-      loadedBytes: firstResponse.buffer.byteLength,
-      totalBytes: firstResponse.buffer.byteLength,
-      loadedChunks: 1,
-      totalChunks: 1
-    })
-    return firstResponse.buffer
-  }
-
-  const firstRange = parseContentRange(firstResponse.contentRange)
-  if (firstRange == null) {
-    return firstResponse.buffer
-  }
-
-  const output = new Uint8Array(firstRange.size)
-  output.set(new Uint8Array(firstResponse.buffer), 0)
-  const ranges: Array<{ readonly start: number; readonly end: number }> = []
-  for (let start = firstRange.end + 1; start < firstRange.size; start += GLTF_BUFFER_CHUNK_BYTES) {
-    ranges.push({
-      start,
-      end: Math.min(start + GLTF_BUFFER_CHUNK_BYTES - 1, firstRange.size - 1)
-    })
-  }
-  const totalChunks = ranges.length + 1
-  let loadedChunks = 1
-  let loadedBytes = firstResponse.buffer.byteLength
+  const buffer = await fetchExternalGltfBufferFull(url)
   onProgress({
-    loadedBytes,
-    totalBytes: firstRange.size,
-    loadedChunks,
-    totalChunks
+    loadedBytes: buffer.byteLength,
+    totalBytes: buffer.byteLength,
+    loadedChunks: 1,
+    totalChunks: 1
   })
-
-  let nextRangeIndex = 0
-  const loadNextRange = async (): Promise<void> => {
-    while (nextRangeIndex < ranges.length) {
-      const range = ranges[nextRangeIndex]!
-      nextRangeIndex += 1
-      const { start, end } = range
-      const response = await fetchExternalGltfBufferRange(url, start, end)
-      if (response.status !== 206 && !response.ok) {
-        throw new Error(`Failed to load ${url}: HTTP ${response.status}`)
-      }
-      output.set(new Uint8Array(response.buffer), start)
-      loadedChunks += 1
-      loadedBytes += response.buffer.byteLength
-      onProgress({
-        loadedBytes,
-        totalBytes: firstRange.size,
-        loadedChunks,
-        totalChunks
-      })
-    }
-  }
-  await Promise.all(
-    Array.from({
-      length: Math.min(GLTF_BUFFER_CHUNK_CONCURRENCY, ranges.length)
-    }, () => loadNextRange())
-  )
-  return output.buffer
+  return buffer
 }
 
 async function fetchExternalGltfBufferFull(url: string): Promise<ArrayBuffer> {
   const controller = new AbortController()
   const timeoutId = window.setTimeout(
     () => controller.abort(),
-    GLTF_BUFFER_CHUNK_TIMEOUT_MS
+    GLTF_BUFFER_FETCH_TIMEOUT_MS
   )
   try {
     const response = await fetch(url, { signal: controller.signal })
@@ -10838,57 +10766,6 @@ async function fetchExternalGltfBufferFull(url: string): Promise<ArrayBuffer> {
     return await response.arrayBuffer()
   } finally {
     window.clearTimeout(timeoutId)
-  }
-}
-
-async function fetchExternalGltfBufferRange(
-  url: string,
-  start: number,
-  end: number
-): Promise<{
-  readonly ok: boolean
-  readonly status: number
-  readonly contentRange: string | null
-  readonly buffer: ArrayBuffer
-}> {
-  const controller = new AbortController()
-  const timeoutId = window.setTimeout(
-    () => controller.abort(),
-    GLTF_BUFFER_CHUNK_TIMEOUT_MS
-  )
-  try {
-    const response = await fetch(url, {
-      headers: {
-        Range: `bytes=${start}-${end}`
-      },
-      signal: controller.signal
-    })
-    const buffer = await response.arrayBuffer()
-    return {
-      ok: response.ok,
-      status: response.status,
-      contentRange: response.headers.get('content-range'),
-      buffer
-    }
-  } finally {
-    window.clearTimeout(timeoutId)
-  }
-}
-
-function parseContentRange(header: string | null): {
-  readonly start: number
-  readonly end: number
-  readonly size: number
-} | null {
-  const match = /^bytes\s+(\d+)-(\d+)\/(\d+)$/iu.exec(header ?? '')
-  if (match == null) {
-    return null
-  }
-
-  return {
-    start: Number.parseInt(match[1]!, 10),
-    end: Number.parseInt(match[2]!, 10),
-    size: Number.parseInt(match[3]!, 10)
   }
 }
 
