@@ -3747,6 +3747,8 @@ function pushUniqueInteractionBinding(
     value.interactionModel === route.interactionModel
   )
   const sameIdentity = (candidate: CompiledInteractionBinding): boolean =>
+    candidate.target === binding.target &&
+    candidate.sourcePath === binding.sourcePath &&
     candidate.metadata.qualifiedId === binding.metadata.qualifiedId &&
     candidate.metadata.sourceKind === binding.metadata.sourceKind &&
     candidate.expression.source === binding.expression.source &&
@@ -3765,12 +3767,7 @@ function pushUniqueInteractionBinding(
     binding.metadata.routes.length < candidate.metadata.routes.length &&
     binding.metadata.routes.every(route => routeContainedBy(route, candidate))
   )) return
-  const duplicateIndex = bindings.findIndex(candidate =>
-    candidate.target === binding.target &&
-    candidate.metadata.sourceKind === binding.metadata.sourceKind &&
-    candidate.expression.source === binding.expression.source &&
-    candidate.releaseExpression?.source === binding.releaseExpression?.source
-  )
+  const duplicateIndex = bindings.findIndex(sameIdentity)
   if (duplicateIndex < 0) {
     bindings.push(binding)
     return
@@ -3797,6 +3794,13 @@ function pushUniqueInteractionBinding(
       ...previous.metadata,
       routes,
       inputEventIds: [...new Set([...previous.metadata.inputEventIds, ...binding.metadata.inputEventIds])],
+      covers: [...new Set([...(previous.metadata.covers ?? []), ...(binding.metadata.covers ?? [])])],
+      typedParameters: [...new Map(
+        [...(previous.metadata.typedParameters ?? []), ...(binding.metadata.typedParameters ?? [])].map(parameter => [
+          `${parameter.operation}:${parameter.bindingIndex}:${parameter.bindingName}:${parameter.parameterIndex}`,
+          parameter
+        ])
+      ).values()],
       sourceTemplate: previous.metadata.sourceTemplate ?? binding.metadata.sourceTemplate,
       templateRevision: previous.metadata.templateRevision ?? binding.metadata.templateRevision,
       lockable: previous.metadata.lockable || binding.metadata.lockable,
@@ -3820,6 +3824,8 @@ function pushUniqueInteractionBinding(
       dragFlagsLockable: [...new Set([...previous.metadata.dragFlagsLockable, ...binding.metadata.dragFlagsLockable])],
       lockFlagsTemporary: [...new Set([...previous.metadata.lockFlagsTemporary, ...binding.metadata.lockFlagsTemporary])],
       groupId: binding.metadata.groupId ?? previous.metadata.groupId,
+      discreteGate: binding.metadata.discreteGate ?? previous.metadata.discreteGate,
+      wheelPrimaryToggle: previous.metadata.wheelPrimaryToggle || binding.metadata.wheelPrimaryToggle,
       cursor: binding.metadata.cursor ?? previous.metadata.cursor,
       cursors: {
         default: mergeInteractionCursorModels(previous.metadata.cursors.default, binding.metadata.cursors.default),
@@ -3827,6 +3833,17 @@ function pushUniqueInteractionBinding(
       },
       tooltipTitle: binding.metadata.tooltipTitle ?? previous.metadata.tooltipTitle,
       tooltipDescription: binding.metadata.tooltipDescription ?? previous.metadata.tooltipDescription,
+      tooltipStateLabels: [...new Map(
+        [...previous.metadata.tooltipStateLabels, ...binding.metadata.tooltipStateLabels].map(label => [label.value, label])
+      ).values()],
+      tooltipStateExpressions: [...new Map(
+        [...(previous.metadata.tooltipStateExpressions ?? []), ...(binding.metadata.tooltipStateExpressions ?? [])].map(entry => [entry.value, entry])
+      ).values()],
+      tooltipValueLabel: binding.metadata.tooltipValueLabel ?? previous.metadata.tooltipValueLabel,
+      tooltipActionHints: [...new Map(
+        [...previous.metadata.tooltipActionHints, ...binding.metadata.tooltipActionHints].map(hint => [`${hint.label}:${hint.cursor ?? ''}`, hint])
+      ).values()],
+      tooltipUnavailable: binding.metadata.tooltipUnavailable ?? previous.metadata.tooltipUnavailable,
       tooltipValueExpression: binding.metadata.tooltipValueExpression ?? previous.metadata.tooltipValueExpression,
       tooltipFormattedValueExpression: binding.metadata.tooltipFormattedValueExpression ?? previous.metadata.tooltipFormattedValueExpression,
       tooltipEntries: [...new Map([...previous.metadata.tooltipEntries, ...binding.metadata.tooltipEntries].map(entry => [entry.id, entry])).values()],
