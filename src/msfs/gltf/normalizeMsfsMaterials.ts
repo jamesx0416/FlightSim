@@ -2133,12 +2133,14 @@ function findClosestProjectionTriangle(
           continue
         }
 
-        const result = closestPointToTriangle(point, item.triangle.a, item.triangle.b, item.triangle.c)
-        const distanceSq = result.point.distanceToSquared(point)
-        if (distanceSq < closest.distanceSq) {
-          closest.distanceSq = distanceSq
-          closest.triangle = item
-          closest.result = result
+        if (orientationNormal == null) {
+          const result = closestPointToTriangle(point, item.triangle.a, item.triangle.b, item.triangle.c)
+          const distanceSq = result.point.distanceToSquared(point)
+          if (distanceSq < closest.distanceSq) {
+            closest.distanceSq = distanceSq
+            closest.triangle = item
+            closest.result = result
+          }
         }
 
         if (orientationNormal != null) {
@@ -2196,12 +2198,60 @@ function findClosestProjectionTriangle(
       triangle: projected.triangle,
     }
   }
+  if (orientationNormal != null) {
+    return findClosestCompatibleProjectionTriangle(point, triangleIndex, orientationNormal)
+  }
   return closest.triangle != null && closest.result != null
     ? {
         point: closest.result.point,
         barycentric: closest.result.barycentric,
         triangle: closest.triangle.triangle,
       }
+    : null
+}
+
+function findClosestCompatibleProjectionTriangle(
+  point: Vector3,
+  triangleIndex: DecalProjectionSpatialIndex,
+  orientationNormal: Vector3,
+): (ClosestPointResult & { readonly triangle: DecalProjectionTriangle }) | null {
+  let closestItem: DecalProjectionTriangleItem | null = null
+  let closestResult: ClosestPointResult | null = null
+  let closestDistanceSq = Infinity
+  const pending: DecalProjectionSpatialIndex[] = [triangleIndex]
+  const pendingDistanceSq = [getPointToBoundsDistanceSquared(point, triangleIndex.min, triangleIndex.max)]
+
+  while (pending.length > 0) {
+    const node = pending.pop()!
+    const nodeDistanceSq = pendingDistanceSq.pop()!
+    if (nodeDistanceSq > closestDistanceSq) continue
+    if (node.items != null) {
+      for (const item of node.items) {
+        if (item.triangle.orientationNormal.dot(orientationNormal) <= 0 ||
+            getPointToBoundsDistanceSquared(point, item.min, item.max) > closestDistanceSq) continue
+        const result = closestPointToTriangle(point, item.triangle.a, item.triangle.b, item.triangle.c)
+        const distanceSq = result.point.distanceToSquared(point)
+        if (distanceSq < closestDistanceSq) {
+          closestDistanceSq = distanceSq
+          closestItem = item
+          closestResult = result
+        }
+      }
+      continue
+    }
+    const children = [node.left, node.right].filter((child): child is DecalProjectionSpatialIndex => child != null)
+      .map(child => ({ child, distanceSq: getPointToBoundsDistanceSquared(point, child.min, child.max) }))
+      .sort((left, right) => right.distanceSq - left.distanceSq)
+    for (const { child, distanceSq } of children) {
+      if (distanceSq <= closestDistanceSq) {
+        pending.push(child)
+        pendingDistanceSq.push(distanceSq)
+      }
+    }
+  }
+
+  return closestItem != null && closestResult != null
+    ? { point: closestResult.point, barycentric: closestResult.barycentric, triangle: closestItem.triangle }
     : null
 }
 
