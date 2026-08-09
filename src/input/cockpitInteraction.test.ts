@@ -13,6 +13,34 @@ describe('CockpitInteractionDispatcher', () => {
     expect(actions[0]?.clickCount).toBe(2)
   })
 
+  test('failed presses do not capture or mark the target busy', () => {
+    const target: CockpitInteractionTarget = {
+      id: 'disabled', lockable: false, operations: ['hold', 'release']
+    }
+    const dispatcher = new CockpitInteractionDispatcher('legacy', () => false)
+
+    expect(dispatcher.pointerDown(target, 1, 'primary', 1)).toBe(false)
+    expect(dispatcher.snapshot.state).toBe('idle')
+    expect(dispatcher.snapshot.captured).toBe(null)
+    expect(dispatcher.snapshot.busy).toEqual([])
+    expect(dispatcher.snapshot.misses.latest?.reason).toBe('unavailable')
+  })
+
+  test('stable target ids do not retrigger hover leave and enter', () => {
+    const actions: string[] = []
+    const first: CockpitInteractionTarget = { id: 'control', lockable: false, operations: ['hover', 'leave'] }
+    const second: CockpitInteractionTarget = { ...first }
+    const dispatcher = new CockpitInteractionDispatcher('legacy', (_target, action) => {
+      actions.push(action.operation)
+      return true
+    })
+
+    dispatcher.hover(first, 1)
+    dispatcher.hover(second, 2)
+    dispatcher.hover(null, 3)
+    expect(actions).toEqual(['hover', 'leave'])
+  })
+
   test('lock mode stops authored complex controls through release then unlock', () => {
     const operations: string[] = []
     const target: CockpitInteractionTarget = { id: 'knob', lockable: true, operations: ['lock', 'hold', 'release', 'unlock'] }

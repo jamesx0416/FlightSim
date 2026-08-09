@@ -126,8 +126,8 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
 
   hover(target: T | null, timestampMs = performance.now()): void {
     if (this.captured != null) return
-    if (this.hovered === target) return
-    if (this.hovered != null && this.hovered !== target) this.execute(this.hovered, event('leave', 'cancel', timestampMs))
+    if (this.hovered?.id === target?.id) return
+    if (this.hovered != null) this.execute(this.hovered, event('leave', 'cancel', timestampMs))
     this.hovered = target
     this.state = target == null ? 'idle' : 'hovered'
     if (target != null) this.execute(target, event('hover', 'press', timestampMs))
@@ -149,11 +149,18 @@ export class CockpitInteractionDispatcher<T extends CockpitInteractionTarget> {
     const locked = this.mode === 'lock' && target.lockable && (
       temporaryLockChannels == null ? channel === 'primary' : temporaryLockChannels.includes(channel)
     )
+    if (locked && !this.execute(target, { ...event('lock', 'hold', timestampMs), channel, pointerId })) {
+      this.recordMiss('unavailable', { target: target.id, operation: 'lock' }, timestampMs)
+      return false
+    }
+    if (!this.execute(target, { ...event('hold', 'hold', timestampMs), channel, pointerId, clickCount })) {
+      if (locked) this.execute(target, { ...event('unlock', 'release', timestampMs), channel, pointerId })
+      this.recordMiss('unavailable', { target: target.id, operation: 'hold' }, timestampMs)
+      return false
+    }
     this.captured = { target, pointerId, channel, locked }
     this.state = locked ? 'locked' : 'pressed'
     this.busy.set(this.arbitrationKey(target), { operation: 'hold', targetId: target.id })
-    if (locked) this.execute(target, { ...event('lock', 'hold', timestampMs), channel, pointerId })
-    this.execute(target, { ...event('hold', 'hold', timestampMs), channel, pointerId, clickCount })
     return true
   }
 
