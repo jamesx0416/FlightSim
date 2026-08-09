@@ -660,6 +660,50 @@ test('keeps default and drag interaction-model routes separate', () => {
   expect(metadata.lockable).toBe(false)
 })
 
+test('covers the complete supported MouseRect event and source-kind matrix', () => {
+  const metadata = __behaviorTestHooks.buildCompiledInteractionMetadata(
+    new Map([['MOUSEFLAGS', 'LeftAll+RightAll+MiddleAll+Wheel+Move+DownRepeat+MoveRepeat+Enter+Exit+Leave+Lock+Unlock']]),
+    'TEST', 'TEST', 'matrix.xml', '(M:Event)', 'callback', []
+  )
+
+  expect(metadata.routes.map(route => [route.msfsEvent, route.channel, route.phase, route.operation])).toEqual([
+    ['LeftSingle', 'primary', 'press', 'press'],
+    ['LeftDouble', 'primary', 'double', 'press'],
+    ['LeftDrag', 'primary', 'drag', 'turn'],
+    ['LeftRelease', 'primary', 'release', 'release'],
+    ['RightSingle', 'secondary', 'press', 'press'],
+    ['RightDouble', 'secondary', 'double', 'press'],
+    ['RightDrag', 'secondary', 'drag', 'turn'],
+    ['RightRelease', 'secondary', 'release', 'release'],
+    ['MiddleSingle', 'tertiary', 'press', 'press'],
+    ['MiddleDouble', 'tertiary', 'double', 'press'],
+    ['MiddleDrag', 'tertiary', 'drag', 'turn'],
+    ['MiddleRelease', 'tertiary', 'release', 'release'],
+    ['WheelUp', null, null, 'increase'],
+    ['WheelDown', null, null, 'decrease'],
+    ['Move', null, 'drag', 'turn'],
+    ['DownRepeat', 'primary', 'repeat', 'hold'],
+    ['MoveRepeat', null, 'repeat', 'turn'],
+    ['Enter', null, null, 'hover'],
+    ['Exit', null, null, 'leave'],
+    ['Leave', null, null, 'leave'],
+    ['Lock', null, null, 'lock'],
+    ['Unlock', null, null, 'unlock']
+  ])
+
+  const sourceKind = (params: ReadonlyMap<string, string>, source: string) =>
+    __behaviorTestHooks.buildCompiledInteractionMetadata(
+      new Map([['MOUSEFLAGS', 'LeftSingle'], ...params]),
+      'TEST', 'TEST', 'matrix.xml', source, 'callback', []
+    ).sourceKind
+
+  expect(sourceKind(new Map(), "(M:Event) 'LeftSingle' scmi 0 == if{ 1 }")).toBe('callbackCode')
+  expect(sourceKind(new Map(), '(>K:TEST_EVENT)')).toBe('eventId')
+  expect(sourceKind(new Map([['INPUT_EVENT_ID_SOURCE', 'TEST_IE']]), '1')).toBe('inputEvent')
+  expect(sourceKind(new Map([['CALLBACKDRAGGING', 'True']]), '1')).toBe('callbackDragging')
+  expect(sourceKind(new Map([['X_MOVEMENT', '1']]), '1')).toBe('callbackJumpDragging')
+})
+
 test('compiles generic three-state switch wheel callbacks as canonical adjustments', () => {
   const binding = __behaviorTestHooks.buildInteractionCodeBinding(
     "(M:Event) 'WheelUp' scmi 0 == if{ 1 (>L:TEST_SWITCH) } els{ " +
