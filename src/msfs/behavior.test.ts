@@ -729,6 +729,33 @@ test('compiles generic three-state switch wheel callbacks as canonical adjustmen
   expect(binding?.feedbackVariableKeys).toEqual([])
 })
 
+test('does not deduplicate identical callbacks from different authoritative sources', () => {
+  const bindings: CompiledInteractionBinding[] = []
+  const build = (sourcePath: string, covers: readonly string[]) => ({
+    target: 'TEST',
+    sourcePath,
+    expression: { source: '1' },
+    releaseExpression: null,
+    feedbackTargets: [],
+    feedbackVariableKeys: [],
+    soundEvents: [],
+    metadata: {
+      qualifiedId: 'TEST@1',
+      sourceKind: 'callbackCode',
+      routes: [],
+      covers
+    }
+  }) as unknown as CompiledInteractionBinding
+
+  __behaviorTestHooks.pushUniqueInteractionBinding(bindings, build('a.xml', []))
+  __behaviorTestHooks.pushUniqueInteractionBinding(bindings, build('b.xml', ['GUARD']))
+
+  expect(bindings.map(binding => [binding.sourcePath, binding.metadata.covers])).toEqual([
+    ['a.xml', []],
+    ['b.xml', ['GUARD']]
+  ])
+})
+
 test('keeps distinct callbacks for one interaction target', () => {
   const bindings: CompiledInteractionBinding[] = []
   const binding = (source: string, routes: readonly CompiledInteractionRoute[]) => ({
