@@ -567,6 +567,11 @@ test('compiles dynamic formatted values and rich tooltip metadata', () => {
       ['TT_DESCRIPTION', 'TT:TEST.ACTION'],
       ['TT_VALUE', "(L:VALUE, number) '%.1f' (F:Format)"],
       ['TT_VALUE_IS_DYNAMIC', 'True'],
+      ['TT_VALUE_0', "(L:MODE, number) if{ 'Armed' } els{ 'Off' }"],
+      ['TT_VALUE_0_IS_DYNAMIC', 'True'],
+      ['TT_VALUE_OFF', '(R:1:COCKPIT.TOOLTIPSV2.GT_STATE_CLOSE)'],
+      ['TT_VALUE_ON', '(R:1:COCKPIT.TOOLTIPSV2.GT_STATE_OPEN)'],
+      ['TT_VALUE_1_IS_DYNAMIC', 'True'],
       ['ANIMTIP_0', '%((L:VALUE, number))%!d!'],
       ['TOOLTIP_ENTRY_1', 'opaque rich entry']
     ]),
@@ -581,6 +586,14 @@ test('compiles dynamic formatted values and rich tooltip metadata', () => {
   expect(metadata.tooltipTitle).toBe(null)
   expect(metadata.tooltipDescription).toBe('TT:TEST.ACTION')
   expect(metadata.tooltipValueLabel).toBe(null)
+  expect(metadata.tooltipStateLabels).toEqual([
+    { value: 0, label: 'COCKPIT.TOOLTIPSV2.GT_STATE_CLOSE' },
+    { value: 1, label: 'COCKPIT.TOOLTIPSV2.GT_STATE_OPEN' }
+  ])
+  expect(metadata.tooltipStateExpressions?.map(entry => entry.value)).toEqual([0])
+  expect(evaluateCompiledExpressionValue(metadata.tooltipStateExpressions![0]!.expression, {
+    readVariable: key => key === 'L:MODE' ? 1 : 0
+  })).toBe('Armed')
   expect(metadata.tooltipUnavailable).toBe(null)
   expect(metadata.tooltipEntries).toEqual([{ id: 'opaque rich entry' }])
   expect(metadata.tooltipAnimated?.entries).toEqual([{

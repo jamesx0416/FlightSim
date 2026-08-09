@@ -2051,6 +2051,7 @@ function buildCompiledInteractionMetadata(
   }
   const tooltip = compileInteractionTooltipMetadata(
     params,
+    resolveLocalVariableScope(params, currentNode, target),
     sourcePath,
     authoredId ?? target,
     diagnostics
@@ -2128,6 +2129,7 @@ function buildCompiledInteractionMetadata(
     tooltipTitle: tooltip.title,
     tooltipDescription: tooltip.description,
     tooltipStateLabels: tooltip.stateLabels,
+    tooltipStateExpressions: tooltip.stateExpressions,
     tooltipValueLabel: tooltip.valueLabel,
     tooltipActionHints: tooltip.actionHints,
     tooltipUnavailable: tooltip.unavailable,
@@ -2141,6 +2143,7 @@ function buildCompiledInteractionMetadata(
 
 function compileInteractionTooltipMetadata(
   params: ReadonlyMap<string, string>,
+  localVariableScope: string | null,
   sourcePath: string,
   target: string,
   diagnostics: ImportDiagnostic[]
@@ -2148,6 +2151,7 @@ function compileInteractionTooltipMetadata(
   readonly title: string | null
   readonly description: string | null
   readonly stateLabels: readonly { readonly value: number; readonly label: string }[]
+  readonly stateExpressions: readonly { readonly value: number; readonly expression: CompiledExpression }[]
   readonly valueLabel: string | null
   readonly actionHints: readonly { readonly label: string; readonly cursor: string | null }[]
   readonly unavailable: string | null
@@ -2177,16 +2181,39 @@ function compileInteractionTooltipMetadata(
   )
 
   const labels = new Map<number, string>()
+  const stateExpressions = new Map<number, CompiledExpression>()
   let hasUnsupportedValue = false
   for (const [key, rawLabel] of params) {
     const match = /^TT_VALUE_(OFF|ON|\d+)$/u.exec(key)
     if (match == null || !rawLabel.trim()) continue
-    const label = parseStaticTooltipValue(rawLabel, parseBoolean(params.get(`${key}_IS_DYNAMIC`) ?? 'False'))
+    const value = match[1] === 'OFF' ? 0 : match[1] === 'ON' ? 1 : Number(match[1])
+    const dynamic = parseBoolean(
+      params.get(`${key}_IS_DYNAMIC`) ?? params.get(`TT_VALUE_${value}_IS_DYNAMIC`) ?? 'False'
+    )
+    if (dynamic) {
+      const resourceLabel = parseInteractionResourceLabel(rawLabel)
+      if (resourceLabel != null) {
+        labels.set(value, resourceLabel)
+        continue
+      }
+      const expression = compileRpnExpression(rawLabel, {
+        sourcePath,
+        sourceExpression: rawLabel,
+        diagnostics,
+        localVariableScope
+      })
+      if (expression != null && !compiledExpressionHasSideEffects(expression)) {
+        stateExpressions.set(value, expression)
+      } else {
+        hasUnsupportedValue = true
+      }
+      continue
+    }
+    const label = parseStaticTooltipValue(rawLabel, false)
     if (label == null) {
       hasUnsupportedValue = true
       continue
     }
-    const value = match[1] === 'OFF' ? 0 : match[1] === 'ON' ? 1 : Number(match[1])
     labels.set(value, label)
   }
   const rawValue = params.get('TT_VALUE')?.trim() || params.get('TOOLTIP_VALUE')?.trim() || null
@@ -2282,6 +2309,7 @@ function compileInteractionTooltipMetadata(
     title: dynamicTitle ? null : rawTitle,
     description: dynamicDescription ? null : rawDescription,
     stateLabels: [...labels].map(([value, label]) => ({ value, label })),
+    stateExpressions: [...stateExpressions].map(([value, expression]) => ({ value, expression })),
     valueLabel,
     actionHints,
     unavailable: dynamicUnavailable ? null : unavailable,
@@ -2320,7 +2348,14 @@ function compileInteractionFormattedTooltipValue(
   return expression
 }
 
+function parseInteractionResourceLabel(value: string): string | null {
+  const match = /^\(R:\d+:([^()]+)\)$/iu.exec(value.trim())
+  return match?.[1]?.trim() || null
+}
+
 function parseStaticTooltipValue(value: string, dynamic: boolean): string | null {
+  const resourceLabel = parseInteractionResourceLabel(value)
+  if (resourceLabel != null) return resourceLabel
   if (dynamic) return null
   const trimmed = value.trim()
   const quoted = /^'([^']*)'$/u.exec(trimmed)
