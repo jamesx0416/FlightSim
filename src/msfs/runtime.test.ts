@@ -203,6 +203,39 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(lagged.runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(1)
   })
 
+  test('evaluates a read-only dynamic tooltip label for the current authored state', () => {
+    const params = new Map([
+      ['NODE_ID', 'TEST_FORMAT'],
+      ['MOUSEFLAGS', 'LeftSingle'],
+      ['SWITCH_POSITION_TYPE', 'L'],
+      ['SWITCH_POSITION_VAR', 'TEST_STATE'],
+      ['TT_VALUE_0', "(L:LABEL_MODE, number) if{ 'Armed' } els{ 'Off' }"],
+      ['TT_VALUE_0_IS_DYNAMIC', 'True'],
+      ['TT_VALUE_1', "'On'"]
+    ])
+    const interaction = __behaviorTestHooks.buildInteractionCodeBinding(
+      "(M:Event) 'LeftSingle' scmi 0 == if{ 1 (>L:TEST_STATE, number) }",
+      null,
+      params,
+      'TEST_FORMAT',
+      'test.xml',
+      'callback',
+      []
+    )!
+    const host = new SharedMsfsRuntimeHost([])
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      interactionBindings: [interaction]
+    }, new Object3D(), host, undefined, host.simulatorEngine.getAircraft(), host.simulatorEngine)
+
+    host.writeVariable('L:TEST_STATE', 0, 'number')
+    host.writeVariable('L:LABEL_MODE', 1, 'number')
+    expect(runtime.evaluateInteractionFormattedValue(interaction)).toBe('Armed')
+
+    host.writeVariable('L:TEST_STATE', 1, 'number')
+    expect(runtime.evaluateInteractionFormattedValue(interaction)).toBe(null)
+  })
+
   test('maps normalized values across the authored animation key range', () => {
     const scene = new Object3D()
     const lever = new Object3D()

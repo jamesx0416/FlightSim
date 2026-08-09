@@ -2,7 +2,7 @@
 
 This is the authoritative implementation and verification checklist for milestone one. Status markers follow the project convention: `[ ]` not started, `[~]` in progress, `[-]` blocked, and `[x]` completed. Browser-only claims are completed only after direct mounted-package verification.
 
-Latest automated verification: 238 tests passed with 1,025 expectations; typecheck and `git diff --check` passed.
+Latest automated verification: 239 tests passed with 1,030 expectations; typecheck and `git diff --check` passed.
 
 ## Milestone Status
 
@@ -13,7 +13,7 @@ Latest automated verification: 238 tests passed with 1,025 expectations; typeche
 
 ### Presentation and structured metadata
 
-- [~] Compile authored dynamic/rich value formatting. Common authored `@sprintf` and `(F:Format)` paths are supported; still-unproven format variants retain the generic fallback.
+- [x] Compile authored dynamic/rich value formatting. Common authored `@sprintf` and `(F:Format)` paths, read-only dynamic per-state value expressions, and stock `(R:1:...)` localization resource labels are preserved. Mounted A339X verification confirms the previous `PUSH_ECAM_EMERCANC` `interaction_tooltip_value_ir_unsupported` diagnostic is gone.
 - [x] Compile and preserve rich and animated tooltip entries rather than flattening them to one title/description.
 - [x] Preserve model-specific directional/center cursor fields and center radius.
 - [x] Compile and honor `LockFlagsTemporary`.

@@ -737,7 +737,13 @@ export class AircraftRuntime {
   }
 
   evaluateInteractionFormattedValue(binding: CompiledInteractionBinding): string | null {
-    const expression = binding.metadata.tooltipFormattedValueExpression
+    let expression = binding.metadata.tooltipFormattedValueExpression
+    if (expression == null && binding.metadata.tooltipStateExpressions?.length) {
+      const current = this.readInteractionValue(binding)
+      expression = current == null
+        ? null
+        : binding.metadata.tooltipStateExpressions.find(candidate => candidate.value === current)?.expression ?? null
+    }
     if (expression == null) return null
     const value = evaluateCompiledExpressionValue(expression, this.readOnlyExpressionServices)
     return typeof value === 'string' ? value : Number.isFinite(value) ? String(value) : null

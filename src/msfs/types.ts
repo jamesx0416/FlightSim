@@ -333,6 +333,10 @@ export interface CompiledInteractionMetadata {
     readonly value: number
     readonly label: string
   }[]
+  readonly tooltipStateExpressions?: readonly {
+    readonly value: number
+    readonly expression: CompiledExpression
+  }[]
   readonly tooltipValueLabel: string | null
   readonly tooltipActionHints: readonly {
     readonly label: string
