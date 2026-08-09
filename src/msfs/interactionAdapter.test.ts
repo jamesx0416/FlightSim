@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import { Object3D } from 'three'
 
 import { SimScheduler } from '../sim/engine'
-import { MsfsInteractionAdapter, clampMsfsGateDragPercent, isSameMsfsInteractionTarget, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
+import { MsfsInteractionAdapter, clampMsfsGateDragPercent, isSameMsfsInteractionTarget, msfsInteractionTargetKey, resolveMsfsAxisPercent, resolveMsfsDragPercent, resolveMsfsGateDragRange, resolveMsfsLockDragPercent, selectDragRoutes } from './interactionAdapter'
 import { MsfsInteractionLifecycle } from './interactionLifecycle'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
 import type { CompiledBehaviorSet, CompiledInteractionBinding, CompiledInteractionRoute } from './types'
@@ -90,9 +90,45 @@ test('groups distinct authored targets only when GroupID matches', () => {
   expect(isSameMsfsInteractionTarget(left, right)).toBe(true)
   expect(isSameMsfsInteractionTarget(left, unrelated)).toBe(false)
   expect(target.id).toBe('LEFT_NODE@1')
-  expect(target.arbitrationId).toBe('group:DUAL_KNOB')
+  expect(target.arbitrationId).toBe('group:test.xml#DUAL_KNOB')
   expect(target.bindings).toEqual([left, right])
   expect(target.operations).toEqual(['press', 'increase'])
+
+  const physicalRight = adapter.fromBinding(right)
+  expect(physicalRight.id).toBe(target.id)
+  expect(adapter.resolve(physicalRight.id).ok).toBe(true)
+  expect(adapter.resolve('RIGHT')).toEqual({
+    ok: false,
+    code: 'TARGET_AMBIGUOUS',
+    candidates: ['LEFT_NODE@1', 'RIGHT_NODE@2']
+  })
+  expect(adapter.list().map(candidate => candidate.id)).toEqual(['LEFT_NODE@1', 'RIGHT_NODE@2'])
+})
+
+test('canonical target keys make GroupID membership transitive and order independent', () => {
+  const first = interactionBinding()
+  const groupedA = {
+    ...first,
+    target: 'A',
+    metadata: { ...first.metadata, qualifiedId: 'shared', groupId: 'PAIR' }
+  }
+  const groupedB = {
+    ...first,
+    target: 'B',
+    metadata: { ...first.metadata, qualifiedId: 'shared', groupId: 'PAIR' }
+  }
+  const ungrouped = {
+    ...first,
+    target: 'B',
+    metadata: { ...first.metadata, qualifiedId: 'shared', groupId: null }
+  }
+  const runtime = { getInteractionBindings: () => [groupedA, ungrouped, groupedB] } as unknown as AircraftRuntime
+  const adapter = new MsfsInteractionAdapter(runtime)
+
+  expect(msfsInteractionTargetKey(groupedA)).toBe(msfsInteractionTargetKey(groupedB))
+  expect(msfsInteractionTargetKey(groupedB) === msfsInteractionTargetKey(ungrouped)).toBe(false)
+  expect(adapter.list().length).toBe(2)
+  expect(adapter.fromBinding(groupedB).bindings).toEqual([groupedA, groupedB])
 })
 
 test('projects pointer movement onto the authored drag trajectory', () => {

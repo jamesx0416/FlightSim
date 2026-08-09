@@ -88,15 +88,18 @@ export function clampMsfsGateDragPercent(
   return { dragPercent: constrained, capture: nextCapture }
 }
 
+export function msfsInteractionTargetKey(binding: CompiledInteractionBinding): string {
+  const groupId = binding.metadata.groupId?.trim()
+  return groupId
+    ? `group:${binding.sourcePath}#${groupId}`
+    : `binding:${binding.metadata.qualifiedId}#${binding.target}`
+}
+
 export function isSameMsfsInteractionTarget(
   left: CompiledInteractionBinding,
   right: CompiledInteractionBinding
 ): boolean {
-  const leftGroup = left.metadata.groupId?.trim()
-  const rightGroup = right.metadata.groupId?.trim()
-  if (leftGroup && rightGroup && leftGroup === rightGroup) return true
-  return left.target === right.target &&
-    left.metadata.qualifiedId === right.metadata.qualifiedId
+  return msfsInteractionTargetKey(left) === msfsInteractionTargetKey(right)
 }
 
 export function resolveMsfsAxisPercent(
@@ -178,16 +181,20 @@ export class MsfsInteractionAdapter {
 
   list(): readonly MsfsInteractionTarget[] {
     const bindings = this.runtime.getInteractionBindings()
-    return bindings.filter((binding, index) =>
-      bindings.findIndex(candidate => isSameMsfsInteractionTarget(candidate, binding)) === index
-    ).map(binding => this.toTarget(binding, bindings))
+    const seen = new Set<string>()
+    return bindings.flatMap(binding => {
+      const key = msfsInteractionTargetKey(binding)
+      if (seen.has(key)) return []
+      seen.add(key)
+      return [this.toTarget(binding, bindings)]
+    })
   }
 
   resolve(id: string): InteractionResolution {
     const targets = this.list()
     const qualified = targets.find(target => target.id === id)
     if (qualified != null) return { ok: true, target: qualified }
-    const authored = targets.filter(target => target.binding.metadata.authoredId === id)
+    const authored = targets.filter(target => target.bindings.some(binding => binding.metadata.authoredId === id))
     if (authored.length === 1) return { ok: true, target: authored[0]! }
     if (authored.length > 1) return { ok: false, code: 'TARGET_AMBIGUOUS', candidates: authored.map(target => target.id) }
     return { ok: false, code: 'TARGET_NOT_FOUND', candidates: [] }
@@ -815,22 +822,20 @@ export class MsfsInteractionAdapter {
     binding: CompiledInteractionBinding,
     allBindings = this.runtime.getInteractionBindings()
   ): MsfsInteractionTarget {
-    const bindings = [binding, ...allBindings.filter(candidate =>
-      candidate !== binding &&
-      isSameMsfsInteractionTarget(candidate, binding)
-    )]
+    const key = msfsInteractionTargetKey(binding)
+    const groupedBindings = allBindings.filter(candidate => msfsInteractionTargetKey(candidate) === key)
+    const bindings = groupedBindings.length > 0 ? groupedBindings : [binding]
+    const representative = bindings[0]!
     const hasQualifiedIdCollision = allBindings.some(candidate =>
-      candidate.metadata.qualifiedId === binding.metadata.qualifiedId &&
-      !isSameMsfsInteractionTarget(candidate, binding)
+      candidate.metadata.qualifiedId === representative.metadata.qualifiedId &&
+      msfsInteractionTargetKey(candidate) !== key
     )
     const id = hasQualifiedIdCollision
-      ? `${binding.metadata.sourcePath}#${binding.target}`
-      : binding.metadata.qualifiedId
+      ? `${representative.metadata.sourcePath}#${representative.target}`
+      : representative.metadata.qualifiedId
     return {
       id,
-      arbitrationId: binding.metadata.groupId?.trim()
-        ? `group:${binding.metadata.groupId.trim()}`
-        : id,
+      arbitrationId: representative.metadata.groupId?.trim() ? key : id,
       lockable: bindings.some(candidate => candidate.metadata.lockable),
       temporaryLockChannels: [...new Set(bindings.flatMap(candidate =>
         interactionChannelsForMouseFlags(candidate.metadata.lockFlagsTemporary, 'Single')
@@ -841,7 +846,7 @@ export class MsfsInteractionAdapter {
           ? ['increase' as const, 'decrease' as const]
           : [])
       ])],
-      binding,
+      binding: representative,
       bindings
     }
   }
