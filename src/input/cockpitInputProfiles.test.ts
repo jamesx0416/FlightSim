@@ -78,7 +78,7 @@ test('version 2 defaults resolve MSFS interaction and empty-cockpit mouse behavi
   expect(effective.bindings.shortcuts).toEqual({ stop: 'Escape' })
 })
 
-test('version 1 storage without the scroll setting recovers to defaults', () => {
+test('version 1 storage without the scroll setting migrates without losing profiles', () => {
   const legacy = {
     version: 1,
     selectedGlobalProfileId: DEFAULT_COCKPIT_INPUT_PROFILE_ID,
@@ -104,8 +104,12 @@ test('version 1 storage without the scroll setting recovers to defaults', () => 
     [LEGACY_COCKPIT_INPUT_STORE_KEY, JSON.stringify(legacy)]
   ])
   const result = withoutWarnings(() => loadCockpitInputStoreWithDiagnostics(storage))
-  expect(result.store).toEqual(DEFAULT_COCKPIT_INPUT_STORE)
-  expect(result.diagnostics.map(diagnostic => diagnostic.code)).toEqual(['RECOVERED_INVALID_STORE'])
+  expect(result.store.globalSettings.invertDefaultScrollDirection).toBe(false)
+  expect(result.store.profiles.map(profile => profile.id)).toEqual([DEFAULT_COCKPIT_INPUT_PROFILE_ID, 'testing'])
+  expect(result.store.aircraftProfileSelections).toEqual({ 'legacy::shared': 'testing' })
+  expect(result.diagnostics.map(diagnostic => diagnostic.code)).toEqual([
+    'MIGRATED_V1', 'MIGRATED_LEGACY_AIRCRAFT_SELECTION'
+  ])
   expect(values.has(COCKPIT_INPUT_STORE_KEY)).toBe(true)
 })
 

@@ -54,7 +54,9 @@ export interface CockpitInputStoreV1 {
   readonly version: 1
   readonly selectedGlobalProfileId: string
   readonly aircraftProfileSelections: Readonly<Record<string, string>>
-  readonly globalSettings: CockpitInputGlobalSettings
+  readonly globalSettings: Omit<CockpitInputGlobalSettings, 'invertDefaultScrollDirection'> & {
+    readonly invertDefaultScrollDirection?: boolean
+  }
   readonly profiles: readonly (Omit<CockpitInputProfile, 'bindings'> & {
     readonly bindings?: Readonly<Record<string, string>>
   })[]
@@ -225,7 +227,10 @@ function migrateCockpitInputStoreV1(store: CockpitInputStoreV1): CockpitInputSto
       version: 2,
       selectedGlobalProfileId: store.selectedGlobalProfileId,
       aircraftProfileSelections,
-      globalSettings: store.globalSettings,
+      globalSettings: {
+        ...store.globalSettings,
+        invertDefaultScrollDirection: store.globalSettings.invertDefaultScrollDirection ?? false
+      },
       profiles
     },
     diagnostics
@@ -532,7 +537,7 @@ export function isCockpitInputStoreV1(value: unknown): value is CockpitInputStor
   const store = value as Partial<CockpitInputStoreV1>
   if (store.version !== 1 || !Array.isArray(store.profiles) || store.profiles.length === 0) return false
   if (typeof store.selectedGlobalProfileId !== 'string' || !isRecord(store.aircraftProfileSelections)) return false
-  if (!isGlobalSettings(store.globalSettings)) return false
+  if (!isLegacyGlobalSettings(store.globalSettings)) return false
   const ids = new Set<string>()
   for (const profile of store.profiles) {
     if (profile == null || typeof profile !== 'object' || typeof profile.id !== 'string' || profile.id === '' || typeof profile.name !== 'string' || ids.has(profile.id)) return false
@@ -576,6 +581,14 @@ function isShortcutOverrides(value: unknown): boolean {
 
 function isCockpitShortcutCode(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0 && value.length <= 64
+}
+
+function isLegacyGlobalSettings(value: unknown): value is CockpitInputStoreV1['globalSettings'] {
+  if (!isRecord(value)) return false
+  return (value.interactionMode === 'legacy' || value.interactionMode === 'lock')
+    && typeof value.showHighlights === 'boolean'
+    && typeof value.showTooltips === 'boolean'
+    && (value.invertDefaultScrollDirection == null || typeof value.invertDefaultScrollDirection === 'boolean')
 }
 
 function isGlobalSettings(value: unknown): value is CockpitInputGlobalSettings {
