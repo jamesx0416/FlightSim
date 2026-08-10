@@ -266,6 +266,17 @@ test('mirrors generic throttle key events into canonical propulsion state', () =
   ).toBe(100)
 })
 
+test('invalidates cached electrical fallback reads when power changes', () => {
+  const host = new SharedMsfsRuntimeHost([])
+  host.resetRuntimeState({ coldAndDark: true })
+
+  expect(host.readVariable('A:TEST BRIGHTNESS', 'percent')).toBe(0)
+  host.writeVariable('L:TEST_BATTERY_SWITCH', 1)
+  expect(host.readVariable('A:TEST BRIGHTNESS', 'percent')).toBe(100)
+  host.writeVariable('L:TEST_BATTERY_SWITCH', 0)
+  expect(host.readVariable('A:TEST BRIGHTNESS', 'percent')).toBe(0)
+})
+
 test('publishes key-event control and electrical state without waiting for a tick', () => {
   const host = new SharedMsfsRuntimeHost([])
 
