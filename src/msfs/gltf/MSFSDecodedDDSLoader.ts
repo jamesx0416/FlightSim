@@ -967,10 +967,8 @@ function decodeBc5Rg(
         const y = blockY * 4 + (pixelIndex >> 2)
         if (x >= width || y >= height) continue
         const destinationOffset = (y * width + x) * 2
-        const decodedX = signed ? xValue : xValue * 2 - 1
-        const decodedY = signed ? yValue : yValue * 2 - 1
-        output[destinationOffset] = toByte(decodedX * 0.5 + 0.5)
-        output[destinationOffset + 1] = toByte(decodedY * 0.5 + 0.5)
+        output[destinationOffset] = xValue
+        output[destinationOffset + 1] = yValue
       }
     }
   }
@@ -1034,15 +1032,20 @@ function fillBc4Palette(
     palette[5] = (3 * endpoint0 + 4 * endpoint1) / 7
     palette[6] = (2 * endpoint0 + 5 * endpoint1) / 7
     palette[7] = (endpoint0 + 6 * endpoint1) / 7
-    return
+  } else {
+    palette[2] = (4 * endpoint0 + endpoint1) / 5
+    palette[3] = (3 * endpoint0 + 2 * endpoint1) / 5
+    palette[4] = (2 * endpoint0 + 3 * endpoint1) / 5
+    palette[5] = (endpoint0 + 4 * endpoint1) / 5
+    palette[6] = signed ? -1 : 0
+    palette[7] = 1
   }
 
-  palette[2] = (4 * endpoint0 + endpoint1) / 5
-  palette[3] = (3 * endpoint0 + 2 * endpoint1) / 5
-  palette[4] = (2 * endpoint0 + 3 * endpoint1) / 5
-  palette[5] = (endpoint0 + 4 * endpoint1) / 5
-  palette[6] = signed ? -1 : 0
-  palette[7] = 1
+  for (let index = 0; index < palette.length; index += 1) {
+    const value = palette[index]!
+    const decoded = signed ? value : value * 2 - 1
+    palette[index] = toByte(decoded * 0.5 + 0.5)
+  }
 }
 
 function readUint48(view: DataView, offset: number): number {
