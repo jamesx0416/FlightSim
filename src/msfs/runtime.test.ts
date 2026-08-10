@@ -146,6 +146,33 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(81)
   })
 
+  test('reuses stable animation dependencies and observes changes on the next frame', () => {
+    let value = 25
+    const scene = new Object3D()
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      animationBindings: [{
+        target: 'CachedAnimation',
+        expression: {
+          source: '(L:CACHED_VALUE, number)',
+          instructions: [{ op: 'pushVariable', key: 'L:CACHED_VALUE', unit: 'number' }],
+          variableKeys: ['L:CACHED_VALUE']
+        },
+        length: 100,
+        wrap: false,
+        delta: false,
+        lagFramesPerSecond: 0,
+        sourcePath: 'test.xml'
+      }]
+    }, scene, { ...hostServices, readVariable: () => value })
+    runtime.bindAnimations([new AnimationClip('CachedAnimation', 1, [])])
+
+    expect(runtime.update(1 / 60).animationValues.get('CachedAnimation')).toBe(25)
+    expect(runtime.update(1 / 60).animationValues.get('CachedAnimation')).toBe(25)
+    value = 75
+    expect(runtime.update(1 / 60).animationValues.get('CachedAnimation')).toBe(75)
+  })
+
   test('bypasses authored animation lag only while DragUseAnimLag is false', () => {
     const createRuntime = (useAnimLag: boolean) => {
       let value = 0
