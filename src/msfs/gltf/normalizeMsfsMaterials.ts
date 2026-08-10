@@ -198,6 +198,17 @@ type DecalProjectionTriangle = {
   readonly b: Vector3
   readonly c: Vector3
   readonly orientationNormal: Vector3
+  readonly projectionAbX: number
+  readonly projectionAbY: number
+  readonly projectionAbZ: number
+  readonly projectionAcX: number
+  readonly projectionAcY: number
+  readonly projectionAcZ: number
+  readonly projectionD00: number
+  readonly projectionD01: number
+  readonly projectionD11: number
+  readonly projectionDenominator: number
+  readonly projectionPlaneConstant: number
   readonly normalA: Vector3 | null
   readonly normalB: Vector3 | null
   readonly normalC: Vector3 | null
@@ -755,12 +766,33 @@ function buildDecalProjectionTriangles(
         orientationNormal.negate()
       }
 
+      const projectionAbX = b.x - a.x
+      const projectionAbY = b.y - a.y
+      const projectionAbZ = b.z - a.z
+      const projectionAcX = c.x - a.x
+      const projectionAcY = c.y - a.y
+      const projectionAcZ = c.z - a.z
+      const projectionD00 = projectionAbX * projectionAbX + projectionAbY * projectionAbY + projectionAbZ * projectionAbZ
+      const projectionD01 = projectionAbX * projectionAcX + projectionAbY * projectionAcY + projectionAbZ * projectionAcZ
+      const projectionD11 = projectionAcX * projectionAcX + projectionAcY * projectionAcY + projectionAcZ * projectionAcZ
+
       triangles.push({
         receiver: mesh,
         a,
         b,
         c,
         orientationNormal,
+        projectionAbX,
+        projectionAbY,
+        projectionAbZ,
+        projectionAcX,
+        projectionAcY,
+        projectionAcZ,
+        projectionD00,
+        projectionD01,
+        projectionD11,
+        projectionDenominator: projectionD00 * projectionD11 - projectionD01 * projectionD01,
+        projectionPlaneConstant: orientationNormal.dot(a),
         normalA,
         normalB,
         normalC,
@@ -2265,32 +2297,34 @@ function projectPointToTriangleAlongNormal(
     return null
   }
 
-  const distance = triangle.orientationNormal.dot(
-    new Vector3().subVectors(triangle.a, point)
+  const distance = (
+    triangle.projectionPlaneConstant -
+    triangle.orientationNormal.x * point.x -
+    triangle.orientationNormal.y * point.y -
+    triangle.orientationNormal.z * point.z
   ) / planeDot
-  const projectedPoint = point.clone().addScaledVector(projectionNormal, distance)
-  const ab = new Vector3().subVectors(triangle.b, triangle.a)
-  const ac = new Vector3().subVectors(triangle.c, triangle.a)
-  const ap = new Vector3().subVectors(projectedPoint, triangle.a)
-  const d00 = ab.dot(ab)
-  const d01 = ab.dot(ac)
-  const d11 = ac.dot(ac)
-  const d20 = ap.dot(ab)
-  const d21 = ap.dot(ac)
-  const denominator = d00 * d11 - d01 * d01
+  const projectedX = point.x + projectionNormal.x * distance
+  const projectedY = point.y + projectionNormal.y * distance
+  const projectedZ = point.z + projectionNormal.z * distance
+  const apX = projectedX - triangle.a.x
+  const apY = projectedY - triangle.a.y
+  const apZ = projectedZ - triangle.a.z
+  const d20 = apX * triangle.projectionAbX + apY * triangle.projectionAbY + apZ * triangle.projectionAbZ
+  const d21 = apX * triangle.projectionAcX + apY * triangle.projectionAcY + apZ * triangle.projectionAcZ
+  const denominator = triangle.projectionDenominator
   if (Math.abs(denominator) <= Number.EPSILON) {
     return null
   }
 
-  const v = (d11 * d20 - d01 * d21) / denominator
-  const w = (d00 * d21 - d01 * d20) / denominator
+  const v = (triangle.projectionD11 * d20 - triangle.projectionD01 * d21) / denominator
+  const w = (triangle.projectionD00 * d21 - triangle.projectionD01 * d20) / denominator
   const u = 1 - v - w
   const epsilon = Number.EPSILON * 128
   if (u < -epsilon || v < -epsilon || w < -epsilon) {
     return null
   }
 
-  return { point: projectedPoint, barycentric: [u, v, w] }
+  return { point: new Vector3(projectedX, projectedY, projectedZ), barycentric: [u, v, w] }
 }
 
 function getPointToBoundsDistanceSquared(point: Vector3, min: Vector3, max: Vector3): number {
