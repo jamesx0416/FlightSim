@@ -942,6 +942,8 @@ function decodeBc5Rg(
   const view = new DataView(buffer, dataOffset)
   const blockWidth = Math.max(1, Math.ceil(width / 4))
   const blockHeight = Math.max(1, Math.ceil(height / 4))
+  const xPalette = new Array<number>(8)
+  const yPalette = new Array<number>(8)
 
   for (let blockY = 0; blockY < blockHeight; blockY += 1) {
     for (let blockX = 0; blockX < blockWidth; blockX += 1) {
@@ -950,8 +952,8 @@ function decodeBc5Rg(
       const xEndpoint1 = signed ? snorm8ToFloat(view.getInt8(offset + 1)) : view.getUint8(offset + 1) / 255
       const yEndpoint0 = signed ? snorm8ToFloat(view.getInt8(offset + 8)) : view.getUint8(offset + 8) / 255
       const yEndpoint1 = signed ? snorm8ToFloat(view.getInt8(offset + 9)) : view.getUint8(offset + 9) / 255
-      const xPalette = buildBc4Palette(xEndpoint0, xEndpoint1, signed)
-      const yPalette = buildBc4Palette(yEndpoint0, yEndpoint1, signed)
+      fillBc4Palette(xPalette, xEndpoint0, xEndpoint1, signed)
+      fillBc4Palette(yPalette, yEndpoint0, yEndpoint1, signed)
       let xIndices = readUint48(view, offset + 2)
       let yIndices = readUint48(view, offset + 10)
 
@@ -1016,8 +1018,12 @@ function fillDxt5AlphaPalette(
   palette[7] = 255
 }
 
-function buildBc4Palette(endpoint0: number, endpoint1: number, signed: boolean): number[] {
-  const palette = new Array<number>(8)
+function fillBc4Palette(
+  palette: number[],
+  endpoint0: number,
+  endpoint1: number,
+  signed: boolean
+): void {
   palette[0] = endpoint0
   palette[1] = endpoint1
 
@@ -1028,7 +1034,7 @@ function buildBc4Palette(endpoint0: number, endpoint1: number, signed: boolean):
     palette[5] = (3 * endpoint0 + 4 * endpoint1) / 7
     palette[6] = (2 * endpoint0 + 5 * endpoint1) / 7
     palette[7] = (endpoint0 + 6 * endpoint1) / 7
-    return palette
+    return
   }
 
   palette[2] = (4 * endpoint0 + endpoint1) / 5
@@ -1037,7 +1043,6 @@ function buildBc4Palette(endpoint0: number, endpoint1: number, signed: boolean):
   palette[5] = (endpoint0 + 4 * endpoint1) / 5
   palette[6] = signed ? -1 : 0
   palette[7] = 1
-  return palette
 }
 
 function readUint48(view: DataView, offset: number): number {
