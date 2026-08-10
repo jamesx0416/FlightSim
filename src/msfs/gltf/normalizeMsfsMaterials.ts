@@ -2176,17 +2176,46 @@ function findClosestProjectionTriangle(
         }
 
         if (orientationNormal != null) {
-          const projectedResult = projectPointToTriangleAlongNormal(
-            point,
-            item.triangle,
-            orientationNormal
-          )
-          if (projectedResult != null) {
-            const projectedDistanceSq = projectedResult.point.distanceToSquared(point)
-            if (projectedDistanceSq < projected.distanceSq) {
-              projected.distanceSq = projectedDistanceSq
-              projected.triangle = item.triangle
-              projected.result = projectedResult
+          const triangle = item.triangle
+          const planeDot =
+            triangle.orientationNormal.x * orientationNormal.x +
+            triangle.orientationNormal.y * orientationNormal.y +
+            triangle.orientationNormal.z * orientationNormal.z
+          if (Math.abs(planeDot) > Number.EPSILON) {
+            const distance = (
+              triangle.projectionPlaneConstant -
+              triangle.orientationNormal.x * point.x -
+              triangle.orientationNormal.y * point.y -
+              triangle.orientationNormal.z * point.z
+            ) / planeDot
+            const projectedX = point.x + orientationNormal.x * distance
+            const projectedY = point.y + orientationNormal.y * distance
+            const projectedZ = point.z + orientationNormal.z * distance
+            const apX = projectedX - triangle.a.x
+            const apY = projectedY - triangle.a.y
+            const apZ = projectedZ - triangle.a.z
+            const d20 = apX * triangle.projectionAbX + apY * triangle.projectionAbY + apZ * triangle.projectionAbZ
+            const d21 = apX * triangle.projectionAcX + apY * triangle.projectionAcY + apZ * triangle.projectionAcZ
+            const denominator = triangle.projectionDenominator
+            if (Math.abs(denominator) > Number.EPSILON) {
+              const v = (triangle.projectionD11 * d20 - triangle.projectionD01 * d21) / denominator
+              const w = (triangle.projectionD00 * d21 - triangle.projectionD01 * d20) / denominator
+              const u = 1 - v - w
+              const epsilon = Number.EPSILON * 128
+              if (u >= -epsilon && v >= -epsilon && w >= -epsilon) {
+                const dx = projectedX - point.x
+                const dy = projectedY - point.y
+                const dz = projectedZ - point.z
+                const projectedDistanceSq = dx * dx + dy * dy + dz * dz
+                if (projectedDistanceSq < projected.distanceSq) {
+                  projected.distanceSq = projectedDistanceSq
+                  projected.triangle = triangle
+                  projected.result = {
+                    point: new Vector3(projectedX, projectedY, projectedZ),
+                    barycentric: [u, v, w],
+                  }
+                }
+              }
             }
           }
         }
