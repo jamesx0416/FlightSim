@@ -12,6 +12,19 @@ function writeBc4Selectors(view: DataView, offset: number, selectors: readonly n
   }
 }
 
+test('decodes a partial DXT1 block without per-pixel callback allocation', () => {
+  const buffer = new ArrayBuffer(8)
+  const view = new DataView(buffer)
+  view.setUint16(0, 0xf800, true)
+  view.setUint16(2, 0x001f, true)
+  view.setUint32(4, 0xe4e4e4e4, true)
+
+  expect([...__msfsDecodedDdsTestHooks.decodeDxt1(buffer, 0, 3, 2)]).toEqual([
+    255, 0, 0, 255, 0, 0, 255, 255, 170, 0, 85, 255,
+    255, 0, 0, 255, 0, 0, 255, 255, 170, 0, 85, 255,
+  ])
+})
+
 test('decodes a partial DXT5 block without shifting skipped selectors', () => {
   const buffer = new ArrayBuffer(16)
   const view = new DataView(buffer)
