@@ -1800,6 +1800,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
   private readonly readCache = new Map<string, number>()
+  private electricalPowerCache: boolean | null = null
   private readonly defaultedKeys = new Set<string>()
   readonly simulatorEngine: SimulatorEngine
   private readonly msfsCompatibilityBridge: MsfsCompatibilityBridge
@@ -1848,15 +1849,20 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       this.simulatorEngine.state
     )
     this.simulatorEngine.state.subscribe(() => {
-      this.readCache.clear()
+      this.clearReadCache()
     })
     this.simulatorEngine.commands.subscribe('*', () => {
-      this.readCache.clear()
+      this.clearReadCache()
     })
     this.wingFlexProfile = createDemoWingFlexProfile(aircraft)
     this.simVarSounds = aircraft?.soundDefinition?.simVarSounds ?? []
     this.seedColdAndDarkState()
     this.seedPreviewFlightState(aircraft?.previewFlightState ?? null)
+  }
+
+  private clearReadCache(): void {
+    this.readCache.clear()
+    this.electricalPowerCache = null
   }
 
   setTraceSink(sink?: (record: () => Readonly<Record<string, unknown>>) => void): void {
@@ -1870,7 +1876,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   resetRuntimeState(options: { readonly coldAndDark?: boolean } = {}): void {
     this.elapsedSeconds = 0
     this.values.clear()
-    this.readCache.clear()
+    this.clearReadCache()
     this.defaultedKeys.clear()
     this.simulatorEngine.state.clearSourceValues('runtime')
     this.simulatorEngine.state.clearSourceValues('loaded')
@@ -1908,7 +1914,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     if (this.values.has(normalizedKey)) {
       return false
     }
-    this.readCache.clear()
+    this.clearReadCache()
     this.values.set(normalizedKey, value)
     this.writeEngineCompatibilityVariable(normalizedKey, value, null, 'loaded')
     this.emitVariableChange(normalizedKey)
@@ -1916,7 +1922,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   tick(dtSeconds: number): void {
-    this.readCache.clear()
+    this.clearReadCache()
     this.elapsedSeconds += dtSeconds
     this.simulatorEngine.tick(dtSeconds)
     this.publishPropulsionVariables()
@@ -2056,7 +2062,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     options?: { readonly source?: 'update' | 'interaction' | 'input-event' }
   ): void {
     this.variableWriteCount += 1
-    this.readCache.clear()
+    this.clearReadCache()
     const normalizedKey = normalizeRuntimeVariableKey(key)
     const numericValue = Number(value)
     this.trace(() => ({
@@ -2098,7 +2104,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   invokeKeyEvent(name: string, args: readonly number[]): void {
     this.keyEventCount += 1
-    this.readCache.clear()
+    this.clearReadCache()
     const value = args.at(-1) ?? 1
     const normalizedEventName = normalizeKeyEventName(name)
     this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
@@ -2131,7 +2137,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       return
     }
     this.htmlEventCount += 1
-    this.readCache.clear()
+    this.clearReadCache()
     const event: RuntimeHtmlEvent = {
       name: eventName,
       args: args.length > 0 ? [...args] : [eventName],
@@ -2330,7 +2336,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   invokeBridgeCall(name: string, args: readonly number[] = [1]): void {
-    this.readCache.clear()
+    this.clearReadCache()
     const values = normalizeRuntimeBridgeArgs(args.length > 0 ? args : [1])
     const handledByBinding = this.invokeInputEventBinding(name, values)
     const value = values[0] ?? 0
@@ -2360,7 +2366,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const current = this.readVariable(brightnessKey)
     const delta = direction === 'BRT' ? 0.03 : -0.03
     this.values.set(brightnessKey, clamp(current + delta, 0.05, 1))
-    this.readCache.clear()
+    this.clearReadCache()
   }
 
   private applyLocalVariableSideEffects(key: string, value: number): void {
@@ -3143,7 +3149,11 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   private hasElectricalPower(): boolean {
-    if (
+    if (this.electricalPowerCache != null) {
+      return this.electricalPowerCache
+    }
+
+    const powered =
       this.simulatorEngine.state.readBoolean(ElectricalStateKeys.busPowered('main'), {
         fallback: false,
       }) ||
@@ -3152,18 +3162,15 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       }) ||
       this.simulatorEngine.state.readBoolean(ElectricalStateKeys.consumerPowered('lights'), {
         fallback: false,
-      })
-    ) {
-      return true
-    }
-
-    return (
+      }) ||
       this.electricalState.batterySwitch > 0 ||
       this.electricalState.externalPowerSwitch > 0 ||
       this.hasStoredBatteryControlPower() ||
       this.hasStoredExternalPower() ||
       (this.engineCycleTarget > 0 && this.hasStoredGeneratorPower())
-    )
+
+    this.electricalPowerCache = powered
+    return powered
   }
 
   private hasStoredBatteryControlPower(): boolean {
