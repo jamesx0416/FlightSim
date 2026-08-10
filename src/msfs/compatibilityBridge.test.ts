@@ -89,6 +89,30 @@ test('maps MSFS light switch channels to canonical enabled state', () => {
     expect(mapMsfsSimVarToCanonicalState('A:LIGHT PANEL')).toBeUndefined()
   })
 
+  test('cached aliases still read current canonical state', () => {
+    const state = new SimStateStore()
+    const bridge = new MsfsCompatibilityBridge(state)
+
+    expect(bridge.writeSimVar('A:LIGHT BEACON', 1, 'Bool')).toBe(true)
+    expect(bridge.readSimVar('A:LIGHT BEACON', 'Bool')).toBe(1)
+    state.set(LightingStateKeys.channelEnabled('beacon'), false, {
+      source: 'runtime',
+      unit: 'boolean',
+    })
+    expect(bridge.readSimVar('A:LIGHT BEACON', 'Bool')).toBe(0)
+
+    state.set(LightingStateKeys.electricalBusPowered('ac-1'), true, {
+      source: 'runtime',
+      unit: 'boolean',
+    })
+    expect(bridge.readLocalVar('L:A32NX_ELEC_AC_1_BUS_IS_POWERED')).toBe(1)
+    state.set(LightingStateKeys.electricalBusPowered('ac-1'), false, {
+      source: 'runtime',
+      unit: 'boolean',
+    })
+    expect(bridge.readLocalVar('L:A32NX_ELEC_AC_1_BUS_IS_POWERED')).toBe(0)
+  })
+
   test('maps MSFS APU SimVars to canonical propulsion state', () => {
     const state = new SimStateStore()
     const bridge = new MsfsCompatibilityBridge(state)
