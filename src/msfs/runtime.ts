@@ -113,6 +113,7 @@ interface RuntimeBoundMaterial {
 interface RuntimeExpressionDependency {
   readonly key: string
   readonly unit: string | null
+  readonly cacheKey: string
 }
 
 export interface RuntimeInteractionValueWatch {
@@ -456,8 +457,8 @@ export class AircraftRuntime {
       phaseStartMs = nowMs
       return durationMs
     }
-    const readFrameVariable: RuntimeHostServices['readVariable'] = (key, unit) =>
-      this.readFrameVariable(key, unit)
+    const readFrameDependency = (dependency: RuntimeExpressionDependency): number =>
+      this.readFrameDependency(dependency)
 
     this.hostServices.tick(dtSeconds)
     if (this.simulatorEngine == null) this.interactionScheduler.tick(dtSeconds)
@@ -480,17 +481,18 @@ export class AircraftRuntime {
       ) {
         continue
       }
-      const dependencyValues =
+      const dependenciesChanged =
         runtimeBinding.lastEvaluatedValue == null || runtimeBinding.dependencies == null
-          ? null
-          : readRuntimeExpressionDependencyValues(
+          ? true
+          : runtimeExpressionDependenciesChanged(
             runtimeBinding.dependencies,
-            readFrameVariable
+            runtimeBinding.lastDependencyValues,
+            readFrameDependency
           )
       const canReuseEvaluatedValue =
         runtimeBinding.lastEvaluatedValue != null &&
-        dependencyValues != null &&
-        runtimeDependencyValuesEqual(runtimeBinding.lastDependencyValues, dependencyValues)
+        runtimeBinding.dependencies != null &&
+        !dependenciesChanged
       const evaluatedValue = canReuseEvaluatedValue
         ? runtimeBinding.lastEvaluatedValue!
         : evaluateCompiledExpression(binding.expression, this.readOnlyExpressionServices)
@@ -499,11 +501,10 @@ export class AircraftRuntime {
         runtimeBinding.lastDependencyValues =
           runtimeBinding.dependencies == null
             ? null
-            : dependencyValues ??
-              readRuntimeExpressionDependencyValues(
-                runtimeBinding.dependencies,
-                readFrameVariable
-              )
+            : readRuntimeExpressionDependencyValues(
+              runtimeBinding.dependencies,
+              readFrameDependency
+            )
       }
       const hadPreviousValue = this.animationValues.has(binding.target)
       const previousValue = this.animationValues.get(binding.target) ?? 0
@@ -550,17 +551,18 @@ export class AircraftRuntime {
         continue
       }
       const { binding, node } = runtimeBinding
-      const dependencyValues =
+      const dependenciesChanged =
         runtimeBinding.lastEvaluatedVisible == null || runtimeBinding.dependencies == null
-          ? null
-          : readRuntimeExpressionDependencyValues(
+          ? true
+          : runtimeExpressionDependenciesChanged(
             runtimeBinding.dependencies,
-            readFrameVariable
+            runtimeBinding.lastDependencyValues,
+            readFrameDependency
           )
       const canReuseVisible =
         runtimeBinding.lastEvaluatedVisible != null &&
-        dependencyValues != null &&
-        runtimeDependencyValuesEqual(runtimeBinding.lastDependencyValues, dependencyValues)
+        runtimeBinding.dependencies != null &&
+        !dependenciesChanged
       if (canReuseVisible) {
         continue
       }
@@ -572,11 +574,10 @@ export class AircraftRuntime {
       runtimeBinding.lastDependencyValues =
         runtimeBinding.dependencies == null
           ? null
-          : dependencyValues ??
-            readRuntimeExpressionDependencyValues(
-              runtimeBinding.dependencies,
-              readFrameVariable
-            )
+          : readRuntimeExpressionDependencyValues(
+            runtimeBinding.dependencies,
+            readFrameDependency
+          )
       this.nodeVisibilities.set(binding.target, isVisible)
       if (previousVisibility !== isVisible) {
         modelChanged = true
@@ -596,17 +597,18 @@ export class AircraftRuntime {
       ) {
         continue
       }
-      const dependencyValues =
+      const dependenciesChanged =
         runtimeBinding.lastAppliedValue == null || runtimeBinding.dependencies == null
-          ? null
-          : readRuntimeExpressionDependencyValues(
+          ? true
+          : runtimeExpressionDependenciesChanged(
             runtimeBinding.dependencies,
-            readFrameVariable
+            runtimeBinding.lastDependencyValues,
+            readFrameDependency
           )
       const canReuseValue =
         runtimeBinding.lastAppliedValue != null &&
-        dependencyValues != null &&
-        runtimeDependencyValuesEqual(runtimeBinding.lastDependencyValues, dependencyValues)
+        runtimeBinding.dependencies != null &&
+        !dependenciesChanged
       const value = canReuseValue
         ? runtimeBinding.lastAppliedValue!
         : evaluateCompiledExpression(
@@ -621,11 +623,10 @@ export class AircraftRuntime {
       runtimeBinding.lastDependencyValues =
         runtimeBinding.dependencies == null
           ? null
-          : dependencyValues ??
-            readRuntimeExpressionDependencyValues(
-              runtimeBinding.dependencies,
-              readFrameVariable
-            )
+          : readRuntimeExpressionDependencyValues(
+            runtimeBinding.dependencies,
+            readFrameDependency
+          )
       this.materialValues.set(runtimeBinding.binding.target, value)
       if (
         previousAppliedValue != null &&
@@ -1035,6 +1036,17 @@ export class AircraftRuntime {
 
     const value = this.hostServices.readVariable(key, unit)
     this.frameVariableValues.set(cacheKey, value)
+    return value
+  }
+
+  private readFrameDependency(dependency: RuntimeExpressionDependency): number {
+    const cachedValue = this.frameVariableValues.get(dependency.cacheKey)
+    if (cachedValue != null) {
+      return cachedValue
+    }
+
+    const value = this.hostServices.readVariable(dependency.key, dependency.unit)
+    this.frameVariableValues.set(dependency.cacheKey, value)
     return value
   }
 
@@ -1482,7 +1494,8 @@ function collectRuntimeExpressionDependencies(
         )
         dependencies.set(cacheKey, {
           key: instruction.key,
-          unit: instruction.unit
+          unit: instruction.unit,
+          cacheKey
         })
         break
       }
@@ -1514,24 +1527,25 @@ function getRuntimeVariableDependencyCacheKey(
 
 function readRuntimeExpressionDependencyValues(
   dependencies: readonly RuntimeExpressionDependency[],
-  readVariable: RuntimeHostServices['readVariable']
+  readDependency: (dependency: RuntimeExpressionDependency) => number
 ): readonly number[] {
-  return dependencies.map(dependency => readVariable(dependency.key, dependency.unit))
+  return dependencies.map(readDependency)
 }
 
-function runtimeDependencyValuesEqual(
-  left: readonly number[] | null,
-  right: readonly number[]
+function runtimeExpressionDependenciesChanged(
+  dependencies: readonly RuntimeExpressionDependency[],
+  previousValues: readonly number[] | null,
+  readDependency: (dependency: RuntimeExpressionDependency) => number
 ): boolean {
-  if (left == null || left.length !== right.length) {
-    return false
+  if (previousValues == null || previousValues.length !== dependencies.length) {
+    return true
   }
-  for (let index = 0; index < right.length; index += 1) {
-    if (Math.abs(left[index]! - right[index]!) >= 1e-6) {
-      return false
+  for (let index = 0; index < dependencies.length; index += 1) {
+    if (Math.abs(previousValues[index]! - readDependency(dependencies[index]!)) >= 1e-6) {
+      return true
     }
   }
-  return true
+  return false
 }
 
 function hasMaterial(object: Object3D): object is MaterialObject {
