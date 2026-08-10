@@ -56,3 +56,19 @@ test('decodes one BC5 block without repeating BC4 selector work per pixel', () =
     255, 255, 0, 0, 219, 204, 182, 153, 146, 102, 109, 51, 73, 255, 36, 0,
   ])
 })
+
+test('decodes signed BC5 palette values before per-pixel lookup', () => {
+  const buffer = new ArrayBuffer(16)
+  const view = new DataView(buffer)
+  view.setInt8(0, 127)
+  view.setInt8(1, -127)
+  view.setInt8(8, -64)
+  view.setInt8(9, 64)
+  writeBc4Selectors(view, 2, [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7])
+  writeBc4Selectors(view, 10, [7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0])
+
+  expect([...__msfsDecodedDdsTestHooks.decodeBc5Rg(buffer, 0, 4, 4, true)]).toEqual([
+    255, 255, 0, 0, 219, 166, 182, 140, 146, 115, 109, 89, 73, 192, 36, 63,
+    255, 255, 0, 0, 219, 166, 182, 140, 146, 115, 109, 89, 73, 192, 36, 63,
+  ])
+})
