@@ -893,18 +893,28 @@ function decodeDxt5(buffer: ArrayBuffer, dataOffset: number, width: number, heig
     for (let blockX = 0; blockX < blockWidth; blockX += 1) {
       const offset = (blockY * blockWidth + blockX) * 16
       const alphaPalette = buildDxt5AlphaPalette(view, offset)
-      const alphaIndices = view.getBigUint64(offset, true) >> 16n
+      let alphaIndices = readUint48(view, offset + 2)
       const color0 = view.getUint16(offset + 8, true)
       const color1 = view.getUint16(offset + 10, true)
       const selectors = view.getUint32(offset + 12, true)
       const colors = buildDxt1Palette(color0, color1, false)
 
-      writeBlock(output, width, height, blockX, blockY, pixelIndex => {
+      for (let pixelIndex = 0; pixelIndex < 16; pixelIndex += 1) {
         const colorIndex = (selectors >> (pixelIndex * 2)) & 0x03
-        const alphaIndex = Number((alphaIndices >> BigInt(pixelIndex * 3)) & 0x07n)
-        const color = colors[colorIndex]
-        return [color[0], color[1], color[2], alphaPalette[alphaIndex]]
-      })
+        const alphaIndex = alphaIndices & 0x07
+        alphaIndices = Math.floor(alphaIndices / 8)
+
+        const x = blockX * 4 + (pixelIndex & 3)
+        const y = blockY * 4 + (pixelIndex >> 2)
+        if (x >= width || y >= height) continue
+
+        const color = colors[colorIndex]!
+        const destinationOffset = (y * width + x) * 4
+        output[destinationOffset] = color[0]
+        output[destinationOffset + 1] = color[1]
+        output[destinationOffset + 2] = color[2]
+        output[destinationOffset + 3] = alphaPalette[alphaIndex]!
+      }
     }
   }
 
@@ -1206,4 +1216,5 @@ function int32ToFourCC(value: number): string {
 
 export const __msfsDecodedDdsTestHooks = {
   decodeBc5Rg,
+  decodeDxt5,
 }

@@ -12,6 +12,22 @@ function writeBc4Selectors(view: DataView, offset: number, selectors: readonly n
   }
 }
 
+test('decodes a partial DXT5 block without shifting skipped selectors', () => {
+  const buffer = new ArrayBuffer(16)
+  const view = new DataView(buffer)
+  view.setUint8(0, 255)
+  view.setUint8(1, 0)
+  writeBc4Selectors(view, 2, [0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7])
+  view.setUint16(8, 0xf800, true)
+  view.setUint16(10, 0x001f, true)
+  view.setUint32(12, 0xe4e4e4e4, true)
+
+  expect([...__msfsDecodedDdsTestHooks.decodeDxt5(buffer, 0, 3, 2)]).toEqual([
+    255, 0, 0, 255, 0, 0, 255, 0, 170, 0, 85, 218,
+    255, 0, 0, 145, 0, 0, 255, 109, 170, 0, 85, 72,
+  ])
+})
+
 test('decodes one BC5 block without repeating BC4 selector work per pixel', () => {
   const buffer = new ArrayBuffer(16)
   const view = new DataView(buffer)
