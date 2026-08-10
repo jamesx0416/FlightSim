@@ -2137,7 +2137,9 @@ function findClosestProjectionTriangle(
     distanceSq: seededProjection?.point.distanceToSquared(point) ?? Infinity,
   }
   const pending: DecalProjectionSpatialIndex[] = [triangleIndex]
-  const pendingDistanceSq = [getPointToBoundsDistanceSquared(point, triangleIndex.min, triangleIndex.max)]
+  const pendingDistanceSq = [orientationNormal == null
+    ? getPointToBoundsDistanceSquared(point, triangleIndex.min, triangleIndex.max)
+    : getLineToBoundsDistanceSquared(point, orientationNormal, triangleIndex.min, triangleIndex.max)]
 
   while (pending.length > 0) {
     const node = pending.pop()!
@@ -2147,7 +2149,7 @@ function findClosestProjectionTriangle(
       : orientationNormal == null
         ? closest.distanceSq
         : Infinity
-    if (nodeDistanceSq > searchDistanceSq) {
+    if (nodeDistanceSq === Infinity || nodeDistanceSq > searchDistanceSq) {
       continue
     }
 
@@ -2161,7 +2163,10 @@ function findClosestProjectionTriangle(
           : orientationNormal == null
             ? closest.distanceSq
             : Infinity
-        if (getPointToBoundsDistanceSquared(point, item.min, item.max) > itemSearchDistanceSq) {
+        const itemBoundsDistanceSq = orientationNormal == null
+          ? getPointToBoundsDistanceSquared(point, item.min, item.max)
+          : getLineToBoundsDistanceSquared(point, orientationNormal, item.min, item.max)
+        if (itemBoundsDistanceSq === Infinity || itemBoundsDistanceSq > itemSearchDistanceSq) {
           continue
         }
 
@@ -2229,20 +2234,28 @@ function findClosestProjectionTriangle(
       continue
     }
     if (left == null) {
-      const rightDistanceSq = getPointToBoundsDistanceSquared(point, right!.min, right!.max)
+      const rightDistanceSq = orientationNormal == null
+        ? getPointToBoundsDistanceSquared(point, right!.min, right!.max)
+        : getLineToBoundsDistanceSquared(point, orientationNormal, right!.min, right!.max)
       pending.push(right!)
       pendingDistanceSq.push(rightDistanceSq)
       continue
     }
     if (right == null) {
-      const leftDistanceSq = getPointToBoundsDistanceSquared(point, left.min, left.max)
+      const leftDistanceSq = orientationNormal == null
+        ? getPointToBoundsDistanceSquared(point, left.min, left.max)
+        : getLineToBoundsDistanceSquared(point, orientationNormal, left.min, left.max)
       pending.push(left)
       pendingDistanceSq.push(leftDistanceSq)
       continue
     }
 
-    const leftDistanceSq = getPointToBoundsDistanceSquared(point, left.min, left.max)
-    const rightDistanceSq = getPointToBoundsDistanceSquared(point, right.min, right.max)
+    const leftDistanceSq = orientationNormal == null
+      ? getPointToBoundsDistanceSquared(point, left.min, left.max)
+      : getLineToBoundsDistanceSquared(point, orientationNormal, left.min, left.max)
+    const rightDistanceSq = orientationNormal == null
+      ? getPointToBoundsDistanceSquared(point, right.min, right.max)
+      : getLineToBoundsDistanceSquared(point, orientationNormal, right.min, right.max)
     if (leftDistanceSq <= rightDistanceSq) {
       pending.push(right, left)
       pendingDistanceSq.push(rightDistanceSq, leftDistanceSq)
@@ -2354,6 +2367,52 @@ function projectPointToTriangleAlongNormal(
   }
 
   return { point: new Vector3(projectedX, projectedY, projectedZ), barycentric: [u, v, w] }
+}
+
+function getLineToBoundsDistanceSquared(
+  point: Vector3,
+  direction: Vector3,
+  min: Vector3,
+  max: Vector3
+): number {
+  let minT = -Infinity
+  let maxT = Infinity
+
+  if (direction.x === 0) {
+    if (point.x < min.x || point.x > max.x) return Infinity
+  } else {
+    let near = (min.x - point.x) / direction.x
+    let far = (max.x - point.x) / direction.x
+    if (near > far) [near, far] = [far, near]
+    minT = near
+    maxT = far
+  }
+
+  if (direction.y === 0) {
+    if (point.y < min.y || point.y > max.y) return Infinity
+  } else {
+    let near = (min.y - point.y) / direction.y
+    let far = (max.y - point.y) / direction.y
+    if (near > far) [near, far] = [far, near]
+    if (near > minT) minT = near
+    if (far < maxT) maxT = far
+    if (minT > maxT) return Infinity
+  }
+
+  if (direction.z === 0) {
+    if (point.z < min.z || point.z > max.z) return Infinity
+  } else {
+    let near = (min.z - point.z) / direction.z
+    let far = (max.z - point.z) / direction.z
+    if (near > far) [near, far] = [far, near]
+    if (near > minT) minT = near
+    if (far < maxT) maxT = far
+    if (minT > maxT) return Infinity
+  }
+
+  if (minT <= 0 && maxT >= 0) return 0
+  const t = minT > 0 ? minT : maxT
+  return t * t * direction.lengthSq()
 }
 
 function getPointToBoundsDistanceSquared(point: Vector3, min: Vector3, max: Vector3): number {
