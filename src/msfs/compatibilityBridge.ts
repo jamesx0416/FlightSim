@@ -58,11 +58,31 @@ export interface MsfsStateAlias {
 
 export class MsfsCompatibilityBridge {
   readonly id = 'msfs-compatibility'
+  private readonly simVarAliasCache = new Map<string, MsfsStateAlias | null>()
+  private readonly localVarAliasCache = new Map<string, MsfsStateAlias | null>()
 
   constructor(private readonly state: SimStateStore) {}
 
-  readSimVar(name: string, unit?: string | null): number | undefined {
+  private resolveSimVarAlias(name: string): MsfsStateAlias | undefined {
+    const cached = this.simVarAliasCache.get(name)
+    if (cached !== undefined) return cached ?? undefined
+
     const alias = mapMsfsSimVarToCanonicalState(name)
+    this.simVarAliasCache.set(name, alias ?? null)
+    return alias
+  }
+
+  private resolveLocalVarAlias(name: string): MsfsStateAlias | undefined {
+    const cached = this.localVarAliasCache.get(name)
+    if (cached !== undefined) return cached ?? undefined
+
+    const alias = mapMsfsLocalVarToCanonicalState(name)
+    this.localVarAliasCache.set(name, alias ?? null)
+    return alias
+  }
+
+  readSimVar(name: string, unit?: string | null): number | undefined {
+    const alias = this.resolveSimVarAlias(name)
 
     if (alias == null) {
       return undefined
@@ -180,7 +200,7 @@ export class MsfsCompatibilityBridge {
     unit?: string | null,
     source: SimStateSource = 'runtime'
   ): boolean {
-    const alias = mapMsfsSimVarToCanonicalState(name)
+    const alias = this.resolveSimVarAlias(name)
 
     if (alias == null) {
       return false
@@ -242,7 +262,7 @@ export class MsfsCompatibilityBridge {
   }
 
   readLocalVar(name: string, unit?: string | null): number | undefined {
-    const alias = mapMsfsLocalVarToCanonicalState(name)
+    const alias = this.resolveLocalVarAlias(name)
     if (alias == null) {
       return undefined
     }
@@ -284,7 +304,7 @@ export class MsfsCompatibilityBridge {
     value: number,
     source: SimStateSource = 'runtime'
   ): boolean {
-    const alias = mapMsfsLocalVarToCanonicalState(name)
+    const alias = this.resolveLocalVarAlias(name)
     if (alias == null) {
       return false
     }
