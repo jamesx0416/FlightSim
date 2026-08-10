@@ -897,11 +897,12 @@ function decodeDxt5(buffer: ArrayBuffer, dataOffset: number, width: number, heig
   const view = new DataView(buffer, dataOffset)
   const blockWidth = Math.max(1, Math.ceil(width / 4))
   const blockHeight = Math.max(1, Math.ceil(height / 4))
+  const alphaPalette = new Uint8Array(8)
 
   for (let blockY = 0; blockY < blockHeight; blockY += 1) {
     for (let blockX = 0; blockX < blockWidth; blockX += 1) {
       const offset = (blockY * blockWidth + blockX) * 16
-      const alphaPalette = buildDxt5AlphaPalette(view, offset)
+      fillDxt5AlphaPalette(alphaPalette, view, offset)
       let alphaIndices = readUint48(view, offset + 2)
       const color0 = view.getUint16(offset + 8, true)
       const color1 = view.getUint16(offset + 10, true)
@@ -987,10 +988,13 @@ function buildDxt3AlphaPalette(view: DataView, offset: number): Uint8Array {
   return alpha
 }
 
-function buildDxt5AlphaPalette(view: DataView, offset: number): Uint8Array {
+function fillDxt5AlphaPalette(
+  palette: Uint8Array,
+  view: DataView,
+  offset: number
+): void {
   const alpha0 = view.getUint8(offset)
   const alpha1 = view.getUint8(offset + 1)
-  const palette = new Uint8Array(8)
   palette[0] = alpha0
   palette[1] = alpha1
 
@@ -1001,7 +1005,7 @@ function buildDxt5AlphaPalette(view: DataView, offset: number): Uint8Array {
     palette[5] = Math.floor((3 * alpha0 + 4 * alpha1) / 7)
     palette[6] = Math.floor((2 * alpha0 + 5 * alpha1) / 7)
     palette[7] = Math.floor((alpha0 + 6 * alpha1) / 7)
-    return palette
+    return
   }
 
   palette[2] = Math.floor((4 * alpha0 + alpha1) / 5)
@@ -1010,7 +1014,6 @@ function buildDxt5AlphaPalette(view: DataView, offset: number): Uint8Array {
   palette[5] = Math.floor((alpha0 + 4 * alpha1) / 5)
   palette[6] = 0
   palette[7] = 255
-  return palette
 }
 
 function buildBc4Palette(endpoint0: number, endpoint1: number, signed: boolean): number[] {
