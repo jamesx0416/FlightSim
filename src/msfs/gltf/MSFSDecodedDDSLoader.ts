@@ -926,16 +926,30 @@ function decodeBc5Rg(
   for (let blockY = 0; blockY < blockHeight; blockY += 1) {
     for (let blockX = 0; blockX < blockWidth; blockX += 1) {
       const offset = (blockY * blockWidth + blockX) * 16
+      const xEndpoint0 = signed ? snorm8ToFloat(view.getInt8(offset)) : view.getUint8(offset) / 255
+      const xEndpoint1 = signed ? snorm8ToFloat(view.getInt8(offset + 1)) : view.getUint8(offset + 1) / 255
+      const yEndpoint0 = signed ? snorm8ToFloat(view.getInt8(offset + 8)) : view.getUint8(offset + 8) / 255
+      const yEndpoint1 = signed ? snorm8ToFloat(view.getInt8(offset + 9)) : view.getUint8(offset + 9) / 255
+      const xPalette = buildBc4Palette(xEndpoint0, xEndpoint1, signed)
+      const yPalette = buildBc4Palette(yEndpoint0, yEndpoint1, signed)
+      let xIndices = readUint48(view, offset + 2)
+      let yIndices = readUint48(view, offset + 10)
 
-      writeBlock(output, width, height, blockX, blockY, pixelIndex => {
-        const x = decodeBc4Value(view, offset, pixelIndex, signed)
-        const y = decodeBc4Value(view, offset + 8, pixelIndex, signed)
+      for (let pixelIndex = 0; pixelIndex < 16; pixelIndex += 1) {
+        const xValue = xPalette[xIndices & 0x07]!
+        const yValue = yPalette[yIndices & 0x07]!
+        xIndices = Math.floor(xIndices / 8)
+        yIndices = Math.floor(yIndices / 8)
 
-        return [
-          toByte(x * 0.5 + 0.5),
-          toByte(y * 0.5 + 0.5)
-        ]
-      })
+        const x = blockX * 4 + (pixelIndex & 3)
+        const y = blockY * 4 + (pixelIndex >> 2)
+        if (x >= width || y >= height) continue
+        const destinationOffset = (y * width + x) * 2
+        const decodedX = signed ? xValue : xValue * 2 - 1
+        const decodedY = signed ? yValue : yValue * 2 - 1
+        output[destinationOffset] = toByte(decodedX * 0.5 + 0.5)
+        output[destinationOffset + 1] = toByte(decodedY * 0.5 + 0.5)
+      }
     }
   }
 
@@ -980,29 +994,6 @@ function buildDxt5AlphaPalette(view: DataView, offset: number): Uint8Array {
   return palette
 }
 
-function decodeBc4Value(
-  view: DataView,
-  offset: number,
-  pixelIndex: number,
-  signed: boolean
-): number {
-  const endpoints = signed
-    ? [
-        snorm8ToFloat(view.getInt8(offset)),
-        snorm8ToFloat(view.getInt8(offset + 1))
-      ]
-    : [
-        view.getUint8(offset) / 255,
-        view.getUint8(offset + 1) / 255
-      ]
-
-  const palette = buildBc4Palette(endpoints[0], endpoints[1], signed)
-  const indices = readUint48(view, offset + 2)
-  const paletteIndex = Number((indices >> BigInt(pixelIndex * 3)) & 0x07n)
-  const value = palette[paletteIndex]
-  return signed ? value : value * 2 - 1
-}
-
 function buildBc4Palette(endpoint0: number, endpoint1: number, signed: boolean): number[] {
   const palette = new Array<number>(8)
   palette[0] = endpoint0
@@ -1027,12 +1018,8 @@ function buildBc4Palette(endpoint0: number, endpoint1: number, signed: boolean):
   return palette
 }
 
-function readUint48(view: DataView, offset: number): bigint {
-  let value = 0n
-  for (let index = 0; index < 6; index += 1) {
-    value |= BigInt(view.getUint8(offset + index)) << BigInt(index * 8)
-  }
-  return value
+function readUint48(view: DataView, offset: number): number {
+  return view.getUint32(offset, true) + view.getUint16(offset + 4, true) * 0x1_0000_0000
 }
 
 function snorm8ToFloat(value: number): number {
@@ -1215,4 +1202,8 @@ function int32ToFourCC(value: number): string {
     (value >> 16) & 0xff,
     (value >> 24) & 0xff
   )
+}
+
+export const __msfsDecodedDdsTestHooks = {
+  decodeBc5Rg,
 }
