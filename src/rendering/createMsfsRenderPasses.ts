@@ -1,20 +1,29 @@
 import {
-  DepthFormat,
+  BufferAttribute,
+  Color,
+  Frustum,
+  Matrix4,
   Mesh,
-  UnsignedIntType,
-  Vector2,
-  type Object3D,
-  type Scene,
+  MeshBasicMaterial,
+  SkinnedMesh,
   type Camera,
-  type Material
+  type Material,
+  type Object3D,
+  type Scene
 } from 'three'
+import type { WebGPURenderer } from 'three/webgpu'
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import {
-  getMsfsBlendGBufferDepthTexture,
-  setMsfsBlendGBufferDepthMaskEnabled,
+  createMsfsDeferredLightingMaterial,
+  getMsfsGBufferWriter,
   usesBlendGBufferColorMaterial,
   usesBlendGBufferMaterial
 } from '../msfs/gltf/normalizeMsfsMaterials'
+import {
+  createAircraftGBuffer,
+  supportsAircraftGBuffer
+} from './createAircraftGBuffer'
 import type { AppRenderer } from './createAppRenderer'
 
 type MsfsMaterial = Material & {
@@ -23,7 +32,6 @@ type MsfsMaterial = Material & {
   polygonOffset?: boolean
   userData?: {
     readonly gltfExtensions?: Record<string, unknown>
-    readonly msfsBlendGBufferDepthMask?: boolean
     readonly msfsBlendGBufferForwardColor?: boolean
   }
 }
@@ -42,20 +50,734 @@ type BlendGBufferMesh = Mesh & {
   }
 }
 
-type DepthCopyRenderer = AppRenderer & {
-  copyFramebufferToTexture?: (texture: unknown) => void
-  getDrawingBufferSize?: (target: Vector2) => Vector2
-}
-
-const depthTextureSize = new Vector2()
-
 export interface MsfsRenderPasses {
   readonly hasBlendGBufferDecals: boolean
   refresh(): void
+  setDeferredEnabled(enabled: boolean): void
   render(): void
 }
 
+export type MsfsDecalRenderPath = 'regular' | 'deferred' | 'forward'
+
+export function selectMsfsDecalRenderPath(
+  hasBlendGBufferDecals: boolean,
+  hasDeferredRelationships: boolean,
+  supportsDeferred: boolean
+): MsfsDecalRenderPath {
+  if (!hasBlendGBufferDecals) {
+    return 'regular'
+  }
+  return supportsDeferred && hasDeferredRelationships ? 'deferred' : 'forward'
+}
+
+export function canKeepBlendGBufferDecalInForwardScenePass(
+  materials: readonly Material[]
+): boolean {
+  return materials.every(material =>
+    material.transparent === true && usesBlendGBufferColorMaterial(material)
+  )
+}
+
+export function canKeepReceiverlessBlendGBufferMaterialInBasePass(
+  material: Material
+): boolean {
+  return usesBlendGBufferColorMaterial(material) &&
+    !usesBlendGBufferDrawOrderMaterial(material as MsfsMaterial)
+}
+
+export function hasBlendGBufferReceiver(receiverCount: number): boolean {
+  return receiverCount > 0
+}
+
 export function createMsfsRenderPasses(
+  renderer: AppRenderer,
+  scene: Scene,
+  camera: Camera,
+  root: Object3D
+): MsfsRenderPasses {
+  const fallback = createForwardMsfsRenderPasses(renderer, scene, camera, root)
+  if (!hasBlendGBufferMaterials(root) || !supportsAircraftGBuffer(renderer)) {
+    return fallback
+  }
+  return createDeferredMsfsRenderPasses(renderer, scene, camera, root, fallback)
+}
+
+function hasBlendGBufferMaterials(root: Object3D): boolean {
+  let found = false
+  root.traverse(object => {
+    if (found || !(object instanceof Mesh)) {
+      return
+    }
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : [object.material]
+    found = materials.some(usesBlendGBufferMaterial)
+  })
+  return found
+}
+
+type MeshMaterial = Material | Material[]
+
+type DeferredMesh = Mesh & {
+  material: MeshMaterial
+  userData: Mesh['userData'] & {
+    readonly msfsBlendGBufferProjectedToReceiver?: boolean
+    readonly msfsBlendGBufferReceiver?: DeferredMesh
+    readonly msfsBlendGBufferReceivers?: readonly DeferredMesh[]
+    readonly msfsBlendGBufferUsedReceivers?: readonly DeferredMesh[]
+    readonly msfsBlendGBufferReceiverGroups?: readonly (DeferredMesh | null)[]
+    readonly msfsBlendGBufferFootprintReceivers?: readonly DeferredMesh[]
+  }
+}
+
+type ResolveBatch = {
+  readonly mesh: DeferredMesh
+  readonly members: readonly DeferredMesh[]
+}
+
+function createDeferredMsfsRenderPasses(
+  renderer: WebGPURenderer,
+  scene: Scene,
+  camera: Camera,
+  root: Object3D,
+  fallback: MsfsRenderPasses
+): MsfsRenderPasses {
+  const gBuffer = createAircraftGBuffer(renderer)
+  const hiddenMaterial = new MeshBasicMaterial({
+    colorWrite: false,
+    depthTest: false,
+    depthWrite: false,
+    visible: false,
+  })
+  const decals: DeferredMesh[] = []
+  const forwardDecals: DeferredMesh[] = []
+  const receivers = new Set<DeferredMesh>()
+  const footprintReceivers = new Set<DeferredMesh>()
+  const decalReceivers = new Map<DeferredMesh, readonly DeferredMesh[]>()
+  const receiverFootprintMaterials = new Map<DeferredMesh, MeshMaterial>()
+  const writerMaterials = new Map<DeferredMesh, MeshMaterial>()
+  const resolveMaterials = new Map<DeferredMesh, MeshMaterial>()
+  const resolveBatches: ResolveBatch[] = []
+  const sourceMaterials = new Map<DeferredMesh, MeshMaterial>()
+  const forwardSourceMaterials = new Map<DeferredMesh, MeshMaterial>()
+  const forwardColorMaterials = new Set<Material>()
+  const originalForwardDecalLayerMasks = new Map<Mesh, number>()
+  const opaqueSceneMaterials = new Set<Material>()
+  const transparentSceneMaterials = new Set<Material>()
+  const disposableLightingMaterials = new Set<Material>()
+  const deferredFrustum = new Frustum()
+  const deferredViewProjection = new Matrix4()
+  let forwardDecalLayerMask = findLayerMaskOutsideCamera(camera)
+  let sharedResolveMaterial: Material | null = null
+  let canRenderDeferred = false
+  let deferredEnabled = true
+
+  const refresh = (): void => {
+    fallback.refresh()
+    restoreMeshDrawables(originalForwardDecalLayerMasks)
+    originalForwardDecalLayerMasks.clear()
+    for (const batch of resolveBatches) {
+      batch.mesh.removeFromParent()
+      batch.mesh.geometry.dispose()
+    }
+    resolveBatches.length = 0
+    for (const material of disposableLightingMaterials) {
+      material.dispose()
+    }
+    decals.length = 0
+    forwardDecals.length = 0
+    receivers.clear()
+    footprintReceivers.clear()
+    decalReceivers.clear()
+    receiverFootprintMaterials.clear()
+    writerMaterials.clear()
+    resolveMaterials.clear()
+    sourceMaterials.clear()
+    forwardSourceMaterials.clear()
+    forwardColorMaterials.clear()
+    opaqueSceneMaterials.clear()
+    transparentSceneMaterials.clear()
+    disposableLightingMaterials.clear()
+    sharedResolveMaterial = null
+    forwardDecalLayerMask = findLayerMaskOutsideCamera(camera)
+    canRenderDeferred = false
+
+    if (!deferredEnabled) {
+      return
+    }
+
+    collectSceneMaterials(scene, opaqueSceneMaterials, transparentSceneMaterials)
+
+    let requiresFullFallback = false
+    root.traverse(object => {
+      if (!(object instanceof Mesh)) {
+        return
+      }
+      const decal = object as DeferredMesh
+      if (isInteriorModelObject(decal)) {
+        return
+      }
+      const decalMaterials = getMaterials(decal.material)
+      if (
+        decal.userData.msfsBlendGBufferProjectedToReceiver !== true ||
+        !decalMaterials.some(usesBlendGBufferMaterial)
+      ) {
+        return
+      }
+
+      const canStayInForwardScenePass =
+        canKeepBlendGBufferDecalInForwardScenePass(decalMaterials)
+      const rejectRelationship = (): void => {
+        if (canStayInForwardScenePass) {
+          if (!forwardSourceMaterials.has(decal)) {
+            forwardDecals.push(decal)
+            forwardSourceMaterials.set(decal, decal.material)
+            for (const material of decalMaterials) {
+              forwardColorMaterials.add(material)
+            }
+          }
+        } else {
+          requiresFullFallback = true
+        }
+      }
+      const relatedReceivers = decal.userData.msfsBlendGBufferUsedReceivers ??
+        decal.userData.msfsBlendGBufferReceivers ??
+        (decal.userData.msfsBlendGBufferReceiver == null
+          ? []
+          : [decal.userData.msfsBlendGBufferReceiver])
+      const decalWriters = mapMaterials(decal.material, getMsfsGBufferWriter)
+      if (!hasBlendGBufferReceiver(relatedReceivers.length) || decalWriters == null) {
+        rejectRelationship()
+        return
+      }
+      if (sharedResolveMaterial == null) {
+        const sourceMaterial = decalMaterials[0]
+        const writer = getMsfsGBufferWriter(sourceMaterial) as (Material & { depthNode?: unknown }) | null
+        const lighting = createMsfsDeferredLightingMaterial(sourceMaterial, gBuffer.textures)
+        if (writer == null || lighting == null) {
+          lighting?.dispose()
+          rejectRelationship()
+          return
+        }
+        const resolve = lighting as Material & { depthNode?: unknown }
+        resolve.depthNode = writer.depthNode
+        resolve.depthTest = true
+        resolve.depthWrite = false
+        sharedResolveMaterial = resolve
+        disposableLightingMaterials.add(resolve)
+      }
+      const decalResolve = Array.isArray(decal.material)
+        ? decal.material.map(() => sharedResolveMaterial!)
+        : sharedResolveMaterial
+
+      const pendingReceiverVariants: Array<{
+        readonly receiver: DeferredMesh
+        readonly writers: MeshMaterial
+      }> = []
+      for (const receiver of relatedReceivers) {
+        const receiverMaterials = getMaterials(receiver.material)
+        if (
+          receiverMaterials.some(material =>
+            material.transparent === true || usesBlendGBufferMaterial(material)
+          )
+        ) {
+          rejectRelationship()
+          return
+        }
+        const receiverWriters = mapMaterials(receiver.material, getMsfsGBufferWriter)
+        if (receiverWriters == null) {
+          rejectRelationship()
+          return
+        }
+        pendingReceiverVariants.push({ receiver, writers: receiverWriters })
+      }
+
+      decals.push(decal)
+      decalReceivers.set(decal, relatedReceivers)
+      sourceMaterials.set(decal, decal.material)
+      writerMaterials.set(decal, decalWriters)
+      resolveMaterials.set(decal, decalResolve)
+      for (const variant of pendingReceiverVariants) {
+        receivers.add(variant.receiver)
+        sourceMaterials.set(variant.receiver, variant.receiver.material)
+        writerMaterials.set(variant.receiver, variant.writers)
+      }
+    })
+
+    if (requiresFullFallback) {
+      for (const material of disposableLightingMaterials) {
+        material.dispose()
+      }
+      decals.length = 0
+      receivers.clear()
+      footprintReceivers.clear()
+      decalReceivers.clear()
+      receiverFootprintMaterials.clear()
+      writerMaterials.clear()
+      resolveMaterials.clear()
+      sourceMaterials.clear()
+      forwardDecals.length = 0
+      forwardSourceMaterials.clear()
+      forwardColorMaterials.clear()
+      disposableLightingMaterials.clear()
+      return
+    }
+
+    for (const receiver of receivers) {
+      const sourceMaterial = sourceMaterials.get(receiver)
+      const writer = writerMaterials.get(receiver)
+      if (
+        sourceMaterial == null ||
+        writer == null ||
+        Array.isArray(sourceMaterial) ||
+        Array.isArray(writer) ||
+        !canWriteReceiverGBufferFromProjectedGeometry(sourceMaterial)
+      ) {
+        continue
+      }
+      const relatedDecals = decals.filter(decal =>
+        decalReceivers.get(decal)?.includes(receiver)
+      )
+      if (
+        relatedDecals.length > 0 &&
+        relatedDecals.every(decal =>
+          decal.userData.msfsBlendGBufferFootprintReceivers?.includes(receiver) === true
+        )
+      ) {
+        footprintReceivers.add(receiver)
+      }
+    }
+
+    for (const decal of decals) {
+      const groupReceivers = decal.userData.msfsBlendGBufferReceiverGroups
+      if (groupReceivers == null || groupReceivers.length === 0) continue
+      const materials = groupReceivers.map(receiver => {
+        if (receiver == null || !footprintReceivers.has(receiver)) return hiddenMaterial
+        const writer = writerMaterials.get(receiver)
+        return Array.isArray(writer) || writer == null ? hiddenMaterial : writer
+      })
+      if (materials.some(material => material !== hiddenMaterial)) {
+        receiverFootprintMaterials.set(decal, materials)
+      }
+    }
+
+    decals.sort((left, right) => left.renderOrder - right.renderOrder)
+    if (sharedResolveMaterial != null) {
+      createResolveBatches(decals, sharedResolveMaterial, resolveBatches)
+    }
+    forwardDecals.sort((left, right) => left.renderOrder - right.renderOrder)
+    addMeshDrawablesToLayer(
+      forwardDecals,
+      forwardDecalLayerMask,
+      originalForwardDecalLayerMasks
+    )
+    canRenderDeferred = decals.length > 0 && receivers.size > 0
+  }
+
+  refresh()
+
+  return {
+    get hasBlendGBufferDecals() {
+      return canRenderDeferred || fallback.hasBlendGBufferDecals
+    },
+    refresh,
+    setDeferredEnabled: enabled => {
+      if (deferredEnabled === enabled) {
+        return
+      }
+      deferredEnabled = enabled
+      refresh()
+    },
+    render: () => {
+      if (!deferredEnabled || !canRenderDeferred) {
+        fallback.render()
+        return
+      }
+
+      const originalBackground = scene.background
+      const originalAutoClear = renderer.autoClear
+      const originalCameraLayerMask = camera.layers.mask
+      const originalTarget = renderer.getRenderTarget()
+      const originalClearColor = renderer.getClearColor(new Color() as never) as unknown as Color
+      const originalClearAlpha = renderer.getClearAlpha()
+      const originalMaterialState = new Map<MsfsMaterial, MaterialRenderState>()
+
+      try {
+        gBuffer.resize()
+
+        renderer.setRenderTarget(originalTarget)
+        renderer.autoClear = true
+        camera.layers.mask = originalCameraLayerMask
+        setMeshMaterials(sourceMaterials, hiddenMaterial)
+        setMeshMaterialsFor(receivers, sourceMaterials)
+        hideMaterials(transparentSceneMaterials, originalMaterialState)
+        renderer.render(scene, camera)
+
+        deferredFrustum.setFromProjectionMatrix(
+          deferredViewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse),
+          camera.coordinateSystem,
+          camera.reversedDepth
+        )
+        const active = collectVisibleDeferredRelationships(
+          decals,
+          decalReceivers,
+          decal =>
+            isDeferredMeshVisible(
+              decal,
+              camera,
+              deferredFrustum,
+              sourceMaterials.get(decal),
+              originalMaterialState
+            )
+        )
+
+        restoreMaterialRenderState(originalMaterialState.keys(), originalMaterialState)
+        hideMaterials(opaqueSceneMaterials, originalMaterialState)
+        hideMaterials(transparentSceneMaterials, originalMaterialState)
+        scene.background = null
+        renderer.setClearColor(0x000000, 0)
+        renderer.setRenderTarget(gBuffer.renderTarget)
+        renderer.autoClear = true
+        setMeshMaterials(sourceMaterials, hiddenMaterial)
+        setMeshMaterialsFor(
+          [...active.receivers].filter(receiver => !footprintReceivers.has(receiver)),
+          writerMaterials
+        )
+        setMeshMaterialsFor(active.decals, receiverFootprintMaterials)
+        renderer.render(scene, camera)
+
+        configureDeferredDecalWriterDepthTest(active.decals, writerMaterials)
+        renderer.autoClear = false
+        setMeshMaterials(sourceMaterials, hiddenMaterial)
+        setMeshMaterialsFor(active.decals, writerMaterials)
+        renderer.render(scene, camera)
+
+        renderer.setRenderTarget(originalTarget)
+        renderer.setClearColor(originalClearColor.getHex(), originalClearAlpha)
+        setMeshMaterials(sourceMaterials, hiddenMaterial)
+        const selectedBatches = selectCompleteResolveBatches(
+          active.decals,
+          resolveBatches.map(batch => batch.members)
+        )
+        setMeshMaterialsFor(selectedBatches.unbatched, resolveMaterials)
+        for (const batchIndex of selectedBatches.batchIndices) {
+          syncResolveBatch(resolveBatches[batchIndex])
+        }
+        renderer.render(scene, camera)
+        hideResolveBatches(resolveBatches)
+
+        restoreMaterialRenderState(originalMaterialState.keys(), originalMaterialState)
+        hideMaterials(opaqueSceneMaterials, originalMaterialState)
+        setMeshMaterials(sourceMaterials, hiddenMaterial)
+        setMeshMaterials(forwardSourceMaterials, hiddenMaterial)
+        renderer.render(scene, camera)
+
+        if (forwardDecals.length > 0) {
+          restoreMeshMaterials(forwardSourceMaterials)
+          configureBlendGBufferMaterialsForDecalPass(
+            forwardColorMaterials,
+            originalMaterialState
+          )
+          camera.layers.mask = forwardDecalLayerMask
+          scene.background = null
+          renderer.autoClear = false
+          renderer.render(scene, camera)
+        }
+      } finally {
+        hideResolveBatches(resolveBatches)
+        configureDeferredDecalWriterDepthTest(decals, writerMaterials)
+        restoreMeshMaterials(forwardSourceMaterials)
+        restoreMeshMaterials(sourceMaterials)
+        restoreMaterialRenderState(originalMaterialState.keys(), originalMaterialState)
+        renderer.setRenderTarget(originalTarget)
+        renderer.setClearColor(originalClearColor.getHex(), originalClearAlpha)
+        renderer.autoClear = originalAutoClear
+        camera.layers.mask = originalCameraLayerMask
+        scene.background = originalBackground
+      }
+    },
+  }
+}
+
+function createResolveBatches(
+  decals: readonly DeferredMesh[],
+  material: Material,
+  output: ResolveBatch[]
+): void {
+  const remaining = new Set(decals)
+  for (const seed of decals) {
+    if (!remaining.has(seed)) continue
+    const members = decals.filter(candidate =>
+      remaining.has(candidate) && canShareResolveBatch(seed, candidate)
+    )
+    if (members.length < 2) continue
+    const geometry = createResolveBatchGeometry(members)
+    if (geometry == null || seed.parent == null) {
+      geometry?.dispose()
+      continue
+    }
+
+    const mesh = seed instanceof SkinnedMesh
+      ? new SkinnedMesh(geometry, material)
+      : new Mesh(geometry, material)
+    if (mesh instanceof SkinnedMesh && seed instanceof SkinnedMesh) {
+      mesh.skeleton = seed.skeleton
+      mesh.bindMatrix.copy(seed.bindMatrix)
+      mesh.bindMatrixInverse.copy(seed.bindMatrixInverse)
+    }
+    mesh.matrixAutoUpdate = false
+    mesh.matrix.copy(seed.matrix)
+    mesh.layers.mask = seed.layers.mask
+    mesh.frustumCulled = false
+    mesh.visible = false
+    seed.parent.add(mesh)
+    output.push({ mesh: mesh as DeferredMesh, members })
+    for (const member of members) remaining.delete(member)
+  }
+}
+
+function canShareResolveBatch(left: DeferredMesh, right: DeferredMesh): boolean {
+  if (
+    left.parent !== right.parent ||
+    left.geometry.index != null ||
+    right.geometry.index != null ||
+    Object.keys(left.geometry.morphAttributes).length > 0 ||
+    Object.keys(right.geometry.morphAttributes).length > 0
+  ) {
+    return false
+  }
+  left.updateMatrix()
+  right.updateMatrix()
+  if (!left.matrix.equals(right.matrix) || left.layers.mask !== right.layers.mask) {
+    return false
+  }
+  if (left instanceof SkinnedMesh || right instanceof SkinnedMesh) {
+    return left instanceof SkinnedMesh &&
+      right instanceof SkinnedMesh &&
+      left.bindMatrix.equals(right.bindMatrix) &&
+      left.bindMatrixInverse.equals(right.bindMatrixInverse) &&
+      left.skeleton.bones.length === right.skeleton.bones.length &&
+      left.skeleton.bones.every((bone, index) => bone === right.skeleton.bones[index])
+  }
+  return true
+}
+
+function createResolveBatchGeometry(members: readonly DeferredMesh[]) {
+  const clones = members.map(member => {
+    const clone = member.geometry.clone()
+    const skinIndex = clone.getAttribute('skinIndex')
+    if (skinIndex != null && !(skinIndex.array instanceof Uint32Array)) {
+      clone.setAttribute(
+        'skinIndex',
+        new BufferAttribute(new Uint32Array(skinIndex.array), skinIndex.itemSize, skinIndex.normalized)
+      )
+    }
+    return clone
+  })
+  const merged = mergeGeometries(clones, false)
+  for (const clone of clones) clone.dispose()
+  return merged
+}
+
+function syncResolveBatch(batch: ResolveBatch): void {
+  const source = batch.members[0]
+  if (source == null || !batch.members.every(member => canShareResolveBatch(source, member))) {
+    return
+  }
+  source.updateMatrix()
+  batch.mesh.matrix.copy(source.matrix)
+  batch.mesh.matrixWorldNeedsUpdate = true
+  batch.mesh.visible = true
+}
+
+function hideResolveBatches(batches: readonly ResolveBatch[]): void {
+  for (const batch of batches) batch.mesh.visible = false
+}
+
+export function selectCompleteResolveBatches<T>(
+  active: readonly T[],
+  batches: readonly (readonly T[])[]
+): { readonly batchIndices: number[]; readonly unbatched: T[] } {
+  const remaining = new Set(active)
+  const batchIndices: number[] = []
+  for (let index = 0; index < batches.length; index += 1) {
+    const batch = batches[index]
+    if (batch.length < 2 || !batch.every(member => remaining.has(member))) continue
+    batchIndices.push(index)
+    for (const member of batch) remaining.delete(member)
+  }
+  return { batchIndices, unbatched: [...remaining] }
+}
+
+export function canWriteReceiverGBufferFromProjectedGeometry(material: Material): boolean {
+  const source = material as Material & {
+    alphaHash?: boolean
+    alphaMap?: unknown
+    aoMap?: unknown
+    bumpMap?: unknown
+    colorNode?: unknown
+    displacementMap?: unknown
+    emissiveMap?: unknown
+    emissiveNode?: unknown
+    map?: unknown
+    metalnessMap?: unknown
+    metalnessNode?: unknown
+    normalMap?: unknown
+    normalNode?: unknown
+    opacityNode?: unknown
+    roughnessMap?: unknown
+    roughnessNode?: unknown
+    aoNode?: unknown
+    vertexColors?: boolean
+  }
+  return source.transparent !== true &&
+    source.alphaHash !== true &&
+    (source.alphaTest ?? 0) === 0 &&
+    source.vertexColors !== true &&
+    source.alphaMap == null &&
+    source.aoMap == null &&
+    source.bumpMap == null &&
+    source.displacementMap == null &&
+    source.emissiveMap == null &&
+    source.map == null &&
+    source.metalnessMap == null &&
+    source.normalMap == null &&
+    source.roughnessMap == null &&
+    source.colorNode == null &&
+    source.opacityNode == null &&
+    source.emissiveNode == null &&
+    source.roughnessNode == null &&
+    source.metalnessNode == null &&
+    source.aoNode == null &&
+    source.normalNode == null
+}
+
+export function collectVisibleDeferredRelationships<T>(
+  decals: readonly T[],
+  receiversByDecal: ReadonlyMap<T, readonly T[]>,
+  isVisible: (decal: T) => boolean
+): { readonly decals: T[]; readonly receivers: Set<T> } {
+  const visibleDecals: T[] = []
+  const visibleReceivers = new Set<T>()
+  for (const decal of decals) {
+    if (!isVisible(decal)) continue
+    visibleDecals.push(decal)
+    for (const receiver of receiversByDecal.get(decal) ?? []) {
+      visibleReceivers.add(receiver)
+    }
+  }
+  return { decals: visibleDecals, receivers: visibleReceivers }
+}
+
+function isDeferredMeshVisible(
+  mesh: DeferredMesh,
+  camera: Camera,
+  frustum: Frustum,
+  sourceMaterial: MeshMaterial | undefined,
+  originalMaterialState: ReadonlyMap<MsfsMaterial, MaterialRenderState>
+): boolean {
+  for (let current: Object3D | null = mesh; current != null; current = current.parent) {
+    if (!current.visible) return false
+  }
+  if (!mesh.layers.test(camera.layers)) return false
+  if (
+    sourceMaterial != null &&
+    !getMaterials(sourceMaterial).some(material =>
+      originalMaterialState.get(material as MsfsMaterial)?.visible ?? material.visible
+    )
+  ) {
+    return false
+  }
+  return mesh.frustumCulled === false || frustum.intersectsObject(mesh)
+}
+
+function collectSceneMaterials(
+  scene: Scene,
+  opaque: Set<Material>,
+  transparent: Set<Material>
+): void {
+  scene.traverse(object => {
+    const material = (object as { readonly material?: MeshMaterial }).material
+    if (material == null) {
+      return
+    }
+    for (const item of getMaterials(material)) {
+      ;(item.transparent === true ? transparent : opaque).add(item)
+    }
+  })
+}
+
+function isInteriorModelObject(object: Object3D): boolean {
+  for (let current: Object3D | null = object; current != null; current = current.parent) {
+    if (current.userData.msfsModelKind === 'interior') {
+      return true
+    }
+  }
+  return false
+}
+
+function mapMaterials(
+  material: MeshMaterial,
+  map: (material: Material) => Material | null
+): MeshMaterial | null {
+  if (Array.isArray(material)) {
+    const mapped = material.map(map)
+    return mapped.some(item => item == null) ? null : mapped as Material[]
+  }
+  return map(material)
+}
+
+function getMaterials(material: MeshMaterial): Material[] {
+  return Array.isArray(material) ? material : [material]
+}
+
+function setMeshMaterials(
+  sourceMaterials: ReadonlyMap<DeferredMesh, MeshMaterial>,
+  material: Material
+): void {
+  for (const mesh of sourceMaterials.keys()) {
+    mesh.material = Array.isArray(sourceMaterials.get(mesh))
+      ? getMaterials(sourceMaterials.get(mesh) as MeshMaterial).map(() => material)
+      : material
+  }
+}
+
+function setMeshMaterialsFor(
+  meshes: Iterable<DeferredMesh>,
+  materials: ReadonlyMap<DeferredMesh, MeshMaterial>
+): void {
+  for (const mesh of meshes) {
+    const material = materials.get(mesh)
+    if (material != null) {
+      mesh.material = material
+    }
+  }
+}
+
+function configureDeferredDecalWriterDepthTest(
+  decals: Iterable<DeferredMesh>,
+  materials: ReadonlyMap<DeferredMesh, MeshMaterial>
+): void {
+  for (const decal of decals) {
+    const material = materials.get(decal)
+    if (material == null) {
+      continue
+    }
+    for (const writer of getMaterials(material)) {
+      writer.depthTest = true
+    }
+  }
+}
+
+function restoreMeshMaterials(
+  sourceMaterials: ReadonlyMap<DeferredMesh, MeshMaterial>
+): void {
+  for (const [mesh, material] of sourceMaterials) {
+    mesh.material = material
+  }
+}
+
+function createForwardMsfsRenderPasses(
   renderer: AppRenderer,
   scene: Scene,
   camera: Camera,
@@ -95,32 +817,25 @@ export function createMsfsRenderPasses(
         const blendMesh = object as BlendGBufferMesh
         blendMeshes.push(blendMesh)
         const isProjectedDecal =
-          blendMesh.userData?.msfsBlendGBufferProjectedToReceiver === true &&
-          materials.some(material => usesBlendGBufferColorMaterial(material as MsfsMaterial))
-        if (isProjectedDecal) {
-          decalBlendMeshes.push(blendMesh)
-        }
+          blendMesh.userData?.msfsBlendGBufferProjectedToReceiver === true
+        let hasForwardColor = false
         for (const material of materials) {
           if (usesBlendGBufferMaterial(material as MsfsMaterial)) {
             const isColorBlendMaterial = usesBlendGBufferColorMaterial(material as MsfsMaterial)
-            const isDrawOrderBlendMaterial = usesBlendGBufferDrawOrderMaterial(
-              material as MsfsMaterial
-            )
             if (isProjectedDecal && isColorBlendMaterial) {
               hiddenBlendMaterials.add(material)
               colorBlendMaterials.add(material)
-            } else if (!isColorBlendMaterial || isDrawOrderBlendMaterial) {
+              hasForwardColor = true
+            } else if (!canKeepReceiverlessBlendGBufferMaterialInBasePass(material)) {
               hiddenBlendMaterials.add(material)
               componentOnlyBlendMaterials.add(material)
-            } else {
-              // Receiverless blend-gbuffer color materials without draw-order
-              // metadata are treated as physical/background surfaces in this
-              // forward renderer. They stay visible in the base pass with the
-              // blend depth mask disabled.
             }
           } else {
             nonBlendMaterialsOnBlendMeshes.add(material)
           }
+        }
+        if (hasForwardColor) {
+          decalBlendMeshes.push(blendMesh)
         }
       }
     })
@@ -139,25 +854,10 @@ export function createMsfsRenderPasses(
       return decalBlendMeshes.length > 0
     },
     refresh,
+    setDeferredEnabled: () => {},
     render: () => {
       if (blendMeshes.length === 0) {
         renderer.render(scene, camera)
-        return
-      }
-
-      if (!canMaskBlendGBufferSceneDepth(renderer, colorBlendMaterials)) {
-        const originalMaterialState = new Map<MsfsMaterial, MaterialRenderState>()
-        try {
-          hideMaterials(componentOnlyBlendMaterials, originalMaterialState)
-          setMsfsBlendGBufferDepthMaskEnabled(false)
-          renderer.render(scene, camera)
-        } finally {
-          setMsfsBlendGBufferDepthMaskEnabled(true)
-          restoreMaterialRenderState(
-            originalMaterialState.keys(),
-            originalMaterialState
-          )
-        }
         return
       }
 
@@ -168,30 +868,21 @@ export function createMsfsRenderPasses(
 
       try {
         renderer.autoClear = true
-        setMsfsBlendGBufferDepthMaskEnabled(false)
         hideMaterials(hiddenBlendMaterials, originalMaterialState)
         renderer.render(scene, camera)
-        // Resolve the mask from the base pass while blend-gbuffer materials are
-        // still hidden, so copy and render-target fallback paths sample the same
-        // receiver depth.
-        const useDepthMask = copyBlendGBufferSceneDepth(renderer, colorBlendMaterials)
-        setMsfsBlendGBufferDepthMaskEnabled(true)
 
         restoreMaterialRenderState(colorBlendMaterials, originalMaterialState)
         hideMaterials(componentOnlyBlendMaterials, originalMaterialState)
         hideMaterials(nonBlendMaterialsOnBlendMeshes, originalMaterialState)
         configureBlendGBufferMaterialsForDecalPass(
           colorBlendMaterials,
-          originalMaterialState,
-          useDepthMask
+          originalMaterialState
         )
-        setMsfsBlendGBufferDepthMaskEnabled(useDepthMask)
         camera.layers.mask = decalLayerMask
         scene.background = null
         renderer.autoClear = false
         renderer.render(scene, camera)
       } finally {
-        setMsfsBlendGBufferDepthMaskEnabled(true)
         restoreMaterialRenderState(
           originalMaterialState.keys(),
           originalMaterialState
@@ -235,95 +926,18 @@ function usesBlendGBufferDrawOrderMaterial(material: MsfsMaterial): boolean {
   return material.userData?.gltfExtensions?.ASOBO_material_draw_order != null
 }
 
-function configureBlendGBufferMaterialsForDecalPass(
+export function configureBlendGBufferMaterialsForDecalPass(
   materials: Iterable<Material>,
-  originalMaterialState: Map<MsfsMaterial, MaterialRenderState>,
-  useDepthMask: boolean
+  originalMaterialState: Map<MsfsMaterial, MaterialRenderState>
 ): void {
   for (const material of materials) {
     const msfsMaterial = material as MsfsMaterial
-    const hasDepthMask = msfsMaterial.userData?.msfsBlendGBufferDepthMask === true
-    const useMaterialDepthMask = hasDepthMask && useDepthMask
     preserveMaterialRenderState(msfsMaterial, originalMaterialState)
     msfsMaterial.visible = originalMaterialState.get(msfsMaterial)?.visible ?? msfsMaterial.visible
-    msfsMaterial.depthTest = !useMaterialDepthMask
+    msfsMaterial.depthTest = true
     msfsMaterial.depthWrite = false
-    msfsMaterial.polygonOffset =
-      useMaterialDepthMask
-        ? false
-        : originalMaterialState.get(msfsMaterial)?.polygonOffset ?? msfsMaterial.polygonOffset ?? false
+    msfsMaterial.polygonOffset = originalMaterialState.get(msfsMaterial)?.polygonOffset ?? msfsMaterial.polygonOffset ?? false
   }
-}
-
-function copyBlendGBufferSceneDepth(
-  renderer: AppRenderer,
-  materials: Iterable<Material>
-): boolean {
-  if (!canCopyBlendGBufferSceneDepth(renderer, materials)) {
-    return false
-  }
-
-  const depthCopyRenderer = renderer as DepthCopyRenderer
-  depthCopyRenderer.getDrawingBufferSize(depthTextureSize)
-  const depthTexture = getMsfsBlendGBufferDepthTexture()
-  depthTexture.format = DepthFormat
-  depthTexture.type = UnsignedIntType
-  if (
-    depthTexture.image.width !== depthTextureSize.x ||
-    depthTexture.image.height !== depthTextureSize.y
-  ) {
-    depthTexture.image.width = depthTextureSize.x
-    depthTexture.image.height = depthTextureSize.y
-    depthTexture.needsUpdate = true
-  }
-
-  depthCopyRenderer.copyFramebufferToTexture(depthTexture)
-  return true
-}
-
-function getConfiguredBlendGBufferDepthTexture() {
-  const depthTexture = getMsfsBlendGBufferDepthTexture()
-  depthTexture.format = DepthFormat
-  depthTexture.type = UnsignedIntType
-  return depthTexture
-}
-
-function canCopyBlendGBufferSceneDepth(
-  renderer: AppRenderer,
-  materials: Iterable<Material>
-): boolean {
-  if (!hasBlendGBufferDepthMaskMaterial(materials)) {
-    return false
-  }
-
-  const depthCopyRenderer = renderer as DepthCopyRenderer
-  return (
-    !isWebGpuRenderer(renderer) &&
-    depthCopyRenderer.copyFramebufferToTexture != null &&
-    depthCopyRenderer.getDrawingBufferSize != null
-  )
-}
-
-function canMaskBlendGBufferSceneDepth(
-  renderer: AppRenderer,
-  materials: Iterable<Material>
-): boolean {
-  return canCopyBlendGBufferSceneDepth(renderer, materials)
-}
-
-function hasBlendGBufferDepthMaskMaterial(materials: Iterable<Material>): boolean {
-  for (const material of materials) {
-    if ((material as MsfsMaterial).userData?.msfsBlendGBufferDepthMask === true) {
-      return true
-    }
-  }
-
-  return false
-}
-
-function isWebGpuRenderer(renderer: AppRenderer): boolean {
-  return (renderer as AppRenderer & { readonly backend?: { readonly isWebGPUBackend?: boolean } })
-    .backend?.isWebGPUBackend === true
 }
 
 function restoreMaterialRenderState(
