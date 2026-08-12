@@ -8,10 +8,15 @@ import {
   VectorKeyframeTrack,
 } from 'three'
 
-import { ControlStateKeys, createSimulatorEngineForAircraft, SurfaceStateKeys } from '../sim/engine'
+import {
+  AirPhysicsStateKeys,
+  ControlStateKeys,
+  createSimulatorEngineForAircraft,
+  SurfaceStateKeys,
+} from '../sim/engine'
 import { __behaviorTestHooks } from './behavior'
 import { AircraftRuntime, SharedMsfsRuntimeHost } from './runtime'
-import type { CompiledBehaviorSet, RuntimeHostServices } from './types'
+import type { CompiledBehaviorSet, ImportedAircraft, RuntimeHostServices } from './types'
 
 const emptyCompiledBehaviorSet: CompiledBehaviorSet = {
   irVersion: 'msfs-behavior/v1',
@@ -37,6 +42,21 @@ const hostServices: RuntimeHostServices = {
 }
 
 describe('AircraftRuntime canonical visual bindings', () => {
+  test('exposes physics-driven left and right WingFlex through MSFS simvars', () => {
+    const host = new SharedMsfsRuntimeHost([])
+    for (const [key, value] of [
+      [AirPhysicsStateKeys.wingLeftFlexRatio(), 0.25],
+      [AirPhysicsStateKeys.wingRightFlexRatio(), -0.1],
+    ] as const) {
+      host.simulatorEngine.state.define({ key, unit: 'ratio', valueType: 'number' })
+      host.simulatorEngine.state.set(key, value, { source: 'runtime', unit: 'ratio' })
+    }
+
+    expect(host.readVariable('A:WING FLEX PCT:1', 'percent over 100')).toBe(0.25)
+    expect(host.readVariable('A:WING FLEX PCT:2', 'percent over 100')).toBe(-0.1)
+    expect(host.readVariable('A:WING FLEX PCT', 'percent over 100')).toBe(0.075)
+  })
+
   test('stores alternating update O: mirrors without changing canonical controls', () => {
     const host = new SharedMsfsRuntimeHost([])
     const runtime = new AircraftRuntime({
@@ -397,5 +417,66 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect((materialNode.material as MeshStandardMaterial).emissiveIntensity).toBe(
       0.75
     )
+  })
+
+  test('standard WingFlex rotates authored bone chains and carries engine pivots', () => {
+    const scene = new Object3D()
+    const makeChain = (side: 'LEFT' | 'RIGHT') => {
+      const bones = Array.from({ length: 4 }, (_, index) => {
+        const bone = new Object3D()
+        bone.name = `WING_BONE_0${index + 1}_${side}`
+        if (index > 0) bone.position.x = side === 'LEFT' ? 1 : -1
+        return bone
+      })
+      for (let index = 1; index < bones.length; index += 1) bones[index - 1].add(bones[index])
+      scene.add(bones[0])
+      return bones
+    }
+    const leftBones = makeChain('LEFT')
+    const rightBones = makeChain('RIGHT')
+    rightBones[0].position.z = 2
+    const leftPivot = new Object3D()
+    leftPivot.name = 'Engine_PIVOT_1_LEFT'
+    leftPivot.position.set(1.5, 0, 0.2)
+    scene.add(leftPivot)
+    const rightPivot = new Object3D()
+    rightPivot.name = 'Engine_PIVOT_1_RIGHT'
+    rightPivot.position.set(-1.5, 0, 1.8)
+    scene.add(rightPivot)
+
+    let leftFlex = 0.5
+    let rightFlex = 0.5
+    const aircraft = {
+      model: {
+        nodeAnimations: [{
+          type: 'WingFlex',
+          nodes: [
+            ...leftBones.map(node => node.name),
+            ...rightBones.map(node => node.name),
+            leftPivot.name,
+            rightPivot.name,
+          ],
+        }],
+      },
+    } as unknown as ImportedAircraft
+    const runtime = new AircraftRuntime(emptyCompiledBehaviorSet, scene, {
+      ...hostServices,
+      readVariable: key => key.endsWith(':1') ? leftFlex : key.endsWith(':2') ? rightFlex : 0,
+    }, aircraft)
+
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    const leftTipY = leftBones.at(-1)!.getWorldPosition(new Vector3()).y
+    const rightTipY = rightBones.at(-1)!.getWorldPosition(new Vector3()).y
+    expect(leftTipY > 0).toBe(true)
+    expect(rightTipY > 0).toBe(true)
+    expect(Math.abs(leftPivot.position.y) > 1e-6).toBe(true)
+
+    leftFlex = 0
+    rightFlex = 0
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    expect(Math.abs(leftBones.at(-1)!.getWorldPosition(new Vector3()).y) < 1e-9).toBe(true)
+    expect(Math.abs(rightBones.at(-1)!.getWorldPosition(new Vector3()).y) < 1e-9).toBe(true)
   })
 })

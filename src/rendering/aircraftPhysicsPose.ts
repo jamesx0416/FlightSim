@@ -19,6 +19,20 @@ export function physicsVectorToViewer(
   return target.set(-rightOrEast, -down, forwardOrNorth)
 }
 
+export function physicsBodyReferenceOffsetToViewer(
+  centerOfMassForwardM: number,
+  centerOfMassRightM: number,
+  centerOfMassDownM: number,
+  target = new Vector3()
+): Vector3 {
+  return physicsVectorToViewer(
+    -centerOfMassForwardM,
+    -centerOfMassRightM,
+    -centerOfMassDownM,
+    target
+  )
+}
+
 export function physicsQuaternionToViewer(
   physics: readonly [number, number, number, number],
   target = new Quaternion()
