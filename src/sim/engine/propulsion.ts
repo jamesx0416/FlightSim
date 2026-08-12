@@ -1,4 +1,5 @@
 import type { CanonicalPropulsionSystemConfig } from './aircraft'
+import { AirPhysicsStateKeys } from './airState'
 import type { SimCommand } from './commands'
 import {
   ElectricalStateKeys,
@@ -8,7 +9,9 @@ import {
   FuelStateKeys,
   readFuelBoolean,
 } from './fuel'
+import { computeJetCommandedN1Percent, type JetEngineEnvironment } from './jetEngine'
 import type { SimStateStore } from './state'
+import type { SimUnit } from './units'
 import type {
   SimSubsystem,
   SimSubsystemContext,
@@ -52,6 +55,29 @@ export interface EngineDefinition {
   readonly starterN1Percent?: number
   readonly spoolUpPercentPerSecond?: number
   readonly spoolDownPercentPerSecond?: number
+  readonly highN1Percent?: number
+  readonly n1NormalIntegrationRate?: number
+  readonly staticThrustN?: number
+  readonly thrustScalar?: number
+  readonly machInfluenceOnN1?: number
+  readonly useCommandedNeTable?: boolean
+  readonly commandedNeLowMach?: import('./aircraft').CanonicalMachLookupTable2D
+  readonly commandedNeHighMach?: import('./aircraft').CanonicalMachLookupTable2D
+  readonly useN2ToN1Table?: boolean
+  readonly n2ToN1ByCorrectedN2AndMach?: import('./aircraft').CanonicalLookupTable2D
+  readonly starterN1RatePercentPerSecond?: number
+  readonly minN1ForCombustionPercent?: number
+  readonly thrustByCorrectedN1AndMach?: import('./aircraft').CanonicalLookupTable2D
+  readonly correctedAirflowByCorrectedN1AndMach?: import('./aircraft').CanonicalLookupTable2D
+  readonly inletAreaM2?: number
+  readonly supersonicRamDrag?: boolean
+  readonly variableInlet?: boolean
+  readonly supersonicInlet?: boolean
+  readonly supersonicInletDesignMach?: number
+  readonly positionBodyM?: readonly [number, number, number]
+  readonly thrustDirectionBody?: readonly [number, number, number]
+  readonly idleFuelFlowKgPerSecond?: number
+  readonly highFuelFlowKgPerSecond?: number
 }
 
 export interface ApuDefinition {
@@ -124,11 +150,20 @@ export const PropulsionStateKeys = {
   engineN1Percent(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.n1.percent`
   },
+  engineCommandedN1Percent(index: number): string {
+    return `propulsion.engine.${normalizePositiveIndex(index)}.commanded-n1.percent`
+  },
   engineRpm(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.rpm`
   },
   engineGeneratorAvailable(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.generator.available`
+  },
+  engineThrustN(index: number): string {
+    return `propulsion.engine.${normalizePositiveIndex(index)}.thrust.newtons`
+  },
+  engineFuelFlowKgPerSecond(index: number): string {
+    return `propulsion.engine.${normalizePositiveIndex(index)}.fuel-flow.kilograms-per-second`
   },
   engineThrottleLeverRatio(index: number): string {
     return `propulsion.engine.${normalizePositiveIndex(index)}.throttle-lever.ratio`
@@ -222,6 +257,12 @@ export class PropulsionSubsystem implements SimSubsystem {
         `Engine ${engine.index} N1 percent`,
         engine.defaultN1Percent
       )
+      definePercentState(
+        context.state,
+        PropulsionStateKeys.engineCommandedN1Percent(engine.index),
+        `Engine ${engine.index} commanded N1 percent`,
+        engine.defaultN1Percent
+      )
       defineNumberState(
         context.state,
         PropulsionStateKeys.engineRpm(engine.index),
@@ -233,6 +274,20 @@ export class PropulsionSubsystem implements SimSubsystem {
         PropulsionStateKeys.engineGeneratorAvailable(engine.index),
         `Engine ${engine.index} generator availability`,
         false
+      )
+      defineNumberState(
+        context.state,
+        PropulsionStateKeys.engineThrustN(engine.index),
+        `Engine ${engine.index} thrust`,
+        0,
+        'newtons'
+      )
+      defineNumberState(
+        context.state,
+        PropulsionStateKeys.engineFuelFlowKgPerSecond(engine.index),
+        `Engine ${engine.index} fuel flow`,
+        0,
+        'kilogramsPerSecond'
       )
       defineRatioState(
         context.state,
@@ -448,6 +503,7 @@ export class PropulsionSubsystem implements SimSubsystem {
       PropulsionStateKeys.engineN1Percent(engine.index)
     )
     const starterThreshold = engine.starterN1Percent ?? 20
+    const combustionThreshold = engine.minN1ForCombustionPercent ?? starterThreshold
     const idleN1 = engine.idleN1Percent ?? 25
     const throttleRatio = readPropulsionNumber(
       context.state,
@@ -462,19 +518,27 @@ export class PropulsionSubsystem implements SimSubsystem {
           starterPowered &&
           ignitionPowered &&
           fuelAvailable &&
-          currentN1 >= starterThreshold)) &&
+          currentN1 >= combustionThreshold)) &&
       fuelAvailable &&
       ignitionPowered
+    const environment = readJetEnvironment(context.state)
+    const commandedN1 = combustion
+      ? computeJetCommandedN1Percent(engine, throttleRatio, environment)
+      : 0
     const starterSpoolTarget = starterIntent && starterPowered ? starterThreshold : 0
-    const targetN1 = combustion
-      ? idleN1 + (100 - idleN1) * clampRatio(throttleRatio)
-      : starterSpoolTarget
-    const rate =
-      targetN1 > currentN1
-        ? engine.spoolUpPercentPerSecond ?? 12
-        : engine.spoolDownPercentPerSecond ?? 18
-    const nextN1 = moveTowards(currentN1, targetN1, rate * context.dtSeconds)
+    const targetN1 = combustion ? Math.max(idleN1, commandedN1) : starterSpoolTarget
+    const nextN1 = integrateEngineN1(
+      currentN1,
+      targetN1,
+      combustion,
+      starterIntent && starterPowered,
+      engine,
+      context.dtSeconds
+    )
     const generatorAvailable = combustion && nextN1 >= idleN1
+    const fuelFlowKgPerSecond = combustion
+      ? computeEngineFuelFlowKgPerSecond(engine, nextN1)
+      : 0
 
     setDerivedBoolean(
       context.state,
@@ -501,6 +565,18 @@ export class PropulsionSubsystem implements SimSubsystem {
       PropulsionStateKeys.engineN1Percent(engine.index),
       nextN1,
       'percent'
+    )
+    setDerivedNumber(
+      context.state,
+      PropulsionStateKeys.engineCommandedN1Percent(engine.index),
+      commandedN1,
+      'percent'
+    )
+    setDerivedNumber(
+      context.state,
+      PropulsionStateKeys.engineFuelFlowKgPerSecond(engine.index),
+      fuelFlowKgPerSecond,
+      'kilogramsPerSecond'
     )
     setDerivedNumber(
       context.state,
@@ -587,6 +663,53 @@ export function readPropulsionNumber(
   return state.readNumber(key, { fallback }) ?? fallback
 }
 
+function readJetEnvironment(state: SimStateStore): JetEngineEnvironment {
+  return {
+    temperatureK: state.readNumber(AirPhysicsStateKeys.temperatureK(), { fallback: 288.15 }) ?? 288.15,
+    pressurePa: state.readNumber(AirPhysicsStateKeys.pressurePa(), { fallback: 101_325 }) ?? 101_325,
+    mach: state.readNumber(AirPhysicsStateKeys.mach(), { fallback: 0 }) ?? 0,
+    trueAirspeedMps: state.readNumber(AirPhysicsStateKeys.airspeedMps(), { fallback: 0 }) ?? 0,
+  }
+}
+
+function integrateEngineN1(
+  currentN1: number,
+  targetN1: number,
+  combustion: boolean,
+  starterPowered: boolean,
+  engine: EngineDefinition,
+  dtSeconds: number
+): number {
+  if (!combustion && starterPowered) {
+    return moveTowards(
+      currentN1,
+      targetN1,
+      (engine.starterN1RatePercentPerSecond ?? engine.spoolUpPercentPerSecond ?? 12) * dtSeconds
+    )
+  }
+  if (combustion && engine.n1NormalIntegrationRate != null) {
+    const fraction = Math.min(1, Math.max(0, dtSeconds * engine.n1NormalIntegrationRate))
+    return currentN1 + (targetN1 - currentN1) * fraction
+  }
+  const rate = targetN1 > currentN1
+    ? engine.spoolUpPercentPerSecond ?? 12
+    : engine.spoolDownPercentPerSecond ?? 18
+  return moveTowards(currentN1, targetN1, rate * dtSeconds)
+}
+
+function computeEngineFuelFlowKgPerSecond(
+  engine: EngineDefinition,
+  n1Percent: number
+): number {
+  const idleFlow = Math.max(0, engine.idleFuelFlowKgPerSecond ?? 0)
+  const highFlow = Math.max(idleFlow, engine.highFuelFlowKgPerSecond ?? idleFlow)
+  if (highFlow === 0) return 0
+  const idleN1 = engine.idleN1Percent ?? 25
+  const highN1 = Math.max(idleN1 + 1e-6, engine.highN1Percent ?? 100)
+  const ratio = clampRatio((n1Percent - idleN1) / (highN1 - idleN1))
+  return idleFlow + (highFlow - idleFlow) * ratio
+}
+
 function defineBooleanState(
   state: SimStateStore,
   key: string,
@@ -635,7 +758,7 @@ function defineNumberState(
   key: string,
   description: string,
   defaultValue?: number,
-  unit: 'number' | 'percent' | 'ratio' = 'number'
+  unit: SimUnit = 'number'
 ): void {
   state.define({ key, unit, valueType: 'number', description })
 
@@ -657,7 +780,7 @@ function setNumber(
   state: SimStateStore,
   key: string,
   value: number,
-  unit: 'number' | 'percent' | 'ratio'
+  unit: SimUnit
 ): void {
   state.define({ key, unit, valueType: 'number' })
   state.set(key, Number.isFinite(value) ? value : 0, { source: 'runtime', unit })
@@ -676,7 +799,7 @@ function setDerivedNumber(
   state: SimStateStore,
   key: string,
   value: number,
-  unit: 'number' | 'percent' | 'ratio'
+  unit: SimUnit
 ): void {
   state.define({ key, unit, valueType: 'number' })
   state.set(key, Number.isFinite(value) ? value : 0, { source: 'subsystem', unit })
