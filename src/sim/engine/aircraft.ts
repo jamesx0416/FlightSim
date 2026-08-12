@@ -98,6 +98,29 @@ export interface CanonicalPropulsionEngineConfig {
   readonly starterN1Percent?: number
   readonly spoolUpPercentPerSecond?: number
   readonly spoolDownPercentPerSecond?: number
+  readonly highN1Percent?: number
+  readonly n1NormalIntegrationRate?: number
+  readonly staticThrustN?: number
+  readonly thrustScalar?: number
+  readonly machInfluenceOnN1?: number
+  readonly useCommandedNeTable?: boolean
+  readonly commandedNeLowMach?: CanonicalMachLookupTable2D
+  readonly commandedNeHighMach?: CanonicalMachLookupTable2D
+  readonly useN2ToN1Table?: boolean
+  readonly n2ToN1ByCorrectedN2AndMach?: CanonicalLookupTable2D
+  readonly starterN1RatePercentPerSecond?: number
+  readonly minN1ForCombustionPercent?: number
+  readonly thrustByCorrectedN1AndMach?: CanonicalLookupTable2D
+  readonly correctedAirflowByCorrectedN1AndMach?: CanonicalLookupTable2D
+  readonly inletAreaM2?: number
+  readonly supersonicRamDrag?: boolean
+  readonly variableInlet?: boolean
+  readonly supersonicInlet?: boolean
+  readonly supersonicInletDesignMach?: number
+  readonly positionBodyM?: readonly [number, number, number]
+  readonly thrustDirectionBody?: readonly [number, number, number]
+  readonly idleFuelFlowKgPerSecond?: number
+  readonly highFuelFlowKgPerSecond?: number
 }
 
 export interface CanonicalApuConfig {
@@ -111,6 +134,113 @@ export interface CanonicalApuConfig {
 export interface CanonicalPropulsionSystemConfig {
   readonly engines?: readonly CanonicalPropulsionEngineConfig[]
   readonly apu?: CanonicalApuConfig
+}
+
+
+export interface CanonicalLookupTable1D {
+  readonly breakpoints: readonly number[]
+  readonly values: readonly number[]
+}
+
+export interface CanonicalLookupTable2D {
+  readonly breakpointsX: readonly number[]
+  readonly breakpointsY: readonly number[]
+  readonly values: readonly number[]
+}
+
+export interface CanonicalMachLookupTable2D {
+  readonly mach: number
+  readonly table: CanonicalLookupTable2D
+}
+
+export interface CanonicalAirPhysicsGeometry {
+  readonly wingAreaM2: number
+  readonly wingSpanM: number
+  readonly wingRootChordM: number
+  readonly wingTipChordM: number
+  readonly meanChordM: number
+  readonly wingIncidenceRad: number
+  readonly wingDihedralRad: number
+  readonly wingSweepRad: number
+  readonly wingTwistRad: number
+  readonly aerodynamicCenterBodyM: readonly [number, number, number]
+  readonly centerOfMassFromModelOriginBodyM?: readonly [number, number, number]
+  readonly oswaldEfficiency: number
+  readonly aileronAreaM2?: number
+  readonly horizontalTailAreaM2?: number
+  readonly horizontalTailSpanM?: number
+  readonly horizontalTailPositionBodyM?: readonly [number, number, number]
+  readonly horizontalTailIncidenceRad?: number
+  readonly elevatorAreaM2?: number
+  readonly verticalTailAreaM2?: number
+  readonly verticalTailSpanM?: number
+  readonly verticalTailPositionBodyM?: readonly [number, number, number]
+  readonly rudderAreaM2?: number
+  readonly fuselageLengthM?: number
+  readonly fuselageDiameterM?: number
+  readonly fuselageCenterBodyM?: readonly [number, number, number]
+  readonly bladeElementCount?: number
+}
+
+export interface CanonicalAirPhysicsAerodynamics {
+  readonly liftCoefficientByAlphaRad: CanonicalLookupTable1D
+  readonly liftScalar: number
+  readonly pitchMomentByAlphaRad?: CanonicalLookupTable1D
+  readonly zeroLiftDragCoefficient: number
+  readonly liftCoefficientAtDragZero: number
+  readonly parasiteDragScalar: number
+  readonly inducedDragScalar: number
+  readonly flapInducedDragScalar: number
+  readonly machDragCoefficientAdd?: CanonicalLookupTable1D
+  readonly flapLiftCoefficient: number
+  readonly flapDragCoefficient: number
+  readonly gearDragCoefficient: number
+  readonly spoilerLiftCoefficient: number
+  readonly spoilerDragCoefficient: number
+  readonly sideForceSlipAngleCoefficient: number
+  readonly sideForceRudderCoefficient: number
+  readonly fuselageLateralDragCoefficient?: number
+  readonly pitchMomentZero: number
+  readonly pitchMomentAlphaCoefficient: number
+  readonly pitchDampingCoefficient: number
+  readonly pitchElevatorCoefficient: number
+  readonly pitchFlapCoefficient: number
+  readonly pitchGearCoefficient: number
+  readonly pitchSpoilerCoefficient: number
+  readonly rollSlipAngleCoefficient: number
+  readonly rollDampingCoefficient: number
+  readonly rollAileronCoefficient: number
+  readonly yawSlipAngleCoefficient: number
+  readonly yawDampingCoefficient: number
+  readonly yawRudderCoefficient: number
+}
+
+export interface CanonicalAirPhysicsControls {
+  readonly aileronLimitRad: number
+  readonly elevatorLimitRad: number
+  readonly rudderLimitRad: number
+  readonly aileronEffectiveness: number
+  readonly elevatorEffectiveness: number
+  readonly rudderEffectiveness: number
+  readonly elevatorLiftCoefficientSlopePerRad?: number
+  readonly elevatorDeflectionSign?: -1 | 1
+  readonly elevatorTrimUpLimitRad?: number
+  readonly elevatorTrimDownLimitRad?: number
+  readonly elevatorTrimEffectiveness?: number
+  readonly rudderLiftCoefficientSlopePerRad?: number
+  readonly rudderTrimLimitRad?: number
+  readonly rudderTrimEffectiveness?: number
+  readonly aileronTrimEffectiveness?: number
+  readonly flapSpanOutboardRatio?: number
+}
+
+export interface CanonicalAirPhysicsSystemConfig {
+  readonly emptyMassKg: number
+  readonly maxGrossMassKg: number
+  readonly inertiaKgM2: readonly [number, number, number]
+  readonly geometry: CanonicalAirPhysicsGeometry
+  readonly aerodynamics: CanonicalAirPhysicsAerodynamics
+  readonly controls: CanonicalAirPhysicsControls
 }
 
 export interface CanonicalSurfaceConfig {
@@ -140,6 +270,7 @@ export type CanonicalSystemDefinition =
   | CanonicalSystemDefinitionBase<'propulsion', CanonicalPropulsionSystemConfig>
   | CanonicalSystemDefinitionBase<'surfaces', CanonicalSurfaceSystemConfig>
   | CanonicalSystemDefinitionBase<'surface-animation', CanonicalSurfaceSystemConfig>
+  | CanonicalSystemDefinitionBase<'air-physics', CanonicalAirPhysicsSystemConfig>
 
 export interface CanonicalControlDefinition {
   readonly id: string

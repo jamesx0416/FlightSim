@@ -8,12 +8,18 @@ export const EnvironmentCommandTypes = {
   setPitotHeat: 'environment.pitotHeat.set',
   setStructuralDeice: 'environment.structuralDeice.set',
   setEngineAntiIce: 'environment.engineAntiIce.set',
+  setTemperatureOffset: 'environment.atmosphere.setTemperatureOffset',
+  setSeaLevelPressure: 'environment.atmosphere.setSeaLevelPressure',
+  setWindNed: 'environment.wind.setNed',
 } as const
 
 export interface EnvironmentSubsystemDefinition {
   readonly pitotHeat?: readonly PitotHeatDefinition[]
   readonly engineAntiIce?: readonly EngineAntiIceDefinition[]
   readonly defaultStructuralDeiceEnabled?: boolean
+  readonly defaultTemperatureOffsetCelsius?: number
+  readonly defaultSeaLevelPressurePa?: number
+  readonly defaultWindNedMps?: readonly [number, number, number]
 }
 
 export interface PitotHeatDefinition {
@@ -24,6 +30,16 @@ export interface PitotHeatDefinition {
 export interface EngineAntiIceDefinition {
   readonly index: number
   readonly defaultEnabled?: boolean
+}
+
+interface ScalarPayload {
+  readonly value: number
+}
+
+interface WindNedPayload {
+  readonly northMps?: number
+  readonly eastMps?: number
+  readonly downMps?: number
 }
 
 interface IndexedBooleanPayload {
@@ -41,6 +57,21 @@ export const EnvironmentStateKeys = {
   },
   engineAntiIceEnabled(index = 1): string {
     return `environment.engineAntiIce.${normalizePositiveIndex(index)}.enabled`
+  },
+  temperatureOffsetCelsius(): string {
+    return 'environment.atmosphere.temperature-offset.celsius'
+  },
+  seaLevelPressurePa(): string {
+    return 'environment.atmosphere.sea-level-pressure.pascals'
+  },
+  windNorthMps(): string {
+    return 'environment.wind.north.meters-per-second'
+  },
+  windEastMps(): string {
+    return 'environment.wind.east.meters-per-second'
+  },
+  windDownMps(): string {
+    return 'environment.wind.down.meters-per-second'
   },
 } as const
 
@@ -77,6 +108,25 @@ export class EnvironmentSubsystem implements SimSubsystem {
         engineAntiIce.defaultEnabled
       )
     }
+
+    defineNumberState(
+      context.state,
+      EnvironmentStateKeys.temperatureOffsetCelsius(),
+      'Atmospheric temperature offset from ISA',
+      this.definition.defaultTemperatureOffsetCelsius ?? 0,
+      'celsius'
+    )
+    defineNumberState(
+      context.state,
+      EnvironmentStateKeys.seaLevelPressurePa(),
+      'Sea level pressure',
+      this.definition.defaultSeaLevelPressurePa ?? 101_325,
+      'pascals'
+    )
+    const wind = this.definition.defaultWindNedMps ?? [0, 0, 0]
+    defineNumberState(context.state, EnvironmentStateKeys.windNorthMps(), 'Wind north component', wind[0], 'metersPerSecond')
+    defineNumberState(context.state, EnvironmentStateKeys.windEastMps(), 'Wind east component', wind[1], 'metersPerSecond')
+    defineNumberState(context.state, EnvironmentStateKeys.windDownMps(), 'Wind down component', wind[2], 'metersPerSecond')
   }
 
   handleCommand(
@@ -111,6 +161,23 @@ export class EnvironmentSubsystem implements SimSubsystem {
         )
         return true
       }
+      case EnvironmentCommandTypes.setTemperatureOffset: {
+        const payload = command.payload as ScalarPayload
+        setNumber(context.state, EnvironmentStateKeys.temperatureOffsetCelsius(), payload.value, 'celsius')
+        return true
+      }
+      case EnvironmentCommandTypes.setSeaLevelPressure: {
+        const payload = command.payload as ScalarPayload
+        setNumber(context.state, EnvironmentStateKeys.seaLevelPressurePa(), Math.max(1, payload.value), 'pascals')
+        return true
+      }
+      case EnvironmentCommandTypes.setWindNed: {
+        const payload = command.payload as WindNedPayload
+        setNumber(context.state, EnvironmentStateKeys.windNorthMps(), payload.northMps ?? 0, 'metersPerSecond')
+        setNumber(context.state, EnvironmentStateKeys.windEastMps(), payload.eastMps ?? 0, 'metersPerSecond')
+        setNumber(context.state, EnvironmentStateKeys.windDownMps(), payload.downMps ?? 0, 'metersPerSecond')
+        return true
+      }
       default:
         return false
     }
@@ -135,6 +202,26 @@ function defineBooleanState(
   if (defaultValue != null) {
     setBoolean(state, key, defaultValue, 'default')
   }
+}
+
+function defineNumberState(
+  state: SimStateStore,
+  key: string,
+  description: string,
+  defaultValue: number,
+  unit: 'celsius' | 'pascals' | 'metersPerSecond'
+): void {
+  state.define({ key, unit, valueType: 'number', description })
+  state.set(key, defaultValue, { source: 'default', unit })
+}
+
+function setNumber(
+  state: SimStateStore,
+  key: string,
+  value: number,
+  unit: 'celsius' | 'pascals' | 'metersPerSecond'
+): void {
+  state.set(key, Number.isFinite(value) ? value : 0, { source: 'runtime', unit })
 }
 
 function setBoolean(

@@ -11,6 +11,15 @@ export type SimUnit =
   | 'knots'
   | 'celsius'
   | 'kelvin'
+  | 'radians'
+  | 'radiansPerSecond'
+  | 'kilograms'
+  | 'kilogramsPerSecond'
+  | 'newtons'
+  | 'newtonMeters'
+  | 'pascals'
+  | 'kilogramsPerCubicMeter'
+  | 'mach'
 
 const NUMBER_UNITS = new Set<SimUnit>(['unitless', 'number'])
 

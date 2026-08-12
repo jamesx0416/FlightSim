@@ -3,6 +3,7 @@ import type {
   CanonicalSystemDefinition,
   CanonicalSurfaceSystemConfig,
 } from './aircraft'
+import { AirPhysicsSubsystem } from './airPhysics'
 import { AutopilotSubsystem } from './autopilot'
 import { AvionicsSubsystem } from './avionics'
 import { ControlStateKeys, ControlsSubsystem } from './controls'
@@ -60,6 +61,15 @@ export function createSimulatorEngineForAircraft(
     )
   )
   engine.registerSubsystem(new EnvironmentSubsystem())
+  const airPhysics = findSystemDefinition(aircraft, 'air-physics')?.config
+  if (airPhysics != null) {
+    engine.registerSubsystem(
+      new AirPhysicsSubsystem(
+        airPhysics,
+        findSystemDefinition(aircraft, 'propulsion')?.config ?? {}
+      )
+    )
+  }
   engine.registerSubsystem(new LightingElectricalSubsystem())
   engine.registerSubsystem(new AvionicsSubsystem())
   engine.registerSubsystem(new AutopilotSubsystem())
