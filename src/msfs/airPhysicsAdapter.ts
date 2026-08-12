@@ -2,6 +2,7 @@ import type {
   CanonicalAirPhysicsSystemConfig,
   CanonicalLookupTable1D,
   CanonicalLookupTable2D,
+  CanonicalFuelSystemConfig,
   CanonicalPropulsionEngineConfig,
 } from '../sim/engine/aircraft'
 import type { ImportedAircraft, ImportedCfgFile, ImportedCfgSection } from './types'
@@ -12,6 +13,7 @@ const POUNDS_TO_KILOGRAMS = 0.45359237
 const POUND_FORCE_TO_NEWTONS = 4.4482216152605
 const SLUG_FOOT_SQUARED_TO_KG_M2 = 1.355817961894411
 const POUNDS_PER_HOUR_TO_KG_PER_SECOND = POUNDS_TO_KILOGRAMS / 3600
+const JET_A_POUNDS_PER_GALLON = 6.7
 const DEG_TO_RAD = Math.PI / 180
 
 export function createMsfsAirPhysicsSystemConfig(
@@ -196,6 +198,47 @@ export function createMsfsAirPhysicsSystemConfig(
   }
 }
 
+export function addMsfsFuelMassProperties(
+  fuel: CanonicalFuelSystemConfig,
+  aircraft: ImportedAircraft
+): CanonicalFuelSystemConfig {
+  const flightModel = aircraft.cfgFiles.find(file => file.kind === 'flight_model')
+  if (flightModel == null) return fuel
+  const fuelSection = findSection(flightModel, 'fuel')
+  const fuelSystem = findSection(flightModel, 'fuel_system')
+  const weight = findSection(flightModel, 'weight_and_balance')
+  if (fuelSystem == null || weight == null || readNumber(fuelSection, 'fuel_type') !== 2) return fuel
+
+  const cg = parseNumberList(readValue(weight, 'empty_weight_cg_position')) ?? [0, 0, 0]
+  const defaultQuantityRatio = fuel.tanks?.find(tank => tank.id === 'main')?.defaultQuantityRatio
+  const physicalTanks = [...fuelSystem.values.entries()]
+    .filter(([key]) => /^tank\.\d+$/iu.test(key))
+    .sort(([left], [right]) => Number(left.split('.')[1]) - Number(right.split('.')[1]))
+    .flatMap(([, raw]) => {
+      const fields = parseHashMap(raw)
+      const id = fields.get('name')
+      const capacityGallons = Number(fields.get('capacity'))
+      const position = parseNumberList(fields.get('position'))
+      if (!id || !Number.isFinite(capacityGallons) || capacityGallons <= 0 || position == null) return []
+      return [{
+        id,
+        defaultQuantityRatio,
+        capacityKg: capacityGallons * JET_A_POUNDS_PER_GALLON * POUNDS_TO_KILOGRAMS,
+        positionBodyM: bodyPositionFromMsfs(
+          position[0] ?? 0,
+          position[1] ?? 0,
+          position[2] ?? 0,
+          cg[0] ?? 0,
+          cg[1] ?? 0,
+          cg[2] ?? 0
+        ),
+        priority: Number(fields.get('priority')) || 0,
+      }]
+    })
+  if (physicalTanks.length === 0) return fuel
+  return { ...fuel, tanks: [...(fuel.tanks ?? []), ...physicalTanks] }
+}
+
 export function addMsfsPropulsionPhysicsMetadata(
   engines: readonly CanonicalPropulsionEngineConfig[],
   aircraft: ImportedAircraft
@@ -266,6 +309,16 @@ export function addMsfsPropulsionPhysicsMetadata(
     }
   })
 }
+function parseHashMap(raw: string): ReadonlyMap<string, string> {
+  return new Map(raw.split('#').flatMap(field => {
+    const separator = field.indexOf(':')
+    if (separator < 0) return []
+    const key = field.slice(0, separator).trim().toLowerCase()
+    const value = field.slice(separator + 1).trim()
+    return key ? [[key, value] as const] : []
+  }))
+}
+
 function findSection(
   file: ImportedCfgFile | undefined,
   name: string

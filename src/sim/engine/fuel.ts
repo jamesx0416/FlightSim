@@ -23,6 +23,7 @@ export const FuelCommandTypes = {
   setValveOpen: 'fuel.valve.setOpen',
   setJunctionSetting: 'fuel.junction.setSetting',
   setTankQuantity: 'fuel.tank.setQuantity',
+  consumeMass: 'fuel.consumeMass',
 } as const
 
 export interface FuelPumpDefinition {
@@ -71,6 +72,11 @@ interface IndexedNumberPayload {
 interface SetFuelTankQuantityPayload {
   readonly id: string
   readonly ratio?: number
+  readonly value?: number
+}
+
+interface ConsumeFuelMassPayload {
+  readonly kilograms?: number
   readonly value?: number
 }
 
@@ -274,11 +280,67 @@ export class FuelSubsystem implements SimSubsystem {
           clampRatio(payload.ratio ?? payload.value ?? 0),
           'ratio'
         )
+        this.updateAggregateTankRatio(context.state)
+        return true
+      }
+      case FuelCommandTypes.consumeMass: {
+        const payload = command.payload as ConsumeFuelMassPayload
+        this.consumeMassKg(context.state, Math.max(0, payload.kilograms ?? payload.value ?? 0))
         return true
       }
       default:
         return false
     }
+  }
+
+  private consumeMassKg(state: SimStateStore, massKg: number): void {
+    let remainingKg = massKg
+    const physicalTanks = (this.definition.tanks ?? [])
+      .filter(tank => (tank.capacityKg ?? 0) > 0)
+      .sort((left, right) => (left.priority ?? 0) - (right.priority ?? 0))
+    for (let offset = 0; offset < physicalTanks.length && remainingKg > 1e-9;) {
+      const priority = physicalTanks[offset].priority ?? 0
+      const group = physicalTanks.filter(tank => (tank.priority ?? 0) === priority)
+      const availableKg = group.reduce((sum, tank) => sum +
+        (tank.capacityKg ?? 0) * readFuelNumber(
+          state,
+          FuelStateKeys.tankQuantityRatio(tank.id),
+          tank.defaultQuantityRatio ?? 0
+        ), 0)
+      if (availableKg > 1e-9) {
+        const consumedKg = Math.min(remainingKg, availableKg)
+        const remainingFraction = 1 - consumedKg / availableKg
+        for (const tank of group) {
+          const ratio = readFuelNumber(
+            state,
+            FuelStateKeys.tankQuantityRatio(tank.id),
+            tank.defaultQuantityRatio ?? 0
+          )
+          setNumber(
+            state,
+            FuelStateKeys.tankQuantityRatio(tank.id),
+            clampRatio(ratio * remainingFraction),
+            'ratio'
+          )
+        }
+        remainingKg -= consumedKg
+      }
+      offset += group.length
+    }
+    this.updateAggregateTankRatio(state)
+  }
+
+  private updateAggregateTankRatio(state: SimStateStore): void {
+    const physicalTanks = (this.definition.tanks ?? []).filter(tank => (tank.capacityKg ?? 0) > 0)
+    const capacityKg = physicalTanks.reduce((sum, tank) => sum + (tank.capacityKg ?? 0), 0)
+    if (capacityKg <= 0 || !(this.definition.tanks ?? []).some(tank => tank.id === 'main')) return
+    const massKg = physicalTanks.reduce((sum, tank) => sum +
+      (tank.capacityKg ?? 0) * readFuelNumber(
+        state,
+        FuelStateKeys.tankQuantityRatio(tank.id),
+        tank.defaultQuantityRatio ?? 0
+      ), 0)
+    setNumber(state, FuelStateKeys.tankQuantityRatio('main'), clampRatio(massKg / capacityKg), 'ratio')
   }
 
   private resolvePumpKeys(payload: IndexedBooleanPayload): Array<string | number> {

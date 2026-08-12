@@ -15,6 +15,7 @@ export type SimUnit =
   | 'radiansPerSecond'
   | 'kilograms'
   | 'kilogramsPerSecond'
+  | 'kilogramMetersSquared'
   | 'newtons'
   | 'newtonMeters'
   | 'pascals'

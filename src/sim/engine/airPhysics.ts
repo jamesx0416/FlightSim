@@ -5,11 +5,14 @@ import { AirPhysicsStateKeys } from './airState'
 import { lookup1D } from '../LookupTable'
 import type {
   CanonicalAirPhysicsSystemConfig,
+  CanonicalFuelSystemConfig,
+  CanonicalFuelTankConfig,
   CanonicalPropulsionEngineConfig,
   CanonicalPropulsionSystemConfig,
 } from './aircraft'
 import { ControlStateKeys, readControlRatio, readControlSignedRatio } from './controls'
 import { EnvironmentStateKeys } from './environment'
+import { FuelStateKeys, readFuelNumber } from './fuel'
 import { computeJetThrustN } from './jetEngine'
 import { PropulsionStateKeys, readPropulsionNumber } from './propulsion'
 import type { SimCommand } from './commands'
@@ -89,6 +92,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   private readonly wingElements: readonly WingElement[]
   private readonly horizontalTailElements: readonly TailElement[]
   private readonly verticalTailElements: readonly TailElement[]
+  private readonly physicalFuelTanks: readonly CanonicalFuelTankConfig[]
   private readonly wingCirculationM2PerSecond: Float64Array
   private readonly wingWakeDirectionBody: Float64Array
   private readonly wingWakeDirectionScratch: [number, number, number] = [0, 0, 0]
@@ -96,6 +100,8 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   private readonly forceBodyN = new Vector3()
   private readonly torqueBodyNm = new Vector3()
   private readonly forceNedN = new Vector3()
+  private readonly centerOfMassBodyM = new Vector3()
+  private readonly currentInertiaKgM2 = new Vector3()
   private readonly airVelocityNedMps = new Vector3()
   private readonly airVelocityBodyMps = new Vector3()
   private readonly wingInducedAirVelocityBodyMps = new Vector3()
@@ -113,21 +119,36 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   private turbulenceScaleM = 100
   private turbulenceTimeScaleSeconds = 5
   private groundElevationM = 0
+  private referenceNonFuelMassKg = 0
   private telemetry: ForceTelemetry = emptyTelemetry()
 
   constructor(
     private readonly definition: CanonicalAirPhysicsSystemConfig,
-    private readonly propulsion: CanonicalPropulsionSystemConfig = {}
+    private readonly propulsion: CanonicalPropulsionSystemConfig = {},
+    private readonly fuel: CanonicalFuelSystemConfig = {}
   ) {
     this.wingElements = buildWingElements(definition)
     this.horizontalTailElements = buildHorizontalTailElements(definition)
     this.verticalTailElements = buildVerticalTailElements(definition)
+    this.physicalFuelTanks = (fuel.tanks ?? []).filter(tank =>
+      (tank.capacityKg ?? 0) > 0 && tank.positionBodyM != null
+    )
     this.wingCirculationM2PerSecond = new Float64Array(this.wingElements.length)
     this.wingWakeDirectionBody = new Float64Array(this.wingElements.length * 3)
     this.engineThrustN = (propulsion.engines ?? []).map(() => 0)
+    this.currentInertiaKgM2.fromArray(definition.inertiaKgM2)
   }
   initialize(context: SimSubsystemContext): void {
     defineNumber(context.state, AirPhysicsStateKeys.massKg(), 'kilograms', this.definition.emptyMassKg)
+    for (const key of [
+      AirPhysicsStateKeys.centerOfMassForwardM(),
+      AirPhysicsStateKeys.centerOfMassRightM(),
+      AirPhysicsStateKeys.centerOfMassDownM(),
+    ]) defineNumber(context.state, key, 'meters', 0)
+    defineNumber(context.state, AirPhysicsStateKeys.inertiaRollKgM2(), 'kilogramMetersSquared', this.definition.inertiaKgM2[0])
+    defineNumber(context.state, AirPhysicsStateKeys.inertiaPitchKgM2(), 'kilogramMetersSquared', this.definition.inertiaKgM2[1])
+    defineNumber(context.state, AirPhysicsStateKeys.inertiaYawKgM2(), 'kilogramMetersSquared', this.definition.inertiaKgM2[2])
+    this.referenceNonFuelMassKg = this.definition.emptyMassKg - this.currentFuelMassKg(context.state)
     defineBoolean(context.state, AirPhysicsStateKeys.enabled(), false)
     defineNumber(context.state, AirPhysicsStateKeys.resetRevision(), 'number', 0)
     for (const [key, unit] of [
@@ -223,7 +244,16 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     this.omegaBodyRadPerSec.fromArray(omega)
     this.accumulatorSeconds = 0
     this.physicsTimeSeconds = 0
-    if (payload.massKg != null) this.setMass(state, payload.massKg)
+    if (payload.massKg != null) {
+      this.setMass(state, payload.massKg)
+    } else if (this.physicalFuelTanks.length > 0) {
+      const currentMassKg = state.readNumber(AirPhysicsStateKeys.massKg(), {
+        unit: 'kilograms',
+        fallback: this.definition.emptyMassKg,
+      }) ?? this.definition.emptyMassKg
+      this.referenceNonFuelMassKg = currentMassKg - this.currentFuelMassKg(state)
+      this.updateMassPropertiesFromFuel(state)
+    }
     if (payload.enabled != null) {
       state.set(AirPhysicsStateKeys.enabled(), payload.enabled, {
         source: 'runtime',
@@ -245,9 +275,14 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       source: 'runtime',
       unit: 'kilograms',
     })
+    if (this.physicalFuelTanks.length > 0) {
+      this.referenceNonFuelMassKg = next - this.currentFuelMassKg(state)
+      this.updateMassPropertiesFromFuel(state)
+    }
   }
 
   private integrate(dtSeconds: number, state: SimStateStore): void {
+    if (this.physicalFuelTanks.length > 0) this.updateMassPropertiesFromFuel(state)
     const altitudeMeters = -this.positionNedM.z
     const atmosphere = standardAtmosphereAtAltitudeMeters(altitudeMeters, {
       temperatureOffsetCelsius: state.readNumber(EnvironmentStateKeys.temperatureOffsetCelsius(), { fallback: 0 }) ?? 0,
@@ -284,7 +319,9 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     this.velocityNedMps.z += G0 * dtSeconds
     this.positionNedM.addScaledVector(this.velocityNedMps, dtSeconds)
     this.integrateRotation(dtSeconds)
-    this.consumeFuelMass(state, massKg, dtSeconds)
+    if (this.physicalFuelTanks.length === 0) {
+      this.consumeFuelMass(state, massKg, dtSeconds)
+    }
     this.physicsTimeSeconds += dtSeconds
 
     setSubsystemNumber(state, AirPhysicsStateKeys.temperatureK(), atmosphere.temperatureK, 'kelvin')
@@ -306,11 +343,72 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     }
     if (fuelFlowKgPerSecond <= 0) return
 
-    // ponytail: total mass only; tank-specific CG/inertia belongs with full fuel routing.
+    // Fallback for aircraft definitions that do not provide physical tank metadata.
     this.setMass(state, Math.max(
       this.definition.emptyMassKg,
       massKg - fuelFlowKgPerSecond * dtSeconds
     ))
+  }
+
+  private currentFuelMassKg(state: SimStateStore): number {
+    return this.physicalFuelTanks.reduce((sum, tank) => sum +
+      (tank.capacityKg ?? 0) * readFuelNumber(
+        state,
+        FuelStateKeys.tankQuantityRatio(tank.id),
+        tank.defaultQuantityRatio ?? 0
+      ), 0)
+  }
+
+  private updateMassPropertiesFromFuel(state: SimStateStore): void {
+    let fuelMassKg = 0
+    let momentX = 0
+    let momentY = 0
+    let momentZ = 0
+    for (const tank of this.physicalFuelTanks) {
+      const capacityKg = tank.capacityKg ?? 0
+      const position = tank.positionBodyM!
+      const tankMassKg = capacityKg * readFuelNumber(
+        state,
+        FuelStateKeys.tankQuantityRatio(tank.id),
+        tank.defaultQuantityRatio ?? 0
+      )
+      fuelMassKg += tankMassKg
+      momentX += tankMassKg * position[0]
+      momentY += tankMassKg * position[1]
+      momentZ += tankMassKg * position[2]
+    }
+    const totalMassKg = Math.max(1, this.referenceNonFuelMassKg + fuelMassKg)
+    this.centerOfMassBodyM.set(
+      momentX / totalMassKg,
+      momentY / totalMassKg,
+      momentZ / totalMassKg
+    )
+
+    const nonFuelMassKg = Math.max(1, this.referenceNonFuelMassKg)
+    const baseScale = nonFuelMassKg / Math.max(this.definition.emptyMassKg, 1)
+    const cg = this.centerOfMassBodyM
+    let ix = this.definition.inertiaKgM2[0] * baseScale + nonFuelMassKg * (cg.y * cg.y + cg.z * cg.z)
+    let iy = this.definition.inertiaKgM2[1] * baseScale + nonFuelMassKg * (cg.x * cg.x + cg.z * cg.z)
+    let iz = this.definition.inertiaKgM2[2] * baseScale + nonFuelMassKg * (cg.x * cg.x + cg.y * cg.y)
+    for (const tank of this.physicalFuelTanks) {
+      const position = tank.positionBodyM!
+      const tankMassKg = (tank.capacityKg ?? 0) * readFuelNumber(
+        state,
+        FuelStateKeys.tankQuantityRatio(tank.id),
+        tank.defaultQuantityRatio ?? 0
+      )
+      const dx = position[0] - cg.x
+      const dy = position[1] - cg.y
+      const dz = position[2] - cg.z
+      ix += tankMassKg * (dy * dy + dz * dz)
+      iy += tankMassKg * (dx * dx + dz * dz)
+      iz += tankMassKg * (dx * dx + dy * dy)
+    }
+    this.currentInertiaKgM2.set(Math.max(ix, 1), Math.max(iy, 1), Math.max(iz, 1))
+    state.set(AirPhysicsStateKeys.massKg(), totalMassKg, {
+      source: 'runtime',
+      unit: 'kilograms',
+    })
   }
 
   private computeForces(
@@ -460,7 +558,13 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       })
       this.engineThrustN[offset] = engineThrust
       thrustN += engineThrust
-      applyEngineThrust(this.forceBodyN, this.torqueBodyNm, engine, engineThrust)
+      applyEngineThrust(
+        this.forceBodyN,
+        this.torqueBodyNm,
+        engine,
+        engineThrust,
+        this.centerOfMassBodyM
+      )
     }
 
     return {
@@ -494,9 +598,12 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const omega = this.omegaBodyRadPerSec
     const velocity = this.airVelocityBodyMps
     this.sampleTurbulenceBodyMpsAtPoint([element.x, element.y, element.z], this.localGustBodyMps)
-    const u = velocity.x + omega.y * element.z - omega.z * element.y - this.localGustBodyMps.x
-    const v = velocity.y + omega.z * element.x - omega.x * element.z - this.localGustBodyMps.y
-    const w = velocity.z + omega.x * element.y - omega.y * element.x - this.localGustBodyMps.z
+    const rx = element.x - this.centerOfMassBodyM.x
+    const ry = element.y - this.centerOfMassBodyM.y
+    const rz = element.z - this.centerOfMassBodyM.z
+    const u = velocity.x + omega.y * rz - omega.z * ry - this.localGustBodyMps.x
+    const v = velocity.y + omega.z * rx - omega.x * rz - this.localGustBodyMps.y
+    const w = velocity.z + omega.x * ry - omega.y * rx - this.localGustBodyMps.z
     const speedSquared = u * u + v * v + w * w
     if (speedSquared <= 0.01) {
       return {
@@ -791,7 +898,11 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   private heightAboveGroundAtBodyPoint(
     pointBodyM: readonly [number, number, number]
   ): number {
-    this.localPointNedM.set(pointBodyM[0], pointBodyM[1], pointBodyM[2])
+    this.localPointNedM.set(
+      pointBodyM[0] - this.centerOfMassBodyM.x,
+      pointBodyM[1] - this.centerOfMassBodyM.y,
+      pointBodyM[2] - this.centerOfMassBodyM.z
+    )
       .applyQuaternion(this.orientationBodyToNed)
       .add(this.positionNedM)
     return Math.max(0, -this.localPointNedM.z - this.groundElevationM)
@@ -801,7 +912,12 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     pointBodyM: readonly [number, number, number]
   ): readonly [number, number, number] {
     this.sampleTurbulenceBodyMpsAtPoint(pointBodyM, this.localGustBodyMps)
-    const local = localVelocityAtPoint(this.airVelocityBodyMps, this.omegaBodyRadPerSec, pointBodyM)
+    const local = localVelocityAtPoint(
+      this.airVelocityBodyMps,
+      this.omegaBodyRadPerSec,
+      pointBodyM,
+      this.centerOfMassBodyM
+    )
     return [
       local[0] - this.localGustBodyMps.x,
       local[1] - this.localGustBodyMps.y,
@@ -814,7 +930,11 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     target: Vector3
   ): Vector3 {
     if (this.turbulenceIntensityMps <= 0) return target.set(0, 0, 0)
-    this.localPointNedM.set(pointBodyM[0], pointBodyM[1], pointBodyM[2])
+    this.localPointNedM.set(
+      pointBodyM[0] - this.centerOfMassBodyM.x,
+      pointBodyM[1] - this.centerOfMassBodyM.y,
+      pointBodyM[2] - this.centerOfMassBodyM.z
+    )
       .applyQuaternion(this.orientationBodyToNed)
       .add(this.positionNedM)
     sampleTurbulenceNedMps(
@@ -888,9 +1008,12 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     this.forceBodyN.x += fx
     this.forceBodyN.y += fy
     this.forceBodyN.z += fz
-    this.torqueBodyNm.x += position[1] * fz - position[2] * fy
-    this.torqueBodyNm.y += position[2] * fx - position[0] * fz
-    this.torqueBodyNm.z += position[0] * fy - position[1] * fx
+    const rx = position[0] - this.centerOfMassBodyM.x
+    const ry = position[1] - this.centerOfMassBodyM.y
+    const rz = position[2] - this.centerOfMassBodyM.z
+    this.torqueBodyNm.x += ry * fz - rz * fy
+    this.torqueBodyNm.y += rz * fx - rx * fz
+    this.torqueBodyNm.z += rx * fy - ry * fx
   }
 
   private applyElementForce(
@@ -914,13 +1037,18 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     this.forceBodyN.x += fx
     this.forceBodyN.y += fy
     this.forceBodyN.z += fz
-    this.torqueBodyNm.x += element.y * fz - element.z * fy
-    this.torqueBodyNm.y += element.z * fx - element.x * fz
-    this.torqueBodyNm.z += element.x * fy - element.y * fx
+    const rx = element.x - this.centerOfMassBodyM.x
+    const ry = element.y - this.centerOfMassBodyM.y
+    const rz = element.z - this.centerOfMassBodyM.z
+    this.torqueBodyNm.x += ry * fz - rz * fy
+    this.torqueBodyNm.y += rz * fx - rx * fz
+    this.torqueBodyNm.z += rx * fy - ry * fx
   }
 
   private integrateRotation(dtSeconds: number): void {
-    const [ix, iy, iz] = this.definition.inertiaKgM2
+    const ix = this.currentInertiaKgM2.x
+    const iy = this.currentInertiaKgM2.y
+    const iz = this.currentInertiaKgM2.z
     const omega = this.omegaBodyRadPerSec
     const torque = this.torqueBodyNm
     const crossX = (iz - iy) * omega.y * omega.z
@@ -946,6 +1074,12 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     setSubsystemNumber(state, AirPhysicsStateKeys.northMeters(), this.positionNedM.x, 'meters')
     setSubsystemNumber(state, AirPhysicsStateKeys.eastMeters(), this.positionNedM.y, 'meters')
     setSubsystemNumber(state, AirPhysicsStateKeys.altitudeMeters(), -this.positionNedM.z, 'meters')
+    setSubsystemNumber(state, AirPhysicsStateKeys.centerOfMassForwardM(), this.centerOfMassBodyM.x, 'meters')
+    setSubsystemNumber(state, AirPhysicsStateKeys.centerOfMassRightM(), this.centerOfMassBodyM.y, 'meters')
+    setSubsystemNumber(state, AirPhysicsStateKeys.centerOfMassDownM(), this.centerOfMassBodyM.z, 'meters')
+    setSubsystemNumber(state, AirPhysicsStateKeys.inertiaRollKgM2(), this.currentInertiaKgM2.x, 'kilogramMetersSquared')
+    setSubsystemNumber(state, AirPhysicsStateKeys.inertiaPitchKgM2(), this.currentInertiaKgM2.y, 'kilogramMetersSquared')
+    setSubsystemNumber(state, AirPhysicsStateKeys.inertiaYawKgM2(), this.currentInertiaKgM2.z, 'kilogramMetersSquared')
     setSubsystemNumber(state, AirPhysicsStateKeys.velocityNorthMps(), this.velocityNedMps.x, 'metersPerSecond')
     setSubsystemNumber(state, AirPhysicsStateKeys.velocityEastMps(), this.velocityNedMps.y, 'metersPerSecond')
     setSubsystemNumber(state, AirPhysicsStateKeys.velocityDownMps(), this.velocityNedMps.z, 'metersPerSecond')
@@ -1211,7 +1345,8 @@ function applyEngineThrust(
   forceBodyN: Vector3,
   torqueBodyNm: Vector3,
   engine: CanonicalPropulsionEngineConfig,
-  thrustN: number
+  thrustN: number,
+  centerOfMassBodyM: Vector3
 ): void {
   const direction = engine.thrustDirectionBody ?? [1, 0, 0]
   const length = Math.hypot(direction[0], direction[1], direction[2]) || 1
@@ -1223,9 +1358,12 @@ function applyEngineThrust(
   forceBodyN.z += fz
 
   const position = engine.positionBodyM ?? [0, 0, 0]
-  torqueBodyNm.x += position[1] * fz - position[2] * fy
-  torqueBodyNm.y += position[2] * fx - position[0] * fz
-  torqueBodyNm.z += position[0] * fy - position[1] * fx
+  const rx = position[0] - centerOfMassBodyM.x
+  const ry = position[1] - centerOfMassBodyM.y
+  const rz = position[2] - centerOfMassBodyM.z
+  torqueBodyNm.x += ry * fz - rz * fy
+  torqueBodyNm.y += rz * fx - rx * fz
+  torqueBodyNm.z += rx * fy - ry * fx
 }
 
 function emptyTelemetry(): ForceTelemetry {
@@ -1326,12 +1464,16 @@ function lerp(left: number, right: number, ratio: number): number {
 function localVelocityAtPoint(
   velocityBodyMps: Vector3,
   omegaBodyRadPerSec: Vector3,
-  position: readonly [number, number, number]
+  position: readonly [number, number, number],
+  centerOfMassBodyM?: Vector3
 ): readonly [number, number, number] {
+  const x = position[0] - (centerOfMassBodyM?.x ?? 0)
+  const y = position[1] - (centerOfMassBodyM?.y ?? 0)
+  const z = position[2] - (centerOfMassBodyM?.z ?? 0)
   return [
-    velocityBodyMps.x + omegaBodyRadPerSec.y * position[2] - omegaBodyRadPerSec.z * position[1],
-    velocityBodyMps.y + omegaBodyRadPerSec.z * position[0] - omegaBodyRadPerSec.x * position[2],
-    velocityBodyMps.z + omegaBodyRadPerSec.x * position[1] - omegaBodyRadPerSec.y * position[0],
+    velocityBodyMps.x + omegaBodyRadPerSec.y * z - omegaBodyRadPerSec.z * y,
+    velocityBodyMps.y + omegaBodyRadPerSec.z * x - omegaBodyRadPerSec.x * z,
+    velocityBodyMps.z + omegaBodyRadPerSec.x * y - omegaBodyRadPerSec.y * x,
   ]
 }
 

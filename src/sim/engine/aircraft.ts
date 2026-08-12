@@ -58,6 +58,9 @@ export interface CanonicalElectricalSystemConfig {
 export interface CanonicalFuelTankConfig {
   readonly id: string
   readonly defaultQuantityRatio?: number
+  readonly capacityKg?: number
+  readonly positionBodyM?: readonly [number, number, number]
+  readonly priority?: number
 }
 
 export interface CanonicalFuelPumpConfig {

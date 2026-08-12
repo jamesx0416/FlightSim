@@ -4,6 +4,7 @@ import type { CanonicalPropulsionEngineConfig } from '../sim/engine/aircraft'
 import { computeJetCommandedN1Percent, computeJetThrustN } from '../sim/engine/jetEngine'
 import { parseCfg } from './config'
 import {
+  addMsfsFuelMassProperties,
   addMsfsPropulsionPhysicsMetadata,
   createMsfsAirPhysicsSystemConfig,
   parseMsfsLookup2D,
@@ -28,6 +29,17 @@ empty_weight_CG_position=-28.276,0,0
 empty_weight_pitch_MOI=23228392
 empty_weight_roll_MOI=14300433
 empty_weight_yaw_MOI=18500000
+
+[FUEL]
+fuel_type=2
+
+[FUEL_SYSTEM]
+Tank.1=Name:Center#Capacity:10951#Position:-8,0,4#Priority:1
+Tank.2=Name:LeftInner#Capacity:10928#Position:-12,-21,2#Priority:2
+Tank.3=Name:RightInner#Capacity:10928#Position:-12,21,2#Priority:2
+Tank.4=Name:LeftOuter#Capacity:1392#Position:-14,-44,4#Priority:3
+Tank.5=Name:RightOuter#Capacity:1392#Position:-14,44,4#Priority:3
+
 [AIRPLANE_GEOMETRY]
 wing_area=4000
 wing_span=209.97
@@ -145,6 +157,21 @@ test('builds modern air physics from MSFS flight model metadata', () => {
   expect(physics!.controls.flapSpanOutboardRatio).toBe(0.8)
   expect(physics!.aerodynamics.pitchDampingCoefficient).toBe(0)
   expect(physics!.aerodynamics.liftCoefficientByAlphaRad.breakpoints.includes(0.139)).toBe(true)
+})
+
+test('adds physical A330 fuel tank mass properties without replacing system routing', () => {
+  const fuel = addMsfsFuelMassProperties({
+    tanks: [{ id: 'main', defaultQuantityRatio: 0.5 }],
+  }, aircraft)
+  expect(fuel.tanks?.length).toBe(6)
+  const center = fuel.tanks?.find(tank => tank.id === 'Center')
+  const leftInner = fuel.tanks?.find(tank => tank.id === 'LeftInner')
+  const rightInner = fuel.tanks?.find(tank => tank.id === 'RightInner')
+  expect(Math.abs((center?.capacityKg ?? 0) - 33280.8433) < 0.01).toBe(true)
+  expect(center?.priority).toBe(1)
+  expect(center?.defaultQuantityRatio).toBe(0.5)
+  expect((leftInner?.positionBodyM?.[1] ?? 0) < 0).toBe(true)
+  expect((rightInner?.positionBodyM?.[1] ?? 0) > 0).toBe(true)
 })
 
 test('adds engine thrust metadata and installation position', () => {

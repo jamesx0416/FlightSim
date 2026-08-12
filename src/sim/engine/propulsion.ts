@@ -6,6 +6,7 @@ import {
   readElectricalBoolean,
 } from './electrical'
 import {
+  FuelCommandTypes,
   FuelStateKeys,
   readFuelBoolean,
 } from './fuel'
@@ -578,6 +579,13 @@ export class PropulsionSubsystem implements SimSubsystem {
       fuelFlowKgPerSecond,
       'kilogramsPerSecond'
     )
+    if (fuelFlowKgPerSecond > 0 && context.dtSeconds > 0) {
+      context.commands.dispatch({
+        type: FuelCommandTypes.consumeMass,
+        payload: { kilograms: fuelFlowKgPerSecond * context.dtSeconds },
+        source: PROPULSION_SUBSYSTEM_ID,
+      })
+    }
     setDerivedNumber(
       context.state,
       PropulsionStateKeys.engineRpm(engine.index),
