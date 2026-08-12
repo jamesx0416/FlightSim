@@ -19,6 +19,7 @@ import {
   Object3D,
   PerspectiveCamera,
   PropertyBinding,
+  Quaternion,
   Raycaster,
   Scene,
   SkinnedMesh,
@@ -120,6 +121,8 @@ import {
   type RendererInfo
 } from './rendering/createAppRenderer'
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
+import { physicsQuaternionToViewer, physicsVectorToViewer } from './rendering/aircraftPhysicsPose'
+import { AirPhysicsStateKeys } from './sim/engine/airState'
 import { queueTask } from './worker/pool'
 import { handleViewerSettingsKeyDown } from './viewerSettingsKeyboard'
 
@@ -566,6 +569,23 @@ async function init(): Promise<void> {
 
   setGlobalLoadStage({ stage: 'scene:ready', aircraftId: aircraft.id })
   centerObjectAtOrigin(aircraftRoot)
+  const airPhysicsSystem = (runtimeHost.simulatorEngine.getAircraft()?.systems ?? [])
+    .find(system => system.kind === 'air-physics')
+  const centerOfMassBody = airPhysicsSystem?.kind === 'air-physics'
+    ? airPhysicsSystem.config?.geometry.centerOfMassFromModelOriginBodyM
+    : null
+  const aircraftPhysicsRoot = centerOfMassBody == null ? null : new Group()
+  if (aircraftPhysicsRoot != null && centerOfMassBody != null) {
+    const centerOfMassLocal = physicsVectorToViewer(
+      centerOfMassBody[0],
+      centerOfMassBody[1],
+      centerOfMassBody[2]
+    )
+    const centerOfMassWorld = aircraftRoot.localToWorld(centerOfMassLocal)
+    aircraftPhysicsRoot.position.copy(centerOfMassWorld)
+    scene.add(aircraftPhysicsRoot)
+    aircraftPhysicsRoot.attach(aircraftRoot)
+  }
   fitCameraToObject(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
   const cameraDepthClipController = createCameraDepthClipController(camera, aircraftRoot)
@@ -3154,6 +3174,54 @@ async function init(): Promise<void> {
     }
   })
 
+  const physicsAbsoluteViewer = new Vector3()
+  const physicsAnchorAbsoluteViewer = new Vector3()
+  const physicsAnchorRootPosition = aircraftPhysicsRoot?.position.clone() ?? new Vector3()
+  const physicsPreviousRootPosition = new Vector3()
+  const physicsTranslationDelta = new Vector3()
+  const physicsViewerQuaternion = new Quaternion()
+  let physicsPoseWasEnabled = false
+  let physicsPoseResetRevision = -1
+
+  const syncAircraftPhysicsPose = (): Vector3 | null => {
+    if (aircraftPhysicsRoot == null) return null
+    const state = runtimeHost.simulatorEngine.state
+    const enabled = state.readBoolean(AirPhysicsStateKeys.enabled(), { fallback: false }) ?? false
+    if (!enabled) {
+      physicsPoseWasEnabled = false
+      return null
+    }
+
+    const north = state.readNumber(AirPhysicsStateKeys.northMeters(), { fallback: Number.NaN }) ?? Number.NaN
+    const east = state.readNumber(AirPhysicsStateKeys.eastMeters(), { fallback: Number.NaN }) ?? Number.NaN
+    const altitude = state.readNumber(AirPhysicsStateKeys.altitudeMeters(), { fallback: Number.NaN }) ?? Number.NaN
+    const qx = state.readNumber(AirPhysicsStateKeys.quaternionX(), { fallback: Number.NaN }) ?? Number.NaN
+    const qy = state.readNumber(AirPhysicsStateKeys.quaternionY(), { fallback: Number.NaN }) ?? Number.NaN
+    const qz = state.readNumber(AirPhysicsStateKeys.quaternionZ(), { fallback: Number.NaN }) ?? Number.NaN
+    const qw = state.readNumber(AirPhysicsStateKeys.quaternionW(), { fallback: Number.NaN }) ?? Number.NaN
+    if (![north, east, altitude, qx, qy, qz, qw].every(Number.isFinite)) return null
+
+    physicsVectorToViewer(north, east, -altitude, physicsAbsoluteViewer)
+    const resetRevision = state.readNumber(AirPhysicsStateKeys.resetRevision(), { fallback: 0 }) ?? 0
+    if (!physicsPoseWasEnabled || resetRevision !== physicsPoseResetRevision) {
+      physicsAnchorAbsoluteViewer.copy(physicsAbsoluteViewer)
+      physicsAnchorRootPosition.copy(aircraftPhysicsRoot.position)
+      physicsPoseResetRevision = resetRevision
+    }
+
+    physicsPreviousRootPosition.copy(aircraftPhysicsRoot.position)
+    aircraftPhysicsRoot.position
+      .copy(physicsAnchorRootPosition)
+      .add(physicsAbsoluteViewer)
+      .sub(physicsAnchorAbsoluteViewer)
+    aircraftPhysicsRoot.quaternion.copy(
+      physicsQuaternionToViewer([qx, qy, qz, qw], physicsViewerQuaternion)
+    )
+    physicsTranslationDelta.subVectors(aircraftPhysicsRoot.position, physicsPreviousRootPosition)
+    physicsPoseWasEnabled = true
+    return physicsTranslationDelta
+  }
+
   const handleResize = (): void => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
@@ -3175,6 +3243,11 @@ async function init(): Promise<void> {
       ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
       syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
       const cameraStartMs = performance.now()
+      const physicsTranslation = syncAircraftPhysicsPose()
+      if (!cockpitCameraController.isActive() && physicsTranslation != null) {
+        camera.position.add(physicsTranslation)
+        controls.target.add(physicsTranslation)
+      }
       cockpitCameraController.update()
       if (!cockpitCameraController.isActive()) {
         controls.update()
@@ -3216,6 +3289,11 @@ async function init(): Promise<void> {
       runtimeState = runtime.update(dtSeconds)
       ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
       syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
+      const physicsTranslation = syncAircraftPhysicsPose()
+      if (!cockpitCameraController.isActive() && physicsTranslation != null) {
+        camera.position.add(physicsTranslation)
+        controls.target.add(physicsTranslation)
+      }
       cockpitCameraController.update()
       if (!cockpitCameraController.isActive()) {
         controls.update()

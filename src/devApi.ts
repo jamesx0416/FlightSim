@@ -69,7 +69,15 @@ import {
   updateCockpitInputSettings,
   type CockpitInputStoreV2
 } from './input/cockpitInputProfiles'
-import { listCanonicalEngineCommands, type SimCommand, type SimUnit } from './sim/engine'
+import {
+  AirPhysicsCommandTypes,
+  AirPhysicsStateKeys,
+  EnvironmentCommandTypes,
+  PropulsionStateKeys,
+  listCanonicalEngineCommands,
+  type SimCommand,
+  type SimUnit
+} from './sim/engine'
 import type {
   CockpitCameraController,
   CockpitInteractionPickRegistry,
@@ -686,6 +694,15 @@ const DEV_API_STATE_UNITS = new Set<SimUnit>([
   'knots',
   'celsius',
   'kelvin',
+  'radians',
+  'radiansPerSecond',
+  'kilograms',
+  'kilogramsPerSecond',
+  'newtons',
+  'newtonMeters',
+  'pascals',
+  'kilogramsPerCubicMeter',
+  'mach',
 ])
 
 function parseDevApiStateUnit(unit: string | null | undefined): SimUnit | undefined {
@@ -862,6 +879,16 @@ type ViewerDevApi = {
   readonly screenshot: (options?: { readonly target?: 'viewport' | 'gauge'; readonly key?: string }) => DevApiResponse
   readonly visualCheck: (target?: string) => DevApiResponse
   readonly highlight: (target: string, options?: { readonly durationMs?: number }) => DevApiResponse
+  readonly physics: {
+    readonly snapshot: () => DevApiResponse
+    readonly enable: (enabled?: boolean) => DevApiResponse
+    readonly reset: (state?: Readonly<Record<string, unknown>>) => DevApiResponse
+    readonly setAtmosphere: (options: {
+      readonly temperatureOffsetCelsius?: number
+      readonly seaLevelPressurePa?: number
+      readonly windNedMps?: readonly [number, number, number]
+    }) => DevApiResponse
+  }
   readonly camera: {
     readonly enterCockpit: () => Promise<DevApiResponse>
     readonly exitCockpit: () => DevApiResponse
@@ -1285,6 +1312,12 @@ export function installViewerBootDevApi(): void {
           storageKey: DEV_API_BENCH_HISTORY_KEY
         })
       }
+    },
+    physics: {
+      snapshot: () => unavailable('physics.snapshot'),
+      enable: () => unavailable('physics.enable'),
+      reset: () => unavailable('physics.reset'),
+      setAtmosphere: () => unavailable('physics.setAtmosphere')
     },
     camera: {
       enterCockpit: async () => unavailable('camera.enterCockpit'),
@@ -2393,6 +2426,93 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     if (kind === 'camera') return api.camera.getPose()
     return fail(`Unknown list kind "${kind}".`, { kind })
   }
+  const physicsSnapshot = (): Readonly<Record<string, unknown>> => {
+    const state = context.getRuntimeHost().simulatorEngine.state
+    const number = (key: string): number | null => state.readNumber(key, { fallback: Number.NaN }) ?? null
+    const finite = (key: string): number | null => {
+      const value = number(key)
+      return value != null && Number.isFinite(value) ? value : null
+    }
+    const engineIndices = state.listDefinitions()
+      .map(definition => /^propulsion\.engine\.(\d+)\.n1\.percent$/u.exec(definition.key))
+      .filter((match): match is RegExpExecArray => match != null)
+      .map(match => Number(match[1]))
+    return {
+      available: state.getDefinition(AirPhysicsStateKeys.enabled()) != null,
+      enabled: state.readBoolean(AirPhysicsStateKeys.enabled(), { fallback: false }) ?? false,
+      massKg: finite(AirPhysicsStateKeys.massKg()),
+      altitudeMeters: finite(AirPhysicsStateKeys.altitudeMeters()),
+      positionNedM: [
+        finite(AirPhysicsStateKeys.northMeters()),
+        finite(AirPhysicsStateKeys.eastMeters()),
+        (() => {
+          const altitudeMeters = finite(AirPhysicsStateKeys.altitudeMeters())
+          return altitudeMeters == null ? null : -altitudeMeters
+        })(),
+      ],
+      velocityNedMps: [
+        finite(AirPhysicsStateKeys.velocityNorthMps()),
+        finite(AirPhysicsStateKeys.velocityEastMps()),
+        finite(AirPhysicsStateKeys.velocityDownMps()),
+      ],
+      orientationRad: [
+        finite(AirPhysicsStateKeys.rollRad()),
+        finite(AirPhysicsStateKeys.pitchRad()),
+        finite(AirPhysicsStateKeys.yawRad()),
+      ],
+      orientationQuaternion: [
+        finite(AirPhysicsStateKeys.quaternionX()),
+        finite(AirPhysicsStateKeys.quaternionY()),
+        finite(AirPhysicsStateKeys.quaternionZ()),
+        finite(AirPhysicsStateKeys.quaternionW()),
+      ],
+      resetRevision: finite(AirPhysicsStateKeys.resetRevision()),
+      angularVelocityBodyRadPerSec: [
+        finite(AirPhysicsStateKeys.rollRateRadPerSecond()),
+        finite(AirPhysicsStateKeys.pitchRateRadPerSecond()),
+        finite(AirPhysicsStateKeys.yawRateRadPerSecond()),
+      ],
+      atmosphere: {
+        temperatureK: finite(AirPhysicsStateKeys.temperatureK()),
+        pressurePa: finite(AirPhysicsStateKeys.pressurePa()),
+        densityKgPerM3: finite(AirPhysicsStateKeys.densityKgPerM3()),
+        speedOfSoundMps: finite(AirPhysicsStateKeys.speedOfSoundMps()),
+      },
+      air: {
+        trueAirspeedMps: finite(AirPhysicsStateKeys.airspeedMps()),
+        mach: finite(AirPhysicsStateKeys.mach()),
+        alphaRad: finite(AirPhysicsStateKeys.alphaRad()),
+        betaRad: finite(AirPhysicsStateKeys.betaRad()),
+        dynamicPressurePa: finite(AirPhysicsStateKeys.dynamicPressurePa()),
+      },
+      forcesN: {
+        lift: finite(AirPhysicsStateKeys.liftN()),
+        drag: finite(AirPhysicsStateKeys.dragN()),
+        side: finite(AirPhysicsStateKeys.sideN()),
+        thrust: finite(AirPhysicsStateKeys.thrustN()),
+      },
+      bodyForceN: [
+        finite(AirPhysicsStateKeys.forceBodyForwardN()),
+        finite(AirPhysicsStateKeys.forceBodyRightN()),
+        finite(AirPhysicsStateKeys.forceBodyDownN()),
+      ],
+      bodyTorqueNm: [
+        finite(AirPhysicsStateKeys.torqueBodyRollNm()),
+        finite(AirPhysicsStateKeys.torqueBodyPitchNm()),
+        finite(AirPhysicsStateKeys.torqueBodyYawNm()),
+      ],
+      engines: engineIndices.map(index => ({
+        index,
+        throttleRatio: finite(PropulsionStateKeys.engineThrottleLeverRatio(index)),
+        n1Percent: finite(PropulsionStateKeys.engineN1Percent(index)),
+        commandedN1Percent: finite(PropulsionStateKeys.engineCommandedN1Percent(index)),
+        thrustN: finite(PropulsionStateKeys.engineThrustN(index)),
+        fuelFlowKgPerSecond: finite(PropulsionStateKeys.engineFuelFlowKgPerSecond(index)),
+        combustion: state.readBoolean(PropulsionStateKeys.engineCombustion(index), { fallback: false }) ?? false,
+      })),
+    }
+  }
+
   const api: ViewerDevApi = {
     ready: async () => {
       const started = performance.now()
@@ -2826,6 +2946,56 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         lastObserved: getDevApiWaitLastObserved(condition, context),
         status: statusData()
       })
+    },
+    physics: {
+      snapshot: () => {
+        const snapshot = physicsSnapshot()
+        return snapshot.available === true
+          ? ok('Collected air physics state.', snapshot)
+          : fail('Air physics is unavailable for this aircraft.', snapshot)
+      },
+      enable: (enabled = true) => {
+        const engine = context.getRuntimeHost().simulatorEngine
+        if (engine.state.getDefinition(AirPhysicsStateKeys.enabled()) == null) {
+          return fail('Air physics is unavailable for this aircraft.', physicsSnapshot())
+        }
+        engine.dispatch({ type: AirPhysicsCommandTypes.setEnabled, payload: { enabled } })
+        return ok(enabled ? 'Enabled air physics.' : 'Disabled air physics.', physicsSnapshot())
+      },
+      reset: (state = {}) => {
+        const engine = context.getRuntimeHost().simulatorEngine
+        if (engine.state.getDefinition(AirPhysicsStateKeys.enabled()) == null) {
+          return fail('Air physics is unavailable for this aircraft.', physicsSnapshot())
+        }
+        engine.dispatch({ type: AirPhysicsCommandTypes.reset, payload: state })
+        return ok('Reset air physics state.', physicsSnapshot())
+      },
+      setAtmosphere: options => {
+        const engine = context.getRuntimeHost().simulatorEngine
+        if (options.temperatureOffsetCelsius != null) {
+          engine.dispatch({
+            type: EnvironmentCommandTypes.setTemperatureOffset,
+            payload: { value: options.temperatureOffsetCelsius },
+          })
+        }
+        if (options.seaLevelPressurePa != null) {
+          engine.dispatch({
+            type: EnvironmentCommandTypes.setSeaLevelPressure,
+            payload: { value: options.seaLevelPressurePa },
+          })
+        }
+        if (options.windNedMps != null) {
+          engine.dispatch({
+            type: EnvironmentCommandTypes.setWindNed,
+            payload: {
+              northMps: options.windNedMps[0],
+              eastMps: options.windNedMps[1],
+              downMps: options.windNedMps[2],
+            },
+          })
+        }
+        return ok('Updated air physics atmosphere.', physicsSnapshot())
+      },
     },
     perf: () => ok('Collected performance summary.', {
       fps: context.getFpsSnapshot(),
