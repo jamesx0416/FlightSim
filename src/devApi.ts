@@ -2527,6 +2527,12 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         finite(AirPhysicsStateKeys.torqueBodyPitchNm()),
         finite(AirPhysicsStateKeys.torqueBodyYawNm()),
       ],
+      wingFlex: {
+        leftBendingMomentNm: finite(AirPhysicsStateKeys.wingLeftBendingMomentNm()),
+        rightBendingMomentNm: finite(AirPhysicsStateKeys.wingRightBendingMomentNm()),
+        leftRatio: finite(AirPhysicsStateKeys.wingLeftFlexRatio()),
+        rightRatio: finite(AirPhysicsStateKeys.wingRightFlexRatio()),
+      },
       engines: engineIndices.map(index => ({
         index,
         throttleRatio: finite(PropulsionStateKeys.engineThrottleLeverRatio(index)),

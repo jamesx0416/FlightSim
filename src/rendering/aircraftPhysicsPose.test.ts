@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 import { Euler, Quaternion, Vector3 } from 'three'
 
 import {
+  physicsBodyReferenceOffsetToViewer,
   physicsQuaternionToViewer,
   physicsVectorToViewer,
 } from './aircraftPhysicsPose'
@@ -10,6 +11,13 @@ test('maps NED and body axes into the viewer model axes', () => {
   expect(physicsVectorToViewer(1, 0, 0).distanceTo(new Vector3(0, 0, 1)) < 1e-12).toBe(true)
   expect(physicsVectorToViewer(0, 1, 0).distanceTo(new Vector3(-1, 0, 0)) < 1e-12).toBe(true)
   expect(physicsVectorToViewer(0, 0, 1).distanceTo(new Vector3(0, -1, 0)) < 1e-12).toBe(true)
+})
+
+test('maps moving CG to the opposite model reference offset', () => {
+  expect(
+    physicsBodyReferenceOffsetToViewer(2, -3, 4)
+      .distanceTo(new Vector3(-3, 4, -2)) < 1e-12
+  ).toBe(true)
 })
 
 test('maps heading and pitch without changing zero attitude', () => {

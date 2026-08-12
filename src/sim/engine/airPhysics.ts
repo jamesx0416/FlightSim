@@ -80,6 +80,10 @@ interface ForceTelemetry {
   dragN: number
   sideN: number
   thrustN: number
+  leftWingBendingMomentNm: number
+  rightWingBendingMomentNm: number
+  leftWingFlexRatio: number
+  rightWingFlexRatio: number
 }
 export class AirPhysicsSubsystem implements SimSubsystem {
   readonly id = AIR_PHYSICS_SUBSYSTEM_ID
@@ -148,7 +152,11 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     defineNumber(context.state, AirPhysicsStateKeys.inertiaRollKgM2(), 'kilogramMetersSquared', this.definition.inertiaKgM2[0])
     defineNumber(context.state, AirPhysicsStateKeys.inertiaPitchKgM2(), 'kilogramMetersSquared', this.definition.inertiaKgM2[1])
     defineNumber(context.state, AirPhysicsStateKeys.inertiaYawKgM2(), 'kilogramMetersSquared', this.definition.inertiaKgM2[2])
-    this.referenceNonFuelMassKg = this.definition.emptyMassKg - this.currentFuelMassKg(context.state)
+    defineNumber(context.state, AirPhysicsStateKeys.wingLeftBendingMomentNm(), 'newtonMeters', 0)
+    defineNumber(context.state, AirPhysicsStateKeys.wingRightBendingMomentNm(), 'newtonMeters', 0)
+    defineNumber(context.state, AirPhysicsStateKeys.wingLeftFlexRatio(), 'ratio', 0)
+    defineNumber(context.state, AirPhysicsStateKeys.wingRightFlexRatio(), 'ratio', 0)
+    this.referenceNonFuelMassKg = this.definition.emptyMassKg
     defineBoolean(context.state, AirPhysicsStateKeys.enabled(), false)
     defineNumber(context.state, AirPhysicsStateKeys.resetRevision(), 'number', 0)
     for (const [key, unit] of [
@@ -171,6 +179,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     ] as const) {
       defineNumber(context.state, key, unit, 0)
     }
+    if (this.physicalFuelTanks.length > 0) this.updateMassPropertiesFromFuel(context.state)
     this.publishState(context.state)
   }
 
@@ -247,11 +256,6 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     if (payload.massKg != null) {
       this.setMass(state, payload.massKg)
     } else if (this.physicalFuelTanks.length > 0) {
-      const currentMassKg = state.readNumber(AirPhysicsStateKeys.massKg(), {
-        unit: 'kilograms',
-        fallback: this.definition.emptyMassKg,
-      }) ?? this.definition.emptyMassKg
-      this.referenceNonFuelMassKg = currentMassKg - this.currentFuelMassKg(state)
       this.updateMassPropertiesFromFuel(state)
     }
     if (payload.enabled != null) {
@@ -267,7 +271,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   }
 
   private setMass(state: SimStateStore, massKg: number): void {
-    const next = Math.max(1, Math.min(
+    const next = Math.max(this.definition.emptyMassKg, Math.min(
       Number.isFinite(massKg) ? massKg : this.definition.emptyMassKg,
       this.definition.maxGrossMassKg
     ))
@@ -276,7 +280,10 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       unit: 'kilograms',
     })
     if (this.physicalFuelTanks.length > 0) {
-      this.referenceNonFuelMassKg = next - this.currentFuelMassKg(state)
+      this.referenceNonFuelMassKg = Math.max(
+        this.definition.emptyMassKg,
+        next - this.currentFuelMassKg(state)
+      )
       this.updateMassPropertiesFromFuel(state)
     }
   }
@@ -466,6 +473,14 @@ export class AirPhysicsSubsystem implements SimSubsystem {
 
     let liftN = 0
     let dragN = 0
+    let leftWingBendingMomentNm = 0
+    let rightWingBendingMomentNm = 0
+    let leftWingReferenceBendingMomentNm = 0
+    let rightWingReferenceBendingMomentNm = 0
+    const massKg = Math.max(1, state.readNumber(AirPhysicsStateKeys.massKg(), {
+      unit: 'kilograms',
+      fallback: this.definition.emptyMassKg,
+    }) ?? this.definition.emptyMassKg)
     for (let index = 0; index < this.wingElements.length; index += 1) {
       const element = this.wingElements[index]
       const forces = this.computeWingElement(
@@ -481,12 +496,36 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       )
       liftN += forces.liftN
       dragN += forces.dragN
+      const rootArmM = Math.abs(element.y - this.centerOfMassBodyM.y)
+      const referenceBendingMomentNm = massKg * G0 *
+        (element.areaM2 / Math.max(geometry.wingAreaM2, 0.01)) * rootArmM
+      if (element.y < 0) {
+        leftWingBendingMomentNm += forces.liftN * rootArmM
+        leftWingReferenceBendingMomentNm += referenceBendingMomentNm
+      } else {
+        rightWingBendingMomentNm += forces.liftN * rootArmM
+        rightWingReferenceBendingMomentNm += referenceBendingMomentNm
+      }
       this.wingCirculationM2PerSecond[index] = forces.circulationM2PerSecond
       const directionOffset = index * 3
       this.wingWakeDirectionBody[directionOffset] = forces.wakeDirectionBody[0]
       this.wingWakeDirectionBody[directionOffset + 1] = forces.wakeDirectionBody[1]
       this.wingWakeDirectionBody[directionOffset + 2] = forces.wakeDirectionBody[2]
     }
+
+    const flex = this.definition.wingFlex
+    const leftWingLoadRatio = leftWingReferenceBendingMomentNm > 1e-9
+      ? leftWingBendingMomentNm / leftWingReferenceBendingMomentNm
+      : 1
+    const rightWingLoadRatio = rightWingReferenceBendingMomentNm > 1e-9
+      ? rightWingBendingMomentNm / rightWingReferenceBendingMomentNm
+      : 1
+    const leftWingFlexRatio = flex == null
+      ? 0
+      : flex.offset + flex.scalar * (leftWingLoadRatio - 1)
+    const rightWingFlexRatio = flex == null
+      ? 0
+      : flex.offset + flex.scalar * (rightWingLoadRatio - 1)
 
     const horizontalTail = this.computeHorizontalTail(
       densityKgPerM3,
@@ -577,6 +616,10 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       dragN,
       sideN,
       thrustN,
+      leftWingBendingMomentNm,
+      rightWingBendingMomentNm,
+      leftWingFlexRatio,
+      rightWingFlexRatio,
     }
   }
   private computeWingElement(
@@ -1102,6 +1145,10 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     setSubsystemNumber(state, AirPhysicsStateKeys.dragN(), this.telemetry.dragN, 'newtons')
     setSubsystemNumber(state, AirPhysicsStateKeys.sideN(), this.telemetry.sideN, 'newtons')
     setSubsystemNumber(state, AirPhysicsStateKeys.thrustN(), this.telemetry.thrustN, 'newtons')
+    setSubsystemNumber(state, AirPhysicsStateKeys.wingLeftBendingMomentNm(), this.telemetry.leftWingBendingMomentNm, 'newtonMeters')
+    setSubsystemNumber(state, AirPhysicsStateKeys.wingRightBendingMomentNm(), this.telemetry.rightWingBendingMomentNm, 'newtonMeters')
+    setSubsystemNumber(state, AirPhysicsStateKeys.wingLeftFlexRatio(), this.telemetry.leftWingFlexRatio, 'ratio')
+    setSubsystemNumber(state, AirPhysicsStateKeys.wingRightFlexRatio(), this.telemetry.rightWingFlexRatio, 'ratio')
     setSubsystemNumber(state, AirPhysicsStateKeys.forceBodyForwardN(), this.forceBodyN.x, 'newtons')
     setSubsystemNumber(state, AirPhysicsStateKeys.forceBodyRightN(), this.forceBodyN.y, 'newtons')
     setSubsystemNumber(state, AirPhysicsStateKeys.forceBodyDownN(), this.forceBodyN.z, 'newtons')
@@ -1377,6 +1424,10 @@ function emptyTelemetry(): ForceTelemetry {
     dragN: 0,
     sideN: 0,
     thrustN: 0,
+    leftWingBendingMomentNm: 0,
+    rightWingBendingMomentNm: 0,
+    leftWingFlexRatio: 0,
+    rightWingFlexRatio: 0,
   }
 }
 function defineBoolean(state: SimStateStore, key: string, defaultValue: boolean): void {

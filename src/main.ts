@@ -121,7 +121,11 @@ import {
   type RendererInfo
 } from './rendering/createAppRenderer'
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
-import { physicsQuaternionToViewer, physicsVectorToViewer } from './rendering/aircraftPhysicsPose'
+import {
+  physicsBodyReferenceOffsetToViewer,
+  physicsQuaternionToViewer,
+  physicsVectorToViewer,
+} from './rendering/aircraftPhysicsPose'
 import { AirPhysicsStateKeys } from './sim/engine/airState'
 import { queueTask } from './worker/pool'
 import { handleViewerSettingsKeyDown } from './viewerSettingsKeyboard'
@@ -574,18 +578,31 @@ async function init(): Promise<void> {
   const centerOfMassBody = airPhysicsSystem?.kind === 'air-physics'
     ? airPhysicsSystem.config?.geometry.centerOfMassFromModelOriginBodyM
     : null
+  const physicsState = runtimeHost.simulatorEngine.state
+  const initialCenterOfMassShiftBody = [
+    physicsState.readNumber(AirPhysicsStateKeys.centerOfMassForwardM(), { fallback: 0 }) ?? 0,
+    physicsState.readNumber(AirPhysicsStateKeys.centerOfMassRightM(), { fallback: 0 }) ?? 0,
+    physicsState.readNumber(AirPhysicsStateKeys.centerOfMassDownM(), { fallback: 0 }) ?? 0,
+  ] as const
   const aircraftPhysicsRoot = centerOfMassBody == null ? null : new Group()
   if (aircraftPhysicsRoot != null && centerOfMassBody != null) {
     const centerOfMassLocal = physicsVectorToViewer(
-      centerOfMassBody[0],
-      centerOfMassBody[1],
-      centerOfMassBody[2]
+      centerOfMassBody[0] + initialCenterOfMassShiftBody[0],
+      centerOfMassBody[1] + initialCenterOfMassShiftBody[1],
+      centerOfMassBody[2] + initialCenterOfMassShiftBody[2]
     )
     const centerOfMassWorld = aircraftRoot.localToWorld(centerOfMassLocal)
     aircraftPhysicsRoot.position.copy(centerOfMassWorld)
     scene.add(aircraftPhysicsRoot)
     aircraftPhysicsRoot.attach(aircraftRoot)
   }
+  const aircraftPhysicsModelReferencePosition = aircraftPhysicsRoot == null
+    ? null
+    : aircraftRoot.position.clone().sub(physicsBodyReferenceOffsetToViewer(
+      initialCenterOfMassShiftBody[0],
+      initialCenterOfMassShiftBody[1],
+      initialCenterOfMassShiftBody[2]
+    ))
   fitCameraToObject(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
   const cameraDepthClipController = createCameraDepthClipController(camera, aircraftRoot)
@@ -3180,6 +3197,7 @@ async function init(): Promise<void> {
   const physicsPreviousRootPosition = new Vector3()
   const physicsTranslationDelta = new Vector3()
   const physicsViewerQuaternion = new Quaternion()
+  const physicsBodyReferenceOffsetViewer = new Vector3()
   let physicsPoseWasEnabled = false
   let physicsPoseResetRevision = -1
 
@@ -3199,7 +3217,13 @@ async function init(): Promise<void> {
     const qy = state.readNumber(AirPhysicsStateKeys.quaternionY(), { fallback: Number.NaN }) ?? Number.NaN
     const qz = state.readNumber(AirPhysicsStateKeys.quaternionZ(), { fallback: Number.NaN }) ?? Number.NaN
     const qw = state.readNumber(AirPhysicsStateKeys.quaternionW(), { fallback: Number.NaN }) ?? Number.NaN
-    if (![north, east, altitude, qx, qy, qz, qw].every(Number.isFinite)) return null
+    const centerOfMassForwardM = state.readNumber(AirPhysicsStateKeys.centerOfMassForwardM(), { fallback: Number.NaN }) ?? Number.NaN
+    const centerOfMassRightM = state.readNumber(AirPhysicsStateKeys.centerOfMassRightM(), { fallback: Number.NaN }) ?? Number.NaN
+    const centerOfMassDownM = state.readNumber(AirPhysicsStateKeys.centerOfMassDownM(), { fallback: Number.NaN }) ?? Number.NaN
+    if (![
+      north, east, altitude, qx, qy, qz, qw,
+      centerOfMassForwardM, centerOfMassRightM, centerOfMassDownM,
+    ].every(Number.isFinite)) return null
 
     physicsVectorToViewer(north, east, -altitude, physicsAbsoluteViewer)
     const resetRevision = state.readNumber(AirPhysicsStateKeys.resetRevision(), { fallback: 0 }) ?? 0
@@ -3214,6 +3238,16 @@ async function init(): Promise<void> {
       .copy(physicsAnchorRootPosition)
       .add(physicsAbsoluteViewer)
       .sub(physicsAnchorAbsoluteViewer)
+    if (aircraftPhysicsModelReferencePosition != null) {
+      aircraftRoot.position
+        .copy(aircraftPhysicsModelReferencePosition)
+        .add(physicsBodyReferenceOffsetToViewer(
+          centerOfMassForwardM,
+          centerOfMassRightM,
+          centerOfMassDownM,
+          physicsBodyReferenceOffsetViewer
+        ))
+    }
     aircraftPhysicsRoot.quaternion.copy(
       physicsQuaternionToViewer([qx, qy, qz, qw], physicsViewerQuaternion)
     )

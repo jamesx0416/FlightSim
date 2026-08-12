@@ -433,6 +433,42 @@ test('fuselage normal crossflow opposes vertical as well as lateral airflow', ()
   expect((engine.state.readNumber(AirPhysicsStateKeys.torqueBodyPitchNm()) ?? 0) > 0).toBe(true)
 })
 
+test('distributed wing bending produces asymmetric physics-driven flex', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    wingFlex: { scalar: 0.75, offset: 0.02 },
+    geometry: {
+      ...basePhysics.geometry,
+      horizontalTailAreaM2: 0,
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  engine.dispatch({
+    type: AirPhysicsCommandTypes.reset,
+    payload: { altitudeMeters: 1000, airspeedMps: 90, pitchRad: 0.1, massKg: 12_000, enabled: true },
+  })
+  engine.tick(1 / 120)
+  const symmetricDifference = Math.abs(
+    (engine.state.readNumber(AirPhysicsStateKeys.wingLeftFlexRatio()) ?? 0) -
+    (engine.state.readNumber(AirPhysicsStateKeys.wingRightFlexRatio()) ?? 0)
+  )
+  expect(symmetricDifference < 1e-9).toBe(true)
+
+  engine.state.set(ControlStateKeys.aileronPositionRatio(), 1, { source: 'runtime', unit: 'ratio' })
+  engine.dispatch({
+    type: AirPhysicsCommandTypes.reset,
+    payload: { altitudeMeters: 1000, airspeedMps: 90, pitchRad: 0.1, massKg: 12_000, enabled: true },
+  })
+  engine.tick(1 / 120)
+  const leftFlex = engine.state.readNumber(AirPhysicsStateKeys.wingLeftFlexRatio()) ?? 0
+  const rightFlex = engine.state.readNumber(AirPhysicsStateKeys.wingRightFlexRatio()) ?? 0
+  expect(Math.abs(leftFlex - rightFlex) > 1e-4).toBe(true)
+  expect(Math.abs(engine.state.readNumber(AirPhysicsStateKeys.wingLeftBendingMomentNm()) ?? 0) > 1).toBe(true)
+})
+
 test('finite-wing compressibility raises subsonic lift slope and sweep weakens it', () => {
   const lowMach = finiteWingCompressibilityMultiplier(0.2, 0, 10, 0.8)
   const highMach = finiteWingCompressibilityMultiplier(0.8, 0, 10, 0.8)
@@ -530,6 +566,7 @@ test('physical fuel tanks drive burn order, mass, CG, and inertia', () => {
     ],
   }
   const engine = createPhysicsEngine([], basePhysics, fuel)
+  expect(engine.state.readNumber(AirPhysicsStateKeys.massKg())).toBe(12_000)
   engine.dispatch({
     type: AirPhysicsCommandTypes.reset,
     payload: { altitudeMeters: 1000, massKg: 12_000, enabled: true },
