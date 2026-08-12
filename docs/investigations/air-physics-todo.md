@@ -27,8 +27,8 @@ This checklist tracks airborne flight dynamics and propulsion physics. Ground co
 
 ## Later airborne fidelity
 
-- [ ] Add horizontal and vertical tail elements and richer fuselage sideforce modelling where package metadata supports it.
-- [ ] Add compressibility and transonic effects beyond package Mach drag tables.
+- [x] Add horizontal and vertical tail elements and richer fuselage crossflow modelling where package metadata supports it.
+- [x] Add local finite-wing subsonic compressibility while retaining package-authored transonic Mach drag.
 - [ ] Add turbulence, gusts, icing, precipitation, and weather driven wind fields.
 - [ ] Add dynamic aircraft mass, CG, inertia, and fuel burn from tank state.
 - [ ] Add aeroelastic wing flex driven by computed aerodynamic load.

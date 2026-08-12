@@ -6,6 +6,7 @@ import type {
 } from './aircraft'
 import {
   AirPhysicsCommandTypes,
+  finiteWingCompressibilityMultiplier,
 } from './airPhysics'
 import { AirPhysicsStateKeys } from './airState'
 import { computeJetThrustN } from './jetEngine'
@@ -357,6 +358,86 @@ test('fuselage crossflow opposes sideslip from local airflow', () => {
   expect(Math.abs(sideN - (-6000 * densityKgPerM3)) < 1e-6).toBe(true)
 })
 
+
+test('spanwise horizontal-tail elements respond to local turbulence independently', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    geometry: {
+      ...basePhysics.geometry,
+      horizontalTailAreaM2: 8,
+      horizontalTailSpanM: 8,
+      horizontalTailPositionBodyM: [-5, 0, 0],
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+    },
+    aerodynamics: {
+      ...basePhysics.aerodynamics,
+      liftCoefficientByAlphaRad: {
+        breakpoints: [-0.5, 0, 0.5],
+        values: [0, 0, 0],
+      },
+      zeroLiftDragCoefficient: 0,
+      fuselageLateralDragCoefficient: 0,
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  engine.dispatch({
+    type: EnvironmentCommandTypes.setTurbulence,
+    payload: { intensityMps: 4, scaleM: 5, timeScaleSeconds: 2 },
+  })
+  engine.dispatch({
+    type: AirPhysicsCommandTypes.reset,
+    payload: { altitudeMeters: 1000, airspeedMps: 90, enabled: true },
+  })
+  engine.tick(1 / 120)
+
+  expect(Math.abs(engine.state.readNumber(AirPhysicsStateKeys.torqueBodyRollNm()) ?? 0) > 1).toBe(true)
+})
+
+test('fuselage normal crossflow opposes vertical as well as lateral airflow', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    geometry: {
+      ...basePhysics.geometry,
+      horizontalTailAreaM2: 0,
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+      fuselageLengthM: 20,
+      fuselageDiameterM: 3,
+      fuselageCenterBodyM: [5, 0, 0],
+    },
+    aerodynamics: {
+      ...basePhysics.aerodynamics,
+      liftCoefficientByAlphaRad: {
+        breakpoints: [-0.5, 0, 0.5],
+        values: [0, 0, 0],
+      },
+      zeroLiftDragCoefficient: 0,
+      fuselageLateralDragCoefficient: 0.5,
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  engine.dispatch({
+    type: AirPhysicsCommandTypes.reset,
+    payload: { altitudeMeters: 1000, velocityNedMps: [90, 0, 20], enabled: true },
+  })
+  engine.tick(1 / 120)
+
+  expect((engine.state.readNumber(AirPhysicsStateKeys.forceBodyDownN()) ?? 0) < 0).toBe(true)
+  expect((engine.state.readNumber(AirPhysicsStateKeys.torqueBodyPitchNm()) ?? 0) > 0).toBe(true)
+})
+
+test('finite-wing compressibility raises subsonic lift slope and sweep weakens it', () => {
+  const lowMach = finiteWingCompressibilityMultiplier(0.2, 0, 10, 0.8)
+  const highMach = finiteWingCompressibilityMultiplier(0.8, 0, 10, 0.8)
+  const sweptHighMach = finiteWingCompressibilityMultiplier(0.8, Math.PI / 6, 10, 0.8)
+
+  expect(highMach > lowMach).toBe(true)
+  expect(sweptHighMach < highMach).toBe(true)
+  expect(lowMach >= 1).toBe(true)
+})
 
 test('ground proximity increases wing lift and reduces induced drag', () => {
   const physics: CanonicalAirPhysicsSystemConfig = {
