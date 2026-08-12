@@ -475,12 +475,6 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     let dragN = 0
     let leftWingBendingMomentNm = 0
     let rightWingBendingMomentNm = 0
-    let leftWingReferenceBendingMomentNm = 0
-    let rightWingReferenceBendingMomentNm = 0
-    const massKg = Math.max(1, state.readNumber(AirPhysicsStateKeys.massKg(), {
-      unit: 'kilograms',
-      fallback: this.definition.emptyMassKg,
-    }) ?? this.definition.emptyMassKg)
     for (let index = 0; index < this.wingElements.length; index += 1) {
       const element = this.wingElements[index]
       const forces = this.computeWingElement(
@@ -497,14 +491,10 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       liftN += forces.liftN
       dragN += forces.dragN
       const rootArmM = Math.abs(element.y - this.centerOfMassBodyM.y)
-      const referenceBendingMomentNm = massKg * G0 *
-        (element.areaM2 / Math.max(geometry.wingAreaM2, 0.01)) * rootArmM
       if (element.y < 0) {
         leftWingBendingMomentNm += forces.liftN * rootArmM
-        leftWingReferenceBendingMomentNm += referenceBendingMomentNm
       } else {
         rightWingBendingMomentNm += forces.liftN * rootArmM
-        rightWingReferenceBendingMomentNm += referenceBendingMomentNm
       }
       this.wingCirculationM2PerSecond[index] = forces.circulationM2PerSecond
       const directionOffset = index * 3
@@ -514,18 +504,19 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     }
 
     const flex = this.definition.wingFlex
-    const leftWingLoadRatio = leftWingReferenceBendingMomentNm > 1e-9
-      ? leftWingBendingMomentNm / leftWingReferenceBendingMomentNm
-      : 1
-    const rightWingLoadRatio = rightWingReferenceBendingMomentNm > 1e-9
-      ? rightWingBendingMomentNm / rightWingReferenceBendingMomentNm
-      : 1
+    // Normalize against the largest 1g root moment from one wing supporting half
+    // max-gross weight at the tip. The authored scalar/offset then calibrate the
+    // package's standard-elasticity WING FLEX PCT signal without inventing wing mass.
+    const wingFlexReferenceMomentNm = Math.max(
+      1,
+      this.definition.maxGrossMassKg * G0 * geometry.wingSpanM / 4
+    )
     const leftWingFlexRatio = flex == null
       ? 0
-      : flex.offset + flex.scalar * (leftWingLoadRatio - 1)
+      : flex.offset + flex.scalar * (leftWingBendingMomentNm / wingFlexReferenceMomentNm)
     const rightWingFlexRatio = flex == null
       ? 0
-      : flex.offset + flex.scalar * (rightWingLoadRatio - 1)
+      : flex.offset + flex.scalar * (rightWingBendingMomentNm / wingFlexReferenceMomentNm)
 
     const horizontalTail = this.computeHorizontalTail(
       densityKgPerM3,

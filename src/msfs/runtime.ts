@@ -7105,13 +7105,13 @@ function buildWingFlexChain(
       ? adjacentWorld.sub(currentWorld)
       : currentWorld.sub(adjacentWorld)
     const inverseWorldRotation = entry.node.getWorldQuaternion(new Quaternion()).invert()
-    const spanLocal = spanWorld.applyQuaternion(inverseWorldRotation).normalize()
-    // WingFlex helpers bend around an authored local axis; the swept segment itself is not that axis.
-    const authoredSpanAxisLocal = dominantLocalAxis(spanLocal)
-    const upLocal = worldUp.clone().applyQuaternion(inverseWorldRotation).normalize()
-    const bendAxisLocal = authoredSpanAxisLocal.cross(upLocal)
-    if (bendAxisLocal.lengthSq() <= 1e-12) bendAxisLocal.set(0, 0, 1)
-    else bendAxisLocal.normalize()
+    const desiredBendAxisLocal = spanWorld
+      .cross(worldUp)
+      .normalize()
+      .applyQuaternion(inverseWorldRotation)
+    // MSFS WingFlex helpers are authored around a local principal axis. Snapping the
+    // required bend axis avoids turning wing sweep into unintended torsion.
+    const bendAxisLocal = dominantLocalAxis(desiredBendAxisLocal)
     return {
       node: entry.node,
       order: entry.order,

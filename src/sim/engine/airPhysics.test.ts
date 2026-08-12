@@ -451,11 +451,12 @@ test('distributed wing bending produces asymmetric physics-driven flex', () => {
     payload: { altitudeMeters: 1000, airspeedMps: 90, pitchRad: 0.1, massKg: 12_000, enabled: true },
   })
   engine.tick(1 / 120)
-  const symmetricDifference = Math.abs(
-    (engine.state.readNumber(AirPhysicsStateKeys.wingLeftFlexRatio()) ?? 0) -
-    (engine.state.readNumber(AirPhysicsStateKeys.wingRightFlexRatio()) ?? 0)
-  )
+  const symmetricLeftFlex = engine.state.readNumber(AirPhysicsStateKeys.wingLeftFlexRatio()) ?? 0
+  const symmetricRightFlex = engine.state.readNumber(AirPhysicsStateKeys.wingRightFlexRatio()) ?? 0
+  const symmetricDifference = Math.abs(symmetricLeftFlex - symmetricRightFlex)
   expect(symmetricDifference < 1e-9).toBe(true)
+  expect(symmetricLeftFlex > 0.02).toBe(true)
+  expect(symmetricRightFlex > 0.02).toBe(true)
 
   engine.state.set(ControlStateKeys.aileronPositionRatio(), 1, { source: 'runtime', unit: 'ratio' })
   engine.dispatch({
