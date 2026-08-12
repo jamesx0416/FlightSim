@@ -34,6 +34,7 @@ import {
 } from '../sim/engine'
 import { evaluateCompiledExpression, evaluateCompiledExpressionValue } from './rpn'
 import { MsfsCompatibilityBridge } from './compatibilityBridge'
+import { addMsfsPropulsionPhysicsMetadata, createMsfsAirPhysicsSystemConfig } from './airPhysicsAdapter'
 import type {
   CompiledAnimationBinding,
   CompiledAnimationTriggerBinding,
@@ -5835,12 +5836,20 @@ function createCanonicalSystemDefinitions(
   const engineCount = resolveCanonicalEngineCount(aircraft)
   const electrical = createCanonicalElectricalSystemConfig(engineCount, aircraft.cfgFiles)
   const fuel = createCanonicalFuelSystemConfig(engineCount, aircraft.cfgFiles)
-  const propulsion = createCanonicalPropulsionSystemConfig(engineCount, aircraft.cfgFiles)
+  const basePropulsion = createCanonicalPropulsionSystemConfig(engineCount, aircraft.cfgFiles)
+  const propulsion: CanonicalPropulsionSystemConfig = {
+    ...basePropulsion,
+    engines: addMsfsPropulsionPhysicsMetadata(basePropulsion.engines ?? [], aircraft),
+  }
+  const airPhysics = createMsfsAirPhysicsSystemConfig(aircraft)
 
   return [
     { id: 'electrical', kind: 'electrical', config: electrical },
     { id: 'fuel', kind: 'fuel', config: fuel },
     { id: 'propulsion', kind: 'propulsion', config: propulsion },
+    ...(airPhysics == null
+      ? []
+      : [{ id: 'air-physics', kind: 'air-physics' as const, config: airPhysics }]),
   ]
 }
 
