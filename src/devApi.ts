@@ -73,6 +73,7 @@ import {
   AirPhysicsCommandTypes,
   AirPhysicsStateKeys,
   EnvironmentCommandTypes,
+  EnvironmentStateKeys,
   PropulsionStateKeys,
   listCanonicalEngineCommands,
   type SimCommand,
@@ -887,6 +888,10 @@ type ViewerDevApi = {
       readonly temperatureOffsetCelsius?: number
       readonly seaLevelPressurePa?: number
       readonly windNedMps?: readonly [number, number, number]
+      readonly turbulenceIntensityMps?: number
+      readonly turbulenceScaleM?: number
+      readonly turbulenceTimeScaleSeconds?: number
+      readonly groundElevationM?: number
     }) => DevApiResponse
   }
   readonly camera: {
@@ -2477,6 +2482,15 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         pressurePa: finite(AirPhysicsStateKeys.pressurePa()),
         densityKgPerM3: finite(AirPhysicsStateKeys.densityKgPerM3()),
         speedOfSoundMps: finite(AirPhysicsStateKeys.speedOfSoundMps()),
+        windNedMps: [
+          finite(EnvironmentStateKeys.windNorthMps()),
+          finite(EnvironmentStateKeys.windEastMps()),
+          finite(EnvironmentStateKeys.windDownMps()),
+        ],
+        turbulenceIntensityMps: finite(EnvironmentStateKeys.turbulenceIntensityMps()),
+        turbulenceScaleM: finite(EnvironmentStateKeys.turbulenceScaleM()),
+        turbulenceTimeScaleSeconds: finite(EnvironmentStateKeys.turbulenceTimeScaleSeconds()),
+        groundElevationM: finite(EnvironmentStateKeys.groundElevationM()),
       },
       air: {
         trueAirspeedMps: finite(AirPhysicsStateKeys.airspeedMps()),
@@ -2992,6 +3006,26 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
               eastMps: options.windNedMps[1],
               downMps: options.windNedMps[2],
             },
+          })
+        }
+        if (
+          options.turbulenceIntensityMps != null ||
+          options.turbulenceScaleM != null ||
+          options.turbulenceTimeScaleSeconds != null
+        ) {
+          engine.dispatch({
+            type: EnvironmentCommandTypes.setTurbulence,
+            payload: {
+              intensityMps: options.turbulenceIntensityMps,
+              scaleM: options.turbulenceScaleM,
+              timeScaleSeconds: options.turbulenceTimeScaleSeconds,
+            },
+          })
+        }
+        if (options.groundElevationM != null) {
+          engine.dispatch({
+            type: EnvironmentCommandTypes.setGroundElevation,
+            payload: { value: options.groundElevationM },
           })
         }
         return ok('Updated air physics atmosphere.', physicsSnapshot())

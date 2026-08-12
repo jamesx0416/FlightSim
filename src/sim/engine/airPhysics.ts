@@ -90,11 +90,19 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   private readonly airVelocityBodyMps = new Vector3()
   private readonly wingInducedAirVelocityBodyMps = new Vector3()
   private readonly windNedMps = new Vector3()
+  private readonly localPointNedM = new Vector3()
+  private readonly localGustNedMps = new Vector3()
+  private readonly localGustBodyMps = new Vector3()
   private readonly qNedToBody = new Quaternion()
   private readonly omegaQuaternion = new Quaternion()
   private readonly qDot = new Quaternion()
   private readonly euler = new Euler(0, 0, 0, 'ZYX')
   private accumulatorSeconds = 0
+  private physicsTimeSeconds = 0
+  private turbulenceIntensityMps = 0
+  private turbulenceScaleM = 100
+  private turbulenceTimeScaleSeconds = 5
+  private groundElevationM = 0
   private telemetry: ForceTelemetry = emptyTelemetry()
 
   constructor(
@@ -200,6 +208,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const omega = payload.angularVelocityBodyRadPerSec ?? [0, 0, 0]
     this.omegaBodyRadPerSec.fromArray(omega)
     this.accumulatorSeconds = 0
+    this.physicsTimeSeconds = 0
     if (payload.massKg != null) this.setMass(state, payload.massKg)
     if (payload.enabled != null) {
       state.set(AirPhysicsStateKeys.enabled(), payload.enabled, {
@@ -235,6 +244,18 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       state.readNumber(EnvironmentStateKeys.windEastMps(), { fallback: 0 }) ?? 0,
       state.readNumber(EnvironmentStateKeys.windDownMps(), { fallback: 0 }) ?? 0
     )
+    this.turbulenceIntensityMps = Math.max(0, state.readNumber(
+      EnvironmentStateKeys.turbulenceIntensityMps(), { fallback: 0 }
+    ) ?? 0)
+    this.turbulenceScaleM = Math.max(0.1, state.readNumber(
+      EnvironmentStateKeys.turbulenceScaleM(), { fallback: 100 }
+    ) ?? 100)
+    this.turbulenceTimeScaleSeconds = Math.max(0.01, state.readNumber(
+      EnvironmentStateKeys.turbulenceTimeScaleSeconds(), { fallback: 5 }
+    ) ?? 5)
+    this.groundElevationM = state.readNumber(
+      EnvironmentStateKeys.groundElevationM(), { fallback: 0 }
+    ) ?? 0
     this.airVelocityNedMps.copy(this.velocityNedMps).sub(this.windNedMps)
     this.qNedToBody.copy(this.orientationBodyToNed).invert()
     this.airVelocityBodyMps.copy(this.airVelocityNedMps).applyQuaternion(this.qNedToBody)
@@ -250,6 +271,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     this.positionNedM.addScaledVector(this.velocityNedMps, dtSeconds)
     this.integrateRotation(dtSeconds)
     this.consumeFuelMass(state, massKg, dtSeconds)
+    this.physicsTimeSeconds += dtSeconds
 
     setSubsystemNumber(state, AirPhysicsStateKeys.temperatureK(), atmosphere.temperatureK, 'kelvin')
     setSubsystemNumber(state, AirPhysicsStateKeys.pressurePa(), atmosphere.pressurePa, 'pascals')
@@ -457,9 +479,10 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   } {
     const omega = this.omegaBodyRadPerSec
     const velocity = this.airVelocityBodyMps
-    const u = velocity.x + omega.y * element.z - omega.z * element.y
-    const v = velocity.y + omega.z * element.x - omega.x * element.z
-    const w = velocity.z + omega.x * element.y - omega.y * element.x
+    this.sampleTurbulenceBodyMpsAtPoint([element.x, element.y, element.z], this.localGustBodyMps)
+    const u = velocity.x + omega.y * element.z - omega.z * element.y - this.localGustBodyMps.x
+    const v = velocity.y + omega.z * element.x - omega.x * element.z - this.localGustBodyMps.y
+    const w = velocity.z + omega.x * element.y - omega.y * element.x - this.localGustBodyMps.z
     const speedSquared = u * u + v * v + w * w
     if (speedSquared <= 0.01) {
       return {
@@ -485,18 +508,33 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       aileronDeflection *
       element.aileronAreaFraction *
       aileronSign
-    const liftCoefficient =
-      baseLiftCoefficient * aero.liftScalar -
-      wingLiftOffset +
+    const machLiftMultiplier = aero.liftCoefficientMultiplierByMach == null
+      ? 1
+      : lookup1D(mach, aero.liftCoefficientMultiplierByMach)
+    const ungroundedLiftCoefficient = (
+      baseLiftCoefficient * aero.liftScalar +
       flapLift +
       aileronLift +
       aero.spoilerLiftCoefficient * spoilers
+    ) * machLiftMultiplier
+    const maximumGroundLiftMultiplier = aero.groundEffectLiftMultiplierByMach == null
+      ? 1
+      : Math.max(1, lookup1D(mach, aero.groundEffectLiftMultiplierByMach))
+    const groundInfluence = groundEffectInfluence(
+      this.heightAboveGroundAtBodyPoint([element.x, element.y, element.z]),
+      this.definition.geometry.wingSpanM
+    )
+    const groundLiftMultiplier = 1 +
+      (maximumGroundLiftMultiplier - 1) * groundInfluence
+    const liftCoefficient =
+      ungroundedLiftCoefficient * groundLiftMultiplier - wingLiftOffset
     const aspectRatio =
       (this.definition.geometry.wingSpanM * this.definition.geometry.wingSpanM) /
       Math.max(this.definition.geometry.wingAreaM2, 0.01)
     const inducedDrag =
-      aero.inducedDragScalar * liftCoefficient * liftCoefficient /
-      Math.max(Math.PI * aspectRatio * this.definition.geometry.oswaldEfficiency, 0.01)
+      aero.inducedDragScalar * ungroundedLiftCoefficient * ungroundedLiftCoefficient /
+      Math.max(Math.PI * aspectRatio * this.definition.geometry.oswaldEfficiency, 0.01) /
+      Math.max(groundLiftMultiplier, 0.01)
     const machDrag = aero.machDragCoefficientAdd == null
       ? 0
       : lookup1D(mach, aero.machDragCoefficientAdd)
@@ -560,11 +598,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const position = geometry.horizontalTailPositionBodyM
     if (area <= 0 || position == null) return { liftN: 0, dragN: 0 }
 
-    const pointVelocity = localVelocityAtPoint(
-      this.airVelocityBodyMps,
-      this.omegaBodyRadPerSec,
-      position
-    )
+    const pointVelocity = this.localAirVelocityAtPoint(position)
     const local: readonly [number, number, number] = [
       pointVelocity[0] - inducedAirVelocityBodyMps.x,
       pointVelocity[1] - inducedAirVelocityBodyMps.y,
@@ -616,7 +650,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const position = geometry.verticalTailPositionBodyM
     if (area <= 0 || position == null) return { sideN: 0, dragN: 0 }
 
-    const local = localVelocityAtPoint(this.airVelocityBodyMps, this.omegaBodyRadPerSec, position)
+    const local = this.localAirVelocityAtPoint(position)
     const speedSquared = local[0] * local[0] + local[1] * local[1] + local[2] * local[2]
     if (speedSquared <= 0.01) return { sideN: 0, dragN: 0 }
     const speed = Math.sqrt(speedSquared)
@@ -650,12 +684,52 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const position = geometry.fuselageCenterBodyM
     if (coefficient === 0 || lengthM === 0 || diameterM === 0 || position == null) return 0
 
-    const local = localVelocityAtPoint(this.airVelocityBodyMps, this.omegaBodyRadPerSec, position)
+    const local = this.localAirVelocityAtPoint(position)
     const lateralMps = local[1]
     const sideN = -0.5 * densityKgPerM3 * lateralMps * Math.abs(lateralMps) *
       lengthM * diameterM * coefficient
     this.addForceAtPoint(position, 0, sideN, 0)
     return sideN
+  }
+
+  private heightAboveGroundAtBodyPoint(
+    pointBodyM: readonly [number, number, number]
+  ): number {
+    this.localPointNedM.set(pointBodyM[0], pointBodyM[1], pointBodyM[2])
+      .applyQuaternion(this.orientationBodyToNed)
+      .add(this.positionNedM)
+    return Math.max(0, -this.localPointNedM.z - this.groundElevationM)
+  }
+
+  private localAirVelocityAtPoint(
+    pointBodyM: readonly [number, number, number]
+  ): readonly [number, number, number] {
+    this.sampleTurbulenceBodyMpsAtPoint(pointBodyM, this.localGustBodyMps)
+    const local = localVelocityAtPoint(this.airVelocityBodyMps, this.omegaBodyRadPerSec, pointBodyM)
+    return [
+      local[0] - this.localGustBodyMps.x,
+      local[1] - this.localGustBodyMps.y,
+      local[2] - this.localGustBodyMps.z,
+    ]
+  }
+
+  private sampleTurbulenceBodyMpsAtPoint(
+    pointBodyM: readonly [number, number, number],
+    target: Vector3
+  ): Vector3 {
+    if (this.turbulenceIntensityMps <= 0) return target.set(0, 0, 0)
+    this.localPointNedM.set(pointBodyM[0], pointBodyM[1], pointBodyM[2])
+      .applyQuaternion(this.orientationBodyToNed)
+      .add(this.positionNedM)
+    sampleTurbulenceNedMps(
+      this.localPointNedM,
+      this.physicsTimeSeconds,
+      this.turbulenceIntensityMps,
+      this.turbulenceScaleM,
+      this.turbulenceTimeScaleSeconds,
+      this.localGustNedMps
+    )
+    return target.copy(this.localGustNedMps).applyQuaternion(this.qNedToBody)
   }
 
   private tailLiftCoefficient(alphaRad: number, targetSlope: number): number {
@@ -1057,6 +1131,41 @@ function setSubsystemNumber(
     source: 'subsystem',
     unit,
   })
+}
+
+export function groundEffectInfluence(heightAboveGroundM: number, wingSpanM: number): number {
+  const span = Math.max(Math.abs(wingSpanM), 0.01)
+  const height = Math.max(0, heightAboveGroundM)
+  const ratio = (4 * height) / span
+  return 1 / (1 + ratio * ratio)
+}
+
+export function sampleTurbulenceNedMps(
+  pointNedM: { readonly x: number; readonly y: number; readonly z: number },
+  timeSeconds: number,
+  intensityMps: number,
+  scaleM: number,
+  timeScaleSeconds: number,
+  target = new Vector3()
+): Vector3 {
+  const intensity = Math.max(0, intensityMps)
+  if (intensity === 0) return target.set(0, 0, 0)
+  const spatial = (2 * Math.PI) / Math.max(scaleM, 0.1)
+  const temporal = (2 * Math.PI) / Math.max(timeScaleSeconds, 0.01)
+  const { x, y, z } = pointNedM
+  const t = timeSeconds * temporal
+
+  // Two incommensurate continuous modes per axis give a deterministic field whose
+  // component RMS approaches intensity while remaining spatially local and frame-rate independent.
+  target.set(
+    intensity * (Math.sin(spatial * (0.73 * x + 0.41 * y + 0.19 * z) + 0.83 * t) +
+      Math.sin(spatial * (-0.31 * x + 0.67 * y + 0.53 * z) - 1.17 * t)),
+    intensity * (Math.sin(spatial * (0.29 * x - 0.61 * y + 0.71 * z) + 1.11 * t + 1.7) +
+      Math.sin(spatial * (0.59 * x + 0.23 * y - 0.47 * z) - 0.71 * t + 0.4)),
+    intensity * (Math.sin(spatial * (-0.43 * x + 0.37 * y + 0.79 * z) + 0.63 * t + 2.1) +
+      Math.sin(spatial * (0.17 * x - 0.83 * y - 0.31 * z) - 1.31 * t + 1.2))
+  )
+  return target
 }
 
 function clamp(value: number, min: number, max: number): number {

@@ -132,6 +132,10 @@ export function createMsfsAirPhysicsSystemConfig(
       flapInducedDragScalar: readNumber(tuning, 'flap_induced_drag_scalar') ?? 1,
       machDragCoefficientAdd:
         parseLookup1D(readValue(aero, 'drag_coef_zero_lift_mach_tab')) ?? undefined,
+      liftCoefficientMultiplierByMach:
+        parseLookup1D(readValue(aero, 'lift_coef_mach_table')) ?? undefined,
+      groundEffectLiftMultiplierByMach:
+        parseLookup1D(readValue(aero, 'lift_coef_ground_effect_mach_table')) ?? undefined,
       flapLiftCoefficient: readNumber(aero, 'lift_coef_flaps') ?? 0,
       flapDragCoefficient: readNumber(aero, 'drag_coef_flaps') ?? 0,
       gearDragCoefficient: readNumber(aero, 'drag_coef_gear') ?? 0,
@@ -183,6 +187,11 @@ export function createMsfsAirPhysicsSystemConfig(
       rudderTrimEffectiveness: readNumber(tuning, 'rudder_trim_effectiveness') ?? 1,
       aileronTrimEffectiveness: readNumber(tuning, 'aileron_trim_effectiveness') ?? 1,
       flapSpanOutboardRatio: readNumber(flapSection, 'span-outboard') ?? 1,
+    },
+    wingFlex: {
+      scalar: readNumber(tuning, 'wingflex_scalar') ?? 1,
+      offset: readNumber(tuning, 'wingflex_offset') ?? 0,
+      surfaceScalar: readNumber(tuning, 'wingflex_surface_scalar') ?? undefined,
     },
   }
 }
@@ -306,7 +315,7 @@ function parseLookup1D(value: string | undefined): CanonicalLookupTable1D | null
     breakpoints.push(x)
     values.push(y)
   }
-  return breakpoints.length >= 2 ? { breakpoints, values } : null
+  return breakpoints.length >= 1 ? { breakpoints, values } : null
 }
 
 function parseMachLookup2D(

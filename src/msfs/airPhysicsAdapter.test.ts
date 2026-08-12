@@ -61,6 +61,9 @@ rudder_limit=25
 aero_center_lift=-28.0
 lift_coef_aoa_table=-3.15:0,0:0.224,0.139:1.39,0.2:1.48,3.15:0
 drag_coef_zero_lift=0.026
+lift_coef_ground_effect_mach_table=0:1.178,1:1
+lift_coef_mach_table=0:1
+drag_coef_zero_lift_mach_tab=0:0,0.85:0.01,1:0.5
 lift_coef_at_drag_zero=0.175
 lift_coef_flaps=1.2
 drag_coef_flaps=0.0602
@@ -81,6 +84,8 @@ elevator_maxangle_scalar=0.465
 aileron_effectiveness=0.95
 rudder_effectiveness=0.21
 rudder_maxangle_scalar=0.78
+wingflex_scalar=0.75
+wingflex_offset=0.02
 
 [FLAPS.0]
 span-outboard=0.8
@@ -128,6 +133,10 @@ test('builds modern air physics from MSFS flight model metadata', () => {
   expect(Math.abs((physics!.geometry.fuselageDiameterM ?? 0) - 5.6388) < 1e-6).toBe(true)
   expect(Math.abs((physics!.geometry.fuselageCenterBodyM?.[0] ?? 0) - 1.0023780816) < 1e-6).toBe(true)
   expect(physics!.aerodynamics.fuselageLateralDragCoefficient).toBe(0.4)
+  expect(physics!.aerodynamics.groundEffectLiftMultiplierByMach?.values[0]).toBe(1.178)
+  expect(physics!.aerodynamics.liftCoefficientMultiplierByMach?.values[0]).toBe(1)
+  expect(physics!.wingFlex?.scalar).toBe(0.75)
+  expect(physics!.wingFlex?.offset).toBe(0.02)
   expect((physics!.geometry.horizontalTailPositionBodyM?.[0] ?? 0) < -20).toBe(true)
   expect((physics!.geometry.verticalTailPositionBodyM?.[2] ?? 0) < 0).toBe(true)
   expect(physics!.controls.elevatorDeflectionSign).toBe(-1)

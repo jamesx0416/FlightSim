@@ -1,6 +1,7 @@
 import type { SimCommand } from './commands'
 import type { SimStateStore } from './state'
 import type { SimSubsystem, SimSubsystemContext } from './subsystem'
+import type { SimUnit } from './units'
 
 export const ENVIRONMENT_SUBSYSTEM_ID = 'environment'
 
@@ -11,6 +12,8 @@ export const EnvironmentCommandTypes = {
   setTemperatureOffset: 'environment.atmosphere.setTemperatureOffset',
   setSeaLevelPressure: 'environment.atmosphere.setSeaLevelPressure',
   setWindNed: 'environment.wind.setNed',
+  setTurbulence: 'environment.turbulence.set',
+  setGroundElevation: 'environment.ground.setElevation',
 } as const
 
 export interface EnvironmentSubsystemDefinition {
@@ -20,6 +23,10 @@ export interface EnvironmentSubsystemDefinition {
   readonly defaultTemperatureOffsetCelsius?: number
   readonly defaultSeaLevelPressurePa?: number
   readonly defaultWindNedMps?: readonly [number, number, number]
+  readonly defaultTurbulenceIntensityMps?: number
+  readonly defaultTurbulenceScaleM?: number
+  readonly defaultTurbulenceTimeScaleSeconds?: number
+  readonly defaultGroundElevationM?: number
 }
 
 export interface PitotHeatDefinition {
@@ -40,6 +47,12 @@ interface WindNedPayload {
   readonly northMps?: number
   readonly eastMps?: number
   readonly downMps?: number
+}
+
+interface TurbulencePayload {
+  readonly intensityMps?: number
+  readonly scaleM?: number
+  readonly timeScaleSeconds?: number
 }
 
 interface IndexedBooleanPayload {
@@ -72,6 +85,18 @@ export const EnvironmentStateKeys = {
   },
   windDownMps(): string {
     return 'environment.wind.down.meters-per-second'
+  },
+  turbulenceIntensityMps(): string {
+    return 'environment.turbulence.intensity.meters-per-second'
+  },
+  turbulenceScaleM(): string {
+    return 'environment.turbulence.scale.meters'
+  },
+  turbulenceTimeScaleSeconds(): string {
+    return 'environment.turbulence.time-scale.seconds'
+  },
+  groundElevationM(): string {
+    return 'environment.ground.elevation.meters'
   },
 } as const
 
@@ -127,6 +152,10 @@ export class EnvironmentSubsystem implements SimSubsystem {
     defineNumberState(context.state, EnvironmentStateKeys.windNorthMps(), 'Wind north component', wind[0], 'metersPerSecond')
     defineNumberState(context.state, EnvironmentStateKeys.windEastMps(), 'Wind east component', wind[1], 'metersPerSecond')
     defineNumberState(context.state, EnvironmentStateKeys.windDownMps(), 'Wind down component', wind[2], 'metersPerSecond')
+    defineNumberState(context.state, EnvironmentStateKeys.turbulenceIntensityMps(), 'Turbulence RMS velocity', this.definition.defaultTurbulenceIntensityMps ?? 0, 'metersPerSecond')
+    defineNumberState(context.state, EnvironmentStateKeys.turbulenceScaleM(), 'Turbulence spatial scale', this.definition.defaultTurbulenceScaleM ?? 100, 'meters')
+    defineNumberState(context.state, EnvironmentStateKeys.turbulenceTimeScaleSeconds(), 'Turbulence temporal scale', this.definition.defaultTurbulenceTimeScaleSeconds ?? 5, 'seconds')
+    defineNumberState(context.state, EnvironmentStateKeys.groundElevationM(), 'Ground elevation', this.definition.defaultGroundElevationM ?? 0, 'meters')
   }
 
   handleCommand(
@@ -178,6 +207,18 @@ export class EnvironmentSubsystem implements SimSubsystem {
         setNumber(context.state, EnvironmentStateKeys.windDownMps(), payload.downMps ?? 0, 'metersPerSecond')
         return true
       }
+      case EnvironmentCommandTypes.setTurbulence: {
+        const payload = command.payload as TurbulencePayload
+        if (payload.intensityMps != null) setNumber(context.state, EnvironmentStateKeys.turbulenceIntensityMps(), Math.max(0, payload.intensityMps), 'metersPerSecond')
+        if (payload.scaleM != null) setNumber(context.state, EnvironmentStateKeys.turbulenceScaleM(), Math.max(0.1, payload.scaleM), 'meters')
+        if (payload.timeScaleSeconds != null) setNumber(context.state, EnvironmentStateKeys.turbulenceTimeScaleSeconds(), Math.max(0.01, payload.timeScaleSeconds), 'seconds')
+        return true
+      }
+      case EnvironmentCommandTypes.setGroundElevation: {
+        const payload = command.payload as ScalarPayload
+        setNumber(context.state, EnvironmentStateKeys.groundElevationM(), payload.value, 'meters')
+        return true
+      }
       default:
         return false
     }
@@ -209,7 +250,7 @@ function defineNumberState(
   key: string,
   description: string,
   defaultValue: number,
-  unit: 'celsius' | 'pascals' | 'metersPerSecond'
+  unit: SimUnit
 ): void {
   state.define({ key, unit, valueType: 'number', description })
   state.set(key, defaultValue, { source: 'default', unit })
@@ -219,7 +260,7 @@ function setNumber(
   state: SimStateStore,
   key: string,
   value: number,
-  unit: 'celsius' | 'pascals' | 'metersPerSecond'
+  unit: SimUnit
 ): void {
   state.set(key, Number.isFinite(value) ? value : 0, { source: 'runtime', unit })
 }

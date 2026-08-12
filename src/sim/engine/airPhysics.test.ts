@@ -10,6 +10,7 @@ import {
 import { AirPhysicsStateKeys } from './airState'
 import { computeJetThrustN } from './jetEngine'
 import { ControlStateKeys } from './controls'
+import { EnvironmentCommandTypes } from './environment'
 import { createSimulatorEngineForAircraft } from './factory'
 import { PropulsionStateKeys } from './propulsion'
 
@@ -356,6 +357,84 @@ test('fuselage crossflow opposes sideslip from local airflow', () => {
   expect(Math.abs(sideN - (-6000 * densityKgPerM3)) < 1e-6).toBe(true)
 })
 
+
+test('ground proximity increases wing lift and reduces induced drag', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    geometry: {
+      ...basePhysics.geometry,
+      horizontalTailAreaM2: 0,
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+    },
+    aerodynamics: {
+      ...basePhysics.aerodynamics,
+      zeroLiftDragCoefficient: 0,
+      machDragCoefficientAdd: undefined,
+      gearDragCoefficient: 0,
+      flapDragCoefficient: 0,
+      spoilerDragCoefficient: 0,
+      groundEffectLiftMultiplierByMach: {
+        breakpoints: [0, 1],
+        values: [1.2, 1.2],
+      },
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  const sample = (groundElevationM: number) => {
+    engine.dispatch({
+      type: EnvironmentCommandTypes.setGroundElevation,
+      payload: { value: groundElevationM },
+    })
+    engine.dispatch({
+      type: AirPhysicsCommandTypes.reset,
+      payload: { altitudeMeters: 1000, airspeedMps: 90, pitchRad: 0.1, enabled: true },
+    })
+    engine.tick(1 / 120)
+    return {
+      liftN: engine.state.readNumber(AirPhysicsStateKeys.liftN()) ?? 0,
+      dragN: engine.state.readNumber(AirPhysicsStateKeys.dragN()) ?? 0,
+    }
+  }
+
+  const outOfGroundEffect = sample(0)
+  const inGroundEffect = sample(999)
+  expect(inGroundEffect.liftN > outOfGroundEffect.liftN).toBe(true)
+  expect(inGroundEffect.dragN < outOfGroundEffect.dragN).toBe(true)
+})
+
+test('spatial turbulence perturbs wing sections differently and changes over time', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    geometry: {
+      ...basePhysics.geometry,
+      wingSweepRad: 0,
+      wingDihedralRad: 0,
+      wingTwistRad: 0,
+      horizontalTailAreaM2: 0,
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  engine.dispatch({
+    type: EnvironmentCommandTypes.setTurbulence,
+    payload: { intensityMps: 5, scaleM: 8, timeScaleSeconds: 0.5 },
+  })
+  engine.dispatch({
+    type: AirPhysicsCommandTypes.reset,
+    payload: { altitudeMeters: 1000, airspeedMps: 90, enabled: true },
+  })
+  engine.tick(1 / 120)
+  const firstRollTorque = engine.state.readNumber(AirPhysicsStateKeys.torqueBodyRollNm()) ?? 0
+  for (let index = 0; index < 20; index += 1) engine.tick(1 / 120)
+  const laterRollTorque = engine.state.readNumber(AirPhysicsStateKeys.torqueBodyRollNm()) ?? 0
+
+  expect(Math.abs(firstRollTorque) > 1).toBe(true)
+  expect(Math.abs(laterRollTorque - firstRollTorque) > 1).toBe(true)
+})
 
 test('fuel flow reduces airborne aircraft mass', () => {
   const engine = createPhysicsEngine([{ ...jet, index: 1 }])
