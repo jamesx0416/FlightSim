@@ -1069,8 +1069,8 @@ export class AircraftRuntime {
       applyWingFlexChain(binding.leftWing, leftFlex, binding)
       applyWingFlexChain(binding.rightWing, rightFlex, binding)
       binding.root.updateMatrixWorld(true)
-      applyWingFlexEnginePivots(binding.leftEnginePivots)
-      applyWingFlexEnginePivots(binding.rightEnginePivots)
+      applyWingFlexEnginePivots(binding.leftEnginePivots, binding)
+      applyWingFlexEnginePivots(binding.rightEnginePivots, binding)
     }
   }
 
@@ -6982,9 +6982,13 @@ interface RuntimeWingFlexNode {
 
 interface RuntimeWingFlexPivot {
   readonly node: Object3D
-  readonly attachment: Object3D
-  readonly positionInAttachment: Vector3
-  readonly rotationInAttachment: Quaternion
+  readonly innerAttachment: Object3D
+  readonly outerAttachment: Object3D
+  readonly innerRestPointInRoot: Vector3
+  readonly innerRestQuaternionInRootInverse: Quaternion
+  readonly outerRestQuaternionInRootInverse: Quaternion
+  readonly restPointInRoot: Vector3
+  readonly blendRatio: number
 }
 
 interface RuntimeInteractionFeedbackTimer {
@@ -7073,8 +7077,8 @@ function buildWingFlexBindings(
       root: sceneRoot,
       leftWing,
       rightWing,
-      leftEnginePivots: buildWingFlexPivots(leftPivotEntries, leftWing),
-      rightEnginePivots: buildWingFlexPivots(rightPivotEntries, rightWing),
+      leftEnginePivots: buildWingFlexPivots(leftPivotEntries, leftWing, sceneRoot),
+      rightEnginePivots: buildWingFlexPivots(rightPivotEntries, rightWing, sceneRoot),
       // MSFS's authoring guide defines the reference WingFlex keys as 5 degrees
       // up/down on each helper in the authored wing-bone hierarchy.
       maxAngleRadians: 5 * Math.PI / 180,
@@ -7090,8 +7094,12 @@ function buildWingFlexChain(
   const sorted = [...entries].sort((left, right) => left.order - right.order)
   if (sorted.length === 0) return []
   sceneRoot.updateMatrixWorld(true)
-  const worldUp = sceneRoot.localToWorld(new Vector3(0, 1, 0))
-    .sub(sceneRoot.getWorldPosition(new Vector3()))
+  const rootWorld = sceneRoot.getWorldPosition(new Vector3())
+  const longitudinalWorld = sceneRoot.localToWorld(new Vector3(0, 0, 1))
+    .sub(rootWorld)
+    .normalize()
+  const lateralWorld = sceneRoot.localToWorld(new Vector3(1, 0, 0))
+    .sub(rootWorld)
     .normalize()
 
   return sorted.map((entry, index) => {
@@ -7105,13 +7113,13 @@ function buildWingFlexChain(
       ? adjacentWorld.sub(currentWorld)
       : currentWorld.sub(adjacentWorld)
     const inverseWorldRotation = entry.node.getWorldQuaternion(new Quaternion()).invert()
-    const desiredBendAxisLocal = spanWorld
-      .cross(worldUp)
-      .normalize()
+    const sideSign = Math.sign(spanWorld.dot(lateralWorld)) || 1
+    // The SDK authors the +/-5 degree reference bend in aircraft front view. Keep
+    // that aircraft-longitudinal bend axis instead of rotating around a swept local axis.
+    const bendAxisLocal = longitudinalWorld.clone()
+      .multiplyScalar(sideSign)
       .applyQuaternion(inverseWorldRotation)
-    // MSFS WingFlex helpers are authored around a local principal axis. Snapping the
-    // required bend axis avoids turning wing sweep into unintended torsion.
-    const bendAxisLocal = dominantLocalAxis(desiredBendAxisLocal)
+      .normalize()
     return {
       node: entry.node,
       order: entry.order,
@@ -7121,43 +7129,59 @@ function buildWingFlexChain(
   })
 }
 
-function dominantLocalAxis(direction: Vector3): Vector3 {
-  const x = Math.abs(direction.x)
-  const y = Math.abs(direction.y)
-  const z = Math.abs(direction.z)
-  if (x >= y && x >= z) return new Vector3(Math.sign(direction.x) || 1, 0, 0)
-  if (y >= z) return new Vector3(0, Math.sign(direction.y) || 1, 0)
-  return new Vector3(0, 0, Math.sign(direction.z) || 1)
-}
-
 function buildWingFlexPivots(
   entries: readonly { readonly node: Object3D; readonly order: number }[],
-  wing: readonly RuntimeWingFlexNode[]
+  wing: readonly RuntimeWingFlexNode[],
+  sceneRoot: Object3D
 ): readonly RuntimeWingFlexPivot[] {
   if (entries.length === 0 || wing.length === 0) return []
-  const wingWorldPositions = wing.map(entry => entry.node.getWorldPosition(new Vector3()))
+  sceneRoot.updateMatrixWorld(true)
+  const fixedRoot = wing[0].node.parent ?? wing[0].node
+  const controlNodes = [fixedRoot, ...wing.map(entry => entry.node)]
+  const rootWorldPosition = sceneRoot.getWorldPosition(new Vector3())
+  const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
+  const toRootPoint = (point: Vector3): Vector3 => point
+    .sub(rootWorldPosition)
+    .applyQuaternion(rootWorldQuaternionInverse)
+  const controlPoints = controlNodes.map(node => toRootPoint(node.getWorldPosition(new Vector3())))
+  const restQuaternionsInRoot = controlNodes.map(node =>
+    rootWorldQuaternionInverse.clone().multiply(node.getWorldQuaternion(new Quaternion()))
+  )
+
   return [...entries]
     .sort((left, right) => left.order - right.order)
     .flatMap(entry => {
-      const pivotWorldPosition = entry.node.getWorldPosition(new Vector3())
-      let nearestIndex = 0
+      if (controlNodes.some(control => isDescendantOf(entry.node, control))) return []
+      const restPointInRoot = toRootPoint(entry.node.getWorldPosition(new Vector3()))
+      let segmentIndex = 0
+      let blendRatio = 0
       let nearestDistanceSq = Number.POSITIVE_INFINITY
-      for (let index = 0; index < wing.length; index += 1) {
-        const distanceSq = pivotWorldPosition.distanceToSquared(wingWorldPositions[index])
+
+      for (let index = 0; index < controlPoints.length - 1; index += 1) {
+        const start = controlPoints[index]
+        const segment = controlPoints[index + 1].clone().sub(start)
+        const lengthSq = segment.lengthSq()
+        const ratio = lengthSq <= 1e-12
+          ? 0
+          : clamp(restPointInRoot.clone().sub(start).dot(segment) / lengthSq, 0, 1)
+        const projected = start.clone().addScaledVector(segment, ratio)
+        const distanceSq = projected.distanceToSquared(restPointInRoot)
         if (distanceSq < nearestDistanceSq) {
           nearestDistanceSq = distanceSq
-          nearestIndex = index
+          segmentIndex = index
+          blendRatio = ratio
         }
       }
-      const attachment = wing[nearestIndex].node
-      if (isDescendantOf(entry.node, attachment)) return []
-      const attachmentWorldRotation = attachment.getWorldQuaternion(new Quaternion())
-      const pivotWorldRotation = entry.node.getWorldQuaternion(new Quaternion())
+
       return [{
         node: entry.node,
-        attachment,
-        positionInAttachment: attachment.worldToLocal(pivotWorldPosition.clone()),
-        rotationInAttachment: attachmentWorldRotation.invert().multiply(pivotWorldRotation),
+        innerAttachment: controlNodes[segmentIndex],
+        outerAttachment: controlNodes[segmentIndex + 1],
+        innerRestPointInRoot: controlPoints[segmentIndex],
+        innerRestQuaternionInRootInverse: restQuaternionsInRoot[segmentIndex].clone().invert(),
+        outerRestQuaternionInRootInverse: restQuaternionsInRoot[segmentIndex + 1].clone().invert(),
+        restPointInRoot,
+        blendRatio,
       }]
     })
 }
@@ -7182,16 +7206,38 @@ function applyWingFlexChain(
   }
 }
 
-function applyWingFlexEnginePivots(pivots: readonly RuntimeWingFlexPivot[]): void {
+function applyWingFlexEnginePivots(
+  pivots: readonly RuntimeWingFlexPivot[],
+  binding: RuntimeWingFlexBinding
+): void {
+  if (pivots.length === 0) return
+  binding.root.updateMatrixWorld(true)
+  const rootWorldPosition = binding.root.getWorldPosition(new Vector3())
+  const rootWorldQuaternion = binding.root.getWorldQuaternion(new Quaternion())
+  const rootWorldQuaternionInverse = rootWorldQuaternion.clone().invert()
+  const toRootPoint = (point: Vector3): Vector3 => point
+    .sub(rootWorldPosition)
+    .applyQuaternion(rootWorldQuaternionInverse)
+  const toRootQuaternion = (node: Object3D): Quaternion =>
+    rootWorldQuaternionInverse.clone().multiply(node.getWorldQuaternion(new Quaternion()))
+
   for (const pivot of pivots) {
     const parent = pivot.node.parent
     if (parent == null) continue
-    const worldPosition = pivot.attachment.localToWorld(pivot.positionInAttachment.clone())
+    const innerCurrentPointInRoot = toRootPoint(pivot.innerAttachment.getWorldPosition(new Vector3()))
+    const innerDelta = toRootQuaternion(pivot.innerAttachment)
+      .multiply(pivot.innerRestQuaternionInRootInverse)
+    const outerDelta = toRootQuaternion(pivot.outerAttachment)
+      .multiply(pivot.outerRestQuaternionInRootInverse)
+    const interpolatedDelta = innerDelta.slerp(outerDelta, pivot.blendRatio)
+    const targetPointInRoot = pivot.restPointInRoot.clone()
+      .sub(pivot.innerRestPointInRoot)
+      .applyQuaternion(interpolatedDelta)
+      .add(innerCurrentPointInRoot)
+    const worldPosition = targetPointInRoot
+      .applyQuaternion(rootWorldQuaternion)
+      .add(rootWorldPosition)
     pivot.node.position.copy(parent.worldToLocal(worldPosition))
-    const worldRotation = pivot.attachment.getWorldQuaternion(new Quaternion())
-      .multiply(pivot.rotationInAttachment)
-    const parentWorldRotation = parent.getWorldQuaternion(new Quaternion()).invert()
-    pivot.node.quaternion.copy(parentWorldRotation.multiply(worldRotation))
   }
 }
 

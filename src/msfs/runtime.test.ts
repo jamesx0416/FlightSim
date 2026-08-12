@@ -419,33 +419,35 @@ describe('AircraftRuntime canonical visual bindings', () => {
     )
   })
 
-  test('standard WingFlex rotates authored bone chains and carries engine pivots', () => {
+  test('standard WingFlex bends in the aircraft plane and interpolates engine pivots', () => {
     const scene = new Object3D()
-    const makeChain = (side: 'LEFT' | 'RIGHT') => {
+    const makeChain = (side: 'LEFT' | 'RIGHT', rootZ: number) => {
+      const root = new Object3D()
+      root.name = `WING_BONE_00_${side}`
+      root.position.z = rootZ
+      scene.add(root)
+      const sideSign = side === 'LEFT' ? 1 : -1
       const bones = Array.from({ length: 4 }, (_, index) => {
         const bone = new Object3D()
         bone.name = `WING_BONE_0${index + 1}_${side}`
-        if (index > 0) {
-          bone.position.x = 1
-          bone.position.z = side === 'LEFT' ? -0.25 : 0.25
-        }
+        bone.position.set(sideSign, 0, -0.25)
         return bone
       })
+      root.add(bones[0])
       for (let index = 1; index < bones.length; index += 1) bones[index - 1].add(bones[index])
-      if (side === 'RIGHT') bones[0].rotation.y = Math.PI
-      scene.add(bones[0])
       return bones
     }
-    const leftBones = makeChain('LEFT')
-    const rightBones = makeChain('RIGHT')
-    rightBones[0].position.z = 2
+    const leftBones = makeChain('LEFT', 0)
+    const rightBones = makeChain('RIGHT', 2)
     const leftPivot = new Object3D()
     leftPivot.name = 'Engine_PIVOT_1_LEFT'
-    leftPivot.position.set(1.5, 0, 0.2)
+    leftPivot.position.set(0.8, 0, -0.05)
+    leftPivot.rotation.set(0.1, -0.2, 0.3)
+    const neutralLeftPivotQuaternion = leftPivot.quaternion.clone()
     scene.add(leftPivot)
     const rightPivot = new Object3D()
     rightPivot.name = 'Engine_PIVOT_1_RIGHT'
-    rightPivot.position.set(-1.5, 0, 1.8)
+    rightPivot.position.set(-0.8, 0, 1.95)
     scene.add(rightPivot)
 
     let leftFlex = 0
@@ -472,6 +474,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.updateMatrixWorld(true)
     const neutralLeftTip = leftBones.at(-1)!.getWorldPosition(new Vector3())
     const neutralRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
+    const neutralLeftPivot = leftPivot.getWorldPosition(new Vector3())
 
     leftFlex = 0.5
     rightFlex = 0.5
@@ -483,7 +486,8 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(flexedRightTip.y > neutralRightTip.y).toBe(true)
     expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
     expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
-    expect(Math.abs(leftPivot.position.y) > 1e-6).toBe(true)
+    expect(leftPivot.getWorldPosition(new Vector3()).y > neutralLeftPivot.y).toBe(true)
+    expect(leftPivot.quaternion.angleTo(neutralLeftPivotQuaternion) < 1e-9).toBe(true)
 
     leftFlex = 0
     rightFlex = 0
@@ -491,5 +495,6 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.updateMatrixWorld(true)
     expect(leftBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralLeftTip) < 1e-9).toBe(true)
     expect(rightBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralRightTip) < 1e-9).toBe(true)
+    expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) < 1e-9).toBe(true)
   })
 })
