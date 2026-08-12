@@ -419,7 +419,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     )
   })
 
-  test('standard WingFlex bends in the aircraft plane and interpolates engine pivots', () => {
+  test('standard WingFlex bends smoothly and carries independent wing-mounted branches', () => {
     const scene = new Object3D()
     const makeChain = (side: 'LEFT' | 'RIGHT', rootZ: number) => {
       const root = new Object3D()
@@ -439,6 +439,17 @@ describe('AircraftRuntime canonical visual bindings', () => {
     }
     const leftBones = makeChain('LEFT', 0)
     const rightBones = makeChain('RIGHT', 2)
+    const leftRoot = leftBones[0].parent!
+    const slat = new Object3D()
+    slat.name = 'WING_BONE_SLATE_00_LEFT'
+    slat.position.set(0.45, 0, 0.1)
+    leftRoot.add(slat)
+    const flapCarrier = new Object3D()
+    leftRoot.add(flapCarrier)
+    const flap = new Object3D()
+    flap.name = 'WING_BONE_FLAPS_00_LEFT'
+    flap.position.set(0.7, -0.05, -0.1)
+    flapCarrier.add(flap)
     const leftPivot = new Object3D()
     leftPivot.name = 'Engine_PIVOT_1_LEFT'
     leftPivot.position.set(0.8, 0, -0.05)
@@ -472,22 +483,33 @@ describe('AircraftRuntime canonical visual bindings', () => {
 
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
-    const neutralLeftTip = leftBones.at(-1)!.getWorldPosition(new Vector3())
+    const neutralLeftStations = leftBones.map(node => node.getWorldPosition(new Vector3()))
+    const neutralLeftTip = neutralLeftStations.at(-1)!
     const neutralRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
     const neutralLeftPivot = leftPivot.getWorldPosition(new Vector3())
+    const neutralSlat = slat.getWorldPosition(new Vector3())
+    const neutralFlap = flap.getWorldPosition(new Vector3())
+    const neutralBoneQuaternions = leftBones.map(node => node.quaternion.clone())
 
     leftFlex = 0.5
     rightFlex = 0.5
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
-    const flexedLeftTip = leftBones.at(-1)!.getWorldPosition(new Vector3())
+    const flexedLeftStations = leftBones.map(node => node.getWorldPosition(new Vector3()))
+    const flexedLeftTip = flexedLeftStations.at(-1)!
     const flexedRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
     expect(flexedLeftTip.y > neutralLeftTip.y).toBe(true)
     expect(flexedRightTip.y > neutralRightTip.y).toBe(true)
+    expect(flexedLeftStations[0].y > neutralLeftStations[0].y).toBe(true)
     expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
     expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
+    expect(slat.getWorldPosition(new Vector3()).y > neutralSlat.y).toBe(true)
+    expect(flap.getWorldPosition(new Vector3()).y > neutralFlap.y).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).y > neutralLeftPivot.y).toBe(true)
     expect(leftPivot.quaternion.angleTo(neutralLeftPivotQuaternion) < 1e-9).toBe(true)
+    const inboardIncrement = leftBones[0].quaternion.angleTo(neutralBoneQuaternions[0])
+    const tipIncrement = leftBones.at(-1)!.quaternion.angleTo(neutralBoneQuaternions.at(-1)!)
+    expect(inboardIncrement > tipIncrement).toBe(true)
 
     leftFlex = 0
     rightFlex = 0
@@ -495,6 +517,8 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.updateMatrixWorld(true)
     expect(leftBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralLeftTip) < 1e-9).toBe(true)
     expect(rightBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralRightTip) < 1e-9).toBe(true)
+    expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) < 1e-9).toBe(true)
+    expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-9).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) < 1e-9).toBe(true)
   })
 })

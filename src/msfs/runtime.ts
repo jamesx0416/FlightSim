@@ -3,7 +3,8 @@ import {
   AnimationMixer,
   Box3,
   type Material,
-  type Object3D,
+  Matrix4,
+  Object3D,
   PropertyBinding,
   Quaternion,
   Vector3,
@@ -543,6 +544,7 @@ export class AircraftRuntime {
     }
     animationMs = finishPhase()
 
+    this.resetWingFlexBindings()
     this.mixer.update(0)
     mixerMs = finishPhase()
     this.applyWingFlexBindings()
@@ -1061,16 +1063,21 @@ export class AircraftRuntime {
     this.hostServices.writeVariable(key, value, unit, { source: 'update' })
   }
 
+  private resetWingFlexBindings(): void {
+    for (const binding of this.wingFlexBindings) {
+      resetWingFlexAttachments(binding.attachments)
+    }
+  }
+
   private applyWingFlexBindings(): void {
     for (const binding of this.wingFlexBindings) {
       const leftFlex = this.hostServices.readVariable('A:WING FLEX PCT:1', 'percent over 100')
       const rightFlex = this.hostServices.readVariable('A:WING FLEX PCT:2', 'percent over 100')
 
-      applyWingFlexChain(binding.leftWing, leftFlex, binding)
-      applyWingFlexChain(binding.rightWing, rightFlex, binding)
+      applyWingFlexSide(binding.leftWing, leftFlex, binding)
+      applyWingFlexSide(binding.rightWing, rightFlex, binding)
       binding.root.updateMatrixWorld(true)
-      applyWingFlexEnginePivots(binding.leftEnginePivots, binding)
-      applyWingFlexEnginePivots(binding.rightEnginePivots, binding)
+      applyWingFlexAttachments(binding.attachments, leftFlex, rightFlex, binding)
     }
   }
 
@@ -6976,19 +6983,25 @@ interface DemoWingFlexProfile {
 interface RuntimeWingFlexNode {
   readonly node: Object3D
   readonly order: number
-  readonly restQuaternion: Quaternion
-  readonly bendAxisLocal: Vector3
+  readonly restPointInRoot: Vector3
+  readonly restQuaternionInRoot: Quaternion
+  readonly spanRatio: number
 }
 
-interface RuntimeWingFlexPivot {
+interface RuntimeWingFlexSide {
+  readonly fixedRoot: Object3D
+  readonly nodes: readonly RuntimeWingFlexNode[]
+  readonly rootPointInRoot: Vector3
+  readonly spanLength: number
+  readonly sideSign: number
+}
+
+interface RuntimeWingFlexAttachment {
   readonly node: Object3D
-  readonly innerAttachment: Object3D
-  readonly outerAttachment: Object3D
-  readonly innerRestPointInRoot: Vector3
-  readonly innerRestQuaternionInRootInverse: Quaternion
-  readonly outerRestQuaternionInRootInverse: Quaternion
-  readonly restPointInRoot: Vector3
-  readonly blendRatio: number
+  readonly wrapper: Object3D
+  readonly side: RuntimeWingFlexSide
+  readonly spanRatio: number
+  readonly centerlinePointInRoot: Vector3
 }
 
 interface RuntimeInteractionFeedbackTimer {
@@ -6999,10 +7012,9 @@ interface RuntimeInteractionFeedbackTimer {
 
 interface RuntimeWingFlexBinding {
   readonly root: Object3D
-  readonly leftWing: readonly RuntimeWingFlexNode[]
-  readonly rightWing: readonly RuntimeWingFlexNode[]
-  readonly leftEnginePivots: readonly RuntimeWingFlexPivot[]
-  readonly rightEnginePivots: readonly RuntimeWingFlexPivot[]
+  readonly leftWing: RuntimeWingFlexSide | null
+  readonly rightWing: RuntimeWingFlexSide | null
+  readonly attachments: readonly RuntimeWingFlexAttachment[]
   readonly maxAngleRadians: number
 }
 
@@ -7019,19 +7031,8 @@ function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexPro
     ['wingflex_scalar', 'wingflex_offset']
   )
 
-  const scalar = parseCfgNumber(
-    wingFlexSection,
-    'wingflex_scalar',
-    1
-  )
-  const offset = parseCfgNumber(
-    wingFlexSection,
-    'wingflex_offset',
-    0
-  )
-
-  // Without a real flight-model backend, keep the synthetic viewer at the documented
-  // neutral baseline and apply only the aircraft-authored simvar scaling/offset.
+  const scalar = parseCfgNumber(wingFlexSection, 'wingflex_scalar', 1)
+  const offset = parseCfgNumber(wingFlexSection, 'wingflex_offset', 0)
   const baseFlexPct = offset + scalar * 0
 
   return {
@@ -7054,8 +7055,7 @@ function buildWingFlexBindings(
     if (animation.type.trim().toLowerCase() !== 'wingflex') continue
     const leftWingEntries: Array<{ node: Object3D; order: number }> = []
     const rightWingEntries: Array<{ node: Object3D; order: number }> = []
-    const leftPivotEntries: Array<{ node: Object3D; order: number }> = []
-    const rightPivotEntries: Array<{ node: Object3D; order: number }> = []
+    const pivotEntries: Array<{ node: Object3D; order: number }> = []
 
     for (const nodeName of animation.nodes) {
       const node = resolveNodeAnimationNode(nodeName, nodes, canonicalNodes)
@@ -7065,179 +7065,270 @@ function buildWingFlexBindings(
       if (descriptor.kind === 'wingBone') {
         ;(descriptor.side === 'left' ? leftWingEntries : rightWingEntries).push(entry)
       } else {
-        ;(descriptor.side === 'left' ? leftPivotEntries : rightPivotEntries).push(entry)
+        pivotEntries.push(entry)
       }
     }
 
-    const leftWing = buildWingFlexChain(leftWingEntries, sceneRoot)
-    const rightWing = buildWingFlexChain(rightWingEntries, sceneRoot)
-    if (leftWing.length === 0 && rightWing.length === 0) continue
+    const leftWing = buildWingFlexSide(leftWingEntries, sceneRoot)
+    const rightWing = buildWingFlexSide(rightWingEntries, sceneRoot)
+    if (leftWing == null && rightWing == null) continue
 
     bindings.push({
       root: sceneRoot,
       leftWing,
       rightWing,
-      leftEnginePivots: buildWingFlexPivots(leftPivotEntries, leftWing, sceneRoot),
-      rightEnginePivots: buildWingFlexPivots(rightPivotEntries, rightWing, sceneRoot),
-      // MSFS's authoring guide defines the reference WingFlex keys as 5 degrees
-      // up/down on each helper in the authored wing-bone hierarchy.
+      attachments: buildWingFlexAttachments(pivotEntries, leftWing, rightWing, sceneRoot),
+      // Each authored helper has a +/-5 degree reference pose. The runtime turns the
+      // cumulative reference into one smooth cantilever bend instead of four hinges.
       maxAngleRadians: 5 * Math.PI / 180,
     })
   }
   return bindings
 }
 
-function buildWingFlexChain(
+function buildWingFlexSide(
   entries: readonly { readonly node: Object3D; readonly order: number }[],
   sceneRoot: Object3D
-): readonly RuntimeWingFlexNode[] {
+): RuntimeWingFlexSide | null {
   const sorted = [...entries].sort((left, right) => left.order - right.order)
-  if (sorted.length === 0) return []
+  if (sorted.length === 0) return null
   sceneRoot.updateMatrixWorld(true)
-  const rootWorld = sceneRoot.getWorldPosition(new Vector3())
-  const longitudinalWorld = sceneRoot.localToWorld(new Vector3(0, 0, 1))
-    .sub(rootWorld)
-    .normalize()
-  const lateralWorld = sceneRoot.localToWorld(new Vector3(1, 0, 0))
-    .sub(rootWorld)
-    .normalize()
-
-  return sorted.map((entry, index) => {
-    const currentWorld = entry.node.getWorldPosition(new Vector3())
-    const adjacentWorld = index + 1 < sorted.length
-      ? sorted[index + 1].node.getWorldPosition(new Vector3())
-      : index > 0
-        ? sorted[index - 1].node.getWorldPosition(new Vector3())
-        : currentWorld.clone().add(new Vector3(1, 0, 0))
-    const spanWorld = index + 1 < sorted.length
-      ? adjacentWorld.sub(currentWorld)
-      : currentWorld.sub(adjacentWorld)
-    const inverseWorldRotation = entry.node.getWorldQuaternion(new Quaternion()).invert()
-    const sideSign = Math.sign(spanWorld.dot(lateralWorld)) || 1
-    // The SDK authors the +/-5 degree reference bend in aircraft front view. Keep
-    // that aircraft-longitudinal bend axis instead of rotating around a swept local axis.
-    const bendAxisLocal = longitudinalWorld.clone()
-      .multiplyScalar(sideSign)
-      .applyQuaternion(inverseWorldRotation)
-      .normalize()
-    return {
-      node: entry.node,
-      order: entry.order,
-      restQuaternion: entry.node.quaternion.clone(),
-      bendAxisLocal,
-    }
-  })
-}
-
-function buildWingFlexPivots(
-  entries: readonly { readonly node: Object3D; readonly order: number }[],
-  wing: readonly RuntimeWingFlexNode[],
-  sceneRoot: Object3D
-): readonly RuntimeWingFlexPivot[] {
-  if (entries.length === 0 || wing.length === 0) return []
-  sceneRoot.updateMatrixWorld(true)
-  const fixedRoot = wing[0].node.parent ?? wing[0].node
-  const controlNodes = [fixedRoot, ...wing.map(entry => entry.node)]
+  const fixedRoot = sorted[0].node.parent ?? sorted[0].node
   const rootWorldPosition = sceneRoot.getWorldPosition(new Vector3())
   const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
   const toRootPoint = (point: Vector3): Vector3 => point
     .sub(rootWorldPosition)
     .applyQuaternion(rootWorldQuaternionInverse)
-  const controlPoints = controlNodes.map(node => toRootPoint(node.getWorldPosition(new Vector3())))
-  const restQuaternionsInRoot = controlNodes.map(node =>
-    rootWorldQuaternionInverse.clone().multiply(node.getWorldQuaternion(new Quaternion()))
-  )
+  const rootPointInRoot = toRootPoint(fixedRoot.getWorldPosition(new Vector3()))
+  const tipPointInRoot = toRootPoint(sorted.at(-1)!.node.getWorldPosition(new Vector3()))
+  const lateralSpan = Math.abs(tipPointInRoot.x - rootPointInRoot.x)
+  const spanLength = lateralSpan > 1e-6 ? lateralSpan : tipPointInRoot.distanceTo(rootPointInRoot)
+  if (spanLength <= 1e-6) return null
+  const sideSign = Math.sign(tipPointInRoot.x - rootPointInRoot.x) || 1
 
-  return [...entries]
-    .sort((left, right) => left.order - right.order)
-    .flatMap(entry => {
-      if (controlNodes.some(control => isDescendantOf(entry.node, control))) return []
+  return {
+    fixedRoot,
+    rootPointInRoot,
+    spanLength,
+    sideSign,
+    nodes: sorted.map(entry => {
       const restPointInRoot = toRootPoint(entry.node.getWorldPosition(new Vector3()))
-      let segmentIndex = 0
-      let blendRatio = 0
-      let nearestDistanceSq = Number.POSITIVE_INFINITY
-
-      for (let index = 0; index < controlPoints.length - 1; index += 1) {
-        const start = controlPoints[index]
-        const segment = controlPoints[index + 1].clone().sub(start)
-        const lengthSq = segment.lengthSq()
-        const ratio = lengthSq <= 1e-12
-          ? 0
-          : clamp(restPointInRoot.clone().sub(start).dot(segment) / lengthSq, 0, 1)
-        const projected = start.clone().addScaledVector(segment, ratio)
-        const distanceSq = projected.distanceToSquared(restPointInRoot)
-        if (distanceSq < nearestDistanceSq) {
-          nearestDistanceSq = distanceSq
-          segmentIndex = index
-          blendRatio = ratio
-        }
-      }
-
-      return [{
+      return {
         node: entry.node,
-        innerAttachment: controlNodes[segmentIndex],
-        outerAttachment: controlNodes[segmentIndex + 1],
-        innerRestPointInRoot: controlPoints[segmentIndex],
-        innerRestQuaternionInRootInverse: restQuaternionsInRoot[segmentIndex].clone().invert(),
-        outerRestQuaternionInRootInverse: restQuaternionsInRoot[segmentIndex + 1].clone().invert(),
+        order: entry.order,
         restPointInRoot,
-        blendRatio,
-      }]
-    })
-}
-
-function isDescendantOf(node: Object3D, ancestor: Object3D): boolean {
-  for (let parent = node.parent; parent != null; parent = parent.parent) {
-    if (parent === ancestor) return true
+        restQuaternionInRoot: rootWorldQuaternionInverse.clone()
+          .multiply(entry.node.getWorldQuaternion(new Quaternion())),
+        spanRatio: clamp(Math.abs(restPointInRoot.x - rootPointInRoot.x) / spanLength, 0, 1),
+      }
+    }),
   }
-  return false
 }
 
-function applyWingFlexChain(
-  nodes: readonly RuntimeWingFlexNode[],
+function buildWingFlexAttachments(
+  pivotEntries: readonly { readonly node: Object3D; readonly order: number }[],
+  leftWing: RuntimeWingFlexSide | null,
+  rightWing: RuntimeWingFlexSide | null,
+  sceneRoot: Object3D
+): readonly RuntimeWingFlexAttachment[] {
+  const sides = [leftWing, rightWing].filter((side): side is RuntimeWingFlexSide => side != null)
+  if (sides.length === 0) return []
+  sceneRoot.updateMatrixWorld(true)
+  const candidates = new Set<Object3D>(pivotEntries.map(entry => entry.node))
+
+  for (const side of sides) {
+    const mainRootChild = side.nodes[0]?.node
+    for (const child of [...side.fixedRoot.children]) {
+      if (child === mainRootChild) continue
+      collectIndependentWingMounts(child, sides, sceneRoot, candidates)
+    }
+  }
+
+  const attachments: RuntimeWingFlexAttachment[] = []
+  for (const node of candidates) {
+    const parent = node.parent
+    if (parent == null) continue
+    const restPointInRoot = worldPointToRoot(node.getWorldPosition(new Vector3()), sceneRoot)
+    const side = chooseWingFlexSide(restPointInRoot, sides)
+    if (side == null) continue
+    const spanRatio = wingSpanRatio(side, restPointInRoot)
+    const wrapper = new Object3D()
+    parent.add(wrapper)
+    wrapper.add(node)
+    attachments.push({
+      node,
+      wrapper,
+      side,
+      spanRatio,
+      centerlinePointInRoot: sampleWingRestCenterline(side, spanRatio),
+    })
+  }
+  return attachments
+}
+
+function collectIndependentWingMounts(
+  node: Object3D,
+  sides: readonly RuntimeWingFlexSide[],
+  sceneRoot: Object3D,
+  output: Set<Object3D>
+): void {
+  const point = worldPointToRoot(node.getWorldPosition(new Vector3()), sceneRoot)
+  const side = chooseWingFlexSide(point, sides)
+  if (side != null && wingSpanRatio(side, point) > 0.01) {
+    output.add(node)
+    return
+  }
+  for (const child of node.children) collectIndependentWingMounts(child, sides, sceneRoot, output)
+}
+
+function chooseWingFlexSide(
+  pointInRoot: Vector3,
+  sides: readonly RuntimeWingFlexSide[]
+): RuntimeWingFlexSide | null {
+  if (sides.length === 0) return null
+  const pointSign = Math.sign(pointInRoot.x - sides[0].rootPointInRoot.x)
+  const signMatch = sides.find(side => pointSign !== 0 && side.sideSign === pointSign)
+  if (signMatch != null) return signMatch
+  return sides.reduce((best, side) =>
+    Math.abs(pointInRoot.x - side.rootPointInRoot.x) < Math.abs(pointInRoot.x - best.rootPointInRoot.x)
+      ? side
+      : best
+  )
+}
+
+function wingSpanRatio(side: RuntimeWingFlexSide, pointInRoot: Vector3): number {
+  return clamp(Math.abs(pointInRoot.x - side.rootPointInRoot.x) / side.spanLength, 0, 1)
+}
+
+function sampleWingRestCenterline(side: RuntimeWingFlexSide, spanRatio: number): Vector3 {
+  const points = [
+    { spanRatio: 0, point: side.rootPointInRoot },
+    ...side.nodes.map(node => ({ spanRatio: node.spanRatio, point: node.restPointInRoot })),
+  ]
+  const ratio = clamp(spanRatio, 0, 1)
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = points[index]
+    const end = points[index + 1]
+    if (ratio > end.spanRatio) continue
+    const width = end.spanRatio - start.spanRatio
+    const t = width <= 1e-9 ? 0 : (ratio - start.spanRatio) / width
+    return start.point.clone().lerp(end.point, t)
+  }
+  return points.at(-1)!.point.clone()
+}
+
+function worldPointToRoot(point: Vector3, sceneRoot: Object3D): Vector3 {
+  const rootWorldPosition = sceneRoot.getWorldPosition(new Vector3())
+  const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
+  return point.sub(rootWorldPosition).applyQuaternion(rootWorldQuaternionInverse)
+}
+
+function resetWingFlexAttachments(attachments: readonly RuntimeWingFlexAttachment[]): void {
+  for (const attachment of attachments) {
+    attachment.wrapper.position.set(0, 0, 0)
+    attachment.wrapper.quaternion.identity()
+    attachment.wrapper.scale.set(1, 1, 1)
+    attachment.wrapper.updateMatrix()
+  }
+}
+
+function applyWingFlexSide(
+  side: RuntimeWingFlexSide | null,
   flexAmount: number,
   binding: RuntimeWingFlexBinding
 ): void {
-  const angleRadians = clamp(flexAmount, -1, 1) * binding.maxAngleRadians
-  for (const entry of nodes) {
-    entry.node.quaternion
-      .copy(entry.restQuaternion)
-      .multiply(new Quaternion().setFromAxisAngle(entry.bendAxisLocal, angleRadians))
+  if (side == null) return
+  binding.root.updateMatrixWorld(true)
+  const rootWorldQuaternion = binding.root.getWorldQuaternion(new Quaternion())
+  const tipAngle = wingFlexTipAngle(side, flexAmount, binding)
+
+  for (const entry of side.nodes) {
+    const sample = sampleWingFlex(side, entry.spanRatio, tipAngle)
+    const targetPointInRoot = entry.restPointInRoot.clone().add(new Vector3(0, sample.deflection, 0))
+    const targetWorldPoint = binding.root.localToWorld(targetPointInRoot)
+    const flexRotationInRoot = new Quaternion().setFromAxisAngle(
+      new Vector3(0, 0, 1),
+      side.sideSign * sample.slope
+    )
+    const targetWorldQuaternion = rootWorldQuaternion.clone()
+      .multiply(flexRotationInRoot)
+      .multiply(entry.restQuaternionInRoot)
+    const parent = entry.node.parent
+    if (parent == null) continue
+    entry.node.position.copy(parent.worldToLocal(targetWorldPoint))
+    entry.node.quaternion.copy(
+      parent.getWorldQuaternion(new Quaternion()).invert().multiply(targetWorldQuaternion)
+    )
+    entry.node.updateMatrix()
+    entry.node.updateWorldMatrix(false, false)
   }
 }
 
-function applyWingFlexEnginePivots(
-  pivots: readonly RuntimeWingFlexPivot[],
+function applyWingFlexAttachments(
+  attachments: readonly RuntimeWingFlexAttachment[],
+  leftFlex: number,
+  rightFlex: number,
   binding: RuntimeWingFlexBinding
 ): void {
-  if (pivots.length === 0) return
+  if (attachments.length === 0) return
   binding.root.updateMatrixWorld(true)
-  const rootWorldPosition = binding.root.getWorldPosition(new Vector3())
-  const rootWorldQuaternion = binding.root.getWorldQuaternion(new Quaternion())
-  const rootWorldQuaternionInverse = rootWorldQuaternion.clone().invert()
-  const toRootPoint = (point: Vector3): Vector3 => point
-    .sub(rootWorldPosition)
-    .applyQuaternion(rootWorldQuaternionInverse)
-  const toRootQuaternion = (node: Object3D): Quaternion =>
-    rootWorldQuaternionInverse.clone().multiply(node.getWorldQuaternion(new Quaternion()))
+  const rootWorld = binding.root.matrixWorld.clone()
+  const rootWorldInverse = rootWorld.clone().invert()
 
-  for (const pivot of pivots) {
-    const parent = pivot.node.parent
+  for (const attachment of attachments) {
+    const parent = attachment.wrapper.parent
     if (parent == null) continue
-    const innerCurrentPointInRoot = toRootPoint(pivot.innerAttachment.getWorldPosition(new Vector3()))
-    const innerDelta = toRootQuaternion(pivot.innerAttachment)
-      .multiply(pivot.innerRestQuaternionInRootInverse)
-    const outerDelta = toRootQuaternion(pivot.outerAttachment)
-      .multiply(pivot.outerRestQuaternionInRootInverse)
-    const interpolatedDelta = innerDelta.slerp(outerDelta, pivot.blendRatio)
-    const targetPointInRoot = pivot.restPointInRoot.clone()
-      .sub(pivot.innerRestPointInRoot)
-      .applyQuaternion(interpolatedDelta)
-      .add(innerCurrentPointInRoot)
-    const worldPosition = targetPointInRoot
-      .applyQuaternion(rootWorldQuaternion)
-      .add(rootWorldPosition)
-    pivot.node.position.copy(parent.worldToLocal(worldPosition))
+    const flexAmount = attachment.side === binding.leftWing ? leftFlex : rightFlex
+    const tipAngle = wingFlexTipAngle(attachment.side, flexAmount, binding)
+    const sample = sampleWingFlex(attachment.side, attachment.spanRatio, tipAngle)
+    const rotation = new Matrix4().makeRotationFromQuaternion(
+      new Quaternion().setFromAxisAngle(
+        new Vector3(0, 0, 1),
+        attachment.side.sideSign * sample.slope
+      )
+    )
+    const center = attachment.centerlinePointInRoot
+    const deformationInRoot = new Matrix4()
+      .makeTranslation(center.x, center.y + sample.deflection, center.z)
+      .multiply(rotation)
+      .multiply(new Matrix4().makeTranslation(-center.x, -center.y, -center.z))
+    const deformationWorld = rootWorld.clone().multiply(deformationInRoot).multiply(rootWorldInverse)
+    parent.updateWorldMatrix(true, false)
+    const parentWorld = parent.matrixWorld.clone()
+    const wrapperLocal = parentWorld.clone().invert()
+      .multiply(deformationWorld)
+      .multiply(parentWorld)
+    wrapperLocal.decompose(
+      attachment.wrapper.position,
+      attachment.wrapper.quaternion,
+      attachment.wrapper.scale
+    )
+    attachment.wrapper.updateMatrix()
+    attachment.wrapper.updateWorldMatrix(false, true)
+  }
+}
+
+function wingFlexTipAngle(
+  side: RuntimeWingFlexSide,
+  flexAmount: number,
+  binding: RuntimeWingFlexBinding
+): number {
+  return clamp(flexAmount, -1, 1) * binding.maxAngleRadians * side.nodes.length
+}
+
+function sampleWingFlex(
+  side: RuntimeWingFlexSide,
+  spanRatio: number,
+  tipAngle: number
+): { readonly slope: number; readonly deflection: number } {
+  const s = clamp(spanRatio, 0, 1)
+  // Euler-Bernoulli cantilever under a distributed load: curvature is strongest
+  // inboard and fades toward the tip, so the wing bends continuously instead of hinging.
+  const slopeFactor = s * (4 - 3 * s + s * s) / 2
+  const deflectionFactor = s * s - 0.5 * s * s * s + 0.125 * s * s * s * s
+  return {
+    slope: tipAngle * slopeFactor,
+    deflection: side.spanLength * tipAngle * deflectionFactor,
   }
 }
 
