@@ -49,6 +49,7 @@ export function lookup1D(value: number, table: LookupTable1D): number {
   if (breakpoints.length !== values.length) {
     throw new Error('1D lookup table breakpoint/value length mismatch')
   }
+  if (breakpoints.length === 1) return values[0]
 
   const [left, fraction] = findSegment(value, breakpoints)
   const y0 = values[left]

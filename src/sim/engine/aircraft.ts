@@ -192,6 +192,8 @@ export interface CanonicalAirPhysicsAerodynamics {
   readonly inducedDragScalar: number
   readonly flapInducedDragScalar: number
   readonly machDragCoefficientAdd?: CanonicalLookupTable1D
+  readonly liftCoefficientMultiplierByMach?: CanonicalLookupTable1D
+  readonly groundEffectLiftMultiplierByMach?: CanonicalLookupTable1D
   readonly flapLiftCoefficient: number
   readonly flapDragCoefficient: number
   readonly gearDragCoefficient: number
@@ -234,6 +236,12 @@ export interface CanonicalAirPhysicsControls {
   readonly flapSpanOutboardRatio?: number
 }
 
+export interface CanonicalWingFlexConfig {
+  readonly scalar: number
+  readonly offset: number
+  readonly surfaceScalar?: number
+}
+
 export interface CanonicalAirPhysicsSystemConfig {
   readonly emptyMassKg: number
   readonly maxGrossMassKg: number
@@ -241,6 +249,7 @@ export interface CanonicalAirPhysicsSystemConfig {
   readonly geometry: CanonicalAirPhysicsGeometry
   readonly aerodynamics: CanonicalAirPhysicsAerodynamics
   readonly controls: CanonicalAirPhysicsControls
+  readonly wingFlex?: CanonicalWingFlexConfig
 }
 
 export interface CanonicalSurfaceConfig {

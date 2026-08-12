@@ -15,8 +15,8 @@ This checklist tracks airborne flight dynamics and propulsion physics. Ground co
   - [x] Allow one wing to stall before the other from each element's independent local angle of attack, with explicit asymmetric post-stall verification.
   - [x] Model sideslip through local wing/tail airflow and fuselage crossflow force using authored fuselage geometry.
   - [x] Drive tail downwash from spanwise wing circulation so asymmetric loading and stall change the local wake.
-  - [ ] Add spatially and temporally varying turbulence and gusts so individual elements see different perturbations.
-  - [ ] Add ground effect after the airborne model is validated.
+  - [x] Add spatially and temporally varying turbulence and gusts so individual elements see different perturbations.
+  - [x] Add ground effect using local wing height and the package-authored maximum intensity.
   - [ ] Add aeroelastic wing flex driven by distributed element loads after aerodynamic validation.
 - [ ] Apply engine thrust at each authored engine location so asymmetric thrust creates the correct moments.
 - [ ] Drive thrust from N1, Mach, static thrust, thrust scalar, and the package thrust table.
