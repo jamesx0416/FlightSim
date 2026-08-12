@@ -425,10 +425,14 @@ describe('AircraftRuntime canonical visual bindings', () => {
       const bones = Array.from({ length: 4 }, (_, index) => {
         const bone = new Object3D()
         bone.name = `WING_BONE_0${index + 1}_${side}`
-        if (index > 0) bone.position.x = side === 'LEFT' ? 1 : -1
+        if (index > 0) {
+          bone.position.x = 1
+          bone.position.z = side === 'LEFT' ? -0.25 : 0.25
+        }
         return bone
       })
       for (let index = 1; index < bones.length; index += 1) bones[index - 1].add(bones[index])
+      if (side === 'RIGHT') bones[0].rotation.y = Math.PI
       scene.add(bones[0])
       return bones
     }
@@ -444,8 +448,8 @@ describe('AircraftRuntime canonical visual bindings', () => {
     rightPivot.position.set(-1.5, 0, 1.8)
     scene.add(rightPivot)
 
-    let leftFlex = 0.5
-    let rightFlex = 0.5
+    let leftFlex = 0
+    let rightFlex = 0
     const aircraft = {
       model: {
         nodeAnimations: [{
@@ -466,17 +470,26 @@ describe('AircraftRuntime canonical visual bindings', () => {
 
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
-    const leftTipY = leftBones.at(-1)!.getWorldPosition(new Vector3()).y
-    const rightTipY = rightBones.at(-1)!.getWorldPosition(new Vector3()).y
-    expect(leftTipY > 0).toBe(true)
-    expect(rightTipY > 0).toBe(true)
+    const neutralLeftTip = leftBones.at(-1)!.getWorldPosition(new Vector3())
+    const neutralRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
+
+    leftFlex = 0.5
+    rightFlex = 0.5
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    const flexedLeftTip = leftBones.at(-1)!.getWorldPosition(new Vector3())
+    const flexedRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
+    expect(flexedLeftTip.y > neutralLeftTip.y).toBe(true)
+    expect(flexedRightTip.y > neutralRightTip.y).toBe(true)
+    expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
+    expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
     expect(Math.abs(leftPivot.position.y) > 1e-6).toBe(true)
 
     leftFlex = 0
     rightFlex = 0
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
-    expect(Math.abs(leftBones.at(-1)!.getWorldPosition(new Vector3()).y) < 1e-9).toBe(true)
-    expect(Math.abs(rightBones.at(-1)!.getWorldPosition(new Vector3()).y) < 1e-9).toBe(true)
+    expect(leftBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralLeftTip) < 1e-9).toBe(true)
+    expect(rightBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralRightTip) < 1e-9).toBe(true)
   })
 })

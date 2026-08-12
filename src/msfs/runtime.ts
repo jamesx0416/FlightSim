@@ -7106,9 +7106,11 @@ function buildWingFlexChain(
       : currentWorld.sub(adjacentWorld)
     const inverseWorldRotation = entry.node.getWorldQuaternion(new Quaternion()).invert()
     const spanLocal = spanWorld.applyQuaternion(inverseWorldRotation).normalize()
+    // WingFlex helpers bend around an authored local axis; the swept segment itself is not that axis.
+    const authoredSpanAxisLocal = dominantLocalAxis(spanLocal)
     const upLocal = worldUp.clone().applyQuaternion(inverseWorldRotation).normalize()
-    const bendAxisLocal = spanLocal.cross(upLocal)
-    if (bendAxisLocal.lengthSq() <= 1e-12) bendAxisLocal.set(1, 0, 0)
+    const bendAxisLocal = authoredSpanAxisLocal.cross(upLocal)
+    if (bendAxisLocal.lengthSq() <= 1e-12) bendAxisLocal.set(0, 0, 1)
     else bendAxisLocal.normalize()
     return {
       node: entry.node,
@@ -7117,6 +7119,15 @@ function buildWingFlexChain(
       bendAxisLocal,
     }
   })
+}
+
+function dominantLocalAxis(direction: Vector3): Vector3 {
+  const x = Math.abs(direction.x)
+  const y = Math.abs(direction.y)
+  const z = Math.abs(direction.z)
+  if (x >= y && x >= z) return new Vector3(Math.sign(direction.x) || 1, 0, 0)
+  if (y >= z) return new Vector3(0, Math.sign(direction.y) || 1, 0)
+  return new Vector3(0, 0, Math.sign(direction.z) || 1)
 }
 
 function buildWingFlexPivots(
