@@ -38,6 +38,9 @@ wing_incidence=0
 wing_twist=-1
 oswald_efficiency_factor=0.72
 wing_pos_apex_vert=-2.8
+fuselage_center_pos=-24.987358,0,3.121224
+fuselage_diameter=18.5
+fuselage_length=208.86
 htail_area=883.29
 htail_pos_lon=-120
 htail_pos_vert=10
@@ -121,6 +124,10 @@ test('builds modern air physics from MSFS flight model metadata', () => {
   expect(Math.abs(physics!.geometry.wingAreaM2 - 371.61216) < 1e-4).toBe(true)
   expect(Math.abs(physics!.geometry.wingSpanM - 63.998856) < 1e-5).toBe(true)
   expect(Math.abs(physics!.geometry.aerodynamicCenterBodyM[0] - 0.0841248) < 1e-5).toBe(true)
+  expect(Math.abs((physics!.geometry.fuselageLengthM ?? 0) - 63.660528) < 1e-6).toBe(true)
+  expect(Math.abs((physics!.geometry.fuselageDiameterM ?? 0) - 5.6388) < 1e-6).toBe(true)
+  expect(Math.abs((physics!.geometry.fuselageCenterBodyM?.[0] ?? 0) - 1.0023780816) < 1e-6).toBe(true)
+  expect(physics!.aerodynamics.fuselageLateralDragCoefficient).toBe(0.4)
   expect((physics!.geometry.horizontalTailPositionBodyM?.[0] ?? 0) < -20).toBe(true)
   expect((physics!.geometry.verticalTailPositionBodyM?.[2] ?? 0) < 0).toBe(true)
   expect(physics!.controls.elevatorDeflectionSign).toBe(-1)

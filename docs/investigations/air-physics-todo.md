@@ -12,9 +12,9 @@ This checklist tracks airborne flight dynamics and propulsion physics. Ground co
   - [x] Roll rate changes local airflow independently across left and right wing elements.
   - [x] Ailerons act only on their local outboard wing elements with opposite left/right deflection.
   - [x] Flap lift and drag act only on wing elements inside the configured flap span.
-  - [~] Allow one wing to stall before the other from each element's independent local angle of attack; add explicit asymmetric stall and post-stall verification.
-  - [~] Model sideslip through local wing/tail airflow and fuselage sideforce; richer fuselage verification remains.
-  - [~] Replace whole-wing tail downwash with spanwise/local downwash that responds to asymmetric loading and stall.
+  - [x] Allow one wing to stall before the other from each element's independent local angle of attack, with explicit asymmetric post-stall verification.
+  - [x] Model sideslip through local wing/tail airflow and fuselage crossflow force using authored fuselage geometry.
+  - [x] Drive tail downwash from spanwise wing circulation so asymmetric loading and stall change the local wake.
   - [ ] Add spatially and temporally varying turbulence and gusts so individual elements see different perturbations.
   - [ ] Add ground effect after the airborne model is validated.
   - [ ] Add aeroelastic wing flex driven by distributed element loads after aerodynamic validation.

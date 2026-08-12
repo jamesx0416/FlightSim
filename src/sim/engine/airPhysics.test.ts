@@ -111,12 +111,15 @@ test('applies the configured gross thrust multiplier and pressure correction', (
   }) > 0).toBe(true)
 })
 
-function createPhysicsEngine(engines: readonly CanonicalPropulsionEngineConfig[] = []) {
+function createPhysicsEngine(
+  engines: readonly CanonicalPropulsionEngineConfig[] = [],
+  physics: CanonicalAirPhysicsSystemConfig = basePhysics
+) {
   return createSimulatorEngineForAircraft({
     identity: { id: 'physics-test' },
     systems: [
       { id: 'propulsion', kind: 'propulsion', config: { engines } },
-      { id: 'air-physics', kind: 'air-physics', config: basePhysics },
+      { id: 'air-physics', kind: 'air-physics', config: physics },
     ],
   })
 }
@@ -185,22 +188,172 @@ test('geometric control surfaces produce body moments', () => {
     engine.state.set(key, value, { source: 'runtime', unit: 'ratio' })
   }
 
+  reset()
+  engine.tick(1 / 60)
+  const neutralPitchRate = engine.state.readNumber(AirPhysicsStateKeys.pitchRateRadPerSecond()) ?? 0
   setControl(ControlStateKeys.elevatorPositionRatio(), 1)
   reset()
   engine.tick(1 / 60)
-  expect((engine.state.readNumber(AirPhysicsStateKeys.pitchRateRadPerSecond()) ?? 0) < 0).toBe(true)
+  expect((engine.state.readNumber(AirPhysicsStateKeys.pitchRateRadPerSecond()) ?? 0) < neutralPitchRate).toBe(true)
 
   setControl(ControlStateKeys.elevatorPositionRatio(), 0)
+  reset()
+  engine.tick(1 / 60)
+  const neutralRollRate = engine.state.readNumber(AirPhysicsStateKeys.rollRateRadPerSecond()) ?? 0
   setControl(ControlStateKeys.aileronPositionRatio(), 1)
   reset()
   engine.tick(1 / 60)
-  expect((engine.state.readNumber(AirPhysicsStateKeys.rollRateRadPerSecond()) ?? 0) > 0).toBe(true)
+  expect((engine.state.readNumber(AirPhysicsStateKeys.rollRateRadPerSecond()) ?? 0) > neutralRollRate).toBe(true)
 
   setControl(ControlStateKeys.aileronPositionRatio(), 0)
+  reset()
+  engine.tick(1 / 60)
+  const neutralYawRate = engine.state.readNumber(AirPhysicsStateKeys.yawRateRadPerSecond()) ?? 0
   setControl(ControlStateKeys.rudderPositionRatio(), 1)
   reset()
   engine.tick(1 / 60)
-  expect((engine.state.readNumber(AirPhysicsStateKeys.yawRateRadPerSecond()) ?? 0) > 0).toBe(true)
+  expect((engine.state.readNumber(AirPhysicsStateKeys.yawRateRadPerSecond()) ?? 0) > neutralYawRate).toBe(true)
+})
+
+test('independent wing sections can enter post-stall at different times', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    geometry: {
+      ...basePhysics.geometry,
+      wingSweepRad: 0,
+      wingDihedralRad: 0,
+      wingTwistRad: 0,
+      aerodynamicCenterBodyM: [0, 0, 0],
+      aileronAreaM2: 0,
+      horizontalTailAreaM2: 0,
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+    },
+    aerodynamics: {
+      ...basePhysics.aerodynamics,
+      liftCoefficientByAlphaRad: {
+        breakpoints: [-0.5, 0, 0.12, 0.18, 0.3, 0.6],
+        values: [-0.5, 0, 1.2, 1.5, 0.6, 0],
+      },
+      pitchMomentZero: 0,
+      pitchMomentAlphaCoefficient: 0,
+      pitchDampingCoefficient: 0,
+      rollSlipAngleCoefficient: 0,
+      rollDampingCoefficient: 0,
+      rollAileronCoefficient: 0,
+      yawSlipAngleCoefficient: 0,
+      yawDampingCoefficient: 0,
+      yawRudderCoefficient: 0,
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  const rollTorqueAtPitch = (pitchRad: number): number => {
+    engine.dispatch({
+      type: AirPhysicsCommandTypes.reset,
+      payload: {
+        altitudeMeters: 1000,
+        airspeedMps: 90,
+        pitchRad,
+        angularVelocityBodyRadPerSec: [1, 0, 0],
+        enabled: true,
+      },
+    })
+    engine.tick(1 / 120)
+    return engine.state.readNumber(AirPhysicsStateKeys.torqueBodyRollNm()) ?? 0
+  }
+
+  expect(rollTorqueAtPitch(0.08) < 0).toBe(true)
+  expect(rollTorqueAtPitch(0.2) > 0).toBe(true)
+})
+
+test('tail downwash follows local spanwise wing loading', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    geometry: {
+      ...basePhysics.geometry,
+      wingSweepRad: 0,
+      wingDihedralRad: 0,
+      wingTwistRad: 0,
+      aerodynamicCenterBodyM: [0, 0, 0],
+      horizontalTailAreaM2: 6,
+      horizontalTailSpanM: 4,
+      horizontalTailPositionBodyM: [-4, 2.2, 0],
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+    },
+    aerodynamics: {
+      ...basePhysics.aerodynamics,
+      liftCoefficientByAlphaRad: {
+        breakpoints: [-0.5, 0, 0.5],
+        values: [-2.5, 0, 2.5],
+      },
+      flapLiftCoefficient: 0,
+      spoilerLiftCoefficient: 0,
+      pitchMomentZero: 0,
+      pitchMomentAlphaCoefficient: 0,
+      pitchDampingCoefficient: 0,
+      pitchElevatorCoefficient: 0,
+      pitchFlapCoefficient: 0,
+      pitchGearCoefficient: 0,
+      pitchSpoilerCoefficient: 0,
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  const pitchTorqueForAileron = (aileron: number): number => {
+    engine.state.set(ControlStateKeys.aileronPositionRatio(), aileron, {
+      source: 'runtime', unit: 'ratio',
+    })
+    engine.dispatch({
+      type: AirPhysicsCommandTypes.reset,
+      payload: { altitudeMeters: 1000, airspeedMps: 90, pitchRad: 0.1, enabled: true },
+    })
+    engine.tick(1 / 120)
+    return engine.state.readNumber(AirPhysicsStateKeys.torqueBodyPitchNm()) ?? 0
+  }
+
+  const positiveAileronTorque = pitchTorqueForAileron(1)
+  const negativeAileronTorque = pitchTorqueForAileron(-1)
+  expect(Math.abs(positiveAileronTorque - negativeAileronTorque) > 1).toBe(true)
+})
+
+test('fuselage crossflow opposes sideslip from local airflow', () => {
+  const physics: CanonicalAirPhysicsSystemConfig = {
+    ...basePhysics,
+    geometry: {
+      ...basePhysics.geometry,
+      horizontalTailAreaM2: 0,
+      elevatorAreaM2: 0,
+      verticalTailAreaM2: 0,
+      rudderAreaM2: 0,
+      fuselageLengthM: 20,
+      fuselageDiameterM: 3,
+      fuselageCenterBodyM: [0, 0, 0],
+    },
+    aerodynamics: {
+      ...basePhysics.aerodynamics,
+      sideForceSlipAngleCoefficient: 0,
+      sideForceRudderCoefficient: 0,
+      fuselageLateralDragCoefficient: 0.5,
+    },
+  }
+  const engine = createPhysicsEngine([], physics)
+  engine.dispatch({
+    type: AirPhysicsCommandTypes.reset,
+    payload: {
+      altitudeMeters: 1000,
+      velocityNedMps: [90, 20, 0],
+      enabled: true,
+    },
+  })
+  engine.tick(1 / 120)
+
+  const betaRad = engine.state.readNumber(AirPhysicsStateKeys.betaRad()) ?? 0
+  const densityKgPerM3 = engine.state.readNumber(AirPhysicsStateKeys.densityKgPerM3()) ?? 0
+  const sideN = engine.state.readNumber(AirPhysicsStateKeys.sideN()) ?? 0
+  expect(betaRad > 0).toBe(true)
+  expect(Math.abs(sideN - (-6000 * densityKgPerM3)) < 1e-6).toBe(true)
 })
 
 
