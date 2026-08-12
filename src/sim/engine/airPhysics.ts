@@ -54,6 +54,9 @@ interface WingElement {
   readonly y: number
   readonly z: number
   readonly areaM2: number
+  readonly spanWidthM: number
+  readonly spanStartBodyM: readonly [number, number, number]
+  readonly spanEndBodyM: readonly [number, number, number]
   readonly twistRad: number
   readonly flapCoefficientScale: number
   readonly aileronAreaFraction: number
@@ -85,6 +88,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
   private readonly forceNedN = new Vector3()
   private readonly airVelocityNedMps = new Vector3()
   private readonly airVelocityBodyMps = new Vector3()
+  private readonly wingInducedAirVelocityBodyMps = new Vector3()
   private readonly windNedMps = new Vector3()
   private readonly qNedToBody = new Quaternion()
   private readonly omegaQuaternion = new Quaternion()
@@ -308,7 +312,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const geometry = this.definition.geometry
     const aero = this.definition.aerodynamics
     const controls = this.definition.controls
-    const downwashAngleRad = computeWingDownwashAngleRad(
+    const baselineDownwashAngleRad = computeWingDownwashAngleRad(
       this.definition,
       alphaRad,
       flaps,
@@ -317,7 +321,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const horizontalTailBaseline = this.computeHorizontalTailBaseline(
       densityKgPerM3,
       alphaRad,
-      downwashAngleRad
+      baselineDownwashAngleRad
     )
     const wingLiftOffset = dynamicPressurePa > 1e-9
       ? horizontalTailBaseline.liftN / (dynamicPressurePa * Math.max(geometry.wingAreaM2, 0.01))
@@ -328,6 +332,8 @@ export class AirPhysicsSubsystem implements SimSubsystem {
 
     let liftN = 0
     let dragN = 0
+    this.wingInducedAirVelocityBodyMps.set(0, 0, 0)
+    const horizontalTailPosition = geometry.horizontalTailPositionBodyM
     for (const element of this.wingElements) {
       const forces = this.computeWingElement(
         element,
@@ -342,13 +348,22 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       )
       liftN += forces.liftN
       dragN += forces.dragN
+      if (horizontalTailPosition != null && forces.circulationM2PerSecond !== 0) {
+        addHorseshoeInducedVelocity(
+          this.wingInducedAirVelocityBodyMps,
+          horizontalTailPosition,
+          element,
+          forces.circulationM2PerSecond,
+          forces.wakeDirectionBody
+        )
+      }
     }
 
     const horizontalTail = this.computeHorizontalTail(
       densityKgPerM3,
       elevator,
       elevatorTrim,
-      downwashAngleRad
+      this.wingInducedAirVelocityBodyMps
     )
     liftN += horizontalTail.liftN
     dragN += horizontalTail.dragN
@@ -368,7 +383,8 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       aero.sideForceRudderCoefficient * deltaR
     )
     this.forceBodyN.y += legacySideN
-    const sideN = verticalTail.sideN + legacySideN
+    const fuselageSideN = this.computeFuselageSideForce(densityKgPerM3)
+    const sideN = verticalTail.sideN + legacySideN + fuselageSideN
 
     const rollCoefficient =
       aero.rollSlipAngleCoefficient * betaRad +
@@ -433,14 +449,26 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     aileron: number,
     wingLiftOffset: number,
     wingDragOffset: number
-  ): { readonly liftN: number; readonly dragN: number } {
+  ): {
+    readonly liftN: number
+    readonly dragN: number
+    readonly circulationM2PerSecond: number
+    readonly wakeDirectionBody: readonly [number, number, number]
+  } {
     const omega = this.omegaBodyRadPerSec
     const velocity = this.airVelocityBodyMps
     const u = velocity.x + omega.y * element.z - omega.z * element.y
     const v = velocity.y + omega.z * element.x - omega.x * element.z
     const w = velocity.z + omega.x * element.y - omega.y * element.x
     const speedSquared = u * u + v * v + w * w
-    if (speedSquared <= 0.01) return { liftN: 0, dragN: 0 }
+    if (speedSquared <= 0.01) {
+      return {
+        liftN: 0,
+        dragN: 0,
+        circulationM2PerSecond: 0,
+        wakeDirectionBody: [0, 0, 0],
+      }
+    }
     const speed = Math.sqrt(speedSquared)
     const alphaRad =
       Math.atan2(w, u) + this.definition.geometry.wingIncidenceRad + element.twistRad
@@ -486,7 +514,14 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const liftN = dynamicPressure * element.areaM2 * liftCoefficient
     const dragN = dynamicPressure * element.areaM2 * dragCoefficient
     this.applyElementForce(element, u, v, w, speed, liftN, dragN)
-    return { liftN, dragN }
+    return {
+      liftN,
+      dragN,
+      circulationM2PerSecond: densityKgPerM3 > 1e-9
+        ? liftN / (densityKgPerM3 * speed * element.spanWidthM)
+        : 0,
+      wakeDirectionBody: [-u / speed, -v / speed, -w / speed],
+    }
   }
   private computeHorizontalTailBaseline(
     densityKgPerM3: number,
@@ -516,7 +551,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     densityKgPerM3: number,
     elevator: number,
     elevatorTrim: number,
-    downwashAngleRad: number
+    inducedAirVelocityBodyMps: Vector3
   ): { readonly liftN: number; readonly dragN: number } {
     const geometry = this.definition.geometry
     const stabilizerArea = geometry.horizontalTailAreaM2 ?? 0
@@ -525,7 +560,16 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     const position = geometry.horizontalTailPositionBodyM
     if (area <= 0 || position == null) return { liftN: 0, dragN: 0 }
 
-    const local = localVelocityAtPoint(this.airVelocityBodyMps, this.omegaBodyRadPerSec, position)
+    const pointVelocity = localVelocityAtPoint(
+      this.airVelocityBodyMps,
+      this.omegaBodyRadPerSec,
+      position
+    )
+    const local: readonly [number, number, number] = [
+      pointVelocity[0] - inducedAirVelocityBodyMps.x,
+      pointVelocity[1] - inducedAirVelocityBodyMps.y,
+      pointVelocity[2] - inducedAirVelocityBodyMps.z,
+    ]
     const speedSquared = local[0] * local[0] + local[1] * local[1] + local[2] * local[2]
     if (speedSquared <= 0.01) return { liftN: 0, dragN: 0 }
     const speed = Math.sqrt(speedSquared)
@@ -542,8 +586,7 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       (controls.elevatorDeflectionSign ?? 1) *
       (elevatorArea / area)
     const alpha = Math.atan2(local[2], local[0]) +
-      (geometry.horizontalTailIncidenceRad ?? 0) -
-      downwashAngleRad +
+      (geometry.horizontalTailIncidenceRad ?? 0) +
       controlAngle
     const coefficient = this.tailLiftCoefficient(
       alpha,
@@ -597,6 +640,22 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     )
     const sideN = this.applyVerticalForce(position, local, speed, sideLiftN, dragN)
     return { sideN, dragN }
+  }
+
+  private computeFuselageSideForce(densityKgPerM3: number): number {
+    const geometry = this.definition.geometry
+    const coefficient = Math.max(0, this.definition.aerodynamics.fuselageLateralDragCoefficient ?? 0)
+    const lengthM = Math.max(0, geometry.fuselageLengthM ?? 0)
+    const diameterM = Math.max(0, geometry.fuselageDiameterM ?? 0)
+    const position = geometry.fuselageCenterBodyM
+    if (coefficient === 0 || lengthM === 0 || diameterM === 0 || position == null) return 0
+
+    const local = localVelocityAtPoint(this.airVelocityBodyMps, this.omegaBodyRadPerSec, position)
+    const lateralMps = local[1]
+    const sideN = -0.5 * densityKgPerM3 * lateralMps * Math.abs(lateralMps) *
+      lengthM * diameterM * coefficient
+    this.addForceAtPoint(position, 0, sideN, 0)
+    return sideN
   }
 
   private tailLiftCoefficient(alphaRad: number, targetSlope: number): number {
@@ -822,16 +881,122 @@ function buildWingElements(
   }
   const [centerX, centerY, centerZ] = geometry.aerodynamicCenterBodyM
 
-  return raw.map(element => ({
-    x: centerX + element.sweepOffset - weightedSweep,
-    y: centerY + element.y,
-    z: centerZ + element.dihedralOffset - weightedDihedral,
-    areaM2: element.area * areaScale,
-    twistRad: element.twistRad,
-    flapCoefficientScale: element.flap ? flapCoefficientScale : 0,
-    aileronAreaFraction: element.aileronAreaFraction,
-  }))
+  return raw.map(element => {
+    const startY = element.y - elementWidth * 0.5
+    const endY = element.y + elementWidth * 0.5
+    const pointAtSpan = (y: number): readonly [number, number, number] => [
+      centerX - Math.abs(y) * Math.tan(geometry.wingSweepRad) - weightedSweep,
+      centerY + y,
+      centerZ - Math.abs(y) * Math.tan(geometry.wingDihedralRad) - weightedDihedral,
+    ]
+    return {
+      x: centerX + element.sweepOffset - weightedSweep,
+      y: centerY + element.y,
+      z: centerZ + element.dihedralOffset - weightedDihedral,
+      areaM2: element.area * areaScale,
+      spanWidthM: elementWidth,
+      spanStartBodyM: pointAtSpan(startY),
+      spanEndBodyM: pointAtSpan(endY),
+      twistRad: element.twistRad,
+      flapCoefficientScale: element.flap ? flapCoefficientScale : 0,
+      aileronAreaFraction: element.aileronAreaFraction,
+    }
+  })
 }
+
+function addHorseshoeInducedVelocity(
+  target: Vector3,
+  point: readonly [number, number, number],
+  element: WingElement,
+  circulationM2PerSecond: number,
+  wakeDirectionBody: readonly [number, number, number]
+): void {
+  addFiniteVortexSegmentInducedVelocity(
+    target,
+    point,
+    element.spanStartBodyM,
+    element.spanEndBodyM,
+    circulationM2PerSecond
+  )
+  addSemiInfiniteVortexInducedVelocity(
+    target,
+    point,
+    element.spanEndBodyM,
+    wakeDirectionBody,
+    circulationM2PerSecond
+  )
+  addSemiInfiniteVortexInducedVelocity(
+    target,
+    point,
+    element.spanStartBodyM,
+    wakeDirectionBody,
+    -circulationM2PerSecond
+  )
+}
+
+function addFiniteVortexSegmentInducedVelocity(
+  target: Vector3,
+  point: readonly [number, number, number],
+  start: readonly [number, number, number],
+  end: readonly [number, number, number],
+  circulationM2PerSecond: number
+): void {
+  const r1x = point[0] - start[0]
+  const r1y = point[1] - start[1]
+  const r1z = point[2] - start[2]
+  const r2x = point[0] - end[0]
+  const r2y = point[1] - end[1]
+  const r2z = point[2] - end[2]
+  const cx = r1y * r2z - r1z * r2y
+  const cy = r1z * r2x - r1x * r2z
+  const cz = r1x * r2y - r1y * r2x
+  const crossSquared = cx * cx + cy * cy + cz * cz
+  const r1Length = Math.hypot(r1x, r1y, r1z)
+  const r2Length = Math.hypot(r2x, r2y, r2z)
+  if (crossSquared <= 1e-18 || r1Length <= 1e-9 || r2Length <= 1e-9) return
+
+  const segmentX = end[0] - start[0]
+  const segmentY = end[1] - start[1]
+  const segmentZ = end[2] - start[2]
+  const projection = segmentX * (r1x / r1Length - r2x / r2Length) +
+    segmentY * (r1y / r1Length - r2y / r2Length) +
+    segmentZ * (r1z / r1Length - r2z / r2Length)
+  const scale = circulationM2PerSecond * projection / (4 * Math.PI * crossSquared)
+  target.x += cx * scale
+  target.y += cy * scale
+  target.z += cz * scale
+}
+
+function addSemiInfiniteVortexInducedVelocity(
+  target: Vector3,
+  point: readonly [number, number, number],
+  start: readonly [number, number, number],
+  direction: readonly [number, number, number],
+  circulationM2PerSecond: number
+): void {
+  const directionLength = Math.hypot(direction[0], direction[1], direction[2])
+  if (directionLength <= 1e-9) return
+  const dx = direction[0] / directionLength
+  const dy = direction[1] / directionLength
+  const dz = direction[2] / directionLength
+  const rx = point[0] - start[0]
+  const ry = point[1] - start[1]
+  const rz = point[2] - start[2]
+  const cx = dy * rz - dz * ry
+  const cy = dz * rx - dx * rz
+  const cz = dx * ry - dy * rx
+  const crossSquared = cx * cx + cy * cy + cz * cz
+  const distance = Math.hypot(rx, ry, rz)
+  if (crossSquared <= 1e-18 || distance <= 1e-9) return
+
+  const along = dx * rx + dy * ry + dz * rz
+  const scale = circulationM2PerSecond * (1 + along / distance) /
+    (4 * Math.PI * crossSquared)
+  target.x += cx * scale
+  target.y += cy * scale
+  target.z += cz * scale
+}
+
 function applyEngineThrust(
   forceBodyN: Vector3,
   torqueBodyNm: Vector3,
