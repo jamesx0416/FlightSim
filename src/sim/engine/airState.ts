@@ -1,6 +1,12 @@
 export const AirPhysicsStateKeys = {
   enabled: () => 'physics.air.enabled',
   massKg: () => 'physics.air.mass.kilograms',
+  centerOfMassForwardM: () => 'physics.air.center-of-mass.forward.meters',
+  centerOfMassRightM: () => 'physics.air.center-of-mass.right.meters',
+  centerOfMassDownM: () => 'physics.air.center-of-mass.down.meters',
+  inertiaRollKgM2: () => 'physics.air.inertia.roll.kilogram-meter-squared',
+  inertiaPitchKgM2: () => 'physics.air.inertia.pitch.kilogram-meter-squared',
+  inertiaYawKgM2: () => 'physics.air.inertia.yaw.kilogram-meter-squared',
   resetRevision: () => 'physics.air.reset-revision',
   northMeters: () => 'physics.position.north.meters',
   eastMeters: () => 'physics.position.east.meters',

@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 
 import type {
   CanonicalAirPhysicsSystemConfig,
+  CanonicalFuelSystemConfig,
   CanonicalPropulsionEngineConfig,
 } from './aircraft'
 import {
@@ -13,6 +14,7 @@ import { computeJetThrustN } from './jetEngine'
 import { ControlStateKeys } from './controls'
 import { EnvironmentCommandTypes } from './environment'
 import { createSimulatorEngineForAircraft } from './factory'
+import { FuelCommandTypes, FuelStateKeys } from './fuel'
 import { PropulsionStateKeys } from './propulsion'
 
 const basePhysics: CanonicalAirPhysicsSystemConfig = {
@@ -115,11 +117,13 @@ test('applies the configured gross thrust multiplier and pressure correction', (
 
 function createPhysicsEngine(
   engines: readonly CanonicalPropulsionEngineConfig[] = [],
-  physics: CanonicalAirPhysicsSystemConfig = basePhysics
+  physics: CanonicalAirPhysicsSystemConfig = basePhysics,
+  fuel: CanonicalFuelSystemConfig = {}
 ) {
   return createSimulatorEngineForAircraft({
     identity: { id: 'physics-test' },
     systems: [
+      { id: 'fuel', kind: 'fuel', config: fuel },
       { id: 'propulsion', kind: 'propulsion', config: { engines } },
       { id: 'air-physics', kind: 'air-physics', config: physics },
     ],
@@ -515,6 +519,32 @@ test('spatial turbulence perturbs wing sections differently and changes over tim
 
   expect(Math.abs(firstRollTorque) > 1).toBe(true)
   expect(Math.abs(laterRollTorque - firstRollTorque) > 1).toBe(true)
+})
+
+test('physical fuel tanks drive burn order, mass, CG, and inertia', () => {
+  const fuel: CanonicalFuelSystemConfig = {
+    tanks: [
+      { id: 'main', defaultQuantityRatio: 1 },
+      { id: 'forward', defaultQuantityRatio: 1, capacityKg: 1000, positionBodyM: [5, 0, 0], priority: 1 },
+      { id: 'aft', defaultQuantityRatio: 1, capacityKg: 1000, positionBodyM: [-5, 0, 0], priority: 2 },
+    ],
+  }
+  const engine = createPhysicsEngine([], basePhysics, fuel)
+  engine.dispatch({
+    type: AirPhysicsCommandTypes.reset,
+    payload: { altitudeMeters: 1000, massKg: 12_000, enabled: true },
+  })
+  engine.tick(1 / 120)
+  const initialPitchInertia = engine.state.readNumber(AirPhysicsStateKeys.inertiaPitchKgM2()) ?? 0
+
+  engine.dispatch({ type: FuelCommandTypes.consumeMass, payload: { kilograms: 500 } })
+  engine.tick(1 / 120)
+
+  expect(Math.abs((engine.state.readNumber(FuelStateKeys.tankQuantityRatio('forward')) ?? 0) - 0.5) < 1e-9).toBe(true)
+  expect(engine.state.readNumber(FuelStateKeys.tankQuantityRatio('aft'))).toBe(1)
+  expect(Math.abs((engine.state.readNumber(AirPhysicsStateKeys.massKg()) ?? 0) - 11_500) < 1e-6).toBe(true)
+  expect((engine.state.readNumber(AirPhysicsStateKeys.centerOfMassForwardM()) ?? 0) < 0).toBe(true)
+  expect((engine.state.readNumber(AirPhysicsStateKeys.inertiaPitchKgM2()) ?? 0) !== initialPitchInertia).toBe(true)
 })
 
 test('fuel flow reduces airborne aircraft mass', () => {

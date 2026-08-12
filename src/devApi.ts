@@ -2446,6 +2446,18 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       available: state.getDefinition(AirPhysicsStateKeys.enabled()) != null,
       enabled: state.readBoolean(AirPhysicsStateKeys.enabled(), { fallback: false }) ?? false,
       massKg: finite(AirPhysicsStateKeys.massKg()),
+      massProperties: {
+        centerOfMassBodyM: [
+          finite(AirPhysicsStateKeys.centerOfMassForwardM()),
+          finite(AirPhysicsStateKeys.centerOfMassRightM()),
+          finite(AirPhysicsStateKeys.centerOfMassDownM()),
+        ],
+        inertiaKgM2: [
+          finite(AirPhysicsStateKeys.inertiaRollKgM2()),
+          finite(AirPhysicsStateKeys.inertiaPitchKgM2()),
+          finite(AirPhysicsStateKeys.inertiaYawKgM2()),
+        ],
+      },
       altitudeMeters: finite(AirPhysicsStateKeys.altitudeMeters()),
       positionNedM: [
         finite(AirPhysicsStateKeys.northMeters()),

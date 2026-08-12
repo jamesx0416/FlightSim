@@ -66,7 +66,8 @@ export function createSimulatorEngineForAircraft(
     engine.registerSubsystem(
       new AirPhysicsSubsystem(
         airPhysics,
-        findSystemDefinition(aircraft, 'propulsion')?.config ?? {}
+        findSystemDefinition(aircraft, 'propulsion')?.config ?? {},
+        findSystemDefinition(aircraft, 'fuel')?.config ?? {}
       )
     )
   }
