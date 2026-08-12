@@ -8,6 +8,7 @@ import {
   SkinnedMesh,
   Uint16BufferAttribute,
   Uint8BufferAttribute,
+  Vector3,
 } from 'three'
 
 export const MSFS_DISCARDED_SKINNING_TRANSFORM_USER_DATA_KEY = 'msfsDiscardedSkinningTransform'
@@ -40,6 +41,8 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
     if (maxBoneIndex < 0) {
       return
     }
+
+    repairRigidOneBasedSkinIndex(object)
 
     let didClamp = false
     const array = normalizedSkinIndex.array as ArrayLike<number> & { [index: number]: number }
@@ -246,6 +249,54 @@ function rebindRigidRotationRootMesh(mesh: SkinnedMesh): void {
   mesh.bind(isolatedSkeleton, mesh.matrixWorld.clone())
 }
 
+function repairRigidOneBasedSkinIndex(mesh: SkinnedMesh): void {
+  const skeleton = mesh.skeleton
+  const dominantBoneIndex = getRigidSingleBoneIndex(mesh)
+  if (skeleton == null || dominantBoneIndex == null || dominantBoneIndex <= 0) {
+    return
+  }
+
+  const precedingBoneIndex = dominantBoneIndex - 1
+  let shouldShift = dominantBoneIndex === skeleton.bones.length
+  if (!shouldShift && dominantBoneIndex < skeleton.bones.length) {
+    mesh.geometry.computeBoundingBox()
+    const bounds = mesh.geometry.boundingBox
+    if (bounds == null) {
+      return
+    }
+    const meshCenter = bounds.getCenter(new Vector3()).applyMatrix4(mesh.matrixWorld)
+    const currentDistance = meshCenter.distanceTo(
+      skeleton.bones[dominantBoneIndex].getWorldPosition(new Vector3())
+    )
+    const precedingDistance = meshCenter.distanceTo(
+      skeleton.bones[precedingBoneIndex].getWorldPosition(new Vector3())
+    )
+    shouldShift = precedingDistance * 2 < currentDistance
+  }
+
+  if (!shouldShift) {
+    return
+  }
+
+  const skinIndex = mesh.geometry.getAttribute('skinIndex')
+  const skinWeight = mesh.geometry.getAttribute('skinWeight')
+  if (skinIndex == null || skinWeight == null) {
+    return
+  }
+
+  for (let vertexIndex = 0; vertexIndex < skinIndex.count; vertexIndex += 1) {
+    for (let componentIndex = 0; componentIndex < 4; componentIndex += 1) {
+      if (getAttributeComponent(skinWeight, vertexIndex, componentIndex) <= 1e-4) {
+        continue
+      }
+      if (getAttributeComponent(skinIndex, vertexIndex, componentIndex) === dominantBoneIndex) {
+        setAttributeComponent(skinIndex, vertexIndex, componentIndex, precedingBoneIndex)
+      }
+    }
+  }
+  skinIndex.needsUpdate = true
+}
+
 function getRigidSingleBoneIndex(mesh: SkinnedMesh): number | null {
   const skinIndex = mesh.geometry.getAttribute('skinIndex')
   const skinWeight = mesh.geometry.getAttribute('skinWeight')
@@ -287,6 +338,18 @@ function getAttributeComponent(
     return attribute.getZ(vertexIndex)
   }
   return attribute.getW(vertexIndex)
+}
+
+function setAttributeComponent(
+  attribute: BufferAttribute | InterleavedBufferAttribute,
+  vertexIndex: number,
+  componentIndex: number,
+  value: number
+): void {
+  if (componentIndex === 0) attribute.setX(vertexIndex, value)
+  else if (componentIndex === 1) attribute.setY(vertexIndex, value)
+  else if (componentIndex === 2) attribute.setZ(vertexIndex, value)
+  else attribute.setW(vertexIndex, value)
 }
 
 function isApproximatelyHalfTurnX(x: number, y: number, z: number, w: number, tolerance: number): boolean {
