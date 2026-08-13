@@ -1,9 +1,16 @@
 import { describe, expect, test } from 'bun:test'
 import {
   AnimationClip,
+  Bone,
+  BufferGeometry,
+  Float32BufferAttribute,
   Mesh,
   MeshStandardMaterial,
   Object3D,
+  Quaternion,
+  Skeleton,
+  SkinnedMesh,
+  Uint16BufferAttribute,
   Vector3,
   VectorKeyframeTrack,
 } from 'three'
@@ -419,16 +426,16 @@ describe('AircraftRuntime canonical visual bindings', () => {
     )
   })
 
-  test('standard WingFlex bends smoothly and carries independent wing-mounted branches', () => {
+  test('standard WingFlex follows one smooth curve and linked surfaces inherit its tangent', () => {
     const scene = new Object3D()
     const makeChain = (side: 'LEFT' | 'RIGHT', rootZ: number) => {
-      const root = new Object3D()
+      const root = new Bone()
       root.name = `WING_BONE_00_${side}`
       root.position.z = rootZ
       scene.add(root)
       const sideSign = side === 'LEFT' ? 1 : -1
       const bones = Array.from({ length: 4 }, (_, index) => {
-        const bone = new Object3D()
+        const bone = new Bone()
         bone.name = `WING_BONE_0${index + 1}_${side}`
         bone.position.set(sideSign, 0, -0.25)
         return bone
@@ -440,16 +447,60 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const leftBones = makeChain('LEFT', 0)
     const rightBones = makeChain('RIGHT', 2)
     const leftRoot = leftBones[0].parent!
-    const slat = new Object3D()
-    slat.name = 'WING_BONE_SLATE_00_LEFT'
-    slat.position.set(0.45, 0, 0.1)
-    leftRoot.add(slat)
-    const flapCarrier = new Object3D()
-    leftRoot.add(flapCarrier)
-    const flap = new Object3D()
-    flap.name = 'WING_BONE_FLAPS_00_LEFT'
-    flap.position.set(0.7, -0.05, -0.1)
-    flapCarrier.add(flap)
+
+    const innerSlat = new Bone()
+    innerSlat.name = 'WING_BONE_SLATE_00_LEFT'
+    innerSlat.position.set(0.45, 0, 0.1)
+    leftRoot.add(innerSlat)
+    const outerSlat = new Bone()
+    outerSlat.name = 'WING_BONE_SLATE_02_LEFT'
+    outerSlat.position.set(0.1, 0, 0.1)
+    leftBones[1].add(outerSlat)
+
+    const innerFlap = new Bone()
+    innerFlap.name = 'WING_BONE_FLAPS_00_LEFT'
+    innerFlap.position.set(0.7, -0.05, -0.1)
+    leftRoot.add(innerFlap)
+    const outerFlap = new Bone()
+    outerFlap.name = 'WING_BONE_FLAPS_01_LEFT'
+    outerFlap.position.set(0.1, -0.05, -0.1)
+    leftBones[1].add(outerFlap)
+
+    const wingGeometry = new BufferGeometry()
+    wingGeometry.setAttribute('position', new Float32BufferAttribute([1.5, 0, -0.375, 1.2, 0, 0], 3))
+    wingGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([1, 0, 0, 0, 6, 0, 0, 0], 4))
+    wingGeometry.setAttribute('skinWeight', new Float32BufferAttribute([1, 0, 0, 0, 1, 0, 0, 0], 4))
+    const wingMesh = Object.assign(new Object3D(), {
+      isSkinnedMesh: true,
+      geometry: wingGeometry,
+      skeleton: { bones: [leftRoot, ...leftBones, innerSlat, outerSlat] },
+    })
+    scene.add(wingMesh)
+
+    const rigidFlapGeometry = new BufferGeometry()
+    rigidFlapGeometry.setAttribute('position', new Float32BufferAttribute([
+      0.8, -0.05, -0.1,
+      1.4, -0.05, -0.1,
+      2.0, -0.05, -0.1,
+      2.6, -0.05, -0.1,
+    ], 3))
+    rigidFlapGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+    ], 4))
+    rigidFlapGeometry.setAttribute('skinWeight', new Float32BufferAttribute([
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+    ], 4))
+    const rigidFlapMesh = new SkinnedMesh(rigidFlapGeometry, new MeshStandardMaterial())
+    scene.add(rigidFlapMesh)
+    scene.updateMatrixWorld(true)
+    rigidFlapMesh.bind(new Skeleton([outerFlap]))
+
     const leftPivot = new Object3D()
     leftPivot.name = 'Engine_PIVOT_1_LEFT'
     leftPivot.position.set(0.8, 0, -0.05)
@@ -480,45 +531,64 @@ describe('AircraftRuntime canonical visual bindings', () => {
       ...hostServices,
       readVariable: key => key.endsWith(':1') ? leftFlex : key.endsWith(':2') ? rightFlex : 0,
     }, aircraft)
+    const smoothedWeights = wingGeometry.getAttribute('skinWeight')
+    expect(smoothedWeights.getX(0) > 0 && smoothedWeights.getX(0) < 1).toBe(true)
+    expect(smoothedWeights.getY(0) > 0 && smoothedWeights.getY(0) < 1).toBe(true)
+    expect(smoothedWeights.getX(1) > 0 && smoothedWeights.getX(1) < 1).toBe(true)
+    expect(smoothedWeights.getY(1) > 0 && smoothedWeights.getY(1) < 1).toBe(true)
+    expect(rigidFlapMesh.skeleton.bones.length).toBe(5)
+    const rigidFlapWeights = rigidFlapGeometry.getAttribute('skinWeight')
+    expect(rigidFlapWeights.getX(1) > 0 && rigidFlapWeights.getX(1) < 1).toBe(true)
+    expect(rigidFlapWeights.getY(1) > 0 && rigidFlapWeights.getY(1) < 1).toBe(true)
 
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
     const neutralLeftStations = leftBones.map(node => node.getWorldPosition(new Vector3()))
-    const neutralLeftTip = neutralLeftStations.at(-1)!
     const neutralRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
+    const neutralInnerSlat = innerSlat.getWorldPosition(new Vector3())
+    const neutralOuterSlat = outerSlat.getWorldPosition(new Vector3())
+    const neutralInnerFlap = innerFlap.getWorldPosition(new Vector3())
+    const neutralOuterFlap = outerFlap.getWorldPosition(new Vector3())
     const neutralLeftPivot = leftPivot.getWorldPosition(new Vector3())
-    const neutralSlat = slat.getWorldPosition(new Vector3())
-    const neutralFlap = flap.getWorldPosition(new Vector3())
-    const neutralBoneQuaternions = leftBones.map(node => node.quaternion.clone())
+    const neutralBoneWorldQuaternions = leftBones.map(node => node.getWorldQuaternion(new Quaternion()))
+    const neutralRigidFlapBones = rigidFlapMesh.skeleton.bones.map(node => node.getWorldPosition(new Vector3()))
 
     leftFlex = 0.5
     rightFlex = 0.5
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
     const flexedLeftStations = leftBones.map(node => node.getWorldPosition(new Vector3()))
-    const flexedLeftTip = flexedLeftStations.at(-1)!
     const flexedRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
-    expect(flexedLeftTip.y > neutralLeftTip.y).toBe(true)
+    const deflections = flexedLeftStations.map((point, index) => point.y - neutralLeftStations[index]!.y)
+    expect(deflections.every((value, index) => index === 0 || value > deflections[index - 1]!)).toBe(true)
     expect(flexedRightTip.y > neutralRightTip.y).toBe(true)
-    expect(flexedLeftStations[0].y > neutralLeftStations[0].y).toBe(true)
-    expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
-    expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
-    expect(slat.getWorldPosition(new Vector3()).y > neutralSlat.y).toBe(true)
-    expect(flap.getWorldPosition(new Vector3()).y > neutralFlap.y).toBe(true)
+    expect(innerSlat.getWorldPosition(new Vector3()).y > neutralInnerSlat.y).toBe(true)
+    expect(innerFlap.getWorldPosition(new Vector3()).y > neutralInnerFlap.y).toBe(true)
+    expect(outerSlat.getWorldPosition(new Vector3()).y > neutralOuterSlat.y).toBe(true)
+    expect(outerFlap.getWorldPosition(new Vector3()).y > neutralOuterFlap.y).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).y > neutralLeftPivot.y).toBe(true)
     expect(leftPivot.quaternion.angleTo(neutralLeftPivotQuaternion) < 1e-9).toBe(true)
-    const inboardIncrement = leftBones[0].quaternion.angleTo(neutralBoneQuaternions[0])
-    const tipIncrement = leftBones.at(-1)!.quaternion.angleTo(neutralBoneQuaternions.at(-1)!)
-    expect(inboardIncrement > tipIncrement).toBe(true)
+    const rigidFlapDeflections = rigidFlapMesh.skeleton.bones.map((node, index) =>
+      node.getWorldPosition(new Vector3()).y - neutralRigidFlapBones[index]!.y
+    )
+    expect(rigidFlapDeflections.every((value, index) =>
+      index === 0 || value > rigidFlapDeflections[index - 1]!
+    )).toBe(true)
+    const tangentRotations = leftBones.map((node, index) =>
+      node.getWorldQuaternion(new Quaternion()).angleTo(neutralBoneWorldQuaternions[index]!)
+    )
+    expect(tangentRotations.every((value, index) =>
+      index === 0 || value > tangentRotations[index - 1]!
+    )).toBe(true)
 
     leftFlex = 0
     rightFlex = 0
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
-    expect(leftBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralLeftTip) < 1e-9).toBe(true)
+    expect(leftBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralLeftStations.at(-1)!) < 1e-9).toBe(true)
     expect(rightBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralRightTip) < 1e-9).toBe(true)
-    expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) < 1e-9).toBe(true)
-    expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-9).toBe(true)
+    expect(outerSlat.getWorldPosition(new Vector3()).distanceTo(neutralOuterSlat) < 1e-9).toBe(true)
+    expect(outerFlap.getWorldPosition(new Vector3()).distanceTo(neutralOuterFlap) < 1e-9).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) < 1e-9).toBe(true)
   })
 })

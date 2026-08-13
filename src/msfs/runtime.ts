@@ -1,12 +1,14 @@
 import {
   type AnimationClip,
   AnimationMixer,
+  Bone,
   Box3,
   type Material,
-  Matrix4,
   Object3D,
   PropertyBinding,
   Quaternion,
+  Skeleton,
+  type SkinnedMesh,
   Vector3,
 } from 'three'
 
@@ -547,6 +549,7 @@ export class AircraftRuntime {
     this.resetWingFlexBindings()
     this.mixer.update(0)
     mixerMs = finishPhase()
+    this.captureWingFlexAuthoredPoses()
     this.applyWingFlexBindings()
     wingFlexMs = finishPhase()
 
@@ -1065,7 +1068,15 @@ export class AircraftRuntime {
 
   private resetWingFlexBindings(): void {
     for (const binding of this.wingFlexBindings) {
-      resetWingFlexAttachments(binding.attachments)
+      resetWingFlexSide(binding.leftWing)
+      resetWingFlexSide(binding.rightWing)
+      resetWingFlexAuxiliaryNodes(binding.auxiliaryNodes)
+    }
+  }
+
+  private captureWingFlexAuthoredPoses(): void {
+    for (const binding of this.wingFlexBindings) {
+      captureWingFlexAuxiliaryPoses(binding.auxiliaryNodes, binding.root)
     }
   }
 
@@ -1077,7 +1088,9 @@ export class AircraftRuntime {
       applyWingFlexSide(binding.leftWing, leftFlex, binding)
       applyWingFlexSide(binding.rightWing, rightFlex, binding)
       binding.root.updateMatrixWorld(true)
-      applyWingFlexAttachments(binding.attachments, leftFlex, rightFlex, binding)
+      applyWingFlexAuxiliaryNodes(binding.auxiliaryNodes, leftFlex, rightFlex, binding)
+      binding.root.updateMatrixWorld(true)
+      applyWingFlexPivots(binding.pivots, leftFlex, rightFlex, binding)
     }
   }
 
@@ -6985,6 +6998,8 @@ interface RuntimeWingFlexNode {
   readonly order: number
   readonly restPointInRoot: Vector3
   readonly restQuaternionInRoot: Quaternion
+  readonly restLocalPosition: Vector3
+  readonly restLocalQuaternion: Quaternion
   readonly spanRatio: number
 }
 
@@ -6996,12 +7011,22 @@ interface RuntimeWingFlexSide {
   readonly sideSign: number
 }
 
-interface RuntimeWingFlexAttachment {
+interface RuntimeWingFlexAuxiliaryNode {
   readonly node: Object3D
-  readonly wrapper: Object3D
   readonly side: RuntimeWingFlexSide
   readonly spanRatio: number
-  readonly centerlinePointInRoot: Vector3
+  readonly restPointInRoot: Vector3
+  readonly restLocalPosition: Vector3
+  readonly restLocalQuaternion: Quaternion
+  readonly authoredPointInRoot: Vector3
+  readonly authoredQuaternionInRoot: Quaternion
+}
+
+interface RuntimeWingFlexPivot {
+  readonly node: Object3D
+  readonly side: RuntimeWingFlexSide
+  readonly spanRatio: number
+  readonly restPointInRoot: Vector3
 }
 
 interface RuntimeInteractionFeedbackTimer {
@@ -7014,7 +7039,8 @@ interface RuntimeWingFlexBinding {
   readonly root: Object3D
   readonly leftWing: RuntimeWingFlexSide | null
   readonly rightWing: RuntimeWingFlexSide | null
-  readonly attachments: readonly RuntimeWingFlexAttachment[]
+  readonly auxiliaryNodes: readonly RuntimeWingFlexAuxiliaryNode[]
+  readonly pivots: readonly RuntimeWingFlexPivot[]
   readonly maxAngleRadians: number
 }
 
@@ -7055,7 +7081,7 @@ function buildWingFlexBindings(
     if (animation.type.trim().toLowerCase() !== 'wingflex') continue
     const leftWingEntries: Array<{ node: Object3D; order: number }> = []
     const rightWingEntries: Array<{ node: Object3D; order: number }> = []
-    const pivotEntries: Array<{ node: Object3D; order: number }> = []
+    const pivotEntries: Array<{ node: Object3D; order: number; side: 'left' | 'right' }> = []
 
     for (const nodeName of animation.nodes) {
       const node = resolveNodeAnimationNode(nodeName, nodes, canonicalNodes)
@@ -7065,21 +7091,29 @@ function buildWingFlexBindings(
       if (descriptor.kind === 'wingBone') {
         ;(descriptor.side === 'left' ? leftWingEntries : rightWingEntries).push(entry)
       } else {
-        pivotEntries.push(entry)
+        pivotEntries.push({ ...entry, side: descriptor.side })
       }
     }
 
     const leftWing = buildWingFlexSide(leftWingEntries, sceneRoot)
     const rightWing = buildWingFlexSide(rightWingEntries, sceneRoot)
     if (leftWing == null && rightWing == null) continue
+    const sides = [leftWing, rightWing].filter(
+      (side): side is RuntimeWingFlexSide => side != null
+    )
+    const surfaceFlexNodes = smoothWingFlexSkinWeights(sceneRoot, sides)
 
     bindings.push({
       root: sceneRoot,
       leftWing,
       rightWing,
-      attachments: buildWingFlexAttachments(pivotEntries, leftWing, rightWing, sceneRoot),
-      // Each authored helper has a +/-5 degree reference pose. The runtime turns the
-      // cumulative reference into one smooth cantilever bend instead of four hinges.
+      auxiliaryNodes: [
+        ...buildWingFlexAuxiliaryNodes(leftWing, rightWing, sceneRoot),
+        ...surfaceFlexNodes,
+      ],
+      pivots: buildWingFlexPivots(pivotEntries, leftWing, rightWing, sceneRoot),
+      // The SDK uses a +/-5 degree helper pose to author and smooth the skin. Runtime
+      // WingFlex itself moves the listed skeleton-node positions in 3D.
       maxAngleRadians: 5 * Math.PI / 180,
     })
   }
@@ -7119,117 +7153,419 @@ function buildWingFlexSide(
         restPointInRoot,
         restQuaternionInRoot: rootWorldQuaternionInverse.clone()
           .multiply(entry.node.getWorldQuaternion(new Quaternion())),
+        restLocalPosition: entry.node.position.clone(),
+        restLocalQuaternion: entry.node.quaternion.clone(),
         spanRatio: clamp(Math.abs(restPointInRoot.x - rootPointInRoot.x) / spanLength, 0, 1),
       }
     }),
   }
 }
 
-function buildWingFlexAttachments(
-  pivotEntries: readonly { readonly node: Object3D; readonly order: number }[],
+function smoothWingFlexSkinWeights(
+  sceneRoot: Object3D,
+  sides: readonly RuntimeWingFlexSide[]
+): readonly RuntimeWingFlexAuxiliaryNode[] {
+  if (sides.length === 0) return []
+  sceneRoot.updateMatrixWorld(true)
+  const rootWorldInverse = sceneRoot.matrixWorld.clone().invert()
+  const surfaceFlexNodes: RuntimeWingFlexAuxiliaryNode[] = []
+
+  sceneRoot.traverse(object => {
+    const mesh = object as SkinnedMesh
+    if (mesh.isSkinnedMesh !== true || mesh.skeleton == null) return
+    const position = mesh.geometry.getAttribute('position')
+    const skinIndex = mesh.geometry.getAttribute('skinIndex')
+    const skinWeight = mesh.geometry.getAttribute('skinWeight')
+    if (position == null || skinIndex == null || skinWeight == null) return
+    if (skinIndex.itemSize < 4 || skinWeight.itemSize < 4) return
+
+    const rigidSurfaceNodes = smoothRigidWingFlexSurface(
+      mesh,
+      sides,
+      sceneRoot,
+      rootWorldInverse
+    )
+    if (rigidSurfaceNodes.length > 0) {
+      surfaceFlexNodes.push(...rigidSurfaceNodes)
+      return
+    }
+
+    const chains = sides.flatMap(side => {
+      const result: Array<{
+        side: RuntimeWingFlexSide
+        boneIndices: number[]
+        boneIndexSet: Set<number>
+        spanRatios: number[]
+      }> = []
+      const mainBones = [side.fixedRoot, ...side.nodes.map(entry => entry.node)]
+      const mainBoneIndices = mainBones.map(candidate =>
+        mesh.skeleton.bones.findIndex(bone => bone === candidate)
+      )
+      if (mainBoneIndices.every(index => index >= 0)) {
+        result.push({
+          side,
+          boneIndices: mainBoneIndices,
+          boneIndexSet: new Set(mainBoneIndices),
+          spanRatios: [0, ...side.nodes.map(entry => entry.spanRatio)],
+        })
+      }
+
+      const slatBones = mesh.skeleton.bones.flatMap((bone, boneIndex) => {
+        const descriptor = describeWingFlexSlatBone(bone.name)
+        if (descriptor == null || descriptor.sideSign !== side.sideSign) return []
+        const pointInRoot = worldPointToRoot(bone.getWorldPosition(new Vector3()), sceneRoot)
+        return [{ boneIndex, spanRatio: wingSpanRatio(side, pointInRoot), order: descriptor.index }]
+      }).sort((left, right) => left.order - right.order)
+      if (slatBones.length >= 2) {
+        result.push({
+          side,
+          boneIndices: slatBones.map(entry => entry.boneIndex),
+          boneIndexSet: new Set(slatBones.map(entry => entry.boneIndex)),
+          spanRatios: slatBones.map(entry => entry.spanRatio),
+        })
+      }
+      return result
+    })
+    if (chains.length === 0) return
+
+    const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
+    const pointInRoot = new Vector3()
+    const activeIndicesAt = (vertexIndex: number): number[] => {
+      const activeIndices: number[] = []
+      for (let component = 0; component < 4; component += 1) {
+        const weight = component === 0 ? skinWeight.getX(vertexIndex)
+          : component === 1 ? skinWeight.getY(vertexIndex)
+            : component === 2 ? skinWeight.getZ(vertexIndex)
+              : skinWeight.getW(vertexIndex)
+        if (weight <= 1e-5) continue
+        activeIndices.push(component === 0 ? skinIndex.getX(vertexIndex)
+          : component === 1 ? skinIndex.getY(vertexIndex)
+            : component === 2 ? skinIndex.getZ(vertexIndex)
+              : skinIndex.getW(vertexIndex))
+      }
+      return activeIndices
+    }
+
+
+    let modified = false
+    for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
+      const activeIndices = activeIndicesAt(vertexIndex)
+      if (activeIndices.length === 0) continue
+      const chain = chains.find(candidate =>
+        activeIndices.every(index => candidate.boneIndexSet.has(index))
+      )
+      if (chain == null) continue
+
+      pointInRoot.set(position.getX(vertexIndex), position.getY(vertexIndex), position.getZ(vertexIndex))
+        .applyMatrix4(meshToRoot)
+      const ratio = wingSpanRatio(chain.side, pointInRoot)
+      let segment = chain.spanRatios.length - 2
+      for (let index = 0; index < chain.spanRatios.length - 1; index += 1) {
+        if (ratio <= chain.spanRatios[index + 1]!) {
+          segment = index
+          break
+        }
+      }
+      const start = chain.spanRatios[segment]!
+      const end = chain.spanRatios[segment + 1]!
+      const rawT = end - start <= 1e-9 ? 0 : clamp((ratio - start) / (end - start), 0, 1)
+      const blend = rawT * rawT * (3 - 2 * rawT)
+      skinIndex.setXYZW(
+        vertexIndex,
+        chain.boneIndices[segment]!,
+        chain.boneIndices[segment + 1]!,
+        0,
+        0
+      )
+      skinWeight.setXYZW(vertexIndex, 1 - blend, blend, 0, 0)
+      modified = true
+    }
+    if (modified) {
+      skinIndex.needsUpdate = true
+      skinWeight.needsUpdate = true
+    }
+  })
+  return surfaceFlexNodes
+}
+
+function smoothRigidWingFlexSurface(
+  mesh: SkinnedMesh,
+  sides: readonly RuntimeWingFlexSide[],
+  sceneRoot: Object3D,
+  rootWorldInverse: ReturnType<Object3D['matrixWorld']['clone']>
+): readonly RuntimeWingFlexAuxiliaryNode[] {
+  const position = mesh.geometry.getAttribute('position')
+  const skinIndex = mesh.geometry.getAttribute('skinIndex')
+  const skinWeight = mesh.geometry.getAttribute('skinWeight')
+  if (position == null || skinIndex == null || skinWeight == null) return []
+
+  const activeBoneIndices = new Set<number>()
+  for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
+    for (let component = 0; component < 4; component += 1) {
+      const weight = component === 0 ? skinWeight.getX(vertexIndex)
+        : component === 1 ? skinWeight.getY(vertexIndex)
+          : component === 2 ? skinWeight.getZ(vertexIndex)
+            : skinWeight.getW(vertexIndex)
+      if (weight <= 1e-5) continue
+      activeBoneIndices.add(component === 0 ? skinIndex.getX(vertexIndex)
+        : component === 1 ? skinIndex.getY(vertexIndex)
+          : component === 2 ? skinIndex.getZ(vertexIndex)
+            : skinIndex.getW(vertexIndex))
+      if (activeBoneIndices.size > 1) return []
+    }
+  }
+  if (activeBoneIndices.size !== 1) return []
+  const driverBone = mesh.skeleton.bones[[...activeBoneIndices][0]!]
+  if (driverBone == null || !isWingFlexAuxiliaryBoneName(driverBone.name)) return []
+
+  const driverPointInRoot = worldPointToRoot(driverBone.getWorldPosition(new Vector3()), sceneRoot)
+  const side = chooseWingFlexSide(driverPointInRoot, sides)
+  if (side == null) return []
+  const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
+  const pointsInRoot: Vector3[] = []
+  const ratios = new Float32Array(position.count)
+  let minRatio = Number.POSITIVE_INFINITY
+  let maxRatio = Number.NEGATIVE_INFINITY
+  for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
+    const pointInRoot = new Vector3(
+      position.getX(vertexIndex),
+      position.getY(vertexIndex),
+      position.getZ(vertexIndex)
+    ).applyMatrix4(meshToRoot)
+    const ratio = wingSpanRatio(side, pointInRoot)
+    pointsInRoot.push(pointInRoot)
+    ratios[vertexIndex] = ratio
+    minRatio = Math.min(minRatio, ratio)
+    maxRatio = Math.max(maxRatio, ratio)
+  }
+  if ((maxRatio - minRatio) * side.spanLength < 1) return []
+
+  const sampleCount = 5
+  const bones: Bone[] = []
+  const entries: RuntimeWingFlexAuxiliaryNode[] = []
+  driverBone.updateWorldMatrix(true, false)
+  for (let sampleIndex = 0; sampleIndex < sampleCount; sampleIndex += 1) {
+    const ratio = minRatio + (maxRatio - minRatio) * sampleIndex / (sampleCount - 1)
+    let nearestIndex = 0
+    let nearestDistance = Number.POSITIVE_INFINITY
+    for (let vertexIndex = 0; vertexIndex < ratios.length; vertexIndex += 1) {
+      const distance = Math.abs(ratios[vertexIndex]! - ratio)
+      if (distance < nearestDistance) {
+        nearestDistance = distance
+        nearestIndex = vertexIndex
+      }
+    }
+    const restPointInRoot = pointsInRoot[nearestIndex]!.clone()
+    const worldPoint = sceneRoot.localToWorld(restPointInRoot.clone())
+    const bone = new Bone()
+    bone.name = `__WING_FLEX_SURFACE_${mesh.id}_${sampleIndex}`
+    driverBone.add(bone)
+    bone.position.copy(driverBone.worldToLocal(worldPoint))
+    bone.quaternion.identity()
+    bone.updateMatrix()
+    bones.push(bone)
+    entries.push({
+      node: bone,
+      side,
+      spanRatio: ratio,
+      restPointInRoot,
+      restLocalPosition: bone.position.clone(),
+      restLocalQuaternion: bone.quaternion.clone(),
+      authoredPointInRoot: restPointInRoot.clone(),
+      authoredQuaternionInRoot: new Quaternion(),
+    })
+  }
+
+  sceneRoot.updateMatrixWorld(true)
+  const skeleton = new Skeleton(bones)
+  skeleton.calculateInverses()
+  mesh.skeleton = skeleton
+  for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
+    const scaled = clamp((ratios[vertexIndex]! - minRatio) / (maxRatio - minRatio), 0, 1) * (sampleCount - 1)
+    const segment = Math.min(Math.floor(scaled), sampleCount - 2)
+    const rawT = scaled - segment
+    const blend = rawT * rawT * (3 - 2 * rawT)
+    skinIndex.setXYZW(vertexIndex, segment, segment + 1, 0, 0)
+    skinWeight.setXYZW(vertexIndex, 1 - blend, blend, 0, 0)
+  }
+  skinIndex.needsUpdate = true
+  skinWeight.needsUpdate = true
+  return entries
+}
+
+function buildWingFlexAuxiliaryNodes(
   leftWing: RuntimeWingFlexSide | null,
   rightWing: RuntimeWingFlexSide | null,
   sceneRoot: Object3D
-): readonly RuntimeWingFlexAttachment[] {
+): readonly RuntimeWingFlexAuxiliaryNode[] {
   const sides = [leftWing, rightWing].filter((side): side is RuntimeWingFlexSide => side != null)
   if (sides.length === 0) return []
   sceneRoot.updateMatrixWorld(true)
-  const candidates = new Set<Object3D>(pivotEntries.map(entry => entry.node))
+  const mainNodes = new Set(sides.flatMap(side => side.nodes.map(entry => entry.node)))
+  const seen = new Set<Object3D>()
+  const result: RuntimeWingFlexAuxiliaryNode[] = []
+
+  const collect = (node: Object3D): void => {
+    const pointInRoot = worldPointToRoot(node.getWorldPosition(new Vector3()), sceneRoot)
+    const side = chooseWingFlexSide(pointInRoot, sides)
+    const spanRatio = side == null ? 0 : wingSpanRatio(side, pointInRoot)
+    const isAuxiliaryBone = (node as Object3D & { isBone?: boolean }).isBone === true &&
+      isWingFlexAuxiliaryBoneName(node.name)
+    if (!mainNodes.has(node) && isAuxiliaryBone && side != null && spanRatio > 0.01 && !seen.has(node)) {
+      seen.add(node)
+      result.push({
+        node,
+        side,
+        spanRatio,
+        restPointInRoot: pointInRoot,
+        restLocalPosition: node.position.clone(),
+        restLocalQuaternion: node.quaternion.clone(),
+        authoredPointInRoot: pointInRoot.clone(),
+        authoredQuaternionInRoot: new Quaternion(),
+      })
+    }
+    for (const child of node.children) collect(child)
+  }
 
   for (const side of sides) {
-    const mainRootChild = side.nodes[0]?.node
-    for (const child of [...side.fixedRoot.children]) {
-      if (child === mainRootChild) continue
-      collectIndependentWingMounts(child, sides, sceneRoot, candidates)
-    }
+    for (const child of side.fixedRoot.children) collect(child)
   }
-
-  const attachments: RuntimeWingFlexAttachment[] = []
-  for (const node of candidates) {
-    const parent = node.parent
-    if (parent == null) continue
-    const restPointInRoot = worldPointToRoot(node.getWorldPosition(new Vector3()), sceneRoot)
-    const side = chooseWingFlexSide(restPointInRoot, sides)
-    if (side == null) continue
-    const spanRatio = wingSpanRatio(side, restPointInRoot)
-    const wrapper = new Object3D()
-    parent.add(wrapper)
-    wrapper.add(node)
-    attachments.push({
-      node,
-      wrapper,
-      side,
-      spanRatio,
-      centerlinePointInRoot: sampleWingRestCenterline(side, spanRatio),
-    })
-  }
-  return attachments
+  return result
 }
 
-function collectIndependentWingMounts(
-  node: Object3D,
-  sides: readonly RuntimeWingFlexSide[],
-  sceneRoot: Object3D,
-  output: Set<Object3D>
-): void {
-  const point = worldPointToRoot(node.getWorldPosition(new Vector3()), sceneRoot)
-  const side = chooseWingFlexSide(point, sides)
-  if (side != null && wingSpanRatio(side, point) > 0.01) {
-    output.add(node)
-    return
+function isWingFlexAuxiliaryBoneName(name: string): boolean {
+  const normalized = name.trim().toUpperCase()
+  if (!normalized) return false
+  if (normalized.includes('FAIRING')) return true
+  if (!normalized.includes('WING') || !normalized.includes('BONE')) return false
+  return normalized.includes('SLAT') ||
+    normalized.includes('SLATE') ||
+    normalized.includes('FLAP') ||
+    normalized.includes('SPOILER') ||
+    normalized.includes('AILERON')
+}
+
+function resetWingFlexSide(side: RuntimeWingFlexSide | null): void {
+  if (side == null) return
+  for (const entry of side.nodes) {
+    entry.node.position.copy(entry.restLocalPosition)
+    entry.node.quaternion.copy(entry.restLocalQuaternion)
+    entry.node.updateMatrix()
   }
-  for (const child of node.children) collectIndependentWingMounts(child, sides, sceneRoot, output)
+}
+
+function captureWingFlexAuxiliaryPoses(
+  nodes: readonly RuntimeWingFlexAuxiliaryNode[],
+  sceneRoot: Object3D
+): void {
+  if (nodes.length === 0) return
+  sceneRoot.updateMatrixWorld(true)
+  const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
+  for (const entry of nodes) {
+    entry.authoredPointInRoot.copy(worldPointToRoot(entry.node.getWorldPosition(new Vector3()), sceneRoot))
+    entry.authoredQuaternionInRoot.copy(rootWorldQuaternionInverse)
+      .multiply(entry.node.getWorldQuaternion(new Quaternion()))
+  }
 }
 
 function chooseWingFlexSide(
   pointInRoot: Vector3,
   sides: readonly RuntimeWingFlexSide[]
 ): RuntimeWingFlexSide | null {
-  if (sides.length === 0) return null
-  const pointSign = Math.sign(pointInRoot.x - sides[0].rootPointInRoot.x)
-  const signMatch = sides.find(side => pointSign !== 0 && side.sideSign === pointSign)
-  if (signMatch != null) return signMatch
-  return sides.reduce((best, side) =>
-    Math.abs(pointInRoot.x - side.rootPointInRoot.x) < Math.abs(pointInRoot.x - best.rootPointInRoot.x)
-      ? side
-      : best
-  )
+  const pointSign = Math.sign(pointInRoot.x - sides[0]!.rootPointInRoot.x)
+  return sides.find(side => pointSign !== 0 && side.sideSign === pointSign)
+    ?? sides.reduce<RuntimeWingFlexSide | null>((best, side) =>
+      best == null || Math.abs(pointInRoot.x - side.rootPointInRoot.x) < Math.abs(pointInRoot.x - best.rootPointInRoot.x)
+        ? side
+        : best
+    , null)
+}
+
+function resetWingFlexAuxiliaryNodes(nodes: readonly RuntimeWingFlexAuxiliaryNode[]): void {
+  for (const entry of nodes) {
+    entry.node.position.copy(entry.restLocalPosition)
+    entry.node.quaternion.copy(entry.restLocalQuaternion)
+    entry.node.updateMatrix()
+  }
+}
+
+function applyWingFlexAuxiliaryNodes(
+  nodes: readonly RuntimeWingFlexAuxiliaryNode[],
+  leftFlex: number,
+  rightFlex: number,
+  binding: RuntimeWingFlexBinding
+): void {
+  if (nodes.length === 0) return
+  binding.root.updateMatrixWorld(true)
+  const rootWorldQuaternion = binding.root.getWorldQuaternion(new Quaternion())
+  const rootWorldQuaternionInverse = rootWorldQuaternion.clone().invert()
+
+  for (const entry of nodes) {
+    const parent = entry.node.parent
+    if (parent == null) continue
+    const flexAmount = entry.side === binding.leftWing ? leftFlex : rightFlex
+    const sample = sampleWingFlex(entry.side, entry.spanRatio, wingFlexTipAngle(entry.side, flexAmount, binding))
+    const bendInRoot = new Quaternion().setFromAxisAngle(
+      new Vector3(0, 0, 1),
+      entry.side.sideSign * sample.slope
+    )
+    const authoredDelta = entry.authoredPointInRoot.clone()
+      .sub(entry.restPointInRoot)
+      .applyQuaternion(bendInRoot)
+    const targetPointInRoot = entry.restPointInRoot.clone().add(authoredDelta)
+    targetPointInRoot.y += sample.deflection
+    const targetWorldPoint = binding.root.localToWorld(targetPointInRoot)
+    const targetWorldQuaternion = rootWorldQuaternion.clone()
+      .multiply(bendInRoot)
+      .multiply(entry.authoredQuaternionInRoot)
+    entry.node.position.copy(parent.worldToLocal(targetWorldPoint))
+    entry.node.quaternion.copy(
+      parent.getWorldQuaternion(new Quaternion()).invert().multiply(targetWorldQuaternion)
+    )
+    entry.node.updateMatrix()
+    entry.node.updateWorldMatrix(false, true)
+  }
+}
+
+function describeWingFlexSlatBone(name: string): { readonly index: number; readonly sideSign: number } | null {
+  const normalized = name.trim().toUpperCase()
+  if (!normalized.includes('WING') || !normalized.includes('BONE')) return null
+  if (!normalized.includes('SLAT') && !normalized.includes('SLATE')) return null
+  const sideSign = normalized.includes('LEFT') ? 1 : normalized.includes('RIGHT') ? -1 : 0
+  if (sideSign === 0) return null
+  const match = normalized.match(/SLATE?[_ ]*0*([0-9]+)/u)
+  const index = Number.parseInt(match?.[1] ?? '', 10)
+  return Number.isFinite(index) ? { index, sideSign } : null
+}
+
+function buildWingFlexPivots(
+  entries: readonly { readonly node: Object3D; readonly order: number; readonly side: 'left' | 'right' }[],
+  leftWing: RuntimeWingFlexSide | null,
+  rightWing: RuntimeWingFlexSide | null,
+  sceneRoot: Object3D
+): readonly RuntimeWingFlexPivot[] {
+  sceneRoot.updateMatrixWorld(true)
+  return entries.flatMap(entry => {
+    const side = entry.side === 'left' ? leftWing : rightWing
+    if (side == null || entry.node.parent == null) return []
+    const restPointInRoot = worldPointToRoot(entry.node.getWorldPosition(new Vector3()), sceneRoot)
+    return [{
+      node: entry.node,
+      side,
+      spanRatio: wingSpanRatio(side, restPointInRoot),
+      restPointInRoot,
+    }]
+  })
 }
 
 function wingSpanRatio(side: RuntimeWingFlexSide, pointInRoot: Vector3): number {
   return clamp(Math.abs(pointInRoot.x - side.rootPointInRoot.x) / side.spanLength, 0, 1)
 }
 
-function sampleWingRestCenterline(side: RuntimeWingFlexSide, spanRatio: number): Vector3 {
-  const points = [
-    { spanRatio: 0, point: side.rootPointInRoot },
-    ...side.nodes.map(node => ({ spanRatio: node.spanRatio, point: node.restPointInRoot })),
-  ]
-  const ratio = clamp(spanRatio, 0, 1)
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const start = points[index]
-    const end = points[index + 1]
-    if (ratio > end.spanRatio) continue
-    const width = end.spanRatio - start.spanRatio
-    const t = width <= 1e-9 ? 0 : (ratio - start.spanRatio) / width
-    return start.point.clone().lerp(end.point, t)
-  }
-  return points.at(-1)!.point.clone()
-}
-
 function worldPointToRoot(point: Vector3, sceneRoot: Object3D): Vector3 {
   const rootWorldPosition = sceneRoot.getWorldPosition(new Vector3())
   const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
   return point.sub(rootWorldPosition).applyQuaternion(rootWorldQuaternionInverse)
-}
-
-function resetWingFlexAttachments(attachments: readonly RuntimeWingFlexAttachment[]): void {
-  for (const attachment of attachments) {
-    attachment.wrapper.position.set(0, 0, 0)
-    attachment.wrapper.quaternion.identity()
-    attachment.wrapper.scale.set(1, 1, 1)
-    attachment.wrapper.updateMatrix()
-  }
 }
 
 function applyWingFlexSide(
@@ -7244,67 +7580,44 @@ function applyWingFlexSide(
 
   for (const entry of side.nodes) {
     const sample = sampleWingFlex(side, entry.spanRatio, tipAngle)
-    const targetPointInRoot = entry.restPointInRoot.clone().add(new Vector3(0, sample.deflection, 0))
+    const targetPointInRoot = entry.restPointInRoot.clone()
+    targetPointInRoot.y += sample.deflection
+    const parent = entry.node.parent
+    if (parent == null) continue
     const targetWorldPoint = binding.root.localToWorld(targetPointInRoot)
-    const flexRotationInRoot = new Quaternion().setFromAxisAngle(
+    const bendInRoot = new Quaternion().setFromAxisAngle(
       new Vector3(0, 0, 1),
       side.sideSign * sample.slope
     )
     const targetWorldQuaternion = rootWorldQuaternion.clone()
-      .multiply(flexRotationInRoot)
+      .multiply(bendInRoot)
       .multiply(entry.restQuaternionInRoot)
-    const parent = entry.node.parent
-    if (parent == null) continue
     entry.node.position.copy(parent.worldToLocal(targetWorldPoint))
     entry.node.quaternion.copy(
       parent.getWorldQuaternion(new Quaternion()).invert().multiply(targetWorldQuaternion)
     )
     entry.node.updateMatrix()
-    entry.node.updateWorldMatrix(false, false)
+    entry.node.updateWorldMatrix(false, true)
   }
 }
 
-function applyWingFlexAttachments(
-  attachments: readonly RuntimeWingFlexAttachment[],
+function applyWingFlexPivots(
+  pivots: readonly RuntimeWingFlexPivot[],
   leftFlex: number,
   rightFlex: number,
   binding: RuntimeWingFlexBinding
 ): void {
-  if (attachments.length === 0) return
-  binding.root.updateMatrixWorld(true)
-  const rootWorld = binding.root.matrixWorld.clone()
-  const rootWorldInverse = rootWorld.clone().invert()
-
-  for (const attachment of attachments) {
-    const parent = attachment.wrapper.parent
+  for (const pivot of pivots) {
+    const parent = pivot.node.parent
     if (parent == null) continue
-    const flexAmount = attachment.side === binding.leftWing ? leftFlex : rightFlex
-    const tipAngle = wingFlexTipAngle(attachment.side, flexAmount, binding)
-    const sample = sampleWingFlex(attachment.side, attachment.spanRatio, tipAngle)
-    const rotation = new Matrix4().makeRotationFromQuaternion(
-      new Quaternion().setFromAxisAngle(
-        new Vector3(0, 0, 1),
-        attachment.side.sideSign * sample.slope
-      )
-    )
-    const center = attachment.centerlinePointInRoot
-    const deformationInRoot = new Matrix4()
-      .makeTranslation(center.x, center.y + sample.deflection, center.z)
-      .multiply(rotation)
-      .multiply(new Matrix4().makeTranslation(-center.x, -center.y, -center.z))
-    const deformationWorld = rootWorld.clone().multiply(deformationInRoot).multiply(rootWorldInverse)
-    parent.updateWorldMatrix(true, false)
-    const parentWorld = parent.matrixWorld.clone()
-    const wrapperLocal = parentWorld.clone().invert()
-      .multiply(deformationWorld)
-      .multiply(parentWorld)
-    wrapperLocal.decompose(
-      attachment.wrapper.position,
-      attachment.wrapper.quaternion,
-      attachment.wrapper.scale
-    )
-    attachment.wrapper.updateMatrix()
-    attachment.wrapper.updateWorldMatrix(false, true)
+    const flexAmount = pivot.side === binding.leftWing ? leftFlex : rightFlex
+    const tipAngle = wingFlexTipAngle(pivot.side, flexAmount, binding)
+    const targetPointInRoot = pivot.restPointInRoot.clone()
+    targetPointInRoot.y += sampleWingFlex(pivot.side, pivot.spanRatio, tipAngle).deflection
+    const targetWorldPoint = binding.root.localToWorld(targetPointInRoot)
+    pivot.node.position.copy(parent.worldToLocal(targetWorldPoint))
+    pivot.node.updateMatrix()
+    pivot.node.updateWorldMatrix(false, true)
   }
 }
 
@@ -7322,13 +7635,14 @@ function sampleWingFlex(
   tipAngle: number
 ): { readonly slope: number; readonly deflection: number } {
   const s = clamp(spanRatio, 0, 1)
-  // Euler-Bernoulli cantilever under a distributed load: curvature is strongest
-  // inboard and fades toward the tip, so the wing bends continuously instead of hinging.
-  const slopeFactor = s * (4 - 3 * s + s * s) / 2
+  // One continuous cantilever curve drives both station positions and station tangents.
+  // Orienting the bones to the tangent lets the authored skin weights blend the whole
+  // wing instead of leaving rigid straight spans joined by visible hinges.
   const deflectionFactor = s * s - 0.5 * s * s * s + 0.125 * s * s * s * s
+  const slopeFactor = 2 * s - 1.5 * s * s + 0.5 * s * s * s
   return {
-    slope: tipAngle * slopeFactor,
     deflection: side.spanLength * tipAngle * deflectionFactor,
+    slope: Math.atan(tipAngle * slopeFactor),
   }
 }
 
