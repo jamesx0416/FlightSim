@@ -500,6 +500,11 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.add(rigidFlapMesh)
     scene.updateMatrixWorld(true)
     rigidFlapMesh.bind(new Skeleton([outerFlap]))
+    const originalRigidFlapSkeleton = rigidFlapMesh.skeleton
+    const originalRigidFlapSkinIndices = Array.from(rigidFlapGeometry.getAttribute('skinIndex').array)
+    const originalRigidFlapSkinWeights = Array.from(rigidFlapGeometry.getAttribute('skinWeight').array)
+    const originalWingSkinIndices = Array.from(wingGeometry.getAttribute('skinIndex').array)
+    const originalWingSkinWeights = Array.from(wingGeometry.getAttribute('skinWeight').array)
 
     const leftPivot = new Object3D()
     leftPivot.name = 'Engine_PIVOT_1_LEFT'
@@ -590,5 +595,36 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(outerSlat.getWorldPosition(new Vector3()).distanceTo(neutralOuterSlat) < 1e-9).toBe(true)
     expect(outerFlap.getWorldPosition(new Vector3()).distanceTo(neutralOuterFlap) < 1e-9).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) < 1e-9).toBe(true)
+
+    runtime.dispose()
+    expect(rigidFlapMesh.skeleton).toBe(originalRigidFlapSkeleton)
+    expect(Array.from(rigidFlapGeometry.getAttribute('skinIndex').array)).toEqual(originalRigidFlapSkinIndices)
+    expect(Array.from(rigidFlapGeometry.getAttribute('skinWeight').array)).toEqual(originalRigidFlapSkinWeights)
+    expect(Array.from(wingGeometry.getAttribute('skinIndex').array)).toEqual(originalWingSkinIndices)
+    expect(Array.from(wingGeometry.getAttribute('skinWeight').array)).toEqual(originalWingSkinWeights)
+    expect(scene.getObjectByName(`__WING_FLEX_SURFACE_${rigidFlapMesh.id}_0`)).toBeUndefined()
+
+    const rebuiltRuntime = new AircraftRuntime(emptyCompiledBehaviorSet, scene, {
+      ...hostServices,
+      readVariable: key => key.endsWith(':1') ? leftFlex : key.endsWith(':2') ? rightFlex : 0,
+    }, aircraft)
+    expect(rigidFlapMesh.skeleton.bones.length).toBe(5)
+    leftFlex = 0
+    rightFlex = 0
+    rebuiltRuntime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    const rebuiltNeutralBones = rigidFlapMesh.skeleton.bones.map(node => node.getWorldPosition(new Vector3()))
+    leftFlex = 0.5
+    rightFlex = 0.5
+    rebuiltRuntime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    const rebuiltDeflections = rigidFlapMesh.skeleton.bones.map((node, index) =>
+      node.getWorldPosition(new Vector3()).y - rebuiltNeutralBones[index]!.y
+    )
+    expect(rebuiltDeflections.every((value, index) =>
+      index === 0 || value > rebuiltDeflections[index - 1]!
+    )).toBe(true)
+    rebuiltRuntime.dispose()
+    expect(rigidFlapMesh.skeleton).toBe(originalRigidFlapSkeleton)
   })
 })

@@ -685,6 +685,9 @@ export class AircraftRuntime {
   }
 
   dispose(): void {
+    this.resetWingFlexBindings()
+    const wingFlexMutations = new Set(this.wingFlexBindings.map(binding => binding.mutationState))
+    for (const mutationState of wingFlexMutations) restoreWingFlexMutations(mutationState)
     this.interactionScheduler.cancelScope(this.interactionSchedulerScope)
     this.interactionFeedbackTimers.clear()
     this.delayedInteractionReleases.clear()
@@ -1071,6 +1074,7 @@ export class AircraftRuntime {
       resetWingFlexSide(binding.leftWing)
       resetWingFlexSide(binding.rightWing)
       resetWingFlexAuxiliaryNodes(binding.auxiliaryNodes)
+      resetWingFlexPivots(binding.pivots)
     }
   }
 
@@ -7027,6 +7031,19 @@ interface RuntimeWingFlexPivot {
   readonly side: RuntimeWingFlexSide
   readonly spanRatio: number
   readonly restPointInRoot: Vector3
+  readonly restLocalPosition: Vector3
+}
+
+interface RuntimeWingFlexGeometrySnapshot {
+  readonly skinIndex: readonly number[]
+  readonly skinWeight: readonly number[]
+}
+
+interface RuntimeWingFlexMutationState {
+  readonly meshSkeletons: Map<SkinnedMesh, Skeleton>
+  readonly geometrySnapshots: Map<SkinnedMesh['geometry'], RuntimeWingFlexGeometrySnapshot>
+  readonly addedNodes: Set<Object3D>
+  restored: boolean
 }
 
 interface RuntimeInteractionFeedbackTimer {
@@ -7037,6 +7054,7 @@ interface RuntimeInteractionFeedbackTimer {
 
 interface RuntimeWingFlexBinding {
   readonly root: Object3D
+  readonly mutationState: RuntimeWingFlexMutationState
   readonly leftWing: RuntimeWingFlexSide | null
   readonly rightWing: RuntimeWingFlexSide | null
   readonly auxiliaryNodes: readonly RuntimeWingFlexAuxiliaryNode[]
@@ -7075,6 +7093,12 @@ function buildWingFlexBindings(
   canonicalNodes: ReadonlyMap<string, Object3D>
 ): readonly RuntimeWingFlexBinding[] {
   const bindings: RuntimeWingFlexBinding[] = []
+  const mutationState: RuntimeWingFlexMutationState = {
+    meshSkeletons: new Map(),
+    geometrySnapshots: new Map(),
+    addedNodes: new Set(),
+    restored: false,
+  }
   sceneRoot.updateMatrixWorld(true)
 
   for (const animation of nodeAnimations) {
@@ -7101,10 +7125,11 @@ function buildWingFlexBindings(
     const sides = [leftWing, rightWing].filter(
       (side): side is RuntimeWingFlexSide => side != null
     )
-    const surfaceFlexNodes = smoothWingFlexSkinWeights(sceneRoot, sides)
+    const surfaceFlexNodes = smoothWingFlexSkinWeights(sceneRoot, sides, mutationState)
 
     bindings.push({
       root: sceneRoot,
+      mutationState,
       leftWing,
       rightWing,
       auxiliaryNodes: [
@@ -7163,7 +7188,8 @@ function buildWingFlexSide(
 
 function smoothWingFlexSkinWeights(
   sceneRoot: Object3D,
-  sides: readonly RuntimeWingFlexSide[]
+  sides: readonly RuntimeWingFlexSide[],
+  mutationState: RuntimeWingFlexMutationState
 ): readonly RuntimeWingFlexAuxiliaryNode[] {
   if (sides.length === 0) return []
   sceneRoot.updateMatrixWorld(true)
@@ -7183,7 +7209,8 @@ function smoothWingFlexSkinWeights(
       mesh,
       sides,
       sceneRoot,
-      rootWorldInverse
+      rootWorldInverse,
+      mutationState
     )
     if (rigidSurfaceNodes.length > 0) {
       surfaceFlexNodes.push(...rigidSurfaceNodes)
@@ -7270,6 +7297,7 @@ function smoothWingFlexSkinWeights(
       const end = chain.spanRatios[segment + 1]!
       const rawT = end - start <= 1e-9 ? 0 : clamp((ratio - start) / (end - start), 0, 1)
       const blend = rawT * rawT * (3 - 2 * rawT)
+      if (!modified) recordWingFlexMeshMutation(mutationState, mesh)
       skinIndex.setXYZW(
         vertexIndex,
         chain.boneIndices[segment]!,
@@ -7292,7 +7320,8 @@ function smoothRigidWingFlexSurface(
   mesh: SkinnedMesh,
   sides: readonly RuntimeWingFlexSide[],
   sceneRoot: Object3D,
-  rootWorldInverse: ReturnType<Object3D['matrixWorld']['clone']>
+  rootWorldInverse: ReturnType<Object3D['matrixWorld']['clone']>,
+  mutationState: RuntimeWingFlexMutationState
 ): readonly RuntimeWingFlexAuxiliaryNode[] {
   const position = mesh.geometry.getAttribute('position')
   const skinIndex = mesh.geometry.getAttribute('skinIndex')
@@ -7340,6 +7369,7 @@ function smoothRigidWingFlexSurface(
   }
   if ((maxRatio - minRatio) * side.spanLength < 1) return []
 
+  recordWingFlexMeshMutation(mutationState, mesh)
   const sampleCount = 5
   const bones: Bone[] = []
   const entries: RuntimeWingFlexAuxiliaryNode[] = []
@@ -7360,6 +7390,7 @@ function smoothRigidWingFlexSurface(
     const bone = new Bone()
     bone.name = `__WING_FLEX_SURFACE_${mesh.id}_${sampleIndex}`
     driverBone.add(bone)
+    mutationState.addedNodes.add(bone)
     bone.position.copy(driverBone.worldToLocal(worldPoint))
     bone.quaternion.identity()
     bone.updateMatrix()
@@ -7391,6 +7422,44 @@ function smoothRigidWingFlexSurface(
   skinIndex.needsUpdate = true
   skinWeight.needsUpdate = true
   return entries
+}
+
+function recordWingFlexMeshMutation(
+  state: RuntimeWingFlexMutationState,
+  mesh: SkinnedMesh
+): void {
+  if (!state.meshSkeletons.has(mesh)) state.meshSkeletons.set(mesh, mesh.skeleton)
+  if (state.geometrySnapshots.has(mesh.geometry)) return
+  const skinIndex = mesh.geometry.getAttribute('skinIndex')
+  const skinWeight = mesh.geometry.getAttribute('skinWeight')
+  if (skinIndex == null || skinWeight == null) return
+  state.geometrySnapshots.set(mesh.geometry, {
+    skinIndex: Array.from(skinIndex.array),
+    skinWeight: Array.from(skinWeight.array),
+  })
+}
+
+function restoreWingFlexMutations(state: RuntimeWingFlexMutationState): void {
+  if (state.restored) return
+  state.restored = true
+  for (const [mesh, skeleton] of state.meshSkeletons) mesh.skeleton = skeleton
+  for (const [geometry, snapshot] of state.geometrySnapshots) {
+    const skinIndex = geometry.getAttribute('skinIndex')
+    const skinWeight = geometry.getAttribute('skinWeight')
+    if (skinIndex != null) {
+      for (let index = 0; index < snapshot.skinIndex.length; index += 1) {
+        skinIndex.array[index] = snapshot.skinIndex[index]!
+      }
+      skinIndex.needsUpdate = true
+    }
+    if (skinWeight != null) {
+      for (let index = 0; index < snapshot.skinWeight.length; index += 1) {
+        skinWeight.array[index] = snapshot.skinWeight[index]!
+      }
+      skinWeight.needsUpdate = true
+    }
+  }
+  for (const node of state.addedNodes) node.removeFromParent()
 }
 
 function buildWingFlexAuxiliaryNodes(
@@ -7451,6 +7520,13 @@ function resetWingFlexSide(side: RuntimeWingFlexSide | null): void {
     entry.node.position.copy(entry.restLocalPosition)
     entry.node.quaternion.copy(entry.restLocalQuaternion)
     entry.node.updateMatrix()
+  }
+}
+
+function resetWingFlexPivots(pivots: readonly RuntimeWingFlexPivot[]): void {
+  for (const pivot of pivots) {
+    pivot.node.position.copy(pivot.restLocalPosition)
+    pivot.node.updateMatrix()
   }
 }
 
@@ -7554,6 +7630,7 @@ function buildWingFlexPivots(
       side,
       spanRatio: wingSpanRatio(side, restPointInRoot),
       restPointInRoot,
+      restLocalPosition: entry.node.position.clone(),
     }]
   })
 }
