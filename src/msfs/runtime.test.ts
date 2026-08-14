@@ -7,6 +7,7 @@ import {
   Mesh,
   MeshStandardMaterial,
   Object3D,
+  Quaternion,
   Uint16BufferAttribute,
   Vector3,
   VectorKeyframeTrack,
@@ -475,14 +476,20 @@ describe('AircraftRuntime canonical visual bindings', () => {
       0.45, 0, 0.1,
       0.95, 0, 0,
       1.45, 0, -0.15,
+      0.7, -0.05, -0.1,
+      1.2, -0.05, -0.1,
     ], 3))
     wingGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([
       1, 0, 0, 0,
       5, 0, 0, 0,
       5, 0, 0, 0,
       6, 0, 0, 0,
+      7, 0, 0, 0,
+      7, 0, 0, 0,
     ], 4))
     wingGeometry.setAttribute('skinWeight', new Float32BufferAttribute([
+      1, 0, 0, 0,
+      1, 0, 0, 0,
       1, 0, 0, 0,
       1, 0, 0, 0,
       1, 0, 0, 0,
@@ -491,7 +498,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const wingMesh = Object.assign(new Object3D(), {
       isSkinnedMesh: true,
       geometry: wingGeometry,
-      skeleton: { bones: [leftRoot, ...leftBones, slat, outboardSlat] },
+      skeleton: { bones: [leftRoot, ...leftBones, slat, outboardSlat, flap] },
     })
     scene.add(wingMesh)
 
@@ -563,6 +570,8 @@ describe('AircraftRuntime canonical visual bindings', () => {
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
     const neutralLeftStations = leftBones.map(node => node.getWorldPosition(new Vector3()))
+    const neutralLeftRoot = leftRoot.getWorldPosition(new Vector3())
+    const neutralFirstBoneQuaternion = leftBones[0].getWorldQuaternion(new Quaternion())
     const neutralLeftTip = neutralLeftStations.at(-1)!
     const neutralRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
     const neutralLeftPivot = leftPivot.getWorldPosition(new Vector3())
@@ -583,9 +592,25 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(flexedLeftStations[0].y > neutralLeftStations[0].y).toBe(true)
     expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
     expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
-    expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) > 1e-6).toBe(true)
+    const spanLength = Math.abs(neutralLeftTip.x - neutralLeftRoot.x)
+    const firstBoneRatio = Math.abs(neutralLeftStations[0].x - neutralLeftRoot.x) / spanLength
+    const firstBoneRotation = leftBones[0].getWorldQuaternion(new Quaternion())
+      .multiply(neutralFirstBoneQuaternion.clone().invert())
+    const expectedFirstSegmentPoint = (restPoint: Vector3): Vector3 => {
+      const ratio = Math.abs(restPoint.x - neutralLeftRoot.x) / spanLength
+      const t = ratio / firstBoneRatio
+      const blend = t * t * (3 - 2 * t)
+      return restPoint.clone().lerp(
+        restPoint.clone()
+          .sub(neutralLeftStations[0])
+          .applyQuaternion(firstBoneRotation)
+          .add(flexedLeftStations[0]),
+        blend
+      )
+    }
+    expect(slat.getWorldPosition(new Vector3()).distanceTo(expectedFirstSegmentPoint(neutralSlat)) < 1e-9).toBe(true)
+    expect(flap.getWorldPosition(new Vector3()).distanceTo(expectedFirstSegmentPoint(neutralFlap)) < 1e-9).toBe(true)
     expect(outboardSlat.getWorldPosition(new Vector3()).distanceTo(neutralOutboardSlat) > 1e-6).toBe(true)
-    expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-9).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).y > neutralLeftPivot.y).toBe(true)
     expect(leftPivot.quaternion.angleTo(neutralLeftPivotQuaternion) < 1e-9).toBe(true)
     const inboardIncrement = leftBones[0].quaternion.angleTo(neutralBoneQuaternions[0])
@@ -612,7 +637,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(rightBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralRightTip) < 1e-9).toBe(true)
     expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) < 1e-6).toBe(true)
     expect(outboardSlat.getWorldPosition(new Vector3()).distanceTo(neutralOutboardSlat) < 1e-6).toBe(true)
-    expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-9).toBe(true)
+    expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-6).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) < 1e-9).toBe(true)
   })
 })
