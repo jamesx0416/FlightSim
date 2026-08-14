@@ -835,8 +835,13 @@ export class AirPhysicsSubsystem implements SimSubsystem {
     }
 
     const controls = this.definition.controls
+    const yawDamperRudder = clamp(
+      -this.omegaBodyRadPerSec.z * (controls.yawDamperGain ?? 0),
+      -1,
+      1
+    )
     const controlAngle = (
-      rudder * controls.rudderLimitRad * controls.rudderEffectiveness +
+      clamp(rudder + yawDamperRudder, -1, 1) * controls.rudderLimitRad * controls.rudderEffectiveness +
       rudderTrim * (controls.rudderTrimLimitRad ?? 0) * (controls.rudderTrimEffectiveness ?? 1)
     ) * (rudderArea / totalArea)
     let sideN = 0

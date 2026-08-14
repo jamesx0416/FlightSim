@@ -221,6 +221,28 @@ test('geometric control surfaces produce body moments', () => {
   expect((engine.state.readNumber(AirPhysicsStateKeys.yawRateRadPerSecond()) ?? 0) > neutralYawRate).toBe(true)
 })
 
+test('yaw damper opposes body yaw rate through the rudder surface', () => {
+  const run = (yawDamperGain: number) => {
+    const engine = createPhysicsEngine([], {
+      ...basePhysics,
+      controls: { ...basePhysics.controls, yawDamperGain },
+    })
+    engine.dispatch({
+      type: AirPhysicsCommandTypes.reset,
+      payload: {
+        altitudeMeters: 1000,
+        airspeedMps: 100,
+        angularVelocityBodyRadPerSec: [0, 0, 0.1],
+        enabled: true,
+      },
+    })
+    for (let index = 0; index < 60; index += 1) engine.tick(1 / 60)
+    return Math.abs(engine.state.readNumber(AirPhysicsStateKeys.yawRateRadPerSecond()) ?? 0)
+  }
+
+  expect(run(1) < run(0)).toBe(true)
+})
+
 test('independent wing sections can enter post-stall at different times', () => {
   const physics: CanonicalAirPhysicsSystemConfig = {
     ...basePhysics,

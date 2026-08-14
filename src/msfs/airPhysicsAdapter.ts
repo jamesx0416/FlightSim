@@ -21,6 +21,8 @@ export function createMsfsAirPhysicsSystemConfig(
 ): CanonicalAirPhysicsSystemConfig | null {
   const flightModel = aircraft.cfgFiles.find(file => file.kind === 'flight_model')
   if (flightModel == null) return null
+  const systems = aircraft.cfgFiles.find(file => file.kind === 'systems')
+  const autopilot = systems == null ? undefined : findSection(systems, 'autopilot')
   const weight = findSection(flightModel, 'weight_and_balance')
   const geometry = findSection(flightModel, 'airplane_geometry')
   const aero = findSection(flightModel, 'aerodynamics')
@@ -179,6 +181,7 @@ export function createMsfsAirPhysicsSystemConfig(
       aileronEffectiveness: readNumber(tuning, 'aileron_effectiveness') ?? 1,
       elevatorEffectiveness: readNumber(tuning, 'elevator_effectiveness') ?? 1,
       rudderEffectiveness: readNumber(tuning, 'rudder_effectiveness') ?? 1,
+      yawDamperGain: readNumber(autopilot, 'yaw_damper_gain') ?? 0,
       elevatorLiftCoefficientSlopePerRad: readNumber(aero, 'elevator_lift_coef') ?? 5,
       elevatorDeflectionSign: elevatorSign,
       elevatorTrimUpLimitRad: resolveElevatorTrimLimitRad(geometry, 'up'),
