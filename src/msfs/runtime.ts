@@ -1088,7 +1088,7 @@ export class AircraftRuntime {
       applyWingFlexSide(binding.leftWing, leftFlex, binding)
       applyWingFlexSide(binding.rightWing, rightFlex, binding)
       binding.root.updateMatrixWorld(true)
-      applyWingFlexAttachments(binding.attachments, leftFlex, rightFlex, binding)
+      applyWingFlexAttachments(binding.attachments, binding)
     }
   }
 
@@ -7003,6 +7003,7 @@ interface RuntimeWingFlexNode {
 
 interface RuntimeWingFlexSide {
   readonly fixedRoot: Object3D
+  readonly fixedRootRestQuaternionInRoot: Quaternion
   readonly nodes: readonly RuntimeWingFlexNode[]
   readonly rootPointInRoot: Vector3
   readonly spanLength: number
@@ -7013,7 +7014,6 @@ interface RuntimeWingFlexAttachment {
   readonly node: Object3D
   readonly side: RuntimeWingFlexSide
   readonly spanRatio: number
-  readonly centerlinePointInRoot: Vector3
   readonly authoredLocalPosition: Vector3
   readonly authoredLocalQuaternion: Quaternion
   readonly authoredPointInRoot: Vector3
@@ -7138,6 +7138,8 @@ function buildWingFlexSide(
 
   return {
     fixedRoot,
+    fixedRootRestQuaternionInRoot: rootWorldQuaternionInverse.clone()
+      .multiply(fixedRoot.getWorldQuaternion(new Quaternion())),
     rootPointInRoot,
     spanLength,
     sideSign,
@@ -7282,13 +7284,12 @@ function buildWingFlexAttachments(
       : activeSkinBoneCentroids.get(node) ?? restPointInRoot
     const side = chooseWingFlexSide(flexSamplePointInRoot, sides)
     if (side == null) return []
-    const spanRatio = wingSpanRatio(side, flexSamplePointInRoot)
+    const spanRatio = wingSpanRatio(side, restPointInRoot)
     if (spanRatio <= 0.01) return []
     return [{
       node,
       side,
       spanRatio,
-      centerlinePointInRoot: sampleWingRestCenterline(side, spanRatio),
       authoredLocalPosition: node.position.clone(),
       authoredLocalQuaternion: node.quaternion.clone(),
       authoredPointInRoot: restPointInRoot.clone(),
@@ -7483,23 +7484,6 @@ function wingSpanRatio(side: RuntimeWingFlexSide, pointInRoot: Vector3): number 
   return clamp(Math.abs(pointInRoot.x - side.rootPointInRoot.x) / side.spanLength, 0, 1)
 }
 
-function sampleWingRestCenterline(side: RuntimeWingFlexSide, spanRatio: number): Vector3 {
-  const points = [
-    { spanRatio: 0, point: side.rootPointInRoot },
-    ...side.nodes.map(node => ({ spanRatio: node.spanRatio, point: node.restPointInRoot })),
-  ]
-  const ratio = clamp(spanRatio, 0, 1)
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const start = points[index]
-    const end = points[index + 1]
-    if (ratio > end.spanRatio) continue
-    const width = end.spanRatio - start.spanRatio
-    const t = width <= 1e-9 ? 0 : (ratio - start.spanRatio) / width
-    return start.point.clone().lerp(end.point, t)
-  }
-  return points.at(-1)!.point.clone()
-}
-
 function worldPointToRoot(point: Vector3, sceneRoot: Object3D): Vector3 {
   const rootWorldPosition = sceneRoot.getWorldPosition(new Vector3())
   const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
@@ -7575,8 +7559,6 @@ function applyWingFlexSide(
 
 function applyWingFlexAttachments(
   attachments: readonly RuntimeWingFlexAttachment[],
-  leftFlex: number,
-  rightFlex: number,
   binding: RuntimeWingFlexBinding
 ): void {
   if (attachments.length === 0) return
@@ -7586,27 +7568,17 @@ function applyWingFlexAttachments(
   for (const attachment of attachments) {
     const parent = attachment.node.parent
     if (parent == null) continue
-    const flexAmount = attachment.side === binding.leftWing ? leftFlex : rightFlex
-    const sample = sampleWingFlex(
+    const deformation = sampleWingFlexDeformation(
       attachment.side,
       attachment.spanRatio,
-      wingFlexTipAngle(attachment.side, flexAmount, binding)
+      attachment.authoredPointInRoot,
+      binding.root
     )
-    const bendInRoot = new Quaternion().setFromAxisAngle(
-      new Vector3(0, 0, 1),
-      attachment.side.sideSign * sample.slope
-    )
-    const relative = attachment.authoredPointInRoot.clone()
-      .sub(attachment.centerlinePointInRoot)
-      .applyQuaternion(bendInRoot)
-    const targetPointInRoot = attachment.centerlinePointInRoot.clone()
-      .add(new Vector3(0, sample.deflection, 0))
-      .add(relative)
-    const targetWorldPoint = binding.root.localToWorld(targetPointInRoot)
+    const targetWorldPoint = binding.root.localToWorld(deformation.pointInRoot)
     attachment.node.position.copy(parent.worldToLocal(targetWorldPoint))
     if (attachment.rotateWithWing) {
       const targetWorldQuaternion = rootWorldQuaternion.clone()
-        .multiply(bendInRoot)
+        .multiply(deformation.rotationInRoot)
         .multiply(attachment.authoredQuaternionInRoot)
       attachment.node.quaternion.copy(
         parent.getWorldQuaternion(new Quaternion()).invert().multiply(targetWorldQuaternion)
@@ -7614,6 +7586,65 @@ function applyWingFlexAttachments(
     }
     attachment.node.updateMatrix()
     attachment.node.updateWorldMatrix(false, true)
+  }
+}
+
+function sampleWingFlexDeformation(
+  side: RuntimeWingFlexSide,
+  spanRatio: number,
+  pointInRoot: Vector3,
+  sceneRoot: Object3D
+): { readonly pointInRoot: Vector3; readonly rotationInRoot: Quaternion } {
+  const stations = [
+    {
+      spanRatio: 0,
+      node: side.fixedRoot,
+      restPointInRoot: side.rootPointInRoot,
+      restQuaternionInRoot: side.fixedRootRestQuaternionInRoot,
+    },
+    ...side.nodes.map(entry => ({
+      spanRatio: entry.spanRatio,
+      node: entry.node,
+      restPointInRoot: entry.restPointInRoot,
+      restQuaternionInRoot: entry.restQuaternionInRoot,
+    })),
+  ]
+  const ratio = clamp(spanRatio, 0, 1)
+  let segment = stations.length - 2
+  for (let index = 0; index < stations.length - 1; index += 1) {
+    if (ratio <= stations[index + 1]!.spanRatio) {
+      segment = index
+      break
+    }
+  }
+  const start = stations[segment]!
+  const end = stations[segment + 1]!
+  const width = end.spanRatio - start.spanRatio
+  const rawT = width <= 1e-9 ? 0 : clamp((ratio - start.spanRatio) / width, 0, 1)
+  const blend = rawT * rawT * (3 - 2 * rawT)
+  const rootWorldPosition = sceneRoot.getWorldPosition(new Vector3())
+  const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
+  const transformAt = (station: typeof start) => {
+    const currentPointInRoot = station.node.getWorldPosition(new Vector3())
+      .sub(rootWorldPosition)
+      .applyQuaternion(rootWorldQuaternionInverse)
+    const currentQuaternionInRoot = rootWorldQuaternionInverse.clone()
+      .multiply(station.node.getWorldQuaternion(new Quaternion()))
+    const rotationInRoot = currentQuaternionInRoot
+      .multiply(station.restQuaternionInRoot.clone().invert())
+    return {
+      pointInRoot: pointInRoot.clone()
+        .sub(station.restPointInRoot)
+        .applyQuaternion(rotationInRoot)
+        .add(currentPointInRoot),
+      rotationInRoot,
+    }
+  }
+  const startTransform = transformAt(start)
+  const endTransform = transformAt(end)
+  return {
+    pointInRoot: startTransform.pointInRoot.lerp(endTransform.pointInRoot, blend),
+    rotationInRoot: startTransform.rotationInRoot.slerp(endTransform.rotationInRoot, blend),
   }
 }
 
