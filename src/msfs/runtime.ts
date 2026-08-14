@@ -344,7 +344,7 @@ export class AircraftRuntime {
     )
   }
 
-  bindAnimations(clips: readonly { readonly name: string }[]): void {
+  bindAnimations(clips: readonly AnimationClip[]): void {
     const activeAnimationBindings: RuntimeAnimationBinding[] = []
     const activeAnimationNames = new Set<string>()
     for (const binding of this.compiled.animationBindings) {
@@ -384,6 +384,7 @@ export class AircraftRuntime {
       const bindings = this.activeAnimationTriggerBindingsByAnimation.get(binding.animation) ?? []
       this.activeAnimationTriggerBindingsByAnimation.set(binding.animation, [...bindings, binding])
     }
+    smoothWingFlexAttachmentSkinWeights(this.sceneRoot, this.wingFlexBindings, clips)
   }
 
   private applyCanonicalVisualBindings(): boolean {
@@ -7013,8 +7014,8 @@ interface RuntimeWingFlexAttachment {
   readonly side: RuntimeWingFlexSide
   readonly spanRatio: number
   readonly centerlinePointInRoot: Vector3
-  readonly restLocalPosition: Vector3
-  readonly restLocalQuaternion: Quaternion
+  readonly authoredLocalPosition: Vector3
+  readonly authoredLocalQuaternion: Quaternion
   readonly authoredPointInRoot: Vector3
   readonly authoredQuaternionInRoot: Quaternion
   readonly rotateWithWing: boolean
@@ -7033,6 +7034,15 @@ interface RuntimeWingFlexBinding {
   readonly attachments: readonly RuntimeWingFlexAttachment[]
   readonly maxAngleRadians: number
 }
+
+type RuntimeSkinAttribute = ReturnType<SkinnedMesh['geometry']['getAttribute']>
+
+interface RuntimeWingFlexSourceSkinning {
+  readonly skinIndex: RuntimeSkinAttribute
+  readonly skinWeight: RuntimeSkinAttribute
+}
+
+const runtimeWingFlexSourceSkinning = new WeakMap<object, RuntimeWingFlexSourceSkinning>()
 
 function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexProfile {
   const flightModel = aircraft?.cfgFiles.find(file => file.kind === 'flight_model')
@@ -7147,6 +7157,22 @@ function buildWingFlexSide(
   }
 }
 
+function getRuntimeWingFlexSourceSkinning(
+  mesh: SkinnedMesh
+): RuntimeWingFlexSourceSkinning | null {
+  const existing = runtimeWingFlexSourceSkinning.get(mesh.geometry)
+  if (existing != null) return existing
+  const skinIndex = mesh.geometry.getAttribute('skinIndex')
+  const skinWeight = mesh.geometry.getAttribute('skinWeight')
+  if (skinIndex == null || skinWeight == null) return null
+  const source = {
+    skinIndex: skinIndex.clone(),
+    skinWeight: skinWeight.clone(),
+  }
+  runtimeWingFlexSourceSkinning.set(mesh.geometry, source)
+  return source
+}
+
 function smoothMainWingFlexSkinWeights(
   sceneRoot: Object3D,
   sides: readonly RuntimeWingFlexSide[]
@@ -7161,8 +7187,11 @@ function smoothMainWingFlexSkinWeights(
     const position = mesh.geometry.getAttribute('position')
     const skinIndex = mesh.geometry.getAttribute('skinIndex')
     const skinWeight = mesh.geometry.getAttribute('skinWeight')
-    if (position == null || skinIndex == null || skinWeight == null) return
+    const sourceSkinning = getRuntimeWingFlexSourceSkinning(mesh)
+    if (position == null || skinIndex == null || skinWeight == null || sourceSkinning == null) return
     if (skinIndex.itemSize < 4 || skinWeight.itemSize < 4) return
+    const sourceSkinIndex = sourceSkinning.skinIndex
+    const sourceSkinWeight = sourceSkinning.skinWeight
 
     const chains = sides.flatMap(side => {
       const bones = [side.fixedRoot, ...side.nodes.map(entry => entry.node)]
@@ -7185,15 +7214,15 @@ function smoothMainWingFlexSkinWeights(
     for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
       const activeIndices: number[] = []
       for (let component = 0; component < 4; component += 1) {
-        const weight = component === 0 ? skinWeight.getX(vertexIndex)
-          : component === 1 ? skinWeight.getY(vertexIndex)
-            : component === 2 ? skinWeight.getZ(vertexIndex)
-              : skinWeight.getW(vertexIndex)
+        const weight = component === 0 ? sourceSkinWeight.getX(vertexIndex)
+          : component === 1 ? sourceSkinWeight.getY(vertexIndex)
+            : component === 2 ? sourceSkinWeight.getZ(vertexIndex)
+              : sourceSkinWeight.getW(vertexIndex)
         if (weight <= 1e-5) continue
-        activeIndices.push(component === 0 ? skinIndex.getX(vertexIndex)
-          : component === 1 ? skinIndex.getY(vertexIndex)
-            : component === 2 ? skinIndex.getZ(vertexIndex)
-              : skinIndex.getW(vertexIndex))
+        activeIndices.push(component === 0 ? sourceSkinIndex.getX(vertexIndex)
+          : component === 1 ? sourceSkinIndex.getY(vertexIndex)
+            : component === 2 ? sourceSkinIndex.getZ(vertexIndex)
+              : sourceSkinIndex.getW(vertexIndex))
       }
       if (activeIndices.length === 0) continue
       const chain = chains.find(candidate =>
@@ -7235,30 +7264,33 @@ function buildWingFlexAttachments(
   const sides = [leftWing, rightWing].filter((side): side is RuntimeWingFlexSide => side != null)
   if (sides.length === 0) return []
   sceneRoot.updateMatrixWorld(true)
-  const mainNodes = new Set(sides.flatMap(side => side.nodes.map(entry => entry.node)))
   const pivotNodes = new Set(pivotEntries.map(entry => entry.node))
+  const mainNodes = new Set(sides.flatMap(side => side.nodes.map(entry => entry.node)))
+  const activeSkinBoneCentroids = collectActiveSkinnedBoneCentroids(sceneRoot)
   const candidates = new Set<Object3D>(pivotNodes)
-
   for (const side of sides) {
     for (const child of side.fixedRoot.children) {
-      collectIndependentWingMounts(child, mainNodes, candidates)
+      collectWingFlexSkinAttachments(child, mainNodes, activeSkinBoneCentroids, candidates)
     }
   }
 
   return [...candidates].flatMap(node => {
     if (node.parent == null) return []
     const restPointInRoot = worldPointToRoot(node.getWorldPosition(new Vector3()), sceneRoot)
-    const side = chooseWingFlexSide(restPointInRoot, sides)
+    const flexSamplePointInRoot = pivotNodes.has(node)
+      ? restPointInRoot
+      : activeSkinBoneCentroids.get(node) ?? restPointInRoot
+    const side = chooseWingFlexSide(flexSamplePointInRoot, sides)
     if (side == null) return []
-    const spanRatio = wingSpanRatio(side, restPointInRoot)
+    const spanRatio = wingSpanRatio(side, flexSamplePointInRoot)
     if (spanRatio <= 0.01) return []
     return [{
       node,
       side,
       spanRatio,
       centerlinePointInRoot: sampleWingRestCenterline(side, spanRatio),
-      restLocalPosition: node.position.clone(),
-      restLocalQuaternion: node.quaternion.clone(),
+      authoredLocalPosition: node.position.clone(),
+      authoredLocalQuaternion: node.quaternion.clone(),
       authoredPointInRoot: restPointInRoot.clone(),
       authoredQuaternionInRoot: sceneRoot.getWorldQuaternion(new Quaternion()).invert()
         .multiply(node.getWorldQuaternion(new Quaternion())),
@@ -7267,29 +7299,169 @@ function buildWingFlexAttachments(
   })
 }
 
-function collectIndependentWingMounts(
-  node: Object3D,
-  mainNodes: ReadonlySet<Object3D>,
-  output: Set<Object3D>
-): void {
-  if (mainNodes.has(node)) return
-  if ((node as Object3D & { isBone?: boolean }).isBone === true && isWingFlexFollowerBoneName(node.name)) {
-    output.add(node)
-    return
-  }
-  for (const child of node.children) collectIndependentWingMounts(child, mainNodes, output)
+function collectActiveSkinnedBoneCentroids(sceneRoot: Object3D): ReadonlyMap<Object3D, Vector3> {
+  const rootWorldInverse = sceneRoot.matrixWorld.clone().invert()
+  const influences = new Map<Object3D, { pointSum: Vector3; weight: number }>()
+  sceneRoot.traverse(object => {
+    const mesh = object as SkinnedMesh
+    if (mesh.isSkinnedMesh !== true || mesh.skeleton == null) return
+    const position = mesh.geometry.getAttribute('position')
+    const sourceSkinning = getRuntimeWingFlexSourceSkinning(mesh)
+    if (position == null || sourceSkinning == null) return
+    const skinIndex = sourceSkinning.skinIndex
+    const skinWeight = sourceSkinning.skinWeight
+    const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
+    const pointInRoot = new Vector3()
+    for (let vertexIndex = 0; vertexIndex < skinIndex.count; vertexIndex += 1) {
+      pointInRoot.set(position.getX(vertexIndex), position.getY(vertexIndex), position.getZ(vertexIndex))
+        .applyMatrix4(meshToRoot)
+      for (let componentIndex = 0; componentIndex < 4; componentIndex += 1) {
+        const weight = getRuntimeSkinComponent(skinWeight, vertexIndex, componentIndex)
+        if (weight <= 1e-4) continue
+        const boneIndex = Math.round(getRuntimeSkinComponent(skinIndex, vertexIndex, componentIndex))
+        const bone = mesh.skeleton.bones[boneIndex]
+        if (bone == null) continue
+        const influence = influences.get(bone) ?? { pointSum: new Vector3(), weight: 0 }
+        influence.pointSum.addScaledVector(pointInRoot, weight)
+        influence.weight += weight
+        influences.set(bone, influence)
+      }
+    }
+  })
+  return new Map([...influences].flatMap(([bone, influence]) =>
+    influence.weight <= 1e-9
+      ? []
+      : [[bone, influence.pointSum.multiplyScalar(1 / influence.weight)] as const]
+  ))
 }
 
-function isWingFlexFollowerBoneName(name: string): boolean {
-  const normalized = name.trim().toUpperCase()
-  if (!normalized) return false
-  if (normalized.includes('FAIRING')) return true
-  if (!normalized.includes('WING') || !normalized.includes('BONE')) return false
-  return normalized.includes('SLAT') ||
-    normalized.includes('SLATE') ||
-    normalized.includes('FLAP') ||
-    normalized.includes('SPOILER') ||
-    normalized.includes('AILERON')
+function getRuntimeSkinComponent(attribute: ReturnType<SkinnedMesh['geometry']['getAttribute']>, vertex: number, component: number): number {
+  if (component === 0) return attribute.getX(vertex)
+  if (component === 1) return attribute.getY(vertex)
+  if (component === 2) return attribute.getZ(vertex)
+  return attribute.getW(vertex)
+}
+
+function collectWingFlexSkinAttachments(
+  node: Object3D,
+  mainNodes: ReadonlySet<Object3D>,
+  activeSkinBoneCentroids: ReadonlyMap<Object3D, Vector3>,
+  output: Set<Object3D>
+): void {
+  if (mainNodes.has(node)) {
+    for (const child of node.children) {
+      collectWingFlexSkinAttachments(child, mainNodes, activeSkinBoneCentroids, output)
+    }
+    return
+  }
+  if ((node as Object3D & { isBone?: boolean }).isBone === true) {
+    if (activeSkinBoneCentroids.has(node)) output.add(node)
+    return
+  }
+  for (const child of node.children) {
+    collectWingFlexSkinAttachments(child, mainNodes, activeSkinBoneCentroids, output)
+  }
+}
+
+function smoothWingFlexAttachmentSkinWeights(
+  sceneRoot: Object3D,
+  bindings: readonly RuntimeWingFlexBinding[],
+  clips: readonly AnimationClip[]
+): void {
+  if (bindings.length === 0 || clips.length === 0) return
+  sceneRoot.updateMatrixWorld(true)
+  const rootWorldInverse = sceneRoot.matrixWorld.clone().invert()
+
+  for (const clip of clips) {
+    const targetNames = new Set<string>()
+    for (const track of clip.tracks) {
+      const nodeName = PropertyBinding.parseTrackName(track.name).nodeName
+      if (nodeName) targetNames.add(nodeName.toLowerCase())
+    }
+    if (targetNames.size < 2) continue
+
+    for (const binding of bindings) {
+      for (const side of [binding.leftWing, binding.rightWing]) {
+        if (side == null) continue
+        const group = binding.attachments.filter(attachment =>
+          attachment.rotateWithWing &&
+          attachment.side === side &&
+          targetNames.has(attachment.node.name.toLowerCase())
+        )
+        if (group.length < 2) continue
+
+        sceneRoot.traverse(object => {
+          const mesh = object as SkinnedMesh
+          if (mesh.isSkinnedMesh !== true || mesh.skeleton == null) return
+          const position = mesh.geometry.getAttribute('position')
+          const skinIndex = mesh.geometry.getAttribute('skinIndex')
+          const skinWeight = mesh.geometry.getAttribute('skinWeight')
+          const sourceSkinning = getRuntimeWingFlexSourceSkinning(mesh)
+          if (position == null || skinIndex == null || skinWeight == null || sourceSkinning == null) return
+          if (skinIndex.itemSize < 4 || skinWeight.itemSize < 4) return
+
+          const stations = group.flatMap(attachment => {
+            const boneIndex = mesh.skeleton.bones.findIndex(bone => bone === attachment.node)
+            return boneIndex < 0 ? [] : [{ attachment, boneIndex }]
+          })
+          if (stations.length < 2) return
+          const stationByIndex = new Map(stations.map(station => [station.boneIndex, station] as const))
+          const stationWeights = new Map<number, number>()
+          for (let vertexIndex = 0; vertexIndex < sourceSkinning.skinIndex.count; vertexIndex += 1) {
+            for (let component = 0; component < 4; component += 1) {
+              const weight = getRuntimeSkinComponent(sourceSkinning.skinWeight, vertexIndex, component)
+              if (weight <= 1e-5) continue
+              const boneIndex = Math.round(getRuntimeSkinComponent(sourceSkinning.skinIndex, vertexIndex, component))
+              if (!stationByIndex.has(boneIndex)) continue
+              stationWeights.set(boneIndex, (stationWeights.get(boneIndex) ?? 0) + weight)
+            }
+          }
+          const activeStations = stations
+            .filter(station => (stationWeights.get(station.boneIndex) ?? 0) > 1e-3)
+            .sort((left, right) => left.attachment.spanRatio - right.attachment.spanRatio)
+          if (activeStations.length < 2) return
+
+          const activeIndexSet = new Set(activeStations.map(station => station.boneIndex))
+          const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
+          const pointInRoot = new Vector3()
+          let modified = false
+          for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
+            const activeIndices: number[] = []
+            for (let component = 0; component < 4; component += 1) {
+              const weight = getRuntimeSkinComponent(sourceSkinning.skinWeight, vertexIndex, component)
+              if (weight <= 1e-5) continue
+              activeIndices.push(Math.round(getRuntimeSkinComponent(sourceSkinning.skinIndex, vertexIndex, component)))
+            }
+            if (activeIndices.length === 0 || !activeIndices.every(index => activeIndexSet.has(index))) continue
+
+            pointInRoot.set(position.getX(vertexIndex), position.getY(vertexIndex), position.getZ(vertexIndex))
+              .applyMatrix4(meshToRoot)
+            const ratio = wingSpanRatio(side, pointInRoot)
+            let segment = activeStations.length - 2
+            for (let index = 0; index < activeStations.length - 1; index += 1) {
+              if (ratio <= activeStations[index + 1]!.attachment.spanRatio) {
+                segment = index
+                break
+              }
+            }
+            const left = activeStations[segment]!
+            const right = activeStations[segment + 1]!
+            const width = right.attachment.spanRatio - left.attachment.spanRatio
+            const blend = width <= 1e-9
+              ? 0
+              : clamp((ratio - left.attachment.spanRatio) / width, 0, 1)
+            skinIndex.setXYZW(vertexIndex, left.boneIndex, right.boneIndex, 0, 0)
+            skinWeight.setXYZW(vertexIndex, 1 - blend, blend, 0, 0)
+            modified = true
+          }
+          if (modified) {
+            skinIndex.needsUpdate = true
+            skinWeight.needsUpdate = true
+          }
+        })
+      }
+    }
+  }
 }
 
 function chooseWingFlexSide(
@@ -7345,8 +7517,8 @@ function resetWingFlexSide(side: RuntimeWingFlexSide | null): void {
 
 function resetWingFlexAttachments(attachments: readonly RuntimeWingFlexAttachment[]): void {
   for (const attachment of attachments) {
-    attachment.node.position.copy(attachment.restLocalPosition)
-    attachment.node.quaternion.copy(attachment.restLocalQuaternion)
+    attachment.node.position.copy(attachment.authoredLocalPosition)
+    attachment.node.quaternion.copy(attachment.authoredLocalQuaternion)
     attachment.node.updateMatrix()
   }
 }
@@ -7359,6 +7531,8 @@ function captureWingFlexAttachmentPoses(
   sceneRoot.updateMatrixWorld(true)
   const rootWorldQuaternionInverse = sceneRoot.getWorldQuaternion(new Quaternion()).invert()
   for (const attachment of attachments) {
+    attachment.authoredLocalPosition.copy(attachment.node.position)
+    attachment.authoredLocalQuaternion.copy(attachment.node.quaternion)
     attachment.authoredPointInRoot.copy(
       worldPointToRoot(attachment.node.getWorldPosition(new Vector3()), sceneRoot)
     )

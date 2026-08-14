@@ -423,7 +423,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     )
   })
 
-  test('standard WingFlex bends smoothly and carries independent wing-mounted branches', () => {
+  test('standard WingFlex bends smoothly and preserves authored wing-mounted hierarchy', () => {
     const scene = new Object3D()
     const makeChain = (side: 'LEFT' | 'RIGHT', rootZ: number) => {
       const root = new Bone()
@@ -448,6 +448,10 @@ describe('AircraftRuntime canonical visual bindings', () => {
     slat.name = 'WING_BONE_SLATE_00_LEFT'
     slat.position.set(0.45, 0, 0.1)
     leftRoot.add(slat)
+    const outboardSlat = new Bone()
+    outboardSlat.name = 'WING_BONE_SLATE_02_LEFT'
+    outboardSlat.position.set(0.45, 0, 0.1)
+    leftBones[0].add(outboardSlat)
     const flapCarrier = new Object3D()
     leftRoot.add(flapCarrier)
     const flap = new Bone()
@@ -466,18 +470,34 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.add(rightPivot)
 
     const wingGeometry = new BufferGeometry()
-    wingGeometry.setAttribute('position', new Float32BufferAttribute([1.5, 0, -0.375], 3))
-    wingGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([1, 0, 0, 0], 4))
-    wingGeometry.setAttribute('skinWeight', new Float32BufferAttribute([1, 0, 0, 0], 4))
+    wingGeometry.setAttribute('position', new Float32BufferAttribute([
+      1.5, 0, -0.375,
+      0.45, 0, 0.1,
+      0.95, 0, 0,
+      1.45, 0, -0.15,
+    ], 3))
+    wingGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([
+      1, 0, 0, 0,
+      5, 0, 0, 0,
+      5, 0, 0, 0,
+      6, 0, 0, 0,
+    ], 4))
+    wingGeometry.setAttribute('skinWeight', new Float32BufferAttribute([
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+    ], 4))
     const wingMesh = Object.assign(new Object3D(), {
       isSkinnedMesh: true,
       geometry: wingGeometry,
-      skeleton: { bones: [leftRoot, ...leftBones] },
+      skeleton: { bones: [leftRoot, ...leftBones, slat, outboardSlat] },
     })
     scene.add(wingMesh)
 
     let leftFlex = 0
     let rightFlex = 0
+    let slatAnimationValue = 0
     const aircraft = {
       model: {
         nodeAnimations: [{
@@ -491,13 +511,54 @@ describe('AircraftRuntime canonical visual bindings', () => {
         }],
       },
     } as unknown as ImportedAircraft
-    const runtime = new AircraftRuntime(emptyCompiledBehaviorSet, scene, {
+    const wingFlexHostServices = {
       ...hostServices,
-      readVariable: key => key.endsWith(':1') ? leftFlex : key.endsWith(':2') ? rightFlex : 0,
-    }, aircraft)
+      readVariable: (key: string) => key === 'A:SLAT TEST'
+        ? slatAnimationValue
+        : key.endsWith(':1')
+          ? leftFlex
+          : key.endsWith(':2') ? rightFlex : 0,
+    }
+    const wingFlexCompiledBehaviorSet: CompiledBehaviorSet = {
+      ...emptyCompiledBehaviorSet,
+      animationBindings: [{
+        target: 'SlatAnimation',
+        expression: {
+          source: '(A:SLAT TEST, percent)',
+          instructions: [{ op: 'pushVariable', key: 'A:SLAT TEST', unit: 'percent' }],
+          variableKeys: ['A:SLAT TEST'],
+        },
+        length: 100,
+        wrap: false,
+        delta: false,
+        lagFramesPerSecond: 0,
+        sourcePath: 'test.xml',
+      }],
+    }
+    const slatStart = slat.position.toArray()
+    const outboardSlatStart = outboardSlat.position.toArray()
+    const slatClip = new AnimationClip('SlatAnimation', 1, [
+      new VectorKeyframeTrack(`${slat.name}.position`, [0, 1], [
+        ...slatStart, slatStart[0]!, slatStart[1]!, slatStart[2]! + 0.3,
+      ]),
+      new VectorKeyframeTrack(`${outboardSlat.name}.position`, [0, 1], [
+        ...outboardSlatStart, outboardSlatStart[0]!, outboardSlatStart[1]!, outboardSlatStart[2]! + 0.3,
+      ]),
+    ])
+    let runtime = new AircraftRuntime(wingFlexCompiledBehaviorSet, scene, wingFlexHostServices, aircraft)
+    runtime.bindAnimations([slatClip])
     const smoothedWeights = wingGeometry.getAttribute('skinWeight')
     expect(smoothedWeights.getX(0) > 0 && smoothedWeights.getX(0) < 1).toBe(true)
     expect(smoothedWeights.getY(0) > 0 && smoothedWeights.getY(0) < 1).toBe(true)
+    expect(smoothedWeights.getX(2) > 0 && smoothedWeights.getX(2) < 1).toBe(true)
+    expect(smoothedWeights.getY(2) > 0 && smoothedWeights.getY(2) < 1).toBe(true)
+    const firstIndices = Array.from(wingGeometry.getAttribute('skinIndex').array)
+    const firstWeights = Array.from(smoothedWeights.array)
+
+    runtime = new AircraftRuntime(wingFlexCompiledBehaviorSet, scene, wingFlexHostServices, aircraft)
+    runtime.bindAnimations([slatClip])
+    expect(Array.from(wingGeometry.getAttribute('skinIndex').array)).toEqual(firstIndices)
+    expect(Array.from(wingGeometry.getAttribute('skinWeight').array)).toEqual(firstWeights)
 
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
@@ -506,6 +567,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const neutralRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
     const neutralLeftPivot = leftPivot.getWorldPosition(new Vector3())
     const neutralSlat = slat.getWorldPosition(new Vector3())
+    const neutralOutboardSlat = outboardSlat.getWorldPosition(new Vector3())
     const neutralFlap = flap.getWorldPosition(new Vector3())
     const neutralBoneQuaternions = leftBones.map(node => node.quaternion.clone())
 
@@ -521,13 +583,26 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(flexedLeftStations[0].y > neutralLeftStations[0].y).toBe(true)
     expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
     expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
-    expect(slat.getWorldPosition(new Vector3()).y > neutralSlat.y).toBe(true)
-    expect(flap.getWorldPosition(new Vector3()).y > neutralFlap.y).toBe(true)
+    expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) > 1e-6).toBe(true)
+    expect(outboardSlat.getWorldPosition(new Vector3()).distanceTo(neutralOutboardSlat) > 1e-6).toBe(true)
+    expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-9).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).y > neutralLeftPivot.y).toBe(true)
     expect(leftPivot.quaternion.angleTo(neutralLeftPivotQuaternion) < 1e-9).toBe(true)
     const inboardIncrement = leftBones[0].quaternion.angleTo(neutralBoneQuaternions[0])
     const tipIncrement = leftBones.at(-1)!.quaternion.angleTo(neutralBoneQuaternions.at(-1)!)
     expect(inboardIncrement > tipIncrement).toBe(true)
+
+    const flexedSlat = slat.getWorldPosition(new Vector3())
+    slatAnimationValue = 100
+    runtime.update(1 / 60)
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    expect(slat.getWorldPosition(new Vector3()).distanceTo(flexedSlat) > 0.1).toBe(true)
+    slatAnimationValue = 0
+    runtime.update(1 / 60)
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    expect(slat.getWorldPosition(new Vector3()).distanceTo(flexedSlat) < 1e-6).toBe(true)
 
     leftFlex = 0
     rightFlex = 0
@@ -535,7 +610,8 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.updateMatrixWorld(true)
     expect(leftBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralLeftTip) < 1e-9).toBe(true)
     expect(rightBones.at(-1)!.getWorldPosition(new Vector3()).distanceTo(neutralRightTip) < 1e-9).toBe(true)
-    expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) < 1e-9).toBe(true)
+    expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) < 1e-6).toBe(true)
+    expect(outboardSlat.getWorldPosition(new Vector3()).distanceTo(neutralOutboardSlat) < 1e-6).toBe(true)
     expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-9).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) < 1e-9).toBe(true)
   })
