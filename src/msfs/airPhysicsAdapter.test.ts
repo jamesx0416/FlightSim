@@ -102,6 +102,11 @@ wingflex_offset=0.02
 [FLAPS.0]
 span-outboard=0.8
 `)
+const systemsCfg = cfg('systems', `
+[AUTOPILOT]
+yaw_damper_gain=1
+`)
+
 const enginesCfg = cfg('engines', `
 [GENERALENGINEDATA]
 number_of_engines=2
@@ -131,7 +136,7 @@ thrust_scalar=1
 
 const aircraft = {
   id: 'a330-test',
-  cfgFiles: [flightModel, enginesCfg],
+  cfgFiles: [flightModel, enginesCfg, systemsCfg],
 } as unknown as ImportedAircraft
 test('builds modern air physics from MSFS flight model metadata', () => {
   const physics = createMsfsAirPhysicsSystemConfig(aircraft)
@@ -154,6 +159,7 @@ test('builds modern air physics from MSFS flight model metadata', () => {
   expect(physics!.controls.elevatorDeflectionSign).toBe(-1)
   expect(physics!.controls.elevatorLiftCoefficientSlopePerRad).toBe(5)
   expect(physics!.controls.rudderLiftCoefficientSlopePerRad).toBe(5)
+  expect(physics!.controls.yawDamperGain).toBe(1)
   expect(physics!.controls.flapSpanOutboardRatio).toBe(0.8)
   expect(physics!.aerodynamics.pitchDampingCoefficient).toBe(0)
   expect(physics!.aerodynamics.liftCoefficientByAlphaRad.breakpoints.includes(0.139)).toBe(true)

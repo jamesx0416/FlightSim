@@ -227,6 +227,7 @@ export interface CanonicalAirPhysicsControls {
   readonly aileronEffectiveness: number
   readonly elevatorEffectiveness: number
   readonly rudderEffectiveness: number
+  readonly yawDamperGain?: number
   readonly elevatorLiftCoefficientSlopePerRad?: number
   readonly elevatorDeflectionSign?: -1 | 1
   readonly elevatorTrimUpLimitRad?: number
