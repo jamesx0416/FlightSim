@@ -221,6 +221,40 @@ test('geometric control surfaces produce body moments', () => {
   expect((engine.state.readNumber(AirPhysicsStateKeys.yawRateRadPerSecond()) ?? 0) > neutralYawRate).toBe(true)
 })
 
+test('flap induced drag applies only to wing sections containing flaps', () => {
+  const dragWith = (flapSpanOutboardRatio: number, flaps: number) => {
+    const engine = createPhysicsEngine([], {
+      ...basePhysics,
+      geometry: {
+        ...basePhysics.geometry,
+        horizontalTailAreaM2: 0,
+        elevatorAreaM2: 0,
+        verticalTailAreaM2: 0,
+        rudderAreaM2: 0,
+      },
+      aerodynamics: {
+        ...basePhysics.aerodynamics,
+        flapLiftCoefficient: 0,
+        flapDragCoefficient: 0,
+        flapInducedDragScalar: 2,
+      },
+      controls: { ...basePhysics.controls, flapSpanOutboardRatio },
+    })
+    engine.state.set(ControlStateKeys.flapsPositionRatio(), flaps, {
+      source: 'runtime', unit: 'ratio',
+    })
+    engine.dispatch({
+      type: AirPhysicsCommandTypes.reset,
+      payload: { altitudeMeters: 1000, airspeedMps: 90, pitchRad: 0.1, enabled: true },
+    })
+    engine.tick(1 / 120)
+    return engine.state.readNumber(AirPhysicsStateKeys.dragN()) ?? 0
+  }
+
+  expect(Math.abs(dragWith(0, 1) - dragWith(0, 0)) < 1e-6).toBe(true)
+  expect(dragWith(1, 1) > dragWith(1, 0)).toBe(true)
+})
+
 test('yaw damper opposes body yaw rate through the rudder surface', () => {
   const run = (yawDamperGain: number) => {
     const engine = createPhysicsEngine([], {

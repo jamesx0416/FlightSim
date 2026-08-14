@@ -704,7 +704,9 @@ export class AirPhysicsSubsystem implements SimSubsystem {
       0,
       aero.zeroLiftDragCoefficient * aero.parasiteDragScalar +
       machDrag +
-      inducedDrag * (1 + (aero.flapInducedDragScalar - 1) * flaps) +
+      inducedDrag * (element.flapCoefficientScale > 0
+        ? 1 + (aero.flapInducedDragScalar - 1) * flaps
+        : 1) +
       aero.flapDragCoefficient * flaps * element.flapCoefficientScale +
       aero.gearDragCoefficient * gear +
       aero.spoilerDragCoefficient * spoilers -
