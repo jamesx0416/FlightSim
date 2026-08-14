@@ -55,4 +55,39 @@ describe('normalizeMsfsSkinning', () => {
     expect(overflowingOneBased.geometry.getAttribute('skinIndex').getX(0)).toBe(3)
     expect(alreadyCorrect.geometry.getAttribute('skinIndex').getX(0)).toBe(3)
   })
+
+  test('repairs one-based mixed skin indices without rebasing a valid sibling', () => {
+    const root = new Object3D()
+    const bones = [0, 10, 20, 30, 40].map(x => {
+      const bone = new Bone()
+      bone.position.x = x
+      root.add(bone)
+      return bone
+    })
+    const makeMixedMesh = (positions: number[], indices: number[]) => {
+      const geometry = new BufferGeometry()
+      geometry.setAttribute('position', new Float32BufferAttribute(
+        positions.flatMap(x => [x, 0, 0]), 3
+      ))
+      geometry.setAttribute('skinIndex', new Uint16BufferAttribute(
+        indices.flatMap(index => [index, 0, 0, 0]), 4
+      ))
+      geometry.setAttribute('skinWeight', new Float32BufferAttribute(
+        indices.flatMap(() => [1, 0, 0, 0]), 4
+      ))
+      const mesh = new SkinnedMesh(geometry)
+      mesh.bind(new Skeleton(bones))
+      root.add(mesh)
+      return geometry
+    }
+    const oneBased = makeMixedMesh([10, 20, 30], [2, 3, 4])
+    const valid = makeMixedMesh([20, 30, 40], [2, 3, 4])
+
+    normalizeMsfsSkinning(root)
+
+    const oneBasedIndices = oneBased.getAttribute('skinIndex')
+    const validIndices = valid.getAttribute('skinIndex')
+    expect([oneBasedIndices.getX(0), oneBasedIndices.getX(1), oneBasedIndices.getX(2)]).toEqual([1, 2, 3])
+    expect([validIndices.getX(0), validIndices.getX(1), validIndices.getX(2)]).toEqual([2, 3, 4])
+  })
 })

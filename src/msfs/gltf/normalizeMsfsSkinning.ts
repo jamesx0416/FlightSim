@@ -42,7 +42,7 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       return
     }
 
-    repairRigidOneBasedSkinIndex(object)
+    repairOneBasedSkinIndices(object)
 
     let didClamp = false
     const array = normalizedSkinIndex.array as ArrayLike<number> & { [index: number]: number }
@@ -249,48 +249,50 @@ function rebindRigidRotationRootMesh(mesh: SkinnedMesh): void {
   mesh.bind(isolatedSkeleton, mesh.matrixWorld.clone())
 }
 
-function repairRigidOneBasedSkinIndex(mesh: SkinnedMesh): void {
+function repairOneBasedSkinIndices(mesh: SkinnedMesh): void {
   const skeleton = mesh.skeleton
-  const dominantBoneIndex = getRigidSingleBoneIndex(mesh)
-  if (skeleton == null || dominantBoneIndex == null || dominantBoneIndex <= 0) {
-    return
-  }
-
-  const precedingBoneIndex = dominantBoneIndex - 1
-  let shouldShift = dominantBoneIndex === skeleton.bones.length
-  if (!shouldShift && dominantBoneIndex < skeleton.bones.length) {
-    mesh.geometry.computeBoundingBox()
-    const bounds = mesh.geometry.boundingBox
-    if (bounds == null) {
-      return
-    }
-    const meshCenter = bounds.getCenter(new Vector3()).applyMatrix4(mesh.matrixWorld)
-    const currentDistance = meshCenter.distanceTo(
-      skeleton.bones[dominantBoneIndex].getWorldPosition(new Vector3())
-    )
-    const precedingDistance = meshCenter.distanceTo(
-      skeleton.bones[precedingBoneIndex].getWorldPosition(new Vector3())
-    )
-    shouldShift = precedingDistance * 2 < currentDistance
-  }
-
-  if (!shouldShift) {
-    return
-  }
-
+  const position = mesh.geometry.getAttribute('position')
   const skinIndex = mesh.geometry.getAttribute('skinIndex')
   const skinWeight = mesh.geometry.getAttribute('skinWeight')
-  if (skinIndex == null || skinWeight == null) {
-    return
+  if (skeleton == null || position == null || skinIndex == null || skinWeight == null) return
+
+  let hasActiveZero = false
+  let hasOneBasedOverflow = false
+  let currentDistance = 0
+  let precedingDistance = 0
+  let activeWeight = 0
+  const point = new Vector3()
+  const bonePositions = skeleton.bones.map(bone => bone.getWorldPosition(new Vector3()))
+  for (let vertexIndex = 0; vertexIndex < skinIndex.count; vertexIndex += 1) {
+    point.set(position.getX(vertexIndex), position.getY(vertexIndex), position.getZ(vertexIndex))
+      .applyMatrix4(mesh.matrixWorld)
+    for (let componentIndex = 0; componentIndex < 4; componentIndex += 1) {
+      const weight = getAttributeComponent(skinWeight, vertexIndex, componentIndex)
+      if (weight <= 1e-4) continue
+      const boneIndex = getAttributeComponent(skinIndex, vertexIndex, componentIndex)
+      if (boneIndex === 0) {
+        hasActiveZero = true
+        continue
+      }
+      if (boneIndex < 0 || boneIndex > skeleton.bones.length) return
+      precedingDistance += point.distanceToSquared(bonePositions[boneIndex - 1]!) * weight
+      if (boneIndex === skeleton.bones.length) {
+        hasOneBasedOverflow = true
+      } else {
+        currentDistance += point.distanceToSquared(bonePositions[boneIndex]!) * weight
+      }
+      activeWeight += weight
+    }
   }
+  if (hasActiveZero || activeWeight <= 1e-9) return
+  if (!hasOneBasedOverflow && precedingDistance * 2 >= currentDistance) return
 
   for (let vertexIndex = 0; vertexIndex < skinIndex.count; vertexIndex += 1) {
     for (let componentIndex = 0; componentIndex < 4; componentIndex += 1) {
-      if (getAttributeComponent(skinWeight, vertexIndex, componentIndex) <= 1e-4) {
-        continue
-      }
-      if (getAttributeComponent(skinIndex, vertexIndex, componentIndex) === dominantBoneIndex) {
-        setAttributeComponent(skinIndex, vertexIndex, componentIndex, precedingBoneIndex)
+      if (getAttributeComponent(skinWeight, vertexIndex, componentIndex) <= 1e-4) continue
+      const boneIndex = getAttributeComponent(skinIndex, vertexIndex, componentIndex)
+      if (boneIndex > 0) {
+        setAttributeComponent(skinIndex, vertexIndex, componentIndex, boneIndex - 1)
       }
     }
   }
