@@ -9,6 +9,7 @@ import {
   PropertyBinding,
   Quaternion,
   type SkinnedMesh,
+  Triangle,
   Vector3,
 } from 'three'
 
@@ -7021,6 +7022,8 @@ interface RuntimeWingFlexSide {
   readonly sideSign: number
   spanMapKnots: readonly RuntimeWingFlexSpanMapKnot[]
   currentTipAngle: number
+  surfaceCandidates: SkinnedMesh[]
+  surface: RuntimeWingSurface | null
 }
 
 interface RuntimeWingDeformationStation {
@@ -7032,6 +7035,32 @@ interface RuntimeWingDeformationStation {
 interface RuntimeWingDeformationField {
   readonly side: RuntimeWingFlexSide
   readonly stations: readonly RuntimeWingDeformationStation[]
+}
+
+interface RuntimeWingSurfaceVertex {
+  readonly restPointInRoot: Vector3
+  readonly stationIndices: readonly number[]
+  readonly stationWeights: readonly number[]
+}
+
+interface RuntimeWingSurfaceTriangle {
+  readonly a: number
+  readonly b: number
+  readonly c: number
+  readonly minSpanRatio: number
+  readonly maxSpanRatio: number
+}
+
+interface RuntimeWingSurface {
+  readonly vertices: readonly RuntimeWingSurfaceVertex[]
+  readonly triangles: readonly RuntimeWingSurfaceTriangle[]
+  readonly spanBins: readonly (readonly number[])[]
+}
+
+interface RuntimeWingSurfaceAnchors {
+  readonly triangleIndices: Uint32Array
+  readonly barycentrics: Float32Array
+  readonly localOffsets: Float32Array
 }
 
 interface RuntimeWingFlexAttachment {
@@ -7061,6 +7090,8 @@ interface RuntimeWingFlexSurfaceCpuRepair {
   readonly wingRatios: Float32Array
   readonly wingSegments: Uint8Array
   readonly wingBlends: Float32Array
+  surfaceAnchors: RuntimeWingSurfaceAnchors | null
+  useSurfaceAttachment: boolean
   readonly rigidBoneIndex: number | null
   readonly authoredMeshMatrixInRoot: Matrix4
   readonly authoredBoneMatricesInRoot: Matrix4[]
@@ -7200,6 +7231,8 @@ function buildWingFlexSide(
       { raw: 1, mapped: 1 },
     ],
     currentTipAngle: 0,
+    surfaceCandidates: [],
+    surface: null,
     nodes: sorted.map(entry => {
       const restPointInRoot = toRootPoint(entry.node.getWorldPosition(new Vector3()))
       return {
@@ -7443,6 +7476,7 @@ function smoothMainWingFlexSkinWeights(
 
     const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
     const pointInRoot = new Vector3()
+    const authoredStationsBySide = new Map<RuntimeWingFlexSide, Set<number>>()
     let modified = false
     for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
       const activeIndices: number[] = []
@@ -7458,6 +7492,14 @@ function smoothMainWingFlexSkinWeights(
               : sourceSkinIndex.getW(vertexIndex))
       }
       if (activeIndices.length === 0) continue
+      for (const candidate of chains) {
+        const authoredStations = authoredStationsBySide.get(candidate.side) ?? new Set<number>()
+        for (const boneIndex of activeIndices) {
+          const stationIndex = candidate.boneIndices.indexOf(boneIndex)
+          if (stationIndex >= 0) authoredStations.add(stationIndex)
+        }
+        authoredStationsBySide.set(candidate.side, authoredStations)
+      }
       const chain = chains.find(candidate =>
         activeIndices.every(index => candidate.boneIndexSet.has(index))
       )
@@ -7487,8 +7529,234 @@ function smoothMainWingFlexSkinWeights(
     if (modified) {
       skinIndex.needsUpdate = true
       skinWeight.needsUpdate = true
+      if (typeof mesh.applyBoneTransform === 'function') {
+        for (const [side, authoredStations] of authoredStationsBySide) {
+          if (authoredStations.size >= 2 && !side.surfaceCandidates.includes(mesh)) {
+            side.surfaceCandidates.push(mesh)
+          }
+        }
+      }
     }
   })
+}
+
+const WING_SURFACE_SPAN_BIN_COUNT = 128
+
+function buildWingSurface(
+  sceneRoot: Object3D,
+  side: RuntimeWingFlexSide
+): RuntimeWingSurface | null {
+  sceneRoot.updateMatrixWorld(true)
+  const rootWorldInverse = sceneRoot.matrixWorld.clone().invert()
+  const stationBones = [side.fixedRoot, ...side.nodes.map(entry => entry.node)]
+  const stationByBone = new Map(stationBones.map((bone, index) => [bone, index] as const))
+  const vertices: RuntimeWingSurfaceVertex[] = []
+  const triangles: RuntimeWingSurfaceTriangle[] = []
+  const spanBins: number[][] = Array.from({ length: WING_SURFACE_SPAN_BIN_COUNT }, () => [])
+
+  for (const mesh of side.surfaceCandidates) {
+    if (mesh.isSkinnedMesh !== true || mesh.skeleton == null || typeof mesh.applyBoneTransform !== 'function') continue
+    const position = mesh.geometry.getAttribute('position')
+    const skinIndex = mesh.geometry.getAttribute('skinIndex')
+    const skinWeight = mesh.geometry.getAttribute('skinWeight')
+    if (position == null || skinIndex == null || skinWeight == null) continue
+
+    const influences: Array<{ indices: number[]; weights: number[] } | null> = Array(position.count).fill(null)
+    const meshStations = new Set<number>()
+    for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
+      const indices: number[] = []
+      const weights: number[] = []
+      let totalWeight = 0
+      let valid = true
+      for (let component = 0; component < 4; component += 1) {
+        const weight = getRuntimeSkinComponent(skinWeight, vertexIndex, component)
+        if (weight <= 1e-5) continue
+        const boneIndex = Math.round(getRuntimeSkinComponent(skinIndex, vertexIndex, component))
+        const bone = mesh.skeleton.bones[boneIndex]
+        const stationIndex = bone == null ? undefined : stationByBone.get(bone)
+        if (stationIndex == null) {
+          valid = false
+          break
+        }
+        indices.push(stationIndex)
+        weights.push(weight)
+        totalWeight += weight
+        meshStations.add(stationIndex)
+      }
+      if (!valid || indices.length === 0 || totalWeight <= 1e-8) continue
+      influences[vertexIndex] = {
+        indices,
+        weights: weights.map(weight => weight / totalWeight),
+      }
+    }
+    // A rigid one-bone mesh can be an engine or another passenger of the wing chain.
+    // Require a surface that actually spans multiple WingFlex stations before using it as an anchor.
+    if (meshStations.size < 2) continue
+
+    const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
+    const localToSurface = new Map<number, number>()
+    const surfaceVertex = (vertexIndex: number): number => {
+      const existing = localToSurface.get(vertexIndex)
+      if (existing != null) return existing
+      const influence = influences[vertexIndex]!
+      const restPointInRoot = new Vector3().fromBufferAttribute(position, vertexIndex).applyMatrix4(meshToRoot)
+      const index = vertices.length
+      vertices.push({
+        restPointInRoot,
+        stationIndices: influence.indices,
+        stationWeights: influence.weights,
+      })
+      localToSurface.set(vertexIndex, index)
+      return index
+    }
+
+    const index = mesh.geometry.index
+    const triangleCount = Math.floor((index?.count ?? position.count) / 3)
+    const edgeA = new Vector3()
+    const edgeB = new Vector3()
+    for (let triangleIndex = 0; triangleIndex < triangleCount; triangleIndex += 1) {
+      const localA = index == null ? triangleIndex * 3 : Math.round(index.getX(triangleIndex * 3))
+      const localB = index == null ? triangleIndex * 3 + 1 : Math.round(index.getX(triangleIndex * 3 + 1))
+      const localC = index == null ? triangleIndex * 3 + 2 : Math.round(index.getX(triangleIndex * 3 + 2))
+      if (influences[localA] == null || influences[localB] == null || influences[localC] == null) continue
+      const a = surfaceVertex(localA)
+      const b = surfaceVertex(localB)
+      const c = surfaceVertex(localC)
+      const pa = vertices[a]!.restPointInRoot
+      const pb = vertices[b]!.restPointInRoot
+      const pc = vertices[c]!.restPointInRoot
+      edgeA.subVectors(pb, pa)
+      edgeB.subVectors(pc, pa)
+      if (edgeA.clone().cross(edgeB).lengthSq() <= 1e-12) continue
+      const minSpanRatio = Math.min(wingSpanRatio(side, pa), wingSpanRatio(side, pb), wingSpanRatio(side, pc))
+      const maxSpanRatio = Math.max(wingSpanRatio(side, pa), wingSpanRatio(side, pb), wingSpanRatio(side, pc))
+      const surfaceTriangleIndex = triangles.length
+      triangles.push({ a, b, c, minSpanRatio, maxSpanRatio })
+      const firstBin = Math.floor(minSpanRatio * (WING_SURFACE_SPAN_BIN_COUNT - 1))
+      const lastBin = Math.floor(maxSpanRatio * (WING_SURFACE_SPAN_BIN_COUNT - 1))
+      for (let bin = firstBin; bin <= lastBin; bin += 1) spanBins[bin]!.push(surfaceTriangleIndex)
+    }
+  }
+
+  return triangles.length === 0
+    ? null
+    : {
+        vertices,
+        triangles,
+        spanBins,
+      }
+}
+
+function findWingSurfaceAnchor(
+  surface: RuntimeWingSurface,
+  side: RuntimeWingFlexSide,
+  pointInRoot: Vector3
+): { readonly triangleIndex: number; readonly barycentric: Vector3 } | null {
+  const bin = Math.floor(wingSpanRatio(side, pointInRoot) * (WING_SURFACE_SPAN_BIN_COUNT - 1))
+  const triangle = new Triangle()
+  const closest = new Vector3()
+  const barycentric = new Vector3()
+  let bestTriangle = -1
+  let bestDistanceSq = Number.POSITIVE_INFINITY
+  const visited = new Set<number>()
+
+  for (let radius = 0; radius < WING_SURFACE_SPAN_BIN_COUNT; radius += 1) {
+    const bins = radius === 0 ? [bin] : [bin - radius, bin + radius]
+    let checked = false
+    for (const candidateBin of bins) {
+      if (candidateBin < 0 || candidateBin >= WING_SURFACE_SPAN_BIN_COUNT) continue
+      for (const triangleIndex of surface.spanBins[candidateBin]!) {
+        if (visited.has(triangleIndex)) continue
+        visited.add(triangleIndex)
+        checked = true
+        const candidate = surface.triangles[triangleIndex]!
+        triangle.set(
+          surface.vertices[candidate.a]!.restPointInRoot,
+          surface.vertices[candidate.b]!.restPointInRoot,
+          surface.vertices[candidate.c]!.restPointInRoot
+        )
+        triangle.closestPointToPoint(pointInRoot, closest)
+        const distanceSq = closest.distanceToSquared(pointInRoot)
+        if (distanceSq >= bestDistanceSq) continue
+        triangle.getBarycoord(closest, barycentric)
+        bestTriangle = triangleIndex
+        bestDistanceSq = distanceSq
+      }
+    }
+    // Wing-mounted geometry should have an anchor at the same span. Expand only when that bin is empty.
+    if (checked && bestTriangle >= 0) break
+  }
+
+  if (bestTriangle < 0) return null
+  const candidate = surface.triangles[bestTriangle]!
+  triangle.set(
+    surface.vertices[candidate.a]!.restPointInRoot,
+    surface.vertices[candidate.b]!.restPointInRoot,
+    surface.vertices[candidate.c]!.restPointInRoot
+  )
+  triangle.closestPointToPoint(pointInRoot, closest)
+  triangle.getBarycoord(closest, barycentric)
+  return { triangleIndex: bestTriangle, barycentric: barycentric.clone() }
+}
+
+function updateWingSurfaceAnchorOffsets(
+  repair: RuntimeWingFlexSurfaceCpuRepair
+): void {
+  const surface = repair.side.surface
+  if (!repair.useSurfaceAttachment || surface == null) return
+  if (repair.surfaceAnchors == null) {
+    const triangleIndices = new Uint32Array(repair.sourcePositions.count)
+    triangleIndices.fill(0xffffffff)
+    const barycentrics = new Float32Array(repair.sourcePositions.count * 3)
+    const localOffsets = new Float32Array(repair.sourcePositions.count * 3)
+    const point = new Vector3()
+    for (let vertexIndex = 0; vertexIndex < repair.sourcePositions.count; vertexIndex += 1) {
+      const offset = vertexIndex * 3
+      point.set(
+        repair.authoredPositionsInRoot[offset]!,
+        repair.authoredPositionsInRoot[offset + 1]!,
+        repair.authoredPositionsInRoot[offset + 2]!
+      )
+      const anchor = findWingSurfaceAnchor(surface, repair.side, point)
+      if (anchor == null) continue
+      triangleIndices[vertexIndex] = anchor.triangleIndex
+      barycentrics[offset] = anchor.barycentric.x
+      barycentrics[offset + 1] = anchor.barycentric.y
+      barycentrics[offset + 2] = anchor.barycentric.z
+    }
+    repair.surfaceAnchors = { triangleIndices, barycentrics, localOffsets }
+  }
+
+  const anchors = repair.surfaceAnchors
+  const anchorPoint = new Vector3()
+  const delta = new Vector3()
+  const tangent = new Vector3()
+  const bitangent = new Vector3()
+  const normal = new Vector3()
+  for (let vertexIndex = 0; vertexIndex < repair.sourcePositions.count; vertexIndex += 1) {
+    const triangleIndex = anchors.triangleIndices[vertexIndex]!
+    if (triangleIndex === 0xffffffff) continue
+    const triangle = surface.triangles[triangleIndex]!
+    const a = surface.vertices[triangle.a]!.restPointInRoot
+    const b = surface.vertices[triangle.b]!.restPointInRoot
+    const c = surface.vertices[triangle.c]!.restPointInRoot
+    const offset = vertexIndex * 3
+    const wa = anchors.barycentrics[offset]!
+    const wb = anchors.barycentrics[offset + 1]!
+    const wc = anchors.barycentrics[offset + 2]!
+    anchorPoint.copy(a).multiplyScalar(wa).addScaledVector(b, wb).addScaledVector(c, wc)
+    tangent.subVectors(b, a).normalize()
+    normal.subVectors(b, a).cross(bitangent.subVectors(c, a)).normalize()
+    bitangent.crossVectors(normal, tangent).normalize()
+    delta.set(
+      repair.authoredPositionsInRoot[offset]!,
+      repair.authoredPositionsInRoot[offset + 1]!,
+      repair.authoredPositionsInRoot[offset + 2]!
+    ).sub(anchorPoint)
+    anchors.localOffsets[offset] = delta.dot(tangent)
+    anchors.localOffsets[offset + 1] = delta.dot(bitangent)
+    anchors.localOffsets[offset + 2] = delta.dot(normal)
+  }
 }
 
 function buildWingFlexAttachments(
@@ -7660,6 +7928,8 @@ function smoothWingFlexAttachmentSkinWeights(
             !existingRepair.sourceBones.some(bone => animatedAttachmentNodes.has(bone))) return
           if (!existingRepair.sourceBones.every(bone => attachmentByNode.has(bone))) return
           existingRepair.cpu.side = side
+          existingRepair.cpu.useSurfaceAttachment = isStructuralSurface && existingRepair.sourceBones.length === 1
+          existingRepair.cpu.surfaceAnchors = null
           existingRepair.cpu.authoredPoseCaptured = false
           addWingFlexSurfaceCpuRepair(binding, existingRepair.cpu)
           return
@@ -7704,6 +7974,8 @@ function smoothWingFlexAttachmentSkinWeights(
           wingRatios: new Float32Array(sourceSkinning.position.count),
           wingSegments: new Uint8Array(sourceSkinning.position.count),
           wingBlends: new Float32Array(sourceSkinning.position.count),
+          surfaceAnchors: null,
+          useSurfaceAttachment: isStructuralSurface && sourceIndices.length === 1,
           rigidBoneIndex: sourceIndices.length === 1 ? sourceIndices[0]! : null,
           authoredMeshMatrixInRoot: new Matrix4(),
           authoredBoneMatricesInRoot: sourceSkinning.bones.map(() => new Matrix4()),
@@ -7717,6 +7989,13 @@ function smoothWingFlexAttachmentSkinWeights(
         runtimeWingFlexSurfaceRepairs.set(mesh, repair)
         addWingFlexSurfaceCpuRepair(binding, cpuRepair)
       })
+    }
+    for (const side of [binding.leftWing, binding.rightWing]) {
+      if (side == null) continue
+      const surfaceRepairs = binding.surfaceCpuRepairs.filter(repair =>
+        repair.side === side && repair.useSurfaceAttachment
+      )
+      side.surface = surfaceRepairs.length > 0 ? buildWingSurface(sceneRoot, side) : null
     }
   }
 }
@@ -7988,6 +8267,7 @@ function captureWingFlexSurfaceCpuPoses(
       repair.wingSegments[vertexIndex] = segment
       repair.wingBlends[vertexIndex] = rawT * rawT * (3 - 2 * rawT)
     }
+    updateWingSurfaceAnchorOffsets(repair)
     repair.authoredPoseCaptured = true
   }
 }
@@ -8169,6 +8449,12 @@ function applyWingFlexSurfaceCpuRepairs(
   const authoredNormal = new Vector3()
   const desiredNormal = new Vector3()
   const desiredRotation = new Quaternion()
+  const surfaceA = new Vector3()
+  const surfaceB = new Vector3()
+  const surfaceC = new Vector3()
+  const surfaceTangent = new Vector3()
+  const surfaceBitangent = new Vector3()
+  const surfaceNormal = new Vector3()
 
   for (const repair of repairs) {
     const field = deformationFields.get(repair.side)
@@ -8216,30 +8502,112 @@ function applyWingFlexSurfaceCpuRepairs(
     if (position == null) continue
 
     if (rigidCurrentSkinInverse != null) {
-      const rootToGeometry = rigidCurrentSkinInverse.clone().multiply(rootToMesh)
+      const rootToGeometry = rigidCurrentSkinInverse.clone().multiply(rootToMesh).elements
       const stationToGeometry = field.stations.map(station =>
-        rootToGeometry.clone().multiply(station.deltaMatrixInRoot).elements
+        new Matrix4().fromArray(rootToGeometry).multiply(station.deltaMatrixInRoot).elements
       )
+      const surface = repair.side.surface
+      const anchors = repair.surfaceAnchors
+      const deformSurfaceVertex = (vertex: RuntimeWingSurfaceVertex, target: Vector3): void => {
+        let x = 0
+        let y = 0
+        let z = 0
+        const restX = vertex.restPointInRoot.x
+        const restY = vertex.restPointInRoot.y
+        const restZ = vertex.restPointInRoot.z
+        for (let influenceIndex = 0; influenceIndex < vertex.stationIndices.length; influenceIndex += 1) {
+          const station = field.stations[vertex.stationIndices[influenceIndex]!]
+          if (station == null) continue
+          const weight = vertex.stationWeights[influenceIndex]!
+          const matrix = station.deltaMatrixInRoot.elements
+          x += (matrix[0]! * restX + matrix[4]! * restY + matrix[8]! * restZ + matrix[12]!) * weight
+          y += (matrix[1]! * restX + matrix[5]! * restY + matrix[9]! * restZ + matrix[13]!) * weight
+          z += (matrix[2]! * restX + matrix[6]! * restY + matrix[10]! * restZ + matrix[14]!) * weight
+        }
+        target.set(x, y, z)
+      }
       for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
         const offset = vertexIndex * 3
-        const x = repair.authoredPositionsInRoot[offset]!
-        const y = repair.authoredPositionsInRoot[offset + 1]!
-        const z = repair.authoredPositionsInRoot[offset + 2]!
-        const segment = repair.wingSegments[vertexIndex]!
-        const blend = repair.wingBlends[vertexIndex]!
-        const start = stationToGeometry[segment]!
-        const end = stationToGeometry[segment + 1]!
-        const startX = start[0]! * x + start[4]! * y + start[8]! * z + start[12]!
-        const startY = start[1]! * x + start[5]! * y + start[9]! * z + start[13]!
-        const startZ = start[2]! * x + start[6]! * y + start[10]! * z + start[14]!
-        const endX = end[0]! * x + end[4]! * y + end[8]! * z + end[12]!
-        const endY = end[1]! * x + end[5]! * y + end[9]! * z + end[13]!
-        const endZ = end[2]! * x + end[6]! * y + end[10]! * z + end[14]!
+        let rootX: number
+        let rootY: number
+        let rootZ: number
+        const triangleIndex = anchors?.triangleIndices[vertexIndex] ?? 0xffffffff
+        const surfaceTriangle = surface != null && triangleIndex !== 0xffffffff
+          ? surface.triangles[triangleIndex]
+          : undefined
+        if (surface != null && surfaceTriangle != null && anchors != null) {
+          deformSurfaceVertex(surface.vertices[surfaceTriangle.a]!, surfaceA)
+          deformSurfaceVertex(surface.vertices[surfaceTriangle.b]!, surfaceB)
+          deformSurfaceVertex(surface.vertices[surfaceTriangle.c]!, surfaceC)
+          surfaceTangent.subVectors(surfaceB, surfaceA)
+          surfaceNormal.subVectors(surfaceB, surfaceA)
+            .cross(surfaceBitangent.subVectors(surfaceC, surfaceA))
+          const tangentLength = surfaceTangent.length()
+          const normalLength = surfaceNormal.length()
+          if (tangentLength <= 1e-9 || normalLength <= 1e-9) {
+            const x = repair.authoredPositionsInRoot[offset]!
+            const y = repair.authoredPositionsInRoot[offset + 1]!
+            const z = repair.authoredPositionsInRoot[offset + 2]!
+            const segment = repair.wingSegments[vertexIndex]!
+            const blend = repair.wingBlends[vertexIndex]!
+            const start = stationToGeometry[segment]!
+            const end = stationToGeometry[segment + 1]!
+            const startX = start[0]! * x + start[4]! * y + start[8]! * z + start[12]!
+            const startY = start[1]! * x + start[5]! * y + start[9]! * z + start[13]!
+            const startZ = start[2]! * x + start[6]! * y + start[10]! * z + start[14]!
+            const endX = end[0]! * x + end[4]! * y + end[8]! * z + end[12]!
+            const endY = end[1]! * x + end[5]! * y + end[9]! * z + end[13]!
+            const endZ = end[2]! * x + end[6]! * y + end[10]! * z + end[14]!
+            position.setXYZ(
+              vertexIndex,
+              startX + (endX - startX) * blend,
+              startY + (endY - startY) * blend,
+              startZ + (endZ - startZ) * blend
+            )
+            continue
+          }
+          surfaceTangent.multiplyScalar(1 / tangentLength)
+          surfaceNormal.multiplyScalar(1 / normalLength)
+          surfaceBitangent.crossVectors(surfaceNormal, surfaceTangent).normalize()
+          const wa = anchors.barycentrics[offset]!
+          const wb = anchors.barycentrics[offset + 1]!
+          const wc = anchors.barycentrics[offset + 2]!
+          const localU = anchors.localOffsets[offset]!
+          const localV = anchors.localOffsets[offset + 1]!
+          const localN = anchors.localOffsets[offset + 2]!
+          rootX = surfaceA.x * wa + surfaceB.x * wb + surfaceC.x * wc +
+            surfaceTangent.x * localU + surfaceBitangent.x * localV + surfaceNormal.x * localN
+          rootY = surfaceA.y * wa + surfaceB.y * wb + surfaceC.y * wc +
+            surfaceTangent.y * localU + surfaceBitangent.y * localV + surfaceNormal.y * localN
+          rootZ = surfaceA.z * wa + surfaceB.z * wb + surfaceC.z * wc +
+            surfaceTangent.z * localU + surfaceBitangent.z * localV + surfaceNormal.z * localN
+        } else {
+          const x = repair.authoredPositionsInRoot[offset]!
+          const y = repair.authoredPositionsInRoot[offset + 1]!
+          const z = repair.authoredPositionsInRoot[offset + 2]!
+          const segment = repair.wingSegments[vertexIndex]!
+          const blend = repair.wingBlends[vertexIndex]!
+          const start = stationToGeometry[segment]!
+          const end = stationToGeometry[segment + 1]!
+          const startX = start[0]! * x + start[4]! * y + start[8]! * z + start[12]!
+          const startY = start[1]! * x + start[5]! * y + start[9]! * z + start[13]!
+          const startZ = start[2]! * x + start[6]! * y + start[10]! * z + start[14]!
+          const endX = end[0]! * x + end[4]! * y + end[8]! * z + end[12]!
+          const endY = end[1]! * x + end[5]! * y + end[9]! * z + end[13]!
+          const endZ = end[2]! * x + end[6]! * y + end[10]! * z + end[14]!
+          position.setXYZ(
+            vertexIndex,
+            startX + (endX - startX) * blend,
+            startY + (endY - startY) * blend,
+            startZ + (endZ - startZ) * blend
+          )
+          continue
+        }
         position.setXYZ(
           vertexIndex,
-          startX + (endX - startX) * blend,
-          startY + (endY - startY) * blend,
-          startZ + (endZ - startZ) * blend
+          rootToGeometry[0]! * rootX + rootToGeometry[4]! * rootY + rootToGeometry[8]! * rootZ + rootToGeometry[12]!,
+          rootToGeometry[1]! * rootX + rootToGeometry[5]! * rootY + rootToGeometry[9]! * rootZ + rootToGeometry[13]!,
+          rootToGeometry[2]! * rootX + rootToGeometry[6]! * rootY + rootToGeometry[10]! * rootZ + rootToGeometry[14]!
         )
       }
       position.needsUpdate = true

@@ -576,26 +576,48 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.add(wingMesh)
 
     const seamMainGeometry = new BufferGeometry()
-    seamMainGeometry.setAttribute('position', new Float32BufferAttribute([0.95, 0, 0], 3))
-    seamMainGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([0, 0, 0, 0], 4))
-    seamMainGeometry.setAttribute('skinWeight', new Float32BufferAttribute([1, 0, 0, 0], 4))
+    seamMainGeometry.setAttribute('position', new Float32BufferAttribute([
+      0.5, 0, 0,
+      1.5, 0, -0.2,
+      1.5, 0, 0.2,
+    ], 3))
+    seamMainGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([
+      0, 0, 0, 0,
+      1, 0, 0, 0,
+      2, 0, 0, 0,
+    ], 4))
+    seamMainGeometry.setAttribute('skinWeight', new Float32BufferAttribute([
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+    ], 4))
     const seamMain = new SkinnedMesh(seamMainGeometry, new MeshStandardMaterial())
     scene.add(seamMain)
     scene.updateMatrixWorld(true)
     seamMain.bind(new Skeleton([leftRoot, ...leftBones]), new Matrix4())
 
-    const seamFollowerGeometry = seamMainGeometry.clone()
+    const seamFollowerGeometry = new BufferGeometry()
+    seamFollowerGeometry.setAttribute('position', new Float32BufferAttribute([
+      7 / 6, 0, 0,
+    ], 3))
+    seamFollowerGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([0, 0, 0, 0], 4))
+    seamFollowerGeometry.setAttribute('skinWeight', new Float32BufferAttribute([1, 0, 0, 0], 4))
     const seamFollower = new SkinnedMesh(seamFollowerGeometry, new MeshStandardMaterial())
     scene.add(seamFollower)
     scene.updateMatrixWorld(true)
     seamFollower.bind(new Skeleton([leftPivot]), new Matrix4())
 
-    const seamPoint = (mesh: SkinnedMesh): Vector3 => {
+    const skinnedPoint = (mesh: SkinnedMesh, vertexIndex: number): Vector3 => {
       const position = mesh.geometry.getAttribute('position')
-      const point = new Vector3().fromBufferAttribute(position, 0)
-      mesh.applyBoneTransform(0, point)
+      const point = new Vector3().fromBufferAttribute(position, vertexIndex)
+      mesh.applyBoneTransform(vertexIndex, point)
       return mesh.localToWorld(point)
     }
+    const seamMainAnchor = (): Vector3 => skinnedPoint(seamMain, 0)
+      .add(skinnedPoint(seamMain, 1))
+      .add(skinnedPoint(seamMain, 2))
+      .multiplyScalar(1 / 3)
+    const seamFollowerPoint = (): Vector3 => skinnedPoint(seamFollower, 0)
 
     let leftFlex = 0
     let rightFlex = 0
@@ -673,7 +695,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const neutralOutboardSlat = outboardSlat.getWorldPosition(new Vector3())
     const neutralFlap = flap.getWorldPosition(new Vector3())
     const neutralBoneQuaternions = leftBones.map(node => node.quaternion.clone())
-    const neutralSeamDistance = seamPoint(seamMain).distanceTo(seamPoint(seamFollower))
+    const neutralSeamDistance = seamMainAnchor().distanceTo(seamFollowerPoint())
     expect(neutralSeamDistance < 1e-6).toBe(true)
 
     leftFlex = 0.5
@@ -697,7 +719,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const tipIncrement = leftBones.at(-1)!.quaternion.angleTo(neutralBoneQuaternions.at(-1)!)
     expect(inboardIncrement > 1e-6).toBe(true)
     expect(tipIncrement > 1e-6).toBe(true)
-    expect(seamPoint(seamMain).distanceTo(seamPoint(seamFollower)) < 1e-5).toBe(true)
+    expect(seamMainAnchor().distanceTo(seamFollowerPoint()) < 1e-5).toBe(true)
 
     const flexedSlat = slat.getWorldPosition(new Vector3())
     slatAnimationValue = 100
