@@ -1091,9 +1091,10 @@ export class AircraftRuntime {
       applyWingFlexSide(binding.leftWing, leftFlex, binding)
       applyWingFlexSide(binding.rightWing, rightFlex, binding)
       binding.root.updateMatrixWorld(true)
-      applyWingFlexAttachments(binding.attachments, binding)
+      const deformationFields = buildWingDeformationFields(binding)
+      applyWingFlexAttachments(binding.attachments, binding, deformationFields)
       binding.root.updateMatrixWorld(true)
-      applyWingFlexSurfaceCpuRepairs(binding.surfaceCpuRepairs, binding)
+      applyWingFlexSurfaceCpuRepairs(binding.surfaceCpuRepairs, binding, deformationFields)
     }
   }
 
@@ -7022,6 +7023,17 @@ interface RuntimeWingFlexSide {
   currentTipAngle: number
 }
 
+interface RuntimeWingDeformationStation {
+  readonly spanRatio: number
+  readonly deltaMatrixInRoot: Matrix4
+  readonly rotationInRoot: Quaternion
+}
+
+interface RuntimeWingDeformationField {
+  readonly side: RuntimeWingFlexSide
+  readonly stations: readonly RuntimeWingDeformationStation[]
+}
+
 interface RuntimeWingFlexAttachment {
   readonly node: Object3D
   readonly side: RuntimeWingFlexSide
@@ -7047,7 +7059,8 @@ interface RuntimeWingFlexSurfaceCpuRepair {
   readonly sourceNormals: RuntimeSkinAttribute | null
   readonly authoredPositionsInRoot: Float32Array
   readonly wingRatios: Float32Array
-  readonly restAxisPositionsInRoot: Float32Array
+  readonly wingSegments: Uint8Array
+  readonly wingBlends: Float32Array
   readonly rigidBoneIndex: number | null
   readonly authoredMeshMatrixInRoot: Matrix4
   readonly authoredBoneMatricesInRoot: Matrix4[]
@@ -7689,7 +7702,8 @@ function smoothWingFlexAttachmentSkinWeights(
           sourceNormals: sourceSkinning.normal,
           authoredPositionsInRoot: new Float32Array(sourceSkinning.position.count * 3),
           wingRatios: new Float32Array(sourceSkinning.position.count),
-          restAxisPositionsInRoot: new Float32Array(sourceSkinning.position.count * 3),
+          wingSegments: new Uint8Array(sourceSkinning.position.count),
+          wingBlends: new Float32Array(sourceSkinning.position.count),
           rigidBoneIndex: sourceIndices.length === 1 ? sourceIndices[0]! : null,
           authoredMeshMatrixInRoot: new Matrix4(),
           authoredBoneMatricesInRoot: sourceSkinning.bones.map(() => new Matrix4()),
@@ -7970,14 +7984,9 @@ function captureWingFlexSurfaceCpuPoses(
       const start = stations[segment]!
       const end = stations[segment + 1]!
       const width = end.spanRatio - start.spanRatio
-      const t = width <= 1e-9 ? 0 : clamp((ratio - start.spanRatio) / width, 0, 1)
-      const axisOffset = vertexIndex * 3
-      repair.restAxisPositionsInRoot[axisOffset] =
-        start.restPointInRoot.x + (end.restPointInRoot.x - start.restPointInRoot.x) * t
-      repair.restAxisPositionsInRoot[axisOffset + 1] =
-        start.restPointInRoot.y + (end.restPointInRoot.y - start.restPointInRoot.y) * t
-      repair.restAxisPositionsInRoot[axisOffset + 2] =
-        start.restPointInRoot.z + (end.restPointInRoot.z - start.restPointInRoot.z) * t
+      const rawT = width <= 1e-9 ? 0 : clamp((ratio - start.spanRatio) / width, 0, 1)
+      repair.wingSegments[vertexIndex] = segment
+      repair.wingBlends[vertexIndex] = rawT * rawT * (3 - 2 * rawT)
     }
     repair.authoredPoseCaptured = true
   }
@@ -8034,9 +8043,84 @@ function applyWingFlexSide(
   }
 }
 
+function buildWingDeformationFields(
+  binding: RuntimeWingFlexBinding
+): ReadonlyMap<RuntimeWingFlexSide, RuntimeWingDeformationField> {
+  binding.root.updateMatrixWorld(true)
+  const rootWorldInverse = binding.root.matrixWorld.clone().invert()
+  const rootWorldQuaternionInverse = binding.root.getWorldQuaternion(new Quaternion()).invert()
+  const unitScale = new Vector3(1, 1, 1)
+  const fields = new Map<RuntimeWingFlexSide, RuntimeWingDeformationField>()
+
+  for (const side of [binding.leftWing, binding.rightWing]) {
+    if (side == null) continue
+    const sourceStations = [
+      {
+        spanRatio: 0,
+        node: side.fixedRoot,
+        restPointInRoot: side.rootPointInRoot,
+        restQuaternionInRoot: side.fixedRootRestQuaternionInRoot,
+      },
+      ...side.nodes.map(entry => ({
+        spanRatio: entry.spanRatio,
+        node: entry.node,
+        restPointInRoot: entry.restPointInRoot,
+        restQuaternionInRoot: entry.restQuaternionInRoot,
+      })),
+    ]
+    const stations = sourceStations.map(station => {
+      station.node.updateWorldMatrix(true, false)
+      const currentMatrixInRoot = rootWorldInverse.clone().multiply(station.node.matrixWorld)
+      const restMatrixInRoot = new Matrix4().compose(
+        station.restPointInRoot,
+        station.restQuaternionInRoot,
+        unitScale
+      )
+      const currentQuaternionInRoot = rootWorldQuaternionInverse.clone()
+        .multiply(station.node.getWorldQuaternion(new Quaternion()))
+      return {
+        spanRatio: station.spanRatio,
+        deltaMatrixInRoot: currentMatrixInRoot.multiply(restMatrixInRoot.invert()),
+        rotationInRoot: currentQuaternionInRoot
+          .multiply(station.restQuaternionInRoot.clone().invert()),
+      }
+    })
+    fields.set(side, { side, stations })
+  }
+  return fields
+}
+
+function sampleWingDeformationField(
+  field: RuntimeWingDeformationField,
+  spanRatio: number,
+  pointInRoot: Vector3
+): { readonly pointInRoot: Vector3; readonly rotationInRoot: Quaternion } {
+  const stations = field.stations
+  const ratio = clamp(spanRatio, 0, 1)
+  let segment = stations.length - 2
+  for (let index = 0; index < stations.length - 1; index += 1) {
+    if (ratio <= stations[index + 1]!.spanRatio) {
+      segment = index
+      break
+    }
+  }
+  const start = stations[segment]!
+  const end = stations[segment + 1]!
+  const width = end.spanRatio - start.spanRatio
+  const rawT = width <= 1e-9 ? 0 : clamp((ratio - start.spanRatio) / width, 0, 1)
+  const blend = rawT * rawT * (3 - 2 * rawT)
+  return {
+    pointInRoot: pointInRoot.clone()
+      .applyMatrix4(start.deltaMatrixInRoot)
+      .lerp(pointInRoot.clone().applyMatrix4(end.deltaMatrixInRoot), blend),
+    rotationInRoot: start.rotationInRoot.clone().slerp(end.rotationInRoot, blend),
+  }
+}
+
 function applyWingFlexAttachments(
   attachments: readonly RuntimeWingFlexAttachment[],
-  binding: RuntimeWingFlexBinding
+  binding: RuntimeWingFlexBinding,
+  deformationFields: ReadonlyMap<RuntimeWingFlexSide, RuntimeWingDeformationField>
 ): void {
   if (attachments.length === 0) return
   binding.root.updateMatrixWorld(true)
@@ -8044,12 +8128,12 @@ function applyWingFlexAttachments(
 
   for (const attachment of attachments) {
     const parent = attachment.node.parent
-    if (parent == null) continue
-    const deformation = sampleWingFlexDeformation(
-      attachment.side,
+    const field = deformationFields.get(attachment.side)
+    if (parent == null || field == null) continue
+    const deformation = sampleWingDeformationField(
+      field,
       attachment.spanRatio,
-      attachment.authoredPointInRoot,
-      binding.root
+      attachment.authoredPointInRoot
     )
     const targetWorldPoint = binding.root.localToWorld(deformation.pointInRoot)
     attachment.node.position.copy(parent.worldToLocal(targetWorldPoint))
@@ -8068,7 +8152,8 @@ function applyWingFlexAttachments(
 
 function applyWingFlexSurfaceCpuRepairs(
   repairs: readonly RuntimeWingFlexSurfaceCpuRepair[],
-  binding: RuntimeWingFlexBinding
+  binding: RuntimeWingFlexBinding,
+  deformationFields: ReadonlyMap<RuntimeWingFlexSide, RuntimeWingDeformationField>
 ): void {
   if (repairs.length === 0) return
   const rootWorldInverse = binding.root.matrixWorld.clone().invert()
@@ -8080,12 +8165,14 @@ function applyWingFlexSurfaceCpuRepairs(
   const currentSkinInverse = new Matrix4()
   const authoredPointInRoot = new Vector3()
   const desiredMeshPoint = new Vector3()
+  const endDeformedPoint = new Vector3()
   const authoredNormal = new Vector3()
   const desiredNormal = new Vector3()
   const desiredRotation = new Quaternion()
-  const wingFlexAxis = new Vector3(0, 0, 1)
 
   for (const repair of repairs) {
+    const field = deformationFields.get(repair.side)
+    if (field == null) continue
     const mesh = repair.mesh
     mesh.updateWorldMatrix(true, false)
     const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
@@ -8127,36 +8214,32 @@ function applyWingFlexSurfaceCpuRepairs(
     const position = mesh.geometry.getAttribute('position')
     const normal = mesh.geometry.getAttribute('normal')
     if (position == null) continue
+
     if (rigidCurrentSkinInverse != null) {
-      const rootToGeometry = rigidCurrentSkinInverse.clone().multiply(rootToMesh).elements
-      const tipAngle = repair.side.currentTipAngle
-      const spanLength = repair.side.spanLength
-      const sideSign = repair.side.sideSign
+      const rootToGeometry = rigidCurrentSkinInverse.clone().multiply(rootToMesh)
+      const stationToGeometry = field.stations.map(station =>
+        rootToGeometry.clone().multiply(station.deltaMatrixInRoot).elements
+      )
       for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
         const offset = vertexIndex * 3
         const x = repair.authoredPositionsInRoot[offset]!
         const y = repair.authoredPositionsInRoot[offset + 1]!
         const z = repair.authoredPositionsInRoot[offset + 2]!
-        const centerX = repair.restAxisPositionsInRoot[offset]!
-        const centerY = repair.restAxisPositionsInRoot[offset + 1]!
-        const ratio = repair.wingRatios[vertexIndex]!
-        const ratio2 = ratio * ratio
-        const slope = tipAngle * ratio * (4 - 3 * ratio + ratio2) / 2
-        const deflection = spanLength * tipAngle * (
-          ratio2 - 0.5 * ratio2 * ratio + 0.125 * ratio2 * ratio2
-        )
-        const angle = sideSign * slope
-        const cosine = Math.cos(angle)
-        const sine = Math.sin(angle)
-        const deltaX = x - centerX
-        const deltaY = y - centerY
-        const rootX = centerX + cosine * deltaX - sine * deltaY
-        const rootY = centerY + sine * deltaX + cosine * deltaY + deflection
+        const segment = repair.wingSegments[vertexIndex]!
+        const blend = repair.wingBlends[vertexIndex]!
+        const start = stationToGeometry[segment]!
+        const end = stationToGeometry[segment + 1]!
+        const startX = start[0]! * x + start[4]! * y + start[8]! * z + start[12]!
+        const startY = start[1]! * x + start[5]! * y + start[9]! * z + start[13]!
+        const startZ = start[2]! * x + start[6]! * y + start[10]! * z + start[14]!
+        const endX = end[0]! * x + end[4]! * y + end[8]! * z + end[12]!
+        const endY = end[1]! * x + end[5]! * y + end[9]! * z + end[13]!
+        const endZ = end[2]! * x + end[6]! * y + end[10]! * z + end[14]!
         position.setXYZ(
           vertexIndex,
-          rootToGeometry[0]! * rootX + rootToGeometry[4]! * rootY + rootToGeometry[8]! * z + rootToGeometry[12]!,
-          rootToGeometry[1]! * rootX + rootToGeometry[5]! * rootY + rootToGeometry[9]! * z + rootToGeometry[13]!,
-          rootToGeometry[2]! * rootX + rootToGeometry[6]! * rootY + rootToGeometry[10]! * z + rootToGeometry[14]!
+          startX + (endX - startX) * blend,
+          startY + (endY - startY) * blend,
+          startZ + (endZ - startZ) * blend
         )
       }
       position.needsUpdate = true
@@ -8164,6 +8247,7 @@ function applyWingFlexSurfaceCpuRepairs(
       mesh.geometry.boundingBox = null
       continue
     }
+
     const weightedMatrix = (
       matrices: readonly Matrix4[],
       vertexIndex: number,
@@ -8193,26 +8277,14 @@ function applyWingFlexSurfaceCpuRepairs(
       )
       if (authoredBoneMatrices == null || !weightedMatrix(authoredBoneMatrices, vertexIndex, authoredSkinMatrix)) continue
       const authoredSkinForVertex = authoredSkinMatrix
-      const offset = vertexIndex * 3
-      const ratio = repair.wingRatios[vertexIndex]!
-      const ratio2 = ratio * ratio
-      const slope = repair.side.currentTipAngle * ratio * (4 - 3 * ratio + ratio2) / 2
-      const deflection = repair.side.spanLength * repair.side.currentTipAngle * (
-        ratio2 - 0.5 * ratio2 * ratio + 0.125 * ratio2 * ratio2
-      )
-      const angle = repair.side.sideSign * slope
-      const cosine = Math.cos(angle)
-      const sine = Math.sin(angle)
-      const centerX = repair.restAxisPositionsInRoot[offset]!
-      const centerY = repair.restAxisPositionsInRoot[offset + 1]!
-      const deltaX = authoredPointInRoot.x - centerX
-      const deltaY = authoredPointInRoot.y - centerY
-      desiredMeshPoint.set(
-        centerX + cosine * deltaX - sine * deltaY,
-        centerY + sine * deltaX + cosine * deltaY + deflection,
-        authoredPointInRoot.z
-      )
-      desiredRotation.setFromAxisAngle(wingFlexAxis, angle)
+      const segment = repair.wingSegments[vertexIndex]!
+      const blend = repair.wingBlends[vertexIndex]!
+      const start = field.stations[segment]!
+      const end = field.stations[segment + 1]!
+      desiredMeshPoint.copy(authoredPointInRoot)
+        .applyMatrix4(start.deltaMatrixInRoot)
+        .lerp(endDeformedPoint.copy(authoredPointInRoot).applyMatrix4(end.deltaMatrixInRoot), blend)
+      desiredRotation.copy(start.rotationInRoot).slerp(end.rotationInRoot, blend)
       desiredMeshPoint.applyMatrix4(rootToMesh)
       if (currentBoneMatrices == null || !weightedMatrix(currentBoneMatrices, vertexIndex, currentSkinMatrix)) continue
       currentSkinInverse.copy(mesh.bindMatrixInverse)
@@ -8246,47 +8318,6 @@ function applyWingFlexSurfaceCpuRepairs(
     if (normal != null && repair.sourceNormals != null) normal.needsUpdate = true
     mesh.geometry.boundingSphere = null
     mesh.geometry.boundingBox = null
-  }
-}
-
-function sampleWingFlexDeformation(
-  side: RuntimeWingFlexSide,
-  spanRatio: number,
-  pointInRoot: Vector3,
-  _sceneRoot: Object3D
-): { readonly pointInRoot: Vector3; readonly rotationInRoot: Quaternion } {
-  const ratio = mapWingFlexSpanRatio(side, clamp(spanRatio, 0, 1))
-  const stations = [
-    { spanRatio: 0, restPointInRoot: side.rootPointInRoot },
-    ...side.nodes.map(entry => ({
-      spanRatio: entry.spanRatio,
-      restPointInRoot: entry.restPointInRoot,
-    })),
-  ]
-  let segment = stations.length - 2
-  for (let index = 0; index < stations.length - 1; index += 1) {
-    if (ratio <= stations[index + 1]!.spanRatio) {
-      segment = index
-      break
-    }
-  }
-  const start = stations[segment]!
-  const end = stations[segment + 1]!
-  const width = end.spanRatio - start.spanRatio
-  const t = width <= 1e-9 ? 0 : clamp((ratio - start.spanRatio) / width, 0, 1)
-  const restCenter = start.restPointInRoot.clone().lerp(end.restPointInRoot, t)
-  const sample = sampleWingFlex(side, ratio, side.currentTipAngle)
-  const rotationInRoot = new Quaternion().setFromAxisAngle(
-    new Vector3(0, 0, 1),
-    side.sideSign * sample.slope
-  )
-  return {
-    pointInRoot: pointInRoot.clone()
-      .sub(restCenter)
-      .applyQuaternion(rotationInRoot)
-      .add(restCenter)
-      .add(new Vector3(0, sample.deflection, 0)),
-    rotationInRoot,
   }
 }
 

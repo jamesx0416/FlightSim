@@ -517,7 +517,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     }
     const leftBones = makeChain('LEFT', 0)
     const rightBones = makeChain('RIGHT', 2)
-    const leftRoot = leftBones[0].parent!
+    const leftRoot = leftBones[0].parent! as Bone
     const slat = new Bone()
     slat.name = 'WING_BONE_SLATE_00_LEFT'
     slat.position.set(0.45, 0, 0.1)
@@ -532,13 +532,13 @@ describe('AircraftRuntime canonical visual bindings', () => {
     flap.name = 'WING_BONE_FLAPS_00_LEFT'
     flap.position.set(0.7, -0.05, -0.1)
     flapCarrier.add(flap)
-    const leftPivot = new Object3D()
+    const leftPivot = new Bone()
     leftPivot.name = 'Engine_PIVOT_1_LEFT'
     leftPivot.position.set(0.8, 0, -0.05)
     leftPivot.rotation.set(0.1, -0.2, 0.3)
     const neutralLeftPivotQuaternion = leftPivot.quaternion.clone()
     scene.add(leftPivot)
-    const rightPivot = new Object3D()
+    const rightPivot = new Bone()
     rightPivot.name = 'Engine_PIVOT_1_RIGHT'
     rightPivot.position.set(-0.8, 0, 1.95)
     scene.add(rightPivot)
@@ -574,6 +574,28 @@ describe('AircraftRuntime canonical visual bindings', () => {
       skeleton: { bones: [leftRoot, ...leftBones, slat, outboardSlat, flap] },
     })
     scene.add(wingMesh)
+
+    const seamMainGeometry = new BufferGeometry()
+    seamMainGeometry.setAttribute('position', new Float32BufferAttribute([0.95, 0, 0], 3))
+    seamMainGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([0, 0, 0, 0], 4))
+    seamMainGeometry.setAttribute('skinWeight', new Float32BufferAttribute([1, 0, 0, 0], 4))
+    const seamMain = new SkinnedMesh(seamMainGeometry, new MeshStandardMaterial())
+    scene.add(seamMain)
+    scene.updateMatrixWorld(true)
+    seamMain.bind(new Skeleton([leftRoot, ...leftBones]), new Matrix4())
+
+    const seamFollowerGeometry = seamMainGeometry.clone()
+    const seamFollower = new SkinnedMesh(seamFollowerGeometry, new MeshStandardMaterial())
+    scene.add(seamFollower)
+    scene.updateMatrixWorld(true)
+    seamFollower.bind(new Skeleton([leftPivot]), new Matrix4())
+
+    const seamPoint = (mesh: SkinnedMesh): Vector3 => {
+      const position = mesh.geometry.getAttribute('position')
+      const point = new Vector3().fromBufferAttribute(position, 0)
+      mesh.applyBoneTransform(0, point)
+      return mesh.localToWorld(point)
+    }
 
     let leftFlex = 0
     let rightFlex = 0
@@ -651,6 +673,8 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const neutralOutboardSlat = outboardSlat.getWorldPosition(new Vector3())
     const neutralFlap = flap.getWorldPosition(new Vector3())
     const neutralBoneQuaternions = leftBones.map(node => node.quaternion.clone())
+    const neutralSeamDistance = seamPoint(seamMain).distanceTo(seamPoint(seamFollower))
+    expect(neutralSeamDistance < 1e-6).toBe(true)
 
     leftFlex = 0.5
     rightFlex = 0.5
@@ -673,6 +697,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const tipIncrement = leftBones.at(-1)!.quaternion.angleTo(neutralBoneQuaternions.at(-1)!)
     expect(inboardIncrement > 1e-6).toBe(true)
     expect(tipIncrement > 1e-6).toBe(true)
+    expect(seamPoint(seamMain).distanceTo(seamPoint(seamFollower)) < 1e-5).toBe(true)
 
     const flexedSlat = slat.getWorldPosition(new Vector3())
     slatAnimationValue = 100
