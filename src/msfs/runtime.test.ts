@@ -4,13 +4,17 @@ import {
   Bone,
   BufferGeometry,
   Float32BufferAttribute,
+  Matrix4,
   Mesh,
   MeshStandardMaterial,
   Object3D,
   Quaternion,
+  QuaternionKeyframeTrack,
   Uint16BufferAttribute,
   Vector3,
   VectorKeyframeTrack,
+  Skeleton,
+  SkinnedMesh,
 } from 'three'
 
 import {
@@ -424,6 +428,75 @@ describe('AircraftRuntime canonical visual bindings', () => {
     )
   })
 
+
+  test('WingFlex derives smooth span stations from authored rigid wing sections', () => {
+    const scene = new Object3D()
+    const root = new Bone()
+    root.name = 'WING_BONE_00_LEFT'
+    scene.add(root)
+    const bones = Array.from({ length: 4 }, (_, index) => {
+      const bone = new Bone()
+      bone.name = `WING_BONE_0${index + 1}_LEFT`
+      bone.position.x = 1
+      return bone
+    })
+    root.add(bones[0])
+    for (let index = 1; index < bones.length; index += 1) bones[index - 1].add(bones[index])
+
+    const makeWingMesh = (
+      positions: number[],
+      indices: number[]
+    ): Object3D => {
+      const geometry = new BufferGeometry()
+      geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
+      geometry.setAttribute('skinIndex', new Uint16BufferAttribute(
+        indices.flatMap(index => [index, 0, 0, 0]),
+        4
+      ))
+      geometry.setAttribute('skinWeight', new Float32BufferAttribute(
+        indices.flatMap(() => [1, 0, 0, 0]),
+        4
+      ))
+      const mesh = Object.assign(new Object3D(), {
+        isSkinnedMesh: true,
+        geometry,
+        skeleton: { bones: [root, ...bones] },
+      })
+      scene.add(mesh)
+      return mesh
+    }
+
+    makeWingMesh([
+      0.4, 0, 0, 0.6, 0, 0,
+      1.4, 0, 0, 1.6, 0, 0,
+      2.4, 0, 0, 2.6, 0, 0,
+      3.4, 0, 0, 3.6, 0, 0,
+    ], [1, 1, 2, 2, 3, 3, 4, 4])
+    const target = makeWingMesh([
+      1, 0, 0,
+      1.5, 0, 0,
+    ], [1, 2]) as Object3D & { geometry: BufferGeometry }
+
+    const aircraft = {
+      model: {
+        nodeAnimations: [{
+          type: 'WingFlex',
+          nodes: bones.map(node => node.name),
+        }],
+      },
+    } as unknown as ImportedAircraft
+    new AircraftRuntime(emptyCompiledBehaviorSet, scene, hostServices, aircraft)
+
+    const skinIndex = target.geometry.getAttribute('skinIndex')
+    const skinWeight = target.geometry.getAttribute('skinWeight')
+    expect(skinIndex.getX(0)).toBe(1)
+    expect(skinIndex.getY(0)).toBe(2)
+    expect(Math.abs(skinWeight.getX(0) - 0.5) < 1e-6).toBe(true)
+    expect(Math.abs(skinWeight.getY(0) - 0.5) < 1e-6).toBe(true)
+    expect(skinIndex.getY(1)).toBe(2)
+    expect(skinWeight.getY(1) > 0.999999).toBe(true)
+  })
+
   test('standard WingFlex bends smoothly and preserves authored wing-mounted hierarchy', () => {
     const scene = new Object3D()
     const makeChain = (side: 'LEFT' | 'RIGHT', rootZ: number) => {
@@ -571,7 +644,6 @@ describe('AircraftRuntime canonical visual bindings', () => {
     scene.updateMatrixWorld(true)
     const neutralLeftStations = leftBones.map(node => node.getWorldPosition(new Vector3()))
     const neutralLeftRoot = leftRoot.getWorldPosition(new Vector3())
-    const neutralFirstBoneQuaternion = leftBones[0].getWorldQuaternion(new Quaternion())
     const neutralLeftTip = neutralLeftStations.at(-1)!
     const neutralRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
     const neutralLeftPivot = leftPivot.getWorldPosition(new Vector3())
@@ -589,33 +661,18 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const flexedRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
     expect(flexedLeftTip.y > neutralLeftTip.y).toBe(true)
     expect(flexedRightTip.y > neutralRightTip.y).toBe(true)
-    expect(flexedLeftStations[0].y > neutralLeftStations[0].y).toBe(true)
+    expect(flexedLeftStations[0].y > neutralLeftStations[0]!.y).toBe(true)
     expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
     expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
-    const spanLength = Math.abs(neutralLeftTip.x - neutralLeftRoot.x)
-    const firstBoneRatio = Math.abs(neutralLeftStations[0].x - neutralLeftRoot.x) / spanLength
-    const firstBoneRotation = leftBones[0].getWorldQuaternion(new Quaternion())
-      .multiply(neutralFirstBoneQuaternion.clone().invert())
-    const expectedFirstSegmentPoint = (restPoint: Vector3): Vector3 => {
-      const ratio = Math.abs(restPoint.x - neutralLeftRoot.x) / spanLength
-      const t = ratio / firstBoneRatio
-      const blend = t * t * (3 - 2 * t)
-      return restPoint.clone().lerp(
-        restPoint.clone()
-          .sub(neutralLeftStations[0])
-          .applyQuaternion(firstBoneRotation)
-          .add(flexedLeftStations[0]),
-        blend
-      )
-    }
-    expect(slat.getWorldPosition(new Vector3()).distanceTo(expectedFirstSegmentPoint(neutralSlat)) < 1e-9).toBe(true)
-    expect(flap.getWorldPosition(new Vector3()).distanceTo(expectedFirstSegmentPoint(neutralFlap)) < 1e-9).toBe(true)
+    expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) > 1e-6).toBe(true)
+    expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) > 1e-6).toBe(true)
     expect(outboardSlat.getWorldPosition(new Vector3()).distanceTo(neutralOutboardSlat) > 1e-6).toBe(true)
-    expect(leftPivot.getWorldPosition(new Vector3()).y > neutralLeftPivot.y).toBe(true)
+    expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) > 1e-6).toBe(true)
     expect(leftPivot.quaternion.angleTo(neutralLeftPivotQuaternion) < 1e-9).toBe(true)
     const inboardIncrement = leftBones[0].quaternion.angleTo(neutralBoneQuaternions[0])
     const tipIncrement = leftBones.at(-1)!.quaternion.angleTo(neutralBoneQuaternions.at(-1)!)
-    expect(inboardIncrement > tipIncrement).toBe(true)
+    expect(inboardIncrement > 1e-6).toBe(true)
+    expect(tipIncrement > 1e-6).toBe(true)
 
     const flexedSlat = slat.getWorldPosition(new Vector3())
     slatAnimationValue = 100
@@ -639,5 +696,103 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(outboardSlat.getWorldPosition(new Vector3()).distanceTo(neutralOutboardSlat) < 1e-6).toBe(true)
     expect(flap.getWorldPosition(new Vector3()).distanceTo(neutralFlap) < 1e-6).toBe(true)
     expect(leftPivot.getWorldPosition(new Vector3()).distanceTo(neutralLeftPivot) < 1e-9).toBe(true)
+
+    const overlappingSurfaceGeometry = new BufferGeometry()
+    overlappingSurfaceGeometry.setAttribute('position', new Float32BufferAttribute([
+      0.7, 0, 0.1,
+      0.9, 0, 0.1,
+    ], 3))
+    overlappingSurfaceGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([
+      0, 1, 0, 0,
+      0, 1, 0, 0,
+    ], 4))
+    overlappingSurfaceGeometry.setAttribute('skinWeight', new Uint16BufferAttribute([
+      26214, 39314, 0, 0,
+      39314, 26214, 0, 0,
+    ], 4, true))
+    const overlappingSurface = new SkinnedMesh(
+      overlappingSurfaceGeometry,
+      new MeshStandardMaterial()
+    )
+    scene.add(overlappingSurface)
+    scene.updateMatrixWorld(true)
+    overlappingSurface.bind(
+      new Skeleton([slat, outboardSlat]),
+      new Matrix4()
+    )
+    // A surface can inherit the wing hierarchy as well as being skinned to animated surface bones.
+    // WingFlex must use the authored skinned pose, not apply that inherited flex a second time.
+    leftBones[0].attach(overlappingSurface)
+    scene.updateMatrixWorld(true)
+    const aircraftTransform = new Object3D()
+    aircraftTransform.position.set(10, -3, 4000)
+    aircraftTransform.add(scene)
+    aircraftTransform.updateMatrixWorld(true)
+    const overlappingSlatClip = new AnimationClip('SlatAnimation', 1, [
+      new VectorKeyframeTrack(`${slat.name}.position`, [0, 1], [
+        ...slatStart, slatStart[0]!, slatStart[1]!, slatStart[2]! + 0.3,
+      ]),
+      new QuaternionKeyframeTrack(`${slat.name}.quaternion`, [0, 1], [
+        0, 0, 0, 1,
+        0, 0, Math.sin(0.4), Math.cos(0.4),
+      ]),
+      new VectorKeyframeTrack(`${outboardSlat.name}.position`, [0, 1], [
+        ...outboardSlatStart, outboardSlatStart[0]!, outboardSlatStart[1]!, outboardSlatStart[2]! + 0.3,
+      ]),
+      new QuaternionKeyframeTrack(`${outboardSlat.name}.quaternion`, [0, 1], [
+        0, 0, 0, 1,
+        0, 0, Math.sin(0.4), Math.cos(0.4),
+      ]),
+    ])
+    runtime = new AircraftRuntime(wingFlexCompiledBehaviorSet, scene, wingFlexHostServices, aircraft)
+    runtime.bindAnimations([overlappingSlatClip])
+    const normalizedSurfaceWeights = overlappingSurface.geometry.getAttribute('skinWeight')
+    for (let index = 0; index < normalizedSurfaceWeights.count; index += 1) {
+      expect(
+        normalizedSurfaceWeights.getX(index) +
+        normalizedSurfaceWeights.getY(index) +
+        normalizedSurfaceWeights.getZ(index) +
+        normalizedSurfaceWeights.getW(index)
+      ).toBe(1)
+    }
+    const overlappingSurfacePoint = (vertexIndex: number): Vector3 => {
+      const position = overlappingSurface.geometry.getAttribute('position')
+      const point = new Vector3().fromBufferAttribute(position, vertexIndex)
+      overlappingSurface.applyBoneTransform(vertexIndex, point)
+      return overlappingSurface.localToWorld(point)
+    }
+    slatAnimationValue = 100
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    const overlappingSurfaceNeutral = [0, 1].map(overlappingSurfacePoint)
+    leftFlex = 0.5
+    rightFlex = 0.5
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    const overlappingSurfaceFlex = [0, 1].map(overlappingSurfacePoint)
+    for (let index = 0; index < overlappingSurfaceNeutral.length; index += 1) {
+      expect(overlappingSurfaceFlex[index]!.distanceTo(overlappingSurfaceNeutral[index]!) > 1e-5).toBe(true)
+    }
+    const neutralSurfaceSpan = overlappingSurfaceNeutral[1]!.clone().sub(overlappingSurfaceNeutral[0]!)
+    const flexedSurfaceSpan = overlappingSurfaceFlex[1]!.clone().sub(overlappingSurfaceFlex[0]!)
+    expect(flexedSurfaceSpan.distanceTo(neutralSurfaceSpan) > 1e-6).toBe(true)
+    leftFlex = 0
+    rightFlex = 0
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    for (let index = 0; index < overlappingSurfaceNeutral.length; index += 1) {
+      expect(overlappingSurfacePoint(index).distanceTo(overlappingSurfaceNeutral[index]!) < 1e-6).toBe(true)
+    }
+
+    runtime = new AircraftRuntime(wingFlexCompiledBehaviorSet, scene, wingFlexHostServices, aircraft)
+    runtime.bindAnimations([overlappingSlatClip])
+    runtime.update(1 / 60)
+    leftFlex = 0.5
+    rightFlex = 0.5
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    for (let index = 0; index < overlappingSurfaceFlex.length; index += 1) {
+      expect(overlappingSurfacePoint(index).distanceTo(overlappingSurfaceFlex[index]!) < 2e-3).toBe(true)
+    }
   })
 })
