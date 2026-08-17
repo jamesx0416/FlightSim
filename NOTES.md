@@ -41,6 +41,10 @@ Durable investigation notes that are useful context but are not active implement
 2026-06-11: Engine state writes for combustion/N1/throttle are working through canonical state and MSFS aliases, but visible fan/engine spin is not currently exposed as a node animation trigger in `__DevApi`; only wing-flex engine pivot nodes were found. Treat engine fan/spool visuals as missing animation coverage unless a hidden binding is later found.
 2026-06-11: Cockpit knob/scroll interaction remains a limiting factor. `__DevApi.turn`, `drag`, pointer, and wheel APIs exist, but full MSFS knob/scroll semantics across stock template variants are not route-complete and should be improved generically, not patched per aircraft.
 
+## Wing Flex Compatibility
+
+- 2026-08-17: MSFS exposes one WingFlex amount per wing, but authored skin weights and bone influences can make different wing joints or span sections deform by different effective amounts. The current runtime does not yet preserve an arbitrary authored per-joint deformation profile. It drives the wing from one continuous cantilever-style curve and maps attached surfaces onto that curve. Future MSFS compatibility work should allow the authored joint/section weighting profile to shape that continuous deformation field without reintroducing visible hinges, and slats/flaps/spoilers/fairings should follow the resulting field.
+
 ## MSFS Cockpit Interaction Research
 
 - 2026-07-15: Viewer dragging was fixed generically by moving active pointer move, release, and cancellation handling from the canvas to the window. The canvas still starts the gesture and attempts pointer capture, but capture may fail or events may leave the canvas; window-level listeners keep the active gesture receiving deltas and guarantee cleanup. `pointercancel`, lost capture, blur, Escape, and normal release all stop through the same path, so a cancelled drag cannot leave either cockpit input or camera input locked.
