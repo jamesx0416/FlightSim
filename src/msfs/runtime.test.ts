@@ -842,4 +842,133 @@ describe('AircraftRuntime canonical visual bindings', () => {
       expect(overlappingSurfacePoint(index).distanceTo(overlappingSurfaceFlex[index]!) < 2e-3).toBe(true)
     }
   })
+
+  test('WingFlex keeps animated rigid surfaces on orientation-compatible wing faces', () => {
+    const scene = new Object3D()
+    const root = new Bone()
+    root.name = 'WING_BONE_00_LEFT'
+    scene.add(root)
+    const bones = Array.from({ length: 4 }, (_, index) => {
+      const bone = new Bone()
+      bone.name = `WING_BONE_0${index + 1}_LEFT`
+      bone.position.x = 1
+      return bone
+    })
+    root.add(bones[0])
+    for (let index = 1; index < bones.length; index += 1) bones[index - 1].add(bones[index])
+
+    const makeMainSurface = (positions: number[]): SkinnedMesh => {
+      const geometry = new BufferGeometry()
+      geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
+      geometry.setAttribute('skinIndex', new Uint16BufferAttribute([
+        2, 0, 0, 0,
+        3, 0, 0, 0,
+        3, 0, 0, 0,
+      ], 4))
+      geometry.setAttribute('skinWeight', new Float32BufferAttribute([
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+        1, 0, 0, 0,
+      ], 4))
+      const mesh = new SkinnedMesh(geometry, new MeshStandardMaterial())
+      scene.add(mesh)
+      scene.updateMatrixWorld(true)
+      mesh.bind(new Skeleton([root, ...bones]), new Matrix4())
+      return mesh
+    }
+
+    const wingSurface = makeMainSurface([
+      1.8, 0, -0.2,
+      2.2, 0, -0.2,
+      2.0, 0, 0.2,
+    ])
+    makeMainSurface([
+      2.001, -0.1, -0.2,
+      2.001, 0.1, -0.2,
+      2.001, 0.01, 0.2,
+    ])
+
+    const flap = new Bone()
+    flap.name = 'WING_BONE_FLAPS_00_LEFT'
+    flap.position.x = 2
+    root.add(flap)
+
+    const followerGeometry = new BufferGeometry()
+    followerGeometry.setAttribute('position', new Float32BufferAttribute([
+      1.8, 0.01, -0.2,
+      2.2, 0.01, -0.2,
+      2.0, 0.01, 0.2,
+    ], 3))
+    followerGeometry.setAttribute('skinIndex', new Uint16BufferAttribute([
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+      0, 0, 0, 0,
+    ], 4))
+    followerGeometry.setAttribute('skinWeight', new Float32BufferAttribute([
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+      1, 0, 0, 0,
+    ], 4))
+    const follower = new SkinnedMesh(followerGeometry, new MeshStandardMaterial())
+    root.add(follower)
+    scene.updateMatrixWorld(true)
+    follower.bind(new Skeleton([flap]), new Matrix4())
+
+    let flex = 0
+    const aircraft = {
+      model: {
+        nodeAnimations: [{ type: 'WingFlex', nodes: bones.map(node => node.name) }],
+      },
+    } as unknown as ImportedAircraft
+    const services = {
+      ...hostServices,
+      readVariable: (key: string) => key.startsWith('A:WING FLEX PCT') ? flex : 0,
+    }
+    const compiled: CompiledBehaviorSet = {
+      ...emptyCompiledBehaviorSet,
+      animationBindings: [{
+        target: 'FlapAnimation',
+        expression: { source: '0', instructions: [{ op: 'pushNumber', value: 0 }], variableKeys: [] },
+        length: 100,
+        wrap: false,
+        delta: false,
+        lagFramesPerSecond: 0,
+        sourcePath: 'test.xml',
+      }],
+    }
+    const flapStart = flap.position.toArray()
+    const clip = new AnimationClip('FlapAnimation', 1, [
+      new VectorKeyframeTrack(`${flap.name}.position`, [0, 1], [
+        ...flapStart, flapStart[0]!, flapStart[1]!, flapStart[2]! + 0.2,
+      ]),
+    ])
+    const runtime = new AircraftRuntime(compiled, scene, services, aircraft)
+    runtime.bindAnimations([clip])
+
+    const skinnedPoint = (mesh: SkinnedMesh, vertexIndex: number): Vector3 => {
+      const point = new Vector3().fromBufferAttribute(mesh.geometry.getAttribute('position'), vertexIndex)
+      mesh.applyBoneTransform(vertexIndex, point)
+      return mesh.localToWorld(point)
+    }
+    const reference = (): Vector3 => {
+      const a = skinnedPoint(wingSurface, 0)
+      const b = skinnedPoint(wingSurface, 1)
+      const c = skinnedPoint(wingSurface, 2)
+      const normal = b.clone().sub(a).cross(c.clone().sub(a)).normalize()
+      if (normal.y < 0) normal.negate()
+      return c.addScaledVector(normal, 0.01)
+    }
+
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    expect(skinnedPoint(follower, 2).distanceTo(reference()) < 1e-5).toBe(true)
+    const neutral = skinnedPoint(follower, 2)
+
+    flex = 0.5
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    expect(skinnedPoint(follower, 2).distanceTo(neutral) > 1e-4).toBe(true)
+    expect(skinnedPoint(follower, 2).distanceTo(reference()) < 2e-3).toBe(true)
+  })
+
 })
