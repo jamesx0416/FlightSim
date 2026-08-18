@@ -43,7 +43,8 @@ Durable investigation notes that are useful context but are not active implement
 
 ## Wing Flex Compatibility
 
-- 2026-08-17: MSFS exposes one WingFlex amount per wing, but authored skin weights and bone influences can make different wing joints or span sections deform by different effective amounts. The current runtime does not yet preserve an arbitrary authored per-joint deformation profile. It drives the wing from one continuous cantilever-style curve and maps attached surfaces onto that curve. Future MSFS compatibility work should allow the authored joint/section weighting profile to shape that continuous deformation field without reintroducing visible hinges, and slats/flaps/spoilers/fairings should follow the resulting field.
+- 2026-08-17: Superseded experiment: the runtime temporarily drove WingFlex from one continuous cantilever-style curve and mapped attached surfaces onto that synthetic field. This was useful for diagnosing visible hinges but did not preserve the A339 authored helper/skin contract.
+- 2026-08-17: Follow-up A339 source inspection supersedes the synthetic follower assumption above for authored rigid control surfaces. In LOD00/01, `Cube.005` has 1100 vertices all weighted 1.0 to the single `WING_BONE_SPOILER_1_RIGHT` skin joint, while both `node167.001` flap primitives are weighted 1.0 to the single `WING_BONE_FLAPS_01_RIGHT` joint. `Armature.015` and `.016` are preserved wrappers under `WING_BONE_01_RIGHT`; their spoiler/flap helpers are siblings and WingFlex must not change their relative transform. Preserve source skin weights and child helper animation. Only nodes explicitly listed by `<NodeAnimation type="WingFlex">` get WingFlex handling. Microsoft documents multi-helper skinning when a flap/spoiler itself must deform across several WingFlex stations, so do not curve a one-helper A339 surface in runtime.
 
 ## MSFS Cockpit Interaction Research
 
