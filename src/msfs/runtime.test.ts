@@ -508,7 +508,19 @@ describe('AircraftRuntime canonical visual bindings', () => {
         }],
       },
     } as unknown as ImportedAircraft
-    new AircraftRuntime(emptyCompiledBehaviorSet, scene, hostServices, aircraft)
+    let flex = 0
+    const wingFlexHostServices = {
+      ...hostServices,
+      readVariable: (key: string) => key.endsWith(':1') ? flex : 0,
+    }
+    scene.updateMatrixWorld(true)
+    const restBoneWorldMatrices = bones.map(bone => bone.matrixWorld.clone())
+    const runtime = new AircraftRuntime(
+      emptyCompiledBehaviorSet,
+      scene,
+      wingFlexHostServices,
+      aircraft
+    )
 
     const targetIndices = target.geometry.getAttribute('skinIndex')
     const targetWeights = target.geometry.getAttribute('skinWeight')
@@ -523,6 +535,23 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(JSON.stringify(Array.from(blendGeometry.getAttribute('skinWeight').array)) !== JSON.stringify(blendWeightsBefore)).toBe(true)
     expect(JSON.stringify(Array.from(target.geometry.getAttribute('skinIndex').array)) !== JSON.stringify(targetIndicesBefore)).toBe(true)
     expect(JSON.stringify(Array.from(target.geometry.getAttribute('skinWeight').array)) !== JSON.stringify(targetWeightsBefore)).toBe(true)
+
+    // Each rigid section is fitted to the chord between the same authored joint
+    // boundaries. Two adjacent bone transforms must therefore agree on their
+    // shared boundary instead of producing a small downward step there.
+    flex = 0.5
+    runtime.update(1 / 60)
+    scene.updateMatrixWorld(true)
+    const boundaryPoint = new Vector3(1, 0, 0)
+    const deformByBone = (boneIndex: number): Vector3 => boundaryPoint.clone().applyMatrix4(
+      bones[boneIndex]!.matrixWorld.clone().multiply(
+        restBoneWorldMatrices[boneIndex]!.clone().invert()
+      )
+    )
+    const inboardBoundary = deformByBone(0)
+    const outboardBoundary = deformByBone(1)
+    expect(Math.abs(inboardBoundary.y - outboardBoundary.y) < 5e-4).toBe(true)
+    expect(inboardBoundary.distanceTo(outboardBoundary) < 5e-3).toBe(true)
   })
 
   test('standard WingFlex bends smoothly and preserves authored wing-mounted hierarchy', () => {

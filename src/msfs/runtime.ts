@@ -7011,6 +7011,8 @@ interface RuntimeWingFlexNode {
   readonly restLocalQuaternion: Quaternion
   readonly spanRatio: number
   sectionCenterRawRatio: number
+  sectionStartRawRatio: number
+  sectionEndRawRatio: number
 }
 
 interface RuntimeWingFlexSpanMapKnot {
@@ -7254,6 +7256,8 @@ function buildWingFlexSide(
         restLocalQuaternion: entry.node.quaternion.clone(),
         spanRatio: clamp(Math.abs(restPointInRoot.x - rootPointInRoot.x) / spanLength, 0, 1),
         sectionCenterRawRatio: clamp(Math.abs(restPointInRoot.x - rootPointInRoot.x) / spanLength, 0, 1),
+        sectionStartRawRatio: clamp(Math.abs(restPointInRoot.x - rootPointInRoot.x) / spanLength, 0, 1),
+        sectionEndRawRatio: clamp(Math.abs(restPointInRoot.x - rootPointInRoot.x) / spanLength, 0, 1),
       }
     }),
   }
@@ -7411,14 +7415,27 @@ function deriveWingFlexSpanMaps(
         return stats.sum / stats.count
       })
     ))
+    const sectionBoundaries = [
+      clamp(median(meshSections.map(sections => sections[0]!.min)), 0, 1),
+      ...side.nodes.slice(0, -1).map((_, sectionIndex) => {
+        const lowerMax = Math.max(...meshSections.map(sections => sections[sectionIndex]!.max))
+        const upperMin = Math.min(...meshSections.map(sections => sections[sectionIndex + 1]!.min))
+        return clamp((lowerMax + upperMin) * 0.5, 0, 1)
+      }),
+      1,
+    ]
     for (let sectionIndex = 0; sectionIndex < side.nodes.length; sectionIndex += 1) {
-      side.nodes[sectionIndex]!.sectionCenterRawRatio = clamp(centers[sectionIndex]!, 0, 1)
+      const entry = side.nodes[sectionIndex]!
+      entry.sectionCenterRawRatio = clamp(centers[sectionIndex]!, 0, 1)
+      entry.sectionStartRawRatio = sectionBoundaries[sectionIndex]!
+      entry.sectionEndRawRatio = sectionBoundaries[sectionIndex + 1]!
     }
     const knots: RuntimeWingFlexSpanMapKnot[] = [{ raw: 0, mapped: 0 }]
-    const firstSectionStartRaw = median(meshSections.map(sections => sections[0]!.min))
+    const firstSectionStartRaw = sectionBoundaries[0]!
     if (firstSectionStartRaw > 1e-6) {
-      // ponytail: keep only the unskinned root region rigid; joint 1 remains part of the smooth curve.
-      knots.push({ raw: clamp(firstSectionStartRaw, 0, 1), mapped: 0 })
+      // Keep only the unskinned root region rigid; the first visible wing section
+      // starts at the first authored rigid-skin boundary.
+      knots.push({ raw: firstSectionStartRaw, mapped: 0 })
     }
     for (let sectionIndex = 0; sectionIndex < side.nodes.length; sectionIndex += 1) {
       knots.push({
@@ -7426,10 +7443,8 @@ function deriveWingFlexSpanMaps(
         mapped: side.nodes[sectionIndex]!.spanRatio,
       })
       if (sectionIndex >= side.nodes.length - 1) continue
-      const lowerMax = Math.max(...meshSections.map(sections => sections[sectionIndex]!.max))
-      const upperMin = Math.min(...meshSections.map(sections => sections[sectionIndex + 1]!.min))
       knots.push({
-        raw: clamp((lowerMax + upperMin) * 0.5, 0, 1),
+        raw: sectionBoundaries[sectionIndex + 1]!,
         mapped: (side.nodes[sectionIndex]!.spanRatio + side.nodes[sectionIndex + 1]!.spanRatio) * 0.5,
       })
     }
@@ -8741,10 +8756,27 @@ function applyWingFlexSide(
     // centred on the continuous WingFlex curve even when the author placed the
     // helper noticeably inboard or outboard of that section's geometric centre.
     const centerRatio = clamp(entry.sectionCenterRawRatio, 0, 1)
-    const sample = sampleWingFlex(side, centerRatio, tipAngle)
+    const sectionStart = clamp(entry.sectionStartRawRatio, 0, 1)
+    const sectionEnd = clamp(entry.sectionEndRawRatio, sectionStart, 1)
+    const sectionWidth = sectionEnd - sectionStart
+    const centerT = sectionWidth <= 1e-9
+      ? 0.5
+      : clamp((centerRatio - sectionStart) / sectionWidth, 0, 1)
+    const centerSample = sampleWingFlex(side, centerRatio, tipAngle)
+    const startSample = sampleWingFlex(side, sectionStart, tipAngle)
+    const endSample = sampleWingFlex(side, sectionEnd, tipAngle)
+    const chordDeflection = sectionWidth <= 1e-9
+      ? centerSample.deflection
+      : startSample.deflection + (endSample.deflection - startSample.deflection) * centerT
+    const chordAngle = sectionWidth <= 1e-9
+      ? centerSample.slope
+      : Math.atan2(
+          endSample.deflection - startSample.deflection,
+          side.spanLength * sectionWidth
+        )
     const flexRotationInRoot = new Quaternion().setFromAxisAngle(
       new Vector3(0, 0, 1),
-      side.sideSign * sample.slope
+      side.sideSign * chordAngle
     )
     const targetWorldQuaternion = rootWorldQuaternion.clone()
       .multiply(flexRotationInRoot)
@@ -8756,7 +8788,7 @@ function applyWingFlexSide(
     restCenterInRoot.x = side.rootPointInRoot.x +
       side.sideSign * centerRatio * side.spanLength
     const targetCenterInRoot = restCenterInRoot.clone()
-    targetCenterInRoot.y += sample.deflection
+    targetCenterInRoot.y += chordDeflection
     const rotatedCenterOffset = restCenterInRoot.clone()
       .sub(entry.restPointInRoot)
       .applyQuaternion(flexRotationInRoot)
