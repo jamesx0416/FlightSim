@@ -7063,12 +7063,12 @@ interface RuntimeWingFlexSurfaceCpuRepair {
   side: RuntimeWingFlexSide
   readonly sourceSkinning: RuntimeWingFlexSourceSkinning
   readonly sourcePositions: RuntimeSkinAttribute
-  readonly sourceNormals: RuntimeSkinAttribute | null
   readonly authoredPositionsInRoot: Float32Array
   readonly wingSegments: Uint8Array
   readonly wingBlends: Float32Array
+  readonly boneIndex: number
   readonly authoredMeshMatrixInRoot: Matrix4
-  readonly authoredBoneMatricesInRoot: Matrix4[]
+  readonly authoredBoneMatrixInRoot: Matrix4
   authoredPoseCaptured: boolean
 }
 
@@ -7086,20 +7086,14 @@ type RuntimeSkinAttribute = ReturnType<SkinnedMesh['geometry']['getAttribute']>
 
 interface RuntimeWingFlexSourceSkinning {
   readonly position: RuntimeSkinAttribute
-  readonly normal: RuntimeSkinAttribute | null
   readonly skinIndex: RuntimeSkinAttribute
   readonly skinWeight: RuntimeSkinAttribute
   readonly bones: readonly Bone[]
   readonly boneInverses: readonly Matrix4[]
 }
 
-interface RuntimeWingFlexSurfaceRepair {
-  readonly sourceBones: readonly Bone[]
-  readonly cpu: RuntimeWingFlexSurfaceCpuRepair
-}
-
 const runtimeWingFlexSourceSkinning = new WeakMap<object, RuntimeWingFlexSourceSkinning>()
-const runtimeWingFlexSurfaceRepairs = new WeakMap<SkinnedMesh, RuntimeWingFlexSurfaceRepair>()
+const runtimeWingFlexSurfaceRepairs = new WeakMap<SkinnedMesh, RuntimeWingFlexSurfaceCpuRepair>()
 
 function createDemoWingFlexProfile(aircraft?: ImportedAircraft): DemoWingFlexProfile {
   const flightModel = aircraft?.cfgFiles.find(file => file.kind === 'flight_model')
@@ -7270,7 +7264,6 @@ function getRuntimeWingFlexSourceSkinning(
   }
   const source = {
     position: position.clone(),
-    normal: mesh.geometry.getAttribute('normal')?.clone() ?? null,
     skinIndex: skinIndex.clone(),
     skinWeight: sourceSkinWeight,
     bones: mesh.skeleton.bones.slice() as Bone[],
@@ -7785,15 +7778,12 @@ function smoothWingFlexAttachmentSkinWeights(
         if (mesh.isSkinnedMesh !== true || mesh.skeleton == null) return
         const existingRepair = runtimeWingFlexSurfaceRepairs.get(mesh)
         if (existingRepair != null) {
-          const isStructuralSurface = isDirectWingFlexStructuralMesh(
-            mesh,
-            existingRepair.cpu.sourceSkinning
-          )
-          if (!isStructuralSurface || existingRepair.sourceBones.length > 1) return
-          if (!existingRepair.sourceBones.every(bone => attachmentByNode.has(bone))) return
-          existingRepair.cpu.side = side
-          existingRepair.cpu.authoredPoseCaptured = false
-          addWingFlexSurfaceCpuRepair(binding, existingRepair.cpu)
+          const bone = existingRepair.sourceSkinning.bones[existingRepair.boneIndex]
+          if (!isDirectWingFlexStructuralMesh(mesh, existingRepair.sourceSkinning) ||
+            bone == null || !attachmentByNode.has(bone)) return
+          existingRepair.side = side
+          existingRepair.authoredPoseCaptured = false
+          addWingFlexSurfaceCpuRepair(binding, existingRepair)
           return
         }
 
@@ -7828,20 +7818,16 @@ function smoothWingFlexAttachmentSkinWeights(
           side,
           sourceSkinning,
           sourcePositions: sourceSkinning.position,
-          sourceNormals: sourceSkinning.normal,
           authoredPositionsInRoot: new Float32Array(sourceSkinning.position.count * 3),
           wingSegments: new Uint8Array(sourceSkinning.position.count),
           wingBlends: new Float32Array(sourceSkinning.position.count),
+          boneIndex: sourceIndices[0]!,
           authoredMeshMatrixInRoot: new Matrix4(),
-          authoredBoneMatricesInRoot: sourceSkinning.bones.map(() => new Matrix4()),
+          authoredBoneMatrixInRoot: new Matrix4(),
           authoredPoseCaptured: false,
         }
         mesh.geometry = mesh.geometry.clone()
-        const repair: RuntimeWingFlexSurfaceRepair = {
-          sourceBones: sourceIndices.map(index => sourceSkinning.bones[index]!),
-          cpu: cpuRepair,
-        }
-        runtimeWingFlexSurfaceRepairs.set(mesh, repair)
+        runtimeWingFlexSurfaceRepairs.set(mesh, cpuRepair)
         addWingFlexSurfaceCpuRepair(binding, cpuRepair)
       })
     }
@@ -7978,16 +7964,12 @@ function captureWingFlexSurfaceCpuPoses(
       repair.authoredMeshMatrixInRoot
     )
     repair.authoredMeshMatrixInRoot.copy(matrixInRoot)
-    for (let boneIndex = 0; boneIndex < repair.sourceSkinning.bones.length; boneIndex += 1) {
-      const bone = repair.sourceSkinning.bones[boneIndex]
-      if (bone == null) continue
-      bone.updateWorldMatrix(true, false)
-      matrixInRoot.copy(rootWorldInverse).multiply(bone.matrixWorld)
-      if (runtimeMatrixChanged(matrixInRoot, repair.authoredBoneMatricesInRoot[boneIndex]!)) {
-        poseChanged = true
-      }
-      repair.authoredBoneMatricesInRoot[boneIndex]!.copy(matrixInRoot)
-    }
+    const bone = repair.sourceSkinning.bones[repair.boneIndex]
+    if (bone == null) continue
+    bone.updateWorldMatrix(true, false)
+    matrixInRoot.copy(rootWorldInverse).multiply(bone.matrixWorld)
+    if (runtimeMatrixChanged(matrixInRoot, repair.authoredBoneMatrixInRoot)) poseChanged = true
+    repair.authoredBoneMatrixInRoot.copy(matrixInRoot)
     if (!poseChanged) continue
     // ponytail: cache the authored skinned pose; move this deformation shader-side if CPU cost matters.
     repair.mesh.skeleton.update()
@@ -8271,114 +8253,51 @@ function applyWingFlexSurfaceCpuRepairs(
   if (repairs.length === 0) return
   const rootWorldInverse = binding.root.matrixWorld.clone().invert()
   const skinMatrix = new Matrix4()
-  const authoredBoneWorldMatrix = new Matrix4()
-  const authoredSkinMatrix = new Matrix4()
-  const authoredFullSkinMatrix = new Matrix4()
-  const currentSkinMatrix = new Matrix4()
-  const currentSkinInverse = new Matrix4()
-  const authoredPointInRoot = new Vector3()
-  const desiredMeshPoint = new Vector3()
-  const endDeformedPoint = new Vector3()
-  const authoredNormal = new Vector3()
-  const desiredNormal = new Vector3()
-  const desiredRotation = new Quaternion()
 
   for (const repair of repairs) {
     const field = deformationFields.get(repair.side)
-    if (field == null) continue
+    const bone = repair.sourceSkinning.bones[repair.boneIndex]
+    const boneInverse = repair.sourceSkinning.boneInverses[repair.boneIndex]
+    if (field == null || bone == null || boneInverse == null) continue
     const mesh = repair.mesh
     mesh.updateWorldMatrix(true, false)
     const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
     const rootToMesh = meshToRoot.clone().invert()
-    const sourceSkinning = repair.sourceSkinning
-    const authoredBoneMatrices = sourceSkinning.bones.map((_, boneIndex) => {
-      const boneInverse = sourceSkinning.boneInverses[boneIndex]
-      return boneInverse == null
-        ? new Matrix4()
-        : new Matrix4().multiplyMatrices(
-          authoredBoneWorldMatrix.copy(binding.root.matrixWorld)
-            .multiply(repair.authoredBoneMatricesInRoot[boneIndex]!),
-          boneInverse
-        )
-    })
-    const currentBoneMatrices = sourceSkinning.bones.map((bone, boneIndex) => {
-      const boneInverse = sourceSkinning.boneInverses[boneIndex]
-      return boneInverse == null
-        ? new Matrix4()
-        : new Matrix4().multiplyMatrices(bone.matrixWorld, boneInverse)
-    })
+    const currentSkinInverse = new Matrix4()
+      .copy(mesh.bindMatrixInverse)
+      .multiply(skinMatrix.multiplyMatrices(bone.matrixWorld, boneInverse))
+      .multiply(mesh.bindMatrix)
+      .invert()
+    const rootToGeometry = currentSkinInverse.multiply(rootToMesh).elements
+    const stationToGeometry = field.stations.map(station =>
+      new Matrix4().fromArray(rootToGeometry).multiply(station.deltaMatrixInRoot).elements
+    )
     const position = mesh.geometry.getAttribute('position')
-    const normal = mesh.geometry.getAttribute('normal')
     if (position == null) continue
 
-    const weightedMatrix = (
-      matrices: readonly Matrix4[],
-      vertexIndex: number,
-      target: Matrix4
-    ): boolean => {
-      target.elements.fill(0)
-      let totalWeight = 0
-      for (let component = 0; component < 4; component += 1) {
-        const weight = getRuntimeSkinComponent(sourceSkinning.skinWeight, vertexIndex, component)
-        if (weight <= 1e-8) continue
-        const boneIndex = Math.round(getRuntimeSkinComponent(sourceSkinning.skinIndex, vertexIndex, component))
-        const matrix = matrices[boneIndex]
-        if (matrix == null) continue
-        for (let element = 0; element < 16; element += 1) {
-          target.elements[element]! += matrix.elements[element]! * weight
-        }
-        totalWeight += weight
-      }
-      return totalWeight > 1e-8
-    }
-
     for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
-      authoredPointInRoot.set(
-        repair.authoredPositionsInRoot[vertexIndex * 3]!,
-        repair.authoredPositionsInRoot[vertexIndex * 3 + 1]!,
-        repair.authoredPositionsInRoot[vertexIndex * 3 + 2]!
-      )
-      if (!weightedMatrix(authoredBoneMatrices, vertexIndex, authoredSkinMatrix)) continue
-      const authoredSkinForVertex = authoredSkinMatrix
+      const offset = vertexIndex * 3
       const segment = repair.wingSegments[vertexIndex]!
       const blend = repair.wingBlends[vertexIndex]!
-      const start = field.stations[segment]!
-      const end = field.stations[segment + 1]!
-      desiredMeshPoint.copy(authoredPointInRoot)
-        .applyMatrix4(start.deltaMatrixInRoot)
-        .lerp(endDeformedPoint.copy(authoredPointInRoot).applyMatrix4(end.deltaMatrixInRoot), blend)
-      desiredRotation.copy(start.rotationInRoot).slerp(end.rotationInRoot, blend)
-      desiredMeshPoint.applyMatrix4(rootToMesh)
-      if (!weightedMatrix(currentBoneMatrices, vertexIndex, currentSkinMatrix)) continue
-      currentSkinInverse.copy(mesh.bindMatrixInverse)
-        .multiply(currentSkinMatrix)
-        .multiply(mesh.bindMatrix)
-        .invert()
-      const skinInverseForVertex = currentSkinInverse
-      desiredMeshPoint.applyMatrix4(skinInverseForVertex)
-      position.setXYZ(vertexIndex, desiredMeshPoint.x, desiredMeshPoint.y, desiredMeshPoint.z)
-
-      if (normal != null && repair.sourceNormals != null) {
-        authoredNormal.set(
-          repair.sourceNormals.getX(vertexIndex),
-          repair.sourceNormals.getY(vertexIndex),
-          repair.sourceNormals.getZ(vertexIndex)
-        )
-        authoredNormal.transformDirection(
-          authoredFullSkinMatrix.copy(mesh.bindMatrixInverse)
-            .multiply(authoredSkinForVertex)
-            .multiply(mesh.bindMatrix)
-        )
-        desiredNormal.copy(authoredNormal)
-          .transformDirection(meshToRoot)
-          .applyQuaternion(desiredRotation)
-          .transformDirection(rootToMesh)
-          .transformDirection(skinInverseForVertex)
-        normal.setXYZ(vertexIndex, desiredNormal.x, desiredNormal.y, desiredNormal.z)
-      }
+      const x = repair.authoredPositionsInRoot[offset]!
+      const y = repair.authoredPositionsInRoot[offset + 1]!
+      const z = repair.authoredPositionsInRoot[offset + 2]!
+      const start = stationToGeometry[segment]!
+      const end = stationToGeometry[segment + 1]!
+      const startX = start[0]! * x + start[4]! * y + start[8]! * z + start[12]!
+      const startY = start[1]! * x + start[5]! * y + start[9]! * z + start[13]!
+      const startZ = start[2]! * x + start[6]! * y + start[10]! * z + start[14]!
+      const endX = end[0]! * x + end[4]! * y + end[8]! * z + end[12]!
+      const endY = end[1]! * x + end[5]! * y + end[9]! * z + end[13]!
+      const endZ = end[2]! * x + end[6]! * y + end[10]! * z + end[14]!
+      position.setXYZ(
+        vertexIndex,
+        startX + (endX - startX) * blend,
+        startY + (endY - startY) * blend,
+        startZ + (endZ - startZ) * blend
+      )
     }
     position.needsUpdate = true
-    if (normal != null && repair.sourceNormals != null) normal.needsUpdate = true
     mesh.geometry.boundingSphere = null
     mesh.geometry.boundingBox = null
   }
