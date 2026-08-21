@@ -7762,33 +7762,6 @@ function collectWingFlexSkinAttachments(
   }
 }
 
-function crossesWingFlexSegment(
-  side: RuntimeWingFlexSide,
-  mesh: SkinnedMesh,
-  sourceSkinning: RuntimeWingFlexSourceSkinning,
-  rootWorldInverse: Matrix4
-): boolean {
-  if (sourceSkinning.position.count === 0) return false
-  const meshToRoot = rootWorldInverse.clone().multiply(mesh.matrixWorld)
-  const pointInRoot = new Vector3()
-  let minRatio = 1
-  let maxRatio = 0
-  for (let vertexIndex = 0; vertexIndex < sourceSkinning.position.count; vertexIndex += 1) {
-    pointInRoot.set(
-      sourceSkinning.position.getX(vertexIndex),
-      sourceSkinning.position.getY(vertexIndex),
-      sourceSkinning.position.getZ(vertexIndex)
-    ).applyMatrix4(meshToRoot)
-    const ratio = mapWingFlexSpanRatio(side, wingSpanRatio(side, pointInRoot))
-    minRatio = Math.min(minRatio, ratio)
-    maxRatio = Math.max(maxRatio, ratio)
-  }
-  const stations = [0, ...side.nodes.map(entry => entry.spanRatio)]
-  return stations.slice(1, -1).some(station =>
-    minRatio < station && maxRatio > station
-  )
-}
-
 function smoothWingFlexAttachmentSkinWeights(
   sceneRoot: Object3D,
   bindings: readonly RuntimeWingFlexBinding[],
@@ -7834,14 +7807,6 @@ function smoothWingFlexAttachmentSkinWeights(
           if (!isStructuralSurface &&
             !existingRepair.sourceBones.some(bone => animatedAttachmentNodes.has(bone))) return
           if (!existingRepair.sourceBones.every(bone => attachmentByNode.has(bone))) return
-          if (!isStructuralSurface && existingRepair.sourceBones.length === 1 &&
-            animatedAttachmentNodes.has(existingRepair.sourceBones[0]!) &&
-            !crossesWingFlexSegment(
-              side,
-              mesh,
-              existingRepair.cpu.sourceSkinning,
-              rootWorldInverse
-            )) return
           existingRepair.cpu.side = side
           existingRepair.cpu.authoredPoseCaptured = false
           addWingFlexSurfaceCpuRepair(binding, existingRepair.cpu)
@@ -7875,8 +7840,6 @@ function smoothWingFlexAttachmentSkinWeights(
         const isStructuralSurface = isDirectWingFlexStructuralMesh(mesh, sourceSkinning)
         if (!hasAnimatedAttachment && !isStructuralSurface) return
         if (isStructuralSurface && sourceBoneIndices.size > 1) return
-        if (hasAnimatedAttachment && !isStructuralSurface && sourceBoneIndices.size === 1 &&
-          !crossesWingFlexSegment(side, mesh, sourceSkinning, rootWorldInverse)) return
 
         const sourceIndices = [...sourceBoneIndices]
         const cpuRepair: RuntimeWingFlexSurfaceCpuRepair = {
