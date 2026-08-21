@@ -7323,7 +7323,14 @@ function deriveWingFlexSpanMaps(
 ): void {
   type SectionStats = { count: number; sum: number; min: number; max: number }
   const candidates = new Map<RuntimeWingFlexSide, SectionStats[][]>()
-  for (const side of sides) candidates.set(side, [])
+  const authoredJointSamples = new Map<RuntimeWingFlexSide, number[][]>()
+  for (const side of sides) {
+    candidates.set(side, [])
+    authoredJointSamples.set(
+      side,
+      Array.from({ length: Math.max(side.nodes.length - 1, 0) }, () => [])
+    )
+  }
 
   sceneRoot.traverse(object => {
     const mesh = object as SkinnedMesh
@@ -7366,19 +7373,31 @@ function deriveWingFlexSpanMaps(
           }
           weightsBySection.set(sectionIndex, (weightsBySection.get(sectionIndex) ?? 0) + weight)
         }
-        if (!valid || weightsBySection.size !== 1) continue
-        for (const [sectionIndex, weight] of weightsBySection) {
-          rigidSection = sectionIndex
-          rigidWeight = weight
-        }
-        if (rigidSection < 0 || rigidWeight < 0.999) continue
-
+        if (!valid || weightsBySection.size === 0) continue
         pointInRoot.set(
           source.position.getX(vertexIndex),
           source.position.getY(vertexIndex),
           source.position.getZ(vertexIndex)
         ).applyMatrix4(meshToRoot)
         const raw = wingSpanRatio(side, pointInRoot)
+
+        if (weightsBySection.size === 2) {
+          const activeSections = [...weightsBySection]
+            .filter(([, weight]) => weight > 1e-4)
+            .map(([sectionIndex]) => sectionIndex)
+            .sort((left, right) => left - right)
+          if (activeSections.length === 2 && activeSections[1] === activeSections[0]! + 1) {
+            authoredJointSamples.get(side)![activeSections[0]!]!.push(raw)
+          }
+          continue
+        }
+        if (weightsBySection.size !== 1) continue
+        for (const [sectionIndex, weight] of weightsBySection) {
+          rigidSection = sectionIndex
+          rigidWeight = weight
+        }
+        if (rigidSection < 0 || rigidWeight < 0.999) continue
+
         const stats = sections[rigidSection]!
         stats.count += 1
         stats.sum += raw
@@ -7415,9 +7434,12 @@ function deriveWingFlexSpanMaps(
         return stats.sum / stats.count
       })
     ))
+    const jointSamples = authoredJointSamples.get(side) ?? []
     const sectionBoundaries = [
       clamp(median(meshSections.map(sections => sections[0]!.min)), 0, 1),
       ...side.nodes.slice(0, -1).map((_, sectionIndex) => {
+        const authored = jointSamples[sectionIndex] ?? []
+        if (authored.length > 0) return clamp(median(authored), 0, 1)
         const lowerMax = Math.max(...meshSections.map(sections => sections[sectionIndex]!.max))
         const upperMin = Math.min(...meshSections.map(sections => sections[sectionIndex + 1]!.min))
         return clamp((lowerMax + upperMin) * 0.5, 0, 1)
@@ -8749,6 +8771,12 @@ function applyWingFlexSide(
   const rootWorldQuaternion = binding.root.getWorldQuaternion(new Quaternion())
   const tipAngle = wingFlexTipAngle(side, flexAmount, binding)
   side.currentTipAngle = tipAngle
+  let previousSection: {
+    endRatio: number
+    restCenterInRoot: Vector3
+    targetCenterInRoot: Vector3
+    rotationInRoot: Quaternion
+  } | null = null
 
   for (const entry of side.nodes) {
     // Drive each authored rigid section from the centre of the skin it actually
@@ -8789,10 +8817,36 @@ function applyWingFlexSide(
       side.sideSign * centerRatio * side.spanLength
     const targetCenterInRoot = restCenterInRoot.clone()
     targetCenterInRoot.y += chordDeflection
+
+    if (previousSection != null && sectionWidth > 1e-9 &&
+      Math.abs(sectionStart - previousSection.endRatio) <= 1e-6) {
+      const sharedRestBoundary = restCenterInRoot.clone()
+      sharedRestBoundary.x = side.rootPointInRoot.x +
+        side.sideSign * sectionStart * side.spanLength
+      sharedRestBoundary.y = (
+        sharedRestBoundary.y + previousSection.restCenterInRoot.y
+      ) * 0.5
+      sharedRestBoundary.z = (
+        sharedRestBoundary.z + previousSection.restCenterInRoot.z
+      ) * 0.5
+      const previousBoundary = sharedRestBoundary.clone()
+        .sub(previousSection.restCenterInRoot)
+        .applyQuaternion(previousSection.rotationInRoot)
+        .add(previousSection.targetCenterInRoot)
+      const currentBoundary = sharedRestBoundary.clone()
+        .sub(restCenterInRoot)
+        .applyQuaternion(flexRotationInRoot)
+        .add(targetCenterInRoot)
+
+      // Adjacent rigid sections cannot both follow the ideal curve exactly while
+      // preserving their authored length. Keep their shared boundary exact instead.
+      targetCenterInRoot.add(previousBoundary.sub(currentBoundary))
+    }
+
     const rotatedCenterOffset = restCenterInRoot.clone()
       .sub(entry.restPointInRoot)
       .applyQuaternion(flexRotationInRoot)
-    const targetPivotInRoot = targetCenterInRoot.sub(rotatedCenterOffset)
+    const targetPivotInRoot = targetCenterInRoot.clone().sub(rotatedCenterOffset)
     const targetPivotWorld = binding.root.localToWorld(targetPivotInRoot.clone())
 
     entry.node.position.copy(parent.worldToLocal(targetPivotWorld))
@@ -8801,6 +8855,14 @@ function applyWingFlexSide(
     )
     entry.node.updateMatrix()
     entry.node.updateWorldMatrix(false, false)
+    previousSection = sectionWidth > 1e-9
+      ? {
+          endRatio: sectionEnd,
+          restCenterInRoot: restCenterInRoot.clone(),
+          targetCenterInRoot: targetCenterInRoot.clone(),
+          rotationInRoot: flexRotationInRoot.clone(),
+        }
+      : null
   }
 }
 
