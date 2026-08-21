@@ -7974,6 +7974,7 @@ function captureWingFlexSurfaceCpuPoses(
     // ponytail: cache the authored skinned pose; move this deformation shader-side if CPU cost matters.
     repair.mesh.skeleton.update()
     const meshToRoot = repair.authoredMeshMatrixInRoot
+    const stationRatios = [0, ...repair.side.nodes.map(entry => entry.spanRatio)]
     for (let vertexIndex = 0; vertexIndex < repair.sourcePositions.count; vertexIndex += 1) {
       authoredPoint.set(
         repair.sourcePositions.getX(vertexIndex),
@@ -7989,24 +7990,17 @@ function captureWingFlexSurfaceCpuPoses(
           repair.side,
           wingSpanRatio(repair.side, authoredPoint)
         )
-        const stations = [
-          { spanRatio: 0, restPointInRoot: repair.side.rootPointInRoot },
-          ...repair.side.nodes.map(entry => ({
-            spanRatio: entry.spanRatio,
-            restPointInRoot: entry.restPointInRoot,
-          })),
-        ]
-        let segment = stations.length - 2
-        for (let index = 0; index < stations.length - 1; index += 1) {
-          if (ratio <= stations[index + 1]!.spanRatio) {
+        let segment = stationRatios.length - 2
+        for (let index = 0; index < stationRatios.length - 1; index += 1) {
+          if (ratio <= stationRatios[index + 1]!) {
             segment = index
             break
           }
         }
-        const start = stations[segment]!
-        const end = stations[segment + 1]!
-        const width = end.spanRatio - start.spanRatio
-        const rawT = width <= 1e-9 ? 0 : clamp((ratio - start.spanRatio) / width, 0, 1)
+        const start = stationRatios[segment]!
+        const end = stationRatios[segment + 1]!
+        const width = end - start
+        const rawT = width <= 1e-9 ? 0 : clamp((ratio - start) / width, 0, 1)
         repair.wingSegments[vertexIndex] = segment
         repair.wingBlends[vertexIndex] = rawT * rawT * (3 - 2 * rawT)
       }
@@ -8298,8 +8292,6 @@ function applyWingFlexSurfaceCpuRepairs(
       )
     }
     position.needsUpdate = true
-    mesh.geometry.boundingSphere = null
-    mesh.geometry.boundingBox = null
   }
 }
 
