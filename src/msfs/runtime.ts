@@ -387,7 +387,7 @@ export class AircraftRuntime {
       const bindings = this.activeAnimationTriggerBindingsByAnimation.get(binding.animation) ?? []
       this.activeAnimationTriggerBindingsByAnimation.set(binding.animation, [...bindings, binding])
     }
-    smoothWingFlexAttachmentSkinWeights(this.sceneRoot, this.wingFlexBindings, clips)
+    smoothWingFlexAttachmentSkinWeights(this.sceneRoot, this.wingFlexBindings)
   }
 
   private applyCanonicalVisualBindings(): boolean {
@@ -7764,22 +7764,13 @@ function collectWingFlexSkinAttachments(
 
 function smoothWingFlexAttachmentSkinWeights(
   sceneRoot: Object3D,
-  bindings: readonly RuntimeWingFlexBinding[],
-  clips: readonly AnimationClip[]
+  bindings: readonly RuntimeWingFlexBinding[]
 ): void {
-  if (bindings.length === 0 || clips.length === 0) return
+  if (bindings.length === 0) return
   sceneRoot.updateMatrixWorld(true)
   const rootWorldInverse = sceneRoot.matrixWorld.clone().invert()
   for (const binding of bindings) {
     binding.surfaceCpuRepairs.length = 0
-  }
-
-  const animatedNames = new Set<string>()
-  for (const clip of clips) {
-    for (const track of clip.tracks) {
-      const nodeName = PropertyBinding.parseTrackName(track.name).nodeName
-      if (nodeName) animatedNames.add(nodeName.toLowerCase())
-    }
   }
 
   for (const binding of bindings) {
@@ -7789,11 +7780,6 @@ function smoothWingFlexAttachmentSkinWeights(
         attachment.side === side
       )
       const attachmentByNode = new Map(attachments.map(attachment => [attachment.node, attachment] as const))
-      const animatedAttachmentNodes = new Set(
-        attachments.filter(attachment =>
-          attachment.rotateWithWing && animatedNames.has(attachment.node.name.toLowerCase())
-        ).map(attachment => attachment.node)
-      )
       sceneRoot.traverse(object => {
         const mesh = object as SkinnedMesh
         if (mesh.isSkinnedMesh !== true || mesh.skeleton == null) return
@@ -7803,9 +7789,7 @@ function smoothWingFlexAttachmentSkinWeights(
             mesh,
             existingRepair.cpu.sourceSkinning
           )
-          if (isStructuralSurface && existingRepair.sourceBones.length > 1) return
-          if (!isStructuralSurface &&
-            !existingRepair.sourceBones.some(bone => animatedAttachmentNodes.has(bone))) return
+          if (!isStructuralSurface || existingRepair.sourceBones.length > 1) return
           if (!existingRepair.sourceBones.every(bone => attachmentByNode.has(bone))) return
           existingRepair.cpu.side = side
           existingRepair.cpu.authoredPoseCaptured = false
@@ -7828,18 +7812,15 @@ function smoothWingFlexAttachmentSkinWeights(
           }
         }
         const sourceBoneIndices = new Set<number>()
-        let hasAnimatedAttachment = false
         for (const [boneIndex, totalWeight] of sourceBoneWeights) {
           if (totalWeight <= 1e-3) continue
           const bone = sourceSkinning.bones[boneIndex]
           if (bone == null || !attachmentByNode.has(bone)) return
-          if (animatedAttachmentNodes.has(bone)) hasAnimatedAttachment = true
           sourceBoneIndices.add(boneIndex)
         }
         if (sourceBoneIndices.size === 0) return
         const isStructuralSurface = isDirectWingFlexStructuralMesh(mesh, sourceSkinning)
-        if (!hasAnimatedAttachment && !isStructuralSurface) return
-        if (isStructuralSurface && sourceBoneIndices.size > 1) return
+        if (!isStructuralSurface || sourceBoneIndices.size > 1) return
 
         const sourceIndices = [...sourceBoneIndices]
         const cpuRepair: RuntimeWingFlexSurfaceCpuRepair = {
