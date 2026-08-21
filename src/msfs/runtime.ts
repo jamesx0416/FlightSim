@@ -7881,20 +7881,6 @@ function chooseWingFlexSide(
 function mapWingFlexSpanRatio(side: RuntimeWingFlexSide, rawRatio: number): number {
   const raw = clamp(rawRatio, 0, 1)
   const knots = side.spanMapKnots
-  const secant = (index: number): number => {
-    const start = knots[index]!
-    const end = knots[index + 1]!
-    const width = end.raw - start.raw
-    return width <= 1e-9 ? 0 : (end.mapped - start.mapped) / width
-  }
-  const tangent = (index: number): number => {
-    if (index <= 0) return secant(0)
-    if (index >= knots.length - 1) return secant(knots.length - 2)
-    const left = secant(index - 1)
-    const right = secant(index)
-    if (left <= 0 || right <= 0) return 0
-    return 2 * left * right / (left + right)
-  }
   for (let index = 0; index < knots.length - 1; index += 1) {
     const start = knots[index]!
     const end = knots[index + 1]!
@@ -7902,16 +7888,10 @@ function mapWingFlexSpanRatio(side: RuntimeWingFlexSide, rawRatio: number): numb
     const width = end.raw - start.raw
     if (width <= 1e-9) return start.mapped
     const t = clamp((raw - start.raw) / width, 0, 1)
-    const t2 = t * t
-    const t3 = t2 * t
-    return (2 * t3 - 3 * t2 + 1) * start.mapped +
-      (t3 - 2 * t2 + t) * width * tangent(index) +
-      (-2 * t3 + 3 * t2) * end.mapped +
-      (t3 - t2) * width * tangent(index + 1)
+    return start.mapped + (end.mapped - start.mapped) * t
   }
   return knots.at(-1)?.mapped ?? raw
 }
-
 function wingSpanRatio(side: RuntimeWingFlexSide, pointInRoot: Vector3): number {
   return clamp(Math.abs(pointInRoot.x - side.rootPointInRoot.x) / side.spanLength, 0, 1)
 }
