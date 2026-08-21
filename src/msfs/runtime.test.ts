@@ -542,7 +542,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     flex = 0.5
     runtime.update(1 / 60)
     scene.updateMatrixWorld(true)
-    const boundaryPoint = new Vector3(1, 0, 0)
+    const boundaryPoint = new Vector3(1.5, 0, 0)
     const deformByBone = (boneIndex: number): Vector3 => boundaryPoint.clone().applyMatrix4(
       bones[boneIndex]!.matrixWorld.clone().multiply(
         restBoneWorldMatrices[boneIndex]!.clone().invert()
