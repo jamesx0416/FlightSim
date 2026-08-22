@@ -301,6 +301,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     onError: ((error: unknown) => void) | undefined,
     loader: FileLoader
   ): void {
+    // ponytail: uncapped full DDS requests are fastest in current benchmarks; revisit concurrency/byte-budget tuning only if future profiling shows contention.
     loader.load(
       requestUrl,
       buffer => {
@@ -732,7 +733,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
         } else {
           dataLength = (Math.max(4, width) / 4) * (Math.max(4, height) / 4) * blockBytes
           if (shouldLoadMip) {
-            byteArray = new Uint8Array(buffer, dataOffset, dataLength).slice()
+            byteArray = new Uint8Array(buffer, dataOffset, dataLength)
           }
         }
 
@@ -1196,7 +1197,7 @@ function readDdsMipData(
     return loadRgbMipData(buffer, dataOffset, layout.width, layout.height)
   }
 
-  return new Uint8Array(buffer, dataOffset, layout.byteLength).slice()
+  return new Uint8Array(buffer, dataOffset, layout.byteLength)
 }
 
 function loadArgbMipData(

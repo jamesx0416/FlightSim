@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import { clearMsfsPackageSourceCache, loadMsfsPackageSource } from '../packageAssets'
-import { __ddsLoaderTestHooks } from './MSFSDDSLoader'
+import { __ddsLoaderTestHooks, MSFSDDSLoader } from './MSFSDDSLoader'
 
 test('missing DDS FLAGS is decided from the package layout without a network probe', async () => {
   const originalFetch = globalThis.fetch
@@ -33,4 +33,24 @@ test('missing DDS FLAGS is decided from the package layout without a network pro
     clearMsfsPackageSourceCache()
     globalThis.fetch = originalFetch
   }
+})
+
+
+test('compressed DDS mip data keeps a zero-copy view of the source buffer', () => {
+  const buffer = new ArrayBuffer(136)
+  const header = new Int32Array(buffer, 0, 31)
+  header[0] = 0x20534444
+  header[1] = 124
+  header[3] = 4
+  header[4] = 4
+  header[21] = 'D'.charCodeAt(0) + ('X'.charCodeAt(0) << 8) + ('T'.charCodeAt(0) << 16) + ('1'.charCodeAt(0) << 24)
+  const payload = new Uint8Array(buffer, 128, 8)
+  payload.set([1, 2, 3, 4, 5, 6, 7, 8])
+
+  const parsed = new MSFSDDSLoader().parse(buffer, { loadMipmaps: true })
+
+  expect(parsed.mipmaps.length).toBe(1)
+  expect(parsed.mipmaps[0]?.data.buffer).toBe(buffer)
+  expect(parsed.mipmaps[0]?.data.byteOffset).toBe(128)
+  expect(Array.from(parsed.mipmaps[0]?.data ?? [])).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
 })

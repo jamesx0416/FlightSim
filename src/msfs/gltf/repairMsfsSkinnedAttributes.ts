@@ -220,20 +220,32 @@ function createPackedAttributeFromAccessor(
 
   const elementBytes = TypedArray.BYTES_PER_ELEMENT
   const packed = new TypedArray(accessorDef.count * itemSize)
-  const view = new DataView(sourceBuffer)
   const baseOffset = (bufferViewDef.byteOffset ?? 0) + (accessorDef.byteOffset ?? 0)
+  const aligned = baseOffset % elementBytes === 0 && bufferViewDef.byteStride % elementBytes === 0
 
-  for (let itemIndex = 0; itemIndex < accessorDef.count; itemIndex += 1) {
-    const sourceItemOffset = baseOffset + itemIndex * bufferViewDef.byteStride
-    const destinationItemOffset = itemIndex * itemSize
-
-    for (let componentIndex = 0; componentIndex < itemSize; componentIndex += 1) {
-      const sourceComponentOffset = sourceItemOffset + componentIndex * elementBytes
-      packed[destinationItemOffset + componentIndex] = readComponent(
-        view,
-        sourceComponentOffset,
-        accessorDef.componentType as SupportedComponentType
-      ) as never
+  if (aligned) {
+    const source = new TypedArray(sourceBuffer, 0, Math.floor(sourceBuffer.byteLength / elementBytes))
+    const sourceBaseIndex = baseOffset / elementBytes
+    const sourceStride = bufferViewDef.byteStride / elementBytes
+    for (let itemIndex = 0; itemIndex < accessorDef.count; itemIndex += 1) {
+      const sourceItemIndex = sourceBaseIndex + itemIndex * sourceStride
+      const destinationItemIndex = itemIndex * itemSize
+      for (let componentIndex = 0; componentIndex < itemSize; componentIndex += 1) {
+        packed[destinationItemIndex + componentIndex] = source[sourceItemIndex + componentIndex] as never
+      }
+    }
+  } else {
+    const view = new DataView(sourceBuffer)
+    for (let itemIndex = 0; itemIndex < accessorDef.count; itemIndex += 1) {
+      const sourceItemOffset = baseOffset + itemIndex * bufferViewDef.byteStride
+      const destinationItemOffset = itemIndex * itemSize
+      for (let componentIndex = 0; componentIndex < itemSize; componentIndex += 1) {
+        packed[destinationItemOffset + componentIndex] = readComponent(
+          view,
+          sourceItemOffset + componentIndex * elementBytes,
+          accessorDef.componentType as SupportedComponentType
+        ) as never
+      }
     }
   }
 
