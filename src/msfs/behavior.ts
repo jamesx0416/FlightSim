@@ -62,11 +62,16 @@ interface CompileBehaviorOptions {
   readonly includeInteriorModel?: boolean
 }
 
+interface TemplateTraceEntry {
+  readonly templateName: string
+  readonly params: ReadonlyMap<string, string>
+}
+
 interface TraversalState {
   readonly path: string
   readonly params: ReadonlyMap<string, string>
   readonly currentNode: string | null
-  readonly templateTrace: readonly string[]
+  readonly templateTrace: readonly TemplateTraceEntry[]
 }
 
 type ParameterBlockKind = 'default' | 'override'
@@ -1233,16 +1238,25 @@ function expandTemplateUse(
   }
 
   const normalizedTemplateName = templateName.toUpperCase()
-  const templateTraceKey = createTemplateTraceKey(normalizedTemplateName, mergedParams)
-  if (state.templateTrace.includes(templateTraceKey)) {
-    context.diagnostics.push({
-      code: 'template_recursion_cycle',
-      message: `Template ${templateName} entered a recursive expansion cycle.`,
-      severity: 'warning',
-      sourcePath: state.path,
-      details: state.templateTrace.join(' -> ')
-    })
-    return
+  const repeatedTemplateTraces = state.templateTrace.filter(
+    entry => entry.templateName === normalizedTemplateName
+  )
+  if (repeatedTemplateTraces.length > 0) {
+    const templateTraceKey = createTemplateTraceKey(normalizedTemplateName, mergedParams)
+    if (repeatedTemplateTraces.some(entry =>
+      createTemplateTraceKey(entry.templateName, entry.params) === templateTraceKey
+    )) {
+      context.diagnostics.push({
+        code: 'template_recursion_cycle',
+        message: `Template ${templateName} entered a recursive expansion cycle.`,
+        severity: 'warning',
+        sourcePath: state.path,
+        details: state.templateTrace.map(entry =>
+          createTemplateTraceKey(entry.templateName, entry.params)
+        ).join(' -> ')
+      })
+      return
+    }
   }
 
   if (normalizedTemplateName === 'ASOBO_GT_ANIM') {
@@ -1443,7 +1457,10 @@ function expandTemplateUse(
   const nextState: TraversalState = {
     ...state,
     params: templateParams,
-    templateTrace: [...state.templateTrace, templateTraceKey]
+    templateTrace: [
+      ...state.templateTrace,
+      { templateName: normalizedTemplateName, params: mergedParams }
+    ]
   }
 
   for (const child of Array.from(templateNode.children)) {
@@ -3987,6 +4004,16 @@ function applyScopedParameters(
   element: Element,
   state: TraversalState
 ): TraversalState {
+  let hasParameterBlock = false
+  for (const child of element.children) {
+    const kind = getParameterBlockKind(child)
+    if (kind === 'default' || kind === 'override') {
+      hasParameterBlock = true
+      break
+    }
+  }
+  if (!hasParameterBlock) return state
+
   const scopedParams = new Map<string, string>(state.params)
   applyParameterBlocks(element, 'default', scopedParams, state.path, [])
   applyParameterBlocks(element, 'override', scopedParams, state.path, [])
@@ -4125,6 +4152,8 @@ function substituteParameters(
   value: string,
   params: ReadonlyMap<string, string>
 ): string {
+  if (!value.includes('#') && !value.includes('@')) return value
+
   let currentValue = value
 
   for (let index = 0; index < 8; index += 1) {

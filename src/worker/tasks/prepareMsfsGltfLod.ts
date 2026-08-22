@@ -20,7 +20,7 @@ type PreparedMsfsGltfLod = {
   readonly phases: readonly WorkerPhase[]
 }
 
-const GLTF_BUFFER_CHUNK_BYTES = 256 * 1024
+const GLTF_BUFFER_CHUNK_BYTES = 1024 * 1024
 const GLTF_BUFFER_CHUNK_TIMEOUT_MS = 60000
 const GLTF_BUFFER_CHUNK_CONCURRENCY = 6
 

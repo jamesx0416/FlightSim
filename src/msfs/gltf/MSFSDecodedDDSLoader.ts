@@ -898,37 +898,71 @@ function decodeDxt5(buffer: ArrayBuffer, dataOffset: number, width: number, heig
   const blockWidth = Math.max(1, Math.ceil(width / 4))
   const blockHeight = Math.max(1, Math.ceil(height / 4))
   const alphaPalette = new Uint8Array(8)
+  const colorPalette = new Uint8Array(16)
 
   for (let blockY = 0; blockY < blockHeight; blockY += 1) {
     for (let blockX = 0; blockX < blockWidth; blockX += 1) {
       const offset = (blockY * blockWidth + blockX) * 16
       fillDxt5AlphaPalette(alphaPalette, view, offset)
-      let alphaIndices = readUint48(view, offset + 2)
+      const alphaSelectors0 = view.getUint16(offset + 2, true) | (view.getUint8(offset + 4) << 16)
+      const alphaSelectors1 = view.getUint16(offset + 5, true) | (view.getUint8(offset + 7) << 16)
       const color0 = view.getUint16(offset + 8, true)
       const color1 = view.getUint16(offset + 10, true)
       const selectors = view.getUint32(offset + 12, true)
-      const colors = buildDxt1Palette(color0, color1, false)
+      fillOpaqueDxtColorPalette(colorPalette, color0, color1)
 
       for (let pixelIndex = 0; pixelIndex < 16; pixelIndex += 1) {
         const colorIndex = (selectors >> (pixelIndex * 2)) & 0x03
-        const alphaIndex = alphaIndices & 0x07
-        alphaIndices = Math.floor(alphaIndices / 8)
+        const alphaIndex = pixelIndex < 8
+          ? (alphaSelectors0 >> (pixelIndex * 3)) & 0x07
+          : (alphaSelectors1 >> ((pixelIndex - 8) * 3)) & 0x07
 
         const x = blockX * 4 + (pixelIndex & 3)
         const y = blockY * 4 + (pixelIndex >> 2)
         if (x >= width || y >= height) continue
 
-        const color = colors[colorIndex]!
+        const colorOffset = colorIndex * 4
         const destinationOffset = (y * width + x) * 4
-        output[destinationOffset] = color[0]
-        output[destinationOffset + 1] = color[1]
-        output[destinationOffset + 2] = color[2]
+        output[destinationOffset] = colorPalette[colorOffset]!
+        output[destinationOffset + 1] = colorPalette[colorOffset + 1]!
+        output[destinationOffset + 2] = colorPalette[colorOffset + 2]!
         output[destinationOffset + 3] = alphaPalette[alphaIndex]!
       }
     }
   }
 
   return output
+}
+
+function fillOpaqueDxtColorPalette(palette: Uint8Array, color0: number, color1: number): void {
+  const red0 = (color0 >> 11) & 0x1f
+  const green0 = (color0 >> 5) & 0x3f
+  const blue0 = color0 & 0x1f
+  const red1 = (color1 >> 11) & 0x1f
+  const green1 = (color1 >> 5) & 0x3f
+  const blue1 = color1 & 0x1f
+  const r0 = (red0 << 3) | (red0 >> 2)
+  const g0 = (green0 << 2) | (green0 >> 4)
+  const b0 = (blue0 << 3) | (blue0 >> 2)
+  const r1 = (red1 << 3) | (red1 >> 2)
+  const g1 = (green1 << 2) | (green1 >> 4)
+  const b1 = (blue1 << 3) | (blue1 >> 2)
+  palette[0] = r0
+  palette[1] = g0
+  palette[2] = b0
+  palette[3] = 255
+  palette[4] = r1
+  palette[5] = g1
+  palette[6] = b1
+  palette[7] = 255
+  palette[8] = Math.round((2 * r0 + r1) / 3)
+  palette[9] = Math.round((2 * g0 + g1) / 3)
+  palette[10] = Math.round((2 * b0 + b1) / 3)
+  palette[11] = 255
+  palette[12] = Math.round((r0 + 2 * r1) / 3)
+  palette[13] = Math.round((g0 + 2 * g1) / 3)
+  palette[14] = Math.round((b0 + 2 * b1) / 3)
+  palette[15] = 255
 }
 
 function decodeBc5Rg(

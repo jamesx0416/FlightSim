@@ -912,12 +912,10 @@ function buildDecalProjectionSpatialIndexNode(
 
   const centerBounds = getProjectionItemCenterBounds(items)
   const axis = getLongestBoundsAxis(centerBounds.min, centerBounds.max)
-  const sortedItems = [...items].sort((left, right) =>
-    getVectorAxis(left.center, axis) - getVectorAxis(right.center, axis)
-  )
-  const splitIndex = Math.floor(sortedItems.length / 2)
-  const leftItems = sortedItems.slice(0, splitIndex)
-  const rightItems = sortedItems.slice(splitIndex)
+  const splitIndex = Math.floor(items.length / 2)
+  partitionProjectionItemsAt(items, splitIndex, axis)
+  const leftItems = items.slice(0, splitIndex)
+  const rightItems = items.slice(splitIndex)
 
   if (leftItems.length === 0 || rightItems.length === 0) {
     return { ...bounds, items }
@@ -927,6 +925,34 @@ function buildDecalProjectionSpatialIndexNode(
     ...bounds,
     left: buildDecalProjectionSpatialIndexNode(leftItems),
     right: buildDecalProjectionSpatialIndexNode(rightItems),
+  }
+}
+
+function partitionProjectionItemsAt(
+  items: DecalProjectionTriangleItem[],
+  splitIndex: number,
+  axis: 'x' | 'y' | 'z'
+): void {
+  let left = 0
+  let right = items.length - 1
+  while (left < right) {
+    const pivot = getVectorAxis(items[(left + right) >> 1]!.center, axis)
+    let lower = left
+    let upper = right
+    while (lower <= upper) {
+      while (getVectorAxis(items[lower]!.center, axis) < pivot) lower += 1
+      while (getVectorAxis(items[upper]!.center, axis) > pivot) upper -= 1
+      if (lower <= upper) {
+        const item = items[lower]!
+        items[lower] = items[upper]!
+        items[upper] = item
+        lower += 1
+        upper -= 1
+      }
+    }
+    if (splitIndex <= upper) right = upper
+    else if (splitIndex >= lower) left = lower
+    else return
   }
 }
 
@@ -1958,6 +1984,15 @@ function setProjectedBlendGBufferDepthAllowance(
 
   mesh.updateWorldMatrix(true, false)
   const allowances = new Float32Array(position.count)
+  const edgeAllowanceByPoint = new Map<string, number>()
+  const getEdgeAllowance = (point: Vector3): number => {
+    const key = `${point.x},${point.y},${point.z}`
+    const cached = edgeAllowanceByPoint.get(key)
+    if (cached != null) return cached
+    const allowance = getProjectedSurfaceDistance(point, triangleIndex)
+    edgeAllowanceByPoint.set(key, allowance)
+    return allowance
+  }
   const index = mesh.geometry.index
   const count = index?.count ?? position.count
   for (let vertex = 0; vertex + 2 < count; vertex += 3) {
@@ -1968,9 +2003,9 @@ function setProjectedBlendGBufferDepthAllowance(
     const b = getPositionAttributeVector(position, bIndex).applyMatrix4(mesh.matrixWorld)
     const c = getPositionAttributeVector(position, cIndex).applyMatrix4(mesh.matrixWorld)
     const allowance = Math.max(
-      getProjectedSurfaceDistance(a.clone().add(b).multiplyScalar(0.5), triangleIndex),
-      getProjectedSurfaceDistance(b.clone().add(c).multiplyScalar(0.5), triangleIndex),
-      getProjectedSurfaceDistance(c.clone().add(a).multiplyScalar(0.5), triangleIndex),
+      getEdgeAllowance(a.clone().add(b).multiplyScalar(0.5)),
+      getEdgeAllowance(b.clone().add(c).multiplyScalar(0.5)),
+      getEdgeAllowance(c.clone().add(a).multiplyScalar(0.5)),
       getProjectedSurfaceDistance(a.add(b).add(c).multiplyScalar(1 / 3), triangleIndex)
     )
     allowances[aIndex] = Math.max(allowances[aIndex], allowance)
@@ -2171,7 +2206,7 @@ function findClosestProjectionTriangle(
         }
 
         if (orientationNormal == null) {
-          const result = closestPointToTriangle(point, item.triangle.a, item.triangle.b, item.triangle.c)
+          const result = closestPointToTriangle(point, item.triangle)
           const distanceSq = result.point.distanceToSquared(point)
           if (distanceSq < closest.distanceSq) {
             closest.distanceSq = distanceSq
@@ -2303,7 +2338,7 @@ function findClosestCompatibleProjectionTriangle(
       for (const item of node.items) {
         if (item.triangle.orientationNormal.dot(orientationNormal) <= 0 ||
             getPointToBoundsDistanceSquared(point, item.min, item.max) > closestDistanceSq) continue
-        const result = closestPointToTriangle(point, item.triangle.a, item.triangle.b, item.triangle.c)
+        const result = closestPointToTriangle(point, item.triangle)
         const distanceSq = result.point.distanceToSquared(point)
         if (distanceSq < closestDistanceSq) {
           closestDistanceSq = distanceSq
@@ -2313,13 +2348,45 @@ function findClosestCompatibleProjectionTriangle(
       }
       continue
     }
-    const children = [node.left, node.right].filter((child): child is DecalProjectionSpatialIndex => child != null)
-      .map(child => ({ child, distanceSq: getPointToBoundsDistanceSquared(point, child.min, child.max) }))
-      .sort((left, right) => right.distanceSq - left.distanceSq)
-    for (const { child, distanceSq } of children) {
+    const left = node.left
+    const right = node.right
+    if (left == null && right == null) continue
+    if (left == null) {
+      const distanceSq = getPointToBoundsDistanceSquared(point, right!.min, right!.max)
       if (distanceSq <= closestDistanceSq) {
-        pending.push(child)
+        pending.push(right!)
         pendingDistanceSq.push(distanceSq)
+      }
+      continue
+    }
+    if (right == null) {
+      const distanceSq = getPointToBoundsDistanceSquared(point, left.min, left.max)
+      if (distanceSq <= closestDistanceSq) {
+        pending.push(left)
+        pendingDistanceSq.push(distanceSq)
+      }
+      continue
+    }
+
+    const leftDistanceSq = getPointToBoundsDistanceSquared(point, left.min, left.max)
+    const rightDistanceSq = getPointToBoundsDistanceSquared(point, right.min, right.max)
+    if (leftDistanceSq <= rightDistanceSq) {
+      if (rightDistanceSq <= closestDistanceSq) {
+        pending.push(right)
+        pendingDistanceSq.push(rightDistanceSq)
+      }
+      if (leftDistanceSq <= closestDistanceSq) {
+        pending.push(left)
+        pendingDistanceSq.push(leftDistanceSq)
+      }
+    } else {
+      if (leftDistanceSq <= closestDistanceSq) {
+        pending.push(left)
+        pendingDistanceSq.push(leftDistanceSq)
+      }
+      if (rightDistanceSq <= closestDistanceSq) {
+        pending.push(right)
+        pendingDistanceSq.push(rightDistanceSq)
       }
     }
   }
@@ -2589,47 +2656,64 @@ function addWeightedSkinInfluences(
 // From Real-Time Collision Detection, Christer Ericson.
 function closestPointToTriangle(
   point: Vector3,
-  a: Vector3,
-  b: Vector3,
-  c: Vector3
+  triangle: DecalProjectionTriangle
 ): ClosestPointResult {
-  const ab = new Vector3().subVectors(b, a)
-  const ac = new Vector3().subVectors(c, a)
-  const ap = new Vector3().subVectors(point, a)
-  const d1 = ab.dot(ap)
-  const d2 = ac.dot(ap)
+  const { a, b, c } = triangle
+  const abX = triangle.projectionAbX
+  const abY = triangle.projectionAbY
+  const abZ = triangle.projectionAbZ
+  const acX = triangle.projectionAcX
+  const acY = triangle.projectionAcY
+  const acZ = triangle.projectionAcZ
+  const apX = point.x - a.x
+  const apY = point.y - a.y
+  const apZ = point.z - a.z
+  const d1 = abX * apX + abY * apY + abZ * apZ
+  const d2 = acX * apX + acY * apY + acZ * apZ
   if (d1 <= 0 && d2 <= 0) {
-    return { point: a.clone(), barycentric: [1, 0, 0] }
+    return { point: new Vector3(a.x, a.y, a.z), barycentric: [1, 0, 0] }
   }
 
-  const bp = new Vector3().subVectors(point, b)
-  const d3 = ab.dot(bp)
-  const d4 = ac.dot(bp)
+  const bpX = point.x - b.x
+  const bpY = point.y - b.y
+  const bpZ = point.z - b.z
+  const d3 = abX * bpX + abY * bpY + abZ * bpZ
+  const d4 = acX * bpX + acY * bpY + acZ * bpZ
   if (d3 >= 0 && d4 <= d3) {
-    return { point: b.clone(), barycentric: [0, 1, 0] }
+    return { point: new Vector3(b.x, b.y, b.z), barycentric: [0, 1, 0] }
   }
 
   const vc = d1 * d4 - d3 * d2
   if (vc <= 0 && d1 >= 0 && d3 <= 0) {
     const v = d1 / (d1 - d3)
     return {
-      point: a.clone().addScaledVector(ab, v),
+      point: new Vector3(
+        a.x + abX * v,
+        a.y + abY * v,
+        a.z + abZ * v
+      ),
       barycentric: [1 - v, v, 0],
     }
   }
 
-  const cp = new Vector3().subVectors(point, c)
-  const d5 = ab.dot(cp)
-  const d6 = ac.dot(cp)
+  const cpX = point.x - c.x
+  const cpY = point.y - c.y
+  const cpZ = point.z - c.z
+  const d5 = abX * cpX + abY * cpY + abZ * cpZ
+  const d6 = acX * cpX + acY * cpY + acZ * cpZ
   if (d6 >= 0 && d5 <= d6) {
-    return { point: c.clone(), barycentric: [0, 0, 1] }
+    return { point: new Vector3(c.x, c.y, c.z), barycentric: [0, 0, 1] }
   }
 
   const vb = d5 * d2 - d1 * d6
   if (vb <= 0 && d2 >= 0 && d6 <= 0) {
     const w = d2 / (d2 - d6)
     return {
-      point: a.clone().addScaledVector(ac, w),
+      point: new Vector3(
+        a.x + acX * w,
+        a.y + acY * w,
+        a.z + acZ * w
+      ),
       barycentric: [1 - w, 0, w],
     }
   }
@@ -2638,7 +2722,11 @@ function closestPointToTriangle(
   if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0) {
     const w = (d4 - d3) / ((d4 - d3) + (d5 - d6))
     return {
-      point: b.clone().addScaledVector(new Vector3().subVectors(c, b), w),
+      point: new Vector3(
+        b.x + (c.x - b.x) * w,
+        b.y + (c.y - b.y) * w,
+        b.z + (c.z - b.z) * w
+      ),
       barycentric: [0, 1 - w, w],
     }
   }
@@ -2647,7 +2735,11 @@ function closestPointToTriangle(
   const v = vb * denom
   const w = vc * denom
   return {
-    point: a.clone().addScaledVector(ab, v).addScaledVector(ac, w),
+    point: new Vector3(
+      a.x + abX * v + acX * w,
+      a.y + abY * v + acY * w,
+      a.z + abZ * v + acZ * w
+    ),
     barycentric: [1 - v - w, v, w],
   }
 }

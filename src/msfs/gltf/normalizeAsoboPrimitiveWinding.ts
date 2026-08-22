@@ -38,6 +38,8 @@ type MirroredPrimitiveCandidate = {
   readonly object: Mesh
   readonly centerX: number
   readonly averageNormal: Vector3
+  readonly materialIndex: number | undefined
+  readonly indexCount: number
   readonly hasDiscardedHalfTurnXTransform: boolean
 }
 
@@ -104,7 +106,7 @@ function usesAsoboTrianglePrimitive(
 }
 
 function normalizeMirroredAsoboPrimitiveWinding(gltf: GLTF, parser: GltfParserLike): void {
-  const candidatesByKey = new Map<string, MirroredPrimitiveCandidate[]>()
+  const candidateBuckets = new Map<string, MirroredPrimitiveCandidate[]>()
 
   gltf.scene.updateMatrixWorld(true)
   gltf.scene.traverse(object => {
@@ -140,16 +142,38 @@ function normalizeMirroredAsoboPrimitiveWinding(gltf: GLTF, parser: GltfParserLi
       return
     }
 
-    const key = buildMirroredPrimitiveKey(position, index.count, primitiveDef?.material)
-    const candidates = candidatesByKey.get(key) ?? []
+    const bucketKey = buildMirroredPrimitiveFingerprint(
+      position,
+      index.count,
+      primitiveDef?.material
+    )
+    const candidates = candidateBuckets.get(bucketKey) ?? []
     candidates.push({
       object,
       centerX,
       averageNormal,
+      materialIndex: primitiveDef?.material,
+      indexCount: index.count,
       hasDiscardedHalfTurnXTransform: hasDiscardedHalfTurnXTransform(object),
     })
-    candidatesByKey.set(key, candidates)
+    candidateBuckets.set(bucketKey, candidates)
   })
+
+  const candidatesByKey = new Map<string, MirroredPrimitiveCandidate[]>()
+  for (const bucket of candidateBuckets.values()) {
+    if (bucket.length < 2) continue
+    for (const candidate of bucket) {
+      const position = candidate.object.geometry.getAttribute('position')
+      const key = buildMirroredPrimitiveKey(
+        position,
+        candidate.indexCount,
+        candidate.materialIndex
+      )
+      const candidates = candidatesByKey.get(key) ?? []
+      candidates.push(candidate)
+      candidatesByKey.set(key, candidates)
+    }
+  }
 
   const compensatedGeometries = new WeakSet<object>()
   for (const candidates of candidatesByKey.values()) {
@@ -237,6 +261,40 @@ function computeAverageTriangleNormal(
   }
 
   return averageNormal.normalize()
+}
+
+function buildMirroredPrimitiveFingerprint(
+  position: ReturnType<Mesh['geometry']['getAttribute']>,
+  indexCount: number,
+  materialIndex: number | undefined
+): string {
+  let sumX = 0
+  let sumY = 0
+  let sumZ = 0
+  let sumHash = 0
+  let xorHash = 0
+  for (let vertexIndex = 0; vertexIndex < position.count; vertexIndex += 1) {
+    const x = quantizeMirroredPositionComponent(Math.abs(position.getX(vertexIndex)))
+    const y = quantizeMirroredPositionComponent(position.getY(vertexIndex))
+    const z = quantizeMirroredPositionComponent(position.getZ(vertexIndex))
+    sumX = (sumX + x) | 0
+    sumY = (sumY + y) | 0
+    sumZ = (sumZ + z) | 0
+    const hash = Math.imul(x, 73856093) ^ Math.imul(y, 19349663) ^ Math.imul(z, 83492791)
+    sumHash = (sumHash + hash) | 0
+    xorHash ^= hash
+  }
+
+  return [
+    materialIndex ?? 'material',
+    position.count,
+    indexCount,
+    sumX,
+    sumY,
+    sumZ,
+    sumHash,
+    xorHash,
+  ].join('|')
 }
 
 function buildMirroredPrimitiveKey(
