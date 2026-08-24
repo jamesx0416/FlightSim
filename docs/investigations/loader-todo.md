@@ -405,6 +405,16 @@ Later interaction work that does not block milestone one:
   - List resolved interactive targets with their authored source path, target ID, available event/lifecycle coverage, tooltip, and input-event bridge names.
   - Dispatch canonical actions by target or by hit-tested screen coordinate, including press/hold/release and drag deltas.
   - Expose a deterministic binding/profile inspection and mutation API for test harnesses, plus an event trace showing the canonical action, mapped MSFS event, expression result, state changes, and feedback/sound output.
+- [ ] Add built-in runtime schema validation to every callable `window.__DevApi` method.
+  - Keep one authoritative runtime schema per method and expose the exact accepted input shape through `__DevApi.schema()`, including required/optional fields, types, fixed array lengths, enums/ranges, and whether extra properties are allowed.
+  - Validate arguments before any mutation or execution. Reject unknown properties, missing required properties, wrong types, wrong array lengths, invalid enum values, non-finite numbers, and out-of-range values where the method defines a range.
+  - Invalid input must return `ok: false` with a stable `INVALID_ARGUMENTS` code, the failing field/path, expected shape/value, received value/type, and a close-name suggestion for likely typos. Never silently ignore an unknown field.
+  - Emit the same validation failure to the browser console so a human notices it while keeping the structured DevApi response as the machine-readable source of truth.
+  - Validate structured DevApi responses against their declared response shape before returning in development/test paths so schema drift is surfaced instead of silently propagating.
+  - Keep `docs/devapi-reference.md`, TypeScript types, runtime schemas, and `__DevApi.schema()` in sync in the same change whenever a public DevApi method changes.
+  - Add focused tests for unknown fields, missing fields, wrong types, wrong fixed lengths, invalid enums/ranges, non-finite values, typo suggestions, and response-schema drift.
+  - Cover the camera-pose mismatch explicitly: the current `getPose()` result contains `quaternion` and `cockpitActive` while the current `setPose()` accepts only `position` and `target`; validation must expose this mismatch until `setPose()` is redesigned for a true round trip.
+
 - Implement the viewer dispatcher generically:
   - Route pointer down/move/up, wheel, keyboard, and future HID inputs through one canonical action dispatcher.
   - Correctly dispatch secondary and tertiary, hover/leave, lock/unlock, wheel increment/decrement, and both left/right drag when authored by the interaction.
