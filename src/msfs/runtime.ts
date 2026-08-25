@@ -1861,9 +1861,13 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     this.seedPreviewFlightState(aircraft?.previewFlightState ?? null)
   }
 
-  private clearReadCache(): void {
+  private clearVariableReadCache(): void {
     this.readCache.clear()
     this.readCacheKeysByVariable.clear()
+  }
+
+  private clearReadCache(): void {
+    this.clearVariableReadCache()
     this.electricalPowerCache = null
   }
 
@@ -1939,7 +1943,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   }
 
   tick(dtSeconds: number): void {
-    this.clearReadCache()
+    this.clearVariableReadCache()
     this.elapsedSeconds += dtSeconds
     this.simulatorEngine.tick(dtSeconds)
     this.publishPropulsionVariables()

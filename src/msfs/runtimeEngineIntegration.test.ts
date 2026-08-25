@@ -277,6 +277,19 @@ test('invalidates cached electrical fallback reads when power changes', () => {
   expect(host.readVariable('A:TEST BRIGHTNESS', 'percent')).toBe(0)
 })
 
+test('invalidates cached electrical power on canonical state changes across ticks', () => {
+  const host = new SharedMsfsRuntimeHost([])
+  host.resetRuntimeState({ coldAndDark: true })
+
+  expect(host.readVariable('A:TEST BRIGHTNESS', 'percent')).toBe(0)
+  host.simulatorEngine.state.set(ElectricalStateKeys.busPowered('main'), true, {
+    source: 'runtime',
+    unit: 'boolean',
+  })
+  host.tick(1 / 60)
+  expect(host.readVariable('A:TEST BRIGHTNESS', 'percent')).toBe(100)
+})
+
 test('publishes key-event control and electrical state without waiting for a tick', () => {
   const host = new SharedMsfsRuntimeHost([])
 
