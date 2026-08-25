@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { MeshBasicMaterial, Texture } from 'three'
+import { MeshBasicMaterial, PerspectiveCamera, Scene, Texture } from 'three'
 
 const gpuGlobals = globalThis as typeof globalThis & {
   GPUShaderStage?: { VERTEX: number; FRAGMENT: number; COMPUTE: number }
@@ -13,6 +13,7 @@ const {
   collectVisibleDeferredRelationships,
   configureBlendGBufferMaterialsForDecalPass,
   hasBlendGBufferReceiver,
+  renderWithFrozenWorldMatrices,
   selectMsfsDecalRenderPath
 } = await import('./createMsfsRenderPasses')
 
@@ -109,4 +110,22 @@ test('limits deferred receivers to visible decals', () => {
 
   expect(active.decals).toEqual(['visible', 'shared'])
   expect([...active.receivers]).toEqual(['receiver-a', 'receiver-c'])
+})
+
+
+test('reuses current world matrices for a follow-up render and restores auto updates', () => {
+  const scene = new Scene()
+  const camera = new PerspectiveCamera()
+  let observed: readonly [boolean, boolean] | null = null
+  const renderer = {
+    render: () => {
+      observed = [scene.matrixWorldAutoUpdate, camera.matrixWorldAutoUpdate]
+    }
+  }
+
+  renderWithFrozenWorldMatrices(renderer as never, scene, camera)
+
+  expect(observed).toEqual([false, false])
+  expect(scene.matrixWorldAutoUpdate).toBe(true)
+  expect(camera.matrixWorldAutoUpdate).toBe(true)
 })

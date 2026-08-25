@@ -777,6 +777,23 @@ function restoreMeshMaterials(
   }
 }
 
+export function renderWithFrozenWorldMatrices(
+  renderer: Pick<AppRenderer, 'render'>,
+  scene: Scene,
+  camera: Camera
+): void {
+  const sceneMatrixWorldAutoUpdate = scene.matrixWorldAutoUpdate
+  const cameraMatrixWorldAutoUpdate = camera.matrixWorldAutoUpdate
+  scene.matrixWorldAutoUpdate = false
+  camera.matrixWorldAutoUpdate = false
+  try {
+    renderer.render(scene, camera)
+  } finally {
+    scene.matrixWorldAutoUpdate = sceneMatrixWorldAutoUpdate
+    camera.matrixWorldAutoUpdate = cameraMatrixWorldAutoUpdate
+  }
+}
+
 function createForwardMsfsRenderPasses(
   renderer: AppRenderer,
   scene: Scene,
@@ -881,7 +898,7 @@ function createForwardMsfsRenderPasses(
         camera.layers.mask = decalLayerMask
         scene.background = null
         renderer.autoClear = false
-        renderer.render(scene, camera)
+        renderWithFrozenWorldMatrices(renderer, scene, camera)
       } finally {
         restoreMaterialRenderState(
           originalMaterialState.keys(),
