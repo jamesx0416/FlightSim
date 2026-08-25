@@ -79,6 +79,14 @@ export class SimStateStore {
     const storedUnit = definition?.unit ?? options.unit
     const storedValue = coerceStateValue(value, definition, options.unit)
     const sourceValues = getOrCreateSourceValues(this.valuesBySource, key)
+    const existingSourceValue = sourceValues.get(options.source)
+    if (
+      existingSourceValue?.value === storedValue &&
+      existingSourceValue.unit === storedUnit &&
+      existingSourceValue.metadata === options.metadata
+    ) {
+      return
+    }
 
     this.revision += 1
     sourceValues.set(options.source, {

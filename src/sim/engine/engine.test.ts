@@ -119,6 +119,17 @@ describe('SimStateStore', () => {
     expect(state.readNumber(key, { unit: 'percent' })).toBe(25)
   })
 
+  test('skips an identical same-source canonical state write', () => {
+    const state = new SimStateStore()
+    const key = LightingStateKeys.potentiometer(1)
+
+    state.set(key, 0.5, { source: 'runtime', unit: 'ratio' })
+    const firstEntry = state.getEntry(key)
+    state.set(key, 0.5, { source: 'runtime', unit: 'ratio' })
+
+    expect(state.getEntry(key)).toBe(firstEntry)
+  })
+
   test('does not force missing lighting values bright', () => {
     const state = new SimStateStore()
 
