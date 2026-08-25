@@ -1796,6 +1796,10 @@ export interface RuntimeBridgeEvent {
 export type RuntimeHtmlEventListener = (event: RuntimeHtmlEvent) => void
 export type RuntimeKeyEventListener = (event: RuntimeKeyEvent) => void
 
+const RUNTIME_DIRTY_CONTROLS = 1
+const RUNTIME_DIRTY_ELECTRICAL = 2
+const RUNTIME_DIRTY_ALL = RUNTIME_DIRTY_CONTROLS | RUNTIME_DIRTY_ELECTRICAL
+
 export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
@@ -2133,9 +2137,9 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     const value = args.at(-1) ?? 1
     const normalizedEventName = normalizeKeyEventName(name)
     this.values.set(normalizeRuntimeVariableKey(`K:${normalizedEventName}`), value)
-    this.applyKeyEvent(normalizedEventName, args)
-    this.publishControlVariables()
-    this.publishElectricalVariables()
+    const dirtyDomains = this.applyKeyEvent(normalizedEventName, args)
+    if ((dirtyDomains & RUNTIME_DIRTY_CONTROLS) !== 0) this.publishControlVariables()
+    if ((dirtyDomains & RUNTIME_DIRTY_ELECTRICAL) !== 0) this.publishElectricalVariables()
     const event: RuntimeKeyEvent = {
       name: normalizedEventName,
       args: [...args],
@@ -3464,19 +3468,19 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     return null
   }
 
-  private applyKeyEvent(name: string, args: readonly number[]): void {
+  private applyKeyEvent(name: string, args: readonly number[]): number {
     const value = Number(args.at(-1) ?? 0)
     if (this.applyLightKeyEvent(name, args)) {
-      return
+      return 0
     }
     if (this.applyFuelSystemKeyEvent(name, args)) {
-      return
+      return 0
     }
     if (this.applyElectricalInputKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (this.applyProcedureKeyEvent(name)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (name.endsWith('ELECTRICAL_BUS_TO_CIRCUIT_CONNECTION_TOGGLE')) {
       const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
@@ -3485,14 +3489,14 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         const currentValue = this.values.get(circuitKey) ?? 1
         this.values.set(circuitKey, currentValue > 0 ? 0 : 1)
       }
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'ELECTRICAL_CIRCUIT_TOGGLE') {
       const circuitIndex = Math.trunc(Number(args[0] ?? Number.NaN))
       if (Number.isFinite(circuitIndex)) {
         this.toggleCircuitSwitch(circuitIndex)
       }
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'ELECTRICAL_CIRCUIT_POWER_SETTING_SET') {
       const powerSetting = Number(args[0] ?? Number.NaN)
@@ -3502,7 +3506,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT SWITCH ON:${circuitIndex}`), powerSetting > 0 ? 1 : 0)
         this.values.set(normalizeRuntimeVariableKey(`A:CIRCUIT ON:${circuitIndex}`), powerSetting > 0 ? 1 : 0)
       }
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name.endsWith('ELECTRICAL_BUS_TO_BUS_CONNECTION_TOGGLE')) {
       const sourceBusIndex = Math.trunc(Number(args[0] ?? Number.NaN))
@@ -3510,147 +3514,149 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       if (Number.isFinite(sourceBusIndex) && Number.isFinite(targetBusIndex)) {
         this.toggleBusConnection(sourceBusIndex, targetBusIndex)
       }
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (this.applyApuKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (this.applyCabinKeyEvent(name)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (this.applyPressurizationKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (this.applySafetyKeyEvent(name)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (this.applyRadioKeyEvent(name, args)) {
-      return
+      return 0
     }
     if (this.applyPitotHeatKeyEvent(name, args)) {
-      return
+      return 0
     }
     if (this.applyNavComKeyEvent(name, args)) {
-      return
+      return 0
     }
     if (this.applyRadioAudioKeyEvent(name, args)) {
-      return
+      return 0
     }
     if (this.applyInstrumentKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (this.applyTrimAndBrakeKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (this.applyHandlingAndGearKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (this.applyDeiceAndIgnitionKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (this.applyEngineControlKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (this.applyEngineSwitchKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     if (this.applyAutopilotAndTransponderKeyEvent(name, args)) {
-      return
+      return RUNTIME_DIRTY_ALL
     }
     const alternatorToggleMatch = /^TOGGLE_ALTERNATOR(\d+)$/u.exec(name)
     if (alternatorToggleMatch != null) {
       const alternatorKey = normalizeRuntimeVariableKey(`A:GENERAL ENG MASTER ALTERNATOR:${alternatorToggleMatch[1]}`)
       const currentValue = this.values.get(alternatorKey) ?? 0
       this.values.set(alternatorKey, currentValue > 0 ? 0 : 1)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'TOGGLE_ALTERNATOR') {
       const alternatorKey = normalizeRuntimeVariableKey('A:GENERAL ENG MASTER ALTERNATOR:1')
       const currentValue = this.values.get(alternatorKey) ?? 0
       this.values.set(alternatorKey, currentValue > 0 ? 0 : 1)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'TOGGLE_MASTER_BATTERY' || name === 'MASTER_BATTERY_TOGGLE') {
       this.setBatterySwitch(this.electricalState.batterySwitch > 0 ? 0 : 1)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'MASTER_BATTERY_ON') {
       this.setBatterySwitch(1)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'MASTER_BATTERY_OFF') {
       this.setBatterySwitch(0)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'EXTERNAL_POWER_TOGGLE') {
       this.setExternalPowerSwitch(this.electricalState.externalPowerSwitch > 0 ? 0 : 1)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'EXTERNAL_POWER_ON') {
       this.setExternalPowerSwitch(1)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'EXTERNAL_POWER_OFF') {
       this.setExternalPowerSwitch(0)
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'AVIONICS_MASTER_SET') {
       this.electricalState.avionicsSwitch = value > 0 ? 1 : 0
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'AVIONICS_MASTER_TOGGLE') {
       this.electricalState.avionicsSwitch = this.electricalState.avionicsSwitch > 0 ? 0 : 1
-      return
+      return RUNTIME_DIRTY_ELECTRICAL
     }
     if (name === 'GEAR_UP') {
       this.controlState.gearTarget = 0
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'GEAR_DOWN') {
       this.controlState.gearTarget = 1
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'GEAR_TOGGLE') {
       this.controlState.gearTarget = this.controlState.gearTarget > 0.5 ? 0 : 1
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'GEAR_SET') {
       this.controlState.gearTarget = value > 0 ? 1 : 0
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'FLAPS_INCR') {
       this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget + 0.25)
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'FLAPS_DECR') {
       this.controlState.flapsTarget = clamp01(this.controlState.flapsTarget - 0.25)
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'FLAPS_SET') {
       this.controlState.flapsTarget = clamp01(value / 16_383)
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'AXIS_FLAPS_SET') {
       this.controlState.flapsTarget = clamp01(Math.abs(value) / 16_383)
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'SPOILERS_SET' || name === 'AXIS_SPOILER_SET') {
       this.controlState.spoilersTarget = clamp01(Math.abs(value) / 16_383)
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'SPOILERS_ARM_SET') {
       this.setSpoilersArmed(value)
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'PARKING_BRAKES' || name === 'PARKING_BRAKE_TOGGLE') {
       this.controlState.parkingBrake = this.controlState.parkingBrake > 0.5 ? 0 : 1
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
     if (name === 'PARKING_BRAKE_SET') {
       this.controlState.parkingBrake = value > 0 ? 1 : 0
-      return
+      return RUNTIME_DIRTY_CONTROLS
     }
-    this.applyGenericControlEventName(name, value)
+    return this.applyGenericControlEventName(name, value)
+      ? RUNTIME_DIRTY_CONTROLS
+      : RUNTIME_DIRTY_ALL
   }
 
   private resolveIndexedTurbineIgnitionSwitch(): number | null {

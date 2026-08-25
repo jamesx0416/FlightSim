@@ -290,6 +290,23 @@ test('invalidates cached electrical power on canonical state changes across tick
   expect(host.readVariable('A:TEST BRIGHTNESS', 'percent')).toBe(100)
 })
 
+test('radio key events do not republish unrelated control or electrical state', () => {
+  const host = new SharedMsfsRuntimeHost([])
+  const state = host.simulatorEngine.state
+  const originalSet = state.set.bind(state)
+  let canonicalWriteCount = 0
+  state.set = ((...args: Parameters<typeof state.set>) => {
+    canonicalWriteCount += 1
+    return originalSet(...args)
+  }) as typeof state.set
+
+  host.invokeKeyEvent('COM1_VOLUME_SET', [25])
+
+  expect(host.readVariable('A:COM VOLUME:1')).toBe(25)
+  expect(host.readVariable('A:COM RADIO VOLUME:1')).toBe(25)
+  expect(canonicalWriteCount).toBe(0)
+})
+
 test('publishes key-event control and electrical state without waiting for a tick', () => {
   const host = new SharedMsfsRuntimeHost([])
 
