@@ -37,6 +37,23 @@ const hostServices: RuntimeHostServices = {
 }
 
 describe('AircraftRuntime canonical visual bindings', () => {
+  test('keeps unrelated host reads cached across update O: writes', () => {
+    const host = new SharedMsfsRuntimeHost([])
+    host.writeVariable('L:CACHED', 7)
+    host.writeVariable('O:TEST', 1)
+    expect(host.readVariable('L:CACHED')).toBe(7)
+    expect(host.readVariable('O:TEST')).toBe(1)
+    const before = host.getStats()
+
+    host.writeVariable('O:TEST', 2, null, { source: 'update' })
+    expect(host.readVariable('L:CACHED')).toBe(7)
+    expect(host.readVariable('O:TEST')).toBe(2)
+    const after = host.getStats()
+
+    expect(after.variableReadCacheHitCount - before.variableReadCacheHitCount).toBe(1)
+    expect(after.variableReadCacheMissCount - before.variableReadCacheMissCount).toBe(1)
+  })
+
   test('stores alternating update O: mirrors without changing canonical controls', () => {
     const host = new SharedMsfsRuntimeHost([])
     const runtime = new AircraftRuntime({
