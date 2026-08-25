@@ -1800,6 +1800,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
   private elapsedSeconds = 0
   private readonly values = new Map<string, number>()
   private readonly readCache = new Map<string, number>()
+  private readonly readCacheKeysByVariable = new Map<string, Set<string>>()
   private electricalPowerCache: boolean | null = null
   private readonly defaultedKeys = new Set<string>()
   readonly simulatorEngine: SimulatorEngine
@@ -1862,7 +1863,23 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
 
   private clearReadCache(): void {
     this.readCache.clear()
+    this.readCacheKeysByVariable.clear()
     this.electricalPowerCache = null
+  }
+
+  private setReadCache(normalizedKey: string, cacheKey: string, value: number): void {
+    this.readCache.set(cacheKey, value)
+    if (!normalizedKey.startsWith('O:')) return
+    const cacheKeys = this.readCacheKeysByVariable.get(normalizedKey) ?? new Set<string>()
+    cacheKeys.add(cacheKey)
+    this.readCacheKeysByVariable.set(normalizedKey, cacheKeys)
+  }
+
+  private clearReadCacheForVariable(normalizedKey: string): void {
+    const cacheKeys = this.readCacheKeysByVariable.get(normalizedKey)
+    if (cacheKeys == null) return
+    for (const cacheKey of cacheKeys) this.readCache.delete(cacheKey)
+    this.readCacheKeysByVariable.delete(normalizedKey)
   }
 
   setTraceSink(sink?: (record: () => Readonly<Record<string, unknown>>) => void): void {
@@ -1991,21 +2008,21 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       unit
     )
     if (engineValue != null) {
-      this.readCache.set(cacheKey, engineValue)
+      this.setReadCache(normalizedKey, cacheKey, engineValue)
       return this.finishVariableRead(normalizedKey, normalizedUnit, engineValue, 'canonical-simvar')
     }
 
     const localEngineValue =
       this.msfsCompatibilityBridge.readLocalVar(normalizedKey, unit)
     if (localEngineValue != null) {
-      this.readCache.set(cacheKey, localEngineValue)
+      this.setReadCache(normalizedKey, cacheKey, localEngineValue)
       return this.finishVariableRead(normalizedKey, normalizedUnit, localEngineValue, 'canonical-localvar')
     }
 
     if (normalizedKey === 'A:TURBINE IGNITION SWITCH') {
       const indexedValue = this.resolveIndexedTurbineIgnitionSwitch()
       if (indexedValue != null) {
-        this.readCache.set(cacheKey, indexedValue)
+        this.setReadCache(normalizedKey, cacheKey, indexedValue)
         return this.finishVariableRead(normalizedKey, normalizedUnit, indexedValue, 'indexed-fallback')
       }
     }
@@ -2015,12 +2032,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
         this.values.get(normalizedKey) ?? 0,
         unit ?? null
       )
-      this.readCache.set(cacheKey, value)
+      this.setReadCache(normalizedKey, cacheKey, value)
       return this.finishVariableRead(normalizedKey, normalizedUnit, value, 'runtime')
     }
     const dynamicControlValue = this.resolveDynamicControlFallbackValue(normalizedKey, unit ?? null)
     if (dynamicControlValue != null) {
-      this.readCache.set(cacheKey, dynamicControlValue)
+      this.setReadCache(normalizedKey, cacheKey, dynamicControlValue)
       return this.finishVariableRead(normalizedKey, normalizedUnit, dynamicControlValue, 'dynamic-control')
     }
     const resolved = this.resolveHeuristicValue(normalizedKey, unit ?? null, this.cycles)
@@ -2041,7 +2058,7 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
       })
     }
 
-    this.readCache.set(cacheKey, resolved.value)
+    this.setReadCache(normalizedKey, cacheKey, resolved.value)
     return this.finishVariableRead(normalizedKey, normalizedUnit, resolved.value, 'runtime')
   }
 
@@ -2062,8 +2079,12 @@ export class SharedMsfsRuntimeHost implements RuntimeHostServices {
     options?: { readonly source?: 'update' | 'interaction' | 'input-event' }
   ): void {
     this.variableWriteCount += 1
-    this.clearReadCache()
     const normalizedKey = normalizeRuntimeVariableKey(key)
+    if (options?.source === 'update' && normalizedKey.startsWith('O:')) {
+      this.clearReadCacheForVariable(normalizedKey)
+    } else {
+      this.clearReadCache()
+    }
     const numericValue = Number(value)
     this.trace(() => ({
       kind: 'variable-write',
