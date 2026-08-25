@@ -62,6 +62,8 @@ type ExecutionResult =
 const CONTINUE_EXECUTION: ExecutionResult = { kind: 'continue' }
 const QUIT_EXECUTION: ExecutionResult = { kind: 'quit' }
 const MAX_RPN_INSTRUCTION_STEPS = 10_000
+const EMPTY_LABEL_INDICES: ReadonlyMap<number, number> = new Map()
+const INSTRUCTION_LABEL_INDICES = new WeakMap<readonly Instruction[], ReadonlyMap<number, number>>()
 
 export function compileRpnExpression(
   source: string,
@@ -455,11 +457,12 @@ function executeInstructions(
         break
       case 'storeRegister': {
         const value = instruction.pop ? stack.pop() ?? 0 : stack.at(-1) ?? 0
+        context.registers ??= new Array<StackValue>(50).fill(0)
         context.registers[instruction.index] = value
         break
       }
       case 'loadRegister':
-        stack.push(context.registers[instruction.index] ?? 0)
+        stack.push(context.registers?.[instruction.index] ?? 0)
         break
       case 'label':
         break
@@ -838,13 +841,13 @@ function extractParameterIndex(token: string): number | null {
 }
 
 interface EvaluationContext {
-  readonly registers: StackValue[]
+  registers: StackValue[] | null
   stepCount: number
 }
 
 function createEvaluationContext(): EvaluationContext {
   return {
-    registers: new Array<StackValue>(50).fill(0),
+    registers: null,
     stepCount: 0
   }
 }
@@ -890,13 +893,19 @@ function extractGotoLabel(token: string): number | null {
 }
 
 function getInstructionLabelIndices(instructions: readonly Instruction[]): ReadonlyMap<number, number> {
-  const indices = new Map<number, number>()
+  const cached = INSTRUCTION_LABEL_INDICES.get(instructions)
+  if (cached != null) return cached
+
+  let indices: Map<number, number> | null = null
   instructions.forEach((instruction, index) => {
     if (instruction.op === 'label') {
+      indices ??= new Map<number, number>()
       indices.set(instruction.index, index)
     }
   })
-  return indices
+  const result = indices ?? EMPTY_LABEL_INDICES
+  INSTRUCTION_LABEL_INDICES.set(instructions, result)
+  return result
 }
 
 function normalizeAngleDegrees(value: number): number {
