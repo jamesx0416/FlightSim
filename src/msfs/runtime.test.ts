@@ -68,6 +68,45 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(calls).toEqual(['A', 'C', 'D', 'E'])
   })
 
+  test('shares read-only material expression state across duplicate bindings', () => {
+    let intensity = 0.25
+    const materialHost: RuntimeHostServices = {
+      ...hostServices,
+      readVariable: key => key === 'L:LIGHT' ? intensity : 0,
+    }
+    const scene = new Object3D()
+    const first = new Mesh(undefined, new MeshStandardMaterial({ emissiveIntensity: 1 }))
+    first.name = 'PanelA'
+    const second = new Mesh(undefined, new MeshStandardMaterial({ emissiveIntensity: 1 }))
+    second.name = 'PanelB'
+    scene.add(first, second)
+    const expression = {
+      source: '(L:LIGHT)',
+      instructions: [{ op: 'pushVariable' as const, key: 'L:LIGHT', unit: null }],
+      variableKeys: ['L:LIGHT'],
+    }
+    const materialBinding = (target: string) => ({
+      target,
+      property: 'emissive' as const,
+      expression,
+      overrideBaseEmissive: true,
+      sourcePath: 'test.xml',
+    })
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      materialBindings: [materialBinding('PanelA'), materialBinding('PanelB')],
+    }, scene, materialHost)
+
+    let state = runtime.update(1 / 60)
+    expect(state.materialValues.get('PanelA')).toBe(0.25)
+    expect(state.materialValues.get('PanelB')).toBe(0.25)
+
+    intensity = 0.75
+    state = runtime.update(1 / 60)
+    expect(state.materialValues.get('PanelA')).toBe(0.75)
+    expect(state.materialValues.get('PanelB')).toBe(0.75)
+  })
+
   test('keeps unrelated host reads cached across update O: writes', () => {
     const host = new SharedMsfsRuntimeHost([])
     host.writeVariable('L:CACHED', 7)

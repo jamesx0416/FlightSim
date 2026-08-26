@@ -73,10 +73,17 @@ interface RuntimeInteractionOptions {
   readonly parameterValues?: readonly number[]
 }
 
+interface RuntimeMaterialExpressionState {
+  readonly dependencies: readonly RuntimeExpressionDependency[]
+  lastEvaluatedValue: number | null
+  lastDependencyValues: readonly number[] | null
+}
+
 interface RuntimeMaterialBinding {
   readonly binding: CompiledMaterialBinding
   readonly materials: readonly RuntimeBoundMaterial[]
   readonly dependencies: readonly RuntimeExpressionDependency[] | null
+  readonly sharedExpressionState: RuntimeMaterialExpressionState | null
   lastAppliedValue: number | null
   lastDependencyValues: readonly number[] | null
 }
@@ -605,36 +612,59 @@ export class AircraftRuntime {
       ) {
         continue
       }
-      const dependenciesChanged =
-        runtimeBinding.lastAppliedValue == null || runtimeBinding.dependencies == null
-          ? true
-          : runtimeExpressionDependenciesChanged(
-            runtimeBinding.dependencies,
-            runtimeBinding.lastDependencyValues,
+      const sharedState = runtimeBinding.sharedExpressionState
+      let value: number
+      if (sharedState != null) {
+        const dependenciesChanged =
+          sharedState.lastEvaluatedValue == null ||
+          runtimeExpressionDependenciesChanged(
+            sharedState.dependencies,
+            sharedState.lastDependencyValues,
             readFrameDependency
           )
-      const canReuseValue =
-        runtimeBinding.lastAppliedValue != null &&
-        runtimeBinding.dependencies != null &&
-        !dependenciesChanged
-      const value = canReuseValue
-        ? runtimeBinding.lastAppliedValue!
-        : evaluateCompiledExpression(
+        if (dependenciesChanged) {
+          sharedState.lastEvaluatedValue = evaluateCompiledExpression(
+            runtimeBinding.binding.expression,
+            this.readOnlyExpressionServices
+          )
+          sharedState.lastDependencyValues = readRuntimeExpressionDependencyValues(
+            sharedState.dependencies,
+            readFrameDependency
+          )
+        }
+        value = sharedState.lastEvaluatedValue!
+        if (
+          runtimeBinding.lastAppliedValue != null &&
+          Math.abs(runtimeBinding.lastAppliedValue - value) <= 1e-6
+        ) {
+          continue
+        }
+      } else {
+        const dependenciesChanged =
+          runtimeBinding.lastAppliedValue == null || runtimeBinding.dependencies == null
+            ? true
+            : runtimeExpressionDependenciesChanged(
+              runtimeBinding.dependencies,
+              runtimeBinding.lastDependencyValues,
+              readFrameDependency
+            )
+        if (!dependenciesChanged) {
+          continue
+        }
+        value = evaluateCompiledExpression(
           runtimeBinding.binding.expression,
           this.readOnlyExpressionServices
         )
-      if (canReuseValue) {
-        continue
+        runtimeBinding.lastDependencyValues =
+          runtimeBinding.dependencies == null
+            ? null
+            : readRuntimeExpressionDependencyValues(
+              runtimeBinding.dependencies,
+              readFrameDependency
+            )
       }
       const previousAppliedValue = runtimeBinding.lastAppliedValue
       runtimeBinding.lastAppliedValue = value
-      runtimeBinding.lastDependencyValues =
-        runtimeBinding.dependencies == null
-          ? null
-          : readRuntimeExpressionDependencyValues(
-            runtimeBinding.dependencies,
-            readFrameDependency
-          )
       this.materialValues.set(runtimeBinding.binding.target, value)
       if (
         previousAppliedValue != null &&
@@ -1389,6 +1419,7 @@ function buildRuntimeMaterialBindings(
 ): readonly RuntimeMaterialBinding[] {
   const clonedObjects = new WeakSet<Object3D>()
   const runtimeBindings: RuntimeMaterialBinding[] = []
+  const sharedExpressionStates = new Map<string, RuntimeMaterialExpressionState>()
 
   for (const binding of bindings) {
     const object = nodes.get(binding.target) ?? nodes.get(binding.target.toLowerCase())
@@ -1401,9 +1432,19 @@ function buildRuntimeMaterialBindings(
       continue
     }
 
+    const dependencies = getRuntimeExpressionDependencies(binding.expression)
+    let sharedExpressionState: RuntimeMaterialExpressionState | null = null
+    if (dependencies != null) {
+      sharedExpressionState = sharedExpressionStates.get(binding.expression.source) ?? null
+      if (sharedExpressionState == null) {
+        sharedExpressionState = { dependencies, lastEvaluatedValue: null, lastDependencyValues: null }
+        sharedExpressionStates.set(binding.expression.source, sharedExpressionState)
+      }
+    }
     runtimeBindings.push({
       binding,
-      dependencies: getRuntimeExpressionDependencies(binding.expression),
+      dependencies,
+      sharedExpressionState,
       lastAppliedValue: null,
       lastDependencyValues: null,
       materials: materials.map(material => ({
