@@ -77,6 +77,7 @@ interface RuntimeMaterialExpressionState {
   readonly dependencies: readonly RuntimeExpressionDependency[]
   lastEvaluatedValue: number | null
   lastDependencyValues: readonly number[] | null
+  lastCheckedPass: number
 }
 
 interface RuntimeMaterialBinding {
@@ -247,6 +248,7 @@ export class AircraftRuntime {
   private readonly animationTriggerValues = new Map<string, number>()
   private readonly nodeVisibilities = new Map<string, boolean>()
   private readonly materialValues = new Map<string, number>()
+  private materialExpressionPass = 0
   private readonly canonicalVisualBindingStates: RuntimeCanonicalVisualBindingState[] = []
   private activeAnimationBindings: readonly RuntimeAnimationBinding[] = []
   private activeAnimationTriggerBindings: readonly CompiledAnimationTriggerBinding[] = []
@@ -604,6 +606,7 @@ export class AircraftRuntime {
     }
     visibilityMs = finishPhase()
 
+    this.materialExpressionPass += 1
     for (const runtimeBinding of this.activeMaterialBindings) {
       if (
         runtimeBinding.lastAppliedValue != null &&
@@ -615,22 +618,25 @@ export class AircraftRuntime {
       const sharedState = runtimeBinding.sharedExpressionState
       let value: number
       if (sharedState != null) {
-        const dependenciesChanged =
-          sharedState.lastEvaluatedValue == null ||
-          runtimeExpressionDependenciesChanged(
-            sharedState.dependencies,
-            sharedState.lastDependencyValues,
-            readFrameDependency
-          )
-        if (dependenciesChanged) {
-          sharedState.lastEvaluatedValue = evaluateCompiledExpression(
-            runtimeBinding.binding.expression,
-            this.readOnlyExpressionServices
-          )
-          sharedState.lastDependencyValues = readRuntimeExpressionDependencyValues(
-            sharedState.dependencies,
-            readFrameDependency
-          )
+        if (sharedState.lastCheckedPass !== this.materialExpressionPass) {
+          sharedState.lastCheckedPass = this.materialExpressionPass
+          const dependenciesChanged =
+            sharedState.lastEvaluatedValue == null ||
+            runtimeExpressionDependenciesChanged(
+              sharedState.dependencies,
+              sharedState.lastDependencyValues,
+              readFrameDependency
+            )
+          if (dependenciesChanged) {
+            sharedState.lastEvaluatedValue = evaluateCompiledExpression(
+              runtimeBinding.binding.expression,
+              this.readOnlyExpressionServices
+            )
+            sharedState.lastDependencyValues = readRuntimeExpressionDependencyValues(
+              sharedState.dependencies,
+              readFrameDependency
+            )
+          }
         }
         value = sharedState.lastEvaluatedValue!
         if (
@@ -1437,7 +1443,7 @@ function buildRuntimeMaterialBindings(
     if (dependencies != null) {
       sharedExpressionState = sharedExpressionStates.get(binding.expression.source) ?? null
       if (sharedExpressionState == null) {
-        sharedExpressionState = { dependencies, lastEvaluatedValue: null, lastDependencyValues: null }
+        sharedExpressionState = { dependencies, lastEvaluatedValue: null, lastDependencyValues: null, lastCheckedPass: 0 }
         sharedExpressionStates.set(binding.expression.source, sharedExpressionState)
       }
     }
