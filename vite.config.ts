@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       packageAssetRevisionPlugin(aircraftCacheMode),
+      msfsGaugeScriptSourceMapInputPlugin(),
       msfsGaugeScriptSourcemapPlugin(),
       msfsGaugeScriptCompressionPlugin(),
       aircraftsIndexPlugin(),
@@ -41,6 +42,21 @@ function parseAircraftCacheMode(value: string | undefined): AircraftCacheMode {
       return value
     default:
       return 'normal'
+  }
+}
+
+function msfsGaugeScriptSourceMapInputPlugin(): Plugin {
+  return {
+    name: 'msfs-gauge-script-source-map-input',
+    enforce: 'pre',
+    transform(code, id) {
+      const pathname = id.split('?', 1)[0]!
+      if (!pathname.includes('/aircrafts/') || !pathname.includes('/Pages/VCockpit/Instruments/') || !pathname.endsWith('.js')) return null
+      const stripped = code
+        .replace(/^\s*\/\/[@#] sourceMappingURL=.*$/gmu, '')
+        .replace(/\/\*[@#] sourceMappingURL=.*?\*\//gsu, '')
+      return stripped === code ? null : { code: stripped, map: null }
+    }
   }
 }
 
@@ -193,6 +209,7 @@ function packageAssetRevisionPlugin(mode: AircraftCacheMode): Plugin {
 
 export const __viteConfigTestHooks = {
   packageAssetRevisionPlugin,
+  msfsGaugeScriptSourceMapInputPlugin,
   msfsGaugeScriptSourcemapPlugin,
   msfsGaugeScriptCompressionPlugin
 }

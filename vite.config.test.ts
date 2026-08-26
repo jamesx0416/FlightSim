@@ -8,6 +8,16 @@ import { gunzipSync } from 'node:zlib'
 import { __viteConfigTestHooks } from './vite.config'
 
 
+test('gauge scripts drop authored source map comments before Vite transforms', async () => {
+  const plugin = __viteConfigTestHooks.msfsGaugeScriptSourceMapInputPlugin()
+  const transform = plugin.transform as (code: string, id: string) => unknown
+  const code = 'window.__gaugeLoaded = true\n//# sourceMappingURL=test.js.map'
+  const result = await transform(code, '/repo/aircrafts/example/html_ui/Pages/VCockpit/Instruments/Test/test.js') as { code: string }
+
+  expect(result.code.trim()).toBe('window.__gaugeLoaded = true')
+  expect(await transform(code, '/repo/src/main.js')).toBeNull()
+})
+
 test('gauge scripts keep executable code without Vite fallback sourcemaps', async () => {
   const plugin = __viteConfigTestHooks.msfsGaugeScriptSourcemapPlugin()
   const transform = plugin.transform as (code: string, id: string) => unknown
