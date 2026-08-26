@@ -122,6 +122,8 @@ interface RuntimeExpressionDependency {
   readonly key: string
   readonly unit: string | null
   readonly cacheKey: string
+  frameEpoch: number
+  frameValue: number
 }
 
 export interface RuntimeInteractionValueWatch {
@@ -264,6 +266,8 @@ export class AircraftRuntime {
   private readonly dueUpdateFrequencies = new Set<number>()
   private updateOnceBindingsPending = true
   private readonly frameVariableValues = new Map<string, number>()
+  private readonly runtimeExpressionDependencies = new Map<string, RuntimeExpressionDependency>()
+  private frameDependencyEpoch = 0
   private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
   private readonly heldInteractionFeedbackTargets = new Map<
     string,
@@ -326,11 +330,13 @@ export class AircraftRuntime {
     sceneRoot.updateWorldMatrix(true, true)
     this.activeVisibilityBindings = buildRuntimeVisibilityBindings(
       this.compiled.visibilityBindings,
-      this.nodes
+      this.nodes,
+      this.runtimeExpressionDependencies
     )
     this.activeMaterialBindings = buildRuntimeMaterialBindings(
       this.compiled.materialBindings,
-      this.nodes
+      this.nodes,
+      this.runtimeExpressionDependencies
     )
     this.canonicalVisualBindings = buildRuntimeCanonicalVisualBindings(
       canonicalAircraft?.visuals ?? [],
@@ -367,7 +373,7 @@ export class AircraftRuntime {
       this.actions.set(binding.target, action)
       activeAnimationBindings.push({
         binding,
-        dependencies: getRuntimeExpressionDependencies(binding.expression),
+        dependencies: getRuntimeExpressionDependencies(binding.expression, this.runtimeExpressionDependencies),
         lastEvaluatedValue: null,
         lastDependencyValues: null
       })
@@ -480,6 +486,7 @@ export class AircraftRuntime {
     this.hostServices.tick(dtSeconds)
     if (this.simulatorEngine == null) this.interactionScheduler.tick(dtSeconds)
     this.frameVariableValues.clear()
+    this.frameDependencyEpoch += 1
     hostTickMs = finishPhase()
     this.runUpdateBindings(dtSeconds)
     updateBindingsMs = finishPhase()
@@ -1079,18 +1086,20 @@ export class AircraftRuntime {
   }
 
   private readFrameDependency(dependency: RuntimeExpressionDependency): number {
+    if (dependency.frameEpoch === this.frameDependencyEpoch) return dependency.frameValue
     const cachedValue = this.frameVariableValues.get(dependency.cacheKey)
-    if (cachedValue != null) {
-      return cachedValue
-    }
-
-    const value = this.hostServices.readVariable(dependency.key, dependency.unit)
-    this.frameVariableValues.set(dependency.cacheKey, value)
+    const value = cachedValue ?? this.hostServices.readVariable(dependency.key, dependency.unit)
+    if (cachedValue == null) this.frameVariableValues.set(dependency.cacheKey, value)
+    dependency.frameEpoch = this.frameDependencyEpoch
+    dependency.frameValue = value
     return value
   }
 
   private writeFrameVariable(key: string, value: number, unit: string | null | undefined): void {
-    this.frameVariableValues.delete(getRuntimeVariableDependencyCacheKey(key, unit))
+    const cacheKey = getRuntimeVariableDependencyCacheKey(key, unit)
+    this.frameVariableValues.delete(cacheKey)
+    const dependency = this.runtimeExpressionDependencies.get(cacheKey)
+    if (dependency != null) dependency.frameEpoch = -1
     this.hostServices.writeVariable(key, value, unit, { source: 'update' })
   }
 
@@ -1421,7 +1430,8 @@ export class AircraftRuntime {
 
 function buildRuntimeMaterialBindings(
   bindings: readonly CompiledMaterialBinding[],
-  nodes: ReadonlyMap<string, Object3D>
+  nodes: ReadonlyMap<string, Object3D>,
+  sharedDependencies: Map<string, RuntimeExpressionDependency>
 ): readonly RuntimeMaterialBinding[] {
   const clonedObjects = new WeakSet<Object3D>()
   const runtimeBindings: RuntimeMaterialBinding[] = []
@@ -1438,7 +1448,7 @@ function buildRuntimeMaterialBindings(
       continue
     }
 
-    const dependencies = getRuntimeExpressionDependencies(binding.expression)
+    const dependencies = getRuntimeExpressionDependencies(binding.expression, sharedDependencies)
     let sharedExpressionState: RuntimeMaterialExpressionState | null = null
     if (dependencies != null) {
       sharedExpressionState = sharedExpressionStates.get(binding.expression.source) ?? null
@@ -1502,7 +1512,8 @@ function buildRuntimeCanonicalVisualBindings(
 
 function buildRuntimeVisibilityBindings(
   bindings: readonly CompiledVisibilityBinding[],
-  nodes: ReadonlyMap<string, Object3D>
+  nodes: ReadonlyMap<string, Object3D>,
+  sharedDependencies: Map<string, RuntimeExpressionDependency>
 ): readonly RuntimeVisibilityBinding[] {
   const runtimeBindings: RuntimeVisibilityBinding[] = []
   for (const binding of bindings) {
@@ -1513,7 +1524,7 @@ function buildRuntimeVisibilityBindings(
     runtimeBindings.push({
       binding,
       node,
-      dependencies: getRuntimeExpressionDependencies(binding.expression),
+      dependencies: getRuntimeExpressionDependencies(binding.expression, sharedDependencies),
       lastEvaluatedVisible: null,
       lastDependencyValues: null
     })
@@ -1522,10 +1533,11 @@ function buildRuntimeVisibilityBindings(
 }
 
 function getRuntimeExpressionDependencies(
-  expression: CompiledExpression
+  expression: CompiledExpression,
+  sharedDependencies: Map<string, RuntimeExpressionDependency>
 ): readonly RuntimeExpressionDependency[] | null {
   const dependencies = new Map<string, RuntimeExpressionDependency>()
-  if (!collectRuntimeExpressionDependencies(expression.instructions, dependencies)) {
+  if (!collectRuntimeExpressionDependencies(expression.instructions, dependencies, sharedDependencies)) {
     return null
   }
   return [...dependencies.values()]
@@ -1533,7 +1545,8 @@ function getRuntimeExpressionDependencies(
 
 function collectRuntimeExpressionDependencies(
   instructions: readonly Instruction[],
-  dependencies: Map<string, RuntimeExpressionDependency>
+  dependencies: Map<string, RuntimeExpressionDependency>,
+  sharedDependencies: Map<string, RuntimeExpressionDependency>
 ): boolean {
   for (const instruction of instructions) {
     switch (instruction.op) {
@@ -1542,11 +1555,12 @@ function collectRuntimeExpressionDependencies(
           instruction.key,
           instruction.unit
         )
-        dependencies.set(cacheKey, {
-          key: instruction.key,
-          unit: instruction.unit,
-          cacheKey
-        })
+        let dependency = sharedDependencies.get(cacheKey)
+        if (dependency == null) {
+          dependency = { key: instruction.key, unit: instruction.unit, cacheKey, frameEpoch: -1, frameValue: 0 }
+          sharedDependencies.set(cacheKey, dependency)
+        }
+        dependencies.set(cacheKey, dependency)
         break
       }
       case 'pushStringVariable':
@@ -1557,8 +1571,8 @@ function collectRuntimeExpressionDependencies(
         return false
       case 'if':
         if (
-          !collectRuntimeExpressionDependencies(instruction.thenInstructions, dependencies) ||
-          !collectRuntimeExpressionDependencies(instruction.elseInstructions, dependencies)
+          !collectRuntimeExpressionDependencies(instruction.thenInstructions, dependencies, sharedDependencies) ||
+          !collectRuntimeExpressionDependencies(instruction.elseInstructions, dependencies, sharedDependencies)
         ) {
           return false
         }

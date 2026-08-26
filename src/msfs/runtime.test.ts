@@ -233,6 +233,44 @@ describe('AircraftRuntime canonical visual bindings', () => {
     expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(81)
   })
 
+  test('invalidates cached animation dependencies after same-frame update writes', () => {
+    let value = 1
+    const writes: number[] = []
+    const scene = new Object3D()
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      updateBindings: [{
+        expression: {
+          source: '2 (>L:SAME_FRAME, number)',
+          instructions: [
+            { op: 'pushNumber', value: 2 },
+            { op: 'writeVariable', key: 'L:SAME_FRAME', unit: 'number' },
+          ],
+          variableKeys: [],
+        },
+        sourcePath: 'test.xml',
+        frequency: 0,
+        once: false,
+      }],
+      animationBindings: [{
+        target: 'SameFrameAnimation',
+        expression: {
+          source: '(L:SAME_FRAME, number)',
+          instructions: [{ op: 'pushVariable', key: 'L:SAME_FRAME', unit: 'number' }],
+          variableKeys: ['L:SAME_FRAME'],
+        },
+        length: 100, wrap: false, delta: false, lagFramesPerSecond: 0, sourcePath: 'test.xml'
+      }]
+    }, scene, {
+      ...hostServices,
+      readVariable: () => value,
+      writeVariable: (_key, nextValue) => { value = nextValue; writes.push(nextValue) },
+    })
+    runtime.bindAnimations([new AnimationClip('SameFrameAnimation', 1, [])])
+    expect(runtime.update(1 / 60).animationValues.get('SameFrameAnimation')).toBe(2)
+    expect(writes).toEqual([2])
+  })
+
   test('reuses stable animation dependencies and observes changes on the next frame', () => {
     let value = 25
     const scene = new Object3D()
