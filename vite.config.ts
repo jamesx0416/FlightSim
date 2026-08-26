@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { readFile, readdir, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { promisify } from 'node:util'
+import { gzipSync } from 'node:zlib'
 import { defineConfig, loadEnv, type Plugin, type PreviewServer, type ViteDevServer } from 'vite'
 
 const execFileAsync = promisify(execFile)
@@ -18,6 +19,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       packageAssetRevisionPlugin(aircraftCacheMode),
       msfsGaugeScriptSourcemapPlugin(),
+      msfsGaugeScriptCompressionPlugin(),
       aircraftsIndexPlugin(),
       devMetadataPlugin(),
       devUrlsPlugin()
@@ -50,6 +52,32 @@ function msfsGaugeScriptSourcemapPlugin(): Plugin {
       const pathname = id.split('?', 1)[0]!
       if (!pathname.includes('/aircrafts/') || !pathname.includes('/Pages/VCockpit/Instruments/') || !pathname.endsWith('.js')) return null
       return { code: `${code}\n//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiJ9`, map: null }
+    }
+  }
+}
+
+function msfsGaugeScriptCompressionPlugin(): Plugin {
+  return {
+    name: 'msfs-gauge-script-compression',
+    configureServer(server) {
+      server.middlewares.use((request, response, next) => {
+        const pathname = parseRequestUrl(request.url)?.pathname ?? ''
+        if (!pathname.includes('/aircrafts/') || !pathname.includes('/Pages/VCockpit/Instruments/') || !pathname.endsWith('.js') || !request.headers['accept-encoding']?.includes('gzip')) {
+          next()
+          return
+        }
+        const end = response.end.bind(response)
+        response.end = ((chunk?: string | Uint8Array, encodingOrCallback?: BufferEncoding | (() => void), callback?: () => void) => {
+          if (chunk == null || response.statusCode !== 200) return end(chunk as never, encodingOrCallback as never, callback)
+          const body = typeof chunk === 'string' ? Buffer.from(chunk, typeof encodingOrCallback === 'string' ? encodingOrCallback : 'utf8') : Buffer.from(chunk)
+          const compressed = gzipSync(body, { level: 1 })
+          response.setHeader('Content-Encoding', 'gzip')
+          response.setHeader('Content-Length', compressed.byteLength)
+          response.setHeader('Vary', 'Accept-Encoding')
+          return end(compressed, callback)
+        }) as typeof response.end
+        next()
+      })
     }
   }
 }
@@ -165,7 +193,8 @@ function packageAssetRevisionPlugin(mode: AircraftCacheMode): Plugin {
 
 export const __viteConfigTestHooks = {
   packageAssetRevisionPlugin,
-  msfsGaugeScriptSourcemapPlugin
+  msfsGaugeScriptSourcemapPlugin,
+  msfsGaugeScriptCompressionPlugin
 }
 
 function parseRequestUrl(requestUrl: string | undefined): URL | null {
