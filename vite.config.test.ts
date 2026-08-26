@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { gunzipSync } from 'node:zlib'
 
 import { __viteConfigTestHooks } from './vite.config'
 
@@ -16,6 +17,29 @@ test('gauge scripts keep executable code without Vite fallback sourcemaps', asyn
   expect(result.code.startsWith(code)).toBe(true)
   expect(result.code.slice(code.length).includes('sourceMappingURL=data:application/json;base64,')).toBe(true)
   expect(await transform(code, '/repo/src/main.js')).toBeNull()
+})
+
+test('gauge script compression preserves response bytes after decompression', () => {
+  let middleware: ((request: any, response: any, next: () => void) => void) | null = null
+  const plugin = __viteConfigTestHooks.msfsGaugeScriptCompressionPlugin()
+  plugin.configureServer?.({ middlewares: { use(handler: typeof middleware) { middleware = handler } } } as never)
+  expect(middleware == null).toBe(false)
+
+  const headers = new Map<string, string>()
+  let body = Buffer.alloc(0)
+  const response = {
+    statusCode: 200,
+    setHeader(name: string, value: string | number) { headers.set(name.toLowerCase(), String(value)) },
+    end(chunk?: string | Uint8Array) { body = chunk == null ? Buffer.alloc(0) : Buffer.from(chunk) }
+  }
+  middleware!(
+    { url: '/aircrafts/example/html_ui/Pages/VCockpit/Instruments/Test/test.js', headers: { 'accept-encoding': 'gzip' } },
+    response,
+    () => response.end('window.__gauge = true')
+  )
+
+  expect(headers.get('content-encoding')).toBe('gzip')
+  expect(gunzipSync(body).toString()).toBe('window.__gauge = true')
 })
 
 test('package revision middleware versions immutable assets and invalidates on change', async () => {
