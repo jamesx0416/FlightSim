@@ -6,6 +6,18 @@ import path from 'node:path'
 
 import { __viteConfigTestHooks } from './vite.config'
 
+
+test('gauge scripts keep executable code without Vite fallback sourcemaps', async () => {
+  const plugin = __viteConfigTestHooks.msfsGaugeScriptSourcemapPlugin()
+  const transform = plugin.transform as (code: string, id: string) => unknown
+  const code = 'window.__gaugeLoaded = true'
+  const result = await transform(code, '/repo/aircrafts/example/html_ui/Pages/VCockpit/Instruments/Test/test.js') as { code: string }
+
+  expect(result.code.startsWith(code)).toBe(true)
+  expect(result.code.slice(code.length).includes('sourceMappingURL=data:application/json;base64,')).toBe(true)
+  expect(await transform(code, '/repo/src/main.js')).toBeNull()
+})
+
 test('package revision middleware versions immutable assets and invalidates on change', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'flightsim-vite-cache-'))
   const aircraftRoot = path.join(root, 'aircrafts/example')
