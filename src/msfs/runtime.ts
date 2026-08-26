@@ -250,7 +250,10 @@ export class AircraftRuntime {
   private readonly readOnlyExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly updateExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly runtimeState: RuntimeState
-  private readonly updateState = new Map<CompiledUpdateBinding, { elapsedSeconds: number; ranOnce: boolean }>()
+  private readonly updateFrequencies: readonly number[]
+  private readonly updateFrequencyElapsedSeconds = new Map<number, number>()
+  private readonly dueUpdateFrequencies = new Set<number>()
+  private updateOnceBindingsPending = true
   private readonly frameVariableValues = new Map<string, number>()
   private readonly interactionFeedbackTimers = new Map<string, RuntimeInteractionFeedbackTimer>()
   private readonly heldInteractionFeedbackTargets = new Map<
@@ -294,6 +297,11 @@ export class AircraftRuntime {
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     }
+    this.updateFrequencies = [...new Set(
+      this.compiled.updateBindings
+        .filter(binding => !binding.once && binding.frequency > 0)
+        .map(binding => binding.frequency)
+    )]
 
     sceneRoot.traverse(node => {
       if (node.name) {
@@ -1001,30 +1009,25 @@ export class AircraftRuntime {
   }
 
   private runUpdateBindings(dtSeconds: number): void {
-    for (const binding of this.compiled.updateBindings) {
-      const state = this.updateState.get(binding) ?? { elapsedSeconds: 0, ranOnce: false }
-      if (binding.once && state.ranOnce) {
-        continue
+    const dueFrequencies = this.dueUpdateFrequencies
+    dueFrequencies.clear()
+    for (const frequency of this.updateFrequencies) {
+      const updateInterval = 1 / frequency
+      let elapsedSeconds = (this.updateFrequencyElapsedSeconds.get(frequency) ?? 0) + dtSeconds
+      if (elapsedSeconds + 1e-9 >= updateInterval) {
+        dueFrequencies.add(frequency)
+        elapsedSeconds %= updateInterval
       }
-
-      state.elapsedSeconds += dtSeconds
-      const updateInterval = binding.frequency > 0 ? 1 / binding.frequency : 0
-      if (!binding.once && updateInterval > 0 && state.elapsedSeconds + 1e-9 < updateInterval) {
-        this.updateState.set(binding, state)
-        continue
-      }
-
-      if (!binding.once && updateInterval > 0) {
-        state.elapsedSeconds %= updateInterval
-      } else {
-        state.elapsedSeconds = 0
-      }
-
-      evaluateCompiledExpression(binding.expression, this.updateExpressionServices)
-
-      state.ranOnce = true
-      this.updateState.set(binding, state)
+      this.updateFrequencyElapsedSeconds.set(frequency, elapsedSeconds)
     }
+
+    for (const binding of this.compiled.updateBindings) {
+      if (binding.once ? !this.updateOnceBindingsPending : binding.frequency > 0 && !dueFrequencies.has(binding.frequency)) {
+        continue
+      }
+      evaluateCompiledExpression(binding.expression, this.updateExpressionServices)
+    }
+    this.updateOnceBindingsPending = false
   }
 
   private readFrameVariable(key: string, unit: string | null | undefined): number {

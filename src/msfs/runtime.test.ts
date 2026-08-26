@@ -37,6 +37,37 @@ const hostServices: RuntimeHostServices = {
 }
 
 describe('AircraftRuntime canonical visual bindings', () => {
+  test('preserves authored update order while scheduling shared frequencies once', () => {
+    const calls: string[] = []
+    const updateHost: RuntimeHostServices = {
+      ...hostServices,
+      invokeHtmlEvent: name => { calls.push(name) },
+    }
+    const binding = (name: string, frequency: number, once = false) => ({
+      expression: {
+        source: name,
+        instructions: [
+          { op: 'pushNumber' as const, value: 0 },
+          { op: 'invokeHtmlEvent' as const, name },
+        ],
+        variableKeys: [],
+      },
+      sourcePath: 'test.xml',
+      frequency,
+      once,
+    })
+    const runtime = new AircraftRuntime({
+      ...emptyCompiledBehaviorSet,
+      updateBindings: [binding('A', 2), binding('B', 0, true), binding('C', 1), binding('D', 2), binding('E', 0)],
+    }, new Object3D(), updateHost)
+
+    runtime.update(0.5)
+    expect(calls).toEqual(['A', 'B', 'D', 'E'])
+    calls.length = 0
+    runtime.update(0.5)
+    expect(calls).toEqual(['A', 'C', 'D', 'E'])
+  })
+
   test('keeps unrelated host reads cached across update O: writes', () => {
     const host = new SharedMsfsRuntimeHost([])
     host.writeVariable('L:CACHED', 7)
