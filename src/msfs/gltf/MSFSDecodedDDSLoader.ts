@@ -282,7 +282,7 @@ export class MSFSDecodedDDSLoader extends Loader<Texture> {
     url: string,
     onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined
   ): Promise<DecodedDdsTexture | null> {
-    const headerBuffer = await fetchArrayBufferRange(url, 0, 4095, this.requestHeader)
+    const headerBuffer = await fetchArrayBufferRange(url, 0, 147, this.requestHeader)
     if (headerBuffer == null) {
       return null
     }
