@@ -102,6 +102,7 @@ interface RuntimeAnimationBinding {
   readonly dependencies: readonly RuntimeExpressionDependency[] | null
   lastEvaluatedValue: number | null
   lastDependencyValues: readonly number[] | null
+  lastAppliedValue: number | null
 }
 
 interface RuntimeVisibilityBinding {
@@ -375,7 +376,8 @@ export class AircraftRuntime {
         binding,
         dependencies: getRuntimeExpressionDependencies(binding.expression, this.runtimeExpressionDependencies),
         lastEvaluatedValue: null,
-        lastDependencyValues: null
+        lastDependencyValues: null,
+        lastAppliedValue: null
       })
       activeAnimationNames.add(binding.target)
     }
@@ -530,6 +532,15 @@ export class AircraftRuntime {
               readFrameDependency
             )
       }
+      if (
+        canReuseEvaluatedValue &&
+        !binding.delta &&
+        runtimeBinding.lastAppliedValue != null &&
+        Math.abs(runtimeBinding.lastAppliedValue - evaluatedValue) <= 1e-6 &&
+        Math.abs((this.animationValues.get(binding.target) ?? 0) - runtimeBinding.lastAppliedValue) <= 1e-6
+      ) {
+        continue
+      }
       const hadPreviousValue = this.animationValues.has(binding.target)
       const previousValue = this.animationValues.get(binding.target) ?? 0
       const rawValue = binding.delta ? previousValue + evaluatedValue : evaluatedValue
@@ -543,6 +554,7 @@ export class AircraftRuntime {
         continue
       }
       this.animationValues.set(binding.target, value)
+      runtimeBinding.lastAppliedValue = value
       if (Math.abs(value - previousValue) > 1e-6) {
         modelChanged = true
       }
