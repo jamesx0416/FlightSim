@@ -228,6 +228,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
 
     expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(80)
     expect(lever.position.x).toBe(8)
+    expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(80)
 
     authoritativeValue = 100
     expect(runtime.update(0.1).animationValues.get('LeverAnimation')).toBe(81)
