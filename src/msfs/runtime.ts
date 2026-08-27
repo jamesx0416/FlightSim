@@ -263,8 +263,9 @@ export class AircraftRuntime {
   private readonly updateExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly runtimeState: RuntimeState
   private readonly updateFrequencies: readonly number[]
-  private readonly updateFrequencyElapsedSeconds = new Map<number, number>()
-  private readonly dueUpdateFrequencies = new Set<number>()
+  private readonly updateFrequencyElapsedSeconds: number[]
+  private readonly dueUpdateFrequencyFlags: boolean[]
+  private readonly updateBindingFrequencyIndices: readonly number[]
   private updateOnceBindingsPending = true
   private readonly frameVariableValues = new Map<string, number>()
   private readonly runtimeExpressionDependencies = new Map<string, RuntimeExpressionDependency>()
@@ -316,6 +317,16 @@ export class AircraftRuntime {
         .filter(binding => !binding.once && binding.frequency > 0)
         .map(binding => binding.frequency)
     )]
+    const updateFrequencyIndexByValue = new Map(
+      this.updateFrequencies.map((frequency, index) => [frequency, index] as const)
+    )
+    this.updateFrequencyElapsedSeconds = new Array(this.updateFrequencies.length).fill(0)
+    this.dueUpdateFrequencyFlags = new Array(this.updateFrequencies.length).fill(false)
+    this.updateBindingFrequencyIndices = this.compiled.updateBindings.map(binding =>
+      binding.once || binding.frequency <= 0
+        ? -1
+        : updateFrequencyIndexByValue.get(binding.frequency) ?? -1
+    )
 
     sceneRoot.traverse(node => {
       if (node.name) {
@@ -1064,20 +1075,19 @@ export class AircraftRuntime {
   }
 
   private runUpdateBindings(dtSeconds: number): void {
-    const dueFrequencies = this.dueUpdateFrequencies
-    dueFrequencies.clear()
-    for (const frequency of this.updateFrequencies) {
-      const updateInterval = 1 / frequency
-      let elapsedSeconds = (this.updateFrequencyElapsedSeconds.get(frequency) ?? 0) + dtSeconds
-      if (elapsedSeconds + 1e-9 >= updateInterval) {
-        dueFrequencies.add(frequency)
-        elapsedSeconds %= updateInterval
-      }
-      this.updateFrequencyElapsedSeconds.set(frequency, elapsedSeconds)
+    for (let index = 0; index < this.updateFrequencies.length; index += 1) {
+      const updateInterval = 1 / this.updateFrequencies[index]!
+      let elapsedSeconds = this.updateFrequencyElapsedSeconds[index]! + dtSeconds
+      const due = elapsedSeconds + 1e-9 >= updateInterval
+      if (due) elapsedSeconds %= updateInterval
+      this.updateFrequencyElapsedSeconds[index] = elapsedSeconds
+      this.dueUpdateFrequencyFlags[index] = due
     }
 
-    for (const binding of this.compiled.updateBindings) {
-      if (binding.once ? !this.updateOnceBindingsPending : binding.frequency > 0 && !dueFrequencies.has(binding.frequency)) {
+    for (let index = 0; index < this.compiled.updateBindings.length; index += 1) {
+      const binding = this.compiled.updateBindings[index]!
+      const frequencyIndex = this.updateBindingFrequencyIndices[index]!
+      if (binding.once ? !this.updateOnceBindingsPending : frequencyIndex >= 0 && !this.dueUpdateFrequencyFlags[frequencyIndex]) {
         continue
       }
       evaluateCompiledExpression(binding.expression, this.updateExpressionServices)
