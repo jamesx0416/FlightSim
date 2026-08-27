@@ -325,7 +325,7 @@ export class MSFSDDSLoader extends CompressedTextureLoader {
     url: string,
     onProgress: ((event: ProgressEvent<EventTarget>) => void) | undefined
   ): Promise<DdsParseResult | null> {
-    const headerBuffer = await fetchArrayBufferRange(url, 0, 4095, this.requestHeader)
+    const headerBuffer = await fetchArrayBufferRange(url, 0, 147, this.requestHeader)
     if (headerBuffer == null) {
       return null
     }
