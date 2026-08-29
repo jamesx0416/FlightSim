@@ -8,6 +8,9 @@
     "typecheck": "tsc --noEmit --preserveSymlinks",
     "test": "AGENT=1 bun test",
     "lint": "bun run typecheck",
+    "bench": "bun scripts/flightsim-tools.ts bench",
+    "browser": "bun scripts/flightsim-tools.ts browser",
+    "bench:aircraft-runtime": "bun scripts/benchmark-aircraft-runtime.ts",
     "build": "vite build",
     "preview": "vite preview",
     "download:msfs-doc-xmls": "bun scripts/download-msfs-doc-xmls.mjs",
@@ -23,8 +26,11 @@
   "devDependencies": {
     "@takram/three-atmosphere": "0.16.0",
     "@takram/three-geospatial": "0.6.0",
+    "@types/pngjs": "^6.0.5",
     "@types/three": "0.182.0",
     "@webgpu/types": "^0.1.69",
+    "linkedom": "^0.18.13",
+    "pngjs": "^7.0.0",
     "portless": "^0.10.0",
     "typescript": "^7.0.2",
     "vite": "^7.1.5"

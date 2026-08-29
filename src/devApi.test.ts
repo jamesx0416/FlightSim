@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 
-import { __devApiInteractionTestHooks } from './devApi'
+import { __devApiInteractionTestHooks, validateDevApiCameraPose } from './devApi'
 import { DEFAULT_COCKPIT_INPUT_PROFILE_ID, DEFAULT_COCKPIT_INPUT_STORE } from './input/cockpitInputProfiles'
 import type { CanonicalCockpitAction } from './input/cockpitInteraction'
 import type { MsfsInteractionTarget } from './msfs/interactionAdapter'
@@ -333,4 +333,41 @@ test('active status is structured and held release falls back to the stored targ
     { target: 'adapter-only', operation: 'unknown', source: 'unknown', lifecycle: 'adapter-active', startedAtMs: null, stopStatus: 'active' },
     { target: 'dispatcher-only', operation: 'unknown', source: 'unknown', lifecycle: 'dispatcher-active', startedAtMs: null, stopStatus: 'active' }
   ])
+})
+
+test('camera poses round-trip exactly and malformed fields fail before mutation', () => {
+  const pose = {
+    position: [1, 2, 3],
+    quaternion: [0, 0.5, 0, 0.8660254037844386],
+    target: [4, 5, 6],
+    cockpitActive: true,
+    fov: 50
+  } as const
+  expect(validateDevApiCameraPose(pose)).toEqual(pose)
+
+  expect(validateDevApiCameraPose({ ...pose, quaterion: pose.quaternion })).toEqual({
+    code: 'INVALID_ARGUMENTS',
+    path: 'pose.quaterion',
+    expected: 'one of position, quaternion, target, cockpitActive, fov',
+    received: pose.quaternion,
+    suggestion: 'quaternion'
+  })
+  expect(validateDevApiCameraPose({ ...pose, position: [1, 2] })).toEqual({
+    code: 'INVALID_ARGUMENTS',
+    path: 'pose.position',
+    expected: 'an array of 3 finite numbers',
+    received: [1, 2]
+  })
+  expect(validateDevApiCameraPose({ ...pose, cockpitActive: 'yes' })).toEqual({
+    code: 'INVALID_ARGUMENTS',
+    path: 'pose.cockpitActive',
+    expected: 'a boolean',
+    received: 'yes'
+  })
+  expect(validateDevApiCameraPose({ ...pose, fov: 180 })).toEqual({
+    code: 'INVALID_ARGUMENTS',
+    path: 'pose.fov',
+    expected: 'a finite number greater than 0 and less than 180',
+    received: 180
+  })
 })

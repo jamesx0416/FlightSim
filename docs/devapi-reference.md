@@ -75,17 +75,19 @@ Use the profile and interaction APIs for deterministic automation. Use real brow
 ## Camera, Settings, And Visuals
 
 - `camera.enterCockpit()` / `camera.exitCockpit()` switch cockpit view: `await window.__DevApi.camera.enterCockpit()`.
-- `camera.getPose()` / `camera.setPose(pose)` inspect or set camera pose: `window.__DevApi.camera.setPose({ position: [0, 1, 2] })`.
+- `camera.getPose()` / `camera.setPose(pose)` round-trip the exact camera pose, including `position`, `quaternion`, `target`, `cockpitActive`, and vertical `fov`: `window.__DevApi.camera.setPose(window.__DevApi.camera.getPose().data)`. `setPose()` rejects incomplete, misspelled, or wrongly shaped poses with `INVALID_ARGUMENTS` instead of partially applying them.
 - `camera.frame(target)` frames a scene target: `window.__DevApi.camera.frame("PUSH_AP_MASTER")`.
 - `settings.get()` / `settings.set(settings)` inspect or update viewer settings: `await window.__DevApi.settings.set({ exteriorInterior: "off" })`. Load-time settings such as `skipGaugeSettingSeed` are saved through the settings/profile path and take effect on the next load.
 - `screenshot(options?)` captures viewport/gauge imagery: `window.__DevApi.screenshot({ target: "viewport" })`.
 - `visualCheck(target?)` returns visual inspection data: `window.__DevApi.visualCheck("mcdu")`.
 - `highlight(target, options?)` highlights a scene target: `window.__DevApi.highlight("LEVER_FLAPS", { durationMs: 1000 })`.
-- `bench.startup()`, `bench.cockpitLod0(options?)`, `bench.all(options?)`, `bench.history(options?)`, and `bench.clearHistory()` run or inspect benchmarks: `await window.__DevApi.bench.cockpitLod0()`.
+- `bench.aircraftRuntime(options?)` clones the currently loaded aircraft scene, creates an isolated `SharedMsfsRuntimeHost` and `AircraftRuntime`, and runs fixed-step runtime updates without rendering: `await window.__DevApi.bench.aircraftRuntime({ frames: 5000, warmupFrames: 300, dtSeconds: 1 / 60 })`. It reports raw wall-clock throughput, a steadier median from ten coarse throughput samples, runtime phase distributions, binding counts, the source interior LOD, and a deterministic output checksum. Enter cockpit first when the intended workload is the cockpit LOD0 runtime.
+- `bench.startup()`, `bench.cockpitLod0(options?)`, `bench.all(options?)`, `bench.history(options?)`, and `bench.clearHistory()` run or inspect the remaining benchmarks. `bench.all()` includes the no-render aircraft runtime benchmark after loading the cockpit: `await window.__DevApi.bench.all()`.
 
 ## Gauge Notes
 
-Use `status().counts.capturedCapturableGauges` versus `capturableGauges` for visual readiness.
+`status().counts.gaugeSurfaces` reports VCockpit panel surfaces separately from `gauges`, which counts hosted HTML gauge instances.
+Use `attemptedCapturableGauges` versus `capturableGauges` for initial capture completion, and `capturedCapturableGauges` for successful captures.
 Backend-only `NO_TEXTURE` hosts count as `backendOnlyGauges`, not failed captures.
 Gauge keys can repeat across VCockpit surfaces, so pass `surface` or `source` from `list({ kind: "gauges" })` when needed.
 Bridge-backed gauge `supportedHostServiceCalls` are browser-host shims, not native WASM ABI execution.
