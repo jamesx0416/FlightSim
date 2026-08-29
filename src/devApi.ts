@@ -70,6 +70,7 @@ import {
   type CockpitInputStoreV2
 } from './input/cockpitInputProfiles'
 import { listCanonicalEngineCommands, type SimCommand, type SimUnit } from './sim/engine'
+import type { AircraftRuntimeBenchmarkOptions } from './sim/benchmarks/aircraftRuntimeBenchmark'
 import type {
   CockpitCameraController,
   CockpitInteractionPickRegistry,
@@ -103,9 +104,11 @@ type DevApiResponse<T = unknown, TFailure = unknown> =
 type DevApiStatusData = Readonly<Record<string, unknown>> & {
   readonly loadStage: Readonly<Record<string, unknown>> | null
   readonly counts?: Readonly<Record<string, number>> & {
+    readonly gaugeSurfaces?: number
     readonly gauges?: number
     readonly loadedGauges?: number
     readonly capturedGauges?: number
+    readonly attemptedCapturableGauges?: number
   }
   readonly diagnostics?: Readonly<Record<string, number>> & {
     readonly error?: number
@@ -127,6 +130,105 @@ type DevApiGaugeCheckData = {
 type DevApiGaugeCheckFailure = {
   readonly key: string | undefined
   readonly gauges: readonly DevApiGaugeSummary[]
+}
+
+export type DevApiCameraPose = {
+  readonly position: readonly [number, number, number]
+  readonly quaternion: readonly [number, number, number, number]
+  readonly target: readonly [number, number, number]
+  readonly cockpitActive: boolean
+  readonly fov: number
+}
+
+type DevApiArgumentFailure = {
+  readonly code: 'INVALID_ARGUMENTS'
+  readonly path: string
+  readonly expected: string
+  readonly received: unknown
+  readonly suggestion?: string
+}
+
+const DEV_API_CAMERA_POSE_FIELDS = ['position', 'quaternion', 'target', 'cockpitActive', 'fov'] as const
+
+function editDistance(left: string, right: string): number {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index)
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex]
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      current[rightIndex] = Math.min(
+        current[rightIndex - 1]! + 1,
+        previous[rightIndex]! + 1,
+        previous[rightIndex - 1]! + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1)
+      )
+    }
+    previous.splice(0, previous.length, ...current)
+  }
+  return previous[right.length]!
+}
+
+function closestCameraPoseField(field: string): string | undefined {
+  const candidate = DEV_API_CAMERA_POSE_FIELDS
+    .map(known => ({ known, distance: editDistance(field, known) }))
+    .sort((left, right) => left.distance - right.distance)[0]
+  return candidate != null && candidate.distance <= 3 ? candidate.known : undefined
+}
+
+function invalidCameraPose(
+  path: string,
+  expected: string,
+  received: unknown,
+  suggestion?: string
+): DevApiArgumentFailure {
+  return { code: 'INVALID_ARGUMENTS', path, expected, received, ...(suggestion == null ? {} : { suggestion }) }
+}
+
+function isDevApiArgumentFailure(value: unknown): value is DevApiArgumentFailure {
+  return typeof value === 'object' && value != null && 'code' in value
+}
+
+function validateFiniteTuple3(value: unknown, path: string): readonly [number, number, number] | DevApiArgumentFailure {
+  return Array.isArray(value) && value.length === 3 && value.every(Number.isFinite)
+    ? [value[0], value[1], value[2]]
+    : invalidCameraPose(path, 'an array of 3 finite numbers', value)
+}
+
+function validateFiniteTuple4(value: unknown, path: string): readonly [number, number, number, number] | DevApiArgumentFailure {
+  return Array.isArray(value) && value.length === 4 && value.every(Number.isFinite)
+    ? [value[0], value[1], value[2], value[3]]
+    : invalidCameraPose(path, 'an array of 4 finite numbers', value)
+}
+
+/** Validates the runtime camera contract so malformed console calls never partially mutate the viewer. */
+export function validateDevApiCameraPose(value: unknown): DevApiCameraPose | DevApiArgumentFailure {
+  if (typeof value !== 'object' || value == null || Array.isArray(value)) {
+    return invalidCameraPose('pose', 'an object returned by camera.getPose()', value)
+  }
+  const pose = value as Record<string, unknown>
+  const unknownField = Object.keys(pose).find(
+    field => !(DEV_API_CAMERA_POSE_FIELDS as readonly string[]).includes(field)
+  )
+  if (unknownField != null) {
+    return invalidCameraPose(
+      `pose.${unknownField}`,
+      `one of ${DEV_API_CAMERA_POSE_FIELDS.join(', ')}`,
+      pose[unknownField],
+      closestCameraPoseField(unknownField)
+    )
+  }
+
+  const position = validateFiniteTuple3(pose.position, 'pose.position')
+  if (isDevApiArgumentFailure(position)) return position
+  const quaternion = validateFiniteTuple4(pose.quaternion, 'pose.quaternion')
+  if (isDevApiArgumentFailure(quaternion)) return quaternion
+  const target = validateFiniteTuple3(pose.target, 'pose.target')
+  if (isDevApiArgumentFailure(target)) return target
+  if (typeof pose.cockpitActive !== 'boolean') {
+    return invalidCameraPose('pose.cockpitActive', 'a boolean', pose.cockpitActive)
+  }
+  if (typeof pose.fov !== 'number' || !Number.isFinite(pose.fov) || pose.fov <= 0 || pose.fov >= 180) {
+    return invalidCameraPose('pose.fov', 'a finite number greater than 0 and less than 180', pose.fov)
+  }
+  return { position, quaternion, target, cockpitActive: pose.cockpitActive, fov: pose.fov }
 }
 
 function getDevApiLoadStage(): Readonly<Record<string, unknown>> | null {
@@ -744,7 +846,7 @@ type DevApiDiagnosticsOptions = {
   readonly includeGauges?: boolean
 }
 
-type DevApiBenchOptions = {
+type DevApiBenchOptions = AircraftRuntimeBenchmarkOptions & {
   readonly includeEvents?: boolean
 }
 
@@ -854,6 +956,7 @@ type ViewerDevApi = {
   }
   readonly bench: {
     readonly startup: () => DevApiResponse
+    readonly aircraftRuntime: (options?: AircraftRuntimeBenchmarkOptions) => Promise<DevApiResponse>
     readonly cockpitLod0: (options?: DevApiBenchOptions) => Promise<DevApiResponse>
     readonly all: (options?: DevApiBenchOptions) => Promise<DevApiResponse>
     readonly history: (options?: { readonly limit?: number }) => DevApiResponse
@@ -866,10 +969,7 @@ type ViewerDevApi = {
     readonly enterCockpit: () => Promise<DevApiResponse>
     readonly exitCockpit: () => DevApiResponse
     readonly getPose: () => DevApiResponse
-    readonly setPose: (pose: {
-      readonly position?: readonly number[]
-      readonly target?: readonly number[]
-    }) => DevApiResponse
+    readonly setPose: (pose: DevApiCameraPose) => DevApiResponse
     readonly frame: (target: string) => DevApiResponse
   }
   readonly settings: {
@@ -914,6 +1014,9 @@ type ViewerDevApiContext = {
     readonly targetInteriorLodIndex?: number
     readonly forceCold?: boolean
   }) => Promise<unknown>
+  readonly runAircraftRuntimeBenchmark: (
+    options?: AircraftRuntimeBenchmarkOptions
+  ) => Promise<unknown>
   readonly applySettings: (settings: Partial<ViewerConfigProfile>) => Promise<string | null>
 }
 
@@ -1270,6 +1373,7 @@ export function installViewerBootDevApi(): void {
     },
     bench: {
       startup: () => ok('Collected startup benchmark.', getStartupBenchmarkData()),
+      aircraftRuntime: async () => unavailable('bench.aircraftRuntime'),
       cockpitLod0: async () => unavailable('bench.cockpitLod0'),
       all: async () => unavailable('bench.all'),
       history: (options = {}) => {
@@ -1889,6 +1993,9 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     const gaugeRows = gauges()
     const capturableGaugeCount = gaugeRows.filter(isCapturableGauge).length
     const capturedCapturableGaugeCount = gaugeRows.filter(gauge => isCapturableGauge(gauge) && gauge.captured).length
+    const attemptedCapturableGaugeCount = gaugeRows.filter(
+      gauge => isCapturableGauge(gauge) && gauge.captureAttemptCount > 0
+    ).length
     return {
       loadStage: getLoadStage(),
       packageRoot: context.packageRoot,
@@ -1908,11 +2015,13 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       counts: {
         interactions: context.getRuntime().getInteractionBindings().length,
         materialBindings: context.getCompiledBehaviors().materialBindings.length,
+        gaugeSurfaces: binding?.surfaces.length ?? 0,
         gauges: binding?.htmlGaugeCount ?? 0,
         loadedGauges: binding?.loadedHtmlGaugeCount ?? 0,
         capturedGauges: binding?.capturedHtmlGaugeCount ?? 0,
         capturableGauges: capturableGaugeCount,
         capturedCapturableGauges: capturedCapturableGaugeCount,
+        attemptedCapturableGauges: attemptedCapturableGaugeCount,
         backendOnlyGauges: Math.max(0, gaugeRows.length - capturableGaugeCount),
         variables: Object.keys(context.getRuntimeHost().getSnapshot()).length
       },
@@ -2429,6 +2538,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         '__DevApi.assetCache.snapshot()',
         'await __DevApi.assetCache.refreshPackageVersions()',
         '__DevApi.bench.startup()',
+        'await __DevApi.bench.aircraftRuntime()',
         'await __DevApi.bench.cockpitLod0()',
         'await __DevApi.bench.all()',
         '__DevApi.bench.history()',
@@ -2446,7 +2556,12 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
       eventOptions: ['kind', 'limit'],
       checkGaugeOptions: ['screenshot', 'surface', 'source'],
       inspectWasmOptions: ['maxBytes', 'surface', 'source'],
-      benchMethods: ['startup', 'cockpitLod0', 'all', 'history', 'clearHistory'],
+      benchMethods: ['startup', 'aircraftRuntime', 'cockpitLod0', 'all', 'history', 'clearHistory'],
+      aircraftRuntimeBenchOptions: {
+        frames: { default: 5_000, minimum: 1, maximum: 100_000 },
+        warmupFrames: { default: 300, minimum: 0, maximum: 100_000 },
+        dtSeconds: { default: 1 / 60, exclusiveMinimum: 0, maximum: 1 }
+      },
       assetCacheMethods: ['snapshot', 'refreshPackageVersions', 'clearDdsRanges'],
       resetOptions: ['runtime', 'coldAndDark'],
       runtimeMethods: ['readVar', 'writeVar', 'readState', 'writeState', 'dispatchCommand', 'keyEvent', 'bridgeCall'],
@@ -2849,6 +2964,19 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
     },
     bench: {
       startup: () => ok('Collected startup benchmark.', getStartupBenchmarkData()),
+      aircraftRuntime: async (options = {}) => {
+        try {
+          return ok(
+            'Collected no-render aircraft runtime benchmark.',
+            await context.runAircraftRuntimeBenchmark(options)
+          )
+        } catch (error) {
+          return fail('Aircraft runtime benchmark failed.', {
+            options,
+            error: error instanceof Error ? error.message : String(error)
+          })
+        }
+      },
       cockpitLod0: async (options = {}) => {
         const state = context.getCockpitBenchmarkState()
         if (state.cockpitCameraAvailable !== true) {
@@ -2879,6 +3007,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         const started = performance.now()
         const startup = api.bench.startup()
         const cockpitLod0 = await api.bench.cockpitLod0(options)
+        const aircraftRuntime = await api.bench.aircraftRuntime(options)
         const now = new Date()
         const localTimestamp = createLocalBenchTimestamp(now)
         const commit = await getDevApiGitMetadata()
@@ -2889,6 +3018,7 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
           elapsedMs: Number((performance.now() - started).toFixed(1)),
           startup: startup.data,
           cockpitLod0: cockpitLod0.data,
+          aircraftRuntime: aircraftRuntime.data,
           results: {
             startup: {
               ok: startup.ok,
@@ -2899,10 +3029,15 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
               ok: cockpitLod0.ok,
               summary: cockpitLod0.summary,
               warnings: cockpitLod0.warnings ?? []
+            },
+            aircraftRuntime: {
+              ok: aircraftRuntime.ok,
+              summary: aircraftRuntime.summary,
+              warnings: aircraftRuntime.warnings ?? []
             }
           }
         }
-        const allOk = startup.ok && cockpitLod0.ok
+        const allOk = startup.ok && cockpitLod0.ok && aircraftRuntime.ok
         const summary = allOk
             ? 'Collected all performance benchmarks.'
             : 'One or more performance benchmarks failed.'
@@ -3005,13 +3140,41 @@ export function installViewerDevApi(context: ViewerDevApiContext): void {
         position: context.camera.position.toArray(),
         quaternion: context.camera.quaternion.toArray(),
         target: context.controls.target.toArray(),
-        cockpitActive: context.getCockpitCameraController().isActive()
+        cockpitActive: context.getCockpitCameraController().isActive(),
+        fov: context.camera.fov
       }),
       setPose: pose => {
-        if (pose.position != null && pose.position.length >= 3) context.camera.position.fromArray([...pose.position] as number[])
-        if (pose.target != null && pose.target.length >= 3) context.controls.target.fromArray([...pose.target] as number[])
-        context.camera.lookAt(context.controls.target)
-        context.controls.update()
+        const validated = validateDevApiCameraPose(pose)
+        if ('code' in validated) {
+          return fail('Invalid arguments for camera.setPose().', validated)
+        }
+        const controller = context.getCockpitCameraController()
+        if (validated.cockpitActive !== controller.isActive()) {
+          if (validated.cockpitActive) {
+            if (!controller.isAvailable()) {
+              return fail('Invalid arguments for camera.setPose().', invalidCameraPose(
+                'pose.cockpitActive',
+                'false when the selected aircraft has no cockpit camera',
+                true
+              ))
+            }
+            controller.enter('keyboard')
+          } else {
+            controller.exit('keyboard')
+          }
+        }
+        context.camera.position.fromArray(validated.position)
+        context.controls.target.fromArray(validated.target)
+        context.camera.fov = validated.fov
+        context.camera.updateProjectionMatrix()
+        if (controller.isActive()) {
+          controller.setExactPose(validated.position, validated.quaternion)
+        } else {
+          context.controls.update()
+          // OrbitControls derives orientation from position and target. The
+          // explicit quaternion remains authoritative for an exact round trip.
+          context.camera.quaternion.fromArray(validated.quaternion)
+        }
         return ok('Updated camera pose.', api.camera.getPose().data)
       },
       frame: target => {

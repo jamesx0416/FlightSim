@@ -130,6 +130,25 @@ Reference: [docs/devapi-reference.md](docs/devapi-reference.md).
 When adding a user-facing viewer capability, add or update the matching DevApi
 method in the same change.
 
+Run the serialized benchmark CLI:
+
+```sh
+bun run bench compiled
+bun run bench no-render bun
+bun run bench no-render browser
+bun run bench browser full
+bun run bench browser profile
+bun run bench browser visual
+```
+
+Use `bun run browser open <stage>` and `bun run browser close` for a retained,
+queue-managed viewer session. `bun run bench compare ...` runs isolated Git A/B
+comparisons. Both CLIs print their complete option help without arguments. See
+[the browser benchmark specification](docs/browser-benchmark-spec.md).
+
+`bun run bench:aircraft-runtime` remains available as the direct Bun no-render
+adapter for focused development.
+
 ## Useful Files
 
 - [src/sim/engine/](src/sim/engine): simulator-agnostic engine APIs, including

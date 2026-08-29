@@ -409,11 +409,11 @@ Later interaction work that does not block milestone one:
   - Keep one authoritative runtime schema per method and expose the exact accepted input shape through `__DevApi.schema()`, including required/optional fields, types, fixed array lengths, enums/ranges, and whether extra properties are allowed.
   - Validate arguments before any mutation or execution. Reject unknown properties, missing required properties, wrong types, wrong array lengths, invalid enum values, non-finite numbers, and out-of-range values where the method defines a range.
   - Invalid input must return `ok: false` with a stable `INVALID_ARGUMENTS` code, the failing field/path, expected shape/value, received value/type, and a close-name suggestion for likely typos. Never silently ignore an unknown field.
-  - Emit the same validation failure to the browser console so a human notices it while keeping the structured DevApi response as the machine-readable source of truth.
+  - Emit the same validation failure as a JavaScript console warning so a human notices malformed DevApi commands while keeping the structured DevApi response as the machine-readable source of truth.
   - Validate structured DevApi responses against their declared response shape before returning in development/test paths so schema drift is surfaced instead of silently propagating.
   - Keep `docs/devapi-reference.md`, TypeScript types, runtime schemas, and `__DevApi.schema()` in sync in the same change whenever a public DevApi method changes.
   - Add focused tests for unknown fields, missing fields, wrong types, wrong fixed lengths, invalid enums/ranges, non-finite values, typo suggestions, and response-schema drift.
-  - Cover the camera-pose mismatch explicitly: the current `getPose()` result contains `quaternion` and `cockpitActive` while the current `setPose()` accepts only `position` and `target`; validation must expose this mismatch until `setPose()` is redesigned for a true round trip.
+  - [x] Fix the camera-pose mismatch: `setPose()` now round-trips the complete position, quaternion, target, cockpit state, and FOV returned by `getPose()`. It rejects unknown, missing, wrongly typed, or wrongly shaped fields before mutation with `INVALID_ARGUMENTS` and typo suggestions; the console wrapper warns for the same failed response. Verified in Agent Browser on 2026-08-29 with byte-for-byte equality after two rendered frames.
 
 - Implement the viewer dispatcher generically:
   - Route pointer down/move/up, wheel, keyboard, and future HID inputs through one canonical action dispatcher.

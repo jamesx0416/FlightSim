@@ -32,6 +32,7 @@ import {
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.js'
 
 import { compileMsfs2020Behaviors } from './msfs/behavior'
 import { normalizeAsoboPrimitiveBaseVertex } from './msfs/gltf/normalizeAsoboPrimitiveBaseVertex'
@@ -67,6 +68,10 @@ import {
   resolveCockpitGeometryHit
 } from './input/cockpitInteractionGeometry'
 import { CockpitInteractionHistory, CockpitInteractionTrace } from './input/cockpitInteractionHistory'
+import {
+  runAircraftRuntimeBenchmark,
+  type AircraftRuntimeBenchmarkOptions
+} from './sim/benchmarks/aircraftRuntimeBenchmark'
 import {
   DEFAULT_COCKPIT_INPUT_PROFILE_ID,
   DEFAULT_COCKPIT_INPUT_STORE,
@@ -272,6 +277,10 @@ export type CockpitCameraController = {
   readonly dispose: () => void
   readonly isActive: () => boolean
   readonly update: () => void
+  readonly setExactPose: (
+    position: readonly [number, number, number],
+    quaternion: readonly [number, number, number, number]
+  ) => void
   readonly stopInteraction: () => void
   readonly enter: (source?: CockpitViewToggleSource) => void
   readonly exit: (source?: CockpitViewToggleSource) => void
@@ -3095,6 +3104,85 @@ async function init(): Promise<void> {
 
   handleViewerSettingsApplied = applyViewerSettingsToLoadedAircraft
 
+  let aircraftRuntimeBenchmarkRunning = false
+  const cloneLoadedModelForRuntimeBenchmark = (): Group => {
+    const sourceNodes: Object3D[] = []
+    loadedModel.scene.traverse(node => sourceNodes.push(node))
+    const sourceUserData = sourceNodes.map(node => node.userData)
+
+    // Three's Object3D clone JSON-serializes userData. MSFS nodes can retain live
+    // textures there, so clone the hierarchy first and then restore metadata.
+    for (const node of sourceNodes) node.userData = {}
+    let clonedScene: Group
+    try {
+      clonedScene = cloneSkeleton(loadedModel.scene) as Group
+    } finally {
+      sourceNodes.forEach((node, index) => {
+        node.userData = sourceUserData[index]!
+      })
+    }
+
+    const clonedNodes: Object3D[] = []
+    clonedScene.traverse(node => clonedNodes.push(node))
+    if (clonedNodes.length !== sourceNodes.length) {
+      throw new Error('Runtime benchmark scene clone did not preserve the source hierarchy.')
+    }
+    clonedNodes.forEach((node, index) => {
+      node.userData = { ...sourceUserData[index]! }
+    })
+    return clonedScene
+  }
+
+  const runLoadedAircraftRuntimeBenchmark = async (
+    options: AircraftRuntimeBenchmarkOptions = {}
+  ): Promise<Record<string, unknown>> => {
+    if (aircraftRuntimeBenchmarkRunning) {
+      throw new Error('Aircraft runtime benchmark is already running.')
+    }
+
+    aircraftRuntimeBenchmarkRunning = true
+    const setupStartedAt = performance.now()
+    let benchmarkRuntime: AircraftRuntime | null = null
+
+    try {
+      const benchmarkScene = cloneLoadedModelForRuntimeBenchmark()
+      const benchmarkHost = new SharedMsfsRuntimeHost([], aircraft)
+      benchmarkRuntime = new AircraftRuntime(
+        compiledBehaviors,
+        benchmarkScene,
+        benchmarkHost,
+        aircraft,
+        benchmarkHost.simulatorEngine.getAircraft(),
+        benchmarkHost.simulatorEngine
+      )
+      benchmarkRuntime.bindAnimations(loadedModel.animations)
+      const setupMs = performance.now() - setupStartedAt
+      const result = runAircraftRuntimeBenchmark(benchmarkRuntime, options, {
+        additionalChecksumState: () => benchmarkHost.getSnapshot()
+      })
+      return {
+        ...result,
+        aircraftId: aircraft.id,
+        packageRoot,
+        setupMs,
+        source: {
+          interiorLoaded: loadedModel.interior != null,
+          interiorLodIndex: loadedModel.interior?.loadedLodIndex ?? null,
+          animationClipCount: loadedModel.animations.length,
+          compiledBehaviorCounts: {
+            update: compiledBehaviors.updateBindings.length,
+            animation: compiledBehaviors.animationBindings.length,
+            visibility: compiledBehaviors.visibilityBindings.length,
+            material: compiledBehaviors.materialBindings.length
+          }
+        }
+      }
+    } finally {
+      benchmarkRuntime?.dispose()
+      aircraftRuntimeBenchmarkRunning = false
+    }
+  }
+
   installViewerDevApi({
     packageRoot,
     packageData,
@@ -3128,6 +3216,7 @@ async function init(): Promise<void> {
         readonly getState?: () => Record<string, unknown>
       } | undefined)?.getState?.() ?? {},
     runCockpitBenchmark: async options => runCockpitBenchmark(options),
+    runAircraftRuntimeBenchmark: options => runLoadedAircraftRuntimeBenchmark(options),
     applySettings: async settings => {
       const nextStore = loadViewerConfigStore()
       const key = getViewerAircraftConfigKey(packageRoot, aircraft.id)
@@ -11742,6 +11831,7 @@ function installCockpitCameraShortcut(
       dispose: () => {},
       isActive: () => false,
       update: () => {},
+      setExactPose: () => {},
       stopInteraction: () => {},
       enter: () => {},
       exit: () => {}
@@ -11760,6 +11850,10 @@ function installCockpitCameraShortcut(
   let yawOffsetRadians = 0
   let pitchOffsetRadians = 0
   let cockpitZoom = camera.zoom
+  let exactPoseOverride: {
+    readonly position: readonly [number, number, number]
+    readonly quaternion: readonly [number, number, number, number]
+  } | null = null
   let activePointerId: number | null = null
   let activeInteractionChannel: 'primary' | 'secondary' | 'tertiary' = 'primary'
   let activePointerButton = 0
@@ -11776,6 +11870,16 @@ function installCockpitCameraShortcut(
 
   const applyCockpitCamera = (options: { readonly refreshClipPlanes?: boolean } = {}): void => {
     if (!isCockpitViewActive) {
+      return
+    }
+
+    if (exactPoseOverride != null) {
+      camera.position.fromArray(exactPoseOverride.position)
+      camera.quaternion.fromArray(exactPoseOverride.quaternion)
+      const clipPlanes = getCockpitCameraClipPlanes()
+      camera.near = clipPlanes.near
+      camera.far = clipPlanes.far
+      camera.updateProjectionMatrix()
       return
     }
 
@@ -11877,6 +11981,7 @@ function installCockpitCameraShortcut(
     onCockpitHover?.(null)
     releasePointer()
     isCockpitViewActive = false
+    exactPoseOverride = null
     domElement.style.touchAction = previousTouchAction
     controls.enabled = true
     exteriorScene.visible = exteriorVisibilityBeforeCockpit
@@ -11908,6 +12013,7 @@ function installCockpitCameraShortcut(
     }
     exteriorVisibilityBeforeCockpit = exteriorScene.visible
     isCockpitViewActive = true
+    exactPoseOverride = null
     yawOffsetRadians = 0
     pitchOffsetRadians = 0
     cockpitZoom = camera.zoom
@@ -12043,6 +12149,7 @@ function installCockpitCameraShortcut(
       return
     }
 
+    exactPoseOverride = null
     yawOffsetRadians += deltaX * LOOK_RADIANS_PER_PIXEL
     const nextPitchRadians = basePitchRadians + pitchOffsetRadians - deltaY * LOOK_RADIANS_PER_PIXEL
     pitchOffsetRadians = Math.min(
@@ -12134,6 +12241,7 @@ function installCockpitCameraShortcut(
       return
     }
     if (activeCockpitPressBinding == null && (route.emptyCockpit === 'cameraZoomIn' || route.emptyCockpit === 'cameraZoomOut')) {
+      exactPoseOverride = null
       const zoomDelta = route.emptyCockpit === 'cameraZoomIn'
         ? -Math.abs(event.deltaY)
         : Math.abs(event.deltaY)
@@ -12185,6 +12293,10 @@ function installCockpitCameraShortcut(
       ) {
         stopActivePointer()
       }
+      applyCockpitCamera()
+    },
+    setExactPose: (position, quaternion) => {
+      exactPoseOverride = { position, quaternion }
       applyCockpitCamera()
     },
     stopInteraction: stopActivePointer,
