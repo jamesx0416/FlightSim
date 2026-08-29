@@ -61,6 +61,7 @@ import type {
   RuntimeVariableChangeListener,
   RuntimeState
 } from './types'
+import { UpdateBindingScheduler } from './updateBindingScheduler'
 
 interface RuntimeInteractionOptions {
   readonly holdFeedback?: boolean
@@ -262,11 +263,7 @@ export class AircraftRuntime {
   private readonly readOnlyExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly updateExpressionServices: Parameters<typeof evaluateCompiledExpression>[1]
   private readonly runtimeState: RuntimeState
-  private readonly updateFrequencies: readonly number[]
-  private readonly updateFrequencyElapsedSeconds: number[]
-  private readonly dueUpdateFrequencyFlags: boolean[]
-  private readonly updateBindingFrequencyIndices: readonly number[]
-  private updateOnceBindingsPending = true
+  private readonly updateBindingScheduler: UpdateBindingScheduler
   private readonly frameVariableValues = new Map<string, number>()
   private readonly runtimeExpressionDependencies = new Map<string, RuntimeExpressionDependency>()
   private frameDependencyEpoch = 0
@@ -312,20 +309,9 @@ export class AircraftRuntime {
       invokeKeyEvent: (name, args) => this.hostServices.invokeKeyEvent?.(name, args),
       invokeHtmlEvent: (name, args) => this.hostServices.invokeHtmlEvent?.(name, args)
     }
-    this.updateFrequencies = [...new Set(
-      this.compiled.updateBindings
-        .filter(binding => !binding.once && binding.frequency > 0)
-        .map(binding => binding.frequency)
-    )]
-    const updateFrequencyIndexByValue = new Map(
-      this.updateFrequencies.map((frequency, index) => [frequency, index] as const)
-    )
-    this.updateFrequencyElapsedSeconds = new Array(this.updateFrequencies.length).fill(0)
-    this.dueUpdateFrequencyFlags = new Array(this.updateFrequencies.length).fill(false)
-    this.updateBindingFrequencyIndices = this.compiled.updateBindings.map(binding =>
-      binding.once || binding.frequency <= 0
-        ? -1
-        : updateFrequencyIndexByValue.get(binding.frequency) ?? -1
+    this.updateBindingScheduler = new UpdateBindingScheduler(
+      this.compiled.updateBindings,
+      this.updateExpressionServices
     )
 
     sceneRoot.traverse(node => {
@@ -1075,24 +1061,7 @@ export class AircraftRuntime {
   }
 
   private runUpdateBindings(dtSeconds: number): void {
-    for (let index = 0; index < this.updateFrequencies.length; index += 1) {
-      const updateInterval = 1 / this.updateFrequencies[index]!
-      let elapsedSeconds = this.updateFrequencyElapsedSeconds[index]! + dtSeconds
-      const due = elapsedSeconds + 1e-9 >= updateInterval
-      if (due) elapsedSeconds %= updateInterval
-      this.updateFrequencyElapsedSeconds[index] = elapsedSeconds
-      this.dueUpdateFrequencyFlags[index] = due
-    }
-
-    for (let index = 0; index < this.compiled.updateBindings.length; index += 1) {
-      const binding = this.compiled.updateBindings[index]!
-      const frequencyIndex = this.updateBindingFrequencyIndices[index]!
-      if (binding.once ? !this.updateOnceBindingsPending : frequencyIndex >= 0 && !this.dueUpdateFrequencyFlags[frequencyIndex]) {
-        continue
-      }
-      evaluateCompiledExpression(binding.expression, this.updateExpressionServices)
-    }
-    this.updateOnceBindingsPending = false
+    this.updateBindingScheduler.update(dtSeconds)
   }
 
   private readFrameVariable(key: string, unit: string | null | undefined): number {
