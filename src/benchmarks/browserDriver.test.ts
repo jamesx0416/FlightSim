@@ -25,12 +25,19 @@ test('derives safe worktree-scoped session names', () => {
 
 test('uses an isolated pinned session and stdin for page JavaScript', async () => {
   const commands: AgentBrowserCommand[] = []
+  let closed = false
   const driver = new BrowserDriver({
     session: 'flightsim-test-1',
     cwd: '/worktree',
+    profile: '/bench-profile',
     runner: async command => {
       commands.push(command)
       if (command.args.includes('list')) return result(command, JSON.stringify({ tabs: [{ tabId: 't1' }] }))
+      if (command.args.includes('close')) {
+        closed = true
+        return result(command)
+      }
+      if (command.args.includes('info')) return result(command, JSON.stringify({ data: { active: !closed } }))
       return result(command)
     }
   })
@@ -42,9 +49,9 @@ test('uses an isolated pinned session and stdin for page JavaScript', async () =
   await driver.inspectSession()
   await driver.close()
 
-  expect(commands.every(command => command.args.slice(0, 4).join(' ') === '--session flightsim-test-1 --pin-tab --json')).toBe(true)
+  expect(commands.every(command => command.args.slice(0, 6).join(' ') === '--session flightsim-test-1 --pin-tab --profile /bench-profile --json')).toBe(true)
   const evalCommand = commands.find(command => command.args.includes('eval'))
-  expect(evalCommand?.args).toEqual(['--session', 'flightsim-test-1', '--pin-tab', '--json', 'eval', '--stdin'])
+  expect(evalCommand?.args).toEqual(['--session', 'flightsim-test-1', '--pin-tab', '--profile', '/bench-profile', '--json', 'eval', '--stdin'])
   expect(evalCommand?.stdin).toBe('window.__DevApi.status()')
   expect(commands.find(command => command.args.includes('wait'))?.args.includes('--timeout')).toBe(true)
 })
@@ -64,6 +71,58 @@ test('fails before an operation can continue with more than one tab', async () =
     expect(error instanceof BrowserDriverError).toBe(true)
     expect((error as BrowserDriverError).code).toBe('BROWSER_TAB_INVARIANT')
   }
+})
+
+test('waits for Agent Browser to become inactive after close', async () => {
+  let infoCalls = 0
+  const driver = new BrowserDriver({
+    session: 'flightsim-test-close-wait',
+    runner: async command => {
+      if (command.args.includes('info')) {
+        infoCalls += 1
+        return result(command, JSON.stringify({ data: { active: infoCalls < 2 } }))
+      }
+      return result(command)
+    }
+  })
+
+  await driver.close(1_000)
+  expect(infoCalls).toBe(2)
+})
+
+test('reads inactive retained sessions without guessing from command errors', async () => {
+  const driver = new BrowserDriver({
+    session: 'flightsim-test-inactive',
+    runner: async command => result(command, JSON.stringify({ data: { active: false } }))
+  })
+
+  expect(await driver.isSessionActive()).toBe(false)
+})
+
+test('retries native Agent Browser wait timeouts in bounded slices', async () => {
+  const commands: AgentBrowserCommand[] = []
+  let waits = 0
+  const driver = new BrowserDriver({
+    session: 'flightsim-test-wait-slices',
+    runner: async command => {
+      commands.push(command)
+      if (command.args.includes('wait')) {
+        waits += 1
+        if (waits < 3) {
+          return { ...result(command, '{"success":false,"error":"Wait timed out after 15000ms"}'), exitCode: 1 }
+        }
+      }
+      if (command.args.includes('list')) return result(command, JSON.stringify({ tabs: [{ tabId: 't1' }] }))
+      return result(command)
+    }
+  })
+
+  await driver.waitFn('window.ready === true', 60_000)
+
+  const waitCommands = commands.filter(command => command.args.includes('wait'))
+  expect(waitCommands.length).toBe(3)
+  expect(waitCommands.every(command => command.args.includes('15000'))).toBe(true)
+  expect(waitCommands.every(command => command.timeoutMs === 30_000)).toBe(true)
 })
 
 test('reports a structured browser command failure', async () => {

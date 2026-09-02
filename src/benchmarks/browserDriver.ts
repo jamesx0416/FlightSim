@@ -1,3 +1,6 @@
+import { rm } from 'node:fs/promises'
+import path from 'node:path'
+
 /**
  * The narrow Agent Browser boundary used by benchmark commands. Keeping the
  * process invocation here makes session and tab ownership enforceable.
@@ -63,6 +66,7 @@ export type BrowserDriverOptions = {
   readonly timeoutMs?: number
   readonly executable?: string
   readonly runner?: AgentBrowserCommandRunner
+  readonly profile?: string
 }
 
 export type AgentBrowserTab = Readonly<Record<string, unknown>>
@@ -120,6 +124,37 @@ export function deriveBrowserSessionName(identity: BrowserSessionIdentity): stri
   return `flightsim-${fingerprint(worktree)}-${agentId}-${queueSequence}`.slice(0, 96)
 }
 
+
+export async function listAgentBrowserSessions(
+  timeoutMs = 5_000,
+  executable = 'agent-browser'
+): Promise<readonly string[]> {
+  const result = await runAgentBrowserCommand({
+    executable,
+    args: ['session', 'list', '--json'],
+    timeoutMs: validateTimeout(timeoutMs)
+  })
+  if (result.timedOut || result.exitCode != 0) {
+    throw new BrowserDriverError(
+      result.timedOut ? 'BROWSER_COMMAND_TIMED_OUT' : 'BROWSER_COMMAND_FAILED',
+      result.timedOut
+        ? `Agent Browser session list timed out after ${result.command.timeoutMs}ms.`
+        : `Agent Browser session list failed: ${conciseOutput(result.stderr, result.stdout)}`,
+      commandDetails(result)
+    )
+  }
+  const parsed = parseJsonOutput(result.stdout)
+  const sessions = isRecord(parsed) && isRecord(parsed.data) && Array.isArray(parsed.data.sessions)
+    ? parsed.data.sessions
+    : isRecord(parsed) && Array.isArray(parsed.sessions)
+      ? parsed.sessions
+      : null
+  if (sessions == null || !sessions.every(session => typeof session === 'string')) {
+    throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser session list did not contain session names.', { value: parsed })
+  }
+  return sessions
+}
+
 /** Runs Agent Browser commands without a shell and keeps one tab pinned to this session. */
 export class BrowserDriver {
   readonly session: string
@@ -128,6 +163,8 @@ export class BrowserDriver {
 
   private readonly executable: string
   private readonly runner: AgentBrowserCommandRunner
+  private readonly profile: string | undefined
+  private opened = false
 
   constructor(options: BrowserDriverOptions) {
     this.session = validateSessionName(options.session ?? deriveSessionName(options.sessionIdentity))
@@ -135,17 +172,36 @@ export class BrowserDriver {
     this.timeoutMs = validateTimeout(options.timeoutMs ?? DEFAULT_BROWSER_TIMEOUT_MS)
     this.executable = options.executable ?? 'agent-browser'
     this.runner = options.runner ?? runAgentBrowserCommand
+    this.profile = options.profile
   }
 
   async open(url: string, timeoutMs = this.timeoutMs): Promise<BrowserOpenResult> {
     const parsed = parseBrowserUrl(url)
-    const command = await this.runChecked(['open', parsed.href], timeoutMs)
+    if (!this.opened && this.profile != null) {
+      // A persistent profile should preserve HTTP/GPU caches, not stale tabs from a prior Chrome session.
+      await rm(path.join(this.profile, 'Default', 'Sessions'), { recursive: true, force: true })
+      await rm(path.join(this.profile, 'Default', 'Last Session'), { force: true })
+      await rm(path.join(this.profile, 'Default', 'Last Tabs'), { force: true })
+    }
+    const command = await this.run(['open', parsed.href], timeoutMs)
     const tabs = await this.assertExactlyOneTab(timeoutMs)
+    this.opened = true
     return { command, tabs }
   }
 
   async close(timeoutMs = this.timeoutMs): Promise<AgentBrowserCommandResult> {
-    return this.run(['close'], timeoutMs)
+    const startedAt = performance.now()
+    const result = await this.run(['close'], timeoutMs)
+    while (await this.isSessionActive(Math.max(1, Math.floor(timeoutMs - (performance.now() - startedAt))))) {
+      if (performance.now() - startedAt >= timeoutMs) {
+        throw new BrowserDriverError(
+          'BROWSER_COMMAND_TIMED_OUT',
+          `Agent Browser session ${this.session} remained active after close.`
+        )
+      }
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+    return result
   }
 
   /** Evaluates page JavaScript through stdin so source is never interpreted by a shell. */
@@ -166,7 +222,26 @@ export class BrowserDriver {
     if (!condition.trim()) {
       throw new BrowserDriverError('BROWSER_INVALID_ARGUMENT', 'Browser wait condition must not be empty.')
     }
-    return this.runChecked(['wait', '--fn', condition, '--timeout', String(validateTimeout(timeoutMs))], timeoutMs)
+    const totalTimeoutMs = validateTimeout(timeoutMs)
+    const startedAt = performance.now()
+    for (;;) {
+      const remainingMs = totalTimeoutMs - (performance.now() - startedAt)
+      if (remainingMs <= 0) {
+        throw new BrowserDriverError('BROWSER_COMMAND_TIMED_OUT', `Browser wait timed out after ${totalTimeoutMs}ms.`)
+      }
+      const waitMs = Math.min(15_000, Math.max(1, Math.floor(remainingMs)))
+      try {
+        return await this.runChecked(
+          ['wait', '--fn', condition, '--timeout', String(waitMs)],
+          waitMs + 15_000
+        )
+      } catch (error) {
+        if (!isAgentBrowserWaitTimeout(error)) throw error
+        if (performance.now() - startedAt >= totalTimeoutMs) {
+          throw new BrowserDriverError('BROWSER_COMMAND_TIMED_OUT', `Browser wait timed out after ${totalTimeoutMs}ms.`)
+        }
+      }
+    }
   }
 
   async screenshot(path?: string, selector?: string, timeoutMs = this.timeoutMs): Promise<BrowserScreenshotResult> {
@@ -191,10 +266,19 @@ export class BrowserDriver {
     return this.runChecked(['profiler', 'stop', path], timeoutMs)
   }
 
+  async isSessionActive(timeoutMs = this.timeoutMs): Promise<boolean> {
+    const result = await this.run(['session', 'info'], timeoutMs)
+    return readSessionActive(parseJsonOutput(result.stdout))
+  }
+
   async inspectSession(timeoutMs = this.timeoutMs): Promise<AgentBrowserSessionInspection> {
     const result = await this.run(['session', 'info'], timeoutMs)
+    const raw = parseJsonOutput(result.stdout)
+    if (!readSessionActive(raw)) {
+      throw new BrowserDriverError('BROWSER_COMMAND_FAILED', `Agent Browser session ${this.session} is not active.`)
+    }
     await this.assertExactlyOneTab(timeoutMs)
-    return { session: this.session, raw: parseJsonOutput(result.stdout) }
+    return { session: this.session, raw }
   }
 
   async tabs(timeoutMs = this.timeoutMs): Promise<readonly AgentBrowserTab[]> {
@@ -231,7 +315,7 @@ export class BrowserDriver {
   ): Promise<AgentBrowserCommandResult> {
     const command: AgentBrowserCommand = {
       executable: this.executable,
-      args: ['--session', this.session, '--pin-tab', '--json', ...args],
+      args: ['--session', this.session, '--pin-tab', ...(this.profile == null ? [] : ['--profile', this.profile]), '--json', ...args],
       ...(this.cwd == null ? {} : { cwd: this.cwd }),
       ...(stdin == null ? {} : { stdin }),
       timeoutMs: validateTimeout(timeoutMs)
@@ -366,6 +450,14 @@ function parseJsonOutput(output: string): unknown {
   }
 }
 
+function readSessionActive(value: unknown): boolean {
+  const session = isRecord(value) && isRecord(value.data) ? value.data : value
+  if (!isRecord(session) || typeof session.active !== 'boolean') {
+    throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser session info did not contain active state.', { value })
+  }
+  return session.active
+}
+
 function decodeEvalJson<T>(output: string): T {
   const decoded = parseJsonOutput(output)
   const value = unwrapEvalResult(decoded)
@@ -427,6 +519,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function conciseOutput(stderr: string, stdout: string): string {
   return (stderr || stdout).trim().replace(/\s+/gu, ' ').slice(0, 500) || 'no diagnostic output'
+}
+
+function isAgentBrowserWaitTimeout(error: unknown): boolean {
+  if (!(error instanceof BrowserDriverError) || error.code !== 'BROWSER_COMMAND_FAILED') return false
+  const output = `${String(error.details.stdout ?? '')}\n${String(error.details.stderr ?? '')}\n${error.message}`
+  return output.includes('Wait timed out after')
 }
 
 function commandDetails(result: AgentBrowserCommandResult): Readonly<Record<string, unknown>> {

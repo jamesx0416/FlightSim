@@ -5,14 +5,16 @@ import { join } from 'node:path'
 export type QueueTicket = {
   readonly sequence: number
   readonly pid: number
+  readonly slot?: 1 | 2
 }
 
 export type BenchmarkLease = {
   readonly pid: number
+  readonly slot: 1 | 2
   readonly sessionName?: string
 }
 
-export type RetainedBenchmarkLease = Required<Pick<BenchmarkLease, 'pid' | 'sessionName'>>
+export type RetainedBenchmarkLease = Required<Pick<BenchmarkLease, 'pid' | 'slot' | 'sessionName'>>
 
 export type QueueProgress = {
   readonly requestsAhead: number
@@ -40,6 +42,8 @@ type QueuePaths = {
   readonly tickets: string
   readonly sequence: string
   readonly lease: string
+  readonly extraLease: string
+  readonly capacity: string
   readonly lock: string
 }
 
@@ -49,6 +53,7 @@ type ParsedTicket = QueueTicket & {
 
 const DEFAULT_QUEUE_DIRECTORY = join(tmpdir(), 'flightsim-browser-benchmark-queue-v1')
 const LOCK_RETRY_MAX_MS = 100
+const TICKET_FILE_PATTERN = /^(\d+)-(\d+)(?:-([12]))?$/
 const localLocks = new Map<string, Promise<void>>()
 
 /**
@@ -68,12 +73,12 @@ export class BenchmarkQueue {
     this.#isSessionActive = options.isSessionActive
   }
 
-  async join(): Promise<QueueTicket> {
+  async join(slot?: 1 | 2): Promise<QueueTicket> {
     return this.#withLock(async () => {
       await this.#ensureDirectories()
       await this.#recoverStaleState()
       const sequence = await this.#nextSequence()
-      const ticket: QueueTicket = { sequence, pid: this.#pid }
+      const ticket: QueueTicket = { sequence, pid: this.#pid, slot }
       await writeFile(ticketPath(this.#paths, ticket), '', { flag: 'wx' })
       return ticket
     })
@@ -99,22 +104,22 @@ export class BenchmarkQueue {
         await this.#ensureDirectories()
         await this.#recoverStaleState()
         const tickets = await this.#readTickets()
-        const activeLease = await this.#readLease()
         const ownTicket = tickets.find(candidate => sameTicket(candidate, ticket))
-
         if (ownTicket == null) {
           throw new Error(`Benchmark queue ticket ${ticket.sequence}/${ticket.pid} no longer exists.`)
         }
 
-        const ticketIndex = tickets.findIndex(candidate => sameTicket(candidate, ticket))
-        const requestsAhead = ticketIndex + (activeLease == null ? 0 : 1)
-        if (activeLease == null && ticketIndex === 0) {
-          const lease: BenchmarkLease = { pid: ticket.pid }
+        const capacity = await this.#readCapacity()
+        const runnable = await this.#runnableTickets(tickets, capacity)
+        const runnableIndex = runnable.findIndex(candidate => sameTicket(candidate.ticket, ticket))
+        if (runnableIndex === 0) {
+          const selected = runnable[0]!
+          const lease: BenchmarkLease = { pid: ticket.pid, slot: selected.slot }
           await this.#writeLease(lease)
           await unlink(ownTicket.path)
           return { lease, requestsAhead: 0 }
         }
-
+        const requestsAhead = runnableIndex > 0 ? runnableIndex : tickets.filter(candidate => candidate.sequence < ticket.sequence).length + 1
         return { lease: null, requestsAhead }
       })
 
@@ -128,17 +133,28 @@ export class BenchmarkQueue {
     }
   }
 
+  async acquireSlot(slot: 1 | 2, options: QueueWaitOptions = {}): Promise<{ readonly ticket: QueueTicket; readonly lease: BenchmarkLease }> {
+    const ticket = await this.join(slot)
+    try {
+      return { ticket, lease: await this.waitForLease(ticket, options) }
+    } catch (error) {
+      await this.cancel(ticket)
+      throw error
+    }
+  }
+
   async tryAcquire(ticket: QueueTicket): Promise<BenchmarkLease | null> {
     this.#assertTicketOwner(ticket)
     return this.#withLock(async () => {
       await this.#ensureDirectories()
       await this.#recoverStaleState()
       const tickets = await this.#readTickets()
-      const activeLease = await this.#readLease()
       const ownTicket = tickets.find(candidate => sameTicket(candidate, ticket))
-      if (activeLease != null || ownTicket == null || !sameTicket(tickets[0], ticket)) return null
+      if (ownTicket == null) return null
+      const runnable = await this.#runnableTickets(tickets, await this.#readCapacity())
+      if (!sameTicket(runnable[0]?.ticket, ticket)) return null
 
-      const lease: BenchmarkLease = { pid: ticket.pid }
+      const lease: BenchmarkLease = { pid: ticket.pid, slot: runnable[0]!.slot }
       await this.#writeLease(lease)
       await rm(ownTicket.path)
       return lease
@@ -163,9 +179,9 @@ export class BenchmarkQueue {
     this.#assertLeaseOwner(lease)
     return this.#withLock(async () => {
       await this.#ensureDirectories()
-      const activeLease = await this.#readLease()
+      const activeLease = await this.#readLease(lease.slot)
       if (activeLease == null || !sameLease(activeLease, lease)) return false
-      await unlink(this.#paths.lease)
+      await unlink(this.#leasePath(lease.slot))
       return true
     })
   }
@@ -177,12 +193,12 @@ export class BenchmarkQueue {
 
     return this.#withLock(async () => {
       await this.#ensureDirectories()
-      const activeLease = await this.#readLease()
+      const activeLease = await this.#readLease(lease.slot)
       if (activeLease == null || !sameLease(activeLease, lease)) {
         throw new Error('Cannot retain a benchmark lease that is no longer active.')
       }
 
-      const retainedLease: RetainedBenchmarkLease = { pid: lease.pid, sessionName }
+      const retainedLease: RetainedBenchmarkLease = { pid: lease.pid, slot: lease.slot, sessionName }
       await this.#writeLease(retainedLease)
       return retainedLease
     })
@@ -190,7 +206,7 @@ export class BenchmarkQueue {
 
   /**
    * Transfers an active foreground lease to the detached browser keeper. The
-   * persisted lease remains deliberately minimal: keeper PID and session name.
+   * persisted lease remains deliberately minimal: keeper PID, slot, and session name.
    */
   async transferToKeeper(
     lease: BenchmarkLease,
@@ -203,12 +219,12 @@ export class BenchmarkQueue {
 
     return this.#withLock(async () => {
       await this.#ensureDirectories()
-      const activeLease = await this.#readLease()
+      const activeLease = await this.#readLease(lease.slot)
       if (activeLease == null || !sameLease(activeLease, lease)) {
         throw new Error('Cannot transfer a benchmark lease that is no longer active.')
       }
 
-      const retainedLease: RetainedBenchmarkLease = { pid: keeperPid, sessionName }
+      const retainedLease: RetainedBenchmarkLease = { pid: keeperPid, slot: lease.slot, sessionName }
       await this.#writeLease(retainedLease)
       return retainedLease
     })
@@ -220,9 +236,10 @@ export class BenchmarkQueue {
     return this.#withLock(async () => {
       await this.#ensureDirectories()
       await this.#recoverStaleState()
-      const lease = await this.#readLease()
-      if (lease?.sessionName !== sessionName) return null
-      return { pid: lease.pid, sessionName: lease.sessionName }
+      const lease = (await this.#readLeases()).find(candidate => candidate.sessionName === sessionName)
+      return lease == null || lease.sessionName == null
+        ? null
+        : { pid: lease.pid, slot: lease.slot, sessionName: lease.sessionName }
     })
   }
 
@@ -231,9 +248,9 @@ export class BenchmarkQueue {
     if (sessionName.length === 0) return false
     return this.#withLock(async () => {
       await this.#ensureDirectories()
-      const activeLease = await this.#readLease()
-      if (activeLease?.sessionName !== sessionName) return false
-      await unlink(this.#paths.lease)
+      const lease = (await this.#readLeases()).find(candidate => candidate.sessionName === sessionName)
+      if (lease == null) return false
+      await unlink(this.#leasePath(lease.slot))
       return true
     })
   }
@@ -242,7 +259,38 @@ export class BenchmarkQueue {
     return this.#withLock(async () => {
       await this.#ensureDirectories()
       await this.#recoverStaleState()
-      return this.#readLease()
+      return (await this.#readLeases())[0] ?? null
+    })
+  }
+
+  async activeLeases(): Promise<readonly BenchmarkLease[]> {
+    return this.#withLock(async () => {
+      await this.#ensureDirectories()
+      await this.#recoverStaleState()
+      return this.#readLeases()
+    })
+  }
+
+  async waitingTickets(): Promise<readonly QueueTicket[]> {
+    return this.#withLock(async () => {
+      await this.#ensureDirectories()
+      await this.#recoverStaleState()
+      return (await this.#readTickets()).map(({ path: _path, ...ticket }) => ticket)
+    })
+  }
+
+  async capacity(): Promise<1 | 2> {
+    return this.#withLock(async () => {
+      await this.#ensureDirectories()
+      return this.#readCapacity()
+    })
+  }
+
+  async setCapacity(capacity: 1 | 2): Promise<1 | 2> {
+    return this.#withLock(async () => {
+      await this.#ensureDirectories()
+      await writeAtomically(this.#paths.capacity, `${capacity}\n`)
+      return capacity
     })
   }
 
@@ -278,18 +326,51 @@ export class BenchmarkQueue {
     return tickets
   }
 
-  async #readLease(): Promise<BenchmarkLease | null> {
+  #leasePath(slot: 1 | 2): string {
+    return slot === 1 ? this.#paths.lease : this.#paths.extraLease
+  }
+
+  async #readLease(slot: 1 | 2): Promise<BenchmarkLease | null> {
     try {
-      const contents = await readFile(this.#paths.lease, 'utf8')
-      return parseLease(contents)
+      const contents = await readFile(this.#leasePath(slot), 'utf8')
+      return parseLease(contents, slot)
     } catch (error) {
       if (isMissingFileError(error)) return null
       throw error
     }
   }
 
+  async #readLeases(): Promise<BenchmarkLease[]> {
+    const leases = await Promise.all([this.#readLease(1), this.#readLease(2)])
+    return leases.filter((lease): lease is BenchmarkLease => lease != null)
+  }
+
   async #writeLease(lease: BenchmarkLease): Promise<void> {
-    await writeAtomically(this.#paths.lease, `${JSON.stringify(lease)}\n`)
+    await writeAtomically(this.#leasePath(lease.slot), `${JSON.stringify(lease)}\n`)
+  }
+
+  async #readCapacity(): Promise<1 | 2> {
+    try {
+      return parseCapacity(await readFile(this.#paths.capacity, 'utf8'))
+    } catch (error) {
+      if (isMissingFileError(error)) return 1
+      throw error
+    }
+  }
+
+  async #runnableTickets(tickets: readonly ParsedTicket[], capacity: 1 | 2): Promise<readonly { readonly ticket: ParsedTicket; readonly slot: 1 | 2 }[]> {
+    const free = new Set<1 | 2>()
+    if (await this.#readLease(1) == null) free.add(1)
+    if (await this.#readLease(2) == null) free.add(2)
+    const automatic = capacity === 2 ? ([1, 2] as const) : ([1] as const)
+    const result: { ticket: ParsedTicket; slot: 1 | 2 }[] = []
+    for (const ticket of tickets) {
+      const slot = ticket.slot == null ? automatic.find(candidate => free.has(candidate)) : free.has(ticket.slot) ? ticket.slot : undefined
+      if (slot == null) continue
+      result.push({ ticket, slot })
+      free.delete(slot)
+    }
+    return result
   }
 
   async #recoverStaleState(): Promise<void> {
@@ -297,13 +378,13 @@ export class BenchmarkQueue {
       if (!await this.#isProcessAlive(ticket.pid)) await unlink(ticket.path)
     }
 
-    const lease = await this.#readLease()
-    if (lease == null) return
-    const ownerAlive = await this.#isProcessAlive(lease.pid)
-    const sessionAlive = lease.sessionName == null || this.#isSessionActive == null
-      ? true
-      : await this.#isSessionActive(lease.sessionName)
-    if (!ownerAlive || !sessionAlive) await unlink(this.#paths.lease)
+    for (const lease of await this.#readLeases()) {
+      const ownerAlive = await this.#isProcessAlive(lease.pid)
+      const sessionAlive = lease.sessionName == null || this.#isSessionActive == null
+        ? true
+        : await this.#isSessionActive(lease.sessionName)
+      if (!ownerAlive || !sessionAlive) await unlink(this.#leasePath(lease.slot))
+    }
   }
 
   #assertTicketOwner(ticket: QueueTicket): void {
@@ -369,6 +450,8 @@ function createQueuePaths(root: string): QueuePaths {
     tickets: join(root, 'tickets'),
     sequence: join(root, 'sequence'),
     lease: join(root, 'lease.json'),
+    extraLease: join(root, 'lease-2.json'),
+    capacity: join(root, 'capacity'),
     lock: join(root, 'coordination.lock')
   }
 }
@@ -424,25 +507,35 @@ function parseSequence(contents: string): number {
 }
 
 function parseTicket(name: string): QueueTicket | null {
-  const match = /^(\d+)-(\d+)$/.exec(name)
+  const match = TICKET_FILE_PATTERN.exec(name)
   if (match == null) return null
   const sequence = Number(match[1])
   const pid = Number(match[2])
   if (!Number.isSafeInteger(sequence) || sequence <= 0 || !Number.isSafeInteger(pid) || pid <= 0) return null
-  return { sequence, pid }
+  const slot = match[3] === '1' ? 1 : match[3] === '2' ? 2 : undefined
+  return { sequence, pid, slot }
 }
 
 function ticketPath(paths: QueuePaths, ticket: QueueTicket): string {
-  return join(paths.tickets, `${ticket.sequence}-${ticket.pid}`)
+  return join(paths.tickets, `${ticket.sequence}-${ticket.pid}${ticket.slot == null ? '' : `-${ticket.slot}`}`)
 }
 
-function parseLease(contents: string): BenchmarkLease {
+function parseLease(contents: string, fallbackSlot: 1 | 2): BenchmarkLease {
   const parsed: unknown = JSON.parse(contents)
   if (!isRecord(parsed) || !isPositiveInteger(parsed.pid)) throw new Error('Benchmark queue lease is corrupt.')
   if (parsed.sessionName != null && typeof parsed.sessionName !== 'string') {
     throw new Error('Benchmark queue lease is corrupt.')
   }
-  return parsed.sessionName == null ? { pid: parsed.pid } : { pid: parsed.pid, sessionName: parsed.sessionName }
+  const slot = parsed.slot === 1 || parsed.slot === 2 ? parsed.slot : fallbackSlot
+  return parsed.sessionName == null
+    ? { pid: parsed.pid, slot }
+    : { pid: parsed.pid, slot, sessionName: parsed.sessionName }
+}
+
+function parseCapacity(contents: string): 1 | 2 {
+  const value = Number(contents.trim())
+  if (value !== 1 && value !== 2) throw new Error('Benchmark queue capacity is corrupt.')
+  return value
 }
 
 function parsePid(value: string): number | null {
@@ -455,11 +548,11 @@ function compareTickets(left: QueueTicket, right: QueueTicket): number {
 }
 
 function sameTicket(left: QueueTicket | undefined, right: QueueTicket): boolean {
-  return left?.sequence === right.sequence && left.pid === right.pid
+  return left?.sequence === right.sequence && left.pid === right.pid && left.slot === right.slot
 }
 
 function sameLease(left: BenchmarkLease, right: BenchmarkLease): boolean {
-  return left.pid === right.pid && left.sessionName === right.sessionName
+  return left.pid === right.pid && left.slot === right.slot && left.sessionName === right.sessionName
 }
 
 function parentDirectory(path: string): string {

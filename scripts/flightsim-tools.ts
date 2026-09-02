@@ -73,7 +73,8 @@ async function runBrowser(arguments_: readonly string[]): Promise<number> {
     return 2
   }
   const command: BrowserCommand = parsed.command
-  const result = await executeBrowserCommand(command, root)
+  const stdin = command.kind === 'browser-eval' && command.source.kind === 'stdin' ? await Bun.stdin.text() : undefined
+  const result = await executeBrowserCommand(command, root, stdin)
   printResult(result, command.json)
   return result.ok ? 0 : 1
 }
