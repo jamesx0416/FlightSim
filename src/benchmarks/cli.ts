@@ -22,6 +22,7 @@ export interface CliHelp {
   readonly name: 'browser' | 'bench'
   readonly summary: string
   readonly usage: readonly string[]
+  readonly sections?: readonly { readonly title: string; readonly lines: readonly string[] }[]
   readonly options: readonly HelpOption[]
 }
 
@@ -29,17 +30,38 @@ export interface BrowserOpenCommand {
   readonly kind: 'browser-open'
   readonly stage: string
   readonly timeoutMs: number
+  readonly slot?: 1 | 2
   readonly json: boolean
 }
 
 export interface BrowserCloseCommand {
   readonly kind: 'browser-close'
+  readonly slot?: 1 | 2
   readonly json: boolean
 }
 
-export type BrowserCommand = BrowserOpenCommand | BrowserCloseCommand
+export interface BrowserStatusCommand {
+  readonly kind: 'browser-status'
+  readonly json: boolean
+}
+
+export interface BrowserConcurrencyCommand {
+  readonly kind: 'browser-concurrency'
+  readonly capacity?: 1 | 2
+  readonly json: boolean
+}
+
+export interface BrowserEvalCommand {
+  readonly kind: 'browser-eval'
+  readonly source: HookSource
+  readonly slot?: 1 | 2
+  readonly json: boolean
+}
+
+export type BrowserCommand = BrowserOpenCommand | BrowserCloseCommand | BrowserEvalCommand | BrowserStatusCommand | BrowserConcurrencyCommand
 
 interface CommonBenchmarkCommand {
+  readonly slot?: 1 | 2
   readonly json: boolean
 }
 
@@ -78,6 +100,10 @@ export interface BrowserLoadBenchmarkCommand extends CommonBenchmarkCommand {
   readonly keepOpen: boolean
 }
 
+export interface BrowserFpsBenchmarkCommand extends BrowserBenchmarkCommand, FrameBenchmarkCommand {
+  readonly kind: 'browser-fps'
+}
+
 export interface BrowserFullBenchmarkCommand extends BrowserBenchmarkCommand, FrameBenchmarkCommand {
   readonly kind: 'browser-full'
 }
@@ -95,6 +121,7 @@ export type BenchmarkCommand =
   | BunNoRenderBenchmarkCommand
   | BrowserNoRenderBenchmarkCommand
   | BrowserLoadBenchmarkCommand
+  | BrowserFpsBenchmarkCommand
   | BrowserFullBenchmarkCommand
   | BrowserProfileBenchmarkCommand
   | BrowserVisualBenchmarkCommand
@@ -104,8 +131,17 @@ export interface ComparisonSelection {
   readonly candidate: string
 }
 
+export interface ExperimentOptions {
+  readonly name: string
+  readonly description?: string
+  readonly aim?: string
+  readonly cause?: string
+  readonly hypothesis?: string
+}
+
 interface CommonComparisonCommand extends CommonBenchmarkCommand, ComparisonSelection {
   readonly kind: `compare-${string}`
+  readonly experiment?: ExperimentOptions
 }
 
 interface FrameComparisonCommand extends CommonComparisonCommand, FrameBenchmarkCommand {}
@@ -128,24 +164,31 @@ export interface CompareBrowserNoRenderCommand extends BrowserComparisonCommand,
   readonly kind: 'compare-no-render-browser'
 }
 
+export interface CompareBrowserFpsCommand extends BrowserComparisonCommand, FrameComparisonCommand {
+  readonly kind: 'compare-browser-fps'
+}
+
 export interface CompareBrowserFullCommand extends BrowserComparisonCommand, FrameComparisonCommand {
   readonly kind: 'compare-browser-full'
-  readonly visual: boolean
 }
 
 export interface CompareBrowserVisualCommand extends BrowserComparisonCommand {
   readonly kind: 'compare-browser-visual'
-  readonly visual: true
 }
 
 export type ComparisonCommand =
   | CompareCompiledCommand
   | CompareBunNoRenderCommand
   | CompareBrowserNoRenderCommand
+  | CompareBrowserFpsCommand
   | CompareBrowserFullCommand
   | CompareBrowserVisualCommand
 
-export type BenchCommand = BenchmarkCommand | ComparisonCommand
+export interface BenchStatusCommand { readonly kind: 'bench-status'; readonly json: boolean }
+export interface BenchConcurrencyCommand { readonly kind: 'bench-concurrency'; readonly capacity?: 1 | 2; readonly json: boolean }
+export interface ExperimentVerdictCommand { readonly kind: 'experiment-accept' | 'experiment-reject'; readonly id: string; readonly reason: string; readonly json: boolean }
+
+export type BenchCommand = BenchmarkCommand | ComparisonCommand | BenchStatusCommand | BenchConcurrencyCommand | ExperimentVerdictCommand
 
 export interface ParsedCommand<TCommand> {
   readonly kind: 'command'
@@ -171,17 +214,42 @@ export interface InvalidArgumentsResult {
 export type CliParseResult<TCommand> = ParsedCommand<TCommand> | HelpResult | InvalidArgumentsResult
 
 export const DEFAULT_BROWSER_TIMEOUT_MS = 120_000
+export const DEFAULT_COMPARISON_BROWSER_TIMEOUT_MS = 180_000
+export const DEFAULT_BROWSER_VISUAL_TIMEOUT_MS = 180_000
 export const DEFAULT_REUSE_SETTLE_MS = 2_000
 export const DEFAULT_BROWSER_STAGE = 'stable'
+export const DEFAULT_BROWSER_VISUAL_STAGE = 'cockpit'
+export const DEFAULT_NO_RENDER_BROWSER_STAGE = 'gltf:interior-upgrade:ready'
 export const DEFAULT_COMPARISON_BASELINE = 'HEAD'
 export const DEFAULT_COMPARISON_CANDIDATE = 'worktree'
 
 export const BROWSER_HELP: CliHelp = {
   name: 'browser',
-  summary: 'Open or close the retained, queue-managed FlightSim browser.',
-  usage: ['browser open <stage> [--timeout <duration>] [--json]', 'browser close [--json]'],
+  summary: 'Manage retained, queue-controlled FlightSim browsers.',
+  usage: ['browser open <stage> [options]', 'browser close [options]', 'browser eval <js> [options]', 'browser eval --file <path> [options]', 'browser eval --stdin [options]', 'browser status [--json]', 'browser concurrency [1|2] [--json]'],
+  sections: [
+    { title: 'Browser lifecycle', lines: [
+      'open <stage>   Open a browser, wait for readiness, and retain it.',
+      'close          Close a retained browser. Without --slot, target the lowest retained slot.',
+      'eval           Execute JavaScript in an already retained browser. Never opens a browser.'
+    ] },
+    { title: 'Queue', lines: [
+      'browser and bench share the same two machine-wide slots.',
+      'concurrency 1  Automatic jobs use slot 1 only.',
+      'concurrency 2  Automatic jobs use the lowest available slot, 1 then 2.',
+      '--slot <1|2>   Explicitly use or wait for that slot, even slot 2 when concurrency is 1.'
+    ] },
+    { title: 'Readiness stages', lines: [
+      '<stage> may be a built-in alias: initial, compiled, aircraft, cockpit, gauges, stable.',
+      'It may also be an exact DevApi load stage such as scene:ready or gltf:interior-upgrade:ready.',
+      'Repository-configured stages are defined in src/benchmarks/config.ts.'
+    ] }
+  ],
   options: [
     { usage: '--timeout <duration>', description: 'Readiness timeout, for example 120s or 500ms.' },
+    { usage: '--slot <1|2>', description: 'Explicitly use or wait for that browser slot.' },
+    { usage: '--file <path>', description: 'Read browser eval JavaScript from a file.' },
+    { usage: '--stdin', description: 'Read browser eval JavaScript from stdin.' },
     { usage: '--json', description: 'Print the structured result.' }
   ]
 }
@@ -190,11 +258,57 @@ export const BENCH_HELP: CliHelp = {
   name: 'bench',
   summary: 'Run a FlightSim benchmark or Git comparison.',
   usage: [
-    'bench compiled [--frames <count>] [--warmup <count>]',
-    'bench no-render bun|browser [options]',
+    'bench compiled [options]',
+    'bench no-render bun [options]',
+    'bench no-render browser [options]',
     'bench browser load --stage <stage> [options]',
-    'bench browser full|profile|visual [options]',
-    'bench compare compiled|no-render bun|browser|browser full|visual [options]'
+    'bench browser fps [options]',
+    'bench browser visual [options]',
+    'bench browser full [options]',
+    'bench browser profile [options]',
+    'bench compare compiled [options]',
+    'bench compare no-render bun [options]',
+    'bench compare no-render browser [options]',
+    'bench compare browser fps [options]',
+    'bench compare browser visual [options]',
+    'bench compare browser full [options]',
+    'bench experiment accept <id> --reason <text>',
+    'bench experiment reject <id> --reason <text>',
+    'bench status [--json]',
+    'bench concurrency [1|2] [--json]'
+  ],
+  sections: [
+    { title: 'Browser modes', lines: [
+      'load      Measure time to an explicit readiness stage. --stage is required.',
+      'fps       Real rendered cockpit FPS/frame-time benchmark. Default stage: stable.',
+      'visual    Deterministic cockpit panorama capture. Default stage: cockpit.',
+      'full      FPS measurement plus deterministic visual validation. Default stage: stable.',
+      'profile   FPS measurement plus Chrome performance profile. Default stage: stable.'
+    ] },
+    { title: 'Comparison', lines: [
+      'compare runs baseline and candidate sequentially in one queue slot.',
+      'Defaults: --baseline HEAD and --candidate worktree.',
+      'browser full validates visual parity before repeated FPS confirmation.'
+    ] },
+    { title: 'Readiness', lines: [
+      '--stage accepts a built-in alias, exact DevApi load stage, or repository-configured stage from src/benchmarks/config.ts.'
+    ] },
+    { title: 'JavaScript hooks', lines: [
+      '--before runs after readiness and before settle, warmup, and measurement.',
+      '--after runs immediately after measurement and before full-mode visual capture.'
+    ] },
+    { title: 'Browser reuse', lines: [
+      '--reuse reuses the lowest retained browser. If none exists, it opens one and retains it.',
+      '--settle adds settle time when reusing. --keep-open retains a browser after the benchmark.'
+    ] },
+    { title: 'Queue', lines: [
+      'browser and bench share the same slots and concurrency setting.',
+      'Without --slot, automatic work uses the lowest available permitted slot.'
+    ] },
+    { title: 'Experiment recording', lines: [
+      '--experiment persists experiment.json, result.json, patch.diff, and append-only experiments.jsonl.',
+      'accept and reject update status with one top-level reason.'
+    ] }
   ],
   options: [
     { usage: '--stage <stage>', description: 'Built-in alias, exact DevApi stage, or configured stage.' },
@@ -204,17 +318,21 @@ export const BENCH_HELP: CliHelp = {
     { usage: '--after <js> | --after-file <path> | --after-stdin', description: 'Hook run after measurement.' },
     { usage: '--reuse [--settle <duration>]', description: 'Reuse a retained page and settle it before warmup.' },
     { usage: '--keep-open', description: 'Retain a browser session after a non-comparison browser benchmark.' },
+    { usage: '--slot <1|2>', description: 'Explicitly use or wait for that shared queue slot.' },
     { usage: '--baseline <revision>  --candidate <revision|worktree>', description: 'Comparison inputs.' },
-    { usage: '--visual', description: 'Add deterministic visual comparison to browser full.' },
+    { usage: '--experiment <name>', description: 'Persist this comparison as an experiment record.' },
+    { usage: '--description <text>  --aim <text>  --cause <text>  --hypothesis <text>', description: 'Experiment metadata.' },
     { usage: '--json', description: 'Print the structured result.' }
   ]
 }
 
 export function formatHelp(help: CliHelp): string {
-  const lines = [help.summary, '', 'Usage:', ...help.usage.map((usage) => `  ${usage}`), '', 'Options:']
-  for (const option of help.options) {
-    lines.push(`  ${option.usage}\n    ${option.description}`)
+  const lines = [help.summary, '', 'Usage:', ...help.usage.map((usage) => `  ${usage}`)]
+  for (const section of help.sections ?? []) {
+    lines.push('', `${section.title}:`, ...section.lines.map(line => `  ${line}`))
   }
+  lines.push('', 'Options:')
+  for (const option of help.options) lines.push(`  ${option.usage}\n    ${option.description}`)
   return lines.join('\n')
 }
 
@@ -229,6 +347,15 @@ export function parseBrowserCli(arguments_: readonly string[]): CliParseResult<B
   }
   if (operation === 'close') {
     return parseBrowserClose(arguments_.slice(1))
+  }
+  if (operation === 'eval') {
+    return parseBrowserEval(arguments_.slice(1))
+  }
+  if (operation === 'status') {
+    return parseBrowserStatus(arguments_.slice(1))
+  }
+  if (operation === 'concurrency') {
+    return parseBrowserConcurrency(arguments_.slice(1))
   }
   return invalid(BROWSER_HELP, `Unknown browser operation: ${displayArgument(operation)}.`)
 }
@@ -251,6 +378,9 @@ export function parseBenchCli(arguments_: readonly string[]): CliParseResult<Ben
   if (operation === 'compare') {
     return parseComparison(arguments_.slice(1))
   }
+  if (operation === 'experiment') return parseExperimentVerdict(arguments_.slice(1))
+  if (operation === 'status') return parseBenchStatus(arguments_.slice(1))
+  if (operation === 'concurrency') return parseBenchConcurrency(arguments_.slice(1))
   return invalid(BENCH_HELP, `Unknown benchmark operation: ${displayArgument(operation)}.`)
 }
 
@@ -264,22 +394,121 @@ function parseBrowserOpen(arguments_: readonly string[]): CliParseResult<Browser
   if (isInvalid(stage)) return stage
   const timeoutMs = optionDuration(parsed, 'timeout', BROWSER_HELP)
   if (isInvalid(timeoutMs)) return timeoutMs
+  const slot = optionSlot(parsed, BROWSER_HELP)
+  if (isInvalid(slot)) return slot
   const json = optionBoolean(parsed, 'json', BROWSER_HELP)
   if (isInvalid(json)) return json
-  const unsupported = rejectUnsupported(parsed, new Set(['timeout', 'json']), BROWSER_HELP)
+  const unsupported = rejectUnsupported(parsed, new Set(['timeout', 'slot', 'json']), BROWSER_HELP)
   if (unsupported != null) return unsupported
-  return { kind: 'command', command: { kind: 'browser-open', stage, timeoutMs: timeoutMs ?? DEFAULT_BROWSER_TIMEOUT_MS, json } }
+  return { kind: 'command', command: { kind: 'browser-open', stage, timeoutMs: timeoutMs ?? DEFAULT_BROWSER_TIMEOUT_MS, ...(slot == null ? {} : { slot }), json } }
 }
 
 function parseBrowserClose(arguments_: readonly string[]): CliParseResult<BrowserCommand> {
   const parsed = parseOptions(arguments_, BROWSER_HELP)
   if (isInvalid(parsed)) return parsed
   if (parsed.positionals.length !== 0) return invalid(BROWSER_HELP, 'browser close does not accept positional arguments.')
+  const slot = optionSlot(parsed, BROWSER_HELP)
+  if (isInvalid(slot)) return slot
+  const json = optionBoolean(parsed, 'json', BROWSER_HELP)
+  if (isInvalid(json)) return json
+  const unsupported = rejectUnsupported(parsed, new Set(['slot', 'json']), BROWSER_HELP)
+  if (unsupported != null) return unsupported
+  return { kind: 'command', command: { kind: 'browser-close', ...(slot == null ? {} : { slot }), json } }
+}
+
+function parseBrowserEval(arguments_: readonly string[]): CliParseResult<BrowserCommand> {
+  const parsed = parseOptions(arguments_, BROWSER_HELP)
+  if (isInvalid(parsed)) return parsed
+  const inline = parsed.positionals.length === 1 ? parseText(parsed.positionals[0]!, 'JavaScript', BROWSER_HELP) : undefined
+  if (isInvalid(inline)) return inline
+  if (parsed.positionals.length > 1) return invalid(BROWSER_HELP, 'browser eval accepts one inline JavaScript argument, --file, or --stdin.')
+  const file = optionText(parsed, 'file', BROWSER_HELP, false)
+  if (isInvalid(file)) return file
+  const stdin = optionBoolean(parsed, 'stdin', BROWSER_HELP)
+  if (isInvalid(stdin)) return stdin
+  const count = Number(inline != null) + Number(file != null) + Number(stdin)
+  if (count !== 1) return invalid(BROWSER_HELP, 'browser eval requires exactly one JavaScript source: inline, --file, or --stdin.')
+  const slot = optionSlot(parsed, BROWSER_HELP)
+  if (isInvalid(slot)) return slot
+  const json = optionBoolean(parsed, 'json', BROWSER_HELP)
+  if (isInvalid(json)) return json
+  const unsupported = rejectUnsupported(parsed, new Set(['file', 'stdin', 'slot', 'json']), BROWSER_HELP)
+  if (unsupported != null) return unsupported
+  const source: HookSource = inline != null ? { kind: 'inline', source: inline } : file != null ? { kind: 'file', path: file } : { kind: 'stdin' }
+  return { kind: 'command', command: { kind: 'browser-eval', source, ...(slot == null ? {} : { slot }), json } }
+}
+
+function parseBrowserStatus(arguments_: readonly string[]): CliParseResult<BrowserCommand> {
+  const parsed = parseOptions(arguments_, BROWSER_HELP)
+  if (isInvalid(parsed)) return parsed
+  if (parsed.positionals.length !== 0) return invalid(BROWSER_HELP, 'browser status does not accept positional arguments.')
   const json = optionBoolean(parsed, 'json', BROWSER_HELP)
   if (isInvalid(json)) return json
   const unsupported = rejectUnsupported(parsed, new Set(['json']), BROWSER_HELP)
   if (unsupported != null) return unsupported
-  return { kind: 'command', command: { kind: 'browser-close', json } }
+  return { kind: 'command', command: { kind: 'browser-status', json } }
+}
+
+function parseBrowserConcurrency(arguments_: readonly string[]): CliParseResult<BrowserCommand> {
+  const parsed = parseOptions(arguments_, BROWSER_HELP)
+  if (isInvalid(parsed)) return parsed
+  if (parsed.positionals.length > 1) return invalid(BROWSER_HELP, 'browser concurrency accepts at most one capacity: 1 or 2.')
+  let capacity: 1 | 2 | undefined
+  if (parsed.positionals[0] != null) {
+    const value = Number(parsed.positionals[0])
+    if (value !== 1 && value !== 2) return invalid(BROWSER_HELP, 'browser concurrency capacity must be 1 or 2.')
+    capacity = value
+  }
+  const json = optionBoolean(parsed, 'json', BROWSER_HELP)
+  if (isInvalid(json)) return json
+  const unsupported = rejectUnsupported(parsed, new Set(['json']), BROWSER_HELP)
+  if (unsupported != null) return unsupported
+  return { kind: 'command', command: { kind: 'browser-concurrency', ...(capacity == null ? {} : { capacity }), json } }
+}
+
+function parseExperimentVerdict(arguments_: readonly string[]): CliParseResult<BenchCommand> {
+  const action = arguments_[0]
+  if (action !== 'accept' && action !== 'reject') return invalid(BENCH_HELP, 'bench experiment requires accept or reject.')
+  const parsed = parseOptions(arguments_.slice(1), BENCH_HELP)
+  if (isInvalid(parsed)) return parsed
+  if (parsed.positionals.length !== 1) return invalid(BENCH_HELP, `bench experiment ${action} requires exactly one <id>.`)
+  const id = parseText(parsed.positionals[0]!, 'experiment id', BENCH_HELP)
+  if (isInvalid(id)) return id
+  const reason = optionText(parsed, 'reason', BENCH_HELP, true)
+  if (isInvalid(reason) || reason == null) return isInvalid(reason) ? reason : invalid(BENCH_HELP, '--reason is required.')
+  const json = optionBoolean(parsed, 'json', BENCH_HELP)
+  if (isInvalid(json)) return json
+  const unsupported = rejectUnsupported(parsed, new Set(['reason', 'json']), BENCH_HELP)
+  if (unsupported != null) return unsupported
+  return { kind: 'command', command: { kind: action === 'accept' ? 'experiment-accept' : 'experiment-reject', id, reason, json } }
+}
+
+function parseBenchStatus(arguments_: readonly string[]): CliParseResult<BenchCommand> {
+  const parsed = parseOptions(arguments_, BENCH_HELP)
+  if (isInvalid(parsed)) return parsed
+  if (parsed.positionals.length !== 0) return invalid(BENCH_HELP, 'bench status does not accept positional arguments.')
+  const json = optionBoolean(parsed, 'json', BENCH_HELP)
+  if (isInvalid(json)) return json
+  const unsupported = rejectUnsupported(parsed, new Set(['json']), BENCH_HELP)
+  if (unsupported != null) return unsupported
+  return { kind: 'command', command: { kind: 'bench-status', json } }
+}
+
+function parseBenchConcurrency(arguments_: readonly string[]): CliParseResult<BenchCommand> {
+  const parsed = parseOptions(arguments_, BENCH_HELP)
+  if (isInvalid(parsed)) return parsed
+  if (parsed.positionals.length > 1) return invalid(BENCH_HELP, 'bench concurrency accepts at most one capacity: 1 or 2.')
+  let capacity: 1 | 2 | undefined
+  if (parsed.positionals[0] != null) {
+    const value = Number(parsed.positionals[0])
+    if (value !== 1 && value !== 2) return invalid(BENCH_HELP, 'bench concurrency capacity must be 1 or 2.')
+    capacity = value
+  }
+  const json = optionBoolean(parsed, 'json', BENCH_HELP)
+  if (isInvalid(json)) return json
+  const unsupported = rejectUnsupported(parsed, new Set(['json']), BENCH_HELP)
+  if (unsupported != null) return unsupported
+  return { kind: 'command', command: { kind: 'bench-concurrency', ...(capacity == null ? {} : { capacity }), json } }
 }
 
 function parseStandaloneBenchmark(kind: 'compiled', arguments_: readonly string[]): CliParseResult<BenchCommand> {
@@ -291,7 +520,7 @@ function parseStandaloneBenchmark(kind: 'compiled', arguments_: readonly string[
 function parseNoRender(arguments_: readonly string[]): CliParseResult<BenchCommand> {
   const target = arguments_[0]
   if (target === 'bun') return parseNoRenderBun(arguments_.slice(1))
-  if (target === 'browser') return parseBrowserFrameBenchmark('no-render-browser', arguments_.slice(1))
+  if (target === 'browser') return parseBrowserFrameBenchmark('no-render-browser', arguments_.slice(1), DEFAULT_NO_RENDER_BROWSER_STAGE)
   return invalid(BENCH_HELP, 'bench no-render requires bun or browser.')
 }
 
@@ -304,10 +533,11 @@ function parseNoRenderBun(arguments_: readonly string[]): CliParseResult<BenchCo
 function parseBrowserBenchmark(arguments_: readonly string[]): CliParseResult<BenchCommand> {
   const mode = arguments_[0]
   if (mode === 'load') return parseBrowserLoad(arguments_.slice(1))
+  if (mode === 'fps') return parseBrowserFrameBenchmark('browser-fps', arguments_.slice(1))
   if (mode === 'full') return parseBrowserFrameBenchmark('browser-full', arguments_.slice(1))
   if (mode === 'profile') return parseBrowserFrameBenchmark('browser-profile', arguments_.slice(1))
   if (mode === 'visual') return parseBrowserVisual(arguments_.slice(1))
-  return invalid(BENCH_HELP, 'bench browser requires load, full, profile, or visual.')
+  return invalid(BENCH_HELP, 'bench browser requires load, fps, visual, full, or profile.')
 }
 
 function parseBrowserLoad(arguments_: readonly string[]): CliParseResult<BenchCommand> {
@@ -323,16 +553,19 @@ function parseBrowserLoad(arguments_: readonly string[]): CliParseResult<BenchCo
   if (isInvalid(json)) return json
   const keepOpen = optionBoolean(parsed, 'keep-open', BENCH_HELP)
   if (isInvalid(keepOpen)) return keepOpen
-  const unsupported = rejectUnsupported(parsed, new Set(['stage', 'timeout', 'json', 'keep-open']), BENCH_HELP)
+  const slot = optionSlot(parsed, BENCH_HELP)
+  if (isInvalid(slot)) return slot
+  const unsupported = rejectUnsupported(parsed, new Set(['stage', 'timeout', 'json', 'keep-open', 'slot']), BENCH_HELP)
   if (unsupported != null) return unsupported
-  return { kind: 'command', command: { kind: 'browser-load', stage, timeoutMs: timeoutMs ?? DEFAULT_BROWSER_TIMEOUT_MS, keepOpen, json } }
+  return { kind: 'command', command: { kind: 'browser-load', stage, timeoutMs: timeoutMs ?? DEFAULT_BROWSER_TIMEOUT_MS, keepOpen, ...(slot == null ? {} : { slot }), json } }
 }
 
 function parseBrowserFrameBenchmark(
-  kind: BrowserNoRenderBenchmarkCommand['kind'] | BrowserFullBenchmarkCommand['kind'] | BrowserProfileBenchmarkCommand['kind'],
-  arguments_: readonly string[]
+  kind: BrowserNoRenderBenchmarkCommand['kind'] | BrowserFpsBenchmarkCommand['kind'] | BrowserFullBenchmarkCommand['kind'] | BrowserProfileBenchmarkCommand['kind'],
+  arguments_: readonly string[],
+  defaultStage = DEFAULT_BROWSER_STAGE
 ): CliParseResult<BenchCommand> {
-  const parsed = parseBrowserOptions(arguments_, BENCH_HELP, true)
+  const parsed = parseBrowserOptions(arguments_, BENCH_HELP, true, defaultStage)
   if (isInvalid(parsed)) return parsed
   const frameOptions = readFrameOptions(parsed.parsed, BENCH_HELP)
   if (isInvalid(frameOptions)) return frameOptions
@@ -340,7 +573,7 @@ function parseBrowserFrameBenchmark(
 }
 
 function parseBrowserVisual(arguments_: readonly string[]): CliParseResult<BenchCommand> {
-  const parsed = parseBrowserOptions(arguments_, BENCH_HELP, false)
+  const parsed = parseBrowserOptions(arguments_, BENCH_HELP, false, DEFAULT_BROWSER_VISUAL_STAGE, DEFAULT_BROWSER_VISUAL_TIMEOUT_MS)
   if (isInvalid(parsed)) return parsed
   return { kind: 'command', command: { kind: 'browser-visual', ...parsed.value } }
 }
@@ -351,18 +584,20 @@ function parseComparison(arguments_: readonly string[]): CliParseResult<BenchCom
   const remaining = arguments_.slice(target.consumed)
   if (target.kind === 'compiled') return parseFrameComparison('compare-compiled', remaining)
   if (target.kind === 'no-render-bun') return parseFrameComparison('compare-no-render-bun', remaining)
-  if (target.kind === 'no-render-browser') return parseBrowserComparison('compare-no-render-browser', remaining, true)
+  if (target.kind === 'no-render-browser') return parseBrowserComparison('compare-no-render-browser', remaining, true, DEFAULT_NO_RENDER_BROWSER_STAGE)
+  if (target.kind === 'browser-fps') return parseBrowserComparison('compare-browser-fps', remaining, true)
   if (target.kind === 'browser-full') return parseBrowserComparison('compare-browser-full', remaining, true)
-  return parseBrowserComparison('compare-browser-visual', remaining, false)
+  return parseBrowserComparison('compare-browser-visual', remaining, false, DEFAULT_BROWSER_VISUAL_STAGE)
 }
 
-function comparisonTarget(arguments_: readonly string[]): { readonly kind: 'compiled' | 'no-render-bun' | 'no-render-browser' | 'browser-full' | 'browser-visual'; readonly consumed: number } | InvalidArgumentsResult {
+function comparisonTarget(arguments_: readonly string[]): { readonly kind: 'compiled' | 'no-render-bun' | 'no-render-browser' | 'browser-fps' | 'browser-full' | 'browser-visual'; readonly consumed: number } | InvalidArgumentsResult {
   if (arguments_[0] === 'compiled') return { kind: 'compiled', consumed: 1 }
   if (arguments_[0] === 'no-render' && arguments_[1] === 'bun') return { kind: 'no-render-bun', consumed: 2 }
   if (arguments_[0] === 'no-render' && arguments_[1] === 'browser') return { kind: 'no-render-browser', consumed: 2 }
+  if (arguments_[0] === 'browser' && arguments_[1] === 'fps') return { kind: 'browser-fps', consumed: 2 }
   if (arguments_[0] === 'browser' && arguments_[1] === 'full') return { kind: 'browser-full', consumed: 2 }
   if (arguments_[0] === 'browser' && arguments_[1] === 'visual') return { kind: 'browser-visual', consumed: 2 }
-  return invalid(BENCH_HELP, 'bench compare requires compiled, no-render bun|browser, browser full, or browser visual.')
+  return invalid(BENCH_HELP, 'bench compare requires compiled, no-render bun|browser, or browser fps|visual|full.')
 }
 
 function parseFrameComparison(
@@ -376,60 +611,59 @@ function parseFrameComparison(
   if (isInvalid(common)) return common
   const frames = readFrameOptions(parsed, BENCH_HELP)
   if (isInvalid(frames)) return frames
-  const unsupported = rejectUnsupported(parsed, new Set(['baseline', 'candidate', 'frames', 'warmup', 'json']), BENCH_HELP)
+  const unsupported = rejectUnsupported(parsed, new Set(['baseline', 'candidate', 'frames', 'warmup', 'slot', 'json', 'experiment', 'description', 'aim', 'cause', 'hypothesis']), BENCH_HELP)
   if (unsupported != null) return unsupported
   return { kind: 'command', command: { kind, ...common, ...frames } }
 }
 
 function parseBrowserComparison(
-  kind: CompareBrowserNoRenderCommand['kind'] | CompareBrowserFullCommand['kind'] | CompareBrowserVisualCommand['kind'],
+  kind: CompareBrowserNoRenderCommand['kind'] | CompareBrowserFpsCommand['kind'] | CompareBrowserFullCommand['kind'] | CompareBrowserVisualCommand['kind'],
   arguments_: readonly string[],
-  supportsFrames: boolean
+  supportsFrames: boolean,
+  defaultStage = DEFAULT_BROWSER_STAGE,
+  defaultTimeoutMs = DEFAULT_BROWSER_TIMEOUT_MS
 ): CliParseResult<BenchCommand> {
   const parsed = parseOptions(arguments_, BENCH_HELP)
   if (isInvalid(parsed)) return parsed
   if (parsed.positionals.length !== 0) return invalid(BENCH_HELP, 'Comparison commands do not accept positional arguments.')
   const common = readComparisonOptions(parsed, BENCH_HELP)
   if (isInvalid(common)) return common
-  const browser = readComparisonBrowserOptions(parsed, BENCH_HELP)
+  const browser = readComparisonBrowserOptions(parsed, BENCH_HELP, defaultStage)
   if (isInvalid(browser)) return browser
   const frames = supportsFrames ? readFrameOptions(parsed, BENCH_HELP) : { frames: undefined, warmupFrames: undefined }
   if (isInvalid(frames)) return frames
-  const visual = optionBoolean(parsed, 'visual', BENCH_HELP)
-  if (isInvalid(visual)) return visual
-  if (kind !== 'compare-browser-full' && visual) {
-    return invalid(BENCH_HELP, '--visual is only valid with bench compare browser full; browser visual is already visual.')
-  }
-  const allowed = new Set(['baseline', 'candidate', 'stage', 'timeout', 'before', 'before-file', 'before-stdin', 'after', 'after-file', 'after-stdin', 'json', 'visual'])
+  const allowed = new Set(['baseline', 'candidate', 'stage', 'timeout', 'before', 'before-file', 'before-stdin', 'after', 'after-file', 'after-stdin', 'slot', 'json', 'experiment', 'description', 'aim', 'cause', 'hypothesis'])
   if (supportsFrames) {
     allowed.add('frames')
     allowed.add('warmup')
   }
   const unsupported = rejectUnsupported(parsed, allowed, BENCH_HELP)
   if (unsupported != null) return unsupported
-  if (kind === 'compare-browser-full') {
-    return { kind: 'command', command: { kind, ...common, ...browser, ...frames, visual } }
-  }
-  if (kind === 'compare-browser-visual') {
-    return { kind: 'command', command: { kind, ...common, ...browser, visual: true } }
-  }
   return { kind: 'command', command: { kind, ...common, ...browser, ...frames } }
 }
 
-function parseFrameOptions(arguments_: readonly string[], help: CliHelp): { readonly frames?: number; readonly warmupFrames?: number; readonly json: boolean } | InvalidArgumentsResult {
+function parseFrameOptions(arguments_: readonly string[], help: CliHelp): { readonly frames?: number; readonly warmupFrames?: number; readonly slot?: 1 | 2; readonly json: boolean } | InvalidArgumentsResult {
   const parsed = parseOptions(arguments_, help)
   if (isInvalid(parsed)) return parsed
   if (parsed.positionals.length !== 0) return invalid(help, 'This benchmark does not accept positional arguments.')
   const frames = readFrameOptions(parsed, help)
   if (isInvalid(frames)) return frames
+  const slot = optionSlot(parsed, help)
+  if (isInvalid(slot)) return slot
   const json = optionBoolean(parsed, 'json', help)
   if (isInvalid(json)) return json
-  const unsupported = rejectUnsupported(parsed, new Set(['frames', 'warmup', 'json']), help)
+  const unsupported = rejectUnsupported(parsed, new Set(['frames', 'warmup', 'slot', 'json']), help)
   if (unsupported != null) return unsupported
-  return { ...frames, json }
+  return { ...frames, ...(slot == null ? {} : { slot }), json }
 }
 
-function parseBrowserOptions(arguments_: readonly string[], help: CliHelp, supportsFrames: boolean): { readonly value: BrowserBenchmarkOptions; readonly parsed: ParsedOptions } | InvalidArgumentsResult {
+function parseBrowserOptions(
+  arguments_: readonly string[],
+  help: CliHelp,
+  supportsFrames: boolean,
+  defaultStage = DEFAULT_BROWSER_STAGE,
+  defaultTimeoutMs = DEFAULT_BROWSER_TIMEOUT_MS
+): { readonly value: BrowserBenchmarkOptions; readonly parsed: ParsedOptions } | InvalidArgumentsResult {
   const parsed = parseOptions(arguments_, help)
   if (isInvalid(parsed)) return parsed
   if (parsed.positionals.length !== 0) return invalid(help, 'This benchmark does not accept positional arguments.')
@@ -444,11 +678,13 @@ function parseBrowserOptions(arguments_: readonly string[], help: CliHelp, suppo
   if (settleMs != null && !reuse) return invalid(help, '--settle requires --reuse.')
   const keepOpen = optionBoolean(parsed, 'keep-open', help)
   if (isInvalid(keepOpen)) return keepOpen
+  const slot = optionSlot(parsed, help)
+  if (isInvalid(slot)) return slot
   const json = optionBoolean(parsed, 'json', help)
   if (isInvalid(json)) return json
   const hooks = readHooks(parsed, help)
   if (isInvalid(hooks)) return hooks
-  const allowed = new Set(['stage', 'timeout', 'reuse', 'settle', 'keep-open', 'before', 'before-file', 'before-stdin', 'after', 'after-file', 'after-stdin', 'json'])
+  const allowed = new Set(['stage', 'timeout', 'reuse', 'settle', 'keep-open', 'slot', 'before', 'before-file', 'before-stdin', 'after', 'after-file', 'after-stdin', 'json'])
   if (supportsFrames) {
     allowed.add('frames')
     allowed.add('warmup')
@@ -457,11 +693,12 @@ function parseBrowserOptions(arguments_: readonly string[], help: CliHelp, suppo
   if (unsupported != null) return unsupported
   return {
     value: {
-      stage: stage ?? DEFAULT_BROWSER_STAGE,
-      timeoutMs: timeoutMs ?? DEFAULT_BROWSER_TIMEOUT_MS,
+      stage: stage ?? defaultStage,
+      timeoutMs: timeoutMs ?? defaultTimeoutMs,
       reuse,
       ...(reuse ? { settleMs: settleMs ?? DEFAULT_REUSE_SETTLE_MS } : {}),
       keepOpen,
+      ...(slot == null ? {} : { slot }),
       hooks,
       json
     },
@@ -469,24 +706,50 @@ function parseBrowserOptions(arguments_: readonly string[], help: CliHelp, suppo
   }
 }
 
+function readExperimentOptions(parsed: ParsedOptions, help: CliHelp): ExperimentOptions | undefined | InvalidArgumentsResult {
+  const name = optionText(parsed, 'experiment', help, false)
+  if (isInvalid(name)) return name
+  const description = optionText(parsed, 'description', help, false)
+  if (isInvalid(description)) return description
+  const aim = optionText(parsed, 'aim', help, false)
+  if (isInvalid(aim)) return aim
+  const cause = optionText(parsed, 'cause', help, false)
+  if (isInvalid(cause)) return cause
+  const hypothesis = optionText(parsed, 'hypothesis', help, false)
+  if (isInvalid(hypothesis)) return hypothesis
+  if (name == null) {
+    if (description != null || aim != null || cause != null || hypothesis != null) return invalid(help, 'Experiment metadata requires --experiment <name>.')
+    return undefined
+  }
+  return { name, ...(description == null ? {} : { description }), ...(aim == null ? {} : { aim }), ...(cause == null ? {} : { cause }), ...(hypothesis == null ? {} : { hypothesis }) }
+}
+
 function readComparisonOptions(parsed: ParsedOptions, help: CliHelp): ComparisonSelection & CommonBenchmarkCommand | InvalidArgumentsResult {
   const baseline = optionText(parsed, 'baseline', help, false)
   if (isInvalid(baseline)) return baseline
   const candidate = optionText(parsed, 'candidate', help, false)
   if (isInvalid(candidate)) return candidate
+  const slot = optionSlot(parsed, help)
+  if (isInvalid(slot)) return slot
+  const experiment = readExperimentOptions(parsed, help)
+  if (isInvalid(experiment)) return experiment
   const json = optionBoolean(parsed, 'json', help)
   if (isInvalid(json)) return json
-  return { baseline: baseline ?? DEFAULT_COMPARISON_BASELINE, candidate: candidate ?? DEFAULT_COMPARISON_CANDIDATE, json }
+  return { baseline: baseline ?? DEFAULT_COMPARISON_BASELINE, candidate: candidate ?? DEFAULT_COMPARISON_CANDIDATE, ...(slot == null ? {} : { slot }), ...(experiment == null ? {} : { experiment }), json }
 }
 
-function readComparisonBrowserOptions(parsed: ParsedOptions, help: CliHelp): Omit<BrowserComparisonCommand, keyof CommonComparisonCommand | 'kind'> | InvalidArgumentsResult {
+function readComparisonBrowserOptions(
+  parsed: ParsedOptions,
+  help: CliHelp,
+  defaultStage = DEFAULT_BROWSER_STAGE
+): Omit<BrowserComparisonCommand, keyof CommonComparisonCommand | 'kind'> | InvalidArgumentsResult {
   const stage = optionText(parsed, 'stage', help, false)
   if (isInvalid(stage)) return stage
   const timeoutMs = optionDuration(parsed, 'timeout', help)
   if (isInvalid(timeoutMs)) return timeoutMs
   const hooks = readHooks(parsed, help)
   if (isInvalid(hooks)) return hooks
-  return { stage: stage ?? DEFAULT_BROWSER_STAGE, timeoutMs: timeoutMs ?? DEFAULT_BROWSER_TIMEOUT_MS, hooks }
+  return { stage: stage ?? defaultStage, timeoutMs: timeoutMs ?? DEFAULT_COMPARISON_BROWSER_TIMEOUT_MS, hooks }
 }
 
 function readFrameOptions(parsed: ParsedOptions, help: CliHelp): { readonly frames?: number; readonly warmupFrames?: number } | InvalidArgumentsResult {
@@ -600,6 +863,14 @@ function optionBoolean(parsed: ParsedOptions, name: string, help: CliHelp): bool
   if (option == null) return false
   if (option.value != null) return invalid(help, `--${name} does not accept a value.`)
   return true
+}
+
+function optionSlot(parsed: ParsedOptions, help: CliHelp): 1 | 2 | undefined | InvalidArgumentsResult {
+  const value = optionText(parsed, 'slot', help, false)
+  if (isInvalid(value)) return value
+  if (value == null) return undefined
+  const slot = Number(value)
+  return slot === 1 || slot === 2 ? slot : invalid(help, '--slot must be 1 or 2.')
 }
 
 function rejectUnsupported(parsed: ParsedOptions, allowed: ReadonlySet<string>, help: CliHelp): InvalidArgumentsResult | undefined {

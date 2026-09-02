@@ -1,7 +1,8 @@
 import { spawn, type ChildProcess } from 'node:child_process'
-import { mkdir, symlink } from 'node:fs/promises'
+import { mkdir, rm, symlink, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:net'
 import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 export type RevisionWorkspace = {
   readonly selector: string
@@ -109,39 +110,103 @@ async function waitForServer(url: string, child: ChildProcess, timeoutMs: number
   throw new Error(`Timed out waiting for benchmark server ${url}.`)
 }
 
-/** Starts a revision-local Vite server. Dependencies resolve from the parent checkout's node_modules. */
-export async function startRevisionServer(workspace: RevisionWorkspace, timeoutMs = 30_000): Promise<RevisionServer> {
-  const port = await unusedPort()
+/** Starts a revision-local Vite server without sharing the live checkout's optimizer cache. */
+export async function startRevisionServer(
+  workspace: RevisionWorkspace,
+  timeoutMs = 30_000,
+  requestedPort?: number
+): Promise<RevisionServer> {
+  const port = requestedPort ?? await unusedPort()
   const url = `http://127.0.0.1:${port}`
+  const tempRoot = path.join(workspace.cwd, '.tmp', `benchmark-vite-${crypto.randomUUID()}`)
+  const configPath = path.join(tempRoot, 'vite.config.mjs')
+  const cacheDir = path.join(workspace.cwd, '.benchmarks', 'vite-cache')
+  await mkdir(tempRoot, { recursive: true })
+  await writeFile(configPath, revisionViteConfig(
+    path.join(workspace.cwd, 'vite.config.ts'),
+    cacheDir,
+    workspace
+  ))
+  const optimization = await run(process.execPath, ['x', 'vite', 'optimize', '--config', configPath], workspace.cwd)
+  if (optimization.exitCode !== 0) {
+    await rm(tempRoot, { recursive: true, force: true })
+    throw new Error(`Revision Vite dependency optimization failed: ${(optimization.stderr || optimization.stdout).trim()}`)
+  }
   const child = spawn(
     process.execPath,
-    ['x', 'vite', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
-    { cwd: workspace.cwd, stdio: ['ignore', 'ignore', 'pipe'] }
+    ['x', 'vite', '--config', configPath, '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
+    {
+      cwd: workspace.cwd,
+      env: { ...process.env, FLIGHTSIM_AIRCRAFT_CACHE_MODE: 'immutable' },
+      stdio: ['ignore', 'ignore', 'pipe']
+    }
   )
   let stderr = ''
   child.stderr.on('data', (chunk: Buffer) => { stderr = `${stderr}${chunk.toString('utf8')}`.slice(-4_000) })
   try {
     await waitForServer(url, child, timeoutMs)
   } catch (error) {
-    child.kill('SIGTERM')
+    await stopChild(child)
+    await rm(tempRoot, { recursive: true, force: true })
     throw new Error(`${error instanceof Error ? error.message : String(error)} ${stderr}`.trim())
   }
 
   return {
     url,
     stop: async () => {
-      if (child.exitCode != null) return
-      child.kill('SIGTERM')
-      await new Promise<void>(resolve => {
-        const forced = setTimeout(() => {
-          child.kill('SIGKILL')
-          resolve()
-        }, 2_000)
-        child.once('exit', () => {
-          clearTimeout(forced)
-          resolve()
-        })
-      })
+      await stopChild(child)
+      await rm(tempRoot, { recursive: true, force: true })
     }
   }
+}
+
+function revisionViteConfig(
+  baseConfigPath: string,
+  cacheDir: string,
+  workspace: RevisionWorkspace
+): string {
+  const identity = JSON.stringify({ selector: workspace.selector, revision: workspace.revision })
+  return [
+    `import { defineConfig, mergeConfig } from 'vite'`,
+    `import baseConfig from ${JSON.stringify(pathToFileURL(baseConfigPath).href)}`,
+    `const benchmarkIdentity = ${identity}`,
+    `const identityPlugin = {`,
+    `  name: 'flightsim-benchmark-revision-identity',`,
+    `  transformIndexHtml() {`,
+    `    return [{ tag: 'script', children: ${JSON.stringify(`globalThis.__FlightSimBenchmarkRevision = ${identity}`)}, injectTo: 'head-prepend' }]`,
+    `  },`,
+    `  configureServer(server) {`,
+    `    server.middlewares.use('/__benchmark/revision.json', (_request, response) => {`,
+    `      response.statusCode = 200`,
+    `      response.setHeader('Content-Type', 'application/json; charset=utf-8')`,
+    `      response.setHeader('Cache-Control', 'no-store')`,
+    `      response.end(JSON.stringify(benchmarkIdentity))`,
+    `    })`,
+    `  }`,
+    `}`,
+    `export default defineConfig(async env => {`,
+    `  const resolved = typeof baseConfig === 'function' ? await baseConfig(env) : baseConfig`,
+    `  return mergeConfig(resolved, {`,
+    `    cacheDir: ${JSON.stringify(cacheDir)},`,
+    `    plugins: [identityPlugin],`,
+    `    server: { hmr: false }`,
+    `  })`,
+    `})`,
+    ``
+  ].join('\n')
+}
+
+async function stopChild(child: ChildProcess): Promise<void> {
+  if (child.exitCode != null) return
+  child.kill('SIGTERM')
+  await new Promise<void>(resolve => {
+    const forced = setTimeout(() => {
+      child.kill('SIGKILL')
+      resolve()
+    }, 2_000)
+    child.once('exit', () => {
+      clearTimeout(forced)
+      resolve()
+    })
+  })
 }

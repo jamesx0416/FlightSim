@@ -4,9 +4,9 @@ import {
   DEFAULT_BROWSER_TIMEOUT_MS
 } from './browserDriver'
 
-// The viewer keeps a rolling 120-frame FPS window, so this is the largest
-// authoritative sample boundary status() can report.
-export const DEFAULT_STABLE_SAMPLE_COUNT = 120
+// Allow gauge load completion to propagate through the viewer before a retained
+// page is used or a benchmark begins its own warmup.
+export const DEFAULT_STABLE_SAMPLE_COUNT = 5
 
 export const READINESS_STAGE_ALIASES = [
   'initial',
@@ -69,9 +69,10 @@ export class ReadinessError extends Error {
   }
 }
 
-/** Browser load measurements must name their boundary; every other mode settles at stable by default. */
-export function defaultReadinessStage(mode: ReadinessMode = 'browser'): ReadinessStageAlias | undefined {
-  return mode === 'load' ? undefined : 'stable'
+/** Browser load measurements must name their boundary; no-render stops at the exact preferred-interior completion marker. */
+export function defaultReadinessStage(mode: ReadinessMode = 'browser'): string | undefined {
+  if (mode === 'load') return undefined
+  return mode === 'no-render' ? 'gltf:interior-upgrade:ready' : 'stable'
 }
 
 /** Resolves aliases, custom configuration names, or an exact DevApi load-stage value. */
@@ -224,9 +225,11 @@ function hasReachedLoadStageCondition(stage: string): string {
 function cockpitReadyCondition(): string {
   return `(() => {
     const status = window.__DevApi?.status?.()
+    const cockpit = status?.data?.cockpit
     return status?.ok === true &&
-      status.data?.cockpit?.active === true &&
-      status.data?.cockpit?.activeInteriorLodIndex != null
+      cockpit?.active === true &&
+      cockpit.selectedInteriorLodIndex != null &&
+      cockpit.activeInteriorLodIndex === cockpit.selectedInteriorLodIndex
   })()`
 }
 

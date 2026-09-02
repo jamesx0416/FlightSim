@@ -17,7 +17,8 @@ function result(command: AgentBrowserCommand, stdout = '{}'): AgentBrowserComman
   return { command, exitCode: 0, stdout, stderr: '', durationMs: 1, timedOut: false }
 }
 
-test('defaults non-load browser work to stable and requires a load boundary', () => {
+test('defaults no-render to the exact interior-ready marker, rendered work to stable, and requires a load boundary', () => {
+  expect(defaultReadinessStage('no-render')).toBe('gltf:interior-upgrade:ready')
   expect(defaultReadinessStage('full')).toBe('stable')
   expect(defaultReadinessStage('load')).toBeUndefined()
   expect(resolveReadinessStage().resolved).toBe('stable')
@@ -33,6 +34,7 @@ test('defaults non-load browser work to stable and requires a load boundary', ()
 
 test('uses DevApi conditions for aliases, exact stages, and configured hooks', () => {
   const compiled = resolveReadinessStage({ stage: 'compiled' })
+  const cockpit = resolveReadinessStage({ stage: 'cockpit' })
   const stable = resolveReadinessStage({ stage: 'stable' })
   const exact = resolveReadinessStage({ stage: 'gltf:interior-upgrade:ready' })
   const custom = resolveReadinessStage({
@@ -41,7 +43,9 @@ test('uses DevApi conditions for aliases, exact stages, and configured hooks', (
   })
 
   expect(compiled.condition.includes('gltf:loaded')).toBe(true)
+  expect(cockpit.condition.includes('activeInteriorLodIndex === cockpit.selectedInteriorLodIndex')).toBe(true)
   expect(stable.condition.includes(`samples >= ${DEFAULT_STABLE_SAMPLE_COUNT}`)).toBe(true)
+  expect(resolveReadinessStage({ stage: 'gauges' }).prerequisites).toEqual(['cockpit'])
   expect(stable.prepare?.includes(`let remaining = ${DEFAULT_STABLE_SAMPLE_COUNT}`)).toBe(true)
   expect(stable.prepare?.includes('requestAnimationFrame')).toBe(true)
   expect(exact.kind).toBe('exact')
@@ -49,7 +53,7 @@ test('uses DevApi conditions for aliases, exact stages, and configured hooks', (
   expect([custom.kind, custom.condition]).toEqual(['custom', 'globalThis.__cockpitPerf?.sampleCount >= 300'])
 })
 
-test('settles a fresh frame window only after gauges are ready', async () => {
+test('allows five fresh propagation frames only after gauges are ready', async () => {
   const commands: AgentBrowserCommand[] = []
   const driver = new BrowserDriver({
     session: 'flightsim-readiness-stable',

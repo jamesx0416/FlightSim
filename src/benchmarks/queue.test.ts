@@ -27,11 +27,11 @@ describe('benchmark queue', () => {
       expect(secondTicket.sequence).toBe(2)
 
       const firstLease = await first.tryAcquire(firstTicket)
-      expect(firstLease).toEqual({ pid: 101 })
+      expect(firstLease).toEqual({ pid: 101, slot: 1 })
       expect(await second.tryAcquire(secondTicket)).toBe(null)
 
       expect(await first.release(firstLease!)).toBe(true)
-      expect(await second.tryAcquire(secondTicket)).toEqual({ pid: 202 })
+      expect(await second.tryAcquire(secondTicket)).toEqual({ pid: 202, slot: 1 })
     })
   })
 
@@ -56,7 +56,7 @@ describe('benchmark queue', () => {
 
       await waiting
       await first.release(firstLease!)
-      expect(await leasePromise).toEqual({ pid: 202 })
+      expect(await leasePromise).toEqual({ pid: 202, slot: 1 })
       expect(positions[0]).toBe(1)
     })
   })
@@ -69,7 +69,7 @@ describe('benchmark queue', () => {
         isProcessAlive: () => true
       })
       const staleLease = await staleOwner.acquire()
-      expect(staleLease).toEqual({ pid: 101 })
+      expect(staleLease).toEqual({ pid: 101, slot: 1 })
 
       const nextOwner = createBenchmarkQueue({
         rootDirectory,
@@ -77,7 +77,7 @@ describe('benchmark queue', () => {
         isProcessAlive: pid => pid === 202
       })
       const nextTicket = await nextOwner.join()
-      expect(await nextOwner.tryAcquire(nextTicket)).toEqual({ pid: 202 })
+      expect(await nextOwner.tryAcquire(nextTicket)).toEqual({ pid: 202, slot: 1 })
     })
   })
 
@@ -87,7 +87,7 @@ describe('benchmark queue', () => {
       const owner = createBenchmarkQueue({ rootDirectory, pid: 101, isProcessAlive })
       const lease = await owner.acquire()
       const retained = await owner.retain(lease, 'flightsim-owner-1')
-      expect(retained).toEqual({ pid: 101, sessionName: 'flightsim-owner-1' })
+      expect(retained).toEqual({ pid: 101, slot: 1, sessionName: 'flightsim-owner-1' })
       expect(await owner.resolveRetainedLease('another-session')).toBe(null)
       expect(await owner.resolveRetainedLease('flightsim-owner-1')).toEqual(retained)
 
@@ -98,7 +98,7 @@ describe('benchmark queue', () => {
         isSessionActive: sessionName => sessionName !== 'flightsim-owner-1'
       })
       const nextTicket = await nextOwner.join()
-      expect(await nextOwner.tryAcquire(nextTicket)).toEqual({ pid: 202 })
+      expect(await nextOwner.tryAcquire(nextTicket)).toEqual({ pid: 202, slot: 1 })
     })
   })
 
@@ -111,7 +111,7 @@ describe('benchmark queue', () => {
       })
       const lease = await foreground.acquire()
       const retained = await foreground.transferToKeeper(lease, 303, 'flightsim-keeper-1')
-      expect(retained).toEqual({ pid: 303, sessionName: 'flightsim-keeper-1' })
+      expect(retained).toEqual({ pid: 303, slot: 1, sessionName: 'flightsim-keeper-1' })
 
       const closeProcess = createBenchmarkQueue({
         rootDirectory,
@@ -132,9 +132,62 @@ describe('benchmark queue', () => {
       const ticket = await queue.join()
       expect(await readFile(join(rootDirectory, 'sequence'), 'utf8')).toBe('1\n')
       const lease = await queue.tryAcquire(ticket)
-      expect(await readFile(join(rootDirectory, 'lease.json'), 'utf8')).toBe('{"pid":101}\n')
+      expect(await readFile(join(rootDirectory, 'lease.json'), 'utf8')).toBe('{"pid":101,"slot":1}\n')
       await queue.retain(lease!, 'flightsim-owner-1')
-      expect(await readFile(join(rootDirectory, 'lease.json'), 'utf8')).toBe('{"pid":101,"sessionName":"flightsim-owner-1"}\n')
+      expect(await readFile(join(rootDirectory, 'lease.json'), 'utf8')).toBe('{"pid":101,"slot":1,"sessionName":"flightsim-owner-1"}\n')
     })
   })
+
+  test('persistent capacity two permits two FIFO leases and blocks the third', async () => {
+    await withQueueRoot(async rootDirectory => {
+      const alive = (pid: number): boolean => [101, 202, 303].includes(pid)
+      const first = createBenchmarkQueue({ rootDirectory, pid: 101, isProcessAlive: alive })
+      const second = createBenchmarkQueue({ rootDirectory, pid: 202, isProcessAlive: alive })
+      const third = createBenchmarkQueue({ rootDirectory, pid: 303, isProcessAlive: alive })
+      await first.setCapacity(2)
+      expect(await first.capacity()).toBe(2)
+
+      const firstTicket = await first.join()
+      const secondTicket = await second.join()
+      const thirdTicket = await third.join()
+      expect(await first.tryAcquire(firstTicket)).toEqual({ pid: 101, slot: 1 })
+      expect(await second.tryAcquire(secondTicket)).toEqual({ pid: 202, slot: 2 })
+      expect(await third.tryAcquire(thirdTicket)).toBe(null)
+    })
+  })
+
+  test('explicit slot two works without changing persistent capacity', async () => {
+    await withQueueRoot(async rootDirectory => {
+      const alive = (pid: number): boolean => pid === 101 || pid === 202
+      const main = createBenchmarkQueue({ rootDirectory, pid: 101, isProcessAlive: alive })
+      const sub = createBenchmarkQueue({ rootDirectory, pid: 202, isProcessAlive: alive })
+      const mainLease = await main.acquire()
+      const explicit = await sub.acquireSlot(2)
+
+      expect(mainLease).toEqual({ pid: 101, slot: 1 })
+      expect(explicit.lease).toEqual({ pid: 202, slot: 2 })
+      expect(await sub.capacity()).toBe(1)
+      expect(await sub.release(explicit.lease)).toBe(true)
+      expect(await sub.capacity()).toBe(1)
+    })
+  })
+
+
+  test('a blocked explicit slot waiter does not block later runnable automatic work', async () => {
+    await withQueueRoot(async rootDirectory => {
+      const alive = (pid: number): boolean => [101, 202, 303].includes(pid)
+      const owner = createBenchmarkQueue({ rootDirectory, pid: 101, isProcessAlive: alive })
+      const explicit = createBenchmarkQueue({ rootDirectory, pid: 202, isProcessAlive: alive })
+      const automatic = createBenchmarkQueue({ rootDirectory, pid: 303, isProcessAlive: alive })
+      await owner.setCapacity(2)
+      const ownerTicket = await owner.join(1)
+      expect(await owner.tryAcquire(ownerTicket)).toEqual({ pid: 101, slot: 1 })
+
+      const explicitTicket = await explicit.join(1)
+      const automaticTicket = await automatic.join()
+      expect(await explicit.tryAcquire(explicitTicket)).toBe(null)
+      expect(await automatic.tryAcquire(automaticTicket)).toEqual({ pid: 303, slot: 2 })
+    })
+  })
+
 })
