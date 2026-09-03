@@ -1,6 +1,9 @@
 import os from 'node:os'
 import { spawn } from 'node:child_process'
 
+const PROCESS_ROW_PATTERN = /^\s*(\d+)\s+([\d.]+)\s+(\d+)\s+(.+)$/
+const CHROME_PROCESS_PATTERN = /(?:Google Chrome|Chromium|chrome-for-testing|agent-browser)/i
+
 export type ProcessObservation = {
   readonly pid: number
   readonly cpuPercent: number
@@ -38,7 +41,7 @@ export type EnvironmentSummary = {
 }
 
 function parseProcessRow(line: string): ProcessObservation | null {
-  const match = /^\s*(\d+)\s+([\d.]+)\s+(\d+)\s+(.+)$/.exec(line)
+  const match = PROCESS_ROW_PATTERN.exec(line)
   if (match == null) return null
   return {
     pid: Number(match[1]),
@@ -62,7 +65,7 @@ async function chromeProcesses(): Promise<readonly ProcessObservation[]> {
     .split('\n')
     .map(parseProcessRow)
     .filter((value): value is ProcessObservation => value != null)
-    .filter(value => /(?:Google Chrome|Chromium|chrome-for-testing|agent-browser)/i.test(value.command))
+    .filter(value => CHROME_PROCESS_PATTERN.test(value.command))
 }
 
 export async function observeEnvironment(): Promise<EnvironmentObservation> {
@@ -70,7 +73,12 @@ export async function observeEnvironment(): Promise<EnvironmentObservation> {
   const renderers = chrome.filter(process => process.command.includes('--type=renderer'))
   const gpuProcesses = chrome.filter(process => process.command.includes('--type=gpu-process'))
   const usage = process.memoryUsage()
-  const loadAverage = os.loadavg() as [number, number, number]
+  const loadAverageValues = os.loadavg()
+  const oneMinute = loadAverageValues.at(0)
+  const fiveMinutes = loadAverageValues.at(1)
+  const fifteenMinutes = loadAverageValues.at(2)
+  if (oneMinute == null || fiveMinutes == null || fifteenMinutes == null) throw new Error('OS load average did not contain three values.')
+  const loadAverage: readonly [number, number, number] = [oneMinute, fiveMinutes, fifteenMinutes]
   return {
     timestamp: new Date().toISOString(),
     loadAverage,

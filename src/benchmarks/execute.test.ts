@@ -43,7 +43,8 @@ test('rendered comparisons use the cockpit frame-time median', () => {
 test('rendered comparisons confirm the median across repeated samples', () => {
   const baseline = { performanceSamples: [4.2, 4, 4.1].map(median => ({ cockpitPerf: { frameMs: { median } } })) }
   const candidate = { performanceSamples: [3.9, 4.05, 3.8].map(median => ({ cockpitPerf: { frameMs: { median } } })) }
-  const result = __benchmarkExecuteTestHooks.comparePrimaryMetric(baseline, candidate) as Record<string, unknown>
+  const result = __benchmarkExecuteTestHooks.comparePrimaryMetric(baseline, candidate)
+  if (!result.available) throw new Error('Expected comparable frame metrics.')
 
   expect(result.baselineMsPerFrame).toBe(4.1)
   expect(result.candidateMsPerFrame).toBe(3.9)

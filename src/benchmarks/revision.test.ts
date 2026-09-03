@@ -4,6 +4,8 @@ import path from 'node:path'
 
 import { startRevisionServer, type RevisionWorkspace } from './revision'
 
+const VITE_THREE_IMPORT_PATTERN = /from "([^"]*\/vite-cache\/deps\/three\.js\?v=[^"]+)"/u
+
 test('revision Vite server isolates its optimizer cache', async () => {
   const root = process.cwd()
   const cwd = path.join(root, '.tmp', `revision-server-test-${crypto.randomUUID()}`)
@@ -28,7 +30,7 @@ test('revision Vite server isolates its optimizer cache', async () => {
     const main = await fetch(`${server.url}/main.js`)
     expect(main.ok).toBe(true)
     const source = await main.text()
-    const dependencyPath = /from "([^"]*\/vite-cache\/deps\/three\.js\?v=[^"]+)"/u.exec(source)?.[1]
+    const dependencyPath = VITE_THREE_IMPORT_PATTERN.exec(source)?.[1]
     expect(dependencyPath == null).toBe(false)
     expect(dependencyPath!.includes('/.benchmarks/vite-cache/')).toBe(true)
     expect((await fetch(new URL(dependencyPath!, server.url))).ok).toBe(true)

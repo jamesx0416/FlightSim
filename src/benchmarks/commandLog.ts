@@ -57,12 +57,17 @@ export type CommandLogOptions = {
   readonly isProcessAlive?: ProcessLiveness
 }
 
-export type JsonPrimitive = boolean | number | string | null
-export type JsonValue = JsonPrimitive | readonly JsonValue[] | { readonly [key: string]: JsonValue }
+export type JsonValue = boolean | number | string | null | readonly JsonValue[] | { readonly [key: string]: JsonValue }
 
 const DEFAULT_LOG_PATH = join('logs', 'flightsim-browser-bench.jsonl')
 const DEFAULT_MAX_BYTES = 1_000_000
 const DEFAULT_MAX_FILES = 5
+const URL_CREDENTIAL_PATTERN = /(https?:\/\/[^\s/:]+:)[^@\s/]+@/gi
+const AUTHORIZATION_PATTERN = /(authorization\s*[=:]\s*)(?:bearer\s+)?[^\s,;]+(?:\s+[^\s,;]+)?/gi
+const SECRET_ASSIGNMENT_PATTERN = /((?:token|secret|password|api[_-]?key|authorization|cookie|credential)\s*[=:]\s*)[^\s,;]+/gi
+const SECRET_KEY_PATTERN = /(?:token|secret|password|api[_-]?key|authorization|cookie|credential|private[_-]?key)/i
+const INLINE_HOOK_KEY_PATTERN = /^(?:before|after)(?:Hook)?$/i
+const SECRET_FLAG_PATTERN = /^--?(?:[^=]*[-_])?(?:token|secret|password|api[-_]?key|authorization|cookie|credential)(?:=|$)/i
 
 /** Creates a log-safe representation without retaining the hook source text. */
 export function sanitizeCommandHook(hook: CommandHook): SanitizedCommandHook {
@@ -77,6 +82,7 @@ export function hashCommandSource(source: string): string {
 }
 
 /** Redacts known secrets and converts arbitrary command arguments into JSON-safe data. */
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- command logging is the serialization boundary for arbitrary CLI arguments.
 export function sanitizeCommandArguments(argumentsValue: unknown): JsonValue {
   return sanitizeValue(argumentsValue, undefined, new WeakSet<object>(), false)
 }
@@ -175,20 +181,21 @@ async function fileSize(path: string): Promise<number> {
 }
 
 function sanitizeValue(
+  // oxlint-disable-next-line anti-slop/no-unknown-parameters -- recursive serialization must accept the arbitrary value supplied at the boundary.
   value: unknown,
   key: string | undefined,
   seen: WeakSet<object>,
   insideHook: boolean
 ): JsonValue {
   if (isSecretKey(key)) return '[redacted]'
-  if (isInlineHookKey(key) && typeof value === 'string') return hashCommandSource(value)
-  if (insideHook && key === 'source' && typeof value === 'string') return hashCommandSource(value)
+  if (isInlineHookKey(key) && isString(value)) return hashCommandSource(value)
+  if (insideHook && key === 'source' && isString(value)) return hashCommandSource(value)
   if (value === null) return null
-  if (typeof value === 'boolean') return value
-  if (typeof value === 'string') return redactString(value)
-  if (typeof value === 'number') return Number.isFinite(value) ? value : String(value)
-  if (typeof value === 'bigint') return value.toString()
-  if (typeof value === 'undefined' || typeof value === 'function' || typeof value === 'symbol') return '[unsupported]'
+  if (isBoolean(value)) return value
+  if (isString(value)) return redactString(value)
+  if (isNumber(value)) return Number.isFinite(value) ? value : String(value)
+  if (isBigInt(value)) return value.toString()
+  if (isUnsupportedValue(value)) return '[unsupported]'
   if (value instanceof Date) return value.toISOString()
   if (seen.has(value)) return '[circular]'
   seen.add(value)
@@ -196,11 +203,11 @@ function sanitizeValue(
   if (Array.isArray(value)) {
     return value.map((item, index) => {
       const precedingFlag = value[index - 1]
-      if (typeof precedingFlag === 'string' && isSecretFlag(precedingFlag)) return '[redacted]'
+      if (isString(precedingFlag) && isSecretFlag(precedingFlag)) return '[redacted]'
       return sanitizeValue(item, undefined, seen, false)
     })
   }
-  if (!isRecord(value)) return Object.prototype.toString.call(value)
+  if (!isObject(value)) return Object.prototype.toString.call(value)
 
   const sanitized: Record<string, JsonValue> = {}
   for (const [property, propertyValue] of Object.entries(value)) {
@@ -211,21 +218,21 @@ function sanitizeValue(
 
 function redactString(value: string): string {
   return value
-    .replace(/(https?:\/\/[^\s/:]+:)[^@\s/]+@/gi, '$1[redacted]@')
-    .replace(/(authorization\s*[=:]\s*)(?:bearer\s+)?[^\s,;]+(?:\s+[^\s,;]+)?/gi, '$1[redacted]')
-    .replace(/((?:token|secret|password|api[_-]?key|authorization|cookie|credential)\s*[=:]\s*)[^\s,;]+/gi, '$1[redacted]')
+    .replace(URL_CREDENTIAL_PATTERN, '$1[redacted]@')
+    .replace(AUTHORIZATION_PATTERN, '$1[redacted]')
+    .replace(SECRET_ASSIGNMENT_PATTERN, '$1[redacted]')
 }
 
 function isSecretKey(key: string | undefined): boolean {
-  return key != null && /(?:token|secret|password|api[_-]?key|authorization|cookie|credential|private[_-]?key)/i.test(key)
+  return key != null && SECRET_KEY_PATTERN.test(key)
 }
 
 function isInlineHookKey(key: string | undefined): boolean {
-  return key != null && /^(?:before|after)(?:Hook)?$/i.test(key)
+  return key != null && INLINE_HOOK_KEY_PATTERN.test(key)
 }
 
 function isSecretFlag(value: string): boolean {
-  return /^--?(?:[^=]*[-_])?(?:token|secret|password|api[-_]?key|authorization|cookie|credential)(?:=|$)/i.test(value)
+  return SECRET_FLAG_PATTERN.test(value)
 }
 
 function assertPositiveInteger(value: number, name: string): number {
@@ -233,12 +240,32 @@ function assertPositiveInteger(value: number, name: string): number {
   return value
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value != null && !Array.isArray(value)
+function isString(value: unknown): value is string {
+  return typeof value === 'string'
 }
 
-function isMissingFileError(error: unknown): boolean {
-  return isRecord(error) && error.code === 'ENOENT'
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean'
+}
+
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number'
+}
+
+function isBigInt(value: unknown): value is bigint {
+  return typeof value === 'bigint'
+}
+
+function isUnsupportedValue(value: unknown): value is undefined | symbol | ((...args: never[]) => void) {
+  return typeof value === 'undefined' || typeof value === 'function' || typeof value === 'symbol'
+}
+
+function isObject(value: unknown): value is object {
+  return typeof value === 'object' && value != null
+}
+
+function isMissingFileError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error && error.code === 'ENOENT'
 }
 
 function defaultPidLiveness(pid: number): boolean {
@@ -247,6 +274,6 @@ function defaultPidLiveness(pid: number): boolean {
     process.kill(pid, 0)
     return true
   } catch (error) {
-    return isRecord(error) && (error.code === 'EPERM' || error.code === 'EACCES')
+    return error instanceof Error && 'code' in error && (error.code === 'EPERM' || error.code === 'EACCES')
   }
 }

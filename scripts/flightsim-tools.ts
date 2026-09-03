@@ -21,7 +21,7 @@ const [cli, ...arguments_] = Bun.argv.slice(2)
 
 async function logNonExecution(
   operation: string,
-  argumentsValue: unknown,
+  argumentsValue: { readonly arguments: readonly string[]; readonly cli?: string | undefined },
   exitStatus: number,
   error?: { readonly code: string; readonly message: string }
 ): Promise<void> {

@@ -8,6 +8,8 @@ import {
   deriveBrowserSessionName
 } from './browserDriver'
 
+const SESSION_NAME_PATTERN = /^flightsim-[a-f0-9]{8}-agent-1-42$/u
+
 function result(command: AgentBrowserCommand, stdout = '{}'): AgentBrowserCommandResult {
   return { command, exitCode: 0, stdout, stderr: '', durationMs: 1, timedOut: false }
 }
@@ -19,7 +21,7 @@ test('derives safe worktree-scoped session names', () => {
     queueSequence: 42
   })
 
-  expect(/^flightsim-[a-f0-9]{8}-agent-1-42$/u.test(session)).toBe(true)
+  expect(SESSION_NAME_PATTERN.test(session)).toBe(true)
   expect(session.includes('/')).toBe(false)
 })
 
@@ -68,8 +70,8 @@ test('fails before an operation can continue with more than one tab', async () =
     await driver.open('https://vanilla-3dtiles.localhost:3000')
     throw new Error('Expected the tab invariant to fail.')
   } catch (error) {
-    expect(error instanceof BrowserDriverError).toBe(true)
-    expect((error as BrowserDriverError).code).toBe('BROWSER_TAB_INVARIANT')
+    if (!(error instanceof BrowserDriverError)) throw error
+    expect(error.code).toBe('BROWSER_TAB_INVARIANT')
   }
 })
 
@@ -135,7 +137,7 @@ test('reports a structured browser command failure', async () => {
     await driver.close()
     throw new Error('Expected the command to fail.')
   } catch (error) {
-    expect(error instanceof BrowserDriverError).toBe(true)
-    expect((error as BrowserDriverError).code).toBe('BROWSER_COMMAND_FAILED')
+    if (!(error instanceof BrowserDriverError)) throw error
+    expect(error.code).toBe('BROWSER_COMMAND_FAILED')
   }
 })

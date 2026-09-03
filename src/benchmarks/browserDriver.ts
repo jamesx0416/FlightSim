@@ -1,6 +1,8 @@
 import { rm } from 'node:fs/promises'
 import path from 'node:path'
 
+import type { JsonValue } from './commandLog'
+
 /**
  * The narrow Agent Browser boundary used by benchmark commands. Keeping the
  * process invocation here makes session and tab ownership enforceable.
@@ -24,7 +26,7 @@ export class BrowserDriverError extends Error {
   constructor(
     readonly code: BrowserDriverErrorCode,
     message: string,
-    readonly details: Readonly<Record<string, unknown>> = {}
+    readonly details: Readonly<Record<string, JsonValue>> = {}
   ) {
     super(message)
   }
@@ -69,11 +71,11 @@ export type BrowserDriverOptions = {
   readonly profile?: string
 }
 
-export type AgentBrowserTab = Readonly<Record<string, unknown>>
+export type AgentBrowserTab = JsonObject
 
 export type AgentBrowserSessionInspection = {
   readonly session: string
-  readonly raw: unknown
+  readonly raw: JsonValue
 }
 
 export type BrowserOpenResult = {
@@ -144,12 +146,12 @@ export async function listAgentBrowserSessions(
     )
   }
   const parsed = parseJsonOutput(result.stdout)
-  const sessions = isRecord(parsed) && isRecord(parsed.data) && Array.isArray(parsed.data.sessions)
+  const sessions = isJsonObject(parsed) && isJsonObject(parsed.data) && Array.isArray(parsed.data.sessions)
     ? parsed.data.sessions
-    : isRecord(parsed) && Array.isArray(parsed.sessions)
+    : isJsonObject(parsed) && Array.isArray(parsed.sessions)
       ? parsed.sessions
       : null
-  if (sessions == null || !sessions.every(session => typeof session === 'string')) {
+  if (sessions == null || !sessions.every(isJsonString)) {
     throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser session list did not contain session names.', { value: parsed })
   }
   return sessions
@@ -313,13 +315,14 @@ export class BrowserDriver {
     timeoutMs: number,
     stdin?: string
   ): Promise<AgentBrowserCommandResult> {
-    const command: AgentBrowserCommand = {
+    const baseCommand = {
       executable: this.executable,
       args: ['--session', this.session, '--pin-tab', ...(this.profile == null ? [] : ['--profile', this.profile]), '--json', ...args],
-      ...(this.cwd == null ? {} : { cwd: this.cwd }),
-      ...(stdin == null ? {} : { stdin }),
       timeoutMs: validateTimeout(timeoutMs)
     }
+    const command: AgentBrowserCommand = this.cwd == null
+      ? stdin == null ? baseCommand : { ...baseCommand, stdin }
+      : stdin == null ? { ...baseCommand, cwd: this.cwd } : { ...baseCommand, cwd: this.cwd, stdin }
 
     let result: AgentBrowserCommandResult
     try {
@@ -353,6 +356,7 @@ export class BrowserDriver {
 /** The production runner. Tests normally inject an in-memory runner. */
 export async function runAgentBrowserCommand(command: AgentBrowserCommand): Promise<AgentBrowserCommandResult> {
   const startedAt = performance.now()
+  // SAFETY: Bun exposes its runtime API on globalThis when this file executes under Bun.
   const bun = (globalThis as { readonly Bun?: BunRuntime }).Bun
   if (bun == null) {
     throw new BrowserDriverError('BROWSER_COMMAND_FAILED', 'Agent Browser requires the Bun runtime.')
@@ -442,52 +446,68 @@ function parseBrowserUrl(value: string): URL {
   }
 }
 
-function parseJsonOutput(output: string): unknown {
+function parseJsonOutput(output: string): JsonValue {
   try {
-    return JSON.parse(output) as unknown
+    const parsed: JsonValue = JSON.parse(output)
+    return parsed
   } catch {
     throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser returned invalid JSON.', { output })
   }
 }
 
-function readSessionActive(value: unknown): boolean {
-  const session = isRecord(value) && isRecord(value.data) ? value.data : value
-  if (!isRecord(session) || typeof session.active !== 'boolean') {
+function readSessionActive(value: JsonValue): boolean {
+  const session = isJsonObject(value) && isJsonObject(value.data) ? value.data : value
+  if (!isJsonObject(session) || !isJsonBoolean(session.active)) {
     throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser session info did not contain active state.', { value })
   }
   return session.active
 }
 
+type JsonObject = { readonly [key: string]: JsonValue }
+
+function isJsonObject(value: JsonValue): value is JsonObject {
+  return value !== null && !Array.isArray(value) && Object(value) === value
+}
+
+function isJsonString(value: JsonValue): value is string {
+  return typeof value === 'string'
+}
+
+function isJsonBoolean(value: JsonValue | undefined): value is boolean {
+  return value === true || value === false
+}
+
 function decodeEvalJson<T>(output: string): T {
   const decoded = parseJsonOutput(output)
   const value = unwrapEvalResult(decoded)
-  if (typeof value !== 'string') {
+  if (!isJsonString(value)) {
     throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser eval did not return a JSON string.', { output })
   }
   try {
-    return JSON.parse(value) as T
+    const parsed: T = JSON.parse(value)
+    return parsed
   } catch {
     throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser eval returned invalid JSON.', { output })
   }
 }
 
-function unwrapEvalResult(value: unknown): unknown {
-  if (!isRecord(value)) return value
+function unwrapEvalResult(value: JsonValue): JsonValue {
+  if (!isJsonObject(value)) return value
   for (const key of ['value', 'result', 'data'] as const) {
     if (key in value) return unwrapEvalResult(value[key])
   }
   return value
 }
 
-function extractTabs(value: unknown): readonly AgentBrowserTab[] {
+function extractTabs(value: JsonValue): readonly AgentBrowserTab[] {
   const candidate = Array.isArray(value)
     ? value
-    : isRecord(value) && Array.isArray(value.tabs)
+    : isJsonObject(value) && Array.isArray(value.tabs)
       ? value.tabs
-      : isRecord(value) && isRecord(value.data) && Array.isArray(value.data.tabs)
+      : isJsonObject(value) && isJsonObject(value.data) && Array.isArray(value.data.tabs)
         ? value.data.tabs
         : null
-  if (candidate == null || !candidate.every(isRecord)) {
+  if (candidate == null || !candidate.every(isJsonObject)) {
     throw new BrowserDriverError('BROWSER_INVALID_OUTPUT', 'Agent Browser tab list did not contain tabs.', { value })
   }
   return candidate
@@ -495,48 +515,46 @@ function extractTabs(value: unknown): readonly AgentBrowserTab[] {
 
 function readScreenshotPath(value: string): string | null {
   const parsed = tryParseJson(value)
-  if (typeof parsed === 'string') return parsed
-  if (isRecord(parsed)) {
+  if (isJsonString(parsed)) return parsed
+  if (isJsonObject(parsed)) {
     for (const key of ['path', 'file'] as const) {
-      if (typeof parsed[key] === 'string') return parsed[key]
+      const candidate = parsed[key]
+      if (candidate != null && isJsonString(candidate)) return candidate
     }
-    if (isRecord(parsed.data) && typeof parsed.data.path === 'string') return parsed.data.path
+    if (isJsonObject(parsed.data) && parsed.data.path != null && isJsonString(parsed.data.path)) return parsed.data.path
   }
   return null
 }
 
-function tryParseJson(value: string): unknown {
+function tryParseJson(value: string): JsonValue {
   try {
-    return JSON.parse(value) as unknown
+    const parsed: JsonValue = JSON.parse(value)
+    return parsed
   } catch {
     return null
   }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value != null && !Array.isArray(value)
 }
 
 function conciseOutput(stderr: string, stdout: string): string {
   return (stderr || stdout).trim().replace(/\s+/gu, ' ').slice(0, 500) || 'no diagnostic output'
 }
 
-function isAgentBrowserWaitTimeout(error: unknown): boolean {
-  if (!(error instanceof BrowserDriverError) || error.code !== 'BROWSER_COMMAND_FAILED') return false
-  const output = `${String(error.details.stdout ?? '')}\n${String(error.details.stderr ?? '')}\n${error.message}`
+function isAgentBrowserWaitTimeout(cause: unknown): boolean {
+  if (!(cause instanceof BrowserDriverError) || cause.code !== 'BROWSER_COMMAND_FAILED') return false
+  const output = `${JSON.stringify(cause.details.stdout ?? '')}\n${JSON.stringify(cause.details.stderr ?? '')}\n${cause.message}`
   return output.includes('Wait timed out after')
 }
 
-function commandDetails(result: AgentBrowserCommandResult): Readonly<Record<string, unknown>> {
+function commandDetails(result: AgentBrowserCommandResult) {
   return {
     command: result.command.args,
     exitCode: result.exitCode,
     stdout: result.stdout,
     stderr: result.stderr,
     durationMs: result.durationMs
-  }
+  } satisfies JsonObject
 }
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
+function errorMessage(cause: unknown): string {
+  return cause instanceof Error ? cause.message : String(cause)
 }

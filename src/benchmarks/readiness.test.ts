@@ -27,8 +27,8 @@ test('defaults no-render to the exact interior-ready marker, rendered work to st
     resolveReadinessStage({ mode: 'load' })
     throw new Error('Expected load stage resolution to fail.')
   } catch (error) {
-    expect(error instanceof ReadinessError).toBe(true)
-    expect((error as ReadinessError).code).toBe('READINESS_STAGE_REQUIRED')
+    if (!(error instanceof ReadinessError)) throw error
+    expect(error.code).toBe('READINESS_STAGE_REQUIRED')
   }
 })
 

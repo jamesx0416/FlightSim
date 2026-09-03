@@ -522,8 +522,8 @@ function ticketPath(paths: QueuePaths, ticket: QueueTicket): string {
 
 function parseLease(contents: string, fallbackSlot: 1 | 2): BenchmarkLease {
   const parsed: unknown = JSON.parse(contents)
-  if (!isRecord(parsed) || !isPositiveInteger(parsed.pid)) throw new Error('Benchmark queue lease is corrupt.')
-  if (parsed.sessionName != null && typeof parsed.sessionName !== 'string') {
+  if (!isLeasePayload(parsed) || !isPositiveInteger(parsed.pid)) throw new Error('Benchmark queue lease is corrupt.')
+  if (parsed.sessionName != null && !isString(parsed.sessionName)) {
     throw new Error('Benchmark queue lease is corrupt.')
   }
   const slot = parsed.slot === 1 || parsed.slot === 2 ? parsed.slot : fallbackSlot
@@ -564,26 +564,32 @@ function waitForQueueChange(milliseconds: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+type LeasePayload = { readonly pid?: unknown; readonly slot?: unknown; readonly sessionName?: unknown }
+
+function isLeasePayload(value: unknown): value is LeasePayload {
   return typeof value === 'object' && value != null && !Array.isArray(value)
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === 'string'
 }
 
 function isPositiveInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0
 }
 
-function isAlreadyExistsError(error: unknown): boolean {
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
   return isSystemError(error, 'EEXIST')
 }
 
-function isMissingFileError(error: unknown): boolean {
+function isMissingFileError(error: unknown): error is NodeJS.ErrnoException {
   return isSystemError(error, 'ENOENT')
 }
 
-function isPermissionError(error: unknown): boolean {
+function isPermissionError(error: unknown): error is NodeJS.ErrnoException {
   return isSystemError(error, 'EPERM') || isSystemError(error, 'EACCES')
 }
 
-function isSystemError(error: unknown, code: string): boolean {
-  return isRecord(error) && error.code === code
+function isSystemError(error: unknown, code: string): error is NodeJS.ErrnoException {
+  return error instanceof Error && 'code' in error && error.code === code
 }
