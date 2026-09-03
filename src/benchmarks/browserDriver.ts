@@ -216,7 +216,10 @@ export class BrowserDriver {
 
   /** Evaluates an expression and decodes the JSON value it returns. */
   async evalJson<T>(expression: string, timeoutMs = this.timeoutMs): Promise<T> {
-    const result = await this.eval(`(async () => JSON.stringify(await (${expression})))()`, timeoutMs)
+    const result = await this.eval(`(async () => {
+      const value = await (${expression})
+      return JSON.stringify(value === undefined ? null : value)
+    })()`, timeoutMs)
     return decodeEvalJson<T>(result.stdout)
   }
 

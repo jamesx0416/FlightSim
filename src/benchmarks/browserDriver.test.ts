@@ -58,6 +58,24 @@ test('uses an isolated pinned session and stdin for page JavaScript', async () =
   expect(commands.find(command => command.args.includes('wait'))?.args.includes('--timeout')).toBe(true)
 })
 
+test('evalJson represents undefined results as JSON null', async () => {
+  let evalCommand: AgentBrowserCommand | undefined
+  const driver = new BrowserDriver({
+    session: 'flightsim-test-json-null',
+    runner: async command => {
+      if (command.args.includes('list')) return result(command, JSON.stringify({ tabs: [{ tabId: 't1' }] }))
+      if (command.args.includes('eval')) {
+        evalCommand = command
+        return result(command, JSON.stringify({ data: { result: 'null' } }))
+      }
+      return result(command)
+    }
+  })
+
+  expect(await driver.evalJson<null>('undefined')).toBe(null)
+  expect(evalCommand?.stdin?.includes('value === undefined ? null : value')).toBe(true)
+})
+
 test('fails before an operation can continue with more than one tab', async () => {
   const driver = new BrowserDriver({
     session: 'flightsim-test-2',

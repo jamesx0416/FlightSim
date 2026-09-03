@@ -40,6 +40,23 @@ test('rendered comparisons use the cockpit frame-time median', () => {
   })
 })
 
+test('rendered comparison samples ignore latest and slowest-frame diagnostics', () => {
+  const sample = (median: number) => ({
+    cockpitPerf: {
+      latest: { frameMs: 99 },
+      frameMs: { median },
+      slowestFrames: [{ frameMs: 88 }, { frameMs: 77 }]
+    }
+  })
+  const result = __benchmarkExecuteTestHooks.comparePrimaryMetric(
+    { performanceSamples: [sample(4.2), sample(4), sample(4.1)] },
+    { performanceSamples: [sample(3.9), sample(4.05), sample(3.8)] }
+  )
+  if (!result.available) throw new Error('Expected comparable frame metrics.')
+  expect(result.baselineSamples.values).toEqual([4.2, 4, 4.1])
+  expect(result.candidateSamples.values).toEqual([3.9, 4.05, 3.8])
+})
+
 test('rendered comparisons confirm the median across repeated samples', () => {
   const baseline = { performanceSamples: [4.2, 4, 4.1].map(median => ({ cockpitPerf: { frameMs: { median } } })) }
   const candidate = { performanceSamples: [3.9, 4.05, 3.8].map(median => ({ cockpitPerf: { frameMs: { median } } })) }

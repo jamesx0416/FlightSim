@@ -49,8 +49,9 @@ test('browser lifecycle parsing keeps open stage positional and applies its time
   expect(command<BrowserCommand>(parseBrowserCli(['close', '--slot', '2']))).toEqual({ kind: 'browser-close', slot: 2, json: false })
   expect(command<BrowserCommand>(parseBrowserCli(['status', '--json']))).toEqual({ kind: 'browser-status', json: true })
   expect(command<BrowserCommand>(parseBrowserCli(['concurrency']))).toEqual({ kind: 'browser-concurrency', json: false })
-  expect(command<BrowserCommand>(parseBrowserCli(['concurrency', '2', '--json']))).toEqual({ kind: 'browser-concurrency', capacity: 2, json: true })
-  invalid(parseBrowserCli(['concurrency', '3']))
+  expect(command<BrowserCommand>(parseBrowserCli(['concurrency', '4', '--json']))).toEqual({ kind: 'browser-concurrency', capacity: 4, json: true })
+  invalid(parseBrowserCli(['concurrency', '0']))
+  invalid(parseBrowserCli(['concurrency', '1.5']))
   expect(command<BrowserCommand>(parseBrowserCli(['eval', 'return window.location.href', '--slot', '2']))).toEqual({
     kind: 'browser-eval',
     source: { kind: 'inline', source: 'return window.location.href' },
@@ -71,7 +72,7 @@ test('empty CLIs and explicit help return their concise typed help models', () =
 
 test('bench shares status and concurrency administration', () => {
   expect(command<BenchCommand>(parseBenchCli(['status', '--json']))).toEqual({ kind: 'bench-status', json: true })
-  expect(command<BenchCommand>(parseBenchCli(['concurrency', '2']))).toEqual({ kind: 'bench-concurrency', capacity: 2, json: false })
+  expect(command<BenchCommand>(parseBenchCli(['concurrency', '7']))).toEqual({ kind: 'bench-concurrency', capacity: 7, json: false })
 })
 
 test('parses compiled and Bun no-render frame benchmarks', () => {
@@ -118,14 +119,14 @@ test('parses browser benchmarks with defaults, reuse settling, and hooks', () =>
     hooks: { before: { kind: 'stdin' } },
     json: false
   })
-  expect(command<BenchCommand>(parseBenchCli(['browser', 'fps', '--slot', '2', '--frames', '10']))).toEqual({
+  expect(command<BenchCommand>(parseBenchCli(['browser', 'fps', '--slot', '9', '--frames', '10']))).toEqual({
     kind: 'browser-fps',
     stage: DEFAULT_BROWSER_STAGE,
     timeoutMs: DEFAULT_BROWSER_TIMEOUT_MS,
     reuse: false,
     keepOpen: false,
     hooks: {},
-    slot: 2,
+    slot: 9,
     frames: 10,
     warmupFrames: undefined,
     json: false
@@ -189,5 +190,6 @@ test('rejects unsupported options, invalid values, conflicting hooks, and invali
   invalid(parseBenchCli(['browser', 'full', '--before', 'a', '--before-file', 'a.js']))
   invalid(parseBenchCli(['browser', 'full', '--before-stdin', '--after-stdin']))
   invalid(parseBenchCli(['browser', 'full', '--reuse', '--reuse']))
-  invalid(parseBenchCli(['compare', 'compiled', '--slot', '3']))
+  invalid(parseBenchCli(['compare', 'compiled', '--slot', '0']))
+  invalid(parseBenchCli(['compare', 'compiled', '--slot', '2.5']))
 })
