@@ -30,13 +30,13 @@ export interface BrowserOpenCommand {
   readonly kind: 'browser-open'
   readonly stage: string
   readonly timeoutMs: number
-  readonly slot?: 1 | 2
+  readonly slot?: number
   readonly json: boolean
 }
 
 export interface BrowserCloseCommand {
   readonly kind: 'browser-close'
-  readonly slot?: 1 | 2
+  readonly slot?: number
   readonly json: boolean
 }
 
@@ -47,21 +47,21 @@ export interface BrowserStatusCommand {
 
 export interface BrowserConcurrencyCommand {
   readonly kind: 'browser-concurrency'
-  readonly capacity?: 1 | 2
+  readonly capacity?: number
   readonly json: boolean
 }
 
 export interface BrowserEvalCommand {
   readonly kind: 'browser-eval'
   readonly source: HookSource
-  readonly slot?: 1 | 2
+  readonly slot?: number
   readonly json: boolean
 }
 
 export type BrowserCommand = BrowserOpenCommand | BrowserCloseCommand | BrowserEvalCommand | BrowserStatusCommand | BrowserConcurrencyCommand
 
 interface CommonBenchmarkCommand {
-  readonly slot?: 1 | 2
+  readonly slot?: number
   readonly json: boolean
 }
 
@@ -185,7 +185,7 @@ export type ComparisonCommand =
   | CompareBrowserVisualCommand
 
 export interface BenchStatusCommand { readonly kind: 'bench-status'; readonly json: boolean }
-export interface BenchConcurrencyCommand { readonly kind: 'bench-concurrency'; readonly capacity?: 1 | 2; readonly json: boolean }
+export interface BenchConcurrencyCommand { readonly kind: 'bench-concurrency'; readonly capacity?: number; readonly json: boolean }
 export interface ExperimentVerdictCommand { readonly kind: 'experiment-accept' | 'experiment-reject'; readonly id: string; readonly reason: string; readonly json: boolean }
 
 export type BenchCommand = BenchmarkCommand | ComparisonCommand | BenchStatusCommand | BenchConcurrencyCommand | ExperimentVerdictCommand
@@ -228,7 +228,7 @@ const INTEGER_PATTERN = /^\d+$/
 export const BROWSER_HELP: CliHelp = {
   name: 'browser',
   summary: 'Manage retained, queue-controlled FlightSim browsers.',
-  usage: ['browser open <stage> [options]', 'browser close [options]', 'browser eval <js> [options]', 'browser eval --file <path> [options]', 'browser eval --stdin [options]', 'browser status [--json]', 'browser concurrency [1|2] [--json]'],
+  usage: ['browser open <stage> [options]', 'browser close [options]', 'browser eval <js> [options]', 'browser eval --file <path> [options]', 'browser eval --stdin [options]', 'browser status [--json]', 'browser concurrency [count] [--json]'],
   sections: [
     { title: 'Browser lifecycle', lines: [
       'open <stage>   Open a browser, wait for readiness, and retain it.',
@@ -236,10 +236,10 @@ export const BROWSER_HELP: CliHelp = {
       'eval           Execute JavaScript in an already retained browser. Never opens a browser.'
     ] },
     { title: 'Queue', lines: [
-      'browser and bench share the same two machine-wide slots.',
-      'concurrency 1  Automatic jobs use slot 1 only.',
-      'concurrency 2  Automatic jobs use the lowest available slot, 1 then 2.',
-      '--slot <1|2>   Explicitly use or wait for that slot, even slot 2 when concurrency is 1.'
+      'browser and bench share a machine-wide numbered slot pool.',
+      'concurrency 1  Automatic jobs use slot 1 only. This is the default.',
+      'concurrency N  Automatic jobs may use slots 1 through N, always preferring the lowest free slot.',
+      '--slot <number> Explicitly use or wait for any positive slot number, even above current concurrency.'
     ] },
     { title: 'Readiness stages', lines: [
       '<stage> may be a built-in alias: initial, compiled, aircraft, cockpit, gauges, stable.',
@@ -249,7 +249,7 @@ export const BROWSER_HELP: CliHelp = {
   ],
   options: [
     { usage: '--timeout <duration>', description: 'Readiness timeout, for example 120s or 500ms.' },
-    { usage: '--slot <1|2>', description: 'Explicitly use or wait for that browser slot.' },
+    { usage: '--slot <number>', description: 'Explicitly use or wait for any positive browser slot number.' },
     { usage: '--file <path>', description: 'Read browser eval JavaScript from a file.' },
     { usage: '--stdin', description: 'Read browser eval JavaScript from stdin.' },
     { usage: '--json', description: 'Print the structured result.' }
@@ -277,7 +277,7 @@ export const BENCH_HELP: CliHelp = {
     'bench experiment accept <id> --reason <text>',
     'bench experiment reject <id> --reason <text>',
     'bench status [--json]',
-    'bench concurrency [1|2] [--json]'
+    'bench concurrency [count] [--json]'
   ],
   sections: [
     { title: 'Browser modes', lines: [
@@ -290,7 +290,7 @@ export const BENCH_HELP: CliHelp = {
     { title: 'Comparison', lines: [
       'compare runs baseline and candidate sequentially in one queue slot.',
       'Defaults: --baseline HEAD and --candidate worktree.',
-      'browser full validates visual parity before repeated FPS confirmation.'
+      'browser full captures visual first, then waits for the FPS stage and takes 3 samples on the same page.'
     ] },
     { title: 'Readiness', lines: [
       '--stage accepts a built-in alias, exact DevApi load stage, or repository-configured stage from src/benchmarks/config.ts.'
@@ -300,7 +300,7 @@ export const BENCH_HELP: CliHelp = {
       '--after runs immediately after measurement and before full-mode visual capture.'
     ] },
     { title: 'Browser reuse', lines: [
-      '--reuse reuses the lowest retained browser. If none exists, it opens one and retains it.',
+      '--reuse reuses the lowest retained browser. If none exists, it opens one and retains it until 10 minutes idle.',
       '--settle adds settle time when reusing. --keep-open retains a browser after the benchmark.'
     ] },
     { title: 'Queue', lines: [
@@ -318,9 +318,9 @@ export const BENCH_HELP: CliHelp = {
     { usage: '--frames <count>  --warmup <count>', description: 'Measured and warmup frame counts for frame benchmarks.' },
     { usage: '--before <js> | --before-file <path> | --before-stdin', description: 'Hook run after readiness.' },
     { usage: '--after <js> | --after-file <path> | --after-stdin', description: 'Hook run after measurement.' },
-    { usage: '--reuse [--settle <duration>]', description: 'Reuse a retained page and settle it before warmup.' },
+    { usage: '--reuse [--settle <duration>]', description: 'Reuse a retained page; an implicitly retained fallback closes after 10 minutes idle.' },
     { usage: '--keep-open', description: 'Retain a browser session after a non-comparison browser benchmark.' },
-    { usage: '--slot <1|2>', description: 'Explicitly use or wait for that shared queue slot.' },
+    { usage: '--slot <number>', description: 'Explicitly use or wait for any positive shared queue slot number.' },
     { usage: '--baseline <revision>  --candidate <revision|worktree>', description: 'Comparison inputs.' },
     { usage: '--experiment <name>', description: 'Persist this comparison as an experiment record.' },
     { usage: '--description <text>  --aim <text>  --cause <text>  --hypothesis <text>', description: 'Experiment metadata.' },
@@ -460,11 +460,11 @@ function parseBrowserStatus(arguments_: readonly string[]): CliParseResult<Brows
 function parseBrowserConcurrency(arguments_: readonly string[]): CliParseResult<BrowserCommand> {
   const parsed = parseOptions(arguments_, BROWSER_HELP)
   if (isInvalid(parsed)) return parsed
-  if (parsed.positionals.length > 1) return invalid(BROWSER_HELP, 'browser concurrency accepts at most one capacity: 1 or 2.')
-  let capacity: 1 | 2 | undefined
+  if (parsed.positionals.length > 1) return invalid(BROWSER_HELP, 'browser concurrency accepts at most one positive integer capacity.')
+  let capacity: number | undefined
   if (parsed.positionals[0] != null) {
     const value = Number(parsed.positionals[0])
-    if (value !== 1 && value !== 2) return invalid(BROWSER_HELP, 'browser concurrency capacity must be 1 or 2.')
+    if (!Number.isSafeInteger(value) || value <= 0) return invalid(BROWSER_HELP, 'browser concurrency capacity must be a positive integer.')
     capacity = value
   }
   const json = optionBoolean(parsed, 'json', BROWSER_HELP)
@@ -507,11 +507,11 @@ function parseBenchStatus(arguments_: readonly string[]): CliParseResult<BenchCo
 function parseBenchConcurrency(arguments_: readonly string[]): CliParseResult<BenchCommand> {
   const parsed = parseOptions(arguments_, BENCH_HELP)
   if (isInvalid(parsed)) return parsed
-  if (parsed.positionals.length > 1) return invalid(BENCH_HELP, 'bench concurrency accepts at most one capacity: 1 or 2.')
-  let capacity: 1 | 2 | undefined
+  if (parsed.positionals.length > 1) return invalid(BENCH_HELP, 'bench concurrency accepts at most one positive integer capacity.')
+  let capacity: number | undefined
   if (parsed.positionals[0] != null) {
     const value = Number(parsed.positionals[0])
-    if (value !== 1 && value !== 2) return invalid(BENCH_HELP, 'bench concurrency capacity must be 1 or 2.')
+    if (!Number.isSafeInteger(value) || value <= 0) return invalid(BENCH_HELP, 'bench concurrency capacity must be a positive integer.')
     capacity = value
   }
   const json = optionBoolean(parsed, 'json', BENCH_HELP)
@@ -656,7 +656,7 @@ function parseBrowserComparison(
   return { kind: 'command', command: { kind, ...common, ...browser, ...frames } }
 }
 
-function parseFrameOptions(arguments_: readonly string[], help: CliHelp): { readonly frames?: number; readonly warmupFrames?: number; readonly slot?: 1 | 2; readonly json: boolean } | InvalidArgumentsResult {
+function parseFrameOptions(arguments_: readonly string[], help: CliHelp): { readonly frames?: number; readonly warmupFrames?: number; readonly slot?: number; readonly json: boolean } | InvalidArgumentsResult {
   const parsed = parseOptions(arguments_, help)
   if (isInvalid(parsed)) return parsed
   if (parsed.positionals.length !== 0) return invalid(help, 'This benchmark does not accept positional arguments.')
@@ -894,12 +894,12 @@ function optionBoolean(parsed: ParsedOptions, name: string, help: CliHelp): bool
   return true
 }
 
-function optionSlot(parsed: ParsedOptions, help: CliHelp): 1 | 2 | undefined | InvalidArgumentsResult {
+function optionSlot(parsed: ParsedOptions, help: CliHelp): number | undefined | InvalidArgumentsResult {
   const value = optionText(parsed, 'slot', help, false)
   if (isInvalid(value)) return value
   if (value == null) return undefined
   const slot = Number(value)
-  return slot === 1 || slot === 2 ? slot : invalid(help, '--slot must be 1 or 2.')
+  return Number.isSafeInteger(slot) && slot > 0 ? slot : invalid(help, '--slot must be a positive integer.')
 }
 
 function rejectUnsupported(parsed: ParsedOptions, allowed: ReadonlySet<string>, help: CliHelp): InvalidArgumentsResult | undefined {

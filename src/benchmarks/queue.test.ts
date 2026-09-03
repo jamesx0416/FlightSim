@@ -138,34 +138,36 @@ describe('benchmark queue', () => {
     })
   })
 
-  test('persistent capacity two permits two FIFO leases and blocks the third', async () => {
+  test('custom capacity permits automatic leases up to N and blocks the next', async () => {
     await withQueueRoot(async rootDirectory => {
-      const alive = (pid: number): boolean => [101, 202, 303].includes(pid)
+      const alive = (pid: number): boolean => [101, 202, 303, 404, 505].includes(pid)
       const first = createBenchmarkQueue({ rootDirectory, pid: 101, isProcessAlive: alive })
       const second = createBenchmarkQueue({ rootDirectory, pid: 202, isProcessAlive: alive })
       const third = createBenchmarkQueue({ rootDirectory, pid: 303, isProcessAlive: alive })
-      await first.setCapacity(2)
-      expect(await first.capacity()).toBe(2)
+      const fourth = createBenchmarkQueue({ rootDirectory, pid: 404, isProcessAlive: alive })
+      const fifth = createBenchmarkQueue({ rootDirectory, pid: 505, isProcessAlive: alive })
+      await first.setCapacity(4)
+      expect(await first.capacity()).toBe(4)
 
-      const firstTicket = await first.join()
-      const secondTicket = await second.join()
-      const thirdTicket = await third.join()
-      expect(await first.tryAcquire(firstTicket)).toEqual({ pid: 101, slot: 1 })
-      expect(await second.tryAcquire(secondTicket)).toEqual({ pid: 202, slot: 2 })
-      expect(await third.tryAcquire(thirdTicket)).toBe(null)
+      const tickets = await Promise.all([first.join(), second.join(), third.join(), fourth.join(), fifth.join()])
+      expect(await first.tryAcquire(tickets[0]!)).toEqual({ pid: 101, slot: 1 })
+      expect(await second.tryAcquire(tickets[1]!)).toEqual({ pid: 202, slot: 2 })
+      expect(await third.tryAcquire(tickets[2]!)).toEqual({ pid: 303, slot: 3 })
+      expect(await fourth.tryAcquire(tickets[3]!)).toEqual({ pid: 404, slot: 4 })
+      expect(await fifth.tryAcquire(tickets[4]!)).toBe(null)
     })
   })
 
-  test('explicit slot two works without changing persistent capacity', async () => {
+  test('explicit slot above capacity works without changing persistent capacity', async () => {
     await withQueueRoot(async rootDirectory => {
       const alive = (pid: number): boolean => pid === 101 || pid === 202
       const main = createBenchmarkQueue({ rootDirectory, pid: 101, isProcessAlive: alive })
       const sub = createBenchmarkQueue({ rootDirectory, pid: 202, isProcessAlive: alive })
       const mainLease = await main.acquire()
-      const explicit = await sub.acquireSlot(2)
+      const explicit = await sub.acquireSlot(9)
 
       expect(mainLease).toEqual({ pid: 101, slot: 1 })
-      expect(explicit.lease).toEqual({ pid: 202, slot: 2 })
+      expect(explicit.lease).toEqual({ pid: 202, slot: 9 })
       expect(await sub.capacity()).toBe(1)
       expect(await sub.release(explicit.lease)).toBe(true)
       expect(await sub.capacity()).toBe(1)

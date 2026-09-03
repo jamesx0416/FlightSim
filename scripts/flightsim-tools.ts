@@ -36,8 +36,9 @@ async function logNonExecution(
 
 if (cli === 'keeper') {
   const sessionName = arguments_[0]
-  if (sessionName == null) process.exit(2)
-  await runKeeper(sessionName)
+  const slot = Number(arguments_[1])
+  if (sessionName == null || !Number.isSafeInteger(slot) || slot <= 0) process.exit(2)
+  await runKeeper(root, sessionName, slot)
 }
 
 function usesStdin(command: BenchCommand): boolean {
