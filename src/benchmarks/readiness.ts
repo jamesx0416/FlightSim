@@ -3,6 +3,7 @@ import {
   BrowserDriverError,
   DEFAULT_BROWSER_TIMEOUT_MS
 } from './browserDriver'
+import type { JsonValue } from './commandLog'
 
 // Allow gauge load completion to propagate through the viewer before a retained
 // page is used or a benchmark begins its own warmup.
@@ -63,7 +64,7 @@ export class ReadinessError extends Error {
   constructor(
     readonly code: ReadinessErrorCode,
     message: string,
-    readonly details: Readonly<Record<string, unknown>> = {}
+    readonly details: Readonly<Record<string, JsonValue>> = {}
   ) {
     super(message)
   }
@@ -199,14 +200,9 @@ function customStage(requested: string, custom: CustomReadinessStage): ResolvedR
   if (!custom.condition.trim()) {
     throw new ReadinessError('READINESS_INVALID_STAGE', `Custom readiness stage "${requested}" has an empty condition.`)
   }
-  return {
-    requested,
-    resolved: requested,
-    kind: 'custom',
-    condition: custom.condition,
-    ...(custom.prepare == null ? {} : { prepare: custom.prepare }),
-    prerequisites: []
-  }
+  return custom.prepare == null
+    ? { requested, resolved: requested, kind: 'custom', condition: custom.condition, prerequisites: [] }
+    : { requested, resolved: requested, kind: 'custom', condition: custom.condition, prepare: custom.prepare, prerequisites: [] }
 }
 
 function hasReachedLoadStageCondition(stage: string): string {
@@ -284,7 +280,7 @@ function settleFramesPreparation(sampleCount: number): string {
 }
 
 function isReadinessStageAlias(value: string): value is ReadinessStageAlias {
-  return (READINESS_STAGE_ALIASES as readonly string[]).includes(value)
+  return READINESS_STAGE_ALIASES.some(stage => stage === value)
 }
 
 function validateStableSampleCount(value: number): number {

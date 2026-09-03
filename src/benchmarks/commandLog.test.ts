@@ -63,10 +63,9 @@ describe('benchmark command log', () => {
         artifactDirectory: 'logs/artifacts/run-1'
       })
 
-      const records = (await readFile(filePath, 'utf8')).trim().split('\n').map(line => JSON.parse(line) as {
-        timestamp: string
-        operation: string
-        exitStatus: number
+      const records = (await readFile(filePath, 'utf8')).trim().split('\n').map(line => {
+        const record: { timestamp: string; operation: string; exitStatus: number } = JSON.parse(line)
+        return record
       })
       expect(records).toEqual([
         { timestamp: records[0]?.timestamp, owner: 'agent', operation: 'bench compiled', arguments: {}, exitStatus: 0, durationMs: 12 },
@@ -117,7 +116,7 @@ describe('benchmark command log', () => {
 
       const lines = (await readFile(filePath, 'utf8')).trim().split('\n')
       expect(lines.length).toBe(12)
-      expect(lines.map(line => JSON.parse(line).operation).sort()).toEqual(Array.from({ length: 12 }, (_, index) => `bench-${index}`).sort())
+      expect(lines.map(line => JSON.parse(line).operation).sort((left, right) => left.localeCompare(right))).toEqual(Array.from({ length: 12 }, (_, index) => `bench-${index}`).sort((left, right) => left.localeCompare(right)))
     })
   })
 })

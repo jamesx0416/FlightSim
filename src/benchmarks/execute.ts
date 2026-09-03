@@ -32,8 +32,7 @@ import {
   CUBEMAP_FACE_NAMES,
   comparePanoramas,
   stitchEquirectangularPanorama,
-  type CubemapFaceName,
-  type CubemapFacePaths
+  type CubemapFaceName
 } from './visual'
 
 const DEFAULT_URL = 'https://vanilla-3dtiles.localhost:3000'
@@ -44,7 +43,10 @@ const DEFAULT_COMPARISON_BROWSER_PORT = 3002
 const DEFAULT_BROWSER_BENCHMARK_PORT = 3003
 const FULL_VISUAL_CONFIRMATION_SAMPLES = 3
 const RETAINED_SESSION_LOCK_DIRECTORY = path.join(tmpdir(), 'flightsim-retained-browser-locks-v1')
+const AGENT_BROWSER_PROCESS_PATTERN = /^\s*(\d+)\s+([A-Z][a-z]{2}\s+[A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2}\s+\d{4})\s+(.+)$/u
+const AGENT_BROWSER_COMMAND_PATTERN = /(?:^|\/)agent-browser(?:\s|$)/u
 
+// oxlint-disable-next-line anti-slop/no-unsafe-dictionary-type -- this is the runtime record view used only after isRecord validates object-ness.
 type JsonRecord = Record<string, unknown>
 type BrowserModeCommand = Exclude<BenchmarkCommand, Extract<BenchmarkCommand, { readonly kind: 'compiled' | 'no-render-bun' }>>
 
@@ -81,18 +83,26 @@ function isRecord(value: unknown): value is JsonRecord {
   return typeof value === 'object' && value != null && !Array.isArray(value)
 }
 
+function isString(value: unknown): value is string {
+  return typeof value === 'string'
+}
+
+function isNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
 function operationName(command: BrowserCommand | BenchCommand): string {
   return command.kind
 }
 
-function errorCode(error: unknown): string {
-  return isRecord(error) && typeof error.code === 'string' ? error.code : 'BENCHMARK_FAILED'
+function errorCode(cause: unknown): string {
+  return isRecord(cause) && isString(cause.code) ? cause.code : 'BENCHMARK_FAILED'
 }
 
-async function withRecordedExecution(
+async function withRecordedExecution<T>(
   root: string,
   command: BrowserCommand | BenchCommand,
-  operation: () => Promise<unknown>
+  operation: () => Promise<T>
 ): Promise<ExecutionResult> {
   const startedAt = new Date()
   const started = performance.now()
@@ -153,7 +163,16 @@ type AgentBrowserForegroundCommand = {
   readonly command: string
 }
 
-async function browserStatus(root: string): Promise<unknown> {
+type BrowserStatusSession = {
+  readonly sessionName: string
+  readonly active: true
+  readonly foregroundCommand: AgentBrowserForegroundCommand | null
+  readonly lastKnownNavigationAt: string | null
+  readonly lastKnownUrl: string | null
+  readonly page: unknown
+}
+
+async function browserStatus(root: string) {
   const queue = createBenchmarkQueue()
   const [foreground, knownSessions, capacity, leases, waiting, retained1, retained2] = await Promise.all([
     readAgentBrowserForegroundCommands(),
@@ -164,7 +183,7 @@ async function browserStatus(root: string): Promise<unknown> {
     tryReadRetainedState(root, 1),
     tryReadRetainedState(root, 2)
   ])
-  const sessions: unknown[] = []
+  const sessions: BrowserStatusSession[] = []
 
   for (const sessionName of knownSessions) {
     const driver = new BrowserDriver({ session: sessionName, timeoutMs: 5_000 })
@@ -178,7 +197,7 @@ async function browserStatus(root: string): Promise<unknown> {
 
     const command = foreground.find(entry => commandTargetsSession(entry.command, sessionName)) ?? null
     const target = await readAgentBrowserTargetMetadata(sessionName)
-    let page: unknown = null
+    let page: BrowserStatusSession['page'] = null
     try {
       page = await driver.evalJson<unknown>(`({
         href: location.href,
@@ -222,8 +241,8 @@ async function readAgentBrowserForegroundCommands(): Promise<readonly AgentBrows
     child.once('close', () => resolve())
   })
   return stdout.split('\n').flatMap(line => {
-    const match = /^\s*(\d+)\s+([A-Z][a-z]{2}\s+[A-Z][a-z]{2}\s+\d+\s+\d{2}:\d{2}:\d{2}\s+\d{4})\s+(.+)$/u.exec(line)
-    if (match == null || !/(?:^|\/)agent-browser(?:\s|$)/u.test(match[3])) return []
+    const match = AGENT_BROWSER_PROCESS_PATTERN.exec(line)
+    if (match == null || !AGENT_BROWSER_COMMAND_PATTERN.test(match[3])) return []
     return [{ pid: Number(match[1]), startedAt: match[2], command: match[3] }]
   })
 }
@@ -238,8 +257,8 @@ async function readAgentBrowserTargetMetadata(sessionName: string): Promise<{ re
     const [metadata, contents] = await Promise.all([stat(targetPath), readFile(targetPath, 'utf8')])
     let url: string | null = null
     try {
-      const parsed = JSON.parse(contents) as unknown
-      if (isRecord(parsed) && typeof parsed.url === 'string') url = parsed.url
+      const parsed: unknown = JSON.parse(contents)
+      if (isRecord(parsed) && isString(parsed.url)) url = parsed.url
     } catch {}
     return { url, modifiedAt: metadata.mtime.toISOString() }
   } catch (error) {
@@ -286,7 +305,7 @@ function createDriver(context: ExecutionContext, timeoutMs: number): BrowserDriv
   })
 }
 
-async function runHook(driver: BrowserDriver, source: string | undefined, phase: string): Promise<unknown> {
+async function runHook(driver: BrowserDriver, source: string | undefined, phase: string) {
   if (source == null) return null
   const result = await driver.evalJson<unknown>(`(async () => { ${source}\n })()`)
   if (isRecord(result) && result.ok === false) throw new Error(`${phase} hook returned a failed DevApi response.`)
@@ -309,13 +328,13 @@ function withRetainedSessionLock<T>(sessionName: string, operation: () => Promis
 async function readPageRevisionHash(driver: BrowserDriver): Promise<string> {
   const metadata = await driver.evalJson<unknown>(`fetch('/__devapi/git.json', { cache: 'no-store' })
     .then(async response => response.ok ? response.json() : null)`)
-  if (!isRecord(metadata) || metadata.available !== true || typeof metadata.hash !== 'string') {
+  if (!isRecord(metadata) || metadata.available !== true || !isString(metadata.hash)) {
     throw new Error('The retained FlightSim page could not report its Git revision.')
   }
   return metadata.hash
 }
 
-async function assertRevisionServerIdentity(driver: BrowserDriver, workspace: RevisionWorkspace): Promise<unknown> {
+async function assertRevisionServerIdentity(driver: BrowserDriver, workspace: RevisionWorkspace) {
   const identity = await driver.evalJson<unknown>(`Promise.all([
     fetch('/__benchmark/revision.json', { cache: 'no-store' }).then(async response => response.ok ? response.json() : null),
     Promise.resolve(globalThis.__FlightSimBenchmarkRevision ?? null)
@@ -386,7 +405,7 @@ async function prepareNoRenderBrowserPage(context: ExecutionContext): Promise<st
   return new URL(`/${NO_RENDER_BROWSER_PAGE_PATH}`, context.url).href
 }
 
-async function noRenderHarnessReadiness(driver: BrowserDriver, timeoutMs: number): Promise<unknown> {
+async function noRenderHarnessReadiness(driver: BrowserDriver, timeoutMs: number) {
   const condition = 'typeof window.__FlightSimNoRenderBenchmark === "function"'
   const startedAt = performance.now()
   await driver.waitFn(condition, timeoutMs)
@@ -422,9 +441,9 @@ async function runBrowserMeasurement(
   const pageUrl = lightweightNoRender ? await prepareNoRenderBrowserPage(context) : context.url
   const sampler = new EnvironmentSampler()
   await sampler.start()
-  let readiness: unknown
-  let result: unknown
-  let artifacts: unknown
+  let readiness = null
+  let result = null
+  let artifacts = null
   const startedAt = performance.now()
   let completed = false
   try {
@@ -485,25 +504,24 @@ async function runBrowserMeasurement(
     if (!completed && retainedDriver == null) await driver.close().catch(() => {})
   }
   const reused = retainedDriver != null
-  return {
-    result,
-    driver,
-    execution: {
-      page: reused ? 'reused' : lightweightNoRender ? 'fresh-no-render-harness' : 'fresh-navigation',
-      cache: context.cacheMode ?? 'uncontrolled-browser-cache',
-      measurement: reused ? 'steady-state-reuse' : lightweightNoRender ? 'no-render-runtime' : command.kind === 'browser-load' ? 'load' : 'fresh-page',
-      ...(reused && 'settleMs' in command ? { settleMs: command.settleMs } : {})
-    },
-    ...(readiness == null ? {} : { readiness }),
-    ...(artifacts == null ? {} : { artifacts })
+  const executionBase = {
+    page: reused ? 'reused' : lightweightNoRender ? 'fresh-no-render-harness' : 'fresh-navigation',
+    cache: context.cacheMode ?? 'uncontrolled-browser-cache',
+    measurement: reused ? 'steady-state-reuse' : lightweightNoRender ? 'no-render-runtime' : command.kind === 'browser-load' ? 'load' : 'fresh-page'
   }
+  const execution = reused && 'settleMs' in command
+    ? { ...executionBase, settleMs: command.settleMs }
+    : executionBase
+  const base = { result, driver, execution }
+  if (readiness == null) return artifacts == null ? base : { ...base, artifacts }
+  return artifacts == null ? { ...base, readiness } : { ...base, readiness, artifacts }
 }
 
-async function browserNoRender(driver: BrowserDriver, frames?: number, warmupFrames?: number): Promise<unknown> {
-  const options = JSON.stringify({
-    ...(frames == null ? {} : { frames }),
-    ...(warmupFrames == null ? {} : { warmupFrames })
-  })
+async function browserNoRender(driver: BrowserDriver, frames?: number, warmupFrames?: number) {
+  const frameOptions = frames == null
+    ? warmupFrames == null ? {} : { warmupFrames }
+    : warmupFrames == null ? { frames } : { frames, warmupFrames }
+  const options = JSON.stringify(frameOptions)
   const response = await driver.evalJson<unknown>(`typeof window.__FlightSimNoRenderBenchmark === 'function'
     ? window.__FlightSimNoRenderBenchmark(${options})
     : window.__DevApi.bench.aircraftRuntime(${options})`)
@@ -518,7 +536,7 @@ async function browserFull(
   frames = 300,
   warmupFrames = 30,
   timeoutMs = driver.timeoutMs
-): Promise<unknown> {
+) {
   return driver.evalJson<unknown>(createBrowserFullExpression(frames, warmupFrames, timeoutMs))
 }
 
@@ -585,16 +603,16 @@ function createBrowserFullExpression(frames: number, warmupFrames: number, timeo
   })()`
 }
 
-const FACE_ROTATIONS: Readonly<Record<CubemapFaceName, readonly [number, number, number, number]>> = {
+const FACE_ROTATIONS = {
   front: [0, 0, 0, 1],
   back: [0, 1, 0, 0],
   left: [0, Math.SQRT1_2, 0, Math.SQRT1_2],
   right: [0, -Math.SQRT1_2, 0, Math.SQRT1_2],
   up: [Math.SQRT1_2, 0, 0, Math.SQRT1_2],
   down: [-Math.SQRT1_2, 0, 0, Math.SQRT1_2]
-}
+} satisfies Readonly<Record<CubemapFaceName, readonly [number, number, number, number]>>
 
-async function capturePanorama(driver: BrowserDriver, directory: string): Promise<unknown> {
+async function capturePanorama(driver: BrowserDriver, directory: string) {
   const poseResponse = await driver.evalJson<unknown>('window.__DevApi.camera.getPose()')
   if (!isRecord(poseResponse) || poseResponse.ok !== true || !isRecord(poseResponse.data)) {
     throw new Error('Could not collect the authoritative visual camera pose.')
@@ -602,11 +620,12 @@ async function capturePanorama(driver: BrowserDriver, directory: string): Promis
   const basePose = poseResponse.data
   const viewport = await driver.evalJson<{ readonly width: number; readonly height: number }>('({ width: innerWidth, height: innerHeight })')
   const activity = await driver.evalJson<unknown>(`window.__DevApi.activity.begin('benchmark:visual')`)
-  const activityId = isRecord(activity) && activity.ok === true && isRecord(activity.data) && typeof activity.data.id === 'number'
+  const activityId = isRecord(activity) && activity.ok === true && isRecord(activity.data) && isNumber(activity.data.id)
     ? activity.data.id
     : null
   const facesDirectory = path.join(directory, 'faces')
   await mkdir(facesDirectory, { recursive: true })
+  // SAFETY: the loop below writes one path for each CUBEMAP_FACE_NAMES member before facePaths is consumed.
   const facePaths = {} as Record<CubemapFaceName, string>
   let frozen = false
   let uiHidden = false
@@ -673,7 +692,7 @@ async function capturePanorama(driver: BrowserDriver, directory: string): Promis
     }
   }
   const panoramaPath = path.join(directory, 'panorama.png')
-  await stitchEquirectangularPanorama(facePaths as CubemapFacePaths, panoramaPath)
+  await stitchEquirectangularPanorama(facePaths, panoramaPath)
   const reportPath = path.join(directory, 'visual.json')
   const report = { panorama: panoramaPath, faces: facePaths, pose: basePose, projection: 'equirectangular', width: 4_096, height: 2_048 }
   await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`)
@@ -701,21 +720,22 @@ async function ensureBenchmarkHarness(root: string, cwd: string): Promise<void> 
   }
 }
 
-async function runBunCommand(command: Extract<BenchmarkCommand, { readonly kind: 'compiled' | 'no-render-bun' }>, root: string, cwd: string): Promise<unknown> {
+async function runBunCommand(command: Extract<BenchmarkCommand, { readonly kind: 'compiled' | 'no-render-bun' }>, root: string, cwd: string) {
   installDomGlobals()
   await ensureBenchmarkHarness(root, cwd)
   const packageRoot = pathToFileURL(path.join(cwd, 'aircrafts', DEFAULT_PACKAGE, path.sep)).href
   const additionalPackageRoots = [pathToFileURL(path.join(cwd, 'public/vendor/msfs-stock', path.sep)).href]
-  const frameOptions = {
-    ...(command.frames == null ? {} : { frames: command.frames }),
-    ...(command.warmupFrames == null ? {} : { warmupFrames: command.warmupFrames })
-  }
+  const frameOptions = command.frames == null
+    ? command.warmupFrames == null ? {} : { warmupFrames: command.warmupFrames }
+    : command.warmupFrames == null ? { frames: command.frames } : { frames: command.frames, warmupFrames: command.warmupFrames }
   if (command.kind === 'compiled') {
     const moduleUrl = `${pathToFileURL(path.join(cwd, 'src/sim/benchmarks/bunCompiledBindingsAdapter.ts')).href}?revision=${Date.now()}`
+    // SAFETY: moduleUrl points at this repository's compiled bindings adapter with only a cache-busting query.
     const adapter = await import(moduleUrl) as typeof import('../sim/benchmarks/bunCompiledBindingsAdapter')
     return adapter.runBunCompiledBindingsBenchmark({ packageRoot, additionalPackageRoots, ...frameOptions })
   }
   const moduleUrl = `${pathToFileURL(path.join(cwd, 'src/sim/benchmarks/bunAircraftRuntimeAdapter.ts')).href}?revision=${Date.now()}`
+  // SAFETY: moduleUrl points at this repository's aircraft runtime adapter with only a cache-busting query.
   const adapter = await import(moduleUrl) as typeof import('../sim/benchmarks/bunAircraftRuntimeAdapter')
   return adapter.runBunAircraftRuntimeBenchmark({ packageRoot, additionalPackageRoots, ...frameOptions })
 }
@@ -723,6 +743,7 @@ async function runBunCommand(command: Extract<BenchmarkCommand, { readonly kind:
 function installDomGlobals(): void {
   if (globalThis.DOMParser != null) return
   // This indirection keeps browser bundles from importing the Bun-only DOM adapter.
+  // SAFETY: these globals are installed only for the Bun benchmark DOM shim and restored by process exit.
   const globals = globalThis as typeof globalThis & { DOMParser?: unknown; Element?: unknown; window?: unknown }
   Object.defineProperty(globals, 'DOMParser', { value: DOMParser, configurable: true })
   Object.defineProperty(globals, 'Element', { value: Element, configurable: true })
@@ -791,21 +812,30 @@ async function retainBrowser(root: string, lease: BenchmarkLease, driver: Browse
   return state
 }
 
+// oxlint-disable-next-line anti-slop/no-unknown-parameters -- retained state is decoded from JSON at this boundary.
 function parseRetainedBrowserState(value: unknown, slot: 1 | 2): RetainedBrowserState {
-  if (!isRecord(value) || typeof value.sessionName !== 'string' || typeof value.keeperPid !== 'number' || typeof value.stage !== 'string' || typeof value.url !== 'string' || typeof value.openedAt !== 'string' || typeof value.revisionHash !== 'string') {
+  if (!isRecord(value) || !isString(value.sessionName) || !isNumber(value.keeperPid) || !isString(value.stage) || !isString(value.url) || !isString(value.openedAt) || !isString(value.revisionHash)) {
     throw new Error('Retained browser state is malformed.')
   }
   if (value.slot != null && value.slot !== slot) throw new Error('Retained browser state slot does not match its file.')
-  return { ...value, slot } as RetainedBrowserState
+  return {
+    slot,
+    sessionName: value.sessionName,
+    keeperPid: value.keeperPid,
+    stage: value.stage,
+    url: value.url,
+    openedAt: value.openedAt,
+    revisionHash: value.revisionHash
+  }
 }
 
 async function readRetainedState(root: string, slot: 1 | 2 = 1): Promise<RetainedBrowserState> {
   try {
-    return parseRetainedBrowserState(JSON.parse(await readFile(retainedStatePath(root, slot), 'utf8')) as unknown, slot)
+    return parseRetainedBrowserState(JSON.parse(await readFile(retainedStatePath(root, slot), 'utf8')), slot)
   } catch (error) {
     if (!(isRecord(error) && error.code === 'ENOENT') || slot !== 1) throw error
   }
-  return parseRetainedBrowserState(JSON.parse(await readFile(legacyRetainedStatePath(root), 'utf8')) as unknown, 1)
+  return parseRetainedBrowserState(JSON.parse(await readFile(legacyRetainedStatePath(root), 'utf8')), 1)
 }
 
 async function tryReadRetainedState(root: string, slot: 1 | 2 = 1): Promise<RetainedBrowserState | null> {
@@ -831,7 +861,7 @@ async function waitForSessionInactive(driver: BrowserDriver, timeoutMs = 5_000):
   }
 }
 
-async function closeRetained(root: string, slot: 1 | 2 = 1): Promise<unknown> {
+async function closeRetained(root: string, slot: 1 | 2 = 1) {
   const state = await readRetainedState(root, slot)
   return withRetainedSessionLock(state.sessionName, async () => {
     const driver = new BrowserDriver({ session: state.sessionName, cwd: root })
@@ -921,7 +951,7 @@ async function compareBrowserFullVisualFirst(
   ticket: QueueTicket,
   slot: 1 | 2,
   stdin: string | undefined
-): Promise<unknown> {
+) {
   const port = comparisonBrowserPort()
   const driver = createDriver({ root, cwd: root, url: `http://127.0.0.1:${port}`, ticket, slot }, command.timeoutMs)
   const browser = { stage: command.stage, timeoutMs: command.timeoutMs, reuse: false, keepOpen: false, hooks: command.hooks, json: true } as const
@@ -978,7 +1008,7 @@ async function compareBrowserFullVisualFirst(
   }
 }
 
-async function compare(command: ComparisonCommand, root: string, ticket: QueueTicket, slot: 1 | 2, stdin: string | undefined): Promise<unknown> {
+async function compare(command: ComparisonCommand, root: string, ticket: QueueTicket, slot: 1 | 2, stdin: string | undefined) {
   if (command.kind === 'compare-browser-full') return compareBrowserFullVisualFirst(command, root, ticket, slot, stdin)
   const sharedBrowser = command.kind === 'compare-browser-fps' || command.kind === 'compare-browser-visual'
   const sharedPort = sharedBrowser ? comparisonBrowserPort() : undefined
@@ -1044,15 +1074,15 @@ async function compare(command: ComparisonCommand, root: string, ticket: QueueTi
       ? await compareVisualArtifacts(baselineResult, candidateResult, root)
       : undefined
     const visualPassed = visual == null || isVisualComparisonIdentical(visual)
-    return {
+    const comparison = {
       baseline: { selector: command.baseline, revision: baseline.revision, result: baselineResult },
       candidate: { selector: command.candidate, revision: candidate.revision, result: candidateResult },
       semantic: compareSemantics(baselineResult, candidateResult),
       performance: visualPassed
         ? comparePrimaryMetric(baselineResult, candidateResult)
-        : { available: false, skipped: true, reason: 'visual-mismatch' },
-      ...(visual == null ? {} : { visual })
+        : { available: false, skipped: true, reason: 'visual-mismatch' }
     }
+    return visual == null ? comparison : { ...comparison, visual }
   } finally {
     await sharedDriver?.close().catch(() => {})
   }
@@ -1068,7 +1098,7 @@ function comparisonBenchmark(command: ComparisonCommand): BenchmarkCommand {
   return { kind: 'browser-visual', ...browser }
 }
 
-function findValues(value: unknown, key: string, results: unknown[] = []): readonly unknown[] {
+function findValues<T>(value: T, key: string, results: unknown[] = []): readonly unknown[] {
   if (Array.isArray(value)) {
     for (const child of value) findValues(child, key, results)
   } else if (isRecord(value)) {
@@ -1078,7 +1108,7 @@ function findValues(value: unknown, key: string, results: unknown[] = []): reado
   return results
 }
 
-function compareSemantics(baseline: unknown, candidate: unknown): unknown {
+function compareSemantics<TBaseline, TCandidate>(baseline: TBaseline, candidate: TCandidate) {
   const baselineChecksums = [...findValues(baseline, 'checksum'), ...findValues(baseline, 'outputChecksum')]
   const candidateChecksums = [...findValues(candidate, 'checksum'), ...findValues(candidate, 'outputChecksum')]
   const baselineBindings = [...findValues(baseline, 'bindingCounts'), ...findValues(baseline, 'bindingCount')]
@@ -1095,11 +1125,11 @@ function compareSemantics(baseline: unknown, candidate: unknown): unknown {
   }
 }
 
-function primaryMetricSamples(value: unknown): readonly number[] {
+function primaryMetricSamples<T>(value: T): readonly number[] {
   for (const key of ['steadyStateMsPerFrame', 'medianFrameMs', 'msPerFrame', 'frameMs']) {
     const values = findValues(value, key).flatMap(candidate => {
-      if (typeof candidate === 'number' && Number.isFinite(candidate)) return [candidate]
-      if (isRecord(candidate) && typeof candidate.median === 'number' && Number.isFinite(candidate.median)) return [candidate.median]
+      if (isNumber(candidate)) return [candidate]
+      if (isRecord(candidate) && isNumber(candidate.median)) return [candidate.median]
       return []
     })
     if (values.length > 0) return values
@@ -1108,7 +1138,7 @@ function primaryMetricSamples(value: unknown): readonly number[] {
 }
 
 function median(values: readonly number[]): number {
-  const sorted = [...values].sort((a, b) => a - b)
+  const sorted = values.toSorted((a, b) => a - b)
   const middle = Math.floor(sorted.length / 2)
   return sorted.length % 2 === 0
     ? (sorted[middle - 1]! + sorted[middle]!) / 2
@@ -1127,7 +1157,22 @@ function sampleSummary(values: readonly number[]) {
   }
 }
 
-function comparePrimaryMetric(baseline: unknown, candidate: unknown): unknown {
+type MetricSampleSummary = ReturnType<typeof sampleSummary>
+type MetricComparison =
+  | { readonly available: false }
+  | {
+      readonly available: true
+      readonly baselineMsPerFrame: number
+      readonly candidateMsPerFrame: number
+      readonly changePercent: number
+      readonly speedup: number
+      readonly baselineSamples: MetricSampleSummary
+      readonly candidateSamples: MetricSampleSummary
+      readonly pairedWins: number
+      readonly confirmedFaster: boolean
+    }
+
+function comparePrimaryMetric<TBaseline, TCandidate>(baseline: TBaseline, candidate: TCandidate): MetricComparison {
   const baselineSamples = primaryMetricSamples(baseline)
   const candidateSamples = primaryMetricSamples(candidate)
   if (baselineSamples.length === 0 || candidateSamples.length === 0) return { available: false }
@@ -1149,8 +1194,8 @@ function comparePrimaryMetric(baseline: unknown, candidate: unknown): unknown {
   }
 }
 
-function visualArtifact(value: unknown): { readonly panorama: string } | null {
-  if (isRecord(value) && typeof value.panorama === 'string') return { panorama: value.panorama }
+function visualArtifact<T>(value: T): { readonly panorama: string } | null {
+  if (isRecord(value) && isString(value.panorama)) return { panorama: value.panorama }
   if (Array.isArray(value)) {
     for (const child of value) {
       const found = visualArtifact(child)
@@ -1165,11 +1210,11 @@ function visualArtifact(value: unknown): { readonly panorama: string } | null {
   return null
 }
 
-function isVisualComparisonIdentical(value: unknown): boolean {
+function isVisualComparisonIdentical<T>(value: T): boolean {
   return isRecord(value) && value.identical === true
 }
 
-async function compareVisualArtifacts(baseline: unknown, candidate: unknown, root: string): Promise<unknown> {
+async function compareVisualArtifacts<TBaseline, TCandidate>(baseline: TBaseline, candidate: TCandidate, root: string) {
   const baselineArtifact = visualArtifact(baseline)
   const candidateArtifact = visualArtifact(candidate)
   if (baselineArtifact == null || candidateArtifact == null) throw new Error('Visual comparison artifacts are unavailable.')
@@ -1181,6 +1226,26 @@ async function compareVisualArtifacts(baseline: unknown, candidate: unknown, roo
   return { ...report, report: reportPath }
 }
 
+function isComparisonCommand(command: BenchCommand): command is ComparisonCommand {
+  return command.kind === 'compare-compiled' ||
+    command.kind === 'compare-no-render-bun' ||
+    command.kind === 'compare-no-render-browser' ||
+    command.kind === 'compare-browser-fps' ||
+    command.kind === 'compare-browser-visual' ||
+    command.kind === 'compare-browser-full'
+}
+
+function isBenchmarkCommand(command: BenchCommand): command is BenchmarkCommand {
+  return command.kind === 'compiled' ||
+    command.kind === 'no-render-bun' ||
+    command.kind === 'no-render-browser' ||
+    command.kind === 'browser-load' ||
+    command.kind === 'browser-fps' ||
+    command.kind === 'browser-visual' ||
+    command.kind === 'browser-full' ||
+    command.kind === 'browser-profile'
+}
+
 export async function executeBenchCommand(command: BenchCommand, root: string, stdin?: string): Promise<ExecutionResult> {
   if (command.kind === 'experiment-accept' || command.kind === 'experiment-reject') {
     return withRecordedExecution(root, command, () => setExperimentVerdict(
@@ -1190,8 +1255,8 @@ export async function executeBenchCommand(command: BenchCommand, root: string, s
       command.reason
     ))
   }
-  const experiment = command.kind.startsWith('compare-') && 'experiment' in command && command.experiment != null
-    ? await beginExperiment(root, command as ComparisonCommand, command.experiment)
+  const experiment = isComparisonCommand(command) && command.experiment != null
+    ? await beginExperiment(root, command, command.experiment)
     : undefined
   const result = await withRecordedExecution(root, command, async () => {
     if (command.kind === 'bench-status') return browserStatus(root)
@@ -1200,17 +1265,17 @@ export async function executeBenchCommand(command: BenchCommand, root: string, s
       const capacity = command.capacity == null ? await queue.capacity() : await queue.setCapacity(command.capacity)
       return { capacity, activeLeases: await queue.activeLeases() }
     }
-    if (command.kind.startsWith('compare-')) {
-      const comparison = command as ComparisonCommand
-      const { queue, ticket, lease } = await acquireQueue(comparison.slot)
+    if (isComparisonCommand(command)) {
+      const { queue, ticket, lease } = await acquireQueue(command.slot)
       try {
-        return await compare(comparison, root, ticket, lease.slot, stdin)
+        return await compare(command, root, ticket, lease.slot, stdin)
       } finally {
         await queue.release(lease)
       }
     }
 
-    const benchmark = command as BenchmarkCommand
+    if (!isBenchmarkCommand(command)) throw new Error(`Unsupported benchmark command ${command.kind}.`)
+    const benchmark = command
     const browserTimeoutMs = 'timeoutMs' in benchmark ? benchmark.timeoutMs : 5_000
     const explicitReuse = 'reuse' in benchmark && benchmark.reuse
     const retainedSlot = benchmark.slot
@@ -1254,18 +1319,15 @@ export async function executeBenchCommand(command: BenchCommand, root: string, s
         server = await startRevisionServer(workspace, 30_000, browserBenchmarkPort(lease.slot))
       }
       const benchmarkUrl = process.env.FLIGHTSIM_BENCH_URL ?? server?.url ?? DEFAULT_URL
-      const result = await runSingleBenchmark(benchmark, {
-        root,
-        cwd: root,
-        url: benchmarkUrl,
-        ...(server == null ? {} : { cacheMode: 'immutable-package-cache' as const }),
-        ticket,
-        slot: lease.slot
-      }, stdin)
+      const context: ExecutionContext = server == null
+        ? { root, cwd: root, url: benchmarkUrl, ticket, slot: lease.slot }
+        : { root, cwd: root, url: benchmarkUrl, cacheMode: 'immutable-package-cache', ticket, slot: lease.slot }
+      const result = await runSingleBenchmark(benchmark, context, stdin)
       browserDriver = result.driver
       if ('keepOpen' in benchmark && (benchmark.keepOpen || ('reuse' in benchmark && benchmark.reuse)) && browserDriver != null) {
         const retained = await retainBrowser(root, lease, browserDriver, benchmark.stage, benchmarkUrl)
-        return { ...result.data as JsonRecord, retained }
+        if (!isRecord(result.data)) throw new Error('Retained browser benchmark result must be an object.')
+        return { ...result.data, retained }
       }
       await browserDriver?.close().catch(() => {})
       await queue.release(lease)

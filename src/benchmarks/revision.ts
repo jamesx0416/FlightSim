@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from 'node:child_process'
 import { mkdir, rm, symlink, writeFile } from 'node:fs/promises'
-import { createServer } from 'node:net'
+import { createServer, type AddressInfo } from 'node:net'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -80,13 +80,17 @@ export async function createRevisionWorkspace(root: string, selector: string): P
   }
 }
 
+function isAddressInfo(address: string | AddressInfo | null): address is AddressInfo {
+  return address != null && typeof address !== 'string'
+}
+
 async function unusedPort(): Promise<number> {
   return new Promise((resolve, reject) => {
     const server = createServer()
     server.once('error', reject)
     server.listen(0, '127.0.0.1', () => {
       const address = server.address()
-      if (address == null || typeof address === 'string') {
+      if (!isAddressInfo(address)) {
         server.close(() => reject(new Error('Could not allocate a benchmark server port.')))
         return
       }

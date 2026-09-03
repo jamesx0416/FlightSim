@@ -68,13 +68,14 @@ export async function stitchEquirectangularPanorama(
   const faceSize = dimensions.faceSize ?? FACE_SIZE
   const width = dimensions.width ?? PANORAMA_WIDTH
   const height = dimensions.height ?? PANORAMA_HEIGHT
-  const faces = Object.fromEntries(await Promise.all(CUBEMAP_FACE_NAMES.map(async name => {
+  const entries = await Promise.all(CUBEMAP_FACE_NAMES.map(async name => {
     const face = PNG.sync.read(await readFile(facePaths[name]))
     if (face.width !== faceSize || face.height !== faceSize) {
       throw new Error(`${name} cubemap face must be ${faceSize} by ${faceSize}, received ${face.width} by ${face.height}.`)
     }
     return [name, face] as const
-  }))) as unknown as Record<CubemapFaceName, PNG>
+  }))
+  const faces = new Map<CubemapFaceName, PNG>(entries)
 
   const panorama = new PNG({ width, height })
   for (let outputY = 0; outputY < height; outputY += 1) {
@@ -86,7 +87,9 @@ export async function stitchEquirectangularPanorama(
       const directionY = Math.sin(latitude)
       const directionZ = -Math.cos(longitude) * cosLatitude
       const selected = selectFace(directionX, directionY, directionZ)
-      sampleFace(faces[selected.name], selected.u, selected.v, panorama, pixelIndex(width, outputX, outputY))
+      const face = faces.get(selected.name)
+      if (face == null) throw new Error(`Missing ${selected.name} cubemap face.`)
+      sampleFace(face, selected.u, selected.v, panorama, pixelIndex(width, outputX, outputY))
     }
   }
 

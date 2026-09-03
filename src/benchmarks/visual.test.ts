@@ -10,11 +10,11 @@ import { CUBEMAP_FACE_NAMES, comparePanoramas, stitchEquirectangularPanorama, ty
 test('stitches canonical faces and reports exact pixel differences', async () => {
   const directory = await mkdtemp(path.join(tmpdir(), 'flightsim-visual-test-'))
   try {
-  const colors: Record<CubemapFaceName, readonly [number, number, number]> = {
+  const colors = {
     front: [255, 0, 0], back: [0, 255, 0], left: [0, 0, 255],
     right: [255, 255, 0], up: [255, 0, 255], down: [0, 255, 255]
-  }
-  const faces = Object.fromEntries(await Promise.all(CUBEMAP_FACE_NAMES.map(async name => {
+  } satisfies Record<CubemapFaceName, readonly [number, number, number]>
+  await Promise.all(CUBEMAP_FACE_NAMES.map(async name => {
     const image = new PNG({ width: 16, height: 16 })
     for (let index = 0; index < image.data.length; index += 4) {
       image.data[index] = colors[name][0]
@@ -24,8 +24,12 @@ test('stitches canonical faces and reports exact pixel differences', async () =>
     }
     const facePath = path.join(directory, `${name}.png`)
     await writeFile(facePath, PNG.sync.write(image))
-    return [name, facePath] as const
-  }))) as Record<CubemapFaceName, string>
+  }))
+  const faces = {
+    front: path.join(directory, 'front.png'), back: path.join(directory, 'back.png'),
+    left: path.join(directory, 'left.png'), right: path.join(directory, 'right.png'),
+    up: path.join(directory, 'up.png'), down: path.join(directory, 'down.png')
+  }
   const panorama = await stitchEquirectangularPanorama(
     faces,
     path.join(directory, 'panorama.png'),
