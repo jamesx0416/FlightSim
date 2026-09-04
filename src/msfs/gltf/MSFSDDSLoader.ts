@@ -864,6 +864,10 @@ async function fetchArrayBufferRangeNetwork(
   return response.arrayBuffer()
 }
 
+type DdsFlagsLookup =
+  | { readonly kind: 'authored'; readonly url: string; readonly text: string | null }
+  | { readonly kind: 'guessed'; readonly url: string }
+
 export async function shouldBypassDdsRangeReduction(
   url: string,
   requestHeader: Record<string, string>
@@ -872,16 +876,15 @@ export async function shouldBypassDdsRangeReduction(
     return false
   }
 
-  const flagsUrl = await resolveAircraftDdsFlagsUrl(url)
-  if (flagsUrl == null) return false
+  const flags = await resolveAircraftDdsFlags(url)
+  if (flags == null) return false
+  if (flags.kind === 'authored') return flags.text == null || hasNoReduceFlag(flags.text)
 
-  const cacheKey = createDdsRangeReductionBypassCacheKey(flagsUrl, requestHeader)
+  const cacheKey = createDdsRangeReductionBypassCacheKey(flags.url, requestHeader)
   const cached = ddsRangeReductionBypassCache.get(cacheKey)
-  if (cached != null) {
-    return cached
-  }
+  if (cached != null) return cached
 
-  const request = shouldBypassDdsRangeReductionUncached(flagsUrl, requestHeader).catch(error => {
+  const request = fetchGuessedDdsFlags(flags.url, requestHeader).catch(error => {
     ddsRangeReductionBypassCache.delete(cacheKey)
     throw error
   })
@@ -889,19 +892,34 @@ export async function shouldBypassDdsRangeReduction(
   return request
 }
 
-async function resolveAircraftDdsFlagsUrl(url: string): Promise<string | null> {
+async function resolveAircraftDdsFlags(url: string): Promise<DdsFlagsLookup | null> {
   const asset = await lookupMsfsPackageAsset(url).catch(() => null)
-  if (asset == null) return `${url}.FLAGS`
+  if (asset == null) return { kind: 'guessed', url: `${url}.FLAGS` }
 
   const flagsPath = asset.source.layoutPathIndex.get(`${asset.path}.flags`.toLowerCase())
-  return flagsPath == null ? null : asset.source.resolveAssetUrl(flagsPath)
+  if (flagsPath == null) return null
+
+  const flagsKey = flagsPath.toLowerCase()
+  if (!asset.source.ddsFlagsTextByPath.has(flagsKey)) {
+    throw new Error(`Prefetched DDS FLAGS entry is missing for ${flagsPath}.`)
+  }
+  const text = asset.source.ddsFlagsTextByPath.get(flagsKey) ?? null
+  return {
+    kind: 'authored',
+    url: asset.source.resolveAssetUrl(flagsPath),
+    text
+  }
+}
+
+async function resolveAircraftDdsFlagsUrl(url: string): Promise<string | null> {
+  return (await resolveAircraftDdsFlags(url))?.url ?? null
 }
 
 export const __ddsLoaderTestHooks = {
   resolveAircraftDdsFlagsUrl
 }
 
-async function shouldBypassDdsRangeReductionUncached(
+async function fetchGuessedDdsFlags(
   flagsUrl: string,
   requestHeader: Record<string, string>
 ): Promise<boolean> {
@@ -926,8 +944,12 @@ async function shouldBypassDdsRangeReductionUncached(
     return false
   }
 
-  const flags = (await response.text()).toUpperCase()
-  return flags.includes('+NOREDUCE') || /\bNOREDUCE\b/.test(flags)
+  return hasNoReduceFlag(await response.text())
+}
+
+function hasNoReduceFlag(flags: string): boolean {
+  const normalized = flags.toUpperCase()
+  return normalized.includes('+NOREDUCE') || /\bNOREDUCE\b/.test(normalized)
 }
 
 function createDdsRangeReductionBypassCacheKey(
