@@ -89,6 +89,36 @@ describe('MSFS package assets', () => {
     })
   })
 
+  test('prefetches authored DDS FLAGS before package loading resolves', async () => {
+    let releaseFlags: (() => void) | undefined
+    const flagsGate = new Promise<void>(resolve => { releaseFlags = resolve })
+    let settled = false
+
+    await withMockFetch((async input => {
+      const url = String(input)
+      if (url.endsWith('.DDS.FLAGS')) {
+        await flagsGate
+        return new Response('_DEFAULT=+NOREDUCE')
+      }
+      return Response.json({
+        content: [
+          { path: 'texture/test.DDS' },
+          { path: 'texture/test.DDS.FLAGS' }
+        ]
+      })
+    }) as typeof fetch, async () => {
+      const sourcePromise = loadMsfsPackageSource('https://viewer.test/prefetch/', 'normal')
+      void sourcePromise.then(() => { settled = true })
+      await new Promise(resolve => setTimeout(resolve, 0))
+
+      expect(settled).toBe(false)
+      releaseFlags?.()
+      const source = await sourcePromise
+      expect(source.ddsFlagsTextByPath.get('texture/test.dds.flags')).toBe('_DEFAULT=+NOREDUCE')
+      expect(settled).toBe(true)
+    })
+  })
+
   test('refreshes the layout only when the immutable revision changes', async () => {
     let revision = 'one'
     const calls: string[] = []

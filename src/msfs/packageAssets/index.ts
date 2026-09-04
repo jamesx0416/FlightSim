@@ -9,6 +9,7 @@ export interface MsfsPackageSource {
   readonly revision: string | null
   readonly layoutEntries: readonly PackageLayoutEntry[]
   readonly layoutPathIndex: ReadonlyMap<string, string>
+  readonly ddsFlagsTextByPath: ReadonlyMap<string, string | null>
   readonly resolveAssetUrl: (path: string) => string
 }
 
@@ -41,6 +42,7 @@ type CacheEntry = {
 }
 
 const sourceCache = new Map<string, CacheEntry>()
+const DDS_FLAGS_PREFETCH_TIMEOUT_MS = 1_000
 
 export function normalizeMsfsPackageRootUrl(
   rootUrl: string,
@@ -253,14 +255,48 @@ async function fetchSourceLayout(
   const layoutPathIndex = new Map(
     layoutEntries.map(({ path }) => [path.toLowerCase(), path])
   )
+  const ddsFlagsTextByPath = await prefetchDdsFlags(
+    entry.rootUrl,
+    layoutEntries,
+    revision
+  )
 
   return {
     rootUrl: entry.rootUrl,
     revision,
     layoutEntries,
     layoutPathIndex,
+    ddsFlagsTextByPath,
     resolveAssetUrl: path => resolveAssetUrl(entry.rootUrl, path, revision)
   }
+}
+
+async function prefetchDdsFlags(
+  rootUrl: string,
+  layoutEntries: readonly PackageLayoutEntry[],
+  revision: string | null
+): Promise<ReadonlyMap<string, string | null>> {
+  const flagsPaths = layoutEntries
+    .map(entry => entry.path)
+    .filter(path => path.toLowerCase().endsWith('.dds.flags'))
+
+  const entries = await Promise.all(flagsPaths.map(async path => {
+    try {
+      const response = await fetch(
+        resolveAssetUrl(rootUrl, path, revision),
+        { signal: AbortSignal.timeout(DDS_FLAGS_PREFETCH_TIMEOUT_MS) }
+      )
+      if (!response.ok) {
+        await response.body?.cancel()
+        return [path.toLowerCase(), null] as const
+      }
+      return [path.toLowerCase(), await response.text()] as const
+    } catch {
+      return [path.toLowerCase(), null] as const
+    }
+  }))
+
+  return new Map(entries)
 }
 
 function resolveAssetUrl(rootUrl: string, path: string, revision: string | null): string {

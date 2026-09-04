@@ -45,6 +45,7 @@ function assetLookup(revision = 'revision-1'): Promise<MsfsPackageAssetLookup> {
     revision,
     layoutEntries: [{ path }],
     layoutPathIndex: new Map([[path.toLowerCase(), path]]),
+    ddsFlagsTextByPath: new Map(),
     resolveAssetUrl: assetPath => {
       const url = new URL(assetPath, rootUrl)
       url.searchParams.set('assetVersion', revision)

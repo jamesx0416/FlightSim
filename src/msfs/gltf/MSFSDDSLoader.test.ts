@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 
 import { clearMsfsPackageSourceCache, loadMsfsPackageSource } from '../packageAssets'
-import { __ddsLoaderTestHooks, MSFSDDSLoader } from './MSFSDDSLoader'
+import { __ddsLoaderTestHooks, MSFSDDSLoader, shouldBypassDdsRangeReduction } from './MSFSDDSLoader'
 
 test('missing DDS FLAGS is decided from the package layout without a network probe', async () => {
   const originalFetch = globalThis.fetch
@@ -35,6 +35,71 @@ test('missing DDS FLAGS is decided from the package layout without a network pro
   }
 })
 
+
+test('authored DDS FLAGS is prefetched once before DDS lookup', async () => {
+  const originalFetch = globalThis.fetch
+  let flagsSignal: AbortSignal | null | undefined
+  let flagsFetches = 0
+  globalThis.fetch = (async (input, init) => {
+    const url = String(input)
+    if (url.endsWith('__asset-version.json')) return Response.json({ revision: 'revision-authored-flags' })
+    if (url.includes('layout.json')) {
+      return Response.json({ content: [{ path: 'texture/test.DDS' }, { path: 'texture/test.DDS.FLAGS' }] })
+    }
+    flagsFetches += 1
+    flagsSignal = init?.signal
+    return new Response('_DEFAULT=+NOREDUCE')
+  }) as typeof fetch
+
+  try {
+    clearMsfsPackageSourceCache()
+    await loadMsfsPackageSource('https://viewer.test/aircrafts/authored-flags/', 'immutable')
+    expect(flagsFetches).toBe(1)
+    expect(flagsSignal?.aborted).toBe(false)
+    expect(await shouldBypassDdsRangeReduction(
+      'https://viewer.test/aircrafts/authored-flags/texture/test.DDS',
+      {}
+    )).toBe(true)
+    expect(flagsFetches).toBe(1)
+  } finally {
+    clearMsfsPackageSourceCache()
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('authored DDS FLAGS prefetch failure keeps the texture unreduced', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = (async input => {
+    const url = String(input)
+    if (url.endsWith('__asset-version.json')) {
+      return Response.json({ revision: 'revision-flags-failure' })
+    }
+    if (url.includes('layout.json')) {
+      return Response.json({
+        content: [
+          { path: 'texture/test.DDS' },
+          { path: 'texture/test.DDS.FLAGS' }
+        ]
+      })
+    }
+    throw new Error('simulated FLAGS fetch failure')
+  }) as typeof fetch
+
+  try {
+    clearMsfsPackageSourceCache()
+    await loadMsfsPackageSource(
+      'https://viewer.test/aircrafts/flags-failure/',
+      'immutable'
+    )
+    expect(await shouldBypassDdsRangeReduction(
+      'https://viewer.test/aircrafts/flags-failure/texture/test.DDS',
+      {}
+    )).toBe(true)
+  } finally {
+    clearMsfsPackageSourceCache()
+    globalThis.fetch = originalFetch
+  }
+})
 
 test('compressed DDS mip data keeps a zero-copy view of the source buffer', () => {
   const buffer = new ArrayBuffer(136)
