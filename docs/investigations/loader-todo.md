@@ -12,6 +12,11 @@ It consolidates:
 - viewer/runtime issue tracking
 - stock XML / CFG support tracking
 
+## Wing-flex alignment investigation (2026-09-17)
+
+- [x] Decode optimized joint palettes consistently across primitives sharing a skin, preserve authored skin weights and hierarchy, and keep joint offsets fixed during flex. The user confirmed the reported defects appear fixed; further visual checks were explicitly waived. Numerical observations and the remaining small seam discrepancy are recorded in `NOTES.md`.
+- [x] Remove obsolete wing-flex repair code and redundant calculations; all 290 tests pass. Rest-matrix inverses are computed once, unused fields and duplicate fallback values are removed, and skin-index conversion reuses the geometry's existing cloned attribute.
+
 ## Reference Order
 
 Use sources in this order:
