@@ -429,7 +429,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
   })
 
 
-  test('WingFlex shares authored local joint blends across wing primitives', () => {
+  test('WingFlex preserves each primitive’s authored joint weights', () => {
     const scene = new Object3D()
     const root = new Bone()
     root.name = 'WING_BONE_00_LEFT'
@@ -514,7 +514,6 @@ describe('AircraftRuntime canonical visual bindings', () => {
       readVariable: (key: string) => key.endsWith(':1') ? flex : 0,
     }
     scene.updateMatrixWorld(true)
-    const restBoneWorldMatrices = bones.map(bone => bone.matrixWorld.clone())
     const runtime = new AircraftRuntime(
       emptyCompiledBehaviorSet,
       scene,
@@ -522,36 +521,12 @@ describe('AircraftRuntime canonical visual bindings', () => {
       aircraft
     )
 
-    const targetIndices = target.geometry.getAttribute('skinIndex')
-    const targetWeights = target.geometry.getAttribute('skinWeight')
-    expect(targetIndices.getX(0)).toBe(1)
-    expect(targetWeights.getX(0)).toBe(1)
-    expect(targetWeights.getY(0)).toBe(0)
-    expect(targetIndices.getX(1)).toBe(1)
-    expect(targetIndices.getY(1)).toBe(2)
-    expect(targetWeights.getX(1) > 0 && targetWeights.getX(1) < 1).toBe(true)
-    expect(targetWeights.getY(1) > 0 && targetWeights.getY(1) < 1).toBe(true)
-    expect(Array.from(blendGeometry.getAttribute('skinIndex').array)).toEqual(blendIndicesBefore)
-    expect(JSON.stringify(Array.from(blendGeometry.getAttribute('skinWeight').array)) !== JSON.stringify(blendWeightsBefore)).toBe(true)
-    expect(JSON.stringify(Array.from(target.geometry.getAttribute('skinIndex').array)) !== JSON.stringify(targetIndicesBefore)).toBe(true)
-    expect(JSON.stringify(Array.from(target.geometry.getAttribute('skinWeight').array)) !== JSON.stringify(targetWeightsBefore)).toBe(true)
-
-    // Each rigid section is fitted to the chord between the same authored joint
-    // boundaries. Two adjacent bone transforms must therefore agree on their
-    // shared boundary instead of producing a small downward step there.
     flex = 0.5
     runtime.update(1 / 60)
-    scene.updateMatrixWorld(true)
-    const boundaryPoint = new Vector3(1.5, 0, 0)
-    const deformByBone = (boneIndex: number): Vector3 => boundaryPoint.clone().applyMatrix4(
-      bones[boneIndex]!.matrixWorld.clone().multiply(
-        restBoneWorldMatrices[boneIndex]!.clone().invert()
-      )
-    )
-    const inboardBoundary = deformByBone(0)
-    const outboardBoundary = deformByBone(1)
-    expect(Math.abs(inboardBoundary.y - outboardBoundary.y) < 5e-4).toBe(true)
-    expect(inboardBoundary.distanceTo(outboardBoundary) < 5e-3).toBe(true)
+    expect(Array.from(target.geometry.getAttribute('skinIndex').array)).toEqual(targetIndicesBefore)
+    expect(Array.from(target.geometry.getAttribute('skinWeight').array)).toEqual(targetWeightsBefore)
+    expect(Array.from(blendGeometry.getAttribute('skinIndex').array)).toEqual(blendIndicesBefore)
+    expect(Array.from(blendGeometry.getAttribute('skinWeight').array)).toEqual(blendWeightsBefore)
   })
 
   test('standard WingFlex bends smoothly and preserves authored wing-mounted hierarchy', () => {
@@ -729,8 +704,7 @@ describe('AircraftRuntime canonical visual bindings', () => {
     let runtime = new AircraftRuntime(wingFlexCompiledBehaviorSet, scene, wingFlexHostServices, aircraft)
     runtime.bindAnimations([slatClip])
     const smoothedWeights = wingGeometry.getAttribute('skinWeight')
-    // This synthetic wing has no authored mixed-weight exemplar, so the local
-    // transition smoother intentionally leaves its rigid source weights alone.
+    // Skin weights are package data and remain unchanged through runtime rebuilds.
     expect(smoothedWeights.getX(0)).toBe(1)
     expect(smoothedWeights.getY(0)).toBe(0)
     expect(smoothedWeights.getX(2)).toBe(1)
@@ -768,22 +742,14 @@ describe('AircraftRuntime canonical visual bindings', () => {
     const flexedLeftStations = leftBones.map(node => node.getWorldPosition(new Vector3()))
     const flexedLeftTip = flexedLeftStations.at(-1)!
     const flexedRightTip = rightBones.at(-1)!.getWorldPosition(new Vector3())
-    const firstFlexedSection = flexedLeftStations[1]!.clone().sub(flexedLeftStations[0]!)
-    const expectedTipAngle = 0.5 * (5 * Math.PI / 180) * leftBones.length
-    const deflectionFactor = (s: number): number =>
-      s * s - 0.5 * s * s * s + 0.125 * s * s * s * s
-    const expectedFirstSectionAngle = Math.atan2(
-      4 * expectedTipAngle * (deflectionFactor(0.5) - deflectionFactor(0.25)),
-      1
-    )
-    expect(Math.abs(
-      Math.atan2(firstFlexedSection.y, firstFlexedSection.x) - expectedFirstSectionAngle
-    ) < 1e-6).toBe(true)
+    for (const [index, point] of flexedLeftStations.entries()) {
+      const parentPoint = index === 0 ? neutralLeftRoot : flexedLeftStations[index - 1]!
+      expect(Math.abs(point.distanceTo(parentPoint) - neutralLeftSegmentLengths[index]!) < 1e-9).toBe(true)
+    }
     expect(flexedLeftTip.y > neutralLeftTip.y).toBe(true)
     expect(flexedRightTip.y > neutralRightTip.y).toBe(true)
-    // Section-centred WingFlex is allowed to translate helper pivots. The visible
-    // rigid section, not the arbitrary helper location, is the deformation anchor.
-    expect(flexedLeftStations[0]!.distanceTo(neutralLeftStations[0]!) > 1e-6).toBe(true)
+    // The first joint pivots in place; descendants move through parent rotation.
+    expect(flexedLeftStations[0]!.distanceTo(neutralLeftStations[0]!) < 1e-9).toBe(true)
     expect(Math.abs(flexedLeftTip.z - neutralLeftTip.z) < 1e-9).toBe(true)
     expect(Math.abs(flexedRightTip.z - neutralRightTip.z) < 1e-9).toBe(true)
     expect(slat.getWorldPosition(new Vector3()).distanceTo(neutralSlat) > 1e-6).toBe(true)

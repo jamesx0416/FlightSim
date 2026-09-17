@@ -8,16 +8,19 @@ import {
   SkinnedMesh,
   Uint16BufferAttribute,
   Uint8BufferAttribute,
-  Vector3,
 } from 'three'
 
 export const MSFS_DISCARDED_SKINNING_TRANSFORM_USER_DATA_KEY = 'msfsDiscardedSkinningTransform'
 
-export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void }): void {
+export function normalizeMsfsSkinning(
+  root: SkinnedMesh | { traverse(callback: (object: unknown) => void): void },
+  optimizedJointPalettes = false
+): void {
   const parentWrapperGroups = new Set<Object3D>()
   const rigidRotationRootMeshes: SkinnedMesh[] = []
 
   updateRootMatrixWorld(root)
+  normalizeSkinJointPalettes(root, optimizedJointPalettes)
 
   root.traverse(object => {
     if (!(object instanceof SkinnedMesh)) {
@@ -30,35 +33,6 @@ export function normalizeMsfsSkinning(root: SkinnedMesh | { traverse(callback: (
       return
     }
     normalizeSkinAttributeSizes(object.geometry, skinIndex, skinWeight)
-
-    const normalizedSkinIndex = object.geometry.getAttribute('skinIndex')
-    const normalizedSkinWeight = object.geometry.getAttribute('skinWeight')
-    if (normalizedSkinIndex == null || normalizedSkinWeight == null) {
-      return
-    }
-
-    const maxBoneIndex = skeleton.bones.length - 1
-    if (maxBoneIndex < 0) {
-      return
-    }
-
-    repairOneBasedSkinIndices(object)
-
-    let didClamp = false
-    const array = normalizedSkinIndex.array as ArrayLike<number> & { [index: number]: number }
-    for (let index = 0; index < array.length; index += 1) {
-      const value = array[index]
-      if (value <= maxBoneIndex) {
-        continue
-      }
-
-      array[index] = maxBoneIndex
-      didClamp = true
-    }
-
-    if (didClamp) {
-      normalizedSkinIndex.needsUpdate = true
-    }
 
     if (shouldRebindRigidRotationRootMesh(root, object)) {
       rigidRotationRootMeshes.push(object)
@@ -249,54 +223,62 @@ function rebindRigidRotationRootMesh(mesh: SkinnedMesh): void {
   mesh.bind(isolatedSkeleton, mesh.matrixWorld.clone())
 }
 
-function repairOneBasedSkinIndices(mesh: SkinnedMesh): void {
-  const skeleton = mesh.skeleton
-  const position = mesh.geometry.getAttribute('position')
-  const skinIndex = mesh.geometry.getAttribute('skinIndex')
-  const skinWeight = mesh.geometry.getAttribute('skinWeight')
-  if (skeleton == null || position == null || skinIndex == null || skinWeight == null) return
-
-  let hasActiveZero = false
-  let hasOneBasedOverflow = false
-  let currentDistance = 0
-  let precedingDistance = 0
-  let activeWeight = 0
-  const point = new Vector3()
-  const bonePositions = skeleton.bones.map(bone => bone.getWorldPosition(new Vector3()))
-  for (let vertexIndex = 0; vertexIndex < skinIndex.count; vertexIndex += 1) {
-    point.set(position.getX(vertexIndex), position.getY(vertexIndex), position.getZ(vertexIndex))
-      .applyMatrix4(mesh.matrixWorld)
-    for (let componentIndex = 0; componentIndex < 4; componentIndex += 1) {
-      const weight = getAttributeComponent(skinWeight, vertexIndex, componentIndex)
-      if (weight <= 1e-4) continue
-      const boneIndex = getAttributeComponent(skinIndex, vertexIndex, componentIndex)
-      if (boneIndex === 0) {
-        hasActiveZero = true
-        continue
-      }
-      if (boneIndex < 0 || boneIndex > skeleton.bones.length) return
-      precedingDistance += point.distanceToSquared(bonePositions[boneIndex - 1]!) * weight
-      if (boneIndex === skeleton.bones.length) {
-        hasOneBasedOverflow = true
-      } else {
-        currentDistance += point.distanceToSquared(bonePositions[boneIndex]!) * weight
-      }
-      activeWeight += weight
-    }
-  }
-  if (hasActiveZero || activeWeight <= 1e-9) return
-  if (!hasOneBasedOverflow && precedingDistance * 2 >= currentDistance) return
-
-  for (let vertexIndex = 0; vertexIndex < skinIndex.count; vertexIndex += 1) {
-    for (let componentIndex = 0; componentIndex < 4; componentIndex += 1) {
-      if (getAttributeComponent(skinWeight, vertexIndex, componentIndex) <= 1e-4) continue
-      const boneIndex = getAttributeComponent(skinIndex, vertexIndex, componentIndex)
-      if (boneIndex > 0) {
-        setAttributeComponent(skinIndex, vertexIndex, componentIndex, boneIndex - 1)
+// Optimized MSFS palettes can encode joints in [1, jointCount]. The terminal
+// jointCount index is the required evidence for this compatibility conversion.
+// Resolve it once for the complete skin, including all material primitives;
+// a primitive's subset of joints cannot establish the palette's index base.
+function normalizeSkinJointPalettes(
+  root: { traverse(callback: (object: unknown) => void): void },
+  optimized: boolean
+): void {
+  const palettes = new Map<Skeleton, SkinnedMesh[]>()
+  root.traverse(object => {
+    if (!(object instanceof SkinnedMesh) || object.skeleton == null) return
+    const meshes = palettes.get(object.skeleton) ?? []
+    meshes.push(object)
+    palettes.set(object.skeleton, meshes)
+  })
+  for (const [skeleton, meshes] of palettes) {
+    let min = Infinity
+    let max = -Infinity
+    for (const mesh of meshes) {
+      const indices = mesh.geometry.getAttribute('skinIndex')
+      const weights = mesh.geometry.getAttribute('skinWeight')
+      if (indices == null || weights == null) continue
+      for (let vertex = 0; vertex < indices.count; vertex += 1) {
+        for (let component = 0; component < weights.itemSize; component += 1) {
+          if (getAttributeComponent(weights, vertex, component) === 0) continue
+          const index = getAttributeComponent(indices, vertex, component)
+          if (!Number.isInteger(index)) throw new Error('Invalid non-integer skin joint index')
+          min = Math.min(min, index)
+          max = Math.max(max, index)
+        }
       }
     }
+    if (max === -Infinity) continue
+    const offset = optimized && min >= 1 && max === skeleton.bones.length ? 1 : 0
+    if (min < offset || max - offset >= skeleton.bones.length) {
+      throw new Error(`Invalid skin joint palette: indices ${min}..${max}, ${skeleton.bones.length} joints`)
+    }
+    for (const mesh of meshes) {
+      const indices = mesh.geometry.getAttribute('skinIndex')
+      const weights = mesh.geometry.getAttribute('skinWeight')
+      if (indices == null || weights == null) continue
+      // Geometry can be shared by nodes with different skins. Own the converted
+      // attribute so neither another palette nor a second primitive rebases it twice.
+      mesh.geometry = mesh.geometry.clone()
+      const converted = mesh.geometry.getAttribute('skinIndex')
+      for (let vertex = 0; vertex < indices.count; vertex += 1) {
+        for (let component = 0; component < indices.itemSize; component += 1) {
+          const active = component < weights.itemSize &&
+            getAttributeComponent(weights, vertex, component) !== 0
+          setAttributeComponent(converted, vertex, component,
+            active ? getAttributeComponent(indices, vertex, component) - offset : 0)
+        }
+      }
+      mesh.geometry.setAttribute('skinIndex', converted)
+    }
   }
-  skinIndex.needsUpdate = true
 }
 
 function getRigidSingleBoneIndex(mesh: SkinnedMesh): number | null {

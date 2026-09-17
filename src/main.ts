@@ -10446,7 +10446,10 @@ async function loadAircraftModelDefinitionGltf(
         lodMinSize: lod.minSize
       })
       const skinningStartMs = performance.now()
-      normalizeMsfsSkinning(gltf.scene)
+      normalizeMsfsSkinning(
+        gltf.scene,
+        gltf.parser.json.asset?.extensions?.ASOBO_asset_optimized != null
+      )
       recordPhase('lod:normalize-skinning', skinningStartMs)
       setGlobalLoadStage({
         stage: 'gltf:lod:normalize-texcoords',
