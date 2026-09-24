@@ -1068,8 +1068,6 @@ export class AircraftRuntime {
 
   private resetWingFlexBindings(): void {
     for (const binding of this.wingFlexBindings) {
-      resetWingFlexSide(binding.leftWing)
-      resetWingFlexSide(binding.rightWing)
       resetWingFlexAttachments(binding.attachments)
     }
   }
@@ -6988,8 +6986,6 @@ interface RuntimeWingFlexNode {
   readonly node: Object3D
   readonly restMatrixInverseInRoot: Matrix4
   readonly restQuaternionInRoot: Quaternion
-  readonly restLocalPosition: Vector3
-  readonly restLocalQuaternion: Quaternion
   readonly spanRatio: number
 }
 
@@ -7016,7 +7012,6 @@ interface RuntimeWingFlexAttachment {
   readonly side: RuntimeWingFlexSide
   readonly spanRatio: number
   readonly authoredLocalPosition: Vector3
-  readonly authoredLocalQuaternion: Quaternion
   readonly authoredPointInRoot: Vector3
 }
 
@@ -7131,8 +7126,6 @@ function buildWingFlexSide(
         node: entry.node,
         restMatrixInverseInRoot: new Matrix4().compose(restPointInRoot, restQuaternionInRoot, unitScale).invert(),
         restQuaternionInRoot,
-        restLocalPosition: entry.node.position.clone(),
-        restLocalQuaternion: entry.node.quaternion.clone(),
         spanRatio: clamp(Math.abs(restPointInRoot.x - rootPointInRoot.x) / spanLength, 0, 1),
       }
     }),
@@ -7162,7 +7155,6 @@ function buildWingFlexAttachments(
       side,
       spanRatio,
       authoredLocalPosition: node.position.clone(),
-      authoredLocalQuaternion: node.quaternion.clone(),
       authoredPointInRoot: restPointInRoot.clone(),
     }]
   })
@@ -7178,19 +7170,9 @@ function worldPointToRoot(point: Vector3, sceneRoot: Object3D): Vector3 {
   return point.sub(rootWorldPosition).applyQuaternion(rootWorldQuaternionInverse)
 }
 
-function resetWingFlexSide(side: RuntimeWingFlexSide | null): void {
-  if (side == null) return
-  for (const entry of side.nodes) {
-    entry.node.position.copy(entry.restLocalPosition)
-    entry.node.quaternion.copy(entry.restLocalQuaternion)
-    entry.node.updateMatrix()
-  }
-}
-
 function resetWingFlexAttachments(attachments: readonly RuntimeWingFlexAttachment[]): void {
   for (const attachment of attachments) {
     attachment.node.position.copy(attachment.authoredLocalPosition)
-    attachment.node.quaternion.copy(attachment.authoredLocalQuaternion)
     attachment.node.updateMatrix()
   }
 }
@@ -7203,7 +7185,6 @@ function captureWingFlexAttachmentPoses(
   sceneRoot.updateMatrixWorld(true)
   for (const attachment of attachments) {
     attachment.authoredLocalPosition.copy(attachment.node.position)
-    attachment.authoredLocalQuaternion.copy(attachment.node.quaternion)
     attachment.authoredPointInRoot.copy(
       worldPointToRoot(attachment.node.getWorldPosition(new Vector3()), sceneRoot)
     )
@@ -7288,10 +7269,9 @@ function sampleWingDeformationField(
   const end = stations[segment + 1]!
   const width = end.spanRatio - start.spanRatio
   const rawT = width <= 1e-9 ? 0 : clamp((ratio - start.spanRatio) / width, 0, 1)
-  const blend = rawT * rawT * (3 - 2 * rawT)
   return pointInRoot.clone()
     .applyMatrix4(start.deltaMatrixInRoot)
-    .lerp(pointInRoot.clone().applyMatrix4(end.deltaMatrixInRoot), blend)
+    .lerp(pointInRoot.clone().applyMatrix4(end.deltaMatrixInRoot), rawT)
 }
 
 function applyWingFlexAttachments(
