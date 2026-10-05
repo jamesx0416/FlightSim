@@ -27,3 +27,7 @@ tmp/
 *.njsproj
 *.sln
 *.sw?
+**/backups/
+**/vendor/
+**/vender/
+.worktrees/
