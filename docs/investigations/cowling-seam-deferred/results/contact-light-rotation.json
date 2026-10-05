@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "operation": "browser-eval",
+  "startedAt": "2026-10-05T06:00:08.360Z",
+  "durationMs": 6520.1755,
+  "data": {
+    "slot": 1,
+    "sessionName": "flightsim-b93b6302-23886-12",
+    "result": {
+      "command": {
+        "executable": "agent-browser",
+        "args": [
+          "--session",
+          "flightsim-b93b6302-23886-12",
+          "--pin-tab",
+          "--profile",
+          "/Users/4980/Projects/FlightSim/.benchmarks/chrome-profile",
+          "--json",
+          "eval",
+          "--stdin"
+        ],
+        "timeoutMs": 120000,
+        "cwd": "/Users/4980/Projects/FlightSim/",
+        "stdin": "(async () => {\n  const api = window.__DevApi;\n  const key = window.__lastScene.children.filter(o => o.isDirectionalLight)[0];\n  const target = key.target.getWorldPosition(key.position.clone());\n  const original = key.position.clone();\n  const direction = original.clone().sub(target);\n  const axis = key.position.clone().set(0,1,0);\n  const wait = count => new Promise(resolve => { const next=()=>count--<=0?resolve():requestAnimationFrame(next); requestAnimationFrame(next); });\n  const results=[];\n  try {\n    for (const angle of [0,15,-15,30,-30,0]) {\n      key.position.copy(target).add(direction.clone().applyAxisAngle(axis,angle*Math.PI/180));\n      key.updateWorldMatrix(true,false);\n      await wait(60);\n      const s=await api.screenshot({target:'viewport'});\n      const bitmap=await createImageBitmap(await(await fetch(s.data.dataUrl)).blob());\n      const canvas=new OffscreenCanvas(bitmap.width,bitmap.height);\n      const ctx=canvas.getContext('2d');ctx.drawImage(bitmap,0,0);\n      const pixel=[...ctx.getImageData(703,300,1,1).data];\n      bitmap.close();\n      results.push({angle,pixel,light: key.position.toArray(),shadows:api.rendering.inspectShadows().data.enabled,gpu:api.perf().data.gpuTimestamp.latestMs});\n    }\n  } finally { key.position.copy(original);key.updateWorldMatrix(true,false); }\n  return results;\n})()\n"
+      },
+      "exitCode": 0,
+      "stdout": "{\"success\":true,\"data\":{\"lifecycle\":{\"effectiveLaunch\":{\"browserLaunched\":true,\"engine\":\"chrome\",\"launchHash\":17360951670452110688},\"launched\":false,\"relaunchedBrowser\":false,\"restartedBackground\":false,\"restoreStatus\":\"not_configured\",\"reused\":true,\"saveStatus\":\"not_attempted\"},\"origin\":\"https://air-physics.localhost:3000/?antialias=0&gpuTimestamp=1\",\"result\":[{\"angle\":0,\"gpu\":6.8157440000000005,\"light\":[96.40408236082877,56.446429629818226,51.031904780184675],\"pixel\":[200,194,180,255],\"shadows\":false},{\"angle\":15,\"gpu\":6.1603840000000005,\"light\":[106.30874030271708,56.446429629818226,24.39519901013358],\"pixel\":[195,188,173,255],\"shadows\":false},{\"angle\":-15,\"gpu\":6.22592,\"light\":[79.9428307021183,56.446429629818226,74.19747270015344],\"pixel\":[147,139,123,255],\"shadows\":false},{\"angle\":30,\"gpu\":5.767168,\"light\":[108.98181845726468,56.446429629818226,-3.897397131008451],\"pixel\":[2,4,7,255],\"shadows\":false},{\"angle\":-30,\"gpu\":5.8982399999999995,\"light\":[58.0467924236222,56.446429629818226,92.31320759920509],\"pixel\":[71,67,58,255],\"shadows\":false},{\"angle\":0,\"gpu\":5.8982399999999995,\"light\":[96.40408236082877,56.446429629818226,51.031904780184675],\"pixel\":[200,194,180,255],\"shadows\":false}]},\"error\":null}\n",
+      "stderr": "",
+      "durationMs": 6454.077916,
+      "timedOut": false
+    }
+  }
+}

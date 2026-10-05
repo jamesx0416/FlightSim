@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "operation": "browser-eval",
+  "startedAt": "2026-10-04T22:34:00.116Z",
+  "durationMs": 368.127709,
+  "data": {
+    "slot": 1,
+    "sessionName": "flightsim-b93b6302-9000-3",
+    "result": {
+      "command": {
+        "executable": "agent-browser",
+        "args": [
+          "--session",
+          "flightsim-b93b6302-9000-3",
+          "--pin-tab",
+          "--profile",
+          "/Users/4980/Projects/FlightSim/.benchmarks/chrome-profile",
+          "--json",
+          "eval",
+          "--stdin"
+        ],
+        "timeoutMs": 120000,
+        "cwd": "/Users/4980/Projects/FlightSim/",
+        "stdin": "(async () => {\n  const api = window.__DevApi\n  api.camera.setPose({position: [-20.28498574810446, 23.69840952508541, 11.568727641111206], quaternion: [0.13671903433611007, -0.49047646723309873, 0.07823766838095476, 0.8570995321355931], target: [-9.223340300884592, 27.898409525085405, 5.068727641111212]})\n  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))\n  return {stage: api.status().data.loadStage, status: api.rendering.contactOcclusionStatus(), depth: await window.__contactDepthProbe([-10.904923993062894, 26.90211064965465, 7.117734054207994])}\n})()\n"
+      },
+      "exitCode": 0,
+      "stdout": "{\"success\":true,\"data\":{\"lifecycle\":{\"effectiveLaunch\":{\"browserLaunched\":true,\"engine\":\"chrome\",\"launchHash\":17360951670452110688},\"launched\":false,\"relaunchedBrowser\":false,\"restartedBackground\":false,\"restoreStatus\":\"not_configured\",\"reused\":true,\"saveStatus\":\"not_attempted\"},\"origin\":\"https://air-physics.localhost:3000/?antialias=0&gpuTimestamp=1&contactOcclusion=1\",\"result\":{\"depth\":{\"clip\":[-0.24929427011846475,0.23360814303558392,0.4528783868489563,0.9999999999999998],\"data\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"depthSpan\":103.64612773682305,\"minimumGap\":0,\"ndc\":[-0.2492942701184648,0.233608143035584,0.4528783868489564,1],\"point\":[-10.904923993062894,26.90211064965465,7.117734054207994],\"uv\":[0.3753528649407676,0.383195928482208],\"x\":768,\"y\":784},\"stage\":{\"aircraftId\":\"SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0\",\"loadedLodIndex\":1,\"nowMs\":13924.900000000373,\"stage\":\"gltf:exterior-interior:deferred:ready\",\"timestamp\":1791153235022},\"status\":{\"data\":{\"enabled\":true,\"lightSpaceMap\":{\"resolution\":2048,\"texelWorldSizeM\":[0.0441816290117585,0.03159630346112635]},\"reason\":null,\"supported\":true,\"surfaceDiagnostics\":{\"nodeMaterials\":{\"classes\":{\"lambert\":0,\"other\":0,\"phong\":0,\"physical\":0,\"standard\":231,\"toon\":0},\"hookOverrides\":{\"lightingModel\":231,\"shader\":231},\"materialCount\":231},\"shadowFlags\":{\"castShadowMeshes\":238,\"eligibleMeshes\":238,\"receiveShadowMeshes\":238},\"unsupportedReasonCounts\":{\"alpha-to-coverage-material\":0,\"custom-depth-material\":0,\"custom-shader-material\":0,\"node-material\":0,\"non-mesh-surface\":0,\"render-callback\":0,\"transparent-material\":0,\"unsupported-material\":0},\"visibleDepthWritingSurfaceCount\":238},\"unsupportedSurfaceCount\":0},\"ok\":true,\"summary\":\"Read current contact occlusion status.\"}}},\"error\":null}\n",
+      "stderr": "",
+      "durationMs": 333.012291,
+      "timedOut": false
+    }
+  }
+}

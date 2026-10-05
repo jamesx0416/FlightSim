@@ -1,0 +1,82 @@
+{
+  "ok": true,
+  "operation": "browser-open",
+  "startedAt": "2026-10-05T00:08:58.709Z",
+  "durationMs": 24599.632583000002,
+  "data": {
+    "readiness": {
+      "requestedStage": "aircraft",
+      "resolvedStage": "aircraft",
+      "kind": "alias",
+      "condition": "(() => {\n    const status = window.__DevApi?.status?.()\n    if (status?.ok === true && status.data?.loadStage?.stage === \"scene:ready\") return true\n    const startup = window.__DevApi?.bench?.startup?.()\n    if (startup?.ok !== true) return false\n    if (startup.data?.currentLoadStage?.stage === \"scene:ready\") return true\n    if (!Array.isArray(startup.data?.stages)) return false\n    return startup.data.stages.some(entry => entry?.stage === \"scene:ready\")\n  })()",
+      "timeoutMs": 120000,
+      "elapsedMs": 20130.208458,
+      "completedStages": [
+        "aircraft"
+      ],
+      "observedStatus": {
+        "ok": true,
+        "summary": "Collected viewer status.",
+        "data": {
+          "loadStage": {
+            "stage": "compile:behaviors:full:ready",
+            "aircraftId": "SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0",
+            "timestamp": 1791158962511,
+            "nowMs": 20874
+          },
+          "packageRoot": "/aircrafts/headwindsim-aircraft-a330-900/",
+          "packageName": "A339X (Stable)",
+          "aircraftId": "SimObjects/Airplanes/_Headwind_A330neo-LIVERY#fltsim.0",
+          "aircraftTitle": "Airbus A330-900neo Headwind Simulations",
+          "renderer": {
+            "mode": "webgpu",
+            "interpolation": "centroid",
+            "pixelRatio": 1,
+            "size": [
+              1280,
+              577
+            ]
+          },
+          "cockpit": {
+            "available": true,
+            "active": false,
+            "activeInteriorLodIndex": null
+          },
+          "counts": {
+            "interactions": 2145,
+            "materialBindings": 860,
+            "gauges": 0,
+            "loadedGauges": 0,
+            "capturedGauges": 0,
+            "capturableGauges": 0,
+            "capturedCapturableGauges": 0,
+            "backendOnlyGauges": 0,
+            "variables": 1593
+          },
+          "fps": {
+            "fps": 39.34555231318579,
+            "averageFrameMs": 25.415833333336437,
+            "lowFps": 1,
+            "onePercentLowFps": 1.81225081551042,
+            "sampleCount": 120
+          },
+          "diagnostics": {
+            "error": 0,
+            "warning": 200,
+            "info": 136,
+            "other": 0
+          }
+        }
+      }
+    },
+    "retained": {
+      "slot": 1,
+      "sessionName": "flightsim-b93b6302-34974-8",
+      "keeperPid": 35211,
+      "stage": "aircraft",
+      "url": "https://air-physics.localhost:3000/?contactOcclusion=1&antialias=0",
+      "openedAt": "2026-10-05T00:09:23.304Z",
+      "revisionHash": "58e904f065e33a37499da1fc417b695dc5e2ab63"
+    }
+  }
+}
