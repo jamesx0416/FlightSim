@@ -1,1 +1,5 @@
 Keys.js
+**/backups/
+**/vendor/
+**/vender/
+.worktrees/
