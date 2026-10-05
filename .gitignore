@@ -1,0 +1,4 @@
+**/backups/
+**/vendor/
+**/vender/
+.worktrees/
