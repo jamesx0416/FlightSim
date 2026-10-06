@@ -3,3 +3,9 @@ Keys.js
 **/vendor/
 **/vender/
 .worktrees/
+**/third_party/
+**/.tmp/
+**/.tmp-*
+**/.codebase-memory/
+node_modules/
+.history-rewrite/
