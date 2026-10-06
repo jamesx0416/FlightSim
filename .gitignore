@@ -34,3 +34,5 @@ dist-ssr
 **/.codebase-memory/
 node_modules/
 .history-rewrite/
+/public/aircraft/
+/B737-800.glb
