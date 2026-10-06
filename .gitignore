@@ -31,3 +31,8 @@ tmp/
 **/vendor/
 **/vender/
 .worktrees/
+**/third_party/
+**/.tmp/
+**/.tmp-*
+**/.codebase-memory/
+.history-rewrite/
