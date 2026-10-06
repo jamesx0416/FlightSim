@@ -36,3 +36,5 @@ tmp/
 **/.tmp-*
 **/.codebase-memory/
 .history-rewrite/
+/public/aircraft/
+/B737-800.glb
