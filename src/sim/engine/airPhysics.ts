@@ -1323,11 +1323,13 @@ function addSemiInfiniteVortexInducedVelocity(
   direction: readonly [number, number, number],
   circulationM2PerSecond: number
 ): void {
-  const directionLength = Math.hypot(direction[0], direction[1], direction[2])
-  if (directionLength <= 1e-9) return
-  const dx = direction[0] / directionLength
-  const dy = direction[1] / directionLength
-  const dz = direction[2] / directionLength
+  // Wing wake directions are normalized when they are produced by
+  // computeWingElement. Renormalizing here happens twice for every
+  // wing/tail interaction and adds thousands of redundant square roots and
+  // divides per rendered frame.
+  const dx = direction[0]
+  const dy = direction[1]
+  const dz = direction[2]
   const rx = point[0] - start[0]
   const ry = point[1] - start[1]
   const rz = point[2] - start[2]
