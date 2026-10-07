@@ -103,8 +103,8 @@ function startTailscaleServe(dnsName) {
   }
 }
 
-function pipeTailscaleErrors(process) {
-  process?.stderr?.on('data', (chunk) => {
+function pipeTailscaleErrors(childProcess) {
+  childProcess?.stderr?.on('data', (chunk) => {
     const text = chunk.toString()
 
     if (!/client version .* != tailscaled server version/.test(text)) {
