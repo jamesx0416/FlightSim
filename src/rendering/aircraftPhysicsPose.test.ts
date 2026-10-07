@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 import { Euler, Quaternion, Vector3 } from 'three'
 
 import {
+  physicsRenderOffsetWithFloatingOrigin,
   physicsBodyReferenceOffsetToViewer,
   physicsQuaternionToViewer,
   physicsVectorToViewer,
@@ -34,4 +35,29 @@ test('maps heading and pitch without changing zero attitude', () => {
   const forwardAfterPitch = new Vector3(0, 0, 1).applyQuaternion(pitchViewer)
   expect(forwardAfterPitch.y > 0).toBe(true)
   expect(Math.abs(forwardAfterPitch.length() - 1) < 1e-12).toBe(true)
+})
+
+test('rebases physics rendering before world-space precision grows unbounded', () => {
+  const origin = new Vector3(100, 200, 300)
+  const target = new Vector3()
+
+  expect(
+    physicsRenderOffsetWithFloatingOrigin(
+      new Vector3(300, 200, 300),
+      origin,
+      target,
+      512
+    ).distanceTo(new Vector3(200, 0, 0)) < 1e-12
+  ).toBe(true)
+  expect(origin.distanceTo(new Vector3(100, 200, 300)) < 1e-12).toBe(true)
+
+  expect(
+    physicsRenderOffsetWithFloatingOrigin(
+      new Vector3(700, 200, 300),
+      origin,
+      target,
+      512
+    ).lengthSq()
+  ).toBe(0)
+  expect(origin.distanceTo(new Vector3(700, 200, 300)) < 1e-12).toBe(true)
 })

@@ -44,3 +44,20 @@ export function physicsQuaternionToViewer(
     .multiply(VIEWER_TO_PHYSICS_BASIS)
     .normalize()
 }
+
+export const PHYSICS_RENDER_REBASE_DISTANCE_METERS = 512
+
+export function physicsRenderOffsetWithFloatingOrigin(
+  absoluteViewerPosition: Vector3,
+  renderOriginAbsoluteViewer: Vector3,
+  target = new Vector3(),
+  rebaseDistanceMeters = PHYSICS_RENDER_REBASE_DISTANCE_METERS
+): Vector3 {
+  target.subVectors(absoluteViewerPosition, renderOriginAbsoluteViewer)
+  if (target.lengthSq() <= rebaseDistanceMeters * rebaseDistanceMeters) {
+    return target
+  }
+
+  renderOriginAbsoluteViewer.copy(absoluteViewerPosition)
+  return target.set(0, 0, 0)
+}

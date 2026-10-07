@@ -122,6 +122,7 @@ import {
 } from './rendering/createAppRenderer'
 import { createMsfsRenderPasses } from './rendering/createMsfsRenderPasses'
 import {
+  physicsRenderOffsetWithFloatingOrigin,
   physicsBodyReferenceOffsetToViewer,
   physicsQuaternionToViewer,
   physicsVectorToViewer,
@@ -278,6 +279,7 @@ export type CockpitCameraController = {
   readonly isAvailable: () => boolean
   readonly dispose: () => void
   readonly isActive: () => boolean
+  readonly translateExteriorSnapshot: (translation: Vector3) => void
   readonly update: () => void
   readonly stopInteraction: () => void
   readonly enter: (source?: CockpitViewToggleSource) => void
@@ -608,6 +610,9 @@ async function init(): Promise<void> {
       initialCenterOfMassShiftBody[1],
       initialCenterOfMassShiftBody[2]
     ))
+  const aircraftPhysicsRestModelPosition = aircraftPhysicsRoot == null
+    ? null
+    : aircraftRoot.position.clone()
   fitCameraToObject(camera, controls, aircraftRoot, aircraft)
   const renderPasses = createMsfsRenderPasses(renderer, scene, camera, aircraftRoot)
   const cameraDepthClipController = createCameraDepthClipController(camera, aircraftRoot)
@@ -3201,6 +3206,8 @@ async function init(): Promise<void> {
   const physicsAbsoluteViewer = new Vector3()
   const physicsAnchorAbsoluteViewer = new Vector3()
   const physicsAnchorRootPosition = aircraftPhysicsRoot?.position.clone() ?? new Vector3()
+  const physicsAnchorRootQuaternion = aircraftPhysicsRoot?.quaternion.clone() ?? new Quaternion()
+  const physicsRenderOffsetViewer = new Vector3()
   const physicsPreviousRootPosition = new Vector3()
   const physicsTranslationDelta = new Vector3()
   const physicsViewerQuaternion = new Quaternion()
@@ -3213,8 +3220,23 @@ async function init(): Promise<void> {
     const state = runtimeHost.simulatorEngine.state
     const enabled = state.readBoolean(AirPhysicsStateKeys.enabled(), { fallback: false }) ?? false
     if (!enabled) {
+      if (!physicsPoseWasEnabled) {
+        return null
+      }
+
+      physicsPreviousRootPosition.copy(aircraftPhysicsRoot.position)
+      aircraftPhysicsRoot.position.copy(physicsAnchorRootPosition)
+      aircraftPhysicsRoot.quaternion.copy(physicsAnchorRootQuaternion)
+      if (aircraftPhysicsRestModelPosition != null) {
+        aircraftRoot.position.copy(aircraftPhysicsRestModelPosition)
+      }
+      physicsTranslationDelta.subVectors(
+        aircraftPhysicsRoot.position,
+        physicsPreviousRootPosition
+      )
       physicsPoseWasEnabled = false
-      return null
+      physicsPoseResetRevision = -1
+      return physicsTranslationDelta
     }
 
     const north = state.readNumber(AirPhysicsStateKeys.northMeters(), { fallback: Number.NaN }) ?? Number.NaN
@@ -3234,17 +3256,20 @@ async function init(): Promise<void> {
 
     physicsVectorToViewer(north, east, -altitude, physicsAbsoluteViewer)
     const resetRevision = state.readNumber(AirPhysicsStateKeys.resetRevision(), { fallback: 0 }) ?? 0
-    if (!physicsPoseWasEnabled || resetRevision !== physicsPoseResetRevision) {
+    const poseReset = !physicsPoseWasEnabled || resetRevision !== physicsPoseResetRevision
+    if (poseReset) {
       physicsAnchorAbsoluteViewer.copy(physicsAbsoluteViewer)
-      physicsAnchorRootPosition.copy(aircraftPhysicsRoot.position)
       physicsPoseResetRevision = resetRevision
     }
 
     physicsPreviousRootPosition.copy(aircraftPhysicsRoot.position)
     aircraftPhysicsRoot.position
       .copy(physicsAnchorRootPosition)
-      .add(physicsAbsoluteViewer)
-      .sub(physicsAnchorAbsoluteViewer)
+      .add(physicsRenderOffsetWithFloatingOrigin(
+        physicsAbsoluteViewer,
+        physicsAnchorAbsoluteViewer,
+        physicsRenderOffsetViewer
+      ))
     if (aircraftPhysicsModelReferencePosition != null) {
       aircraftRoot.position
         .copy(aircraftPhysicsModelReferencePosition)
@@ -3285,9 +3310,13 @@ async function init(): Promise<void> {
       syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
       const cameraStartMs = performance.now()
       const physicsTranslation = syncAircraftPhysicsPose()
-      if (!cockpitCameraController.isActive() && physicsTranslation != null) {
-        camera.position.add(physicsTranslation)
-        controls.target.add(physicsTranslation)
+      if (physicsTranslation != null) {
+        if (cockpitCameraController.isActive()) {
+          cockpitCameraController.translateExteriorSnapshot(physicsTranslation)
+        } else {
+          camera.position.add(physicsTranslation)
+          controls.target.add(physicsTranslation)
+        }
       }
       cockpitCameraController.update()
       if (!cockpitCameraController.isActive()) {
@@ -3331,9 +3360,13 @@ async function init(): Promise<void> {
       ;(globalThis as Record<string, unknown>).__lastRuntimeState = runtimeState
       syncRuntimeMaterialState(runtimeMaterialState, runtimeHost)
       const physicsTranslation = syncAircraftPhysicsPose()
-      if (!cockpitCameraController.isActive() && physicsTranslation != null) {
-        camera.position.add(physicsTranslation)
-        controls.target.add(physicsTranslation)
+      if (physicsTranslation != null) {
+        if (cockpitCameraController.isActive()) {
+          cockpitCameraController.translateExteriorSnapshot(physicsTranslation)
+        } else {
+          camera.position.add(physicsTranslation)
+          controls.target.add(physicsTranslation)
+        }
       }
       cockpitCameraController.update()
       if (!cockpitCameraController.isActive()) {
@@ -11875,6 +11908,7 @@ function installCockpitCameraShortcut(
       isAvailable: () => false,
       dispose: () => {},
       isActive: () => false,
+      translateExteriorSnapshot: () => {},
       update: () => {},
       stopInteraction: () => {},
       enter: () => {},
@@ -11907,30 +11941,46 @@ function installCockpitCameraShortcut(
   let exteriorCameraSnapshot: OrbitCameraSnapshot | null = null
   let exteriorVisibilityBeforeCockpit = exteriorScene.visible
   const previousTouchAction = domElement.style.touchAction
+  const cockpitCameraWorldPosition = new Vector3()
+  const cockpitCameraLookTarget = new Vector3()
+  const cockpitCameraForward = new Vector3()
+  const cockpitCameraUp = new Vector3()
+  const cockpitAircraftWorldQuaternion = new Quaternion()
+  const cockpitCameraOrientation = new Euler(0, 0, 0, 'YXZ')
 
   const applyCockpitCamera = (options: { readonly refreshClipPlanes?: boolean } = {}): void => {
     if (!isCockpitViewActive) {
       return
     }
 
-    const worldPosition = aircraftRoot.localToWorld(cockpitCamera.position.clone())
+    cockpitCameraWorldPosition.copy(cockpitCamera.position)
+    aircraftRoot.localToWorld(cockpitCameraWorldPosition)
     const pitchRadians = Math.min(
       MAX_PITCH_RADIANS,
       Math.max(MIN_PITCH_RADIANS, basePitchRadians + pitchOffsetRadians)
     )
-    const orientation = new Euler(
+    cockpitCameraOrientation.set(
       pitchRadians,
       baseHeadingRadians + yawOffsetRadians,
       baseBankRadians,
       'YXZ'
     )
-    const forward = new Vector3(0, 0, 1).applyEuler(orientation).normalize()
-    const up = new Vector3(0, 1, 0).applyEuler(orientation).normalize()
+    aircraftRoot.getWorldQuaternion(cockpitAircraftWorldQuaternion)
+    cockpitCameraForward
+      .set(0, 0, 1)
+      .applyEuler(cockpitCameraOrientation)
+      .applyQuaternion(cockpitAircraftWorldQuaternion)
+      .normalize()
+    cockpitCameraUp
+      .set(0, 1, 0)
+      .applyEuler(cockpitCameraOrientation)
+      .applyQuaternion(cockpitAircraftWorldQuaternion)
+      .normalize()
 
-    camera.position.copy(worldPosition)
-    camera.up.copy(up)
+    camera.position.copy(cockpitCameraWorldPosition)
+    camera.up.copy(cockpitCameraUp)
     camera.zoom = cockpitZoom
-    camera.lookAt(worldPosition.clone().add(forward))
+    camera.lookAt(cockpitCameraLookTarget.copy(cockpitCameraWorldPosition).add(cockpitCameraForward))
     if (options.refreshClipPlanes === true) {
       refreshCockpitCameraClipPlanes()
     }
@@ -12312,6 +12362,10 @@ function installCockpitCameraShortcut(
       disposeCockpitCameraShortcut = null
     },
     isActive: () => isCockpitViewActive,
+    translateExteriorSnapshot: translation => {
+      exteriorCameraSnapshot?.position.add(translation)
+      exteriorCameraSnapshot?.target.add(translation)
+    },
     update: () => {
       if (
         activeCockpitPressBinding != null &&
