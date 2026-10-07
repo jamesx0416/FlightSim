@@ -14,6 +14,7 @@ Maintenance rule: when a new supported query parameter is added to the viewer, a
 | `interiorLod` | `?interiorLod=1` | Requests the zero-based cockpit/interior-view LOD index. `0` means LOD00, `1` means LOD01, and so on. If omitted, empty, or `auto`, the viewer selects the highest interior LOD whose package-layout model plus sibling buffer estimate is no larger than the web cockpit budget, falling back to LOD00 when sizes are unknown. Use an explicit value to force heavier cockpit LODs for inspection. Negative or non-integer values throw a startup error. |
 | `syncExteriorInterior` | `?syncExteriorInterior` | Loads any `withExterior_showInterior` interior LOD synchronously before the first exterior view. By default, that interior is loaded progressively after the exterior first view is available. |
 | `rendererPixelRatio` | `?rendererPixelRatio=1` | Caps renderer pixel ratio for high-DPI displays. Values are clamped from `0.5` to `2` and never exceed the device pixel ratio; default is `2`. Lower values can reduce cockpit fill-rate cost and stutter on dense displays at the cost of sharpness. |
+| `exteriorMergeStatic` | `?exteriorMergeStatic=1` | Opts into static exterior mesh merging. The loader protects authored behavior and animation targets and skips merging when an animation target cannot be resolved. Disabled by default. |
 
 ## Additional Package Roots
 

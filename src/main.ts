@@ -552,6 +552,11 @@ async function init(): Promise<void> {
     vcockpitGaugeCaptureFps: getVCockpitGaugeCaptureFps(effectiveSearchParams),
     vcockpitGaugeRasterScale: getVCockpitGaugeRasterScale(effectiveSearchParams),
     debugVCockpitGauges: shouldDebugVCockpitGauges(effectiveSearchParams),
+    behaviorSet: compiledBehaviorsPromise,
+    mergeStaticExteriorMeshes: isEnabledFlagSearchParam(
+      effectiveSearchParams,
+      'exteriorMergeStatic'
+    ),
     runtimeHost
   })
   const [initialCompiledBehaviors, gltf, cockpitLocalization] = await Promise.all([
@@ -2983,7 +2988,9 @@ async function init(): Promise<void> {
     const wasVisible = reusableExteriorScene.visible
     const nextExterior = await loadAircraftModelComponent(aircraftModelLoadContext, aircraft.model, {
       kind: 'exterior',
-      preferredLodIndex: requestedLodIndex
+      preferredLodIndex: requestedLodIndex,
+      behaviorSet: compiledBehaviors,
+      mergeStaticMeshes: isEnabledFlagSearchParam(effectiveSearchParams, 'exteriorMergeStatic')
     })
 
     disposeObjectResources(reusableExteriorScene)
@@ -4633,6 +4640,8 @@ async function loadAircraftGltf(
     readonly vcockpitGaugeCaptureFps?: number
     readonly vcockpitGaugeRasterScale?: number
     readonly debugVCockpitGauges?: boolean
+    readonly behaviorSet?: CompiledBehaviorSet | Promise<CompiledBehaviorSet>
+    readonly mergeStaticExteriorMeshes?: boolean
     readonly runtimeHost?: SharedMsfsRuntimeHost
   } = {}
 ): Promise<LoadedAircraftModel> {
@@ -4644,6 +4653,8 @@ async function loadAircraftGltf(
   const exterior = await loadAircraftModelComponent(context, aircraft.model, {
     kind: 'exterior',
     preferredLodIndex: options.preferredLodIndex ?? null,
+    behaviorSet: options.behaviorSet,
+    mergeStaticMeshes: options.mergeStaticExteriorMeshes,
     runtimeHost: options.runtimeHost
   })
   const interior =
@@ -4692,7 +4703,7 @@ async function loadAircraftModelComponent(
     readonly debugVCockpitGauges?: boolean
     readonly runtimeHost?: SharedMsfsRuntimeHost
     readonly collectResourceStats?: boolean
-    readonly behaviorSet?: CompiledBehaviorSet
+    readonly behaviorSet?: CompiledBehaviorSet | Promise<CompiledBehaviorSet>
     readonly prepareGltfInWorker?: boolean
     readonly waitForTextureLoads?: boolean
   }
@@ -4734,14 +4745,21 @@ async function loadAircraftModelComponent(
     stripObjectTextures(loaded.gltf.scene)
     recordPhase('component:strip-textures', stripStartMs)
   }
-  if (options.instanceStaticMeshes === true && options.behaviorSet != null) {
+  const runsStaticMeshOptimizer =
+    options.instanceStaticMeshes === true || options.mergeStaticMeshes === true
+  const needsBehaviorSet = runsStaticMeshOptimizer || options.bindVCockpitSurfaces === true
+  const behaviorSet = !needsBehaviorSet || options.behaviorSet == null
+    ? null
+    : await options.behaviorSet
+  if (options.instanceStaticMeshes === true && behaviorSet != null) {
     const instanceStartMs = performance.now()
     const { instanceStaticMsfsMeshes } = await import(
       './msfs/gltf/instanceStaticMsfsMeshes'
     )
     const instancingStats = instanceStaticMsfsMeshes(
       loaded.gltf.scene,
-      options.behaviorSet
+      behaviorSet,
+      loaded.gltf.animations
     )
     recordPhase('component:instance-static-meshes', instanceStartMs, instancingStats)
     setGlobalLoadStage({
@@ -4750,12 +4768,13 @@ async function loadAircraftModelComponent(
       ...instancingStats
     })
   }
-  if (options.mergeStaticMeshes === true && options.behaviorSet != null) {
+  if (options.mergeStaticMeshes === true && behaviorSet != null) {
     const mergeStartMs = performance.now()
     const { mergeStaticMsfsMeshes } = await import('./msfs/gltf/mergeStaticMsfsMeshes')
     const mergeStats = mergeStaticMsfsMeshes(
       loaded.gltf.scene,
-      options.behaviorSet
+      behaviorSet,
+      loaded.gltf.animations
     )
     recordPhase('component:merge-static-meshes', mergeStartMs, mergeStats)
     setGlobalLoadStage({
@@ -4777,7 +4796,7 @@ async function loadAircraftModelComponent(
       options.vcockpitGaugeCaptureFps ?? VCOCKPIT_HTML_GAUGE_DEFAULT_CAPTURE_HZ,
       options.vcockpitGaugeRasterScale ?? 1,
       options.debugVCockpitGauges === true,
-      options.behaviorSet ?? null,
+      behaviorSet,
       options.runtimeHost ?? new SharedMsfsRuntimeHost([], context.aircraft)
     )
     recordPhase('component:bind-vcockpit-surfaces', vcockpitStartMs, {

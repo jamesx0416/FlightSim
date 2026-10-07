@@ -1,19 +1,23 @@
 import {
   BufferAttribute,
   Box3,
+  type AnimationClip,
   BufferGeometry,
   InterleavedBufferAttribute,
+  Group,
+  LOD,
   Matrix4,
   Vector3,
   Mesh,
-  SkinnedMesh,
   type Material,
   type Object3D
 } from 'three'
 import { deinterleaveGeometry, mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 import type { CompiledBehaviorSet } from '../types'
+import { collectStaticMeshAnimationTargets } from './collectStaticMeshAnimationTargets'
 import { collectProtectedNodeNames } from './collectProtectedNodeNames'
+import { isSafeStaticMeshBatchCandidate } from './staticMeshBatchingEligibility'
 import { usesBlendGBufferMaterial } from './normalizeMsfsMaterials'
 
 type MergeAttribute = BufferAttribute | InterleavedBufferAttribute
@@ -32,6 +36,7 @@ export type StaticMeshMergeStats = {
   readonly mergedBatchCount: number
   readonly skippedProtectedMeshCount: number
   readonly skippedUnsupportedMeshCount: number
+  readonly animationTargetResolutionFailed: boolean
   readonly disposedGeometryCount: number
 }
 
@@ -43,9 +48,23 @@ const reusableCenter = new Vector3()
 
 export function mergeStaticMsfsMeshes(
   root: Object3D,
-  behaviorSet: CompiledBehaviorSet
+  behaviorSet: CompiledBehaviorSet,
+  animations: readonly AnimationClip[]
 ): StaticMeshMergeStats {
   const protectedNames = collectProtectedNodeNames(behaviorSet)
+  const animationTargets = collectStaticMeshAnimationTargets(root, animations)
+  if (animationTargets == null) {
+    return {
+      candidateMeshCount: 0,
+      mergedMeshCount: 0,
+      mergedBatchCount: 0,
+      skippedProtectedMeshCount: 0,
+      skippedUnsupportedMeshCount: countMeshes(root),
+      animationTargetResolutionFailed: true,
+      disposedGeometryCount: 0
+    }
+  }
+
   const batches = new Map<string, MergeCandidate[]>()
   let candidateMeshCount = 0
   let skippedProtectedMeshCount = 0
@@ -57,12 +76,16 @@ export function mergeStaticMsfsMeshes(
       return
     }
 
-    if (isProtectedByOwnName(object, protectedNames)) {
+    if (isProtectedByOwnName(object, protectedNames) || animationTargets.nodes.has(object)) {
       skippedProtectedMeshCount += 1
       return
     }
 
     const material = Array.isArray(object.material) ? null : object.material
+    if (material != null && animationTargets.materials.has(material)) {
+      skippedProtectedMeshCount += 1
+      return
+    }
     if (
       material == null ||
       !object.visible ||
@@ -73,7 +96,7 @@ export function mergeStaticMsfsMeshes(
       return
     }
 
-    const anchor = findStaticMeshAnchor(object, root, protectedNames)
+    const anchor = findStaticMeshAnchor(object, root, protectedNames, animationTargets.nodes)
     const anchorLocalMatrix = getMatrixRelativeToAnchor(object, anchor)
     const key = createMergeKey(object, material, anchor, anchorLocalMatrix)
     if (key == null) {
@@ -124,7 +147,7 @@ export function mergeStaticMsfsMeshes(
     mergedMesh.castShadow = canonical.mesh.castShadow
     mergedMesh.receiveShadow = canonical.mesh.receiveShadow
     mergedMesh.renderOrder = canonical.mesh.renderOrder
-    mergedMesh.frustumCulled = true
+    mergedMesh.frustumCulled = canonical.mesh.frustumCulled
     mergedMesh.layers.mask = canonical.mesh.layers.mask
     canonical.anchor.add(mergedMesh)
 
@@ -153,8 +176,17 @@ export function mergeStaticMsfsMeshes(
     mergedBatchCount,
     skippedProtectedMeshCount,
     skippedUnsupportedMeshCount,
+    animationTargetResolutionFailed: false,
     disposedGeometryCount
   }
+}
+
+function countMeshes(root: Object3D): number {
+  let count = 0
+  root.traverse(object => {
+    if (object instanceof Mesh) count += 1
+  })
+  return count
 }
 
 function isProtectedByOwnName(
@@ -170,24 +202,23 @@ function isProtectedByOwnName(
 function findStaticMeshAnchor(
   object: Object3D,
   root: Object3D,
-  protectedNames: ReadonlySet<string>
+  protectedNames: ReadonlySet<string>,
+  animatedTargets: ReadonlySet<Object3D>
 ): Object3D {
   let current = object.parent
-  let nearestNamedAncestor: Object3D | null = null
   while (current != null && current !== root) {
-    if (isProtectedByOwnName(current, protectedNames)) {
+    if (
+      isProtectedByOwnName(current, protectedNames) ||
+      animatedTargets.has(current) ||
+      current.visible === false ||
+      current instanceof Group ||
+      current.parent instanceof LOD
+    ) {
       return current
-    }
-    if (nearestNamedAncestor == null && isMeaningfulStaticGroupName(current.name)) {
-      nearestNamedAncestor = current
     }
     current = current.parent
   }
-  return nearestNamedAncestor ?? root
-}
-
-function isMeaningfulStaticGroupName(name: string): boolean {
-  return name !== '' && !/^\d+$/.test(name)
+  return root
 }
 
 function getMatrixRelativeToAnchor(object: Object3D, anchor: Object3D): Matrix4 {
@@ -197,17 +228,14 @@ function getMatrixRelativeToAnchor(object: Object3D, anchor: Object3D): Matrix4 
 }
 
 function canMergeMesh(mesh: Mesh, material: Material): boolean {
-  const isBlendGBufferMaterial = usesBlendGBufferMaterial(material)
-  if (mesh instanceof SkinnedMesh) {
+  if (
+    !isSafeStaticMeshBatchCandidate(mesh, material) ||
+    material.transparent ||
+    usesBlendGBufferMaterial(material)
+  ) {
     return false
   }
-  if (mesh.morphTargetInfluences != null && mesh.morphTargetInfluences.length > 0) {
-    return false
-  }
-  if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
-    return false
-  }
-  if (material.transparent && !isBlendGBufferMaterial) {
+  if (!material.depthTest || !material.depthWrite) {
     return false
   }
   return isMergeableGeometry(mesh.geometry)
@@ -219,7 +247,7 @@ function createMergeKey(
   anchor: Object3D,
   anchorLocalMatrix: Matrix4
 ): string | null {
-  if (!isMergeableGeometry(mesh.geometry)) {
+  if (!isMergeableGeometry(mesh.geometry) || anchorLocalMatrix.determinant() <= 0) {
     return null
   }
 
@@ -229,6 +257,7 @@ function createMergeKey(
     `renderOrder:${mesh.renderOrder}`,
     `castShadow:${mesh.castShadow ? '1' : '0'}`,
     `receiveShadow:${mesh.receiveShadow ? '1' : '0'}`,
+    `frustumCulled:${mesh.frustumCulled ? '1' : '0'}`,
     `layers:${mesh.layers.mask}`,
     `cell:${createSpatialCellKey(mesh.geometry, anchorLocalMatrix)}`,
     `attributes:${Object.entries(mesh.geometry.attributes)

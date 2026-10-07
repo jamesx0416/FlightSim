@@ -1,18 +1,21 @@
 import {
   BufferAttribute,
   BufferGeometry,
+  type AnimationClip,
   InterleavedBufferAttribute,
   Group,
   InstancedMesh,
+  LOD,
   Matrix4,
   Mesh,
-  SkinnedMesh,
   type Material,
   type Object3D
 } from 'three'
 
 import type { CompiledBehaviorSet } from '../types'
+import { collectStaticMeshAnimationTargets } from './collectStaticMeshAnimationTargets'
 import { collectProtectedNodeNames } from './collectProtectedNodeNames'
+import { isSafeStaticMeshBatchCandidate } from './staticMeshBatchingEligibility'
 
 type InstancingCandidate = {
   readonly mesh: Mesh
@@ -28,6 +31,7 @@ export type StaticMeshInstancingStats = {
   readonly instancedBatchCount: number
   readonly skippedProtectedMeshCount: number
   readonly skippedUnsupportedMeshCount: number
+  readonly animationTargetResolutionFailed: boolean
   readonly disposedGeometryCount: number
 }
 
@@ -35,9 +39,23 @@ const MIN_INSTANCES_PER_BATCH = 2
 
 export function instanceStaticMsfsMeshes(
   root: Object3D,
-  behaviorSet: CompiledBehaviorSet
+  behaviorSet: CompiledBehaviorSet,
+  animations: readonly AnimationClip[]
 ): StaticMeshInstancingStats {
   const protectedNames = collectProtectedNodeNames(behaviorSet)
+  const animationTargets = collectStaticMeshAnimationTargets(root, animations)
+  if (animationTargets == null) {
+    return {
+      candidateMeshCount: 0,
+      instancedMeshCount: 0,
+      instancedBatchCount: 0,
+      skippedProtectedMeshCount: 0,
+      skippedUnsupportedMeshCount: countMeshes(root),
+      animationTargetResolutionFailed: true,
+      disposedGeometryCount: 0
+    }
+  }
+
   const batches = new Map<string, InstancingCandidate[]>()
   let candidateMeshCount = 0
   let skippedProtectedMeshCount = 0
@@ -49,19 +67,29 @@ export function instanceStaticMsfsMeshes(
       return
     }
 
-    if (isProtectedByOwnName(object, protectedNames)) {
+    if (isProtectedByOwnName(object, protectedNames) || animationTargets.nodes.has(object)) {
       skippedProtectedMeshCount += 1
       return
     }
 
     const material = Array.isArray(object.material) ? null : object.material
-    if (material == null || !object.visible || object.parent == null || !canInstanceMesh(object)) {
+    if (material != null && animationTargets.materials.has(material)) {
+      skippedProtectedMeshCount += 1
+      return
+    }
+    if (
+      material == null ||
+      !object.visible ||
+      object.parent == null ||
+      !canInstanceMesh(object, material)
+    ) {
       skippedUnsupportedMeshCount += 1
       return
     }
 
-    const anchor = findInstancingAnchor(object, root, protectedNames)
-    const key = createInstancingKey(object.geometry, material, anchor)
+    const anchor = findInstancingAnchor(object, root, protectedNames, animationTargets.nodes)
+    const worldMatrix = getMatrixRelativeToAnchor(object, anchor)
+    const key = createInstancingKey(object, material, anchor, worldMatrix)
     if (key == null) {
       skippedUnsupportedMeshCount += 1
       return
@@ -74,7 +102,7 @@ export function instanceStaticMsfsMeshes(
       geometry: object.geometry,
       material,
       anchor,
-      worldMatrix: getMatrixRelativeToAnchor(object, anchor)
+      worldMatrix
     })
     batches.set(key, batch)
   })
@@ -99,10 +127,11 @@ export function instanceStaticMsfsMeshes(
       batch.length
     )
     instancedMesh.name = `__MSFS_STATIC_INSTANCE_BATCH_${instancedBatchCount}`
-    instancedMesh.castShadow = batch.some(candidate => candidate.mesh.castShadow)
-    instancedMesh.receiveShadow = batch.some(candidate => candidate.mesh.receiveShadow)
-    instancedMesh.renderOrder = Math.max(...batch.map(candidate => candidate.mesh.renderOrder))
-    instancedMesh.frustumCulled = true
+    instancedMesh.castShadow = canonical.mesh.castShadow
+    instancedMesh.receiveShadow = canonical.mesh.receiveShadow
+    instancedMesh.renderOrder = canonical.mesh.renderOrder
+    instancedMesh.frustumCulled = canonical.mesh.frustumCulled
+    instancedMesh.layers.mask = canonical.mesh.layers.mask
 
     for (let index = 0; index < batch.length; index += 1) {
       const candidate = batch[index]!
@@ -134,8 +163,17 @@ export function instanceStaticMsfsMeshes(
     instancedBatchCount,
     skippedProtectedMeshCount,
     skippedUnsupportedMeshCount,
+    animationTargetResolutionFailed: false,
     disposedGeometryCount
   }
+}
+
+function countMeshes(root: Object3D): number {
+  let count = 0
+  root.traverse(object => {
+    if (object instanceof Mesh) count += 1
+  })
+  return count
 }
 
 function isProtectedByOwnName(
@@ -151,24 +189,23 @@ function isProtectedByOwnName(
 function findInstancingAnchor(
   object: Object3D,
   root: Object3D,
-  protectedNames: ReadonlySet<string>
+  protectedNames: ReadonlySet<string>,
+  animatedTargets: ReadonlySet<Object3D>
 ): Object3D {
   let current = object.parent
-  let nearestNamedAncestor: Object3D | null = null
   while (current != null && current !== root) {
-    if (isProtectedByOwnName(current, protectedNames)) {
+    if (
+      isProtectedByOwnName(current, protectedNames) ||
+      animatedTargets.has(current) ||
+      current.visible === false ||
+      current instanceof Group ||
+      current.parent instanceof LOD
+    ) {
       return current
-    }
-    if (nearestNamedAncestor == null && isMeaningfulStaticGroupName(current.name)) {
-      nearestNamedAncestor = current
     }
     current = current.parent
   }
-  return nearestNamedAncestor ?? root
-}
-
-function isMeaningfulStaticGroupName(name: string): boolean {
-  return name !== '' && !/^\d+$/.test(name)
+  return root
 }
 
 function collectVisibleGeometries(root: Object3D): ReadonlySet<BufferGeometry> {
@@ -187,27 +224,34 @@ function getMatrixRelativeToAnchor(object: Object3D, anchor: Object3D): Matrix4 
   return anchor.matrixWorld.clone().invert().multiply(object.matrixWorld)
 }
 
-function canInstanceMesh(mesh: Mesh): boolean {
-  if (mesh instanceof SkinnedMesh) {
-    return false
-  }
-  if (mesh.morphTargetInfluences != null && mesh.morphTargetInfluences.length > 0) {
-    return false
-  }
-  if (Object.keys(mesh.geometry.morphAttributes).length > 0) {
-    return false
-  }
-  return true
+function canInstanceMesh(mesh: Mesh, material: Material): boolean {
+  return (
+    !material.transparent &&
+    material.depthTest &&
+    material.depthWrite &&
+    isSafeStaticMeshBatchCandidate(mesh, material)
+  )
 }
 
 function createInstancingKey(
-  geometry: BufferGeometry,
+  mesh: Mesh,
   material: Material,
-  parent: Object3D
+  parent: Object3D,
+  worldMatrix: Matrix4
 ): string | null {
+  if (worldMatrix.determinant() <= 0) {
+    return null
+  }
+
+  const geometry = mesh.geometry
   const parts = [
     `parent:${parent.uuid}`,
     `material:${material.uuid}`,
+    `renderOrder:${mesh.renderOrder}`,
+    `castShadow:${mesh.castShadow ? '1' : '0'}`,
+    `receiveShadow:${mesh.receiveShadow ? '1' : '0'}`,
+    `frustumCulled:${mesh.frustumCulled ? '1' : '0'}`,
+    `layers:${mesh.layers.mask}`,
     `drawRange:${geometry.drawRange.start}:${geometry.drawRange.count}`,
     `groups:${geometry.groups
       .map(group => `${group.start}:${group.count}:${group.materialIndex ?? -1}`)
